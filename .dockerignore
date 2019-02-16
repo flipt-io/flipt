@@ -1,0 +1,17 @@
+.envrc
+*.db
+*.md
+*.txt
+*.log
+
+.github/
+.vagrant/
+bin/
+build/
+Dockerfile
+docs/
+node_modules/
+site/
+
+LICENSE
+mkdocs.yml

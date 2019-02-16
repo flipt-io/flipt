@@ -1,0 +1,17 @@
+# host: 0.0.0.0
+
+# log:
+  # level: INFO
+
+# api:
+  # port: 8080
+
+# backend:
+  # port: 9000
+
+# db:
+  # name: flipt
+  # path: /var/opt/flipt
+  # migrations:
+    # auto: true
+    # path: /etc/flipt/config/migrations

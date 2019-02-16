@@ -1,0 +1,23 @@
+site_name: Flipt Documentation
+site_description: 'A stand alone feature flag solution'
+site_author: 'Mark Phelps'
+site_url: 'https://github.com/markphelps/flipt/'
+
+google_analytics: ['UA-44979762-6', 'auto']
+
+theme:
+  name: 'material'
+  favicon: 'assets/images/favicon.ico'
+  logo:
+    icon: 'assistant_photo'
+  palette:
+    primary: 'cyan'
+
+extra:
+  social:
+    - type: 'github'
+      link: 'https://github.com/markphelps/flipt'
+
+markdown_extensions:
+  - admonition
+  - codehilite

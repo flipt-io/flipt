@@ -1,0 +1,17 @@
+# host: 0.0.0.0
+
+log:
+  level: DEBUG
+
+# api:
+  # port: 8080
+
+# backend:
+  # port: 9000
+
+db:
+  name: flipt
+  path: ./
+  migrations:
+    auto: true
+    path: ./config/migrations

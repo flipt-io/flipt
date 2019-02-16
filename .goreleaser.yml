@@ -1,0 +1,36 @@
+before:
+  hooks:
+    - make clean
+    - make generate
+
+builds:
+  - main: ./cmd/flipt/main.go
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+    goarch:
+      - amd64
+archive:
+  replacements:
+    amd64: x86_64
+  files:
+    - LICENSE
+    - README.md
+    - CHANGELOG.md
+    - ./config/migrations/*
+    - ./config/default.yml
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-snapshot"
+changelog:
+  skip: true
+dockers:
+  - binaries:
+      - flipt
+    image_templates:
+      - "markphelps/flipt:latest"
+      - "markphelps/flipt:{{ .Tag }}"
+    extra_files:
+      - config

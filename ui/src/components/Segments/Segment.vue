@@ -1,0 +1,546 @@
+<template>
+  <div>
+    <section class="section">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+          <ul>
+            <li>
+              <RouterLink :to="{ name: 'segments' }">Segments</RouterLink>
+            </li>
+            <li class="is-active">
+              <a href="#" aria-current="page">{{ segment.key }}</a>
+            </li>
+          </ul>
+        </nav>
+        <form>
+          <BField label="Key">
+            <BInput v-model="segment.key" disabled />
+          </BField>
+          <BField label="Name">
+            <BInput
+              v-model="segment.name"
+              placeholder="Segment name"
+              required
+            />
+          </BField>
+          <BField label="Description (optional)">
+            <BInput
+              v-model="segment.description"
+              placeholder="Segment description"
+            />
+          </BField>
+          <div class="level">
+            <div class="level-left">
+              <div class="level-item">
+                <div class="field is-grouped">
+                  <div class="control">
+                    <button
+                      class="button is-primary"
+                      :disabled="!canUpdateSegment"
+                      @click.prevent="updateSegment()"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  <div class="control">
+                    <RouterLink
+                      class="button is-text"
+                      :to="{ name: 'segments' }"
+                      >Cancel</RouterLink
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="level-right">
+              <div class="level-item">
+                <div class="field is-grouped">
+                  <div class="control">
+                    <button
+                      class="button is-danger"
+                      @click.prevent="dialogDeleteSegmentVisible = true"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+        <hr />
+        <h5 class="title is-5">Constraints</h5>
+        <p class="subtitle is-7">Match All</p>
+        <BTable :data="segment.constraints">
+          <template slot-scope="props">
+            <BTableColumn field="property" label="Property" sortable>
+              {{ props.row.property }}
+            </BTableColumn>
+            <BTableColumn field="type" label="Type" sortable>
+              {{ comparisons[props.row.type] }}
+            </BTableColumn>
+            <BTableColumn field="operator" label="Operator" centered>
+              {{ allOperators[props.row.operator] }}
+            </BTableColumn>
+            <BTableColumn field="value" label="Value">
+              {{ props.row.value }}
+            </BTableColumn>
+            <BTableColumn field="" label="" width="110" centered>
+              <a
+                class="button is-white"
+                @click.prevent="editConstraint(props.index)"
+              >
+                <span class="icon is-small">
+                  <i class="fas fa-pencil-alt" />
+                </span>
+              </a>
+              <a
+                class="button is-white"
+                @click.prevent="deleteConstraint(props.index)"
+              >
+                <span class="icon is-small"> <i class="fas fa-times" /> </span>
+              </a>
+            </BTableColumn>
+          </template>
+        </BTable>
+        <br />
+        <div class="field">
+          <div class="control">
+            <button
+              class="button is-primary"
+              @click.prevent="dialogAddConstraintVisible = true"
+            >
+              New Constraint
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div
+      id="addConstraintDialog"
+      class="modal"
+      :class="{ 'is-active': dialogAddConstraintVisible }"
+    >
+      <div class="modal-background" @click.prevent="cancelAddConstraint" />
+      <div class="modal-content" @keyup.esc="cancelAddConstraint">
+        <div class="box">
+          <form>
+            <BField label="Property">
+              <BInput
+                v-model="newConstraint.property"
+                placeholder="Property"
+                required
+              />
+            </BField>
+            <BField label="Comparison Type">
+              <BSelect v-model="newConstraint.type" placeholder="Select a type">
+                <option
+                  v-for="(value, key, index) in comparisons"
+                  :key="index"
+                  :value="key"
+                >
+                  {{ value }}
+                </option>
+              </BSelect>
+            </BField>
+            <BField label="Operator">
+              <BSelect
+                v-model="newConstraint.operator"
+                placeholder="Select an operator"
+                :disabled="!newConstraint.type"
+              >
+                <option
+                  v-for="(value, key, index) in operators(newConstraint.type)"
+                  :key="index"
+                  :value="key"
+                >
+                  {{ value }}
+                </option>
+              </BSelect>
+            </BField>
+            <BField v-show="hasValue(newConstraint.operator)" label="Value">
+              <BInput v-model="newConstraint.value" placeholder="Value" />
+            </BField>
+            <div class="field is-grouped">
+              <div class="control">
+                <button
+                  class="button is-primary"
+                  :disabled="!canAddConstraint"
+                  @click.prevent="addConstraint"
+                >
+                  Add Constraint
+                </button>
+                <button
+                  class="button is-text"
+                  @click.prevent="cancelAddConstraint"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        @click.prevent="cancelAddConstraint"
+      />
+    </div>
+
+    <div
+      id="editConstraintDialog"
+      class="modal"
+      :class="{ 'is-active': dialogEditConstraintVisible }"
+    >
+      <div class="modal-background" @click.prevent="cancelEditConstraint" />
+      <div class="modal-content" @keyup.esc="cancelAddConstraint">
+        <div class="box">
+          <form>
+            <BField label="Property">
+              <BInput
+                v-model="selectedConstraint.property"
+                placeholder="Property"
+                required
+              />
+            </BField>
+            <BField label="Comparison Type">
+              <BSelect
+                v-model="selectedConstraint.type"
+                placeholder="Select a type"
+              >
+                <option
+                  v-for="(value, key, index) in comparisons"
+                  :key="index"
+                  :value="key"
+                >
+                  {{ value }}
+                </option>
+              </BSelect>
+            </BField>
+            <BField label="Operator">
+              <BSelect
+                v-model="selectedConstraint.operator"
+                placeholder="Select an operator"
+              >
+                <option
+                  v-for="(value, key, index) in operators(
+                    selectedConstraint.type
+                  )"
+                  :key="index"
+                  :value="key"
+                >
+                  {{ value }}
+                </option>
+              </BSelect>
+            </BField>
+            <BField
+              v-show="hasValue(selectedConstraint.operator)"
+              label="Value"
+            >
+              <BInput v-model="selectedConstraint.value" placeholder="Value" />
+            </BField>
+            <div class="field is-grouped">
+              <div class="control">
+                <button
+                  class="button is-primary"
+                  :disabled="!canUpdateConstraint"
+                  @click.prevent="updateConstraint"
+                >
+                  Update Constraint
+                </button>
+                <button
+                  class="button is-text"
+                  @click.prevent="cancelEditConstraint"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        @click.prevent="cancelEditConstraint"
+      />
+    </div>
+
+    <div
+      id="deleteSegmentDialog"
+      class="modal"
+      :class="{ 'is-active': dialogDeleteSegmentVisible }"
+    >
+      <div
+        class="modal-background"
+        @click="dialogDeleteSegmentVisible = false"
+      />
+      <div
+        class="modal-content"
+        @keyup.esc="dialogDeleteSegmentVisible = false"
+      >
+        <div class="box">
+          <p class="has-text-centered">
+            Are you sure you want to delete this segment?
+          </p>
+          <br />
+          <div class="control has-text-centered">
+            <button class="button is-danger" @click.prevent="deleteSegment">
+              Confirm
+            </button>
+            <button
+              class="button is-text"
+              @click="dialogDeleteSegmentVisible = false"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+      <button
+        class="modal-close is-large"
+        aria-label="close"
+        @click="dialogDeleteSegmentVisible = false"
+      />
+    </div>
+  </div>
+</template>
+
+<script>
+import clone from "lodash/clone";
+import cloneDeep from "lodash/cloneDeep";
+import capitalize from "lodash/capitalize";
+import merge from "lodash/merge";
+
+import { Api } from "@/services/api";
+import notify from "@/mixins/notify";
+
+const STRING_OPERATORS = {
+  eq: "==",
+  neq: "!=",
+  empty: "IS EMPTY",
+  notempty: "IS NOT EMPTY"
+};
+
+const NUMBER_OPERATORS = {
+  eq: "==",
+  neq: "!=",
+  lt: "<",
+  lte: "<=",
+  gt: ">",
+  gte: ">=",
+  present: "IS PRESENT",
+  notpresent: "IS NOT PRESENT"
+};
+
+const BOOLEAN_OPERATORS = {
+  true: "IS TRUE",
+  false: "IS FALSE",
+  present: "IS PRESENT",
+  notpresent: "IS NOT PRESENT"
+};
+
+const COMPARISONS = {
+  STRING_COMPARISON_TYPE: "string",
+  NUMBER_COMPARISON_TYPE: "number",
+  BOOLEAN_COMPARISON_TYPE: "boolean"
+};
+
+const DEFAULT_CONSTRAINT = {
+  type: "STRING_COMPARISON_TYPE",
+  property: "",
+  operator: "eq",
+  value: ""
+};
+
+export default {
+  name: "Segment",
+  mixins: [notify],
+  data() {
+    return {
+      dialogDeleteSegmentVisible: false,
+      dialogAddConstraintVisible: false,
+      dialogEditConstraintVisible: false,
+      segment: {
+        constraints: []
+      },
+      newConstraint: clone(DEFAULT_CONSTRAINT),
+      selectedConstraint: clone(DEFAULT_CONSTRAINT),
+      comparisons: COMPARISONS,
+      allOperators: merge(
+        {},
+        STRING_OPERATORS,
+        NUMBER_OPERATORS,
+        BOOLEAN_OPERATORS
+      )
+    };
+  },
+  computed: {
+    canUpdateSegment() {
+      return this.segment.key && this.segment.name;
+    },
+    canAddConstraint() {
+      return this.newConstraint.property && this.newConstraint.type;
+    },
+    canUpdateConstraint() {
+      return this.selectedConstraint.property && this.selectedConstraint.type;
+    }
+  },
+  mounted() {
+    this.getSegment();
+  },
+  methods: {
+    formatKey() {
+      this.segment.key = this.segment.key
+        .toLowerCase()
+        .split(" ")
+        .join("-");
+    },
+    operators(type) {
+      switch (type) {
+        case "STRING_COMPARISON_TYPE":
+          return STRING_OPERATORS;
+
+        case "NUMBER_COMPARISON_TYPE":
+          return NUMBER_OPERATORS;
+
+        case "BOOLEAN_COMPARISON_TYPE":
+          return BOOLEAN_OPERATORS;
+      }
+    },
+    hasValue(operator) {
+      return (
+        operator !== "present" &&
+        operator !== "notpresent" &&
+        operator !== "empty" &&
+        operator !== "notempty" &&
+        operator !== "true" &&
+        operator !== "false"
+      );
+    },
+    getSegment() {
+      let key = this.$route.params.key;
+
+      Api.get("/segments/" + key)
+        .then(response => {
+          this.segment = response.data;
+          this.segment.constraints = response.data.constraints
+            ? response.data.constraints
+            : [];
+        })
+        .catch(error => {
+          this.notifyError("Error loading segment.");
+          console.error(error);
+        });
+    },
+    deleteSegment() {
+      Api.delete("/segments/" + this.segment.key)
+        .then(() => {
+          this.notifySuccess("Segment deleted!");
+          this.$router.push("/segments");
+        })
+        .catch(error => {
+          if (error.response && error.response.data) {
+            this.notifyError(capitalize(error.response.data.message));
+          } else {
+            this.notifyError("Error deleting segment.");
+            console.error(error);
+          }
+        });
+    },
+    updateSegment() {
+      Api.put("/segments/" + this.segment.key, this.segment)
+        .then(() => {
+          this.notifySuccess("Segment updated!");
+        })
+        .catch(error => {
+          if (error.response && error.response.data) {
+            this.notifyError(capitalize(error.response.data.message));
+          } else {
+            this.notifyError("Error updating segment.");
+            console.error(error);
+          }
+        });
+    },
+    addConstraint() {
+      Api.post(
+        "/segments/" + this.segment.key + "/constraints",
+        this.newConstraint
+      )
+        .then(response => {
+          this.segment.constraints.push(response.data);
+          this.newConstraint = clone(DEFAULT_CONSTRAINT);
+          this.notifySuccess("Constraint added!");
+          this.dialogAddConstraintVisible = false;
+        })
+        .catch(error => {
+          if (error.response && error.response.data) {
+            this.notifyError(capitalize(error.response.data.message));
+          } else {
+            this.notifyError("Error creating constraint.");
+            console.error(error);
+          }
+        });
+    },
+    cancelAddConstraint() {
+      this.dialogAddConstraintVisible = false;
+      this.newConstraint = clone(DEFAULT_CONSTRAINT);
+    },
+    updateConstraint() {
+      Api.put(
+        "/segments/" +
+          this.segment.key +
+          "/constraints/" +
+          this.selectedConstraint.id,
+        this.selectedConstraint
+      )
+        .then(response => {
+          let constraint = response.data;
+          let index = this.segment.constraints.findIndex(
+            c => c.id === constraint.id
+          );
+          this.segment.constraints[index] = constraint;
+          this.selectedConstraint = clone(DEFAULT_CONSTRAINT);
+          this.notifySuccess("Constraint updated!");
+          this.dialogEditConstraintVisible = false;
+        })
+        .catch(error => {
+          if (error.response && error.response.data) {
+            this.notifyError(capitalize(error.response.data.message));
+          } else {
+            this.notifyError("Error updating constraint.");
+            console.error(error);
+          }
+        });
+    },
+    deleteConstraint(index) {
+      if (!confirm(`Are you sure you want to delete this constraint?`)) {
+        return;
+      }
+
+      let constraint = this.segment.constraints[index];
+
+      Api.delete(
+        "/segments/" + this.segment.key + "/constraints/" + constraint.id
+      )
+        .then(() => {
+          this.segment.constraints.splice(index, 1);
+        })
+        .catch(error => {
+          this.notifyError("Error deleting constraint.");
+          console.error(error);
+        });
+    },
+    editConstraint(index) {
+      this.dialogEditConstraintVisible = true;
+      this.selectedConstraint = cloneDeep(this.segment.constraints[index]);
+    },
+    cancelEditConstraint() {
+      this.dialogEditConstraintVisible = false;
+      this.selectedConstraint = clone(DEFAULT_CONSTRAINT);
+    }
+  }
+};
+</script>

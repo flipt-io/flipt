@@ -1,0 +1,306 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package flipt;
+
+message EvaluationRequest {
+  string request_id = 1;
+  string flag_key = 2;
+  string entity_id = 3;
+  map<string, string> context = 4;
+}
+
+message EvaluationResponse {
+  string request_id = 1;
+  string entity_id = 2;
+  map<string, string> request_context = 3;
+  bool match = 4;
+  string flag_key = 5;
+  string segment_key = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string value = 8;
+  double request_duration_millis = 9;
+}
+
+message Flag {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  repeated Variant variants = 7;
+}
+
+message FlagList {
+  repeated Flag flags = 1;
+}
+
+message GetFlagRequest {
+  string key = 1;
+}
+
+message ListFlagRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message CreateFlagRequest {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+}
+
+message UpdateFlagRequest {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+}
+
+message DeleteFlagRequest {
+  string key = 1;
+}
+
+message Variant {
+  string id = 1;
+  string flag_key = 2;
+  string key = 3;
+  string name = 4;
+  string description = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message CreateVariantRequest {
+  string flag_key = 1;
+  string key = 2;
+  string name = 3;
+  string description = 4;
+}
+
+message UpdateVariantRequest {
+  string id = 1;
+  string flag_key = 2;
+  string key = 3;
+  string name = 4;
+  string description = 5;
+}
+
+message DeleteVariantRequest {
+  string id = 1;
+  string flag_key = 2;
+}
+
+message Segment {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  repeated Constraint constraints = 6;
+}
+
+message SegmentList {
+  repeated Segment segments = 1;
+}
+
+message GetSegmentRequest {
+  string key = 1;
+}
+
+message ListSegmentRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message CreateSegmentRequest {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message UpdateSegmentRequest {
+  string key= 1;
+  string name = 2;
+  string description = 3;
+}
+
+message DeleteSegmentRequest {
+  string key = 1;
+}
+
+enum ComparisonType {
+  UNKNOWN_COMPARISON_TYPE = 0;
+  STRING_COMPARISON_TYPE = 1;
+  NUMBER_COMPARISON_TYPE = 2;
+  BOOLEAN_COMPARISON_TYPE = 3;
+}
+
+message Constraint {
+  string id = 1;
+  string segment_key = 2;
+  ComparisonType type = 3;
+  string property = 4;
+  string operator = 5;
+  string value = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreateConstraintRequest {
+  string segment_key = 1;
+  ComparisonType type = 2;
+  string property = 3;
+  string operator = 4;
+  string value = 5;
+}
+
+message UpdateConstraintRequest {
+  string id = 1;
+  string segment_key = 2;
+  ComparisonType type = 3;
+  string property = 4;
+  string operator = 5;
+  string value = 6;
+}
+
+message DeleteConstraintRequest {
+  string id = 1;
+  string segment_key = 2;
+}
+
+message Rule {
+  string id = 1;
+  string flag_key = 2;
+  string segment_key = 3;
+  repeated Distribution distributions = 4;
+  int32 rank = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message RuleList {
+  repeated Rule rules = 1;
+}
+
+message ListRuleRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string flag_key = 3;
+}
+
+message GetRuleRequest {
+  string id = 1;
+  string flag_key = 2;
+}
+
+message CreateRuleRequest {
+  string flag_key = 1;
+  string segment_key = 2;
+  int32 rank = 3;
+}
+
+message UpdateRuleRequest {
+  string id = 1;
+  string flag_key = 2;
+  string segment_key = 3;
+}
+
+message DeleteRuleRequest {
+  string id = 1;
+  string flag_key = 2;
+}
+
+message OrderRulesRequest {
+  string flag_key = 1;
+  repeated string rule_ids = 2;
+}
+
+message Distribution {
+  string id = 1;
+  string rule_id = 2;
+  string variant_id = 3;
+  float rollout = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message CreateDistributionRequest {
+  string flag_key = 1;
+  string rule_id = 2;
+  string variant_id = 3;
+  float rollout = 4;
+}
+
+message UpdateDistributionRequest {
+  string id = 1;
+  string flag_key = 2;
+  string rule_id = 3;
+  string variant_id = 4;
+  float rollout = 5;
+}
+
+message DeleteDistributionRequest {
+  string id = 1;
+  string flag_key = 2;
+  string rule_id = 3;
+  string variant_id = 4;
+}
+
+service Flipt {
+  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {}
+
+  rpc GetFlag(GetFlagRequest) returns (Flag) {}
+
+  rpc ListFlags(ListFlagRequest) returns (FlagList) {}
+
+  rpc CreateFlag(CreateFlagRequest) returns (Flag) {}
+
+  rpc UpdateFlag(UpdateFlagRequest) returns (Flag) {}
+
+  rpc DeleteFlag(DeleteFlagRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreateVariant(CreateVariantRequest) returns (Variant) {}
+
+  rpc UpdateVariant(UpdateVariantRequest) returns (Variant) {}
+
+  rpc DeleteVariant(DeleteVariantRequest) returns (google.protobuf.Empty) {}
+
+  rpc GetRule(GetRuleRequest) returns (Rule) {}
+
+  rpc ListRules(ListRuleRequest) returns (RuleList) {}
+
+  rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreateRule(CreateRuleRequest) returns (Rule) {}
+
+  rpc UpdateRule(UpdateRuleRequest) returns (Rule) {}
+
+  rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {}
+
+  rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {}
+
+  rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {}
+
+  rpc GetSegment(GetSegmentRequest) returns (Segment) {}
+
+  rpc ListSegments(ListSegmentRequest) returns (SegmentList) {}
+
+  rpc CreateSegment(CreateSegmentRequest) returns (Segment) {}
+
+  rpc UpdateSegment(UpdateSegmentRequest) returns (Segment) {}
+
+  rpc DeleteSegment(DeleteSegmentRequest) returns (google.protobuf.Empty) {}
+
+  rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {}
+
+  rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {}
+
+  rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {}
+}

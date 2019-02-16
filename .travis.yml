@@ -1,0 +1,16 @@
+language: go
+go:
+  - '1.11.x'
+
+# Force-disable Go modules.
+env:
+  - GO111MODULE=off
+
+install:
+  - make setup
+
+script:
+  - make ci
+
+notifications:
+  email: false

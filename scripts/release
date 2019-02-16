@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+docker run --rm --privileged \
+  -v "$PWD":/go/src/github.com/markphelps/flipt \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -w /go/src/github.com/markphelps/flipt \
+  -e GITHUB_TOKEN \
+  -e DOCKER_USERNAME \
+  -e DOCKER_PASSWORD \
+  goreleaser/goreleaser:v0.101-cgo --rm-dist

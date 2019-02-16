@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css">
+    <title>Flipt Example</title>
+  </head>
+  <body>
+    <section class="section">
+      <div class="container">
+        <div class="tags has-addons">
+            <span class="tag is-medium">{{ .FlagName }}</span>
+          {{if .FlagEnabled }}
+            <span class="tag is-success is-medium">Enabled</span>
+          {{else}}
+            <span class="tag is-info is-medium">Disabled</span>
+          {{end}}
+        </div>
+        <div class="tile is-parent">
+          {{if .FlagEnabled }}
+          <article class="tile is-child notification is-success">
+            <div class="content">
+              <p class="title">New Content</p>
+              <p class="subtitle">This is the new content that users will see because <strong>{{ .FlagKey }}</strong> is enabled!</p>
+            </div>
+          </article>
+          {{else}}
+          <article class="tile is-child notification is-info">
+            <div class="content">
+              <p class="title">Existing Content</p>
+              <p class="subtitle">This is the current content that users will see because <strong>{{ .FlagKey }}</strong> is disabled!</p>
+            </div>
+          </article>
+          {{end}}
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

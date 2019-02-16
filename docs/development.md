@@ -1,0 +1,68 @@
+# Development
+
+The following are instructions for setting up your machine for Flipt development.
+
+## Requirements
+
+Before starting, make sure you have the following installed:
+
+* GCC Compiler
+* [SQLite](https://sqlite.org/index.html)
+* [Go 1.10+](https://golang.org/doc/install)
+* [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
+
+## Setup
+
+1. Create the directory to clone into: `mkdir -p $GOPATH/src/github.com/markphelps`
+1. Clone this repo: `git clone https://github.com/markphelps/flipt $GOPATH/src/github.com/markphelps`
+1. Run `make setup` to download dependencies
+1. Run `make test` to execute the test suite
+1. Run `make dev` to build and run in development mode
+1. Run `make help` to see a full list of possible make commands
+
+## Vagrant
+
+You can also easily get started with a development environment running in a VM using [Vagrant](https://www.vagrantup.com/) and [Virtual Box](https://www.virtualbox.org/wiki/Downloads).
+
+Once you have Vagrant and Virtual Box installed you can change into either the `build/ubuntu` or `build/centos` directories and run `vagrant up`.
+
+This will provision a VM that installs the necessary dev dependencies and runs the Flipt test suite.
+
+Once the provisioning process is complete, run:
+
+```shell
+$ vagrant ssh
+$ cd $GOPATH/src/github.com/markphelps/flipt
+$ make dev
+```
+
+This will run Flipt in development mode inside your VM.
+
+## Configuration
+
+Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
+
+```shell
+make dev
+```
+
+## Changes
+
+Changing certain types of files such as the protobuf, ui or documentation files require re-building before they will be picked up in new versions of the binary.
+
+### Updating .proto Files
+
+After changing `flipt.proto`, you'll need to run `make proto`. This will regenerate the following files:
+
+* `flipt.pb.go`
+* `flipt.pb.gw.go`
+
+### Updating assets
+
+Running `make generate` will regenerate the embedded assets (ui, api documentation) so that the next time `make dev` is run they will be included.
+
+#### UI components
+
+The UI is built using [Yarn](https://yarnpkg.com/en/) and [webpack](https://webpack.js.org/) and is also statically compiled into the Flipt binary.
+
+The [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
