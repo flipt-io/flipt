@@ -7,6 +7,10 @@ A self contained feature flag solution.
 
 ![Flipt](docs/assets/images/flipt.png)
 
+## Documentation
+
+Documentation is hosted at: [https://markphelps.github.io/flipt/](https://markphelps.github.io/flipt/)
+
 ## What is Flipt
 
 Flipt is an open source, self contained application that enables you to use feature flags and experiment (A/B test) across services, running in **your** environment.
@@ -71,10 +75,6 @@ For a more detailed guide on how to setup and run Flipt, checkout the [Installat
 For more information on how Flipt works behind the curtain, read the [Architecture](docs/architecture.md) documentation.
 
 For information on how to integrate Flipt with your existing applications, see the [Integration](docs/integration.md) guide.
-
-## Documentation
-
-[https://markphelps.github.io/flipt](https://markphelps.github.io/flipt/)
 
 ## Author
 
