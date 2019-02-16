@@ -1,6 +1,7 @@
 # Flipt
 
 [![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
+![GitHub Release](https://img.shields.io/github/release/markphelps/flipt.svg?style=flat)
 
 A self contained feature flag solution.
 
@@ -53,6 +54,12 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 * **Speed**. Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
 * **Simplicity**. Flipt is a single binary with no external dependencies. This means there is no database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
 
+### Try It
+
+```bash
+❯ docker run -p 8080:8080 -p 9000:9000  markphelps/flipt:latest
+```
+
 ## What's Next
 
 To see Flipt in action, checkout an [example](example/).
@@ -91,6 +98,7 @@ My plan is to soon start working on a Pro Version of Flipt for enterprise. Along
 
 * User management/login
 * Permissions
+* HTTPS
 * Auditing
 * Streaming updates
 * Metrics
