@@ -73,7 +73,7 @@ Want to get up and running with Flipt? See [Getting Started](https://markphelps.
 
 For a more detailed guide on how to setup and run Flipt, checkout the [Installation](https://markphelps.github.io/flipt/installation/) documentation.
 
-For more information on how Flipt works behind the curtain, read the [Architecture](https://markphelps.github.io/flipt/architecture/) documentation.
+To learn how Flipt works behind the curtain, read up on it's [Architecture](https://markphelps.github.io/flipt/architecture/).
 
 For information on how to integrate Flipt with your existing applications, see the [Integration](https://markphelps.github.io/flipt/integration/) guide.
 
