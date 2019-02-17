@@ -5,7 +5,7 @@ import "fmt"
 // ErrNotFound represents a not found error
 type ErrNotFound string
 
-// ErrNotFoundF creates an ErrNotFound using a custom format
+// ErrNotFoundf creates an ErrNotFound using a custom format
 func ErrNotFoundf(format string, args ...interface{}) error {
 	return ErrNotFound(fmt.Sprintf(format, args...))
 }
