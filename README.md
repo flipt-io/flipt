@@ -1,6 +1,7 @@
 # Flipt
 
 [![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
+![CodeClimate Coverage](https://img.shields.io/codeclimate/coverage/markphelps/flipt.svg?style=flat)
 ![GitHub Release](https://img.shields.io/github/release/markphelps/flipt.svg?style=flat)
 
 A self contained feature flag solution.
@@ -62,7 +63,7 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 ### Try It
 
 ```bash
-❯ docker run -p 8080:8080 -p 9000:9000  markphelps/flipt:latest
+❯ docker run -p 8080:8080 -p 9000:9000 markphelps/flipt:latest
 ```
 
 ## What's Next
