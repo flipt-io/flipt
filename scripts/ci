@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+if [ ! -f "$GOPATH/bin/golangci-lint" ]; then \
+    curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$GOPATH/bin" v1.12.5; \
+fi
+
+golangci-lint run
+
+for pkg in $(go list ./... | grep -v vendor); do
+    go test -coverprofile=$(echo $pkg | tr / -).cover $pkg
+done
+
+echo "mode: set" > c.out
+grep -h -v "^mode:" ./*.cover >> c.out
+rm -f ./*.cover

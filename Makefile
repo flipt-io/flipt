@@ -28,9 +28,6 @@ setup: ## Install dev tools
 test: ## Run all the tests
 	go test $(TEST_OPTS) -v -race -covermode=atomic -coverprofile=coverage.txt $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=30s
 
-.PHONY: ci
-ci: lint test ## Run all the tests and code checks
-
 .PHONY: cover
 cover: test ## Run all the tests and opens the coverage report
 	go tool cover -html=coverage.txt
