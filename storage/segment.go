@@ -19,6 +19,7 @@ type SegmentService struct {
 	builder sq.StatementBuilderType
 }
 
+// NewSegmentService creates a SegmentService
 func NewSegmentService(logger logrus.FieldLogger, db *sql.DB) *SegmentService {
 	return &SegmentService{
 		logger:  logger.WithField("service", "segment"),

@@ -17,6 +17,7 @@ func NewModTimeFS(fs http.FileSystem) ModTimeFS {
 	return ModTimeFS{fs: fs}
 }
 
+// Open wraps the file with a modTimeFile
 func (m ModTimeFS) Open(name string) (http.File, error) {
 	f, err := m.fs.Open(name)
 	if err != nil {
@@ -29,6 +30,7 @@ type modTimeFile struct {
 	http.File
 }
 
+// Stat wraps the FileInfo with a modTimeFileInfo
 func (m modTimeFile) Stat() (os.FileInfo, error) {
 	fi, err := m.File.Stat()
 	if err != nil {

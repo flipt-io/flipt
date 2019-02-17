@@ -26,6 +26,7 @@ type RuleService struct {
 	builder sq.StatementBuilderType
 }
 
+// NewRuleService creates a RuleService
 func NewRuleService(logger logrus.FieldLogger, db *sql.DB) *RuleService {
 	return &RuleService{
 		logger:  logger.WithField("service", "rule"),

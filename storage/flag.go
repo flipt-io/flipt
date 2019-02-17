@@ -18,6 +18,7 @@ type FlagService struct {
 	builder sq.StatementBuilderType
 }
 
+// NewFlagService creates a FlagService
 func NewFlagService(logger logrus.FieldLogger, db *sql.DB) *FlagService {
 	return &FlagService{
 		logger:  logger.WithField("service", "flag"),

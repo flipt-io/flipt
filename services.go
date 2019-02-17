@@ -2,6 +2,7 @@ package flipt
 
 import "context"
 
+// RuleService ...
 type RuleService interface {
 	Rule(ctx context.Context, r *GetRuleRequest) (*Rule, error)
 	Rules(ctx context.Context, r *ListRuleRequest) ([]*Rule, error)
@@ -15,6 +16,7 @@ type RuleService interface {
 	Evaluate(ctx context.Context, r *EvaluationRequest) (*EvaluationResponse, error)
 }
 
+// FlagService ...
 type FlagService interface {
 	Flag(ctx context.Context, r *GetFlagRequest) (*Flag, error)
 	Flags(ctx context.Context, r *ListFlagRequest) ([]*Flag, error)
@@ -26,6 +28,7 @@ type FlagService interface {
 	DeleteVariant(ctx context.Context, r *DeleteVariantRequest) error
 }
 
+// SegmentService ...
 type SegmentService interface {
 	Segment(ctx context.Context, r *GetSegmentRequest) (*Segment, error)
 	Segments(ctx context.Context, r *ListSegmentRequest) ([]*Segment, error)
