@@ -79,7 +79,7 @@ For information on how to integrate Flipt with your existing applications, see t
 
 ## Author
 
-Mark Phelps, [@mark_a_phelps](https://twitter.com/mark_a_phelps), _mark.aaron.phelps at gmail.com_
+[Mark Phelps](https://markphelps.me), [@mark_a_phelps](https://twitter.com/mark_a_phelps), _mark.aaron.phelps at gmail.com_
 
 ## TODO/Contributing
 
