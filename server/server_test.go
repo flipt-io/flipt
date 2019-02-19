@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/markphelps/flipt"
+	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -20,13 +20,23 @@ func TestErrorInterceptor(t *testing.T) {
 		wantCode codes.Code
 	}{
 		{
-			name:     "not found error",
-			err:      flipt.ErrNotFound("foo"),
+			name:     "storage not found error",
+			err:      storage.ErrNotFound("foo"),
 			wantCode: codes.NotFound,
 		},
 		{
-			name:     "invalid error",
-			err:      flipt.ErrInvalid("foo"),
+			name:     "storage invalid error",
+			err:      storage.ErrInvalid("foo"),
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "server invalid field",
+			err:      InvalidFieldError("bar", "is wrong"),
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "server empty field",
+			err:      EmptyFieldError("bar"),
 			wantCode: codes.InvalidArgument,
 		},
 		{

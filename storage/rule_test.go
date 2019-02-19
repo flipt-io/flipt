@@ -6,13 +6,13 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/markphelps/flipt"
+	flipt "github.com/markphelps/flipt/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRule(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -22,7 +22,7 @@ func TestRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -32,7 +32,7 @@ func TestRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -41,7 +41,7 @@ func TestRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -50,7 +50,7 @@ func TestRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	got, err := ruleSrv.Rule(context.TODO(), &flipt.GetRuleRequest{
+	got, err := ruleRepo.Rule(context.TODO(), &flipt.GetRuleRequest{
 		Id:      rule.Id,
 		FlagKey: flag.Key,
 	})
@@ -67,7 +67,7 @@ func TestRule(t *testing.T) {
 }
 
 func TestRules(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -77,7 +77,7 @@ func TestRules(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -87,7 +87,7 @@ func TestRules(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -110,11 +110,11 @@ func TestRules(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := ruleSrv.CreateRule(context.TODO(), req)
+		_, err := ruleRepo.CreateRule(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	got, err := ruleSrv.Rules(context.TODO(), &flipt.ListRuleRequest{
+	got, err := ruleRepo.Rules(context.TODO(), &flipt.ListRuleRequest{
 		FlagKey: flag.Key,
 	})
 
@@ -123,7 +123,7 @@ func TestRules(t *testing.T) {
 }
 
 func TestRulesPagination(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -133,7 +133,7 @@ func TestRulesPagination(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -143,7 +143,7 @@ func TestRulesPagination(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -166,11 +166,11 @@ func TestRulesPagination(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := ruleSrv.CreateRule(context.TODO(), req)
+		_, err := ruleRepo.CreateRule(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	got, err := ruleSrv.Rules(context.TODO(), &flipt.ListRuleRequest{
+	got, err := ruleRepo.Rules(context.TODO(), &flipt.ListRuleRequest{
 		FlagKey: flag.Key,
 		Limit:   1,
 		Offset:  1,
@@ -181,7 +181,7 @@ func TestRulesPagination(t *testing.T) {
 }
 
 func TestCreateRuleAndDistribution(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -191,7 +191,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -201,7 +201,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -210,7 +210,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -226,7 +226,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	assert.NotZero(t, rule.CreatedAt)
 	assert.Equal(t, rule.CreatedAt, rule.UpdatedAt)
 
-	distribution, err := ruleSrv.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	distribution, err := ruleRepo.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
 		Rollout:   100,
@@ -242,7 +242,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 }
 
 func TestCreateRule_FlagNotFound(t *testing.T) {
-	_, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	_, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    "foo",
 		SegmentKey: "bar",
 		Rank:       1,
@@ -252,7 +252,7 @@ func TestCreateRule_FlagNotFound(t *testing.T) {
 }
 
 func TestCreateRule_SegmentNotFound(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -262,7 +262,7 @@ func TestCreateRule_SegmentNotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	_, err = ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	_, err = ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: "foo",
 		Rank:       1,
@@ -272,7 +272,7 @@ func TestCreateRule_SegmentNotFound(t *testing.T) {
 }
 
 func TestUpdateRuleAndDistribution(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -282,7 +282,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -292,7 +292,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segmentOne, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segmentOne, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         fmt.Sprintf("%s_one", t.Name()),
 		Name:        "foo",
 		Description: "bar",
@@ -301,7 +301,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segmentOne)
 
-	rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segmentOne.Key,
 		Rank:       1,
@@ -317,7 +317,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.NotZero(t, rule.CreatedAt)
 	assert.Equal(t, rule.CreatedAt, rule.UpdatedAt)
 
-	distribution, err := ruleSrv.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	distribution, err := ruleRepo.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
 		Rollout:   100,
@@ -331,7 +331,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt, distribution.UpdatedAt)
 
-	segmentTwo, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segmentTwo, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         fmt.Sprintf("%s_two", t.Name()),
 		Name:        "foo",
 		Description: "bar",
@@ -340,7 +340,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segmentTwo)
 
-	updatedRule, err := ruleSrv.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
+	updatedRule, err := ruleRepo.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
 		Id:         rule.Id,
 		FlagKey:    flag.Key,
 		SegmentKey: segmentTwo.Key,
@@ -356,7 +356,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, rule.CreatedAt, updatedRule.CreatedAt)
 	assert.NotEqual(t, rule.CreatedAt, updatedRule.UpdatedAt)
 
-	updatedDistribution, err := ruleSrv.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+	updatedDistribution, err := ruleRepo.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		Id:        distribution.Id,
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
@@ -373,7 +373,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 }
 
 func TestUpdateRule_NotFound(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -383,7 +383,7 @@ func TestUpdateRule_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -392,7 +392,7 @@ func TestUpdateRule_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	_, err = ruleSrv.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
+	_, err = ruleRepo.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
 		Id:         "foo",
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
@@ -402,7 +402,7 @@ func TestUpdateRule_NotFound(t *testing.T) {
 }
 
 func TestDeleteRule(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -412,7 +412,7 @@ func TestDeleteRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -422,7 +422,7 @@ func TestDeleteRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -435,7 +435,7 @@ func TestDeleteRule(t *testing.T) {
 
 	// create 3 rules
 	for i := 0; i < 3; i++ {
-		rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 			FlagKey:    flag.Key,
 			SegmentKey: segment.Key,
 			Rank:       int32(i + 1),
@@ -447,14 +447,14 @@ func TestDeleteRule(t *testing.T) {
 	}
 
 	// delete second rule
-	err = ruleSrv.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
+	err = ruleRepo.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
 		FlagKey: flag.Key,
 		Id:      rules[1].Id,
 	})
 
 	require.NoError(t, err)
 
-	got, err := ruleSrv.Rules(context.TODO(), &flipt.ListRuleRequest{
+	got, err := ruleRepo.Rules(context.TODO(), &flipt.ListRuleRequest{
 		FlagKey: flag.Key,
 	})
 
@@ -469,7 +469,7 @@ func TestDeleteRule(t *testing.T) {
 }
 
 func TestDeleteRule_NotFound(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -479,7 +479,7 @@ func TestDeleteRule_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	err = ruleSrv.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
+	err = ruleRepo.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
 		Id:      "foo",
 		FlagKey: flag.Key,
 	})
@@ -488,7 +488,7 @@ func TestDeleteRule_NotFound(t *testing.T) {
 }
 
 func TestOrderRules(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -498,7 +498,7 @@ func TestOrderRules(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -508,7 +508,7 @@ func TestOrderRules(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -521,7 +521,7 @@ func TestOrderRules(t *testing.T) {
 
 	// create 3 rules
 	for i := 0; i < 3; i++ {
-		rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 			FlagKey:    flag.Key,
 			SegmentKey: segment.Key,
 			Rank:       int32(i + 1),
@@ -541,14 +541,14 @@ func TestOrderRules(t *testing.T) {
 	}
 
 	// re-order rules
-	err = ruleSrv.OrderRules(context.TODO(), &flipt.OrderRulesRequest{
+	err = ruleRepo.OrderRules(context.TODO(), &flipt.OrderRulesRequest{
 		FlagKey: flag.Key,
 		RuleIds: ruleIds,
 	})
 
 	require.NoError(t, err)
 
-	got, err := ruleSrv.Rules(context.TODO(), &flipt.ListRuleRequest{
+	got, err := ruleRepo.Rules(context.TODO(), &flipt.ListRuleRequest{
 		FlagKey: flag.Key,
 	})
 
@@ -565,7 +565,7 @@ func TestOrderRules(t *testing.T) {
 }
 
 func TestEvaluate_flagNotFound(t *testing.T) {
-	_, err := ruleSrv.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+	_, err := ruleRepo.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		FlagKey: "foo",
 		Context: map[string]string{
 			"bar": "boz",
@@ -576,7 +576,7 @@ func TestEvaluate_flagNotFound(t *testing.T) {
 }
 
 func TestEvaluate_flagDisabled(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -585,7 +585,7 @@ func TestEvaluate_flagDisabled(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = ruleSrv.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+	_, err = ruleRepo.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		FlagKey:  flag.Key,
 		EntityId: "1",
 		Context: map[string]string{
@@ -598,7 +598,7 @@ func TestEvaluate_flagDisabled(t *testing.T) {
 }
 
 func TestEvaluate_flagNoRules(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -607,7 +607,7 @@ func TestEvaluate_flagNoRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = flagSrv.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	_, err = flagRepo.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -616,7 +616,7 @@ func TestEvaluate_flagNoRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	resp, err := ruleSrv.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+	resp, err := ruleRepo.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		FlagKey:  flag.Key,
 		EntityId: "1",
 		Context: map[string]string{
@@ -629,7 +629,7 @@ func TestEvaluate_flagNoRules(t *testing.T) {
 }
 
 func TestEvaluate_singleVariantDistribution(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        t.Name(),
 		Description: "foo",
@@ -650,12 +650,12 @@ func TestEvaluate_singleVariantDistribution(t *testing.T) {
 			Key:     fmt.Sprintf("bar_%s", t.Name()),
 		},
 	} {
-		variant, err := flagSrv.CreateVariant(context.TODO(), req)
+		variant, err := flagRepo.CreateVariant(context.TODO(), req)
 		require.NoError(t, err)
 		variants = append(variants, variant)
 	}
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        t.Name(),
 		Description: "foo",
@@ -663,7 +663,7 @@ func TestEvaluate_singleVariantDistribution(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = segmentSrv.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = segmentRepo.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
@@ -673,14 +673,14 @@ func TestEvaluate_singleVariantDistribution(t *testing.T) {
 
 	require.NoError(t, err)
 
-	rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
 
 	require.NoError(t, err)
 
-	_, err = ruleSrv.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	_, err = ruleRepo.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variants[0].Id,
@@ -719,7 +719,7 @@ func TestEvaluate_singleVariantDistribution(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := ruleSrv.Evaluate(context.TODO(), tt.req)
+			resp, err := ruleRepo.Evaluate(context.TODO(), tt.req)
 			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, flag.Key, resp.FlagKey)
@@ -739,7 +739,7 @@ func TestEvaluate_singleVariantDistribution(t *testing.T) {
 }
 
 func TestEvaluate_rolloutDistribution(t *testing.T) {
-	flag, err := flagSrv.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagRepo.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        t.Name(),
 		Description: "foo",
@@ -760,12 +760,12 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 			Key:     fmt.Sprintf("bar_%s", t.Name()),
 		},
 	} {
-		variant, err := flagSrv.CreateVariant(context.TODO(), req)
+		variant, err := flagRepo.CreateVariant(context.TODO(), req)
 		require.NoError(t, err)
 		variants = append(variants, variant)
 	}
 
-	segment, err := segmentSrv.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentRepo.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        t.Name(),
 		Description: "foo",
@@ -773,7 +773,7 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = segmentSrv.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = segmentRepo.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
@@ -783,7 +783,7 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 
 	require.NoError(t, err)
 
-	rule, err := ruleSrv.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := ruleRepo.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
@@ -804,7 +804,7 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 			Rollout:   50,
 		},
 	} {
-		_, err := ruleSrv.CreateDistribution(context.TODO(), req)
+		_, err := ruleRepo.CreateDistribution(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
@@ -852,7 +852,7 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := ruleSrv.Evaluate(context.TODO(), tt.req)
+			resp, err := ruleRepo.Evaluate(context.TODO(), tt.req)
 			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, flag.Key, resp.FlagKey)

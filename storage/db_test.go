@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/markphelps/flipt"
 	"github.com/sirupsen/logrus"
 
 	migrate "github.com/golang-migrate/migrate"
@@ -20,9 +19,9 @@ var (
 	logger logrus.FieldLogger
 	tables = []string{"constraints", "distributions", "flags", "rules", "segments", "variants"}
 
-	flagSrv    flipt.FlagService
-	segmentSrv flipt.SegmentService
-	ruleSrv    flipt.RuleService
+	flagRepo    FlagRepository
+	segmentRepo SegmentRepository
+	ruleRepo    RuleRepository
 )
 
 func TestMain(m *testing.M) {
@@ -48,9 +47,9 @@ func TestMain(m *testing.M) {
 		logger.Fatal(err)
 	}
 
-	flagSrv = NewFlagService(logger, db)
-	segmentSrv = NewSegmentService(logger, db)
-	ruleSrv = NewRuleService(logger, db)
+	flagRepo = NewFlagStorage(logger, db)
+	segmentRepo = NewSegmentStorage(logger, db)
+	ruleRepo = NewRuleStorage(logger, db)
 
 	err = truncate()
 	if err != nil {

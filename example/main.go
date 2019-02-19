@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/markphelps/flipt"
+	flipt "github.com/markphelps/flipt/proto"
 	"google.golang.org/grpc"
 )
 

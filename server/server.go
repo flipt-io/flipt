@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/markphelps/flipt"
+	pb "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -12,22 +12,22 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ flipt.FliptServer = &Server{}
+var _ pb.FliptServer = &Server{}
 
 type Server struct {
 	logger logrus.FieldLogger
-	flipt.FlagService
-	flipt.SegmentService
-	flipt.RuleService
+	storage.FlagRepository
+	storage.SegmentRepository
+	storage.RuleRepository
 }
 
 // New creates a new Server
 func New(logger logrus.FieldLogger, db *sql.DB) (*Server, error) {
 	return &Server{
-		logger:         logger,
-		FlagService:    storage.NewFlagService(logger, db),
-		SegmentService: storage.NewSegmentService(logger, db),
-		RuleService:    storage.NewRuleService(logger, db),
+		logger:            logger,
+		FlagRepository:    storage.NewFlagStorage(logger, db),
+		SegmentRepository: storage.NewSegmentStorage(logger, db),
+		RuleRepository:    storage.NewRuleStorage(logger, db),
 	}, nil
 }
 
@@ -39,11 +39,11 @@ func ErrorInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerI
 	}
 
 	switch err.(type) {
-	case flipt.ErrNotFound:
+	case storage.ErrNotFound:
 		err = status.Error(codes.NotFound, err.Error())
-	case flipt.ErrInvalid:
+	case storage.ErrInvalid:
 		err = status.Error(codes.InvalidArgument, err.Error())
-	case flipt.ErrInvalidField:
+	case ErrInvalidField:
 		err = status.Error(codes.InvalidArgument, err.Error())
 	default:
 		err = status.Error(codes.Internal, err.Error())

@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/markphelps/flipt"
+	flipt "github.com/markphelps/flipt/proto"
+	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var _ flipt.FlagService = &flagServiceMock{}
+var _ storage.FlagRepository = &flagRepositoryMock{}
 
-type flagServiceMock struct {
+type flagRepositoryMock struct {
 	flagFn          func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
 	flagsFn         func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
 	createFlagFn    func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
@@ -23,36 +24,36 @@ type flagServiceMock struct {
 	deleteVariantFn func(context.Context, *flipt.DeleteVariantRequest) error
 }
 
-func (srv *flagServiceMock) Flag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	return srv.flagFn(ctx, r)
+func (m *flagRepositoryMock) Flag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+	return m.flagFn(ctx, r)
 }
 
-func (srv *flagServiceMock) Flags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-	return srv.flagsFn(ctx, r)
+func (m *flagRepositoryMock) Flags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+	return m.flagsFn(ctx, r)
 }
 
-func (srv *flagServiceMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	return srv.createFlagFn(ctx, r)
+func (m *flagRepositoryMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+	return m.createFlagFn(ctx, r)
 }
 
-func (srv *flagServiceMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	return srv.updateFlagFn(ctx, r)
+func (m *flagRepositoryMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+	return m.updateFlagFn(ctx, r)
 }
 
-func (srv *flagServiceMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
-	return srv.deleteFlagFn(ctx, r)
+func (m *flagRepositoryMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+	return m.deleteFlagFn(ctx, r)
 }
 
-func (srv *flagServiceMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	return srv.createVariantFn(ctx, r)
+func (m *flagRepositoryMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+	return m.createVariantFn(ctx, r)
 }
 
-func (srv *flagServiceMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	return srv.updateVariantFn(ctx, r)
+func (m *flagRepositoryMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+	return m.updateVariantFn(ctx, r)
 }
 
-func (srv *flagServiceMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
-	return srv.deleteVariantFn(ctx, r)
+func (m *flagRepositoryMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+	return m.deleteVariantFn(ctx, r)
 }
 
 func TestGetFlag(t *testing.T) {
@@ -78,7 +79,7 @@ func TestGetFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					flagFn: tt.f,
 				},
 			}
@@ -110,7 +111,7 @@ func TestListFlags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					flagsFn: tt.f,
 				},
 			}
@@ -156,7 +157,7 @@ func TestCreateFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					createFlagFn: tt.f,
 				},
 			}
@@ -202,7 +203,7 @@ func TestUpdateFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					updateFlagFn: tt.f,
 				},
 			}
@@ -235,7 +236,7 @@ func TestDeleteFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					deleteFlagFn: tt.f,
 				},
 			}
@@ -281,7 +282,7 @@ func TestCreateVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					createVariantFn: tt.f,
 				},
 			}
@@ -324,7 +325,7 @@ func TestUpdateVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					updateVariantFn: tt.f,
 				},
 			}
@@ -358,7 +359,7 @@ func TestDeleteVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagService: &flagServiceMock{
+				FlagRepository: &flagRepositoryMock{
 					deleteVariantFn: tt.f,
 				},
 			}

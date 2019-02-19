@@ -22,7 +22,7 @@ import (
 	"github.com/urfave/negroni"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	pb "github.com/markphelps/flipt"
+	pb "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/swagger"
 	"github.com/markphelps/flipt/ui"

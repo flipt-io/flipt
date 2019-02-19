@@ -4,18 +4,18 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/markphelps/flipt"
+	flipt "github.com/markphelps/flipt/proto"
 )
 
 func (s *Server) GetSegment(ctx context.Context, req *flipt.GetSegmentRequest) (*flipt.Segment, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
-	return s.SegmentService.Segment(ctx, req)
+	return s.SegmentRepository.Segment(ctx, req)
 }
 
 func (s *Server) ListSegments(ctx context.Context, req *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
-	segments, err := s.SegmentService.Segments(ctx, req)
+	segments, err := s.SegmentRepository.Segments(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -31,30 +31,30 @@ func (s *Server) ListSegments(ctx context.Context, req *flipt.ListSegmentRequest
 
 func (s *Server) CreateSegment(ctx context.Context, req *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
 	if req.Name == "" {
-		return nil, flipt.EmptyFieldError("name")
+		return nil, EmptyFieldError("name")
 	}
-	return s.SegmentService.CreateSegment(ctx, req)
+	return s.SegmentRepository.CreateSegment(ctx, req)
 }
 
 func (s *Server) UpdateSegment(ctx context.Context, req *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
 	if req.Name == "" {
-		return nil, flipt.EmptyFieldError("name")
+		return nil, EmptyFieldError("name")
 	}
-	return s.SegmentService.UpdateSegment(ctx, req)
+	return s.SegmentRepository.UpdateSegment(ctx, req)
 }
 
 func (s *Server) DeleteSegment(ctx context.Context, req *flipt.DeleteSegmentRequest) (*empty.Empty, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
 
-	if err := s.SegmentService.DeleteSegment(ctx, req); err != nil {
+	if err := s.SegmentRepository.DeleteSegment(ctx, req); err != nil {
 		return nil, err
 	}
 
@@ -63,42 +63,42 @@ func (s *Server) DeleteSegment(ctx context.Context, req *flipt.DeleteSegmentRequ
 
 func (s *Server) CreateConstraint(ctx context.Context, req *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	if req.SegmentKey == "" {
-		return nil, flipt.EmptyFieldError("segmentKey")
+		return nil, EmptyFieldError("segmentKey")
 	}
 	if req.Property == "" {
-		return nil, flipt.EmptyFieldError("property")
+		return nil, EmptyFieldError("property")
 	}
 	if req.Operator == "" {
-		return nil, flipt.EmptyFieldError("operator")
+		return nil, EmptyFieldError("operator")
 	}
-	return s.SegmentService.CreateConstraint(ctx, req)
+	return s.SegmentRepository.CreateConstraint(ctx, req)
 }
 
 func (s *Server) UpdateConstraint(ctx context.Context, req *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
 	if req.Id == "" {
-		return nil, flipt.EmptyFieldError("id")
+		return nil, EmptyFieldError("id")
 	}
 	if req.SegmentKey == "" {
-		return nil, flipt.EmptyFieldError("segmentKey")
+		return nil, EmptyFieldError("segmentKey")
 	}
 	if req.Property == "" {
-		return nil, flipt.EmptyFieldError("property")
+		return nil, EmptyFieldError("property")
 	}
 	if req.Operator == "" {
-		return nil, flipt.EmptyFieldError("operator")
+		return nil, EmptyFieldError("operator")
 	}
-	return s.SegmentService.UpdateConstraint(ctx, req)
+	return s.SegmentRepository.UpdateConstraint(ctx, req)
 }
 
 func (s *Server) DeleteConstraint(ctx context.Context, req *flipt.DeleteConstraintRequest) (*empty.Empty, error) {
 	if req.Id == "" {
-		return nil, flipt.EmptyFieldError("id")
+		return nil, EmptyFieldError("id")
 	}
 	if req.SegmentKey == "" {
-		return nil, flipt.EmptyFieldError("segmentKey")
+		return nil, EmptyFieldError("segmentKey")
 	}
 
-	if err := s.SegmentService.DeleteConstraint(ctx, req); err != nil {
+	if err := s.SegmentRepository.DeleteConstraint(ctx, req); err != nil {
 		return nil, err
 	}
 

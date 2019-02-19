@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-package flipt;
+package proto;
 
 message EvaluationRequest {
   string request_id = 1;

@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/markphelps/flipt"
+	flipt "github.com/markphelps/flipt/proto"
+	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var _ flipt.RuleService = &ruleServiceMock{}
+var _ storage.RuleRepository = &ruleRepositoryMock{}
 
-type ruleServiceMock struct {
+type ruleRepositoryMock struct {
 	ruleFn               func(context.Context, *flipt.GetRuleRequest) (*flipt.Rule, error)
 	rulesFn              func(context.Context, *flipt.ListRuleRequest) ([]*flipt.Rule, error)
 	createRuleFn         func(context.Context, *flipt.CreateRuleRequest) (*flipt.Rule, error)
@@ -25,44 +26,44 @@ type ruleServiceMock struct {
 	evaluateFn           func(context.Context, *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
 }
 
-func (s *ruleServiceMock) Rule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
-	return s.ruleFn(ctx, r)
+func (m *ruleRepositoryMock) Rule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
+	return m.ruleFn(ctx, r)
 }
 
-func (s *ruleServiceMock) Rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
-	return s.rulesFn(ctx, r)
+func (m *ruleRepositoryMock) Rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
+	return m.rulesFn(ctx, r)
 }
 
-func (s *ruleServiceMock) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	return s.createRuleFn(ctx, r)
+func (m *ruleRepositoryMock) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+	return m.createRuleFn(ctx, r)
 }
 
-func (s *ruleServiceMock) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	return s.updateRuleFn(ctx, r)
+func (m *ruleRepositoryMock) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+	return m.updateRuleFn(ctx, r)
 }
 
-func (s *ruleServiceMock) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
-	return s.deleteRuleFn(ctx, r)
+func (m *ruleRepositoryMock) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
+	return m.deleteRuleFn(ctx, r)
 }
 
-func (s *ruleServiceMock) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
-	return s.orderRuleFn(ctx, r)
+func (m *ruleRepositoryMock) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
+	return m.orderRuleFn(ctx, r)
 }
 
-func (s *ruleServiceMock) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	return s.createDistributionFn(ctx, r)
+func (m *ruleRepositoryMock) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+	return m.createDistributionFn(ctx, r)
 }
 
-func (s *ruleServiceMock) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	return s.updateDistributionFn(ctx, r)
+func (m *ruleRepositoryMock) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+	return m.updateDistributionFn(ctx, r)
 }
 
-func (s *ruleServiceMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	return s.deleteDistributionFn(ctx, r)
+func (m *ruleRepositoryMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
+	return m.deleteDistributionFn(ctx, r)
 }
 
-func (s *ruleServiceMock) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	return s.evaluateFn(ctx, r)
+func (m *ruleRepositoryMock) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+	return m.evaluateFn(ctx, r)
 }
 
 func TestGetRule(t *testing.T) {
@@ -90,7 +91,7 @@ func TestGetRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					ruleFn: tt.f,
 				},
 			}
@@ -125,7 +126,7 @@ func TestListRules(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					rulesFn: tt.f,
 				},
 			}
@@ -168,7 +169,7 @@ func TestCreateRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					createRuleFn: tt.f,
 				},
 			}
@@ -211,7 +212,7 @@ func TestUpdateRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					updateRuleFn: tt.f,
 				},
 			}
@@ -244,7 +245,7 @@ func TestDeleteRule(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					deleteRuleFn: tt.f,
 				},
 			}
@@ -277,7 +278,7 @@ func TestOrderRules(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					orderRuleFn: tt.f,
 				},
 			}
@@ -315,7 +316,7 @@ func TestCreateDistribution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					createDistributionFn: tt.f,
 				},
 			}
@@ -355,7 +356,7 @@ func TestUpdateDistribution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					updateDistributionFn: tt.f,
 				},
 			}
@@ -391,7 +392,7 @@ func TestDeleteDistribution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					deleteDistributionFn: tt.f,
 				},
 			}
@@ -427,7 +428,7 @@ func TestEvaluate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				RuleService: &ruleServiceMock{
+				RuleRepository: &ruleRepositoryMock{
 					evaluateFn: tt.f,
 				},
 			}

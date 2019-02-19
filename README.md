@@ -97,6 +97,27 @@ Here's a couple of areas that could use some love:
 * Test Coverage - Would love to get all coverage over 80%.
 * Javascripts - I'm no JS wizz, I'm sure the Javascript code in [ui/src](ui/src) could be improved/simplified/tested.
 
+## Licensing
+
+There are currently two types of licenses in place for Flipt:
+
+1. Client License(s)
+2. Server License
+
+### Client License(s)
+
+All of the code required to generate GRPC clients in other languages as well as the existing GRPC Go client are licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
+
+This code exists in the [proto/](proto/) directory.
+
+The client code is the code that you would integrate into your applications, which is why a more permissive license is used.
+
+### Server License
+
+The server code is licensed under the [GPL 3.0 License](https://spdx.org/licenses/GPL-3.0.html).
+
+If there are any concerns about the use of this license for the server, please [open an issue](https://github.com/markphelps/flipt/issues/new) on GitHub so that we can discuss publicly.
+
 ## Pro Version
 
 My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with support, some of the planned features include:

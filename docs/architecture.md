@@ -59,7 +59,7 @@ This allows Flipt to easily be deployed in almost any environment since it's as 
 
 [gRPC](https://grpc.io/) is a high performance, open source RPC framework created by Google. gRPC allows Flipt to be performant by eliminating much of the overhead incurred by using standard HTTP for communication.
 
-gRPC also has the benefit of being able to generate client SDKs in many different languages from a single [Protobuf](https://github.com/markphelps/flipt/blob/master/flipt.proto) file.
+gRPC also has the benefit of being able to generate client SDKs in many different languages from a single [Protobuf](https://github.com/markphelps/flipt/blob/master/proto/flipt.proto) file.
 
 This allows you easily integrate your services with Flipt regardless of the language they are written in.
 

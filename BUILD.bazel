@@ -1,6 +1,6 @@
 proto_library(
     name = "flipt_proto",
-    srcs = ["flipt.proto"],
+    srcs = ["proto/flipt.proto"],
     visibility = [
         "//visibility:public",
     ],

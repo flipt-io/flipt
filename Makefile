@@ -34,7 +34,7 @@ cover: test ## Run all the tests and opens the coverage report
 
 .PHONY: fmt
 fmt: ## Run gofmt and goimports on all go files
-	@find . -name '*.go' -not -wholename '*.pb.go' -not -wholename './vendor/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
+	@find . -name '*.go' -not -wholename './proto/*' -not -wholename './vendor/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
 
 .PHONY: lint
 lint: ## Run all the linters
@@ -48,12 +48,13 @@ clean: ## Remove built binaries
 .PHONY: proto
 proto: ## Build protobufs
 	protoc -I/usr/local/include -I. \
-		-I$(GOPATH)/src \
-		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway \
-		-I$(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		--go_out=plugins=grpc:. \
-		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=flipt.yaml:. \
-		--swagger_out=logtostderr=true,grpc_api_configuration=flipt.yaml:./swagger/api \
+		-I $(GOPATH)/src \
+		-I $(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway \
+		-I $(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+		-I proto \
+		--go_out=plugins=grpc:./proto \
+		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./proto/flipt.yaml:./proto \
+		--swagger_out=logtostderr=true,grpc_api_configuration=./proto/flipt.yaml:./swagger/api \
 		$(PROJECT).proto
 
 .PHONY: ui
@@ -63,6 +64,10 @@ ui: ## Builds the ui
 .PHONY: generate
 generate: ## Run go generate
 	GO111MODULE=$(GO111MODULE) go generate ./...
+
+.PHONY: build
+build: ## Build a local copy
+	GO111MODULE=$(GO111MODULE) go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
 
 .PHONY: dev
 dev: ## Build and run in development mode

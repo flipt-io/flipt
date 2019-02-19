@@ -4,18 +4,18 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/markphelps/flipt"
+	flipt "github.com/markphelps/flipt/proto"
 )
 
 func (s *Server) GetFlag(ctx context.Context, req *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
-	return s.FlagService.Flag(ctx, req)
+	return s.FlagRepository.Flag(ctx, req)
 }
 
 func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*flipt.FlagList, error) {
-	flags, err := s.FlagService.Flags(ctx, req)
+	flags, err := s.FlagRepository.Flags(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -31,30 +31,30 @@ func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*fl
 
 func (s *Server) CreateFlag(ctx context.Context, req *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
 	if req.Name == "" {
-		return nil, flipt.EmptyFieldError("name")
+		return nil, EmptyFieldError("name")
 	}
-	return s.FlagService.CreateFlag(ctx, req)
+	return s.FlagRepository.CreateFlag(ctx, req)
 }
 
 func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
 	if req.Name == "" {
-		return nil, flipt.EmptyFieldError("name")
+		return nil, EmptyFieldError("name")
 	}
-	return s.FlagService.UpdateFlag(ctx, req)
+	return s.FlagRepository.UpdateFlag(ctx, req)
 }
 
 func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (*empty.Empty, error) {
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
 
-	if err := s.FlagService.DeleteFlag(ctx, req); err != nil {
+	if err := s.FlagRepository.DeleteFlag(ctx, req); err != nil {
 		return nil, err
 	}
 
@@ -63,36 +63,36 @@ func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (
 
 func (s *Server) CreateVariant(ctx context.Context, req *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	if req.FlagKey == "" {
-		return nil, flipt.EmptyFieldError("flagKey")
+		return nil, EmptyFieldError("flagKey")
 	}
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
-	return s.FlagService.CreateVariant(ctx, req)
+	return s.FlagRepository.CreateVariant(ctx, req)
 }
 
 func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	if req.Id == "" {
-		return nil, flipt.EmptyFieldError("id")
+		return nil, EmptyFieldError("id")
 	}
 	if req.FlagKey == "" {
-		return nil, flipt.EmptyFieldError("flagKey")
+		return nil, EmptyFieldError("flagKey")
 	}
 	if req.Key == "" {
-		return nil, flipt.EmptyFieldError("key")
+		return nil, EmptyFieldError("key")
 	}
-	return s.FlagService.UpdateVariant(ctx, req)
+	return s.FlagRepository.UpdateVariant(ctx, req)
 }
 
 func (s *Server) DeleteVariant(ctx context.Context, req *flipt.DeleteVariantRequest) (*empty.Empty, error) {
 	if req.Id == "" {
-		return nil, flipt.EmptyFieldError("id")
+		return nil, EmptyFieldError("id")
 	}
 	if req.FlagKey == "" {
-		return nil, flipt.EmptyFieldError("flagKey")
+		return nil, EmptyFieldError("flagKey")
 	}
 
-	if err := s.FlagService.DeleteVariant(ctx, req); err != nil {
+	if err := s.FlagRepository.DeleteVariant(ctx, req); err != nil {
 		return nil, err
 	}
 
