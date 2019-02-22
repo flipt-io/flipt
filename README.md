@@ -64,8 +64,12 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 ### Try It
 
 ```bash
-❯ docker run -p 8080:8080 -p 9000:9000 markphelps/flipt:latest
+❯ docker run --rm -p 8080:8080 -p 9000:9000 markphelps/flipt:latest
 ```
+
+Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
+
+For more permanent methods of running Flipt, see the [Installation](https://markphelps.github.io/flipt/installation/) section.
 
 ## What's Next
 
