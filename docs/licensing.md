@@ -2,10 +2,10 @@
 
 There are currently two types of licenses in place for Flipt:
 
-1. Client License(s)
+1. Client License
 2. Server License
 
-## Client License(s)
+## Client License
 
 All of the code required to generate GRPC clients in other languages as well as the existing GRPC Go client are licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
 

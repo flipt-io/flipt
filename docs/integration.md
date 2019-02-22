@@ -6,8 +6,8 @@ Once you have the Flipt server up and running within your infrastructure, the ne
 
 There are two ways to communicate with the Flipt server:
 
-1. Flipt Native GRPC client(s)
-1. Flipt REST API
+1. GRPC
+1. REST API
 
 ## Flipt Native GRPC Client
 
@@ -58,3 +58,9 @@ Each Flipt server instance also hosts it's own REST API documentation. This docu
 This will load the API documentation which documents valid requests/responses to the Flipt REST API:
 
 ![Flipt API Docs](assets/images/integration/docs.png)
+
+## Third-Party Client Libraries
+
+Client libraries built by awesome people from the Open Source community:
+
+* [Flipt-iOS-SDK](https://github.com/Camji55/Flipt-iOS-SDK)
