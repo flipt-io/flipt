@@ -86,40 +86,56 @@ func main() {
 }
 
 type config struct {
-	logLevel         string
-	apiPort          int
-	backendPort      int
-	host             string
-	dbName           string
-	dbPath           string
-	dbMigrationsPath string
-	dbAutoMigrate    bool
+	logLevel string
+	server   serverConfig
+	database databaseConfig
+}
+
+type serverConfig struct {
+	host     string
+	httpPort int
+	grpcPort int
+}
+
+type databaseConfig struct {
+	name           string
+	path           string
+	migrationsPath string
+	autoMigrate    bool
 }
 
 func defaultConfig() *config {
 	return &config{
 		logLevel: "INFO",
 
-		apiPort:     8080,
-		backendPort: 9000,
-		host:        "0.0.0.0",
+		server: serverConfig{
+			host:     "0.0.0.0",
+			httpPort: 8080,
+			grpcPort: 9000,
+		},
 
-		dbName:           "flipt",
-		dbPath:           "/var/opt/flipt",
-		dbMigrationsPath: "/etc/flipt/config/migrations",
-		dbAutoMigrate:    true,
+		database: databaseConfig{
+			name:           "flipt",
+			path:           "/var/opt/flipt",
+			migrationsPath: "/etc/flipt/config/migrations",
+			autoMigrate:    true,
+		},
 	}
 }
 
 const (
-	cfgHost             = "host"
 	cfgLogLevel         = "log.level"
-	cfgAPIPort          = "api.port"
-	cfgBackendPort      = "backend.port"
+	cfgServerHost       = "server.host"
+	cfgServerHTTPPort   = "server.http_port"
+	cfgServerGRPCPort   = "server.grpc_port"
 	cfgDBName           = "db.name"
 	cfgDBPath           = "db.path"
 	cfgDBMigrationsPath = "db.migrations.path"
 	cfgDBAutoMigrate    = "db.migrations.auto"
+
+	cfgAliasHost        = "host"
+	cfgAliasAPIPort     = "api.port"
+	cfgAliasBackendPort = "backend.port"
 )
 
 func configure() (*config, error) {
@@ -128,42 +144,48 @@ func configure() (*config, error) {
 	viper.AutomaticEnv()
 
 	viper.SetConfigFile(cfgPath)
+
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, errors.Wrap(err, "loading config")
 	}
 
-	cfg := defaultConfig()
+	// TODO: remove in 1.0 release
+	viper.RegisterAlias(cfgAliasHost, cfgServerHost)
+	viper.RegisterAlias(cfgAliasAPIPort, cfgServerHTTPPort)
+	viper.RegisterAlias(cfgAliasBackendPort, cfgServerGRPCPort)
 
-	if viper.IsSet(cfgHost) {
-		cfg.host = viper.GetString(cfgHost)
-	}
+	cfg := defaultConfig()
 
 	if viper.IsSet(cfgLogLevel) {
 		cfg.logLevel = viper.GetString(cfgLogLevel)
 	}
 
-	if viper.IsSet(cfgAPIPort) {
-		cfg.apiPort = viper.GetInt(cfgAPIPort)
+	if viper.IsSet(cfgServerHost) {
+		cfg.server.host = viper.GetString(cfgServerHost)
 	}
 
-	if viper.IsSet(cfgBackendPort) {
-		cfg.backendPort = viper.GetInt(cfgBackendPort)
+	if viper.IsSet(cfgServerHTTPPort) {
+		cfg.server.httpPort = viper.GetInt(cfgServerHTTPPort)
+	}
+
+	if viper.IsSet(cfgServerGRPCPort) {
+		cfg.server.grpcPort = viper.GetInt(cfgServerGRPCPort)
 	}
 
 	if viper.IsSet(cfgDBName) {
-		cfg.dbName = viper.GetString(cfgDBName)
+		cfg.database.name = viper.GetString(cfgDBName)
 	}
 
 	if viper.IsSet(cfgDBPath) {
-		cfg.dbPath = viper.GetString(cfgDBPath)
+		cfg.database.path = viper.GetString(cfgDBPath)
 	}
 
 	if viper.IsSet(cfgDBMigrationsPath) {
-		cfg.dbMigrationsPath = viper.GetString(cfgDBMigrationsPath)
+		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
 	}
 
 	if viper.IsSet(cfgDBAutoMigrate) {
-		cfg.dbAutoMigrate = viper.GetBool(cfgDBAutoMigrate)
+		cfg.database.autoMigrate = viper.GetBool(cfgDBAutoMigrate)
 	}
 
 	return cfg, nil
@@ -202,25 +224,25 @@ func execute() error {
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
-		backendServer *grpc.Server
-		apiServer     *http.Server
+		grpcServer *grpc.Server
+		httpServer *http.Server
 	)
 
 	printHeader()
 
-	if cfg.backendPort > 0 {
+	if cfg.server.grpcPort > 0 {
 		g.Go(func() error {
-			logger := logger.WithField("system", "backend")
+			logger := logger.WithField("server", "grpc")
 
-			path := filepath.Clean(cfg.dbPath)
-			db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db?%s", path, cfg.dbName, dbConnOpts))
+			path := filepath.Clean(cfg.database.path)
+			db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db?%s", path, cfg.database.name, dbConnOpts))
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
 
 			defer db.Close()
 
-			if cfg.dbAutoMigrate {
+			if cfg.database.autoMigrate {
 				logger.Info("running migrations...")
 
 				driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
@@ -228,7 +250,7 @@ func execute() error {
 					return errors.Wrap(err, "getting db instance")
 				}
 
-				path := filepath.Clean(cfg.dbMigrationsPath)
+				path := filepath.Clean(cfg.database.migrationsPath)
 				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), "sqlite3", driver)
 				if err != nil {
 					return errors.Wrap(err, "opening migrations")
@@ -241,9 +263,9 @@ func execute() error {
 				logger.Info("finished migrations")
 			}
 
-			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.host, cfg.backendPort))
+			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.grpcPort))
 			if err != nil {
-				return errors.Wrap(err, "creating listener")
+				return errors.Wrap(err, "creating grpc listener")
 			}
 			defer func() {
 				_ = lis.Close()
@@ -258,23 +280,23 @@ func execute() error {
 				grpc_recovery.UnaryServerInterceptor(),
 			))
 
-			backendServer = grpc.NewServer(opts...)
+			grpcServer = grpc.NewServer(opts...)
 
 			srv, err := server.New(logger, db)
 			if err != nil {
-				return errors.Wrap(err, "initializing server")
+				return errors.Wrap(err, "initializing grpc server")
 			}
 
-			pb.RegisterFliptServer(backendServer, srv)
+			pb.RegisterFliptServer(grpcServer, srv)
 
-			logger.Infof("serving backend at: %s:%d", cfg.host, cfg.backendPort)
-			return backendServer.Serve(lis)
+			logger.Infof("grpc server running at: %s:%d", cfg.server.host, cfg.server.grpcPort)
+			return grpcServer.Serve(lis)
 		})
 	}
 
-	if cfg.apiPort > 0 {
+	if cfg.server.httpPort > 0 {
 		g.Go(func() error {
-			logger := logger.WithField("system", "api")
+			logger := logger.WithField("server", "http")
 
 			var (
 				r    = chi.NewRouter()
@@ -283,9 +305,8 @@ func execute() error {
 				opts = []grpc.DialOption{grpc.WithInsecure()}
 			)
 
-			err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.host, cfg.backendPort), opts)
-			if err != nil {
-				return errors.Wrap(err, "connecting to backend")
+			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.grpcPort), opts); err != nil {
+				return errors.Wrap(err, "connecting to grpc server")
 			}
 
 			r.Handle("/docs/*", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
@@ -297,16 +318,16 @@ func execute() error {
 			n.Use(negroni.NewRecovery())
 			n.UseHandler(r)
 
-			apiServer = &http.Server{
-				Addr:           fmt.Sprintf("%s:%d", cfg.host, cfg.apiPort),
+			httpServer = &http.Server{
+				Addr:           fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.httpPort),
 				Handler:        n,
 				ReadTimeout:    10 * time.Second,
 				WriteTimeout:   10 * time.Second,
 				MaxHeaderBytes: 1 << 20,
 			}
 
-			logger.Infof("serving api at: http://%s:%d", cfg.host, cfg.apiPort)
-			return apiServer.ListenAndServe()
+			logger.Infof("http server running at: http://%s:%d", cfg.server.host, cfg.server.httpPort)
+			return httpServer.ListenAndServe()
 		})
 	}
 
@@ -322,12 +343,12 @@ func execute() error {
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
-	if apiServer != nil {
-		_ = apiServer.Shutdown(shutdownCtx)
+	if httpServer != nil {
+		_ = httpServer.Shutdown(shutdownCtx)
 	}
 
-	if backendServer != nil {
-		backendServer.Stop()
+	if grpcServer != nil {
+		grpcServer.Stop()
 	}
 
 	return g.Wait()

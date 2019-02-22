@@ -17,10 +17,10 @@ These properties are as follows:
 
 | Property | Description | Default |
 |---|---|---|
-| host | The IP on which to serve the Flipt application | 0.0.0.0 |
 | log.level | Level at which messages are logged (trace, debug, info, warn, error, fatal, panic) | info |
-| api.port | The port on which to serve the Flipt REST API | 8080 |
-| backend.port | The port on which to serve the Flipt Backend server | 9000 |
+| server.host | The IP on which to serve the Flipt application | 0.0.0.0 |
+| server.http_port | The port on which to serve the Flipt REST API and UI | 8080 |
+| server.grpc_port | The port on which to serve the Flipt GRPC server | 9000 |
 | db.name | The name given to the Flipt database (suffixed with .db) | flipt |
 | db.path | Where to store the Flipt database | /var/opt/flipt |
 | db.migrations.auto | If database migrations are run on Flipt startup | true |
@@ -40,8 +40,8 @@ FLIPT_<SectionName>_<KeyName>
 Everything should be upper case, `.` should be replaced by `_`. For example, given these configuration settings:
 
 ```yaml
-backend:
-  port: 9000
+server:
+  grpc_port: 9000
 
 db:
   name: flipt
@@ -51,7 +51,7 @@ db:
 You can override them using:
 
 ```shell
-export FLIPT_BACKEND_PORT=9001
+export FLIPT_SERVER_GRPC_PORT=9001
 export FLIPT_DB_NAME=my-db
 export FLIPT_DB_PATH=/tmp/db
 ```

@@ -1,13 +1,10 @@
-# host: 0.0.0.0
-
 # log:
   # level: INFO
 
-# api:
-  # port: 8080
-
-# backend:
-  # port: 9000
+# server:
+  # host: 0.0.0.0
+  # http_port: 8080
+  # grpc_port: 9000
 
 # db:
   # name: flipt
