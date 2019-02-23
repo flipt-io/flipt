@@ -13,7 +13,7 @@ As shown in the above diagram, the Flipt application is made up of three main co
 * Flipt REST API
 * Flipt Web UI
 
-All three of these components run side by side in a single binary. The UI and REST API are served on the same port (`8080` by default) and the Backend Service is served on `9000` by default.
+All three of these components run side by side in a single binary. The UI and REST API are served on the same port (`8080` by default) and the GRPC Backend Service is served on `9000` by default.
 
 ## Backend Service
 

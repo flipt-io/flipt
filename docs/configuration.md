@@ -6,19 +6,19 @@ There are two ways to configure Flipt: using a configuration file or through env
 
 The default way that Flipt is configured is with the use of a configuration file `default.yml`.
 
-This file is read when Flipt starts up and configures several important properties for the backend and API.
+This file is read when Flipt starts up and configures several important properties for the server.
 
 You can edit any of these properties to your liking, and on restart Flipt will pick up the new changes.
 
 !!! note
-    These defaults are commented out in `default.yml` to give you an idea of what they are. To change them you'll first need to uncomment the property.
+    These defaults are commented out in `default.yml` to give you an idea of what they are. To change them you'll first need to uncomment them.
 
 These properties are as follows:
 
 | Property | Description | Default |
 |---|---|---|
 | log.level | Level at which messages are logged (trace, debug, info, warn, error, fatal, panic) | info |
-| server.host | The IP on which to serve the Flipt application | 0.0.0.0 |
+| server.host | The host address on which to serve the Flipt application | 0.0.0.0 |
 | server.http_port | The port on which to serve the Flipt REST API and UI | 8080 |
 | server.grpc_port | The port on which to serve the Flipt GRPC server | 9000 |
 | db.name | The name given to the Flipt database (suffixed with .db) | flipt |
