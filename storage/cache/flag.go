@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	flipt "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/storage"
 	"github.com/pkg/errors"
