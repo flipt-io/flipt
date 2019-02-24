@@ -1,14 +1,18 @@
 # log:
-  # level: INFO
+#   level: INFO
+
+# cache:
+#   enabled: false
+#   size: 250
 
 # server:
-  # host: 0.0.0.0
-  # http_port: 8080
-  # grpc_port: 9000
+#   host: 0.0.0.0
+#   http_port: 8080
+#   grpc_port: 9000
 
 # db:
-  # name: flipt
-  # path: /var/opt/flipt
-  # migrations:
-    # auto: true
-    # path: /etc/flipt/config/migrations
+#   name: flipt
+#   path: /var/opt/flipt
+#   migrations:
+#     auto: true
+#     path: /etc/flipt/config/migrations

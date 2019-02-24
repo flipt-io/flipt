@@ -5,8 +5,10 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
+	lru "github.com/hashicorp/golang-lru"
 	pb "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,7 +19,15 @@ var _ pb.FliptServer = &Server{}
 
 type Option func(s *Server)
 
+func WithCacheSize(size int) Option {
+	return func(s *Server) {
+		s.cacheSize = size
+	}
+}
+
 type Server struct {
+	cacheSize int
+
 	logger logrus.FieldLogger
 	storage.FlagStore
 	storage.SegmentStore
@@ -28,17 +38,28 @@ type Server struct {
 func New(logger logrus.FieldLogger, db *sql.DB, opts ...Option) *Server {
 	var (
 		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
-		tx      = sq.NewStmtCacheProxy(db)
-		s       = &Server{
+
+		flagStore    = storage.NewFlagStorage(logger, builder)
+		segmentStore = storage.NewSegmentStorage(logger, builder)
+		ruleStore    = storage.NewRuleStorage(logger, sq.NewStmtCacheProxy(db), builder)
+
+		s = &Server{
 			logger:       logger,
-			FlagStore:    storage.NewFlagStorage(logger, builder),
-			SegmentStore: storage.NewSegmentStorage(logger, builder),
-			RuleStore:    storage.NewRuleStorage(logger, tx, builder),
+			FlagStore:    flagStore,
+			SegmentStore: segmentStore,
+			RuleStore:    ruleStore,
 		}
 	)
 
 	for _, opt := range opts {
 		opt(s)
+	}
+
+	if s.cacheSize > 0 {
+		lru, _ := lru.New(s.cacheSize)
+
+		// wrap flagStore with lru cache
+		s.FlagStore = cache.NewFlagCache(logger, lru, flagStore)
 	}
 
 	return s
