@@ -87,8 +87,14 @@ func main() {
 
 type config struct {
 	logLevel string
+	cache    cacheConfig
 	server   serverConfig
 	database databaseConfig
+}
+
+type cacheConfig struct {
+	enabled bool
+	size    int
 }
 
 type serverConfig struct {
@@ -108,6 +114,11 @@ func defaultConfig() *config {
 	return &config{
 		logLevel: "INFO",
 
+		cache: cacheConfig{
+			enabled: false,
+			size:    250,
+		},
+
 		server: serverConfig{
 			host:     "0.0.0.0",
 			httpPort: 8080,
@@ -126,6 +137,10 @@ func defaultConfig() *config {
 const (
 	// Logging
 	cfgLogLevel = "log.level"
+
+	// Cache
+	cfgCacheEnabled = "cache.enabled"
+	cfgCacheSize    = "cache.size"
 
 	// Server
 	cfgServerHost     = "server.host"
@@ -165,6 +180,14 @@ func configure() (*config, error) {
 	// Logging
 	if viper.IsSet(cfgLogLevel) {
 		cfg.logLevel = viper.GetString(cfgLogLevel)
+	}
+
+	// Cache
+	if viper.IsSet(cfgCacheEnabled) {
+		cfg.cache.enabled = viper.GetBool(cfgCacheEnabled)
+	}
+	if viper.IsSet(cfgCacheSize) {
+		cfg.cache.size = viper.GetInt(cfgCacheSize)
 	}
 
 	// Server
@@ -287,6 +310,11 @@ func execute() error {
 				srv.ErrorUnaryInterceptor,
 				grpc_recovery.UnaryServerInterceptor(),
 			))
+
+			if cfg.cache.enabled {
+				logger.Infof("flag cache enabled with size: %d", cfg.cache.size)
+				serverOpts = append(serverOpts, server.WithCacheSize(cfg.cache.size))
+			}
 
 			srv = server.New(logger, db, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)

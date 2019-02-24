@@ -18,6 +18,8 @@ These properties are as follows:
 | Property | Description | Default |
 |---|---|---|
 | log.level | Level at which messages are logged (trace, debug, info, warn, error, fatal, panic) | info |
+| cache.enabled | Enable caching | false |
+| cache.size | Number of items cache can hold | 250 |
 | server.host | The host address on which to serve the Flipt application | 0.0.0.0 |
 | server.http_port | The port on which to serve the Flipt REST API and UI | 8080 |
 | server.grpc_port | The port on which to serve the Flipt GRPC server | 9000 |
@@ -55,3 +57,9 @@ export FLIPT_SERVER_GRPC_PORT=9001
 export FLIPT_DB_NAME=my-db
 export FLIPT_DB_PATH=/tmp/db
 ```
+
+## Caching
+
+In-memory caching is currently only available for flags. When enabled, in-memory caching has been shown to speed up the fetching of individual flags by 10x.
+
+Work is planned to add caching support to rule evaluation soon.

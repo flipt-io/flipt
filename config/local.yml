@@ -1,6 +1,10 @@
 log:
   level: DEBUG
 
+# cache:
+#   enabled: false
+#   size: 250
+
 # server:
 #   host: 0.0.0.0
 #   http_port: 8000
