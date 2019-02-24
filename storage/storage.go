@@ -6,10 +6,10 @@ import (
 	flipt "github.com/markphelps/flipt/proto"
 )
 
-// RuleRepository ...
-type RuleRepository interface {
-	Rule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error)
-	Rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error)
+// RuleStore ...
+type RuleStore interface {
+	GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error)
+	ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error)
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
@@ -20,10 +20,10 @@ type RuleRepository interface {
 	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
 }
 
-// FlagRepository ...
-type FlagRepository interface {
-	Flag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error)
-	Flags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+// FlagStore ...
+type FlagStore interface {
+	GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error)
+	ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
@@ -32,10 +32,10 @@ type FlagRepository interface {
 	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
 }
 
-// SegmentRepository ...
-type SegmentRepository interface {
-	Segment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error)
-	Segments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
+// SegmentStore ...
+type SegmentStore interface {
+	GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error

@@ -13,20 +13,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var _ FlagStore = &FlagStorage{}
+
 type FlagStorage struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
 // NewFlagStorage creates a FlagStorage
-func NewFlagStorage(logger logrus.FieldLogger, db *sql.DB) *FlagStorage {
+func NewFlagStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *FlagStorage {
 	return &FlagStorage{
 		logger:  logger.WithField("storage", "flag"),
-		builder: sq.StatementBuilder.RunWith(sq.NewStmtCacher(db)),
+		builder: builder,
 	}
 }
 
-func (s *FlagStorage) Flag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+func (s *FlagStorage) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("get flag")
 	flag, err := s.flag(ctx, r.Key)
 	s.logger.WithField("response", flag).Debug("get flag")
@@ -70,7 +72,7 @@ func (s *FlagStorage) flag(ctx context.Context, key string) (*flipt.Flag, error)
 	return flag, nil
 }
 
-func (s *FlagStorage) Flags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+func (s *FlagStorage) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("list flags")
 
 	var (

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	sq "github.com/Masterminds/squirrel"
 	pb "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
@@ -14,25 +15,37 @@ import (
 
 var _ pb.FliptServer = &Server{}
 
+type Option func(s *Server)
+
 type Server struct {
 	logger logrus.FieldLogger
-	storage.FlagRepository
-	storage.SegmentRepository
-	storage.RuleRepository
+	storage.FlagStore
+	storage.SegmentStore
+	storage.RuleStore
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, db *sql.DB) (*Server, error) {
-	return &Server{
-		logger:            logger,
-		FlagRepository:    storage.NewFlagStorage(logger, db),
-		SegmentRepository: storage.NewSegmentStorage(logger, db),
-		RuleRepository:    storage.NewRuleStorage(logger, db),
-	}, nil
+func New(logger logrus.FieldLogger, db *sql.DB, opts ...Option) *Server {
+	var (
+		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+		tx      = sq.NewStmtCacheProxy(db)
+		s       = &Server{
+			logger:       logger,
+			FlagStore:    storage.NewFlagStorage(logger, builder),
+			SegmentStore: storage.NewSegmentStorage(logger, builder),
+			RuleStore:    storage.NewRuleStorage(logger, tx, builder),
+		}
+	)
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
-// ErrorInterceptor intercepts known errors and returns the appropriate GRPC status code
-func ErrorInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+// ErrorUnaryInterceptor intercepts known errors and returns the appropriate GRPC status code
+func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	resp, err = handler(ctx, req)
 	if err == nil {
 		return

@@ -124,15 +124,21 @@ func defaultConfig() *config {
 }
 
 const (
-	cfgLogLevel         = "log.level"
-	cfgServerHost       = "server.host"
-	cfgServerHTTPPort   = "server.http_port"
-	cfgServerGRPCPort   = "server.grpc_port"
+	// Logging
+	cfgLogLevel = "log.level"
+
+	// Server
+	cfgServerHost     = "server.host"
+	cfgServerHTTPPort = "server.http_port"
+	cfgServerGRPCPort = "server.grpc_port"
+
+	// DB
 	cfgDBName           = "db.name"
 	cfgDBPath           = "db.path"
 	cfgDBMigrationsPath = "db.migrations.path"
 	cfgDBAutoMigrate    = "db.migrations.auto"
 
+	// Aliases
 	cfgAliasHost        = "host"
 	cfgAliasAPIPort     = "api.port"
 	cfgAliasBackendPort = "backend.port"
@@ -156,34 +162,32 @@ func configure() (*config, error) {
 
 	cfg := defaultConfig()
 
+	// Logging
 	if viper.IsSet(cfgLogLevel) {
 		cfg.logLevel = viper.GetString(cfgLogLevel)
 	}
 
+	// Server
 	if viper.IsSet(cfgServerHost) {
 		cfg.server.host = viper.GetString(cfgServerHost)
 	}
-
 	if viper.IsSet(cfgServerHTTPPort) {
 		cfg.server.httpPort = viper.GetInt(cfgServerHTTPPort)
 	}
-
 	if viper.IsSet(cfgServerGRPCPort) {
 		cfg.server.grpcPort = viper.GetInt(cfgServerGRPCPort)
 	}
 
+	// DB
 	if viper.IsSet(cfgDBName) {
 		cfg.database.name = viper.GetString(cfgDBName)
 	}
-
 	if viper.IsSet(cfgDBPath) {
 		cfg.database.path = viper.GetString(cfgDBPath)
 	}
-
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
 	}
-
 	if viper.IsSet(cfgDBAutoMigrate) {
 		cfg.database.autoMigrate = viper.GetBool(cfgDBAutoMigrate)
 	}
@@ -271,21 +275,21 @@ func execute() error {
 				_ = lis.Close()
 			}()
 
-			var opts []grpc.ServerOption
+			var (
+				grpcOpts   []grpc.ServerOption
+				serverOpts []server.Option
+				srv        *server.Server
+			)
 
-			opts = append(opts, grpc_middleware.WithUnaryServerChain(
+			grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 				grpc_ctxtags.UnaryServerInterceptor(),
 				grpc_logrus.UnaryServerInterceptor(logger),
-				server.ErrorInterceptor,
+				srv.ErrorUnaryInterceptor,
 				grpc_recovery.UnaryServerInterceptor(),
 			))
 
-			grpcServer = grpc.NewServer(opts...)
-
-			srv, err := server.New(logger, db)
-			if err != nil {
-				return errors.Wrap(err, "initializing grpc server")
-			}
+			srv = server.New(logger, db, serverOpts...)
+			grpcServer = grpc.NewServer(grpcOpts...)
 
 			pb.RegisterFliptServer(grpcServer, srv)
 
@@ -348,7 +352,7 @@ func execute() error {
 	}
 
 	if grpcServer != nil {
-		grpcServer.Stop()
+		grpcServer.GracefulStop()
 	}
 
 	return g.Wait()

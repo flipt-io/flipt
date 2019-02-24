@@ -14,20 +14,22 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var _ SegmentStore = &SegmentStorage{}
+
 type SegmentStorage struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
 // NewSegmentStorage creates a SegmentStorage
-func NewSegmentStorage(logger logrus.FieldLogger, db *sql.DB) *SegmentStorage {
+func NewSegmentStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *SegmentStorage {
 	return &SegmentStorage{
 		logger:  logger.WithField("storage", "segment"),
-		builder: sq.StatementBuilder.RunWith(sq.NewStmtCacher(db)),
+		builder: builder,
 	}
 }
 
-func (s *SegmentStorage) Segment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
+func (s *SegmentStorage) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
 	s.logger.WithField("request", r).Debug("get segment")
 	segment, err := s.segment(ctx, r.Key)
 	s.logger.WithField("response", segment).Debug("get segment")
@@ -69,7 +71,7 @@ func (s SegmentStorage) segment(ctx context.Context, key string) (*flipt.Segment
 	return segment, nil
 }
 
-func (s *SegmentStorage) Segments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
+func (s *SegmentStorage) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
 	s.logger.WithField("request", r).Debug("list segments")
 
 	var (

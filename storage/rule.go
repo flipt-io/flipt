@@ -20,22 +20,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var _ RuleStore = &RuleStorage{}
+
 type RuleStorage struct {
 	logger  logrus.FieldLogger
-	db      sq.DBProxyBeginner
+	tx      sq.DBProxyBeginner
 	builder sq.StatementBuilderType
 }
 
 // NewRuleStorage creates a RuleStorage
-func NewRuleStorage(logger logrus.FieldLogger, db *sql.DB) *RuleStorage {
+func NewRuleStorage(logger logrus.FieldLogger, tx sq.DBProxyBeginner, builder sq.StatementBuilderType) *RuleStorage {
 	return &RuleStorage{
 		logger:  logger.WithField("storage", "rule"),
-		db:      sq.NewStmtCacheProxy(db),
-		builder: sq.StatementBuilder.RunWith(sq.NewStmtCacher(db)),
+		tx:      tx,
+		builder: builder,
 	}
 }
 
-func (s *RuleStorage) Rule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
+func (s *RuleStorage) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("get rule")
 	rule, err := s.rule(ctx, r.Id, r.FlagKey)
 	s.logger.WithField("response", rule).Debug("get rule")
@@ -68,7 +70,7 @@ func (s *RuleStorage) rule(ctx context.Context, id, flagKey string) (*flipt.Rule
 	return rule, nil
 }
 
-func (s *RuleStorage) Rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
+func (s *RuleStorage) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("list rules")
 	rules, err := s.rules(ctx, r)
 	s.logger.WithField("response", rules).Debug("list rules")
@@ -195,7 +197,7 @@ func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest
 func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
 	s.logger.WithField("request", r).Debug("delete rule")
 
-	tx, err := s.db.Begin()
+	tx, err := s.tx.Begin()
 	if err != nil {
 		return err
 	}
@@ -253,7 +255,7 @@ func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest
 func (s *RuleStorage) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
 	s.logger.WithField("request", r).Debug("order rules")
 
-	tx, err := s.db.Begin()
+	tx, err := s.tx.Begin()
 	if err != nil {
 		return err
 	}

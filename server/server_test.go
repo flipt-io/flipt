@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func TestErrorInterceptor(t *testing.T) {
+func TestErrorUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name     string
 		err      error
@@ -52,11 +52,15 @@ func TestErrorInterceptor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			spy := grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
-				return nil, tt.err
-			})
+			var (
+				subject = &Server{}
 
-			_, err := ErrorInterceptor(context.Background(), nil, nil, spy)
+				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, tt.err
+				})
+			)
+
+			_, err := subject.ErrorUnaryInterceptor(context.Background(), nil, nil, spyHandler)
 			if tt.err != nil {
 				require.Error(t, err)
 				status := status.Convert(err)

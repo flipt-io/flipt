@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ storage.FlagRepository = &flagRepositoryMock{}
+var _ storage.FlagStore = &flagStoreMock{}
 
-type flagRepositoryMock struct {
-	flagFn          func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
-	flagsFn         func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+type flagStoreMock struct {
+	getFlagFn       func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
+	listFlagsFn     func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
 	createFlagFn    func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	updateFlagFn    func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	deleteFlagFn    func(context.Context, *flipt.DeleteFlagRequest) error
@@ -24,35 +24,35 @@ type flagRepositoryMock struct {
 	deleteVariantFn func(context.Context, *flipt.DeleteVariantRequest) error
 }
 
-func (m *flagRepositoryMock) Flag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	return m.flagFn(ctx, r)
+func (m *flagStoreMock) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+	return m.getFlagFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) Flags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-	return m.flagsFn(ctx, r)
+func (m *flagStoreMock) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+	return m.listFlagsFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (m *flagStoreMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	return m.createFlagFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (m *flagStoreMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	return m.updateFlagFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+func (m *flagStoreMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	return m.deleteFlagFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+func (m *flagStoreMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	return m.createVariantFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+func (m *flagStoreMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	return m.updateVariantFn(ctx, r)
 }
 
-func (m *flagRepositoryMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (m *flagStoreMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
 	return m.deleteVariantFn(ctx, r)
 }
 
@@ -79,8 +79,8 @@ func TestGetFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
-					flagFn: tt.f,
+				FlagStore: &flagStoreMock{
+					getFlagFn: tt.f,
 				},
 			}
 
@@ -111,8 +111,8 @@ func TestListFlags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
-					flagsFn: tt.f,
+				FlagStore: &flagStoreMock{
+					listFlagsFn: tt.f,
 				},
 			}
 
@@ -157,7 +157,7 @@ func TestCreateFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
+				FlagStore: &flagStoreMock{
 					createFlagFn: tt.f,
 				},
 			}
@@ -203,7 +203,7 @@ func TestUpdateFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
+				FlagStore: &flagStoreMock{
 					updateFlagFn: tt.f,
 				},
 			}
@@ -236,7 +236,7 @@ func TestDeleteFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
+				FlagStore: &flagStoreMock{
 					deleteFlagFn: tt.f,
 				},
 			}
@@ -282,7 +282,7 @@ func TestCreateVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
+				FlagStore: &flagStoreMock{
 					createVariantFn: tt.f,
 				},
 			}
@@ -325,7 +325,7 @@ func TestUpdateVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
+				FlagStore: &flagStoreMock{
 					updateVariantFn: tt.f,
 				},
 			}
@@ -359,7 +359,7 @@ func TestDeleteVariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				FlagRepository: &flagRepositoryMock{
+				FlagStore: &flagStoreMock{
 					deleteVariantFn: tt.f,
 				},
 			}

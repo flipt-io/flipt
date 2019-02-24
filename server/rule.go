@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) GetRule(ctx context.Context, req *flipt.GetRuleRequest) (*flipt.Rule, error) {
-	return s.RuleRepository.Rule(ctx, req)
+	return s.RuleStore.GetRule(ctx, req)
 }
 
 func (s *Server) ListRules(ctx context.Context, req *flipt.ListRuleRequest) (*flipt.RuleList, error) {
@@ -18,7 +18,7 @@ func (s *Server) ListRules(ctx context.Context, req *flipt.ListRuleRequest) (*fl
 		return nil, EmptyFieldError("flagKey")
 	}
 
-	rules, err := s.RuleRepository.Rules(ctx, req)
+	rules, err := s.RuleStore.ListRules(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (s *Server) CreateRule(ctx context.Context, req *flipt.CreateRuleRequest) (
 	if req.Rank <= 0 {
 		return nil, InvalidFieldError("rank", "must be greater than 0")
 	}
-	return s.RuleRepository.CreateRule(ctx, req)
+	return s.RuleStore.CreateRule(ctx, req)
 }
 
 func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
@@ -55,7 +55,7 @@ func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (
 	if req.SegmentKey == "" {
 		return nil, EmptyFieldError("segmentKey")
 	}
-	return s.RuleRepository.UpdateRule(ctx, req)
+	return s.RuleStore.UpdateRule(ctx, req)
 }
 
 func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (*empty.Empty, error) {
@@ -66,7 +66,7 @@ func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (
 		return nil, EmptyFieldError("flagKey")
 	}
 
-	if err := s.RuleRepository.DeleteRule(ctx, req); err != nil {
+	if err := s.RuleStore.DeleteRule(ctx, req); err != nil {
 		return nil, err
 	}
 
@@ -81,7 +81,7 @@ func (s *Server) OrderRules(ctx context.Context, req *flipt.OrderRulesRequest) (
 		return nil, InvalidFieldError("ruleIds", "must contain atleast 2 elements")
 	}
 
-	if err := s.RuleRepository.OrderRules(ctx, req); err != nil {
+	if err := s.RuleStore.OrderRules(ctx, req); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +104,7 @@ func (s *Server) CreateDistribution(ctx context.Context, req *flipt.CreateDistri
 	if req.Rollout > 100 {
 		return nil, InvalidFieldError("rollout", "must be less than or equal to '100'")
 	}
-	return s.RuleRepository.CreateDistribution(ctx, req)
+	return s.RuleStore.CreateDistribution(ctx, req)
 }
 
 func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
@@ -126,7 +126,7 @@ func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistri
 	if req.Rollout > 100 {
 		return nil, InvalidFieldError("rollout", "must be less than or equal to '100'")
 	}
-	return s.RuleRepository.UpdateDistribution(ctx, req)
+	return s.RuleStore.UpdateDistribution(ctx, req)
 }
 
 func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistributionRequest) (*empty.Empty, error) {
@@ -143,7 +143,7 @@ func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistri
 		return nil, EmptyFieldError("variantId")
 	}
 
-	if err := s.RuleRepository.DeleteDistribution(ctx, req); err != nil {
+	if err := s.RuleStore.DeleteDistribution(ctx, req); err != nil {
 		return nil, err
 	}
 
@@ -165,7 +165,7 @@ func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*f
 		req.RequestId = uuid.NewV4().String()
 	}
 
-	resp, err := s.RuleRepository.Evaluate(ctx, req)
+	resp, err := s.RuleStore.Evaluate(ctx, req)
 	if err != nil {
 		return nil, err
 	}

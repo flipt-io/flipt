@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ storage.SegmentRepository = &segmentRepositoryMock{}
+var _ storage.SegmentStore = &segmentStoreMock{}
 
-type segmentRepositoryMock struct {
-	segmentFn          func(context.Context, *flipt.GetSegmentRequest) (*flipt.Segment, error)
-	segmentsFn         func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
+type segmentStoreMock struct {
+	getSegmentFn       func(context.Context, *flipt.GetSegmentRequest) (*flipt.Segment, error)
+	listSegmentsFn     func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
 	createSegmentFn    func(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	updateSegmentFn    func(context.Context, *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	deleteSegmentFn    func(context.Context, *flipt.DeleteSegmentRequest) error
@@ -24,35 +24,35 @@ type segmentRepositoryMock struct {
 	deleteConstraintFn func(context.Context, *flipt.DeleteConstraintRequest) error
 }
 
-func (m *segmentRepositoryMock) Segment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
-	return m.segmentFn(ctx, r)
+func (m *segmentStoreMock) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
+	return m.getSegmentFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) Segments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
-	return m.segmentsFn(ctx, r)
+func (m *segmentStoreMock) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
+	return m.listSegmentsFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+func (m *segmentStoreMock) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	return m.createSegmentFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+func (m *segmentStoreMock) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
 	return m.updateSegmentFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+func (m *segmentStoreMock) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
 	return m.deleteSegmentFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+func (m *segmentStoreMock) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	return m.createConstraintFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+func (m *segmentStoreMock) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
 	return m.updateConstraintFn(ctx, r)
 }
 
-func (m *segmentRepositoryMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+func (m *segmentStoreMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
 	return m.deleteConstraintFn(ctx, r)
 }
 
@@ -79,8 +79,8 @@ func TestGetSegment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
-					segmentFn: tt.f,
+				SegmentStore: &segmentStoreMock{
+					getSegmentFn: tt.f,
 				},
 			}
 
@@ -111,8 +111,8 @@ func TestListSegments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
-					segmentsFn: tt.f,
+				SegmentStore: &segmentStoreMock{
+					listSegmentsFn: tt.f,
 				},
 			}
 
@@ -154,7 +154,7 @@ func TestCreateSegment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
+				SegmentStore: &segmentStoreMock{
 					createSegmentFn: tt.f,
 				},
 			}
@@ -197,7 +197,7 @@ func TestUpdateSegment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
+				SegmentStore: &segmentStoreMock{
 					updateSegmentFn: tt.f,
 				},
 			}
@@ -229,7 +229,7 @@ func TestDeleteSegment(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
+				SegmentStore: &segmentStoreMock{
 					deleteSegmentFn: tt.f,
 				},
 			}
@@ -278,7 +278,7 @@ func TestCreateConstraint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
+				SegmentStore: &segmentStoreMock{
 					createConstraintFn: tt.f,
 				},
 			}
@@ -330,7 +330,7 @@ func TestUpdateConstraint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
+				SegmentStore: &segmentStoreMock{
 					updateConstraintFn: tt.f,
 				},
 			}
@@ -363,7 +363,7 @@ func TestDeleteConstraint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				SegmentRepository: &segmentRepositoryMock{
+				SegmentStore: &segmentStoreMock{
 					deleteConstraintFn: tt.f,
 				},
 			}

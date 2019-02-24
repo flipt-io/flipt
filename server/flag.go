@@ -11,11 +11,11 @@ func (s *Server) GetFlag(ctx context.Context, req *flipt.GetFlagRequest) (*flipt
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
 	}
-	return s.FlagRepository.Flag(ctx, req)
+	return s.FlagStore.GetFlag(ctx, req)
 }
 
 func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*flipt.FlagList, error) {
-	flags, err := s.FlagRepository.Flags(ctx, req)
+	flags, err := s.FlagStore.ListFlags(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (s *Server) CreateFlag(ctx context.Context, req *flipt.CreateFlagRequest) (
 	if req.Name == "" {
 		return nil, EmptyFieldError("name")
 	}
-	return s.FlagRepository.CreateFlag(ctx, req)
+	return s.FlagStore.CreateFlag(ctx, req)
 }
 
 func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
@@ -46,7 +46,7 @@ func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (
 	if req.Name == "" {
 		return nil, EmptyFieldError("name")
 	}
-	return s.FlagRepository.UpdateFlag(ctx, req)
+	return s.FlagStore.UpdateFlag(ctx, req)
 }
 
 func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (*empty.Empty, error) {
@@ -54,7 +54,7 @@ func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (
 		return nil, EmptyFieldError("key")
 	}
 
-	if err := s.FlagRepository.DeleteFlag(ctx, req); err != nil {
+	if err := s.FlagStore.DeleteFlag(ctx, req); err != nil {
 		return nil, err
 	}
 
@@ -68,7 +68,7 @@ func (s *Server) CreateVariant(ctx context.Context, req *flipt.CreateVariantRequ
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
 	}
-	return s.FlagRepository.CreateVariant(ctx, req)
+	return s.FlagStore.CreateVariant(ctx, req)
 }
 
 func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
@@ -81,7 +81,7 @@ func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequ
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
 	}
-	return s.FlagRepository.UpdateVariant(ctx, req)
+	return s.FlagStore.UpdateVariant(ctx, req)
 }
 
 func (s *Server) DeleteVariant(ctx context.Context, req *flipt.DeleteVariantRequest) (*empty.Empty, error) {
@@ -92,7 +92,7 @@ func (s *Server) DeleteVariant(ctx context.Context, req *flipt.DeleteVariantRequ
 		return nil, EmptyFieldError("flagKey")
 	}
 
-	if err := s.FlagRepository.DeleteVariant(ctx, req); err != nil {
+	if err := s.FlagStore.DeleteVariant(ctx, req); err != nil {
 		return nil, err
 	}
 
