@@ -95,10 +95,9 @@ I would love your help! Before submitting a PR, please read over the [Contributi
 
 Here's a couple of areas that could use some love:
 
-* Caching - Evaluation speed could greatly be improved with the help of caching flags/segments/rules/etc in memory. [#3](https://github.com/markphelps/flipt/issues/3)
 * Documentation - Does something not make sense in the documentation? Could it be worded better? Please help!
 * Examples - More examples on how to use Flipt in other languages.
-* Test Coverage - Would love to get all coverage over 80%. [#2](https://github.com/markphelps/flipt/issues/2)
+* Test Coverage - Would love to get all coverage over 80% ([#2](https://github.com/markphelps/flipt/issues/2)) as well as add integration tests ([#5](https://github.com/markphelps/flipt/issues/5)).
 * Javascripts - I'm no JS wizz, I'm sure the Javascript code in [ui/src](ui/src) could be improved/simplified/tested.
 
 ## Licensing
