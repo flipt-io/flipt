@@ -126,10 +126,10 @@ If there are any concerns about the use of this license for the server, please [
 
 My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with support, some of the planned features include:
 
-* User management/login
-* Permissions
+* User management/permissions
+* Multiple environments
 * HTTPS
-* Auditing
+* Audit log
 * Streaming updates
 * Metrics
 * HA support
