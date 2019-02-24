@@ -312,7 +312,7 @@ func execute() error {
 			))
 
 			if cfg.cache.enabled {
-				logger.Infof("cache enabled with size: %d", cfg.cache.size)
+				logger.Infof("flag cache enabled with size: %d", cfg.cache.size)
 				serverOpts = append(serverOpts, server.WithCacheSize(cfg.cache.size))
 			}
 
