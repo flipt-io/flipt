@@ -4,6 +4,7 @@
 [![CodeClimate Coverage](https://img.shields.io/codeclimate/coverage/markphelps/flipt.svg?style=flat)](https://codeclimate.com/github/markphelps/flipt)
 [![Go Report Card](https://goreportcard.com/badge/github.com/markphelps/flipt)](https://goreportcard.com/report/github.com/markphelps/flipt)
 [![GitHub Release](https://img.shields.io/github/release/markphelps/flipt.svg?style=flat)](https://github.com/markphelps/flipt/releases)
+[![Join the chat at https://gitter.im/markphelps/flipt](https://badges.gitter.im/markphelps/flipt.svg)](https://gitter.im/markphelps/flipt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A self contained feature flag solution.
 
@@ -125,10 +126,10 @@ If there are any concerns about the use of this license for the server, please [
 
 My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with support, some of the planned features include:
 
-* User management/login
-* Permissions
+* User management/permissions
+* Multiple environments
 * HTTPS
-* Auditing
+* Audit log
 * Streaming updates
 * Metrics
 * HA support
