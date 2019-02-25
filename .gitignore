@@ -13,6 +13,7 @@ _test
 *.log
 *.out
 *.prof
+*.spelling
 *.test
 bazel-*
 bin
