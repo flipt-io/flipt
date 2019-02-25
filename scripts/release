@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 # defaults to dry-run which does not publish artifacts
 
 GORELEASER_VERSION=v0.101
-GORELEASER_ARGS="--snapshot --skip-publish"
+RUN=false
 
 while [ $# -gt 0 ]
 do
@@ -16,17 +16,32 @@ key="$1"
 
 case $key in
     -r|--run)
-    GORELEASER_ARGS=""
+    RUN=true
     shift # past argument
     ;;
 esac
 done
 
-docker run --rm --privileged \
-  -v "$PWD":/go/src/github.com/markphelps/flipt \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -w /go/src/github.com/markphelps/flipt \
-  -e GITHUB_TOKEN \
-  -e DOCKER_USERNAME \
-  -e DOCKER_PASSWORD \
-  goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist "$GORELEASER_ARGS"
+if [ "$RUN" = true ]; then
+  echo "==> Releasing with goreleaser"
+
+  docker run --rm --privileged \
+    -v "$PWD":/go/src/github.com/markphelps/flipt \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -w /go/src/github.com/markphelps/flipt \
+    -e GITHUB_TOKEN \
+    -e DOCKER_USERNAME \
+    -e DOCKER_PASSWORD \
+    goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist
+
+  echo "==> Publishing docs"
+  mkdocs gh-deploy
+else
+  echo "==> Creating snapshot with goreleaser"
+
+  docker run --rm --privileged \
+    -v "$PWD":/go/src/github.com/markphelps/flipt \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -w /go/src/github.com/markphelps/flipt \
+    goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish
+fi

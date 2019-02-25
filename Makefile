@@ -65,6 +65,13 @@ ui: ## Builds the ui
 generate: ## Run go generate
 	GO111MODULE=$(GO111MODULE) go generate ./...
 
+.PHONY: check_generate
+check_generate: generate
+	@if ! (git diff --quiet); then \
+		echo "Run 'make generate' and commit the changes to fix the error."; \
+		exit 1; \
+	fi
+
 .PHONY: build
 build: ## Build a local copy
 	GO111MODULE=$(GO111MODULE) go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
