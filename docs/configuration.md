@@ -62,4 +62,11 @@ export FLIPT_DB_PATH=/tmp/db
 
 In-memory caching is currently only available for flags. When enabled, in-memory caching has been shown to speed up the fetching of individual flags by 10x.
 
+To enable caching set the following in your config:
+
+```yaml
+cache:
+  enabled: true
+```
+
 Work is planned to add caching support to rule evaluation soon.

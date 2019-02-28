@@ -43,7 +43,7 @@ Flipt features include:
 
 Many organizations understand the benefit of using feature flags in production, so they choose to implement them themselves in their main application or monolith.
 
-As their organization grows, so does their application/infrastructure and functionality makes it's way into a multitude of other services. Many times those services aren't even implemented in the same language.
+As their organization grows, so does their infrastructure and functionality makes it's way into a multitude of other services. Many times those services aren't even implemented in the same language.
 
 This is where their original feature flag solution tends to break down as it cannot be easily adapted to those services or languages. This results in:
 
@@ -80,26 +80,9 @@ Want to get up and running with Flipt? See [Getting Started](https://markphelps.
 
 For a more detailed guide on how to setup and run Flipt, checkout the [Installation](https://markphelps.github.io/flipt/installation/) documentation.
 
-To learn how Flipt works behind the curtain, read up on it's [Architecture](https://markphelps.github.io/flipt/architecture/).
+To learn how Flipt works, read up on it's [Architecture](https://markphelps.github.io/flipt/architecture/).
 
 For information on how to integrate Flipt with your existing applications, see the [Integration](https://markphelps.github.io/flipt/integration/) guide.
-
-## Author
-
-* Website: [https://markphelps.me](https://markphelps.me)
-* Twitter: [@mark_a_phelps](https://twitter.com/mark_a_phelps)
-* Email: _mark.aaron.phelps at gmail.com_
-
-## TODO/Contributing
-
-I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
-
-Here's a couple of areas that could use some love:
-
-* Documentation - Does something not make sense in the documentation? Could it be worded better? Please help!
-* Examples - More examples on how to use Flipt in other languages.
-* Test Coverage - Would love to get all coverage over 80% ([#2](https://github.com/markphelps/flipt/issues/2)) as well as add integration tests ([#5](https://github.com/markphelps/flipt/issues/5)).
-* Javascripts - I'm no JS wizz, I'm sure the Javascript code in [ui/src](ui/src) could be improved/simplified/tested.
 
 ## Licensing
 
@@ -121,6 +104,23 @@ The client code is the code that you would integrate into your applications, whi
 The server code is licensed under the [GPL 3.0 License](https://spdx.org/licenses/GPL-3.0.html).
 
 If there are any concerns about the use of this license for the server, please [open an issue](https://github.com/markphelps/flipt/issues/new) on GitHub so that we can discuss publicly.
+
+## Author
+
+* Website: [https://markphelps.me](https://markphelps.me)
+* Twitter: [@mark_a_phelps](https://twitter.com/mark_a_phelps)
+* Email: _mark.aaron.phelps at gmail.com_
+
+## Contributing
+
+I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
+
+Here's a couple of areas that could use some love:
+
+* Documentation - Does something not make sense in the documentation? Could it be worded better? Please help!
+* Examples - More examples on how to use Flipt in other languages.
+* Test Coverage - Would love to get all coverage over 80% ([#2](https://github.com/markphelps/flipt/issues/2)) as well as add integration tests ([#5](https://github.com/markphelps/flipt/issues/5)).
+* Javascripts - I'm no JS wizz, I'm sure the Javascript code in [ui/src](ui/src) could be improved/simplified/tested.
 
 ## Pro Version
 

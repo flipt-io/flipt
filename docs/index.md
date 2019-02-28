@@ -24,6 +24,7 @@ Flipt features include:
 
 * Fast. Written in Go. Optimized for performance
 * Stand alone, easy to run server with no external dependencies
+* Ability to create advanced distribution rules to target segments of users
 * Native GRPC client SDKs to integrate with your applications
 * Simple REST API
 * Modern UI and debug console
@@ -32,7 +33,7 @@ Flipt features include:
 
 Many organizations understand the benefit of using feature flags in production, so they choose to implement them themselves in their main application or monolith.
 
-As their organization grows, so does their application/infrastructure and functionality makes it's way into a multitude of other services. Many times those services aren't even implemented in the same language.
+As their organization grows, so does their infrastructure and functionality makes it's way into a multitude of other services. Many times those services aren't even implemented in the same language.
 
 This is where their original feature flag solution tends to break down as it cannot be easily adapted to those services or languages. This results in:
 
@@ -53,20 +54,16 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 ## What's Next
 
-Want to get up and running with Flipt? See the [Getting Started](getting_started) section.
+Want to get up and running with Flipt? See [Getting Started](getting_started).
 
 For a more detailed guide on how to setup and run Flipt, checkout the [Installation](installation.md) documentation.
 
-For more information on how Flipt works behind the scenes, read the [Architecture](architecture.md) documentation.
+To learn how Flipt works, read up on it's [Architecture](architecture.md).
 
-To learn how to integrate Flipt with your existing applications, see the [Integration](integration.md) guide.
-
-## Documentation
-
-[https://markphelps.github.io/flipt](https://markphelps.github.io/flipt/)
+For more information on how to integrate Flipt with your existing applications, see the [Integration](integration.md) guide.
 
 ## Author
 
 * Website: [Mark Phelps](https://markphelps.me)
 * Twitter: [@mark_a_phelps](https://twitter.com/mark_a_phelps)
-* Email: mark.aaron.phelps at gmail.com
+* Email: _mark.aaron.phelps at gmail.com_
