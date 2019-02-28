@@ -75,27 +75,28 @@ type Message struct {
 // compute the checksum field during the message transmission.
 // When psh is not nil, it must be the pseudo header for IPv6.
 func (m *Message) Marshal(psh []byte) ([]byte, error) {
-	var mtype int
+	var mtype byte
 	switch typ := m.Type.(type) {
 	case ipv4.ICMPType:
-		mtype = int(typ)
+		mtype = byte(typ)
 	case ipv6.ICMPType:
-		mtype = int(typ)
+		mtype = byte(typ)
 	default:
 		return nil, errInvalidProtocol
 	}
-	b := []byte{byte(mtype), byte(m.Code), 0, 0}
-	if m.Type.Protocol() == iana.ProtocolIPv6ICMP && psh != nil {
+	b := []byte{mtype, byte(m.Code), 0, 0}
+	proto := m.Type.Protocol()
+	if proto == iana.ProtocolIPv6ICMP && psh != nil {
 		b = append(psh, b...)
 	}
-	if m.Body != nil && m.Body.Len(m.Type.Protocol()) != 0 {
-		mb, err := m.Body.Marshal(m.Type.Protocol())
+	if m.Body != nil && m.Body.Len(proto) != 0 {
+		mb, err := m.Body.Marshal(proto)
 		if err != nil {
 			return nil, err
 		}
 		b = append(b, mb...)
 	}
-	if m.Type.Protocol() == iana.ProtocolIPv6ICMP {
+	if proto == iana.ProtocolIPv6ICMP {
 		if psh == nil { // cannot calculate checksum here
 			return b, nil
 		}
