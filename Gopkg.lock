@@ -269,15 +269,15 @@
   revision = "6a9ea43bcacdf716a5c1b38efff722c07adf0069"
 
 [[projects]]
-  digest = "1:cd2f2cba5b7ffafd0412fb647ff4bcff170292de57270f05fbbf391e3eb9566b"
+  digest = "1:1f84287a4ca2c8f729d8155ba4c45915f5854ebbd214e406070779753da68422"
   name = "github.com/sirupsen/logrus"
   packages = [
     ".",
     "hooks/test",
   ]
   pruneopts = "NT"
-  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
-  version = "v1.2.0"
+  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:a3d234acd819fde4b1875e9e9e68a1d8368115983a74ec23c379973a8f179f07"
