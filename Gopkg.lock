@@ -379,7 +379,7 @@
   name = "golang.org/x/sync"
   packages = ["errgroup"]
   pruneopts = "NT"
-  revision = "37e7f081c4d4c64e13b10787722085407fe5d15f"
+  revision = "e225da77a7e68af35c70ccbf71af2b83e6acac3c"
 
 [[projects]]
   branch = "master"
