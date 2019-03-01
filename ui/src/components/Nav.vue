@@ -37,7 +37,7 @@
       <div class="navbar-end">
         <a
           class="navbar-item has-text-weight-semibold"
-          href="https://markphelps.github.io/flipt/"
+          href="https://flipt.dev/"
           >Documentation</a
         >
         <a class="navbar-item has-text-weight-semibold" href="/docs/">API</a>
