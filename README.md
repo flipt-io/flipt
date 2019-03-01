@@ -12,7 +12,7 @@ A self contained feature flag solution.
 
 ## Documentation
 
-Documentation is hosted at: [https://markphelps.github.io/flipt/](https://markphelps.github.io/flipt/)
+Documentation is hosted at: [https://flipt.dev/](https://flipt.dev/)
 
 ## What is Flipt
 
@@ -22,7 +22,7 @@ This means that you can deploy Flipt within your existing infrastructure and not
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
-For more on Flipt and it's concepts, take a look at the [Concepts](https://markphelps.github.io/flipt/concepts/) documentation.
+For more on Flipt and it's concepts, take a look at the [Concepts](https://flipt.dev/concepts/) documentation.
 
 ## Flipt Features
 
@@ -70,19 +70,19 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
 
-For more permanent methods of running Flipt, see the [Installation](https://markphelps.github.io/flipt/installation/) section.
+For more permanent methods of running Flipt, see the [Installation](https://flipt.dev/installation/) section.
 
 ## What's Next
 
 To see Flipt in action, checkout an [example](example/).
 
-Want to get up and running with Flipt? See [Getting Started](https://markphelps.github.io/flipt/getting_started/).
+Want to get up and running with Flipt? See [Getting Started](https://flipt.dev/getting_started/).
 
-For a more detailed guide on how to setup and run Flipt, checkout the [Installation](https://markphelps.github.io/flipt/installation/) documentation.
+For a more detailed guide on how to setup and run Flipt, checkout the [Installation](https://flipt.dev/installation/) documentation.
 
-To learn how Flipt works, read up on it's [Architecture](https://markphelps.github.io/flipt/architecture/).
+To learn how Flipt works, read up on it's [Architecture](https://flipt.dev/architecture/).
 
-For information on how to integrate Flipt with your existing applications, see the [Integration](https://markphelps.github.io/flipt/integration/) guide.
+For information on how to integrate Flipt with your existing applications, see the [Integration](https://flipt.dev/integration/) guide.
 
 ## Licensing
 
