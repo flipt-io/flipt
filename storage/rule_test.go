@@ -64,6 +64,13 @@ func TestGetRule(t *testing.T) {
 	assert.Equal(t, rule.Rank, got.Rank)
 	assert.NotZero(t, got.CreatedAt)
 	assert.NotZero(t, got.UpdatedAt)
+
+	got, err = ruleStore.GetRule(context.TODO(), &flipt.GetRuleRequest{
+		Id:      "0",
+		FlagKey: flag.Key,
+	})
+
+	require.Error(t, err)
 }
 
 func TestListRules(t *testing.T) {
@@ -370,6 +377,13 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, float32(10), updatedDistribution.Rollout)
 	assert.Equal(t, distribution.CreatedAt, updatedDistribution.CreatedAt)
 	assert.NotEqual(t, distribution.CreatedAt, updatedDistribution.UpdatedAt)
+
+	err = ruleStore.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
+		Id:        distribution.Id,
+		RuleId:    rule.Id,
+		VariantId: variant.Id,
+	})
+	require.NoError(t, err)
 }
 
 func TestUpdateRule_NotFound(t *testing.T) {

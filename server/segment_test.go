@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var _ storage.SegmentStore = &segmentStoreMock{}
@@ -58,9 +58,11 @@ func (m *segmentStoreMock) DeleteConstraint(ctx context.Context, r *flipt.Delete
 
 func TestGetSegment(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.GetSegmentRequest
-		f    func(context.Context, *flipt.GetSegmentRequest) (*flipt.Segment, error)
+		name    string
+		req     *flipt.GetSegmentRequest
+		f       func(context.Context, *flipt.GetSegmentRequest) (*flipt.Segment, error)
+		segment *flipt.Segment
+		e       error
 	}{
 		{
 			name: "ok",
@@ -73,6 +75,24 @@ func TestGetSegment(t *testing.T) {
 					Key: r.Key,
 				}, nil
 			},
+			segment: &flipt.Segment{
+				Key: "key",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyKey",
+			req:  &flipt.GetSegmentRequest{Key: ""},
+			f: func(_ context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+
+				return &flipt.Segment{
+					Key: "",
+				}, nil
+			},
+			segment: nil,
+			e:       EmptyFieldError("key"),
 		},
 	}
 
@@ -85,17 +105,19 @@ func TestGetSegment(t *testing.T) {
 			}
 
 			segment, err := s.GetSegment(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, segment)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.segment, segment)
 		})
 	}
 }
 
 func TestListSegments(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.ListSegmentRequest
-		f    func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
+		name     string
+		req      *flipt.ListSegmentRequest
+		f        func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
+		segments *flipt.SegmentList
+		e        error
 	}{
 		{
 			name: "ok",
@@ -105,6 +127,23 @@ func TestListSegments(t *testing.T) {
 					{Key: "1"},
 				}, nil
 			},
+			segments: &flipt.SegmentList{
+				Segments: []*flipt.Segment{
+					{
+						Key: "1",
+					},
+				},
+			},
+			e: nil,
+		},
+		{
+			name: "error test",
+			req:  &flipt.ListSegmentRequest{},
+			f: func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
+				return nil, errors.New("error test")
+			},
+			segments: nil,
+			e:        errors.New("error test"),
 		},
 	}
 
@@ -117,17 +156,19 @@ func TestListSegments(t *testing.T) {
 			}
 
 			segments, err := s.ListSegments(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotEmpty(t, segments)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.segments, segments)
 		})
 	}
 }
 
 func TestCreateSegment(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.CreateSegmentRequest
-		f    func(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+		name    string
+		req     *flipt.CreateSegmentRequest
+		f       func(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+		segment *flipt.Segment
+		e       error
 	}{
 		{
 			name: "ok",
@@ -148,6 +189,56 @@ func TestCreateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
+			segment: &flipt.Segment{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyKey",
+			req: &flipt.CreateSegmentRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			f: func(_ context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Segment{
+					Key:         "",
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			segment: nil,
+			e:       EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &flipt.CreateSegmentRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+			},
+			f: func(_ context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Segment{
+					Key:         r.Key,
+					Name:        "",
+					Description: r.Description,
+				}, nil
+			},
+			segment: nil,
+			e:       EmptyFieldError("name"),
 		},
 	}
 
@@ -160,17 +251,19 @@ func TestCreateSegment(t *testing.T) {
 			}
 
 			segment, err := s.CreateSegment(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, segment)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.segment, segment)
 		})
 	}
 }
 
 func TestUpdateSegment(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.UpdateSegmentRequest
-		f    func(context.Context, *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
+		name    string
+		req     *flipt.UpdateSegmentRequest
+		f       func(context.Context, *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
+		segment *flipt.Segment
+		e       error
 	}{
 		{
 			name: "ok",
@@ -191,6 +284,56 @@ func TestUpdateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
+			segment: &flipt.Segment{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyKey",
+			req: &flipt.UpdateSegmentRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			f: func(_ context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Segment{
+					Key:         "",
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			segment: nil,
+			e:       EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &flipt.UpdateSegmentRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+			},
+			f: func(_ context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Segment{
+					Key:         r.Key,
+					Name:        "",
+					Description: r.Description,
+				}, nil
+			},
+			segment: nil,
+			e:       EmptyFieldError("name"),
 		},
 	}
 
@@ -203,17 +346,19 @@ func TestUpdateSegment(t *testing.T) {
 			}
 
 			segment, err := s.UpdateSegment(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, segment)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.segment, segment)
 		})
 	}
 }
 
 func TestDeleteSegment(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.DeleteSegmentRequest
-		f    func(context.Context, *flipt.DeleteSegmentRequest) error
+		name  string
+		req   *flipt.DeleteSegmentRequest
+		f     func(context.Context, *flipt.DeleteSegmentRequest) error
+		empty *empty.Empty
+		e     error
 	}{
 		{
 			name: "ok",
@@ -223,6 +368,30 @@ func TestDeleteSegment(t *testing.T) {
 				assert.Equal(t, "key", r.Key)
 				return nil
 			},
+			empty: &empty.Empty{},
+			e:     nil,
+		},
+		{
+			name: "emptyKey",
+			req:  &flipt.DeleteSegmentRequest{Key: ""},
+			f: func(_ context.Context, r *flipt.DeleteSegmentRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+				return nil
+			},
+			empty: nil,
+			e:     EmptyFieldError("key"),
+		},
+		{
+			name: "error test",
+			req:  &flipt.DeleteSegmentRequest{Key: "key"},
+			f: func(_ context.Context, r *flipt.DeleteSegmentRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "key", r.Key)
+				return errors.New("error test")
+			},
+			empty: nil,
+			e:     errors.New("error test"),
 		},
 	}
 
@@ -235,17 +404,19 @@ func TestDeleteSegment(t *testing.T) {
 			}
 
 			resp, err := s.DeleteSegment(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.Equal(t, &empty.Empty{}, resp)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.empty, resp)
 		})
 	}
 }
 
 func TestCreateConstraint(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.CreateConstraintRequest
-		f    func(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+		name       string
+		req        *flipt.CreateConstraintRequest
+		f          func(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+		constraint *flipt.Constraint
+		e          error
 	}{
 		{
 			name: "ok",
@@ -272,6 +443,98 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
+			constraint: &flipt.Constraint{
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			e: nil,
+		},
+		{
+			name: "emptySegmentKey",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "foo", r.Property)
+				assert.Equal(t, "EQ", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					SegmentKey: "",
+					Type:       r.Type,
+					Property:   r.Property,
+					Operator:   r.Operator,
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "emptyProperty",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "", r.Property)
+				assert.Equal(t, "EQ", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					SegmentKey: r.SegmentKey,
+					Type:       r.Type,
+					Property:   "",
+					Operator:   r.Operator,
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("property"),
+		},
+		{
+			name: "emptyOperator",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "foo", r.Property)
+				assert.Equal(t, "", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					SegmentKey: r.SegmentKey,
+					Type:       r.Type,
+					Property:   r.Property,
+					Operator:   "",
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("operator"),
 		},
 	}
 
@@ -284,17 +547,19 @@ func TestCreateConstraint(t *testing.T) {
 			}
 
 			constraint, err := s.CreateConstraint(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, constraint)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.constraint, constraint)
 		})
 	}
 }
 
 func TestUpdateConstraint(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.UpdateConstraintRequest
-		f    func(context.Context, *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
+		name       string
+		req        *flipt.UpdateConstraintRequest
+		f          func(context.Context, *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
+		constraint *flipt.Constraint
+		e          error
 	}{
 		{
 			name: "ok",
@@ -324,6 +589,139 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
+			constraint: &flipt.Constraint{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyID",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "",
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Id)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "foo", r.Property)
+				assert.Equal(t, "EQ", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					Id:         "",
+					SegmentKey: r.SegmentKey,
+					Type:       r.Type,
+					Property:   r.Property,
+					Operator:   r.Operator,
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("id"),
+		},
+		{
+			name: "emptySegmentKey",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "1", r.Id)
+				assert.Equal(t, "", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "foo", r.Property)
+				assert.Equal(t, "EQ", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					Id:         r.Id,
+					SegmentKey: "",
+					Type:       r.Type,
+					Property:   r.Property,
+					Operator:   r.Operator,
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "emptyProperty",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "",
+				Operator:   "EQ",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "1", r.Id)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "", r.Property)
+				assert.Equal(t, "EQ", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					Id:         r.Id,
+					SegmentKey: r.SegmentKey,
+					Type:       r.Type,
+					Property:   "",
+					Operator:   r.Operator,
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("property"),
+		},
+		{
+			name: "emptyOperator",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "",
+				Value:      "bar",
+			},
+			f: func(_ context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "1", r.Id)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				assert.Equal(t, flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE, r.Type)
+				assert.Equal(t, "foo", r.Property)
+				assert.Equal(t, "", r.Operator)
+				assert.Equal(t, "bar", r.Value)
+
+				return &flipt.Constraint{
+					Id:         r.Id,
+					SegmentKey: r.SegmentKey,
+					Type:       r.Type,
+					Property:   r.Property,
+					Operator:   "",
+					Value:      r.Value,
+				}, nil
+			},
+			constraint: nil,
+			e:          EmptyFieldError("operator"),
 		},
 	}
 
@@ -336,17 +734,19 @@ func TestUpdateConstraint(t *testing.T) {
 			}
 
 			constraint, err := s.UpdateConstraint(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, constraint)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.constraint, constraint)
 		})
 	}
 }
 
 func TestDeleteConstraint(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.DeleteConstraintRequest
-		f    func(context.Context, *flipt.DeleteConstraintRequest) error
+		name  string
+		req   *flipt.DeleteConstraintRequest
+		f     func(context.Context, *flipt.DeleteConstraintRequest) error
+		empty *empty.Empty
+		e     error
 	}{
 		{
 			name: "ok",
@@ -357,6 +757,44 @@ func TestDeleteConstraint(t *testing.T) {
 				assert.Equal(t, "segmentKey", r.SegmentKey)
 				return nil
 			},
+			empty: &empty.Empty{},
+			e:     nil,
+		},
+		{
+			name: "emptyID",
+			req:  &flipt.DeleteConstraintRequest{Id: "", SegmentKey: "segmentKey"},
+			f: func(_ context.Context, r *flipt.DeleteConstraintRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Id)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				return nil
+			},
+			empty: nil,
+			e:     EmptyFieldError("id"),
+		},
+		{
+			name: "emptySegmentKey",
+			req:  &flipt.DeleteConstraintRequest{Id: "id", SegmentKey: ""},
+			f: func(_ context.Context, r *flipt.DeleteConstraintRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "id", r.Id)
+				assert.Equal(t, "", r.SegmentKey)
+				return nil
+			},
+			empty: nil,
+			e:     EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "error test",
+			req:  &flipt.DeleteConstraintRequest{Id: "id", SegmentKey: "segmentKey"},
+			f: func(_ context.Context, r *flipt.DeleteConstraintRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "id", r.Id)
+				assert.Equal(t, "segmentKey", r.SegmentKey)
+				return errors.New("error test")
+			},
+			empty: nil,
+			e:     errors.New("error test"),
 		},
 	}
 
@@ -369,8 +807,8 @@ func TestDeleteConstraint(t *testing.T) {
 			}
 
 			resp, err := s.DeleteConstraint(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.Equal(t, &empty.Empty{}, resp)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.empty, resp)
 		})
 	}
 }

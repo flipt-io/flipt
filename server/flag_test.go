@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/proto"
 	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var _ storage.FlagStore = &flagStoreMock{}
@@ -61,6 +61,8 @@ func TestGetFlag(t *testing.T) {
 		name string
 		req  *flipt.GetFlagRequest
 		f    func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
+		flag *flipt.Flag
+		e    error
 	}{
 		{
 			name: "ok",
@@ -73,6 +75,24 @@ func TestGetFlag(t *testing.T) {
 					Key: "key",
 				}, nil
 			},
+			flag: &flipt.Flag{
+				Key: "key",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyKey",
+			req:  &flipt.GetFlagRequest{Key: ""},
+			f: func(_ context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+
+				return &flipt.Flag{
+					Key: "",
+				}, nil
+			},
+			flag: nil,
+			e:    EmptyFieldError("key"),
 		},
 	}
 
@@ -85,17 +105,19 @@ func TestGetFlag(t *testing.T) {
 			}
 
 			flag, err := s.GetFlag(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, flag)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.flag, flag)
 		})
 	}
 }
 
 func TestListFlags(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.ListFlagRequest
-		f    func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+		name  string
+		req   *flipt.ListFlagRequest
+		f     func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+		flags *flipt.FlagList
+		e     error
 	}{
 		{
 			name: "ok",
@@ -105,6 +127,23 @@ func TestListFlags(t *testing.T) {
 					{Key: "flag"},
 				}, nil
 			},
+			flags: &flipt.FlagList{
+				Flags: []*flipt.Flag{
+					{
+						Key: "flag",
+					},
+				},
+			},
+			e: nil,
+		},
+		{
+			name: "err",
+			req:  &flipt.ListFlagRequest{},
+			f: func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+				return nil, errors.New("test error")
+			},
+			flags: nil,
+			e:     errors.New("test error"),
 		},
 	}
 
@@ -117,8 +156,8 @@ func TestListFlags(t *testing.T) {
 			}
 
 			resp, err := s.ListFlags(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, resp)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.flags, resp)
 		})
 	}
 }
@@ -128,6 +167,8 @@ func TestCreateFlag(t *testing.T) {
 		name string
 		req  *flipt.CreateFlagRequest
 		f    func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
+		flag *flipt.Flag
+		e    error
 	}{
 		{
 			name: "ok",
@@ -151,6 +192,63 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
+			flag: &flipt.Flag{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			e: nil,
+		},
+		{
+			name: "emptyKey",
+			req: &flipt.CreateFlagRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			f: func(_ context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+				assert.True(t, r.Enabled)
+
+				return &flipt.Flag{
+					Key:         "",
+					Name:        r.Name,
+					Description: r.Description,
+					Enabled:     r.Enabled,
+				}, nil
+			},
+			flag: nil,
+			e:    EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &flipt.CreateFlagRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+				Enabled:     true,
+			},
+			f: func(_ context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "", r.Name)
+				assert.Equal(t, "desc", r.Description)
+				assert.True(t, r.Enabled)
+
+				return &flipt.Flag{
+					Key:         r.Key,
+					Name:        "",
+					Description: r.Description,
+					Enabled:     r.Enabled,
+				}, nil
+			},
+			flag: nil,
+			e:    EmptyFieldError("name"),
 		},
 	}
 
@@ -163,8 +261,8 @@ func TestCreateFlag(t *testing.T) {
 			}
 
 			flag, err := s.CreateFlag(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, flag)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.flag, flag)
 		})
 	}
 }
@@ -174,6 +272,8 @@ func TestUpdateFlag(t *testing.T) {
 		name string
 		req  *flipt.UpdateFlagRequest
 		f    func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
+		flag *flipt.Flag
+		e    error
 	}{
 		{
 			name: "ok",
@@ -197,6 +297,63 @@ func TestUpdateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
+			flag: &flipt.Flag{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			e: nil,
+		},
+		{
+			name: "emptyKey",
+			req: &flipt.UpdateFlagRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			f: func(_ context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+				assert.True(t, r.Enabled)
+
+				return &flipt.Flag{
+					Key:         "",
+					Name:        r.Name,
+					Description: r.Description,
+					Enabled:     r.Enabled,
+				}, nil
+			},
+			flag: nil,
+			e:    EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &flipt.UpdateFlagRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+				Enabled:     true,
+			},
+			f: func(_ context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "", r.Name)
+				assert.Equal(t, "desc", r.Description)
+				assert.True(t, r.Enabled)
+
+				return &flipt.Flag{
+					Key:         r.Key,
+					Name:        "",
+					Description: r.Description,
+					Enabled:     r.Enabled,
+				}, nil
+			},
+			flag: nil,
+			e:    EmptyFieldError("name"),
 		},
 	}
 
@@ -209,17 +366,19 @@ func TestUpdateFlag(t *testing.T) {
 			}
 
 			flag, err := s.UpdateFlag(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, flag)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.flag, flag)
 		})
 	}
 }
 
 func TestDeleteFlag(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.DeleteFlagRequest
-		f    func(context.Context, *flipt.DeleteFlagRequest) error
+		name  string
+		req   *flipt.DeleteFlagRequest
+		f     func(context.Context, *flipt.DeleteFlagRequest) error
+		empty *empty.Empty
+		e     error
 	}{
 		{
 			name: "ok",
@@ -230,6 +389,32 @@ func TestDeleteFlag(t *testing.T) {
 
 				return nil
 			},
+			empty: &empty.Empty{},
+			e:     nil,
+		},
+		{
+			name: "emptyKey",
+			req:  &flipt.DeleteFlagRequest{Key: ""},
+			f: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Key)
+
+				return nil
+			},
+			empty: nil,
+			e:     EmptyFieldError("key"),
+		},
+		{
+			name: "error",
+			req:  &flipt.DeleteFlagRequest{Key: "key"},
+			f: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "key", r.Key)
+
+				return errors.New("test error")
+			},
+			empty: nil,
+			e:     errors.New("test error"),
 		},
 	}
 
@@ -242,17 +427,19 @@ func TestDeleteFlag(t *testing.T) {
 			}
 
 			resp, err := s.DeleteFlag(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.Equal(t, &empty.Empty{}, resp)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.empty, resp)
 		})
 	}
 }
 
 func TestCreateVariant(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.CreateVariantRequest
-		f    func(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
+		name    string
+		req     *flipt.CreateVariantRequest
+		f       func(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
+		variant *flipt.Variant
+		e       error
 	}{
 		{
 			name: "ok",
@@ -276,6 +463,63 @@ func TestCreateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
+			variant: &flipt.Variant{
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyFlagKey",
+			req: &flipt.CreateVariantRequest{
+				FlagKey:     "",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			f: func(_ context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.FlagKey)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Variant{
+					FlagKey:     "",
+					Key:         r.Key,
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			variant: nil,
+			e:       EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptyKey",
+			req: &flipt.CreateVariantRequest{
+				FlagKey:     "flagKey",
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			f: func(_ context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "flagKey", r.FlagKey)
+				assert.Equal(t, "", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Variant{
+					FlagKey:     r.FlagKey,
+					Key:         "",
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			variant: nil,
+			e:       EmptyFieldError("key"),
 		},
 	}
 
@@ -288,17 +532,19 @@ func TestCreateVariant(t *testing.T) {
 			}
 
 			variant, err := s.CreateVariant(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.NotNil(t, variant)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.variant, variant)
 		})
 	}
 }
 
 func TestUpdateVariant(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.UpdateVariantRequest
-		f    func(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
+		name    string
+		req     *flipt.UpdateVariantRequest
+		f       func(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
+		variant *flipt.Variant
+		e       error
 	}{
 		{
 			name: "ok",
@@ -319,6 +565,80 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
+			variant: &flipt.Variant{
+				Id:          "id",
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			e: nil,
+		},
+		{
+			name: "emptyID",
+			req:  &flipt.UpdateVariantRequest{Id: "", FlagKey: "flagKey", Key: "key", Name: "name", Description: "desc"},
+			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "flagKey", r.FlagKey)
+				assert.Equal(t, "", r.Id)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Variant{
+					Id:          "",
+					FlagKey:     r.FlagKey,
+					Key:         r.Key,
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			variant: nil,
+			e:       EmptyFieldError("id"),
+		},
+		{
+			name: "emptyFlagKey",
+			req:  &flipt.UpdateVariantRequest{Id: "id", FlagKey: "", Key: "key", Name: "name", Description: "desc"},
+			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.FlagKey)
+				assert.Equal(t, "id", r.Id)
+				assert.Equal(t, "key", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Variant{
+					Id:          r.Id,
+					FlagKey:     "",
+					Key:         r.Key,
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			variant: nil,
+			e:       EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptyKey",
+			req:  &flipt.UpdateVariantRequest{Id: "id", FlagKey: "flagKey", Key: "", Name: "name", Description: "desc"},
+			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+				assert.NotNil(t, r)
+				assert.Equal(t, "flagKey", r.FlagKey)
+				assert.Equal(t, "id", r.Id)
+				assert.Equal(t, "", r.Key)
+				assert.Equal(t, "name", r.Name)
+				assert.Equal(t, "desc", r.Description)
+
+				return &flipt.Variant{
+					Id:          r.Id,
+					FlagKey:     r.FlagKey,
+					Key:         "",
+					Name:        r.Name,
+					Description: r.Description,
+				}, nil
+			},
+			variant: nil,
+			e:       EmptyFieldError("key"),
 		},
 	}
 
@@ -331,17 +651,19 @@ func TestUpdateVariant(t *testing.T) {
 			}
 
 			variant, err := s.UpdateVariant(context.TODO(), tt.req)
-			require.NoError(t, err)
-			require.NotNil(t, variant)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.variant, variant)
 		})
 	}
 }
 
 func TestDeleteVariant(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.DeleteVariantRequest
-		f    func(context.Context, *flipt.DeleteVariantRequest) error
+		name  string
+		req   *flipt.DeleteVariantRequest
+		f     func(context.Context, *flipt.DeleteVariantRequest) error
+		empty *empty.Empty
+		e     error
 	}{
 		{
 			name: "ok",
@@ -353,6 +675,47 @@ func TestDeleteVariant(t *testing.T) {
 
 				return nil
 			},
+			empty: &empty.Empty{},
+			e:     nil,
+		},
+		{
+			name: "emptyID",
+			req:  &flipt.DeleteVariantRequest{Id: "", FlagKey: "flagKey"},
+			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "", r.Id)
+				assert.Equal(t, "flagKey", r.FlagKey)
+
+				return nil
+			},
+			empty: nil,
+			e:     EmptyFieldError("id"),
+		},
+		{
+			name: "emptyFlagKey",
+			req:  &flipt.DeleteVariantRequest{Id: "id", FlagKey: ""},
+			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "id", r.Id)
+				assert.Equal(t, "", r.FlagKey)
+
+				return nil
+			},
+			empty: nil,
+			e:     EmptyFieldError("flagKey"),
+		},
+		{
+			name: "error",
+			req:  &flipt.DeleteVariantRequest{Id: "id", FlagKey: "flagKey"},
+			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
+				assert.NotNil(t, r)
+				assert.Equal(t, "id", r.Id)
+				assert.Equal(t, "flagKey", r.FlagKey)
+
+				return errors.New("error test")
+			},
+			empty: nil,
+			e:     errors.New("error test"),
 		},
 	}
 
@@ -365,8 +728,8 @@ func TestDeleteVariant(t *testing.T) {
 			}
 
 			resp, err := s.DeleteVariant(context.TODO(), tt.req)
-			require.NoError(t, err)
-			assert.Equal(t, &empty.Empty{}, resp)
+			assert.Equal(t, tt.e, err)
+			assert.Equal(t, tt.empty, resp)
 		})
 	}
 }

@@ -279,6 +279,68 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
 }
 
+func TestCreateConstraint_ErrInvalid(t *testing.T) {
+	tests := []struct {
+		name string
+		req  *flipt.CreateConstraintRequest
+		e    ErrInvalid
+	}{
+		{
+			name: "invalid for type string",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "LT",
+				Value:      "baz",
+			},
+			e: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
+		},
+		{
+			name: "invalid for type number",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "1",
+				Operator:   "Empty",
+				Value:      "2",
+			},
+			e: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
+		},
+		{
+			name: "invalid for type boolean",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "true",
+				Operator:   "GT",
+				Value:      "false",
+			},
+			e: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
+		},
+		{
+			name: "invalid for type unknown",
+			req: &flipt.CreateConstraintRequest{
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_UNKNOWN_COMPARISON_TYPE,
+				Property:   "-",
+				Operator:   "EQ",
+				Value:      "+",
+			},
+			e: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			constraint, err := segmentStore.CreateConstraint(context.TODO(), tt.req)
+			assert.Equal(t, tt.e, err)
+			assert.Nil(t, constraint)
+		})
+	}
+
+}
+
 func TestCreateConstraint_SegmentNotFound(t *testing.T) {
 	_, err := segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: "foo",
@@ -340,6 +402,72 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+}
+
+func TestUpdateConstraint_ErrInvalid(t *testing.T) {
+	tests := []struct {
+		name string
+		req  *flipt.UpdateConstraintRequest
+		e    ErrInvalid
+	}{
+		{
+			name: "invalid for type string",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "LT",
+				Value:      "baz",
+			},
+			e: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
+		},
+		{
+			name: "invalid for type number",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "1",
+				Operator:   "Empty",
+				Value:      "2",
+			},
+			e: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
+		},
+		{
+			name: "invalid for type boolean",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "true",
+				Operator:   "GT",
+				Value:      "false",
+			},
+			e: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
+		},
+		{
+			name: "invalid for type unknown",
+			req: &flipt.UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "foo",
+				Type:       flipt.ComparisonType_UNKNOWN_COMPARISON_TYPE,
+				Property:   "-",
+				Operator:   "EQ",
+				Value:      "+",
+			},
+			e: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			constraint, err := segmentStore.UpdateConstraint(context.TODO(), tt.req)
+			assert.Equal(t, tt.e, err)
+			assert.Nil(t, constraint)
+		})
+	}
+
 }
 
 func TestUpdateConstraint_NotFound(t *testing.T) {
