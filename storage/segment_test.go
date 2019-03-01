@@ -333,7 +333,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			constraint, err := segmentRepo.CreateConstraint(context.TODO(), tt.req)
+			constraint, err := segmentStore.CreateConstraint(context.TODO(), tt.req)
 			assert.Equal(t, tt.e, err)
 			assert.Nil(t, constraint)
 		})
@@ -462,7 +462,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			constraint, err := segmentRepo.UpdateConstraint(context.TODO(), tt.req)
+			constraint, err := segmentStore.UpdateConstraint(context.TODO(), tt.req)
 			assert.Equal(t, tt.e, err)
 			assert.Nil(t, constraint)
 		})

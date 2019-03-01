@@ -129,7 +129,7 @@ func TestListSegments(t *testing.T) {
 			},
 			segments: &flipt.SegmentList{
 				Segments: []*flipt.Segment{
-					&flipt.Segment{
+					{
 						Key: "1",
 					},
 				},

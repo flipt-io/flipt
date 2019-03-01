@@ -81,7 +81,7 @@ func TestGetFlag(t *testing.T) {
 			e: nil,
 		},
 		{
-			name: "emptykey",
+			name: "emptyKey",
 			req:  &flipt.GetFlagRequest{Key: ""},
 			f: func(_ context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 				assert.NotNil(t, r)
@@ -129,7 +129,7 @@ func TestListFlags(t *testing.T) {
 			},
 			flags: &flipt.FlagList{
 				Flags: []*flipt.Flag{
-					&flipt.Flag{
+					{
 						Key: "flag",
 					},
 				},
@@ -201,7 +201,7 @@ func TestCreateFlag(t *testing.T) {
 			e: nil,
 		},
 		{
-			name: "emptykey",
+			name: "emptyKey",
 			req: &flipt.CreateFlagRequest{
 				Key:         "",
 				Name:        "name",
@@ -226,7 +226,7 @@ func TestCreateFlag(t *testing.T) {
 			e:    EmptyFieldError("key"),
 		},
 		{
-			name: "emptyname",
+			name: "emptyName",
 			req: &flipt.CreateFlagRequest{
 				Key:         "key",
 				Name:        "",
@@ -306,7 +306,7 @@ func TestUpdateFlag(t *testing.T) {
 			e: nil,
 		},
 		{
-			name: "emptykey",
+			name: "emptyKey",
 			req: &flipt.UpdateFlagRequest{
 				Key:         "",
 				Name:        "name",
@@ -331,7 +331,7 @@ func TestUpdateFlag(t *testing.T) {
 			e:    EmptyFieldError("key"),
 		},
 		{
-			name: "emptyname",
+			name: "emptyName",
 			req: &flipt.UpdateFlagRequest{
 				Key:         "key",
 				Name:        "",
@@ -393,7 +393,7 @@ func TestDeleteFlag(t *testing.T) {
 			e:     nil,
 		},
 		{
-			name: "emptykey",
+			name: "emptyKey",
 			req:  &flipt.DeleteFlagRequest{Key: ""},
 			f: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
 				assert.NotNil(t, r)

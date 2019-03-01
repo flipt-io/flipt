@@ -125,7 +125,7 @@ func TestListRules(t *testing.T) {
 			},
 			rules: &flipt.RuleList{
 				Rules: []*flipt.Rule{
-					&flipt.Rule{
+					{
 						FlagKey: "flagKey",
 					},
 				},

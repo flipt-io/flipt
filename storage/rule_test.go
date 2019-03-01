@@ -65,7 +65,7 @@ func TestGetRule(t *testing.T) {
 	assert.NotZero(t, got.CreatedAt)
 	assert.NotZero(t, got.UpdatedAt)
 
-	got, err = ruleRepo.Rule(context.TODO(), &flipt.GetRuleRequest{
+	got, err = ruleStore.GetRule(context.TODO(), &flipt.GetRuleRequest{
 		Id:      "0",
 		FlagKey: flag.Key,
 	})
@@ -378,7 +378,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, distribution.CreatedAt, updatedDistribution.CreatedAt)
 	assert.NotEqual(t, distribution.CreatedAt, updatedDistribution.UpdatedAt)
 
-	err = ruleRepo.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
+	err = ruleStore.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
 		Id:        distribution.Id,
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
