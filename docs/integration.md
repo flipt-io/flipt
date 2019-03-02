@@ -28,7 +28,7 @@ This means that your application can use the Flipt GRPC client if it is written 
 
 The Flipt GRPC client is the preferred way to integrate your application with Flipt as it is more performant than REST and requires the least amount of configuration.
 
-An example Go application exists at [https://github.com/markphelps/flipt/example](https://github.com/markphelps/flipt/tree/master/example), showing how you would integrate with Flipt using the Go GRPC client.
+An example Go application exists at [https://github.com/markphelps/flipt/examples/basic](https://github.com/markphelps/flipt/tree/master/examples/basic), showing how you would integrate with Flipt using the Go GRPC client.
 
 ### Getting the Flipt GRPC clients
 

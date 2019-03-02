@@ -74,7 +74,7 @@ For more permanent methods of running Flipt, see the [Installation](https://flip
 
 ## What's Next
 
-To see Flipt in action, checkout an [example](example/).
+To see Flipt in action, checkout an [example](examples/).
 
 Want to get up and running with Flipt? See [Getting Started](https://flipt.dev/getting_started/).
 
