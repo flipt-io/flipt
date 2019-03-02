@@ -16,6 +16,7 @@ import (
 
 var _ SegmentStore = &SegmentStorage{}
 
+// SegmentStorage is a SQL SegmentStore
 type SegmentStorage struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType

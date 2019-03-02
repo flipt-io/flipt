@@ -15,6 +15,7 @@ import (
 
 var _ FlagStore = &FlagStorage{}
 
+// FlagStorage is a SQL FlagStore
 type FlagStorage struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType

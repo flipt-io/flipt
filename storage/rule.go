@@ -22,6 +22,7 @@ import (
 
 var _ RuleStore = &RuleStorage{}
 
+// RuleStorage is a SQL RuleStore
 type RuleStorage struct {
 	logger  logrus.FieldLogger
 	tx      sq.DBProxyBeginner
