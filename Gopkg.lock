@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:2d3b918a38b7a2daf5a9209043b422c8f97803e5d5ea6f8a9d41fd3045ef38db"
+  digest = "1:86520086f5a77df64dfa57ab48e80532a9893b1b52769738937d7022ec6d0855"
   name = "github.com/Masterminds/squirrel"
   packages = ["."]
   pruneopts = "NT"
-  revision = "a6b93000bd219143c56c16e6cb1c4b91da3f224b"
-  version = "v1.0"
+  revision = "fa735ea14f09f8685fcf5e75db091feb5a410730"
+  version = "v1.1"
 
 [[projects]]
   digest = "1:4b8b5811da6970495e04d1f4e98bb89518cc3cfc3b3f456bdb876ed7b6c74049"
