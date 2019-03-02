@@ -17,14 +17,17 @@ import (
 
 var _ pb.FliptServer = &Server{}
 
+// Option is a server option
 type Option func(s *Server)
 
+// WithCacheSize sets the cache size for the server
 func WithCacheSize(size int) Option {
 	return func(s *Server) {
 		s.cacheSize = size
 	}
 }
 
+// Server serves the Flipt backend
 type Server struct {
 	cacheSize int
 

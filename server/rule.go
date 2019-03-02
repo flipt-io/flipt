@@ -9,10 +9,12 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// GetRule gets a rule
 func (s *Server) GetRule(ctx context.Context, req *flipt.GetRuleRequest) (*flipt.Rule, error) {
 	return s.RuleStore.GetRule(ctx, req)
 }
 
+// ListRules lists all rules
 func (s *Server) ListRules(ctx context.Context, req *flipt.ListRuleRequest) (*flipt.RuleList, error) {
 	if req.FlagKey == "" {
 		return nil, EmptyFieldError("flagKey")
@@ -32,6 +34,7 @@ func (s *Server) ListRules(ctx context.Context, req *flipt.ListRuleRequest) (*fl
 	return &resp, nil
 }
 
+// CreateRule creates a rule
 func (s *Server) CreateRule(ctx context.Context, req *flipt.CreateRuleRequest) (*flipt.Rule, error) {
 	if req.FlagKey == "" {
 		return nil, EmptyFieldError("flagKey")
@@ -45,6 +48,7 @@ func (s *Server) CreateRule(ctx context.Context, req *flipt.CreateRuleRequest) (
 	return s.RuleStore.CreateRule(ctx, req)
 }
 
+// UpdateRule updates an existing rule
 func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
@@ -58,6 +62,7 @@ func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (
 	return s.RuleStore.UpdateRule(ctx, req)
 }
 
+// DeleteRule deletes a rule
 func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (*empty.Empty, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
@@ -73,6 +78,7 @@ func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (
 	return &empty.Empty{}, nil
 }
 
+// OrderRules orders rules
 func (s *Server) OrderRules(ctx context.Context, req *flipt.OrderRulesRequest) (*empty.Empty, error) {
 	if req.FlagKey == "" {
 		return nil, EmptyFieldError("flagKey")
@@ -88,6 +94,7 @@ func (s *Server) OrderRules(ctx context.Context, req *flipt.OrderRulesRequest) (
 	return &empty.Empty{}, nil
 }
 
+// CreateDistribution creates a distribution
 func (s *Server) CreateDistribution(ctx context.Context, req *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	if req.FlagKey == "" {
 		return nil, EmptyFieldError("flagKey")
@@ -107,6 +114,7 @@ func (s *Server) CreateDistribution(ctx context.Context, req *flipt.CreateDistri
 	return s.RuleStore.CreateDistribution(ctx, req)
 }
 
+// UpdateDistribution updates an existing distribution
 func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
@@ -129,6 +137,7 @@ func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistri
 	return s.RuleStore.UpdateDistribution(ctx, req)
 }
 
+// DeleteDistribution deletes a distribution
 func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistributionRequest) (*empty.Empty, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
@@ -150,6 +159,7 @@ func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistri
 	return &empty.Empty{}, nil
 }
 
+// Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	if req.FlagKey == "" {
 		return nil, EmptyFieldError("flagKey")

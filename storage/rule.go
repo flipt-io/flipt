@@ -37,6 +37,7 @@ func NewRuleStorage(logger logrus.FieldLogger, tx sq.DBProxyBeginner, builder sq
 	}
 }
 
+// GetRule gets a rule
 func (s *RuleStorage) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("get rule")
 	rule, err := s.rule(ctx, r.Id, r.FlagKey)
@@ -70,6 +71,7 @@ func (s *RuleStorage) rule(ctx context.Context, id, flagKey string) (*flipt.Rule
 	return rule, nil
 }
 
+// ListRules lists all rules
 func (s *RuleStorage) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("list rules")
 	rules, err := s.rules(ctx, r)
@@ -135,6 +137,7 @@ func (s *RuleStorage) rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*f
 	return rules, rows.Err()
 }
 
+// CreateRule creates a rule
 func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("create rule")
 
@@ -166,6 +169,7 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 	return rule, nil
 }
 
+// UpdateRule updates an existing rule
 func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("update rule")
 	var (
@@ -194,6 +198,7 @@ func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest
 	return rule, err
 }
 
+// DeleteRule deletes a rule
 func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
 	s.logger.WithField("request", r).Debug("delete rule")
 
@@ -252,6 +257,7 @@ func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest
 	return tx.Commit()
 }
 
+// OrderRules orders rules
 func (s *RuleStorage) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
 	s.logger.WithField("request", r).Debug("order rules")
 
@@ -286,6 +292,7 @@ func (s *RuleStorage) orderRules(ctx context.Context, tx *sql.Tx, flagKey string
 	return nil
 }
 
+// CreateDistribution creates a distribution
 func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	s.logger.WithField("request", r).Debug("create distribution")
 
@@ -318,6 +325,7 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 	return d, nil
 }
 
+// UpdateDistribution updates an existing distribution
 func (s *RuleStorage) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	s.logger.WithField("request", r).Debug("update distribution")
 
@@ -364,6 +372,7 @@ func (s *RuleStorage) UpdateDistribution(ctx context.Context, r *flipt.UpdateDis
 	return distribution, nil
 }
 
+// DeleteDistribution deletes a distribution
 func (s *RuleStorage) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
 	s.logger.WithField("request", r).Debug("delete distribution")
 
@@ -438,6 +447,7 @@ type distribution struct {
 	VariantKey string
 }
 
+// Evaluate evaluates a request for a given flag and entity
 func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.WithField("request", r).Debug("evaluate")
 

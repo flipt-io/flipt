@@ -7,6 +7,7 @@ import (
 	flipt "github.com/markphelps/flipt/proto"
 )
 
+// GetSegment gets a segment
 func (s *Server) GetSegment(ctx context.Context, req *flipt.GetSegmentRequest) (*flipt.Segment, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -14,6 +15,7 @@ func (s *Server) GetSegment(ctx context.Context, req *flipt.GetSegmentRequest) (
 	return s.SegmentStore.GetSegment(ctx, req)
 }
 
+// ListSegments lists all segments
 func (s *Server) ListSegments(ctx context.Context, req *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
 	segments, err := s.SegmentStore.ListSegments(ctx, req)
 	if err != nil {
@@ -29,6 +31,7 @@ func (s *Server) ListSegments(ctx context.Context, req *flipt.ListSegmentRequest
 	return &resp, nil
 }
 
+// CreateSegment creates a segment
 func (s *Server) CreateSegment(ctx context.Context, req *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -39,6 +42,7 @@ func (s *Server) CreateSegment(ctx context.Context, req *flipt.CreateSegmentRequ
 	return s.SegmentStore.CreateSegment(ctx, req)
 }
 
+// UpdateSegment updates an existing segment
 func (s *Server) UpdateSegment(ctx context.Context, req *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -49,6 +53,7 @@ func (s *Server) UpdateSegment(ctx context.Context, req *flipt.UpdateSegmentRequ
 	return s.SegmentStore.UpdateSegment(ctx, req)
 }
 
+// DeleteSegment deletes a segment
 func (s *Server) DeleteSegment(ctx context.Context, req *flipt.DeleteSegmentRequest) (*empty.Empty, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -61,6 +66,7 @@ func (s *Server) DeleteSegment(ctx context.Context, req *flipt.DeleteSegmentRequ
 	return &empty.Empty{}, nil
 }
 
+// CreateConstraint creates a constraint
 func (s *Server) CreateConstraint(ctx context.Context, req *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	if req.SegmentKey == "" {
 		return nil, EmptyFieldError("segmentKey")
@@ -74,6 +80,7 @@ func (s *Server) CreateConstraint(ctx context.Context, req *flipt.CreateConstrai
 	return s.SegmentStore.CreateConstraint(ctx, req)
 }
 
+// UpdateConstraint updates an existing constraint
 func (s *Server) UpdateConstraint(ctx context.Context, req *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
@@ -90,6 +97,7 @@ func (s *Server) UpdateConstraint(ctx context.Context, req *flipt.UpdateConstrai
 	return s.SegmentStore.UpdateConstraint(ctx, req)
 }
 
+// DeleteConstraint deletes a constraint
 func (s *Server) DeleteConstraint(ctx context.Context, req *flipt.DeleteConstraintRequest) (*empty.Empty, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")

@@ -7,6 +7,7 @@ import (
 	flipt "github.com/markphelps/flipt/proto"
 )
 
+// GetFlag gets a flag
 func (s *Server) GetFlag(ctx context.Context, req *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -14,6 +15,7 @@ func (s *Server) GetFlag(ctx context.Context, req *flipt.GetFlagRequest) (*flipt
 	return s.FlagStore.GetFlag(ctx, req)
 }
 
+// ListFlags lists all flags
 func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	flags, err := s.FlagStore.ListFlags(ctx, req)
 	if err != nil {
@@ -29,6 +31,7 @@ func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*fl
 	return &resp, nil
 }
 
+// CreateFlag creates a flag
 func (s *Server) CreateFlag(ctx context.Context, req *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -39,6 +42,7 @@ func (s *Server) CreateFlag(ctx context.Context, req *flipt.CreateFlagRequest) (
 	return s.FlagStore.CreateFlag(ctx, req)
 }
 
+// UpdateFlag updates an existing flag
 func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -49,6 +53,7 @@ func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (
 	return s.FlagStore.UpdateFlag(ctx, req)
 }
 
+// DeleteFlag deletes a flag
 func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (*empty.Empty, error) {
 	if req.Key == "" {
 		return nil, EmptyFieldError("key")
@@ -61,6 +66,7 @@ func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (
 	return &empty.Empty{}, nil
 }
 
+// CreateVariant creates a variant
 func (s *Server) CreateVariant(ctx context.Context, req *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	if req.FlagKey == "" {
 		return nil, EmptyFieldError("flagKey")
@@ -71,6 +77,7 @@ func (s *Server) CreateVariant(ctx context.Context, req *flipt.CreateVariantRequ
 	return s.FlagStore.CreateVariant(ctx, req)
 }
 
+// UpdateVariant updates an existing variant
 func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
@@ -84,6 +91,7 @@ func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequ
 	return s.FlagStore.UpdateVariant(ctx, req)
 }
 
+// DeleteVariant deletes a variant
 func (s *Server) DeleteVariant(ctx context.Context, req *flipt.DeleteVariantRequest) (*empty.Empty, error) {
 	if req.Id == "" {
 		return nil, EmptyFieldError("id")
