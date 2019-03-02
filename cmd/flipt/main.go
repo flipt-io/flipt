@@ -359,7 +359,12 @@ func execute() error {
 			}
 
 			logger.Infof("http server running at: http://%s:%d", cfg.server.host, cfg.server.httpPort)
-			return httpServer.ListenAndServe()
+
+			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+				return err
+			}
+
+			return nil
 		})
 	}
 
