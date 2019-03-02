@@ -4,7 +4,7 @@ This example shows how you could integrate Flipt into your application.
 
 It uses the Go GRPC Flipt client to query for an existing flag and then show's different content whether or not that flag is enabled.
 
-!["demo"](../docs/assets/images/demo.gif?raw=true)
+!["demo"](https://github.com/markphelps/flipt/blob/master/docs/assets/images/demo.gif?raw=true)
 
 ## Requirements
 
@@ -12,7 +12,7 @@ To run this example application you'll need:
 
 * Go 1.10+ installed
 * The Flipt GRPC client on your `$GOPATH`.
-* The Flipt server running. See [Installation](../docs/installation.md) documentation for how to install/run Flipt.
+* The Flipt server running. See [Installation](https://github.com/markphelps/flipt/blob/master/docs/installation.md) documentation for how to install/run Flipt.
 
 ## Runtime Configuration
 

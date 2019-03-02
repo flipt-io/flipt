@@ -40,7 +40,7 @@ func main() {
 
 	client := flipt.NewFliptClient(conn)
 
-	t := template.Must(template.ParseFiles("./tmpl/example.html"))
+	t := template.Must(template.ParseFiles("./tmpl/basic.html"))
 
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		flag, err := client.GetFlag(context.Background(), &flipt.GetFlagRequest{
