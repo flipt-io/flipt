@@ -8,4 +8,4 @@ COPY . .
 RUN go get "github.com/markphelps/flipt-grpc-go" \
     "google.golang.org/grpc"
 
-ENTRYPOINT ["go", "run", "main.go"]
+ENTRYPOINT ["go", "run", "-tags", "example" "main.go"]
