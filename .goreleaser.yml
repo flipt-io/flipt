@@ -1,7 +1,6 @@
 before:
   hooks:
     - make clean
-    - make generate
 
 builds:
   - main: ./cmd/flipt/main.go

@@ -178,6 +178,14 @@
   version = "v1.8.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:ba4d80533076523a4a66cb267f16363d2aea3f6c1eb8277d8d226c7a573cd7e9"
+  name = "github.com/markphelps/flipt-grpc-go"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "3ebb133e62c07079220c8093889cfed3c8db19f8"
+
+[[projects]]
   digest = "1:e0a9ecd540b69f570f96c593b713268aad428e4a25a98f23467c59e6f69ab880"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
@@ -496,6 +504,7 @@
     "github.com/grpc-ecosystem/grpc-gateway/runtime",
     "github.com/grpc-ecosystem/grpc-gateway/utilities",
     "github.com/hashicorp/golang-lru",
+    "github.com/markphelps/flipt-grpc-go",
     "github.com/mattn/go-sqlite3",
     "github.com/phyber/negroni-gzip/gzip",
     "github.com/pkg/errors",
