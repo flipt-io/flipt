@@ -34,7 +34,7 @@ An example Go application exists at [https://github.com/markphelps/flipt/example
 
 #### Download
 
-Flipt GRPC clients are currently availabe for the following languages:
+Flipt GRPC clients are currently available for the following languages:
 
 * Go: [https://github.com/markphelps/flipt-grpc-go](https://github.com/markphelps/flipt-grpc-go)
 
