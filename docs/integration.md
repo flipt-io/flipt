@@ -32,16 +32,20 @@ An example Go application exists at [https://github.com/markphelps/flipt/example
 
 ### Getting the Flipt GRPC clients
 
+#### Download
+
+Flipt GRPC clients are currently availabe for the following languages:
+
+* Go: [https://github.com/markphelps/flipt-grpc-go](https://github.com/markphelps/flipt-grpc-go)
+
+If your language is not listed, please see the section below on how to generate a native GRPC client manually. If you choose to open source this client, please submit a pull request so I can add it to the docs.
+
 #### Manually
 
-Currently, the best way to get the Flipt GRPC client in your language is to generate it yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/proto/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
+If a GRPC client in your language is not available for download, you can easily generate it yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/proto/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
 
 !!! note
     GRPC generates both client implementation and the server interfaces. To use Flipt you only need the GRPC client implementation and can ignore the server code as this is implemented by Flipt itself.
-
-#### Download
-
-Flipt GRPC clients are currently not available for download directly, but this work is in progress. Please check back soon.
 
 ## Flipt REST API
 

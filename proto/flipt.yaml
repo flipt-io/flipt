@@ -3,69 +3,69 @@ config_version: 3
 
 http:
   rules:
-  - selector: proto.Flipt.Evaluate
+  - selector: flipt.Flipt.Evaluate
     post: /api/v1/evaluate
     body: "*"
-  - selector: proto.Flipt.GetFlag
+  - selector: flipt.Flipt.GetFlag
     get: /api/v1/flags/{key}
-  - selector: proto.Flipt.ListFlags
+  - selector: flipt.Flipt.ListFlags
     get: /api/v1/flags
-  - selector: proto.Flipt.CreateFlag
+  - selector: flipt.Flipt.CreateFlag
     post: /api/v1/flags
     body: "*"
-  - selector: proto.Flipt.UpdateFlag
+  - selector: flipt.Flipt.UpdateFlag
     put: /api/v1/flags/{key}
     body: "*"
-  - selector: proto.Flipt.DeleteFlag
+  - selector: flipt.Flipt.DeleteFlag
     delete: /api/v1/flags/{key}
-  - selector: proto.Flipt.CreateVariant
+  - selector: flipt.Flipt.CreateVariant
     post: /api/v1/flags/{flag_key}/variants
     body: "*"
-  - selector: proto.Flipt.UpdateVariant
+  - selector: flipt.Flipt.UpdateVariant
     put: /api/v1/flags/{flag_key}/variants/{id}
     body: "*"
-  - selector: proto.Flipt.DeleteVariant
+  - selector: flipt.Flipt.DeleteVariant
     delete: /api/v1/flags/{flag_key}/variants/{id}
-  - selector: proto.Flipt.GetRule
+  - selector: flipt.Flipt.GetRule
     get: /api/v1/flags/{flag_key}/rules/{id}
-  - selector: proto.Flipt.OrderRules
+  - selector: flipt.Flipt.OrderRules
     put: /api/v1/flags/{flag_key}/rules/order
     body: "*"
-  - selector: proto.Flipt.ListRules
+  - selector: flipt.Flipt.ListRules
     get: /api/v1/flags/{flag_key}/rules
-  - selector: proto.Flipt.CreateRule
+  - selector: flipt.Flipt.CreateRule
     post: /api/v1/flags/{flag_key}/rules
     body: "*"
-  - selector: proto.Flipt.UpdateRule
+  - selector: flipt.Flipt.UpdateRule
     put: /api/v1/flags/{flag_key}/rules/{id}
     body: "*"
-  - selector: proto.Flipt.DeleteRule
+  - selector: flipt.Flipt.DeleteRule
     delete: /api/v1/flags/{flag_key}/rules/{id}
-  - selector: proto.Flipt.CreateDistribution
+  - selector: flipt.Flipt.CreateDistribution
     post: "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"
     body: "*"
-  - selector: proto.Flipt.UpdateDistribution
+  - selector: flipt.Flipt.UpdateDistribution
     put: "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
     body: "*"
-  - selector: proto.Flipt.DeleteDistribution
+  - selector: flipt.Flipt.DeleteDistribution
     delete: "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"
-  - selector: proto.Flipt.GetSegment
+  - selector: flipt.Flipt.GetSegment
     get: /api/v1/segments/{key}
-  - selector: proto.Flipt.ListSegments
+  - selector: flipt.Flipt.ListSegments
     get: /api/v1/segments
-  - selector: proto.Flipt.CreateSegment
+  - selector: flipt.Flipt.CreateSegment
     post: /api/v1/segments
     body: "*"
-  - selector: proto.Flipt.UpdateSegment
+  - selector: flipt.Flipt.UpdateSegment
     put: /api/v1/segments/{key}
     body: "*"
-  - selector: proto.Flipt.DeleteSegment
+  - selector: flipt.Flipt.DeleteSegment
     delete: /api/v1/segments/{key}
-  - selector: proto.Flipt.CreateConstraint
+  - selector: flipt.Flipt.CreateConstraint
     post: /api/v1/segments/{segment_key}/constraints
     body: "*"
-  - selector: proto.Flipt.UpdateConstraint
+  - selector: flipt.Flipt.UpdateConstraint
     put: /api/v1/segments/{segment_key}/constraints/{id}
     body: "*"
-  - selector: proto.Flipt.DeleteConstraint
+  - selector: flipt.Flipt.DeleteConstraint
     delete: /api/v1/segments/{segment_key}/constraints/{id}

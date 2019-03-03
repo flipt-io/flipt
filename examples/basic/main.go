@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"text/template"
 
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt-grpc-go"
+
 	"google.golang.org/grpc"
 )
 
@@ -23,7 +24,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&fliptServer, "server", "localhost:9000", "address of Flipt backend server")
+	flag.StringVar(&fliptServer, "server", "flipt:9000", "address of Flipt backend server")
 	flag.StringVar(&flagKey, "flag", "example", "flag key to query")
 }
 

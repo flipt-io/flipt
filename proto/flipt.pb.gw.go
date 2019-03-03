@@ -2,11 +2,11 @@
 // source: flipt.proto
 
 /*
-Package proto is a reverse proxy.
+Package flipt is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package proto
+package flipt
 
 import (
 	"io"
