@@ -1,4 +1,4 @@
-# Example Application
+# Basic Example
 
 This example shows how you could integrate Flipt into your application.
 
