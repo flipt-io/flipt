@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  caddy:
+    image: abiosoft/caddy:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    volumes:
+      - "./Caddyfile:/etc/Caddyfile"
+
+  flipt:
+    image: markphelps/flipt:latest
+    networks:
+      - backend
+networks:
+  backend:
