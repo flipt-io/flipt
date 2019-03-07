@@ -96,16 +96,16 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:a34635cd06f87a1e3204631674dea4cfa95b10d1e023a417cfa015e0e8af1dd3"
+  digest = "1:e9506edd2926d26a9711ee73c21d638216408fe41874f8dc86da5f769d62da25"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
+    "internal",
     "runtime",
-    "runtime/internal",
     "utilities",
   ]
   pruneopts = "NT"
-  revision = "719aaadb1a4f7b11606d454e266fe5c5f789796f"
-  version = "v1.6.3"
+  revision = "5328886f9f5735cbc4f4819bf6b840a48609ad66"
+  version = "v1.8.2"
 
 [[projects]]
   digest = "1:b42cde0e1f3c816dd57f57f7bbcf05ca40263ad96f168714c130c611fc0856a6"
