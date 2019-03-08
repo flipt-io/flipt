@@ -60,7 +60,7 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 * **Security**. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 * **Speed**. Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
-* **Simplicity**. Flipt is a single binary with no external dependencies. This means there is no database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
+* **Simplicity**. Flipt is a single binary with no dependencies. This means there is no external database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
 
 ### Try It
 
@@ -119,7 +119,7 @@ Here's a couple of areas that could use some love:
 
 * Documentation - Does something not make sense in the documentation? Could it be worded better? Please help!
 * Examples - More examples on how to use Flipt in other languages.
-* Javascripts - I'm no JS wizz, I'm sure the Javascript code in [ui/src](ui/src) could be improved/simplified/tested.
+* Javascripts - I'm no JavaScript expert, I'm sure the code in [ui/src](ui/src) could be improved/simplified/tested.
 
 ## Pro Version
 
