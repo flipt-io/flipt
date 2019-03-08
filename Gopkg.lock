@@ -425,14 +425,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:101e21ab9a69c28df4101ea1eb1cbcbd05e4a3854fad22f7ac8d6121152dab86"
+  digest = "1:55bb14837ea007976ffabd659bbcfad80078fd1cfe18e8bb3fed777d6b2ce032"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/rpc/status",
     "protobuf/field_mask",
   ]
   pruneopts = "NT"
-  revision = "bd9b4fb69e2ffd37621a6caa54dcbead29b546f2"
+  revision = "5fe7a883aa19554f42890211544aa549836af7b7"
 
 [[projects]]
   digest = "1:bbcb21f83bc020a83a9b064251a645b956d2f446040d9535a499c4508e9597e0"
