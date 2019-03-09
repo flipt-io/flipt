@@ -1,0 +1,8 @@
+:8080 {
+  # proxy requests to port 8080
+  # to the container with basic auth
+  basicauth / {$HTTP_USERNAME} {$HTTP_PASSWORD}
+  proxy / flipt:8080 {
+    transparent
+  }
+}
