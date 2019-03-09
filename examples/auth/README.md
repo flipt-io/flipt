@@ -37,7 +37,7 @@ To run this example application you'll need:
     < HTTP/1.1 401 Unauthorized
     < Content-Type: text/plain; charset=utf-8
     ```
-1. You should get a 401 Unauthorized response as no username or password was present on the request
+1. You should get a **401 Unauthorized** response as no username or password was present on the request
 1. Try again, providing the username and password:
     ```shell
     ❯ curl -v -u admin:password http://localhost:8080/api/v1/flags
@@ -55,4 +55,4 @@ To run this example application you'll need:
     < HTTP/1.1 200 OK
     < Content-Type: application/json
     ```
-1. This time the request succeeds and a 200 OK response is returned
+1. This time the request succeeds and a **200 OK** response is returned
