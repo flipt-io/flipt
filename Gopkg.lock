@@ -96,16 +96,16 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:a34635cd06f87a1e3204631674dea4cfa95b10d1e023a417cfa015e0e8af1dd3"
+  digest = "1:d78479e1c8a72e6407fff4127fe8d98b24d0a8d91017f62dd329a074c75c063e"
   name = "github.com/grpc-ecosystem/grpc-gateway"
   packages = [
+    "internal",
     "runtime",
-    "runtime/internal",
     "utilities",
   ]
   pruneopts = "NT"
-  revision = "719aaadb1a4f7b11606d454e266fe5c5f789796f"
-  version = "v1.6.3"
+  revision = "e81e272f3e6fbdf9cd2837112cedf837191d3a3f"
+  version = "v1.8.4"
 
 [[projects]]
   digest = "1:b42cde0e1f3c816dd57f57f7bbcf05ca40263ad96f168714c130c611fc0856a6"
@@ -428,6 +428,7 @@
   digest = "1:101e21ab9a69c28df4101ea1eb1cbcbd05e4a3854fad22f7ac8d6121152dab86"
   name = "google.golang.org/genproto"
   packages = [
+    "googleapis/api/httpbody",
     "googleapis/rpc/status",
     "protobuf/field_mask",
   ]
