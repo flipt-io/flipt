@@ -1,3 +1,7 @@
+<h1 align=center>
+<img src="logo/logotype_1024.svg" width=30%>
+</h1>
+
 # Flipt
 
 [![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
