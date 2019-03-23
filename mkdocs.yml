@@ -8,8 +8,7 @@ google_analytics: ['UA-44979762-6', 'auto']
 theme:
   name: 'material'
   favicon: 'assets/images/favicon.ico'
-  logo:
-    icon: 'assistant_photo'
+  logo: 'assets/images/logo.svg'
   palette:
     primary: 'cyan'
 

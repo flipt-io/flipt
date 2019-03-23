@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128px" height="128px" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>Three</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Three" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-2" transform="translate(27.000000, 21.000000)" stroke="#FFFFFF">
+            <polyline id="Path-3" stroke-width="4" transform="translate(32.553538, 35.807977) rotate(-8.000000) translate(-32.553538, -35.807977) " points="55.053538 33.8312331 42.3089047 34.9509166 10.053538 37.7847214"></polyline>
+            <path d="M72,1 C67.3466451,2.57473792 62.4869716,4.10096795 57.6177603,4.08182411 C37.4527803,4.00254326 17.5328807,-0.961775761 14.286683,12.5922423 C11.7970775,22.987222 8.60540067,39.4492349 4.71165267,61.978281 C3.92935045,66.5046454 2.69213289,73.8452185 1,84" id="Path-2" stroke-width="12" transform="translate(36.500000, 42.500000) rotate(1.000000) translate(-36.500000, -42.500000) "></path>
+        </g>
+    </g>
+</svg>
