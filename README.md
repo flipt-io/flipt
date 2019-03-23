@@ -1,4 +1,12 @@
-# Flipt
+<p align=center>
+	<img src="ui/static/logo.svg" alt="Flipt" width=123 height=171 />
+</p>
+
+<p align="center">A self contained feature flag solution</p>
+
+<hr />
+
+![Flipt](docs/assets/images/flipt.png)
 
 [![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
 [![CodeClimate Coverage](https://img.shields.io/codeclimate/coverage/markphelps/flipt.svg?style=flat)](https://codeclimate.com/github/markphelps/flipt)
@@ -6,13 +14,10 @@
 [![GitHub Release](https://img.shields.io/github/release/markphelps/flipt.svg?style=flat)](https://github.com/markphelps/flipt/releases)
 [![Join the chat at https://gitter.im/markphelps/flipt](https://badges.gitter.im/markphelps/flipt.svg)](https://gitter.im/markphelps/flipt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-A self contained feature flag solution.
-
-![Flipt](docs/assets/images/flipt.png)
 
 ## Documentation
 
-Documentation is hosted at: [https://flipt.dev/](https://flipt.dev/)
+[https://flipt.dev/](https://flipt.dev/)
 
 ## What is Flipt
 
@@ -21,8 +26,6 @@ Flipt is an open source, self contained application that enables you to use feat
 This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party, or the latency required to communicate across the internet.
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
-
-For more on Flipt and it's concepts, take a look at the [Concepts](https://flipt.dev/concepts/) documentation.
 
 ## Flipt Features
 
