@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="116px" height="174px" viewBox="0 0 116 174" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>Group 3</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Two" transform="translate(-44.000000, -10.000000)">
+            <g id="Group-3" transform="translate(39.000000, 15.000000)">
+                <g id="Normal" transform="translate(33.000000, 0.000000)" stroke="#6A35BF">
+                    <g id="Group-2" transform="translate(-0.000000, 0.000000)">
+                        <polyline id="Path-3" stroke-width="4" transform="translate(25.418516, 32.859085) rotate(-8.000000) translate(-25.418516, -32.859085) " points="43.0839139 30.6260864 33.0777353 31.8909197 7.75311806 35.0920836"></polyline>
+                        <path d="M56.1215736,1.00413511 C52.491698,2.43801291 48.7005998,3.82688703 44.8983643,3.79769498 C29.1520763,3.67680126 13.5854993,-0.926044641 11.0830228,11.5034448 C9.16379914,21.03599 6.71083905,36.1340014 3.72414254,56.7974788 C3.1240782,60.9490274 2.17550615,67.6818228 0.87842637,76.9958649" id="Path-2" stroke-width="12" transform="translate(28.500000, 39.000000) rotate(1.000000) translate(-28.500000, -39.000000) "></path>
+                    </g>
+                </g>
+                <text id="Flipt" font-family="Helvetica" font-size="65" font-weight="normal" fill="#6A35BF">
+                    <tspan x="0.102294922" y="155">Flipt</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
