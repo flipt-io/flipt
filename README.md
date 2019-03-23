@@ -17,7 +17,7 @@
 
 ## Documentation
 
-Documentation is hosted at: [https://flipt.dev/](https://flipt.dev/)
+[https://flipt.dev/](https://flipt.dev/)
 
 ## What is Flipt
 
