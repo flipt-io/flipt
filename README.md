@@ -1,5 +1,5 @@
 <p align=center>
-	<img src="ui/static/logo.svg" alt="Flipt" width=123 height=171 />
+	<img src="logo.svg" alt="Flipt" width=123 height=171 />
 </p>
 
 <p align="center">A self contained feature flag solution</p>
