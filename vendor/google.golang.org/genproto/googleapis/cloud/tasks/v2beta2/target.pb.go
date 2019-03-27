@@ -48,11 +48,11 @@ var HttpMethod_name = map[int32]string{
 }
 var HttpMethod_value = map[string]int32{
 	"HTTP_METHOD_UNSPECIFIED": 0,
-	"POST":                    1,
-	"GET":                     2,
-	"HEAD":                    3,
-	"PUT":                     4,
-	"DELETE":                  5,
+	"POST":   1,
+	"GET":    2,
+	"HEAD":   3,
+	"PUT":    4,
+	"DELETE": 5,
 }
 
 func (x HttpMethod) String() string {

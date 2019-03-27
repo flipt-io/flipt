@@ -53,8 +53,8 @@ var Document_KnowledgeType_name = map[int32]string{
 }
 var Document_KnowledgeType_value = map[string]int32{
 	"KNOWLEDGE_TYPE_UNSPECIFIED": 0,
-	"FAQ":                        1,
-	"EXTRACTIVE_QA":              2,
+	"FAQ":           1,
+	"EXTRACTIVE_QA": 2,
 }
 
 func (x Document_KnowledgeType) String() string {

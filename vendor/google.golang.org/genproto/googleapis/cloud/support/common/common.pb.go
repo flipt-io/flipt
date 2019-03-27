@@ -116,11 +116,11 @@ var Case_Priority_name = map[int32]string{
 }
 var Case_Priority_value = map[string]int32{
 	"PRIORITY_UNSPECIFIED": 0,
-	"P0":                   1,
-	"P1":                   2,
-	"P2":                   3,
-	"P3":                   4,
-	"P4":                   5,
+	"P0": 1,
+	"P1": 2,
+	"P2": 3,
+	"P3": 4,
+	"P4": 5,
 }
 
 func (x Case_Priority) String() string {
@@ -212,11 +212,11 @@ var CustomerIssue_IssueState_name = map[int32]string{
 }
 var CustomerIssue_IssueState_value = map[string]int32{
 	"ISSUE_STATE_UNSPECIFIED": 0,
-	"OPEN":                    1,
-	"IN_PROGRESS":             2,
-	"FIXED":                   3,
-	"WONT_FIX":                4,
-	"VERIFIED":                5,
+	"OPEN":        1,
+	"IN_PROGRESS": 2,
+	"FIXED":       3,
+	"WONT_FIX":    4,
+	"VERIFIED":    5,
 }
 
 func (x CustomerIssue_IssueState) String() string {

@@ -65,10 +65,10 @@ var BotStatus_name = map[int32]string{
 }
 var BotStatus_value = map[string]int32{
 	"BOT_STATUS_UNSPECIFIED": 0,
-	"OK":                     1,
-	"UNHEALTHY":              2,
-	"HOST_REBOOTING":         3,
-	"BOT_TERMINATING":        4,
+	"OK":              1,
+	"UNHEALTHY":       2,
+	"HOST_REBOOTING":  3,
+	"BOT_TERMINATING": 4,
 }
 
 func (x BotStatus) String() string {

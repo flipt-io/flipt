@@ -90,12 +90,12 @@ var MetricDescriptor_ValueType_name = map[int32]string{
 }
 var MetricDescriptor_ValueType_value = map[string]int32{
 	"VALUE_TYPE_UNSPECIFIED": 0,
-	"BOOL":                   1,
-	"INT64":                  2,
-	"DOUBLE":                 3,
-	"STRING":                 4,
-	"DISTRIBUTION":           5,
-	"MONEY":                  6,
+	"BOOL":         1,
+	"INT64":        2,
+	"DOUBLE":       3,
+	"STRING":       4,
+	"DISTRIBUTION": 5,
+	"MONEY":        6,
 }
 
 func (x MetricDescriptor_ValueType) String() string {

@@ -42,7 +42,7 @@ func (m *Mutation) Reset()         { *m = Mutation{} }
 func (m *Mutation) String() string { return proto.CompactTextString(m) }
 func (*Mutation) ProtoMessage()    {}
 func (*Mutation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mutation_5be28dee7fa669f8, []int{0}
+	return fileDescriptor_mutation_eb7ac5a738061ac4, []int{0}
 }
 func (m *Mutation) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Mutation.Unmarshal(m, b)
@@ -298,7 +298,7 @@ func (m *Mutation_Write) Reset()         { *m = Mutation_Write{} }
 func (m *Mutation_Write) String() string { return proto.CompactTextString(m) }
 func (*Mutation_Write) ProtoMessage()    {}
 func (*Mutation_Write) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mutation_5be28dee7fa669f8, []int{0, 0}
+	return fileDescriptor_mutation_eb7ac5a738061ac4, []int{0, 0}
 }
 func (m *Mutation_Write) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Mutation_Write.Unmarshal(m, b)
@@ -356,7 +356,7 @@ func (m *Mutation_Delete) Reset()         { *m = Mutation_Delete{} }
 func (m *Mutation_Delete) String() string { return proto.CompactTextString(m) }
 func (*Mutation_Delete) ProtoMessage()    {}
 func (*Mutation_Delete) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mutation_5be28dee7fa669f8, []int{0, 1}
+	return fileDescriptor_mutation_eb7ac5a738061ac4, []int{0, 1}
 }
 func (m *Mutation_Delete) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Mutation_Delete.Unmarshal(m, b)
@@ -397,10 +397,10 @@ func init() {
 }
 
 func init() {
-	proto.RegisterFile("google/spanner/v1/mutation.proto", fileDescriptor_mutation_5be28dee7fa669f8)
+	proto.RegisterFile("google/spanner/v1/mutation.proto", fileDescriptor_mutation_eb7ac5a738061ac4)
 }
 
-var fileDescriptor_mutation_5be28dee7fa669f8 = []byte{
+var fileDescriptor_mutation_eb7ac5a738061ac4 = []byte{
 	// 413 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0xd1, 0xea, 0xd3, 0x30,
 	0x14, 0xc6, 0xed, 0xba, 0x75, 0x2e, 0x43, 0xd1, 0xa2, 0x58, 0x8b, 0x17, 0x75, 0x57, 0xbb, 0x4a,

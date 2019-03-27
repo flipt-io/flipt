@@ -118,9 +118,9 @@ var TransferMessage_MessageSeverity_name = map[int32]string{
 }
 var TransferMessage_MessageSeverity_value = map[string]int32{
 	"MESSAGE_SEVERITY_UNSPECIFIED": 0,
-	"INFO":                         1,
-	"WARNING":                      2,
-	"ERROR":                        3,
+	"INFO":    1,
+	"WARNING": 2,
+	"ERROR":   3,
 }
 
 func (x TransferMessage_MessageSeverity) String() string {

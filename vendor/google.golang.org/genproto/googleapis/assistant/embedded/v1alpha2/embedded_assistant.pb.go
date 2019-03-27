@@ -155,8 +155,8 @@ var ScreenOutConfig_ScreenMode_name = map[int32]string{
 }
 var ScreenOutConfig_ScreenMode_value = map[string]int32{
 	"SCREEN_MODE_UNSPECIFIED": 0,
-	"OFF":                     1,
-	"PLAYING":                 3,
+	"OFF":     1,
+	"PLAYING": 3,
 }
 
 func (x ScreenOutConfig_ScreenMode) String() string {

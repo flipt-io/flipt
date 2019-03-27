@@ -122,9 +122,9 @@ var KnowledgeAnswers_Answer_MatchConfidenceLevel_name = map[int32]string{
 }
 var KnowledgeAnswers_Answer_MatchConfidenceLevel_value = map[string]int32{
 	"MATCH_CONFIDENCE_LEVEL_UNSPECIFIED": 0,
-	"LOW":                                1,
-	"MEDIUM":                             2,
-	"HIGH":                               3,
+	"LOW":    1,
+	"MEDIUM": 2,
+	"HIGH":   3,
 }
 
 func (x KnowledgeAnswers_Answer_MatchConfidenceLevel) String() string {

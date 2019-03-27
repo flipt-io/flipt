@@ -6,10 +6,6 @@ required = [
   branch = "master"
   name = "github.com/golang/protobuf"
 
-[[override]]
-  branch = "master"
-  name = "google.golang.org/genproto"
-
 [[constraint]]
   name = "github.com/Masterminds/squirrel"
   version = "1.0.0"

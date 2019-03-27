@@ -47,9 +47,9 @@ var EntityResult_ResultType_name = map[int32]string{
 }
 var EntityResult_ResultType_value = map[string]int32{
 	"RESULT_TYPE_UNSPECIFIED": 0,
-	"FULL":                    1,
-	"PROJECTION":              2,
-	"KEY_ONLY":                3,
+	"FULL":       1,
+	"PROJECTION": 2,
+	"KEY_ONLY":   3,
 }
 
 func (x EntityResult_ResultType) String() string {
@@ -105,7 +105,7 @@ var CompositeFilter_Operator_name = map[int32]string{
 }
 var CompositeFilter_Operator_value = map[string]int32{
 	"OPERATOR_UNSPECIFIED": 0,
-	"AND":                  1,
+	"AND": 1,
 }
 
 func (x CompositeFilter_Operator) String() string {

@@ -51,9 +51,9 @@ var SsmlVoiceGender_name = map[int32]string{
 }
 var SsmlVoiceGender_value = map[string]int32{
 	"SSML_VOICE_GENDER_UNSPECIFIED": 0,
-	"MALE":                          1,
-	"FEMALE":                        2,
-	"NEUTRAL":                       3,
+	"MALE":    1,
+	"FEMALE":  2,
+	"NEUTRAL": 3,
 }
 
 func (x SsmlVoiceGender) String() string {
