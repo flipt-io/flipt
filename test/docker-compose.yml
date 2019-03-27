@@ -6,18 +6,15 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - flipt_network
-    volumes:
-      - "./flipt.db:/var/opt/flipt/flipt.db"
+    - flipt_integration_tests
 
-  example:
+  shakedown:
     build: .
-    ports:
-      - "8000:8000"
     networks:
-      - flipt_network
+      - flipt_integration_tests
     depends_on:
       - flipt
+    command: sh -c "tail -F /dev/null"
 
 networks:
-  flipt_network:
+  flipt_integration_tests:

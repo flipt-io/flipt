@@ -36,7 +36,10 @@
 [[projects]]
   digest = "1:17c0ee483de67e74ef55a3ba677b40e9407a6f6a3f722ebe1f527bc6f3f96165"
   name = "github.com/go-chi/chi"
-  packages = ["."]
+  packages = [
+    ".",
+    "middleware",
+  ]
   pruneopts = "NT"
   revision = "b5294d10673813fac8558e7f47242bc9e61b4c25"
   version = "v3.3.3"
@@ -489,6 +492,7 @@
     "github.com/Masterminds/squirrel",
     "github.com/fatih/color",
     "github.com/go-chi/chi",
+    "github.com/go-chi/chi/middleware",
     "github.com/golang-migrate/migrate",
     "github.com/golang-migrate/migrate/database/sqlite3",
     "github.com/golang-migrate/migrate/source/file",
@@ -517,7 +521,6 @@
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/require",
-    "github.com/urfave/negroni",
     "golang.org/x/net/context",
     "golang.org/x/sync/errgroup",
     "google.golang.org/grpc",
