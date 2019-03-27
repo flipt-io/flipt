@@ -39,8 +39,8 @@ var ProductSearchCategory_name = map[int32]string{
 }
 var ProductSearchCategory_value = map[string]int32{
 	"PRODUCT_SEARCH_CATEGORY_UNSPECIFIED": 0,
-	"SHOES":                               1,
-	"BAGS":                                2,
+	"SHOES": 1,
+	"BAGS":  2,
 }
 
 func (x ProductSearchCategory) String() string {

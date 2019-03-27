@@ -38,8 +38,8 @@ var PackageManager_Architecture_name = map[int32]string{
 }
 var PackageManager_Architecture_value = map[string]int32{
 	"ARCHITECTURE_UNSPECIFIED": 0,
-	"X86":                      1,
-	"X64":                      2,
+	"X86": 1,
+	"X64": 2,
 }
 
 func (x PackageManager_Architecture) String() string {

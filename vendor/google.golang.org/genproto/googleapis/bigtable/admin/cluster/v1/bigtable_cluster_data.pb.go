@@ -72,8 +72,8 @@ var Zone_Status_name = map[int32]string{
 	3: "EMERGENCY_MAINENANCE",
 }
 var Zone_Status_value = map[string]int32{
-	"UNKNOWN":              0,
-	"OK":                   1,
+	"UNKNOWN": 0,
+	"OK":      1,
 	"PLANNED_MAINTENANCE":  2,
 	"EMERGENCY_MAINENANCE": 3,
 }

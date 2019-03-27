@@ -34,7 +34,7 @@ type Document struct {
 	// The map keys represent field names.
 	//
 	// A simple field name contains only characters `a` to `z`, `A` to `Z`,
-	// `0` to `9`, or `_`, and must not start with `0` to `9`. For example,
+	// `0` to `9`, or `_`, and must not start with `0` to `9` or `_`. For example,
 	// `foo_bar_17`.
 	//
 	// Field names matching the regular expression `__.*__` are reserved. Reserved
@@ -62,7 +62,7 @@ type Document struct {
 	CreateTime *timestamp.Timestamp `protobuf:"bytes,3,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
 	// Output only. The time at which the document was last changed.
 	//
-	// This value is initially set to the `create_time` then increases
+	// This value is initally set to the `create_time` then increases
 	// monotonically with each change to the document. It can also be
 	// compared to values from other documents and the `read_time` of a query.
 	UpdateTime           *timestamp.Timestamp `protobuf:"bytes,4,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
@@ -75,7 +75,7 @@ func (m *Document) Reset()         { *m = Document{} }
 func (m *Document) String() string { return proto.CompactTextString(m) }
 func (*Document) ProtoMessage()    {}
 func (*Document) Descriptor() ([]byte, []int) {
-	return fileDescriptor_document_fe46ba4c8da20ac8, []int{0}
+	return fileDescriptor_document_0cab453ff2a9f3d2, []int{0}
 }
 func (m *Document) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Document.Unmarshal(m, b)
@@ -149,7 +149,7 @@ func (m *Value) Reset()         { *m = Value{} }
 func (m *Value) String() string { return proto.CompactTextString(m) }
 func (*Value) ProtoMessage()    {}
 func (*Value) Descriptor() ([]byte, []int) {
-	return fileDescriptor_document_fe46ba4c8da20ac8, []int{1}
+	return fileDescriptor_document_0cab453ff2a9f3d2, []int{1}
 }
 func (m *Value) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Value.Unmarshal(m, b)
@@ -553,7 +553,7 @@ func (m *ArrayValue) Reset()         { *m = ArrayValue{} }
 func (m *ArrayValue) String() string { return proto.CompactTextString(m) }
 func (*ArrayValue) ProtoMessage()    {}
 func (*ArrayValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_document_fe46ba4c8da20ac8, []int{2}
+	return fileDescriptor_document_0cab453ff2a9f3d2, []int{2}
 }
 func (m *ArrayValue) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ArrayValue.Unmarshal(m, b)
@@ -598,7 +598,7 @@ func (m *MapValue) Reset()         { *m = MapValue{} }
 func (m *MapValue) String() string { return proto.CompactTextString(m) }
 func (*MapValue) ProtoMessage()    {}
 func (*MapValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_document_fe46ba4c8da20ac8, []int{3}
+	return fileDescriptor_document_0cab453ff2a9f3d2, []int{3}
 }
 func (m *MapValue) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MapValue.Unmarshal(m, b)
@@ -635,10 +635,10 @@ func init() {
 }
 
 func init() {
-	proto.RegisterFile("google/firestore/v1beta1/document.proto", fileDescriptor_document_fe46ba4c8da20ac8)
+	proto.RegisterFile("google/firestore/v1beta1/document.proto", fileDescriptor_document_0cab453ff2a9f3d2)
 }
 
-var fileDescriptor_document_fe46ba4c8da20ac8 = []byte{
+var fileDescriptor_document_0cab453ff2a9f3d2 = []byte{
 	// 655 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0xcf, 0x6e, 0xd3, 0x4c,
 	0x14, 0xc5, 0xe3, 0x24, 0x8d, 0x92, 0xeb, 0xb4, 0xfd, 0x3e, 0xb3, 0x89, 0xa2, 0x8a, 0x86, 0x00,

@@ -60,7 +60,7 @@ func (x NotificationChannel_VerificationStatus) String() string {
 	return proto.EnumName(NotificationChannel_VerificationStatus_name, int32(x))
 }
 func (NotificationChannel_VerificationStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_notification_5449d40305a71b45, []int{1, 0}
+	return fileDescriptor_notification_edf6bf9ac9e92803, []int{1, 0}
 }
 
 // A description of a notification channel. The descriptor includes
@@ -99,7 +99,7 @@ func (m *NotificationChannelDescriptor) Reset()         { *m = NotificationChann
 func (m *NotificationChannelDescriptor) String() string { return proto.CompactTextString(m) }
 func (*NotificationChannelDescriptor) ProtoMessage()    {}
 func (*NotificationChannelDescriptor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_notification_5449d40305a71b45, []int{0}
+	return fileDescriptor_notification_edf6bf9ac9e92803, []int{0}
 }
 func (m *NotificationChannelDescriptor) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NotificationChannelDescriptor.Unmarshal(m, b)
@@ -237,7 +237,7 @@ func (m *NotificationChannel) Reset()         { *m = NotificationChannel{} }
 func (m *NotificationChannel) String() string { return proto.CompactTextString(m) }
 func (*NotificationChannel) ProtoMessage()    {}
 func (*NotificationChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_notification_5449d40305a71b45, []int{1}
+	return fileDescriptor_notification_edf6bf9ac9e92803, []int{1}
 }
 func (m *NotificationChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NotificationChannel.Unmarshal(m, b)
@@ -322,10 +322,10 @@ func init() {
 }
 
 func init() {
-	proto.RegisterFile("google/monitoring/v3/notification.proto", fileDescriptor_notification_5449d40305a71b45)
+	proto.RegisterFile("google/monitoring/v3/notification.proto", fileDescriptor_notification_edf6bf9ac9e92803)
 }
 
-var fileDescriptor_notification_5449d40305a71b45 = []byte{
+var fileDescriptor_notification_edf6bf9ac9e92803 = []byte{
 	// 602 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x54, 0x6d, 0x6b, 0xdb, 0x3c,
 	0x14, 0x7d, 0x9c, 0x34, 0x7d, 0x5a, 0xb9, 0xa4, 0x9d, 0x5a, 0x86, 0xf1, 0xde, 0xd2, 0xee, 0xc3,

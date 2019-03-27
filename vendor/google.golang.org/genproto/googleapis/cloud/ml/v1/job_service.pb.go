@@ -231,9 +231,9 @@ var PredictionInput_DataFormat_name = map[int32]string{
 }
 var PredictionInput_DataFormat_value = map[string]int32{
 	"DATA_FORMAT_UNSPECIFIED": 0,
-	"TEXT":                    1,
-	"TF_RECORD":               2,
-	"TF_RECORD_GZIP":          3,
+	"TEXT":           1,
+	"TF_RECORD":      2,
+	"TF_RECORD_GZIP": 3,
 }
 
 func (x PredictionInput_DataFormat) String() string {

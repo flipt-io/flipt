@@ -53,7 +53,7 @@ func (m *DeleteLogRequest) Reset()         { *m = DeleteLogRequest{} }
 func (m *DeleteLogRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteLogRequest) ProtoMessage()    {}
 func (*DeleteLogRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{0}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{0}
 }
 func (m *DeleteLogRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteLogRequest.Unmarshal(m, b)
@@ -90,15 +90,11 @@ type WriteLogEntriesRequest struct {
 	//     "billingAccounts/[BILLING_ACCOUNT_ID]/logs/[LOG_ID]"
 	//     "folders/[FOLDER_ID]/logs/[LOG_ID]"
 	//
-	// `[LOG_ID]` must be URL-encoded. For example:
-	//
-	//     "projects/my-project-id/logs/syslog"
-	//     "organizations/1234567890/logs/cloudresourcemanager.googleapis.com%2Factivity"
-	//
-	// The permission <code>logging.logEntries.create</code> is needed on each
-	// project, organization, billing account, or folder that is receiving
-	// new log entries, whether the resource is specified in
-	// <code>logName</code> or in an individual log entry.
+	// `[LOG_ID]` must be URL-encoded. For example,
+	// `"projects/my-project-id/logs/syslog"` or
+	// `"organizations/1234567890/logs/cloudresourcemanager.googleapis.com%2Factivity"`.
+	// For more information about log names, see
+	// [LogEntry][google.logging.v2.LogEntry].
 	LogName string `protobuf:"bytes,1,opt,name=log_name,json=logName,proto3" json:"log_name,omitempty"`
 	// Optional. A default monitored resource object that is assigned to all log
 	// entries in `entries` that do not specify a value for `resource`. Example:
@@ -114,7 +110,7 @@ type WriteLogEntriesRequest struct {
 	// as a label in this parameter, then the log entry's label is not changed.
 	// See [LogEntry][google.logging.v2.LogEntry].
 	Labels map[string]string `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// Required. The log entries to send to Logging. The order of log
+	// Required. The log entries to send to Stackdriver Logging. The order of log
 	// entries in this list does not matter. Values supplied in this method's
 	// `log_name`, `resource`, and `labels` fields are copied into those log
 	// entries in this list that do not include values for their corresponding
@@ -157,7 +153,7 @@ func (m *WriteLogEntriesRequest) Reset()         { *m = WriteLogEntriesRequest{}
 func (m *WriteLogEntriesRequest) String() string { return proto.CompactTextString(m) }
 func (*WriteLogEntriesRequest) ProtoMessage()    {}
 func (*WriteLogEntriesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{1}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{1}
 }
 func (m *WriteLogEntriesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WriteLogEntriesRequest.Unmarshal(m, b)
@@ -231,7 +227,7 @@ func (m *WriteLogEntriesResponse) Reset()         { *m = WriteLogEntriesResponse
 func (m *WriteLogEntriesResponse) String() string { return proto.CompactTextString(m) }
 func (*WriteLogEntriesResponse) ProtoMessage()    {}
 func (*WriteLogEntriesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{2}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{2}
 }
 func (m *WriteLogEntriesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WriteLogEntriesResponse.Unmarshal(m, b)
@@ -269,7 +265,7 @@ func (m *WriteLogEntriesPartialErrors) Reset()         { *m = WriteLogEntriesPar
 func (m *WriteLogEntriesPartialErrors) String() string { return proto.CompactTextString(m) }
 func (*WriteLogEntriesPartialErrors) ProtoMessage()    {}
 func (*WriteLogEntriesPartialErrors) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{3}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{3}
 }
 func (m *WriteLogEntriesPartialErrors) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WriteLogEntriesPartialErrors.Unmarshal(m, b)
@@ -347,7 +343,7 @@ func (m *ListLogEntriesRequest) Reset()         { *m = ListLogEntriesRequest{} }
 func (m *ListLogEntriesRequest) String() string { return proto.CompactTextString(m) }
 func (*ListLogEntriesRequest) ProtoMessage()    {}
 func (*ListLogEntriesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{4}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{4}
 }
 func (m *ListLogEntriesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListLogEntriesRequest.Unmarshal(m, b)
@@ -436,7 +432,7 @@ func (m *ListLogEntriesResponse) Reset()         { *m = ListLogEntriesResponse{}
 func (m *ListLogEntriesResponse) String() string { return proto.CompactTextString(m) }
 func (*ListLogEntriesResponse) ProtoMessage()    {}
 func (*ListLogEntriesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{5}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{5}
 }
 func (m *ListLogEntriesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListLogEntriesResponse.Unmarshal(m, b)
@@ -492,7 +488,7 @@ func (m *ListMonitoredResourceDescriptorsRequest) Reset() {
 func (m *ListMonitoredResourceDescriptorsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListMonitoredResourceDescriptorsRequest) ProtoMessage()    {}
 func (*ListMonitoredResourceDescriptorsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{6}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{6}
 }
 func (m *ListMonitoredResourceDescriptorsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListMonitoredResourceDescriptorsRequest.Unmarshal(m, b)
@@ -545,7 +541,7 @@ func (m *ListMonitoredResourceDescriptorsResponse) Reset() {
 func (m *ListMonitoredResourceDescriptorsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListMonitoredResourceDescriptorsResponse) ProtoMessage()    {}
 func (*ListMonitoredResourceDescriptorsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{7}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{7}
 }
 func (m *ListMonitoredResourceDescriptorsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListMonitoredResourceDescriptorsResponse.Unmarshal(m, b)
@@ -606,7 +602,7 @@ func (m *ListLogsRequest) Reset()         { *m = ListLogsRequest{} }
 func (m *ListLogsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListLogsRequest) ProtoMessage()    {}
 func (*ListLogsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{8}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{8}
 }
 func (m *ListLogsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListLogsRequest.Unmarshal(m, b)
@@ -666,7 +662,7 @@ func (m *ListLogsResponse) Reset()         { *m = ListLogsResponse{} }
 func (m *ListLogsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListLogsResponse) ProtoMessage()    {}
 func (*ListLogsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_logging_ba6906a83b9b9890, []int{9}
+	return fileDescriptor_logging_e1a2d3408d65219d, []int{9}
 }
 func (m *ListLogsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListLogsResponse.Unmarshal(m, b)
@@ -732,19 +728,21 @@ type LoggingServiceV2Client interface {
 	// Log entries written shortly before the delete operation might not be
 	// deleted.
 	DeleteLog(ctx context.Context, in *DeleteLogRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Writes log entries to Logging. This API method is the
-	// only way to send log entries to Logging. This method
-	// is used, directly or indirectly, by the Logging agent
-	// (fluentd) and all logging libraries configured to use Logging.
+	// Writes log entries to Stackdriver Logging. This API method is the
+	// only way to send log entries to Stackdriver Logging. This method
+	// is used, directly or indirectly, by the Stackdriver Logging agent
+	// (fluentd) and all logging libraries configured to use Stackdriver
+	// Logging.
 	// A single request may contain log entries for a maximum of 1000
 	// different resources (projects, organizations, billing accounts or
 	// folders)
 	WriteLogEntries(ctx context.Context, in *WriteLogEntriesRequest, opts ...grpc.CallOption) (*WriteLogEntriesResponse, error)
 	// Lists log entries.  Use this method to retrieve log entries from
-	// Logging.  For ways to export log entries, see
+	// Stackdriver Logging.  For ways to export log entries, see
 	// [Exporting Logs](/logging/docs/export).
 	ListLogEntries(ctx context.Context, in *ListLogEntriesRequest, opts ...grpc.CallOption) (*ListLogEntriesResponse, error)
-	// Lists the descriptors for monitored resource types used by Logging.
+	// Lists the descriptors for monitored resource types used by Stackdriver
+	// Logging.
 	ListMonitoredResourceDescriptors(ctx context.Context, in *ListMonitoredResourceDescriptorsRequest, opts ...grpc.CallOption) (*ListMonitoredResourceDescriptorsResponse, error)
 	// Lists the logs in projects, organizations, folders, or billing accounts.
 	// Only logs that have entries are listed.
@@ -811,19 +809,21 @@ type LoggingServiceV2Server interface {
 	// Log entries written shortly before the delete operation might not be
 	// deleted.
 	DeleteLog(context.Context, *DeleteLogRequest) (*empty.Empty, error)
-	// Writes log entries to Logging. This API method is the
-	// only way to send log entries to Logging. This method
-	// is used, directly or indirectly, by the Logging agent
-	// (fluentd) and all logging libraries configured to use Logging.
+	// Writes log entries to Stackdriver Logging. This API method is the
+	// only way to send log entries to Stackdriver Logging. This method
+	// is used, directly or indirectly, by the Stackdriver Logging agent
+	// (fluentd) and all logging libraries configured to use Stackdriver
+	// Logging.
 	// A single request may contain log entries for a maximum of 1000
 	// different resources (projects, organizations, billing accounts or
 	// folders)
 	WriteLogEntries(context.Context, *WriteLogEntriesRequest) (*WriteLogEntriesResponse, error)
 	// Lists log entries.  Use this method to retrieve log entries from
-	// Logging.  For ways to export log entries, see
+	// Stackdriver Logging.  For ways to export log entries, see
 	// [Exporting Logs](/logging/docs/export).
 	ListLogEntries(context.Context, *ListLogEntriesRequest) (*ListLogEntriesResponse, error)
-	// Lists the descriptors for monitored resource types used by Logging.
+	// Lists the descriptors for monitored resource types used by Stackdriver
+	// Logging.
 	ListMonitoredResourceDescriptors(context.Context, *ListMonitoredResourceDescriptorsRequest) (*ListMonitoredResourceDescriptorsResponse, error)
 	// Lists the logs in projects, organizations, folders, or billing accounts.
 	// Only logs that have entries are listed.
@@ -954,10 +954,10 @@ var _LoggingServiceV2_serviceDesc = grpc.ServiceDesc{
 }
 
 func init() {
-	proto.RegisterFile("google/logging/v2/logging.proto", fileDescriptor_logging_ba6906a83b9b9890)
+	proto.RegisterFile("google/logging/v2/logging.proto", fileDescriptor_logging_e1a2d3408d65219d)
 }
 
-var fileDescriptor_logging_ba6906a83b9b9890 = []byte{
+var fileDescriptor_logging_e1a2d3408d65219d = []byte{
 	// 1093 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x56, 0x4f, 0x6f, 0xdc, 0x44,
 	0x14, 0xd7, 0x6c, 0x9a, 0xcd, 0xee, 0x84, 0x26, 0xdb, 0x69, 0xb3, 0x71, 0x77, 0x93, 0x66, 0xb3,
