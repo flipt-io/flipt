@@ -6,9 +6,11 @@
 
 .github/
 .vagrant/
+bazel-*/
 bin/
 build/
 Dockerfile
+dist/
 docs/
 node_modules/
 site/

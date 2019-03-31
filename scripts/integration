@@ -1,10 +1,13 @@
 #!/bin/bash
 
-source /vendor/shakedown/shakedown.sh
+git --git-dir=/dev/null clone --depth=1 https://github.com/robwhitby/shakedown.git /tmp/shakedown
+git --git-dir=/dev/null clone --depth=1 https://github.com/vishnubob/wait-for-it.git /tmp/wait-for-it
+
+source /tmp/shakedown/shakedown.sh
 
 uuid_str()
 {
-    cat /dev/urandom | tr -dc '[:lower:]' | fold -w 16 | head -n 1
+    LC_ALL=C; cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1
 }
 
 step_1_test_health()
@@ -208,7 +211,7 @@ start()
     echo -e "\e[32mStart testing $flipt_host\e[0m"
     echo -e "\e[32m===========================================\e[0m"
 
-    /vendor/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
+    /tmp/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
     flipt_url=$flipt_host/api/v1
 
@@ -220,4 +223,4 @@ start()
     step_6_test_delete
 }
 
-start flipt
+start 0.0.0.0
