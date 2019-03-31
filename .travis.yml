@@ -13,7 +13,8 @@ before_script:
   - ./cc-test-reporter before-build
 
 script:
-  - ./scripts/ci
+  - ./scripts/lint
+  - ./scripts/test
 
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

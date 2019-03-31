@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd "$(dirname "$0")/.." || exit
+
 git --git-dir=/dev/null clone --depth=1 https://github.com/robwhitby/shakedown.git /tmp/shakedown
 git --git-dir=/dev/null clone --depth=1 https://github.com/vishnubob/wait-for-it.git /tmp/wait-for-it
 
@@ -189,22 +191,22 @@ step_5_test_evaluation()
 
 step_6_test_delete()
 {
-    # delete rule
+    # delete rule and distributions
     shakedown DELETE "$flipt_url/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
         status 200
 
-    # delete flag
+    # delete flag and variants
     shakedown DELETE "$flipt_url/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
 
-    # delete segment
+    # delete segment and constraints
     shakedown DELETE "$flipt_url/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
 }
 
 start()
 {
-    flipt_host="$1:8080"
+    flipt_host="$1"
 
     echo -e "\e[32m                \e[0m"
     echo -e "\e[32m===========================================\e[0m"
@@ -223,4 +225,4 @@ start()
     step_6_test_delete
 }
 
-start 0.0.0.0
+start 0.0.0.0:8080

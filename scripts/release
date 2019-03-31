@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # usage: ./scripts/release [-r | --run ]
 # defaults to dry-run which does not publish artifacts
