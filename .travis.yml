@@ -10,6 +10,11 @@ env:
 services:
   - docker
 
+stages:
+  - test
+  - name: integration
+    if: type = pull_request
+
 jobs:
   include:
   - stage: test
