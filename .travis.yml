@@ -25,10 +25,10 @@ jobs:
 
   - stage: integration
     before_script:
-      - ./script/release # builds docker image flipt:latest
+      - ./scripts/build
     script:
       - docker run --rm -p 8080:8080 -d --name flipt markphelps/flipt:latest
-      - ./script/integration
+      - ./scripts/integration
     after_script:
       - docker stop flipt
 

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -euo pipefail
+
+GORELEASER_VERSION=v0.104
+
+cd "$(dirname "$0")/.." || exit
+
+echo "==> Creating docker image with goreleaser"
+
+docker run --rm --privileged \
+  -v "$PWD":/go/src/github.com/markphelps/flipt \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -w /go/src/github.com/markphelps/flipt \
+  goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish
