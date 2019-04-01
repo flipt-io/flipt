@@ -2,27 +2,13 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+GORELEASER_VERSION=v0.104
 
-# usage: ./scripts/release [-r | --run ]
-# defaults to dry-run which does not publish artifacts
+cd "$(dirname "$0")/.." || exit
 
-GORELEASER_VERSION=v0.101
-RUN=false
-
-while [ $# -gt 0 ]
-do
-key="$1"
-
-case $key in
-    -r|--run)
-    RUN=true
-    shift # past argument
-    ;;
-esac
-done
-
-if [ "$RUN" = true ]; then
+read -r -p "Are you sure? [y/N] " response
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+then
   echo "==> Releasing with goreleaser"
 
   docker run --rm --privileged \
@@ -36,12 +22,4 @@ if [ "$RUN" = true ]; then
 
   echo "==> Publishing docs"
   mkdocs gh-deploy
-else
-  echo "==> Creating snapshot with goreleaser"
-
-  docker run --rm --privileged \
-    -v "$PWD":/go/src/github.com/markphelps/flipt \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -w /go/src/github.com/markphelps/flipt \
-    goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish
 fi

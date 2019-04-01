@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.." || exit
+
+for pkg in $(go list ./... | grep -v vendor); do
+    go test -coverprofile="$(echo $pkg | tr / -).cover" "$pkg"
+done
+
+echo "mode: set" > c.out
+grep -h -v "^mode:" ./*.cover >> c.out
+rm -f ./*.cover

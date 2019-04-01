@@ -27,10 +27,6 @@ required = [
   version = "1.10.0"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/phyber/negroni-gzip"
-
-[[constraint]]
   name = "github.com/satori/go.uuid"
   version = "1.2.0"
 
@@ -41,10 +37,6 @@ required = [
 [[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.2.2"
-
-[[constraint]]
-  name = "github.com/urfave/negroni"
-  version = "1.0.0"
 
 [[constraint]]
   branch = "master"

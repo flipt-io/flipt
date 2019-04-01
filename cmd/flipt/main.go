@@ -16,10 +16,10 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
-	"github.com/urfave/negroni"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	pb "github.com/markphelps/flipt/proto"
@@ -332,7 +332,6 @@ func execute() error {
 
 			var (
 				r    = chi.NewRouter()
-				n    = negroni.New()
 				api  = runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: false}))
 				opts = []grpc.DialOption{grpc.WithInsecure()}
 			)
@@ -341,18 +340,19 @@ func execute() error {
 				return errors.Wrap(err, "connecting to grpc server")
 			}
 
+			r.Use(middleware.RequestID)
+			r.Use(middleware.RealIP)
+			r.Use(middleware.Compress(gzip.DefaultCompression))
+			r.Use(middleware.Heartbeat("/health"))
+			r.Use(middleware.Recoverer)
+
 			r.Handle("/docs/*", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
 			r.Handle("/api/v1/*", api)
 			r.Handle("/*", http.FileServer(ui.Assets))
 
-			n.Use(gzip.Gzip(gzip.DefaultCompression))
-
-			n.Use(negroni.NewRecovery())
-			n.UseHandler(r)
-
 			httpServer = &http.Server{
 				Addr:           fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.httpPort),
-				Handler:        n,
+				Handler:        r,
 				ReadTimeout:    10 * time.Second,
 				WriteTimeout:   10 * time.Second,
 				MaxHeaderBytes: 1 << 20,
