@@ -28,6 +28,7 @@ jobs:
       - ./scripts/build
     script:
       - docker run --rm -p 8080:8080 -d --name flipt markphelps/flipt:latest
+      - sleep 5
       - ./scripts/integration
     after_script:
       - docker stop flipt
