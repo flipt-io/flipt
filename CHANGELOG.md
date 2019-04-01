@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * `/health` HTTP healthcheck endpoint
 
-### Removed
-
-* Negroni dependency in favor of [Chi](https://github.com/go-chi/chi/) middleware
-
 ## [v0.3.0](https://github.com/markphelps/flipt/releases/tag/v0.3.0) - 2019-03-03
 
 ### Changed

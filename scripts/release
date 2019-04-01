@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.." || exit
 # usage: ./scripts/release [-r | --run ]
 # defaults to dry-run which does not publish artifacts
 
-GORELEASER_VERSION=v0.101
+GORELEASER_VERSION=v0.104
 RUN=false
 
 while [ $# -gt 0 ]
