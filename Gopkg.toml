@@ -6,50 +6,6 @@ required = [
   branch = "master"
   name = "github.com/golang/protobuf"
 
-[[constraint]]
-  name = "github.com/Masterminds/squirrel"
-  version = "1.0.0"
-
-[[constraint]]
-  name = "github.com/golang-migrate/migrate"
-  version = "3.5.4"
-
-[[constraint]]
-  name = "github.com/grpc-ecosystem/go-grpc-middleware"
-  version = "1.0.0"
-
-[[constraint]]
-  name = "github.com/grpc-ecosystem/grpc-gateway"
-  version = "1.6.3"
-
-[[constraint]]
-  name = "github.com/mattn/go-sqlite3"
-  version = "1.10.0"
-
-[[constraint]]
-  name = "github.com/satori/go.uuid"
-  version = "1.2.0"
-
-[[constraint]]
-  name = "github.com/spf13/cobra"
-  version = "0.0.3"
-
-[[constraint]]
-  name = "github.com/stretchr/testify"
-  version = "1.2.2"
-
-[[constraint]]
-  branch = "master"
-  name = "golang.org/x/net"
-
-[[constraint]]
-  branch = "master"
-  name = "golang.org/x/sync"
-
-[[constraint]]
-  name = "google.golang.org/grpc"
-  version = "1.17.0"
-
 [prune]
   non-go = true
   go-tests = true
