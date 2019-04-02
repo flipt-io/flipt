@@ -22,7 +22,7 @@ setup: ## Install dev tools
 	@if [ ! -f $(GOPATH)/bin/golangci-lint ]; then \
 		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.12.5; \
 	fi
-	GO111MODULE=$(GO111MODULE) go get $(GOTOOLS)
+	GO111MODULE=$(GO111MODULE) go get -u $(GOTOOLS)
 
 .PHONY: test
 test: ## Run all the tests

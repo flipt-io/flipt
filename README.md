@@ -21,9 +21,9 @@
 
 ## What is Flipt
 
-Flipt is an open source, self contained application that enables you to use feature flags and experiment (A/B test) across services, running in **your** environment.
+Flipt is an open source feature flag application that allows you to run experiments across services in **your** environment.
 
-This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party, or the latency required to communicate across the internet.
+This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
@@ -44,16 +44,7 @@ Flipt features include:
 
 ## Why Flipt
 
-Many organizations understand the benefit of using feature flags in production, so they choose to implement them themselves in their main application or monolith.
-
-As their organization grows, so does their infrastructure and functionality makes it's way into a multitude of other services. Many times those services aren't even implemented in the same language.
-
-This is where their original feature flag solution tends to break down as it cannot be easily adapted to those services or languages. This results in:
-
-1. Not being able to use feature flags in a subset of services.
-1. Having multiple sources of truth for feature flags depending on the service/implementation which leads to unpredictability.
-
-Flipt solves all of these issues and more, enabling you to focus on your applications without having to worry about implementing your own feature flag solution that works across your infrastructure.
+Flipt allows you to focus on building your applications without having to worry about implementing your own feature flag solution that works across your infrastructure.
 
 On top of this, Flipt provides a nice, modern UI so that you can always monitor the state of your feature flags and experiments in a single place.
 
@@ -74,18 +65,6 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.dev/installation/) section.
-
-## What's Next
-
-To see Flipt in action, checkout an [example](examples/).
-
-Want to get up and running with Flipt? See [Getting Started](https://flipt.dev/getting_started/).
-
-For a more detailed guide on how to setup and run Flipt, checkout the [Installation](https://flipt.dev/installation/) documentation.
-
-To learn how Flipt works, read up on it's [Architecture](https://flipt.dev/architecture/).
-
-For information on how to integrate Flipt with your existing applications, see the [Integration](https://flipt.dev/integration/) guide.
 
 ## Licensing
 
@@ -118,15 +97,9 @@ If there are any concerns about the use of this license for the server, please [
 
 I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
 
-Here's a couple of areas that could use some love:
-
-* Documentation - Does something not make sense in the documentation? Could it be worded better? Please help!
-* Examples - More examples on how to use Flipt in other languages.
-* Javascripts - I'm no JavaScript expert, I'm sure the code in [ui/src](ui/src) could be improved/simplified/tested.
-
 ## Pro Version
 
-My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with support, some of the planned features include:
+My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with **support**, some of the planned features include:
 
 * User management/permissions
 * Multiple environments

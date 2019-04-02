@@ -13,7 +13,7 @@ services:
 stages:
   - test
   - name: integration
-    if: type = pull_request
+    if: branch = master OR type = pull_request
 
 jobs:
   include:
