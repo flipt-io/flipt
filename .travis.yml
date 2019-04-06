@@ -23,6 +23,7 @@ jobs:
       - chmod +x ./cc-test-reporter
       - ./cc-test-reporter before-build
       - make clean
+      - go env
     script:
       - ./scripts/lint
       - ./scripts/test
