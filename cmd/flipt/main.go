@@ -87,9 +87,14 @@ func main() {
 
 type config struct {
 	logLevel string
+	ui       uiConfig
 	cache    cacheConfig
 	server   serverConfig
 	database databaseConfig
+}
+
+type uiConfig struct {
+	enabled bool
 }
 
 type cacheConfig struct {
@@ -114,6 +119,10 @@ func defaultConfig() *config {
 	return &config{
 		logLevel: "INFO",
 
+		ui: uiConfig{
+			enabled: true,
+		},
+
 		cache: cacheConfig{
 			enabled: false,
 			size:    250,
@@ -137,6 +146,9 @@ func defaultConfig() *config {
 const (
 	// Logging
 	cfgLogLevel = "log.level"
+
+	// UI
+	cfgUIEnabled = "ui.enabled"
 
 	// Cache
 	cfgCacheEnabled = "cache.enabled"
@@ -180,6 +192,11 @@ func configure() (*config, error) {
 	// Logging
 	if viper.IsSet(cfgLogLevel) {
 		cfg.logLevel = viper.GetString(cfgLogLevel)
+	}
+
+	// UI
+	if viper.IsSet(cfgUIEnabled) {
+		cfg.ui.enabled = viper.GetBool(cfgUIEnabled)
 	}
 
 	// Cache
@@ -346,9 +363,12 @@ func execute() error {
 			r.Use(middleware.Heartbeat("/health"))
 			r.Use(middleware.Recoverer)
 
-			r.Handle("/docs/*", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
 			r.Handle("/api/v1/*", api)
-			r.Handle("/*", http.FileServer(ui.Assets))
+
+			if cfg.ui.enabled {
+				r.Handle("/docs/*", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
+				r.Handle("/*", http.FileServer(ui.Assets))
+			}
 
 			httpServer = &http.Server{
 				Addr:           fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.httpPort),
@@ -358,7 +378,11 @@ func execute() error {
 				MaxHeaderBytes: 1 << 20,
 			}
 
-			logger.Infof("http server running at: http://%s:%d", cfg.server.host, cfg.server.httpPort)
+			logger.Infof("api server running at: http://%s:%d/api/v1", cfg.server.host, cfg.server.httpPort)
+
+			if cfg.ui.enabled {
+				logger.Infof("ui available at: http://%s:%d", cfg.server.host, cfg.server.httpPort)
+			}
 
 			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
 				return err
