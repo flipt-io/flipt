@@ -815,7 +815,7 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 			FlagKey:   flag.Key,
 			RuleId:    rule.Id,
 			VariantId: variants[1].Id,
-			Rollout:   50,
+			Rollout:   10,
 		},
 	} {
 		_, err := ruleStore.CreateDistribution(context.TODO(), req)
@@ -844,12 +844,24 @@ func TestEvaluate_rolloutDistribution(t *testing.T) {
 			name: "match string value - variant 2",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
-				EntityId: "100",
+				EntityId: "10",
 				Context: map[string]string{
 					"bar": "baz",
 				},
 			},
 			matchesVariantKey: variants[1].Key,
+			wantMatch:         true,
+		},
+		{
+			name: "match string value - no variant",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "100",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "",
 			wantMatch:         true,
 		},
 		{
