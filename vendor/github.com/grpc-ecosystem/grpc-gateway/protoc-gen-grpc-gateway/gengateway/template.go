@@ -17,13 +17,11 @@ type param struct {
 	Imports            []descriptor.GoPackage
 	UseRequestContext  bool
 	RegisterFuncSuffix string
-	AllowPatchFeature  bool
 }
 
 type binding struct {
 	*descriptor.Binding
-	Registry          *descriptor.Registry
-	AllowPatchFeature bool
+	Registry *descriptor.Registry
 }
 
 // GetBodyFieldPath returns the binding body's fieldpath.
@@ -112,6 +110,7 @@ func (b binding) FieldMaskField() string {
 			fieldMaskField = f
 		}
 	}
+
 	if fieldMaskField != nil {
 		return generator2.CamelCase(fieldMaskField.GetName())
 	}
@@ -144,26 +143,17 @@ func applyTemplate(p param, reg *descriptor.Registry) (string, error) {
 		return "", err
 	}
 	var targetServices []*descriptor.Service
-
-	for _, msg := range p.Messages {
-		msgName := generator2.CamelCase(*msg.Name)
-		msg.Name = &msgName
-	}
 	for _, svc := range p.Services {
 		var methodWithBindingsSeen bool
-		svcName := generator2.CamelCase(*svc.Name)
+		svcName := strings.Title(*svc.Name)
 		svc.Name = &svcName
 		for _, meth := range svc.Methods {
 			glog.V(2).Infof("Processing %s.%s", svc.GetName(), meth.GetName())
-			methName := generator2.CamelCase(*meth.Name)
+			methName := strings.Title(*meth.Name)
 			meth.Name = &methName
 			for _, b := range meth.Bindings {
 				methodWithBindingsSeen = true
-				if err := handlerTemplate.Execute(w, binding{
-					Binding:           b,
-					Registry:          reg,
-					AllowPatchFeature: p.AllowPatchFeature,
-				}); err != nil {
+				if err := handlerTemplate.Execute(w, binding{Binding: b, Registry: reg}); err != nil {
 					return "", err
 				}
 			}
@@ -236,7 +226,11 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx cont
 		grpclog.Infof("Failed to start streaming: %v", err)
 		return nil, metadata, err
 	}
-	dec := marshaler.NewDecoder(req.Body)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	dec := marshaler.NewDecoder(newReader())
 	for {
 		var protoReq {{.Method.RequestType.GoType .Method.Service.File.GoPkg.Path}}
 		err = dec.Decode(&protoReq)
@@ -274,7 +268,6 @@ func request_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}}(ctx cont
 `))
 
 	_ = template.Must(handlerTemplate.New("client-rpc-request-func").Parse(`
-{{$AllowPatchFeature := .AllowPatchFeature}}
 {{if .HasQueryParam}}
 var (
 	filter_{{.Method.Service.GetName}}_{{.Method.GetName}}_{{.Index}} = {{.QueryParamFilter}}
@@ -291,7 +284,7 @@ var (
 	if err := marshaler.NewDecoder(newReader()).Decode(&{{.Body.AssignableExpr "protoReq"}}); err != nil && err != io.EOF  {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	{{- if and $AllowPatchFeature (and (eq (.HTTPMethod) "PATCH") (.FieldMaskField))}}
+	{{- if and (eq (.HTTPMethod) "PATCH") (.FieldMaskField)}}
 	if protoReq.{{.FieldMaskField}} != nil && len(protoReq.{{.FieldMaskField}}.GetPaths()) > 0 {
 		runtime.CamelCaseFieldMask(protoReq.{{.FieldMaskField}})
 	} {{if not (eq "*" .GetBodyFieldPath)}} else {
@@ -299,8 +292,8 @@ var (
 				return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 			} else {
 				protoReq.{{.FieldMaskField}} = fieldMask
-			}
-	} {{end}}
+			}		
+	} {{end}}		
 	{{end}}
 {{end}}
 {{if .PathParams}}
@@ -374,7 +367,11 @@ var (
 		grpclog.Infof("Failed to start streaming: %v", err)
 		return nil, metadata, err
 	}
-	dec := marshaler.NewDecoder(req.Body)
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, berr
+	}
+	dec := marshaler.NewDecoder(newReader())
 	handleSend := func() error {
 		var protoReq {{.Method.RequestType.GoType .Method.Service.File.GoPkg.Path}}
 		err := dec.Decode(&protoReq)

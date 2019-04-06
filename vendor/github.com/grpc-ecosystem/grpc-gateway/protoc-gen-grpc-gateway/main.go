@@ -32,7 +32,6 @@ var (
 	pathType                   = flag.String("paths", "", "specifies how the paths of generated files are structured")
 	allowRepeatedFieldsInBody  = flag.Bool("allow_repeated_fields_in_body", false, "allows to use repeated field in `body` and `response_body` field of `google.api.http` annotation option")
 	repeatedPathParamSeparator = flag.String("repeated_path_param_separator", "csv", "configures how repeated fields should be split. Allowed values are `csv`, `pipes`, `ssv` and `tsv`.")
-	allowPatchFeature          = flag.Bool("allow_patch_feature", true, "determines whether to use PATCH feature involving update masks (using google.protobuf.FieldMask).")
 	versionFlag                = flag.Bool("version", false, "print the current verison")
 )
 
@@ -80,7 +79,7 @@ func main() {
 		}
 	}
 
-	g := gengateway.New(reg, *useRequestContext, *registerFuncSuffix, *pathType, *allowPatchFeature)
+	g := gengateway.New(reg, *useRequestContext, *registerFuncSuffix, *pathType)
 
 	if *grpcAPIConfiguration != "" {
 		if err := reg.LoadGrpcAPIServiceFromYAML(*grpcAPIConfiguration); err != nil {

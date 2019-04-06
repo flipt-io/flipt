@@ -32,19 +32,18 @@ type generator struct {
 	useRequestContext  bool
 	registerFuncSuffix string
 	pathType           pathType
-	allowPatchFeature  bool
 }
 
 // New returns a new generator which generates grpc gateway files.
-func New(reg *descriptor.Registry, useRequestContext bool, registerFuncSuffix, pathTypeString string, allowPatchFeature bool) gen.Generator {
+func New(reg *descriptor.Registry, useRequestContext bool, registerFuncSuffix, pathTypeString string) gen.Generator {
 	var imports []descriptor.GoPackage
 	for _, pkgpath := range []string{
-		"context",
 		"io",
 		"net/http",
 		"github.com/grpc-ecosystem/grpc-gateway/runtime",
 		"github.com/grpc-ecosystem/grpc-gateway/utilities",
 		"github.com/golang/protobuf/proto",
+		"golang.org/x/net/context",
 		"google.golang.org/grpc",
 		"google.golang.org/grpc/codes",
 		"google.golang.org/grpc/grpclog",
@@ -83,7 +82,6 @@ func New(reg *descriptor.Registry, useRequestContext bool, registerFuncSuffix, p
 		useRequestContext:  useRequestContext,
 		registerFuncSuffix: registerFuncSuffix,
 		pathType:           pathType,
-		allowPatchFeature:  allowPatchFeature,
 	}
 }
 
@@ -144,7 +142,6 @@ func (g *generator) generate(file *descriptor.File) (string, error) {
 		Imports:            imports,
 		UseRequestContext:  g.useRequestContext,
 		RegisterFuncSuffix: g.registerFuncSuffix,
-		AllowPatchFeature:  g.allowPatchFeature,
 	}
 	return applyTemplate(params, g.reg)
 }

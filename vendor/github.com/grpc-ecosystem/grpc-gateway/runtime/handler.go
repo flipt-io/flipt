@@ -9,7 +9,7 @@ import (
 	"context"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/grpc-ecosystem/grpc-gateway/internal"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime/internal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
@@ -121,16 +121,7 @@ func ForwardResponseMessage(ctx context.Context, mux *ServeMux, marshaler Marsha
 
 	handleForwardResponseServerMetadata(w, mux, md)
 	handleForwardResponseTrailerHeader(w, md)
-
-	contentType := marshaler.ContentType()
-	// Check marshaler on run time in order to keep backwards compatability
-	// An interface param needs to be added to the ContentType() function on 
-	// the Marshal interface to be able to remove this check
-	if httpBodyMarshaler, ok := marshaler.(*HTTPBodyMarshaler); ok {
-		contentType = httpBodyMarshaler.ContentTypeFromMessage(resp)
-	}
-	w.Header().Set("Content-Type", contentType)
-
+	w.Header().Set("Content-Type", marshaler.ContentType())
 	if err := handleForwardResponseOptions(ctx, w, resp, opts); err != nil {
 		HTTPError(ctx, mux, marshaler, w, req, err)
 		return
