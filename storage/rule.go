@@ -645,12 +645,17 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 
 		var (
-			bucket       = crc32Num(r.EntityId, r.FlagKey)
-			index        = sort.SearchInts(buckets, int(bucket)+1)
-			distribution = distributions[index]
+			bucket = crc32Num(r.EntityId, r.FlagKey)
+			index  = sort.SearchInts(buckets, int(bucket)+1)
 		)
 
-		resp.Value = distribution.VariantKey
+		// ensure we have a distribution to match against
+		if index < len(distributions) {
+			distribution := distributions[index]
+			resp.Value = distribution.VariantKey
+			return resp, nil
+		}
+
 		return resp, nil
 	}
 

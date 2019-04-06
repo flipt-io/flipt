@@ -30,10 +30,16 @@ func TestMain(m *testing.M) {
 	var err error
 
 	logger = logrus.New()
+
 	db, err = sql.Open("sqlite3", fmt.Sprintf("%s?_fk=true", testDBPath))
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	defer func() {
+		db.Close()
+		os.Remove(testDBPath)
+	}()
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
@@ -58,14 +64,7 @@ func TestMain(m *testing.M) {
 	segmentStore = NewSegmentStorage(logger, builder)
 	ruleStore = NewRuleStorage(logger, tx, builder)
 
-	defer func() {
-		recover()
-	}()
-
 	code := m.Run()
-
-	db.Close()
-	os.Remove(testDBPath)
 
 	os.Exit(code)
 }
