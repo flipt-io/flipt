@@ -18,6 +18,7 @@ These properties are as follows:
 | Property | Description | Default |
 |---|---|---|
 | log.level | Level at which messages are logged (trace, debug, info, warn, error, fatal, panic) | info |
+| ui.enabled | Enable UI and docs | true |
 | cache.enabled | Enable caching | false |
 | cache.size | Number of items cache can hold | 250 |
 | server.host | The host address on which to serve the Flipt application | 0.0.0.0 |

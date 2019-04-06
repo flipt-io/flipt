@@ -1,6 +1,9 @@
 log:
   level: DEBUG
 
+# ui:
+#   enabled: true
+
 # cache:
 #   enabled: false
 #   size: 250

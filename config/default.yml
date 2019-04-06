@@ -1,6 +1,9 @@
 # log:
 #   level: INFO
 
+# ui:
+#   enabled: true
+
 # cache:
 #   enabled: false
 #   size: 250
