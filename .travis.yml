@@ -24,6 +24,7 @@ jobs:
       - ./cc-test-reporter before-build
       - make clean
       - go env
+      - rm -rf "$GOCACHE/*"
     script:
       - ./scripts/lint
       - ./scripts/test
