@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 )
 
 // RuleStore ...

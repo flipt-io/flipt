@@ -42,7 +42,7 @@ If your language is not listed, please see the section below on how to generate 
 
 #### Manually
 
-If a GRPC client in your language is not available for download, you can easily generate it yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/proto/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
+If a GRPC client in your language is not available for download, you can easily generate it yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/rpc/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
 
 !!! note
     GRPC generates both client implementation and the server interfaces. To use Flipt you only need the GRPC client implementation and can ignore the server code as this is implemented by Flipt itself.

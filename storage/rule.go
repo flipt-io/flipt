@@ -14,7 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	proto "github.com/golang/protobuf/ptypes"
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	lru "github.com/hashicorp/golang-lru"
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"

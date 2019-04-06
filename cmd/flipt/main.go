@@ -22,7 +22,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	pb "github.com/markphelps/flipt/proto"
+	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/swagger"
 	"github.com/markphelps/flipt/ui"
