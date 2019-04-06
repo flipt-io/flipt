@@ -6,7 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	lru "github.com/hashicorp/golang-lru"
-	pb "github.com/markphelps/flipt/proto"
+	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

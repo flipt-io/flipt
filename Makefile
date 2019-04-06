@@ -34,7 +34,7 @@ cover: test ## Run all the tests and opens the coverage report
 
 .PHONY: fmt
 fmt: ## Run gofmt and goimports on all go files
-	@find . -name '*.go' -not -wholename './proto/*' -not -wholename './vendor/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
+	@find . -name '*.go' -not -wholename './rpc/*' -not -wholename './vendor/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
 
 .PHONY: lint
 lint: ## Run all the linters
@@ -51,10 +51,10 @@ proto: ## Build protobufs
 		-I $(GOPATH)/src \
 		-I $(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway \
 		-I $(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		-I proto \
-		--go_out=plugins=grpc:./proto \
-		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./proto/flipt.yaml:./proto \
-		--swagger_out=logtostderr=true,grpc_api_configuration=./proto/flipt.yaml:./swagger/api \
+		-I rpc \
+		--go_out=plugins=grpc:./rpc \
+		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \
+		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger/api \
 		$(PROJECT).proto
 
 .PHONY: ui

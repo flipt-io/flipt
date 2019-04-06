@@ -8,7 +8,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	proto "github.com/golang/protobuf/ptypes"
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )

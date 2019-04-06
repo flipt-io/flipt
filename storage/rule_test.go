@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

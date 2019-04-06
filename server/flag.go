@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	flipt "github.com/markphelps/flipt/proto"
+	flipt "github.com/markphelps/flipt/rpc"
 )
 
 // GetFlag gets a flag
