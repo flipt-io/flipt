@@ -501,7 +501,7 @@ export default {
           let index = this.segment.constraints.findIndex(
             c => c.id === constraint.id
           );
-          this.segment.constraints[index] = constraint;
+          this.$set(this.segment.constraints, index, constraint);
           this.selectedConstraint = clone(DEFAULT_CONSTRAINT);
           this.notifySuccess("Constraint updated!");
           this.dialogEditConstraintVisible = false;
