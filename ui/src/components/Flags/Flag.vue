@@ -376,7 +376,7 @@ export default {
         .then(response => {
           let variant = response.data;
           let index = this.flag.variants.findIndex(v => v.id === variant.id);
-          this.flag.variants[index] = variant;
+          this.$set(this.flag.variants, index, variant);
           this.selectedVariant = clone(DEFAULT_VARIANT);
           this.notifySuccess("Variant updated!");
           this.dialogEditVariantVisible = false;
