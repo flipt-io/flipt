@@ -363,11 +363,12 @@ func execute() error {
 			r.Use(middleware.Heartbeat("/health"))
 			r.Use(middleware.Recoverer)
 
-			r.Handle("/api/v1/*", api)
+			r.Mount("/api/v1", api)
+			r.Mount("/debug", middleware.Profiler())
 
 			if cfg.ui.enabled {
-				r.Handle("/docs/*", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
-				r.Handle("/*", http.FileServer(ui.Assets))
+				r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
+				r.Mount("/", http.FileServer(ui.Assets))
 			}
 
 			httpServer = &http.Server{

@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* `/debug/pprof` [pprof](https://golang.org/pkg/net/http/pprof/) endpoint for profiling
+
 ## [v0.4.0](https://github.com/markphelps/flipt/releases/tag/v0.4.0) - 2019-04-06
 
 ### Fixed
