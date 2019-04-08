@@ -12,6 +12,8 @@ import (
 
 const flagCachePrefix = "flag:"
 
+var _ storage.FlagStore = &FlagCache{}
+
 // FlagCache wraps a FlagStore and provides caching
 type FlagCache struct {
 	logger logrus.FieldLogger
