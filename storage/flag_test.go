@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	flipt "github.com/markphelps/flipt/rpc"
-	uuid "github.com/satori/go.uuid"
+
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,13 +43,13 @@ func TestGetFlagNotFound(t *testing.T) {
 func TestListFlags(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
-			Key:         uuid.NewV4().String(),
+			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
 		},
 		{
-			Key:         uuid.NewV4().String(),
+			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
 		},
@@ -67,13 +68,13 @@ func TestListFlags(t *testing.T) {
 func TestFlagsPagination(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
-			Key:         uuid.NewV4().String(),
+			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
 			Enabled:     true,
 		},
 		{
-			Key:         uuid.NewV4().String(),
+			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
 		},

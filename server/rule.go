@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
-	uuid "github.com/satori/go.uuid"
 )
 
 // GetRule gets a rule
@@ -172,7 +172,7 @@ func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*f
 
 	// set request ID if not present
 	if req.RequestId == "" {
-		req.RequestId = uuid.NewV4().String()
+		req.RequestId = uuid.Must(uuid.NewV4()).String()
 	}
 
 	resp, err := s.RuleStore.Evaluate(ctx, req)

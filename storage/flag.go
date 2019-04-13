@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	proto "github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -216,7 +216,7 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 	var (
 		now = proto.TimestampNow()
 		v   = &flipt.Variant{
-			Id:          uuid.NewV4().String(),
+			Id:          uuid.Must(uuid.NewV4()).String(),
 			FlagKey:     r.FlagKey,
 			Key:         r.Key,
 			Name:        r.Name,
