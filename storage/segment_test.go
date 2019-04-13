@@ -277,6 +277,14 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+
+	// get the segment again
+	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	assert.Len(t, segment.Constraints, 1)
 }
 
 func TestCreateConstraint_ErrInvalid(t *testing.T) {
@@ -402,6 +410,14 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+
+	// get the segment again
+	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	assert.Len(t, segment.Constraints, 1)
 }
 
 func TestUpdateConstraint_ErrInvalid(t *testing.T) {
@@ -515,6 +531,14 @@ func TestDeleteConstraint(t *testing.T) {
 
 	err = segmentStore.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{SegmentKey: constraint.SegmentKey, Id: constraint.Id})
 	require.NoError(t, err)
+
+	// get the segment again
+	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	assert.Empty(t, segment.Constraints)
 }
 
 func TestDeleteConstraint_NotFound(t *testing.T) {

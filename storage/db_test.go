@@ -27,6 +27,12 @@ var (
 const testDBPath = "../flipt_test.db"
 
 func TestMain(m *testing.M) {
+	// os.Exit skips defer calls
+	// so we need to use another fn
+	os.Exit(run(m))
+}
+
+func run(m *testing.M) int {
 	var err error
 
 	logger = logrus.New()
@@ -37,8 +43,13 @@ func TestMain(m *testing.M) {
 	}
 
 	defer func() {
-		db.Close()
-		os.Remove(testDBPath)
+		if err := db.Close(); err != nil {
+			logger.Fatal(err)
+		}
+
+		if err := os.Remove(testDBPath); err != nil {
+			logger.Fatal(err)
+		}
 	}()
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
@@ -64,7 +75,5 @@ func TestMain(m *testing.M) {
 	segmentStore = NewSegmentStorage(logger, builder)
 	ruleStore = NewRuleStorage(logger, tx, builder)
 
-	code := m.Run()
-
-	os.Exit(code)
+	return m.Run()
 }

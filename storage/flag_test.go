@@ -91,6 +91,7 @@ func TestFlagsPagination(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, got, 1)
 }
+
 func TestCreateFlag(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
@@ -222,6 +223,14 @@ func TestCreateVariant(t *testing.T) {
 	assert.Equal(t, "bar", variant.Description)
 	assert.NotZero(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt, variant.UpdatedAt)
+
+	// get the flag again
+	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	assert.Len(t, flag.Variants, 1)
 }
 
 func TestCreateVariant_FlagNotFound(t *testing.T) {
@@ -281,6 +290,14 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+
+	// get the flag again
+	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	assert.Len(t, flag.Variants, 1)
 }
 
 func TestUpdateVariant_NotFound(t *testing.T) {
@@ -328,6 +345,14 @@ func TestDeleteVariant(t *testing.T) {
 
 	err = flagStore.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{FlagKey: variant.FlagKey, Id: variant.Id})
 	require.NoError(t, err)
+
+	// get the flag again
+	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	assert.Empty(t, flag.Variants)
 }
 
 func TestDeleteVariant_ExistingRule(t *testing.T) {
