@@ -23,7 +23,8 @@ jobs:
       - go get github.com/mattn/goveralls
     script:
       - golangci-lint run
-      - $GOPATH/bin/goveralls -service=travis-ci
+      - go test -covermode=count -coverprofile=profile.cov ./...
+      - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: integration
     before_script:
