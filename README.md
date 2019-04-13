@@ -7,6 +7,7 @@
 <hr />
 
 ![Flipt](docs/assets/images/flipt.png)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmarkphelps%2Fflipt.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmarkphelps%2Fflipt?ref=badge_shield)
 
 [![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/6236dff731dd5c2e0669/test_coverage)](https://codeclimate.com/github/markphelps/flipt/test_coverage)
@@ -72,6 +73,9 @@ There are currently two types of licenses in place for Flipt:
 
 1. Client License
 2. Server License
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmarkphelps%2Fflipt.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmarkphelps%2Fflipt?ref=badge_large)
 
 ### Client License
 
