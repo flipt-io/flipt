@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-GO_VERSION='1.11.4'
+GO_VERSION='1.12.1'
 PROTOC_VERSION='3.6.1'
 
 echo '=== Installing necessary system libraries to build'
