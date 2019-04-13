@@ -10,6 +10,7 @@ _test
 .envrc
 .vagrant
 .vscode
+*.cov
 *.log
 *.out
 *.prof
