@@ -19,14 +19,12 @@ jobs:
   include:
   - stage: test
     before_script:
-      - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-      - chmod +x ./cc-test-reporter
-      - ./cc-test-reporter before-build
+      - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
+      - go get github.com/mattn/goveralls
     script:
-      - ./scripts/lint
-      - ./scripts/test
-    after_script:
-      - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+      - golangci-lint run
+      - go test -covermode=count -coverprofile=profile.cov ./...
+      - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: integration
     before_script:
