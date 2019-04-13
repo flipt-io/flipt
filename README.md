@@ -9,7 +9,7 @@
 ![Flipt](docs/assets/images/flipt.png)
 
 [![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/6236dff731dd5c2e0669/test_coverage)](https://codeclimate.com/github/markphelps/flipt/test_coverage)
+[![Coverage Status](https://coveralls.io/repos/github/markphelps/flipt/badge.svg)](https://coveralls.io/github/markphelps/flipt)
 [![Go Report Card](https://goreportcard.com/badge/github.com/markphelps/flipt)](https://goreportcard.com/report/github.com/markphelps/flipt)
 [![GitHub Release](https://img.shields.io/github/release/markphelps/flipt.svg?style=flat)](https://github.com/markphelps/flipt/releases)
 [![Join the chat at https://gitter.im/markphelps/flipt](https://badges.gitter.im/markphelps/flipt.svg)](https://gitter.im/markphelps/flipt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
