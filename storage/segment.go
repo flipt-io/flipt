@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 
 	proto "github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -213,7 +213,7 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 		operator = strings.ToLower(r.Operator)
 		now      = proto.TimestampNow()
 		c        = &flipt.Constraint{
-			Id:         uuid.NewV4().String(),
+			Id:         uuid.Must(uuid.NewV4()).String(),
 			SegmentKey: r.SegmentKey,
 			Type:       r.Type,
 			Property:   r.Property,

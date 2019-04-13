@@ -12,11 +12,11 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	proto "github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
 	sqlite3 "github.com/mattn/go-sqlite3"
-	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -145,7 +145,7 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 	var (
 		now  = proto.TimestampNow()
 		rule = &flipt.Rule{
-			Id:         uuid.NewV4().String(),
+			Id:         uuid.Must(uuid.NewV4()).String(),
 			FlagKey:    r.FlagKey,
 			SegmentKey: r.SegmentKey,
 			Rank:       r.Rank,
@@ -300,7 +300,7 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 	var (
 		now = proto.TimestampNow()
 		d   = &flipt.Distribution{
-			Id:        uuid.NewV4().String(),
+			Id:        uuid.Must(uuid.NewV4()).String(),
 			RuleId:    r.RuleId,
 			VariantId: r.VariantId,
 			Rollout:   r.Rollout,

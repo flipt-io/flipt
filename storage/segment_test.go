@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	flipt "github.com/markphelps/flipt/rpc"
-	uuid "github.com/satori/go.uuid"
+
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -41,12 +42,12 @@ func TestListSegments(t *testing.T) {
 	var (
 		reqs = []*flipt.CreateSegmentRequest{
 			{
-				Key:         uuid.NewV4().String(),
+				Key:         uuid.Must(uuid.NewV4()).String(),
 				Name:        "foo",
 				Description: "bar",
 			},
 			{
-				Key:         uuid.NewV4().String(),
+				Key:         uuid.Must(uuid.NewV4()).String(),
 				Name:        "foo",
 				Description: "bar",
 			},
@@ -67,12 +68,12 @@ func TestListSegmentsPagination(t *testing.T) {
 	var (
 		reqs = []*flipt.CreateSegmentRequest{
 			{
-				Key:         uuid.NewV4().String(),
+				Key:         uuid.Must(uuid.NewV4()).String(),
 				Name:        "foo",
 				Description: "bar",
 			},
 			{
-				Key:         uuid.NewV4().String(),
+				Key:         uuid.Must(uuid.NewV4()).String(),
 				Name:        "foo",
 				Description: "bar",
 			},

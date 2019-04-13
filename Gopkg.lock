@@ -45,6 +45,14 @@
   version = "v3.3.3"
 
 [[projects]]
+  digest = "1:bde9f189072512ba353f3641d4839cb4c9c7edf421e467f2c03f267b402bd16c"
+  name = "github.com/gofrs/uuid"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "6b08a5c5172ba18946672b49749cde22873dd7c2"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:27e924900369068669992c70fdd6240937d0ce756c78c20402453740e14883d5"
   name = "github.com/golang-migrate/migrate"
   packages = [
@@ -251,14 +259,6 @@
   pruneopts = "NT"
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
-
-[[projects]]
-  digest = "1:6bc0652ea6e39e22ccd522458b8bdd8665bf23bdc5a20eec90056e4dc7e273ca"
-  name = "github.com/satori/go.uuid"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
-  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
@@ -493,6 +493,7 @@
     "github.com/fatih/color",
     "github.com/go-chi/chi",
     "github.com/go-chi/chi/middleware",
+    "github.com/gofrs/uuid",
     "github.com/golang-migrate/migrate",
     "github.com/golang-migrate/migrate/database/sqlite3",
     "github.com/golang-migrate/migrate/source/file",
@@ -512,7 +513,6 @@
     "github.com/mattn/go-sqlite3",
     "github.com/phyber/negroni-gzip/gzip",
     "github.com/pkg/errors",
-    "github.com/satori/go.uuid",
     "github.com/shurcooL/httpfs/filter",
     "github.com/shurcooL/vfsgen",
     "github.com/sirupsen/logrus",
