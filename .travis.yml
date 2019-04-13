@@ -1,6 +1,6 @@
 language: go
 go:
-  - '1.12.1'
+  - '1.12.3'
 
 go_import_path: github.com/markphelps/flipt
 
@@ -11,22 +11,24 @@ services:
   - docker
 
 stages:
+  - lint
   - test
   - name: integration
     if: branch = master OR type = pull_request
 
 jobs:
   include:
+  - stage: lint
+    before_script:
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint
+    script:
+      - golangci-lint run
+
   - stage: test
     before_script:
-      - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-      - chmod +x ./cc-test-reporter
-      - ./cc-test-reporter before-build
+      - go get github.com/mattn/goveralls
     script:
-      - ./scripts/lint
-      - ./scripts/test
-    after_script:
-      - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+      - $GOPATH/bin/goveralls -service=travis-ci
 
   - stage: integration
     before_script:
