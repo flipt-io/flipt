@@ -51,9 +51,9 @@ On top of this, Flipt provides a nice, modern UI so that you can always monitor 
 
 Flipt is a single, self contained binary that you run on your own servers or cloud infrastructure. There are a multitude of benefits to running Flipt yourself, including:
 
-* **Security**. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-* **Speed**. Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
-* **Simplicity**. Flipt is a single binary with no dependencies. This means there is no external database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
+* :lock: **Security** - No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+* :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
+* :white_check_mark: **Simplicity** - Flipt is a single binary with no dependencies. This means there is no external database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
 
 ### Try It
 
