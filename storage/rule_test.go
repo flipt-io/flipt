@@ -248,6 +248,36 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, distribution.CreatedAt, distribution.UpdatedAt)
 }
 
+func TestCreateDistribution_NoRule(t *testing.T) {
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	_, err = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+		RuleId:    "foo",
+		VariantId: variant.Id,
+		Rollout:   100,
+	})
+
+	assert.EqualError(t, err, "rule \"foo\" not found")
+}
+
 func TestCreateRule_FlagNotFound(t *testing.T) {
 	_, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    "foo",
@@ -578,7 +608,7 @@ func TestOrderRules(t *testing.T) {
 	assert.Equal(t, int32(3), got[2].Rank)
 }
 
-func TestEvaluate_flagNotFound(t *testing.T) {
+func TestEvaluate_FlagNotFound(t *testing.T) {
 	_, err := ruleStore.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		FlagKey: "foo",
 		Context: map[string]string{
@@ -589,7 +619,7 @@ func TestEvaluate_flagNotFound(t *testing.T) {
 	assert.EqualError(t, err, "flag \"foo\" not found")
 }
 
-func TestEvaluate_flagDisabled(t *testing.T) {
+func TestEvaluate_FlagDisabled(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
@@ -608,10 +638,10 @@ func TestEvaluate_flagDisabled(t *testing.T) {
 	})
 
 	require.Error(t, err)
-	assert.EqualError(t, err, "flag \"TestEvaluate_flagDisabled\" is disabled")
+	assert.EqualError(t, err, "flag \"TestEvaluate_FlagDisabled\" is disabled")
 }
 
-func TestEvaluate_flagNoRules(t *testing.T) {
+func TestEvaluate_FlagNoRules(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
@@ -642,7 +672,7 @@ func TestEvaluate_flagNoRules(t *testing.T) {
 	assert.False(t, resp.Match)
 }
 
-func TestEvaluate_singleVariantDistribution(t *testing.T) {
+func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        t.Name(),
@@ -752,7 +782,7 @@ func TestEvaluate_singleVariantDistribution(t *testing.T) {
 	}
 }
 
-func TestEvaluate_rolloutDistribution(t *testing.T) {
+func TestEvaluate_RolloutDistribution(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        t.Name(),
@@ -1032,6 +1062,15 @@ func Test_matchesString(t *testing.T) {
 			},
 			value: "",
 		},
+		{
+			name: "unknown operator",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "foo",
+				Value:    "bar",
+			},
+			value: "bar",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1222,6 +1261,23 @@ func Test_matchesNumber(t *testing.T) {
 			},
 			value: "0.11",
 		},
+		{
+			name: "empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "0.11",
+			},
+		},
+		{
+			name: "unknown operator",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "foo",
+				Value:    "0.11",
+			},
+			value: "0.11",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1319,6 +1375,21 @@ func Test_matchesBool(t *testing.T) {
 			constraint: constraint{
 				Property: "foo",
 				Operator: "false",
+			},
+			value: "true",
+		},
+		{
+			name: "empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "false",
+			},
+		},
+		{
+			name: "unknown operator",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "foo",
 			},
 			value: "true",
 		},

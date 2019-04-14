@@ -830,5 +830,6 @@ func matchesBool(c constraint, v string) (bool, error) {
 	case opFalse:
 		return !value, nil
 	}
+
 	return false, nil
 }
