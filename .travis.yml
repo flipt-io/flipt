@@ -1,6 +1,6 @@
 language: go
 go:
-  - '1.12.1'
+  - '1.12.4'
 
 go_import_path: github.com/markphelps/flipt
 
