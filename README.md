@@ -2,7 +2,7 @@
 	<img src="logo.svg" alt="Flipt" width=200 height=200 />
 </p>
 
-<p align="center">A self contained feature flag solution</p>
+<p align="center">A feature flag solution that runs in your existing infrastructure</p>
 
 <hr />
 
