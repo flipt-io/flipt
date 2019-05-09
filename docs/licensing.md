@@ -9,7 +9,7 @@ There are currently two types of licenses in place for Flipt:
 
 All of the code required to generate GRPC clients in other languages as well as the existing GRPC Go client are licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
 
-This code exists in the `proto/` directory.
+This code exists in the [`rpc/`](https://github.com/markphelps/flipt/tree/master/rpc) directory.
 
 The client code is the code that you would integrate into your applications, which is why a more permissive license is used.
 
