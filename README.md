@@ -97,6 +97,10 @@ If there are any concerns about the use of this license for the server, please [
 
 I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
 
+Or if you would like to support the continued development of Flipt, you could always [Buy Me A Coffee](https://www.buymeacoffee.com/mAZ1JDSRP)!
+
+<a href="https://www.buymeacoffee.com/mAZ1JDSRP" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
 ## Pro Version
 
 My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with **support**, some of the planned features include:
