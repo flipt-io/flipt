@@ -97,7 +97,22 @@ If there are any concerns about the use of this license for the server, please [
 
 I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
 
-Or if you would like to support the continued development of Flipt, you could always [Buy Me A Coffee](https://www.buymeacoffee.com/mAZ1JDSRP)!
+### How To Contribute
+
+No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
+
+Here are some good places to start:
+
+* [Project Kanban Board](https://github.com/markphelps/flipt/projects/1)
+* [Help Wanted](https://github.com/markphelps/flipt/labels/help%20wanted) Issues
+* [Good First Issue](https://github.com/markphelps/flipt/labels/good%20first%20issue) Issues
+* [Documentation](https://github.com/markphelps/flipt/labels/documentation) Issues
+
+Cheers! :beer:
+
+### Support Development
+
+Or if you would like to support the continued development of Flipt (and my caffeine addiction), you could always [Buy Me A Coffee](https://www.buymeacoffee.com/mAZ1JDSRP)!
 
 <a href="https://www.buymeacoffee.com/mAZ1JDSRP" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 
