@@ -883,18 +883,6 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 			wantMatch:         true,
 		},
 		{
-			name: "match string value - no variant",
-			req: &flipt.EvaluationRequest{
-				FlagKey:  flag.Key,
-				EntityId: "100",
-				Context: map[string]string{
-					"bar": "baz",
-				},
-			},
-			matchesVariantKey: "",
-			wantMatch:         true,
-		},
-		{
 			name: "no match string value",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
@@ -1408,4 +1396,94 @@ func Test_matchesBool(t *testing.T) {
 			assert.Equal(t, tt.wantMatch, match)
 		})
 	}
+}
+
+func Test_evaluate(t *testing.T) {
+	t.Run("33/33/33", func(t *testing.T) {
+		var (
+			variants = []string{"one", "two", "three"}
+			buckets  = []int{333, 666, 1000}
+			r        = &flipt.EvaluationRequest{
+				EntityId: "123",
+				FlagKey:  "foo",
+			}
+		)
+		ok, variant := evaluate(r, variants, buckets)
+		assert.True(t, ok)
+		assert.NotEmpty(t, variant)
+		assert.Equal(t, "one", variant)
+	})
+
+	t.Run("33/0 inside", func(t *testing.T) {
+		var (
+			variants = []string{"one"}
+			buckets  = []int{333}
+			r        = &flipt.EvaluationRequest{
+				EntityId: "123",
+				FlagKey:  "foo",
+			}
+		)
+		ok, variant := evaluate(r, variants, buckets)
+		assert.True(t, ok)
+		assert.NotEmpty(t, variant)
+		assert.Equal(t, "one", variant)
+	})
+
+	t.Run("33/0 outside", func(t *testing.T) {
+		var (
+			variants = []string{"one"}
+			buckets  = []int{333}
+			r        = &flipt.EvaluationRequest{
+				EntityId: "4567",
+				FlagKey:  "foo",
+			}
+		)
+		ok, variant := evaluate(r, variants, buckets)
+		assert.False(t, ok)
+		assert.Empty(t, variant)
+	})
+
+	t.Run("50/50", func(t *testing.T) {
+		var (
+			variants = []string{"one", "two"}
+			buckets  = []int{500, 1000}
+			r        = &flipt.EvaluationRequest{
+				EntityId: "4567",
+				FlagKey:  "foo",
+			}
+		)
+		ok, variant := evaluate(r, variants, buckets)
+		assert.True(t, ok)
+		assert.NotEmpty(t, variant)
+		assert.Equal(t, "two", variant)
+	})
+
+	t.Run("100", func(t *testing.T) {
+		var (
+			variants = []string{"two"}
+			buckets  = []int{1000}
+			r        = &flipt.EvaluationRequest{
+				EntityId: "4567",
+				FlagKey:  "foo",
+			}
+		)
+		ok, variant := evaluate(r, variants, buckets)
+		assert.True(t, ok)
+		assert.NotEmpty(t, variant)
+		assert.Equal(t, "two", variant)
+	})
+
+	t.Run("0", func(t *testing.T) {
+		var (
+			variants = []string{}
+			buckets  = []int{}
+			r        = &flipt.EvaluationRequest{
+				EntityId: "4567",
+				FlagKey:  "foo",
+			}
+		)
+		ok, variant := evaluate(r, variants, buckets)
+		assert.False(t, ok)
+		assert.Empty(t, variant)
+	})
 }
