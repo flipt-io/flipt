@@ -442,6 +442,7 @@ type rule struct {
 }
 
 type distribution struct {
+	ID         string
 	RuleID     string
 	VariantID  string
 	Rollout    float32
@@ -450,7 +451,8 @@ type distribution struct {
 
 // Evaluate evaluates a request for a given flag and entity
 func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	s.logger.WithField("request", r).Debug("evaluate")
+	logger := s.logger.WithField("request", r)
+	logger.Debug("evaluate")
 
 	var (
 		ts, _ = ptypes.TimestampProto(time.Now().UTC())
@@ -539,7 +541,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 	}
 
 	for _, rule := range rules {
-		logger := s.logger.WithField("rule", rule)
 		matchCount := 0
 
 		for _, c := range rule.Constraints {
@@ -569,11 +570,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 				return resp, err
 			}
 
-			logger = logger.WithFields(logrus.Fields{
-				"constraint": c,
-				"value":      v,
-			})
-
 			// constraint doesn't match, we can short circuit and move to the next rule
 			// because we must match ALL constraints
 			if !match {
@@ -587,6 +583,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 
 		// all constraints did not match
 		if matchCount != len(rule.Constraints) {
+			logger.Debug("did not match all constraints")
 			continue
 		}
 
@@ -594,7 +591,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		// based on the distributions
 		resp.SegmentKey = rule.SegmentKey
 
-		rows, err := s.builder.Select("d.rule_id", "d.variant_id", "d.rollout", "v.key").
+		rows, err := s.builder.Select("d.id", "d.rule_id", "d.variant_id", "d.rollout", "v.key").
 			From("distributions d").
 			Join("variants v ON (d.variant_id = v.id)").
 			Where(sq.Eq{"d.rule_id": rule.ID}).
@@ -611,21 +608,21 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}()
 
 		var (
-			i        int
-			variants []string
-			buckets  []int
+			i             int
+			distributions []distribution
+			buckets       []int
 		)
 
 		for rows.Next() {
 			var d distribution
 
-			if err := rows.Scan(&d.RuleID, &d.VariantID, &d.Rollout, &d.VariantKey); err != nil {
+			if err := rows.Scan(&d.ID, &d.RuleID, &d.VariantID, &d.Rollout, &d.VariantKey); err != nil {
 				return resp, err
 			}
 
 			// don't include 0% rollouts
 			if d.Rollout > 0 {
-				variants = append(variants, d.VariantKey)
+				distributions = append(distributions, d)
 
 				if i == 0 {
 					bucket := int(d.Rollout * percentMultiplier)
@@ -643,25 +640,28 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 
 		// no distributions for rule
-		if len(variants) == 0 {
-			logger.Warn("no distribution for rule")
+		if len(distributions) == 0 {
+			logger.Warn("no distributions for rule")
 			return resp, nil
 		}
 
-		ok, variant := evaluate(r, variants, buckets)
+		ok, distribution := evaluate(r, distributions, buckets)
 		resp.Match = ok
 
 		if ok {
-			resp.Value = variant
+			logger.Debugf("matched distribution: %+v", distribution)
+			resp.Value = distribution.VariantKey
+			return resp, nil
 		}
 
+		logger.Debug("did not match any distributions")
 		return resp, nil
 	}
 
 	return resp, nil
 }
 
-func evaluate(r *flipt.EvaluationRequest, variants []string, buckets []int) (bool, string) {
+func evaluate(r *flipt.EvaluationRequest, distributions []distribution, buckets []int) (bool, distribution) {
 	var (
 		bucket = crc32Num(r.EntityId, r.FlagKey)
 		// sort.SearchInts searches for x in a sorted slice of ints and returns the index
@@ -671,11 +671,11 @@ func evaluate(r *flipt.EvaluationRequest, variants []string, buckets []int) (boo
 	)
 
 	// if index is outside of our existing buckets then it does not match any distribution
-	if index == len(variants) {
-		return false, ""
+	if index == len(distributions) {
+		return false, distribution{}
 	}
 
-	return true, variants[index]
+	return true, distributions[index]
 }
 
 func crc32Num(entityID string, salt string) uint {

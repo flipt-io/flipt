@@ -1401,89 +1401,89 @@ func Test_matchesBool(t *testing.T) {
 func Test_evaluate(t *testing.T) {
 	t.Run("33/33/33", func(t *testing.T) {
 		var (
-			variants = []string{"one", "two", "three"}
-			buckets  = []int{333, 666, 1000}
-			r        = &flipt.EvaluationRequest{
+			distributions = []distribution{{VariantKey: "one"}, {VariantKey: "two"}, {VariantKey: "three"}}
+			buckets       = []int{333, 666, 1000}
+			r             = &flipt.EvaluationRequest{
 				EntityId: "123",
 				FlagKey:  "foo",
 			}
 		)
-		ok, variant := evaluate(r, variants, buckets)
+		ok, d := evaluate(r, distributions, buckets)
 		assert.True(t, ok)
-		assert.NotEmpty(t, variant)
-		assert.Equal(t, "one", variant)
+		assert.NotEmpty(t, d)
+		assert.Equal(t, "one", d.VariantKey)
 	})
 
 	t.Run("33/0 inside", func(t *testing.T) {
 		var (
-			variants = []string{"one"}
-			buckets  = []int{333}
-			r        = &flipt.EvaluationRequest{
+			distributions = []distribution{{VariantKey: "one"}}
+			buckets       = []int{333}
+			r             = &flipt.EvaluationRequest{
 				EntityId: "123",
 				FlagKey:  "foo",
 			}
 		)
-		ok, variant := evaluate(r, variants, buckets)
+		ok, d := evaluate(r, distributions, buckets)
 		assert.True(t, ok)
-		assert.NotEmpty(t, variant)
-		assert.Equal(t, "one", variant)
+		assert.NotEmpty(t, d)
+		assert.Equal(t, "one", d.VariantKey)
 	})
 
 	t.Run("33/0 outside", func(t *testing.T) {
 		var (
-			variants = []string{"one"}
-			buckets  = []int{333}
-			r        = &flipt.EvaluationRequest{
+			distributions = []distribution{{VariantKey: "one"}}
+			buckets       = []int{333}
+			r             = &flipt.EvaluationRequest{
 				EntityId: "4567",
 				FlagKey:  "foo",
 			}
 		)
-		ok, variant := evaluate(r, variants, buckets)
+		ok, d := evaluate(r, distributions, buckets)
 		assert.False(t, ok)
-		assert.Empty(t, variant)
+		assert.Empty(t, d)
 	})
 
 	t.Run("50/50", func(t *testing.T) {
 		var (
-			variants = []string{"one", "two"}
-			buckets  = []int{500, 1000}
-			r        = &flipt.EvaluationRequest{
+			distributions = []distribution{{VariantKey: "one"}, {VariantKey: "two"}}
+			buckets       = []int{500, 1000}
+			r             = &flipt.EvaluationRequest{
 				EntityId: "4567",
 				FlagKey:  "foo",
 			}
 		)
-		ok, variant := evaluate(r, variants, buckets)
+		ok, d := evaluate(r, distributions, buckets)
 		assert.True(t, ok)
-		assert.NotEmpty(t, variant)
-		assert.Equal(t, "two", variant)
+		assert.NotEmpty(t, d)
+		assert.Equal(t, "two", d.VariantKey)
 	})
 
 	t.Run("100", func(t *testing.T) {
 		var (
-			variants = []string{"two"}
-			buckets  = []int{1000}
-			r        = &flipt.EvaluationRequest{
+			distributions = []distribution{{VariantKey: "two"}}
+			buckets       = []int{1000}
+			r             = &flipt.EvaluationRequest{
 				EntityId: "4567",
 				FlagKey:  "foo",
 			}
 		)
-		ok, variant := evaluate(r, variants, buckets)
+		ok, d := evaluate(r, distributions, buckets)
 		assert.True(t, ok)
-		assert.NotEmpty(t, variant)
-		assert.Equal(t, "two", variant)
+		assert.NotEmpty(t, d)
+		assert.Equal(t, "two", d.VariantKey)
 	})
 
 	t.Run("0", func(t *testing.T) {
 		var (
-			variants = []string{}
-			buckets  = []int{}
-			r        = &flipt.EvaluationRequest{
+			distributions = []distribution{}
+			buckets       = []int{}
+			r             = &flipt.EvaluationRequest{
 				EntityId: "4567",
 				FlagKey:  "foo",
 			}
 		)
-		ok, variant := evaluate(r, variants, buckets)
+		ok, d := evaluate(r, distributions, buckets)
 		assert.False(t, ok)
-		assert.Empty(t, variant)
+		assert.Empty(t, d)
 	})
 }
