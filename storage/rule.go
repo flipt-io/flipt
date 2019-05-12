@@ -582,7 +582,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			}
 
 			// otherwise, increase the matchCount
-			logger.Debug("matches")
 			matchCount++
 		}
 
@@ -593,7 +592,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 
 		// otherwise, this is our matching rule, determine the flag variant to return
 		// based on the distributions
-		resp.Match = true
 		resp.SegmentKey = rule.SegmentKey
 
 		rows, err := s.builder.Select("d.rule_id", "d.variant_id", "d.rollout", "v.key").
@@ -613,9 +611,9 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}()
 
 		var (
-			i             int
-			distributions []distribution
-			buckets       []int
+			i        int
+			variants []string
+			buckets  []int
 		)
 
 		for rows.Next() {
@@ -625,14 +623,19 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 				return resp, err
 			}
 
-			distributions = append(distributions, d)
+			// don't include 0% rollouts
+			if d.Rollout > 0 {
+				variants = append(variants, d.VariantKey)
 
-			if i == 0 {
-				buckets = append(buckets, int(d.Rollout*percentMultiplier))
-			} else {
-				buckets = append(buckets, buckets[i-1]+int(d.Rollout*percentMultiplier))
+				if i == 0 {
+					bucket := int(d.Rollout * percentMultiplier)
+					buckets = append(buckets, bucket)
+				} else {
+					bucket := buckets[i-1] + int(d.Rollout*percentMultiplier)
+					buckets = append(buckets, bucket)
+				}
+				i++
 			}
-			i++
 		}
 
 		if err := rows.Err(); err != nil {
@@ -640,26 +643,39 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 
 		// no distributions for rule
-		if len(distributions) == 0 {
+		if len(variants) == 0 {
+			logger.Warn("no distribution for rule")
 			return resp, nil
 		}
 
-		var (
-			bucket = crc32Num(r.EntityId, r.FlagKey)
-			index  = sort.SearchInts(buckets, int(bucket)+1)
-		)
+		ok, variant := evaluate(r, variants, buckets)
+		resp.Match = ok
 
-		// ensure we have a distribution to match against
-		if index < len(distributions) {
-			distribution := distributions[index]
-			resp.Value = distribution.VariantKey
-			return resp, nil
+		if ok {
+			resp.Value = variant
 		}
 
 		return resp, nil
 	}
 
 	return resp, nil
+}
+
+func evaluate(r *flipt.EvaluationRequest, variants []string, buckets []int) (bool, string) {
+	var (
+		bucket = crc32Num(r.EntityId, r.FlagKey)
+		// sort.SearchInts searches for x in a sorted slice of ints and returns the index
+		// as specified by Search. The return value is the index to insert x if x is
+		// not present (it could be len(a)).
+		index = sort.SearchInts(buckets, int(bucket)+1)
+	)
+
+	// if index is outside of our existing buckets then it does not match any distribution
+	if index == len(variants) {
+		return false, ""
+	}
+
+	return true, variants[index]
 }
 
 func crc32Num(entityID string, salt string) uint {
