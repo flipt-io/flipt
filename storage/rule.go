@@ -433,6 +433,7 @@ type optionalConstraint struct {
 	Operator sql.NullString
 	Value    sql.NullString
 }
+
 type constraint struct {
 	Type     flipt.ComparisonType
 	Property string
