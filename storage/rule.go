@@ -492,7 +492,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		return resp, ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
-	// get all rules for flag with their constraints
+	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, r.rank, c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
 		LeftJoin("constraints c ON (r.segment_key = c.segment_key)").
