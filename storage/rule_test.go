@@ -845,7 +845,7 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 			FlagKey:   flag.Key,
 			RuleId:    rule.Id,
 			VariantId: variants[1].Id,
-			Rollout:   10,
+			Rollout:   50,
 		},
 	} {
 		_, err := ruleStore.CreateDistribution(context.TODO(), req)
@@ -915,7 +915,128 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 	}
 }
 
-func Test_validateConstraint(t *testing.T) {
+func TestEvaluate_NoConstraints(t *testing.T) {
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        t.Name(),
+		Description: "foo",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+
+	var variants []*flipt.Variant
+
+	for _, req := range []*flipt.CreateVariantRequest{
+		{
+			FlagKey: flag.Key,
+			Key:     fmt.Sprintf("foo_%s", t.Name()),
+		},
+		{
+			FlagKey: flag.Key,
+			Key:     fmt.Sprintf("bar_%s", t.Name()),
+		},
+	} {
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+		require.NoError(t, err)
+		variants = append(variants, variant)
+	}
+
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        t.Name(),
+		Description: "foo",
+	})
+
+	require.NoError(t, err)
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+	})
+
+	require.NoError(t, err)
+
+	for _, req := range []*flipt.CreateDistributionRequest{
+		{
+			FlagKey:   flag.Key,
+			RuleId:    rule.Id,
+			VariantId: variants[0].Id,
+			Rollout:   50,
+		},
+		{
+			FlagKey:   flag.Key,
+			RuleId:    rule.Id,
+			VariantId: variants[1].Id,
+			Rollout:   50,
+		},
+	} {
+		_, err := ruleStore.CreateDistribution(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match no value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "01",
+				Context:  map[string]string{},
+			},
+			matchesVariantKey: variants[0].Key,
+			wantMatch:         true,
+		},
+		{
+			name: "match no value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "10",
+				Context:  map[string]string{},
+			},
+			matchesVariantKey: variants[1].Key,
+			wantMatch:         true,
+		},
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+			matchesVariantKey: variants[1].Key,
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := ruleStore.Evaluate(context.TODO(), tt.req)
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, flag.Key, resp.FlagKey)
+			assert.Equal(t, tt.req.Context, resp.RequestContext)
+
+			if !tt.wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, segment.Key, resp.SegmentKey)
+			assert.Equal(t, tt.matchesVariantKey, resp.Value)
+		})
+	}
+}
+
+func Test_validate(t *testing.T) {
 	tests := []struct {
 		name       string
 		constraint constraint
