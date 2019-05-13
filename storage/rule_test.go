@@ -1535,7 +1535,7 @@ func Test_evaluate(t *testing.T) {
 		assert.Equal(t, "one", d.VariantKey)
 	})
 
-	t.Run("33/0 inside", func(t *testing.T) {
+	t.Run("33/0 match", func(t *testing.T) {
 		var (
 			distributions = []distribution{{VariantKey: "one"}}
 			buckets       = []int{333}
@@ -1550,7 +1550,7 @@ func Test_evaluate(t *testing.T) {
 		assert.Equal(t, "one", d.VariantKey)
 	})
 
-	t.Run("33/0 outside", func(t *testing.T) {
+	t.Run("33/0 no match", func(t *testing.T) {
 		var (
 			distributions = []distribution{{VariantKey: "one"}}
 			buckets       = []int{333}
