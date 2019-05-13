@@ -1002,10 +1002,10 @@ func TestEvaluate_NoConstraints(t *testing.T) {
 			wantMatch:         true,
 		},
 		{
-			name: "match string value - variant 1",
+			name: "match string value - variant 2",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
-				EntityId: "1",
+				EntityId: "10",
 				Context: map[string]string{
 					"bar": "boz",
 				},
