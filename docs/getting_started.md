@@ -70,7 +70,11 @@ You should see the message `Segment created!`.
 
 ### Create a Constraint
 
-Constraints determine which entities are members of which segments.
+Constraints are used to target a specific segment.
+
+!!! note
+    Constraints are not required to match a segment. A segment with no constraints will match every
+    request by default.
 
 To create a constraint:
 

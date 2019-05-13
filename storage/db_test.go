@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"os"
 	"testing"
@@ -17,7 +18,8 @@ import (
 
 var (
 	db     *sql.DB
-	logger logrus.FieldLogger
+	logger *logrus.Logger
+	debug  bool
 
 	flagStore    FlagStore
 	segmentStore SegmentStore
@@ -27,6 +29,8 @@ var (
 const testDBPath = "../flipt_test.db"
 
 func TestMain(m *testing.M) {
+	flag.BoolVar(&debug, "debug", false, "enable debug logging")
+	flag.Parse()
 	// os.Exit skips defer calls
 	// so we need to use another fn
 	os.Exit(run(m))
@@ -36,6 +40,10 @@ func run(m *testing.M) int {
 	var err error
 
 	logger = logrus.New()
+
+	if debug {
+		logger.SetLevel(logrus.DebugLevel)
+	}
 
 	db, err = sql.Open("sqlite3", fmt.Sprintf("%s?_fk=true", testDBPath))
 	if err != nil {

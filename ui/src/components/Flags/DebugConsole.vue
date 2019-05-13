@@ -98,7 +98,7 @@ export default {
           this.response = response.data;
         })
         .catch(error => {
-          this.$set(this.response, "error", error.response.data.error);
+          this.response = { error: error.response.data.error };
         });
     }
   }

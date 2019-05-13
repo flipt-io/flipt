@@ -426,6 +426,14 @@ func (s *RuleStorage) distributions(ctx context.Context, rule *flipt.Rule) (err 
 	return rows.Err()
 }
 
+type optionalConstraint struct {
+	ID       sql.NullString
+	Type     sql.NullInt64
+	Property sql.NullString
+	Operator sql.NullString
+	Value    sql.NullString
+}
+
 type constraint struct {
 	Type     flipt.ComparisonType
 	Property string
@@ -484,10 +492,10 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		return resp, ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
-	// get all rules for flag with their constraints
-	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, r.rank, c.type, c.property, c.operator, c.value").
+	// get all rules for flag with their constraints if any
+	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, r.rank, c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
-		Join("constraints c ON (r.segment_key = c.segment_key)").
+		LeftJoin("constraints c ON (r.segment_key = c.segment_key)").
 		Where(sq.Eq{"r.flag_key": r.FlagKey}).
 		OrderBy("r.rank ASC").
 		GroupBy("r.id").
@@ -507,27 +515,45 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 
 	for rows.Next() {
 		var (
-			existingRule   *rule
-			tempRule       rule
-			tempConstraint constraint
+			existingRule       *rule
+			tempRule           rule
+			optionalConstraint optionalConstraint
 		)
 
-		if err := rows.Scan(&tempRule.ID, &tempRule.FlagKey, &tempRule.SegmentKey, &tempRule.Rank, &tempConstraint.Type, &tempConstraint.Property, &tempConstraint.Operator, &tempConstraint.Value); err != nil {
+		if err := rows.Scan(&tempRule.ID, &tempRule.FlagKey, &tempRule.SegmentKey, &tempRule.Rank, &optionalConstraint.ID, &optionalConstraint.Type, &optionalConstraint.Property, &optionalConstraint.Operator, &optionalConstraint.Value); err != nil {
 			return resp, err
 		}
 
 		// current rule we know about
 		if existingRule != nil && existingRule.ID == tempRule.ID {
-			existingRule.Constraints = append(existingRule.Constraints, tempConstraint)
+			if optionalConstraint.ID.Valid {
+				constraint := constraint{
+					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
+					Property: optionalConstraint.Property.String,
+					Operator: optionalConstraint.Operator.String,
+					Value:    optionalConstraint.Value.String,
+				}
+				existingRule.Constraints = append(existingRule.Constraints, constraint)
+			}
 		} else {
 			// haven't seen this rule before
 			existingRule = &rule{
-				ID:          tempRule.ID,
-				FlagKey:     tempRule.FlagKey,
-				SegmentKey:  tempRule.SegmentKey,
-				Rank:        tempRule.Rank,
-				Constraints: []constraint{tempConstraint},
+				ID:         tempRule.ID,
+				FlagKey:    tempRule.FlagKey,
+				SegmentKey: tempRule.SegmentKey,
+				Rank:       tempRule.Rank,
 			}
+
+			if optionalConstraint.ID.Valid {
+				constraint := constraint{
+					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
+					Property: optionalConstraint.Property.String,
+					Operator: optionalConstraint.Operator.String,
+					Value:    optionalConstraint.Value.String,
+				}
+				existingRule.Constraints = append(existingRule.Constraints, constraint)
+			}
+
 			rules = append(rules, *existingRule)
 		}
 	}
@@ -537,6 +563,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 	}
 
 	if len(rules) == 0 {
+		logger.Debug("no rules match")
 		return resp, nil
 	}
 
@@ -573,7 +600,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			// constraint doesn't match, we can short circuit and move to the next rule
 			// because we must match ALL constraints
 			if !match {
-				logger.Debug("does not match")
+				logger.Debugf("constraint: %+v does not match", c)
 				break
 			}
 

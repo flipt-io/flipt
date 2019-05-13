@@ -1,14 +1,14 @@
 # Flipt
 
-A self contained feature flag solution.
+A feature flag solution that runs in your existing infrastructure.
 
 ![Flipt](assets/images/flipt.png)
 
 ## What is Flipt
 
-Flipt is an open source, self contained application that enables you to use feature flags and experiment (A/B test) across services, running in **your** environment.
+Flipt is an open source feature flag application that allows you to run experiments across services in **your** environment.
 
-This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party, or the latency required to communicate across the internet.
+This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
