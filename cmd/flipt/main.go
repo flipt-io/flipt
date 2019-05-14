@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -21,7 +23,7 @@ import (
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/swagger"
@@ -236,7 +238,7 @@ func configure() (*config, error) {
 }
 
 func printHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuilt: %s\n\n", banner, version, commit, date)
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\n\n", banner, version, commit, date)
 }
 
 func execute() error {
@@ -349,7 +351,7 @@ func execute() error {
 
 			var (
 				r    = chi.NewRouter()
-				api  = runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: false}))
+				api  = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false}))
 				opts = []grpc.DialOption{grpc.WithInsecure()}
 			)
 
@@ -365,6 +367,37 @@ func execute() error {
 
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
+
+			r.Handle("/meta/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				meta := struct {
+					Version   string `json:"version,omitempty"`
+					Commit    string `json:"commit,omitempty"`
+					BuildDate string `json:"buildDate,omitempty"`
+					GoVersion string `json:"goVersion,omitempty"`
+				}{
+					Version:   version,
+					Commit:    commit,
+					BuildDate: date,
+					GoVersion: runtime.Version(),
+				}
+
+				out, err := json.Marshal(meta)
+				if err != nil {
+					logger.WithError(err).Error("getting metadata")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+
+				if _, err = w.Write(out); err != nil {
+					logger.WithError(err).Error("writing response")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				w.WriteHeader(http.StatusOK)
+			}))
 
 			if cfg.ui.enabled {
 				r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
