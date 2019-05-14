@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -22,7 +23,7 @@ import (
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/swagger"
@@ -350,7 +351,7 @@ func execute() error {
 
 			var (
 				r    = chi.NewRouter()
-				api  = runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{OrigName: false}))
+				api  = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false}))
 				opts = []grpc.DialOption{grpc.WithInsecure()}
 			)
 
@@ -366,15 +367,18 @@ func execute() error {
 
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
+
 			r.Handle("/meta/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				meta := struct {
 					Version   string `json:"version,omitempty"`
 					Commit    string `json:"commit,omitempty"`
 					BuildDate string `json:"buildDate,omitempty"`
+					GoVersion string `json:"goVersion,omitempty"`
 				}{
 					Version:   version,
 					Commit:    commit,
 					BuildDate: date,
+					GoVersion: runtime.Version(),
 				}
 
 				out, err := json.Marshal(meta)
@@ -385,10 +389,14 @@ func execute() error {
 				}
 
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
+
 				if _, err = w.Write(out); err != nil {
 					logger.WithError(err).Error("writing response")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
 				}
+
+				w.WriteHeader(http.StatusOK)
 			}))
 
 			if cfg.ui.enabled {
