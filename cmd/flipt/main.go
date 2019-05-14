@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -236,7 +237,7 @@ func configure() (*config, error) {
 }
 
 func printHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuilt: %s\n\n", banner, version, commit, date)
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\n\n", banner, version, commit, date)
 }
 
 func execute() error {
@@ -365,6 +366,30 @@ func execute() error {
 
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
+			r.Handle("/meta/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				meta := struct {
+					Version   string `json:"version,omitempty"`
+					Commit    string `json:"commit,omitempty"`
+					BuildDate string `json:"buildDate,omitempty"`
+				}{
+					Version:   version,
+					Commit:    commit,
+					BuildDate: date,
+				}
+
+				out, err := json.Marshal(meta)
+				if err != nil {
+					logger.WithError(err).Error("getting metadata")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				if _, err = w.Write(out); err != nil {
+					logger.WithError(err).Error("writing response")
+				}
+			}))
 
 			if cfg.ui.enabled {
 				r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
