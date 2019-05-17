@@ -14,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
+
 	"database/sql"
 
 	"github.com/fatih/color"
@@ -46,8 +48,9 @@ import (
 )
 
 const (
-	dbConnOpts = "cache=shared&_fk=true"
-	banner     = `
+	dbSQLiteOpts = "cache=shared&_fk=true"
+
+	banner = `
     _____ _ _       _
    |  ___| (_)_ __ | |_
    | |_  | | | '_ \| __|
@@ -99,9 +102,12 @@ type uiConfig struct {
 	enabled bool
 }
 
-type cacheConfig struct {
+type memoryCacheConfig struct {
 	enabled bool
-	size    int
+}
+
+type cacheConfig struct {
+	memory memoryCacheConfig
 }
 
 type serverConfig struct {
@@ -110,9 +116,33 @@ type serverConfig struct {
 	grpcPort int
 }
 
+var (
+	driverToString = map[databaseDriver]string{
+		sqlite:   "sqlite3",
+		postgres: "postgres",
+	}
+
+	stringToDriver = map[string]databaseDriver{
+		"sqlite3":  sqlite,
+		"postgres": postgres,
+	}
+)
+
+type databaseDriver uint8
+
+func (d databaseDriver) String() string {
+	return driverToString[d]
+}
+
+const (
+	_ databaseDriver = iota
+	sqlite
+	postgres
+)
+
 type databaseConfig struct {
-	name           string
-	path           string
+	driver         databaseDriver
+	uri            string
 	migrationsPath string
 	autoMigrate    bool
 }
@@ -126,8 +156,9 @@ func defaultConfig() *config {
 		},
 
 		cache: cacheConfig{
-			enabled: false,
-			size:    250,
+			memory: memoryCacheConfig{
+				enabled: false,
+			},
 		},
 
 		server: serverConfig{
@@ -137,8 +168,8 @@ func defaultConfig() *config {
 		},
 
 		database: databaseConfig{
-			name:           "flipt",
-			path:           "/var/opt/flipt",
+			driver:         sqlite,
+			uri:            "/var/opt/flipt/flipt.db",
 			migrationsPath: "/etc/flipt/config/migrations",
 			autoMigrate:    true,
 		},
@@ -153,8 +184,7 @@ const (
 	cfgUIEnabled = "ui.enabled"
 
 	// Cache
-	cfgCacheEnabled = "cache.enabled"
-	cfgCacheSize    = "cache.size"
+	cfgCacheMemoryEnabled = "cache.memory.enabled"
 
 	// Server
 	cfgServerHost     = "server.host"
@@ -162,15 +192,9 @@ const (
 	cfgServerGRPCPort = "server.grpc_port"
 
 	// DB
-	cfgDBName           = "db.name"
-	cfgDBPath           = "db.path"
+	cfgDBURL            = "db.url"
 	cfgDBMigrationsPath = "db.migrations.path"
 	cfgDBAutoMigrate    = "db.migrations.auto"
-
-	// Aliases
-	cfgAliasHost        = "host"
-	cfgAliasAPIPort     = "api.port"
-	cfgAliasBackendPort = "backend.port"
 )
 
 func configure() (*config, error) {
@@ -183,11 +207,6 @@ func configure() (*config, error) {
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, errors.Wrap(err, "loading config")
 	}
-
-	// TODO: remove in 1.0 release
-	viper.RegisterAlias(cfgAliasHost, cfgServerHost)
-	viper.RegisterAlias(cfgAliasAPIPort, cfgServerHTTPPort)
-	viper.RegisterAlias(cfgAliasBackendPort, cfgServerGRPCPort)
 
 	cfg := defaultConfig()
 
@@ -202,11 +221,8 @@ func configure() (*config, error) {
 	}
 
 	// Cache
-	if viper.IsSet(cfgCacheEnabled) {
-		cfg.cache.enabled = viper.GetBool(cfgCacheEnabled)
-	}
-	if viper.IsSet(cfgCacheSize) {
-		cfg.cache.size = viper.GetInt(cfgCacheSize)
+	if viper.IsSet(cfgCacheMemoryEnabled) {
+		cfg.cache.memory.enabled = viper.GetBool(cfgCacheMemoryEnabled)
 	}
 
 	// Server
@@ -221,11 +237,15 @@ func configure() (*config, error) {
 	}
 
 	// DB
-	if viper.IsSet(cfgDBName) {
-		cfg.database.name = viper.GetString(cfgDBName)
-	}
-	if viper.IsSet(cfgDBPath) {
-		cfg.database.path = viper.GetString(cfgDBPath)
+	if viper.IsSet(cfgDBURL) {
+		driver, uri, err := parseDBURL(viper.GetString(cfgDBURL))
+		if err != nil {
+			return nil, err
+		}
+
+		cfg.database.driver = driver
+		cfg.database.uri = uri
+
 	}
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
@@ -235,6 +255,19 @@ func configure() (*config, error) {
 	}
 
 	return cfg, nil
+}
+
+func parseDBURL(url string) (databaseDriver, string, error) {
+	parts := strings.SplitN(url, "://", 2)
+	// TODO: check parts
+
+	driver := stringToDriver[parts[0]]
+	if driver == 0 {
+		return 0, "", errors.New("parsing database driver")
+	}
+
+	// TODO: add connection opts to uri
+	return driver, parts[1], nil
 }
 
 func printHeader() {
@@ -280,8 +313,7 @@ func execute() error {
 		g.Go(func() error {
 			logger := logger.WithField("server", "grpc")
 
-			path := filepath.Clean(cfg.database.path)
-			db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db?%s", path, cfg.database.name, dbConnOpts))
+			db, err := sql.Open(cfg.database.driver.String(), cfg.database.uri)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
@@ -291,12 +323,15 @@ func execute() error {
 			if cfg.database.autoMigrate {
 				logger.Info("running migrations...")
 
+				// TODO: handle postgres too
 				driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 				if err != nil {
 					return errors.Wrap(err, "getting db instance")
 				}
 
 				path := filepath.Clean(cfg.database.migrationsPath)
+
+				// TODO: handle postgres too
 				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), "sqlite3", driver)
 				if err != nil {
 					return errors.Wrap(err, "opening migrations")
@@ -330,9 +365,14 @@ func execute() error {
 				grpc_recovery.UnaryServerInterceptor(),
 			))
 
-			if cfg.cache.enabled {
-				logger.Infof("flag cache enabled with size: %d", cfg.cache.size)
-				serverOpts = append(serverOpts, server.WithCacheSize(cfg.cache.size))
+			if cfg.cache.memory.enabled {
+				logger.Infof("in-memory flag cache enabled")
+				cache, err := lru.New(500)
+				if err != nil {
+					return errors.Wrap(err, "creating in-memory cache")
+				}
+
+				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
 			srv = server.New(logger, db, serverOpts...)

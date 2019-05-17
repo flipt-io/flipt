@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
-	lru "github.com/hashicorp/golang-lru"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
@@ -17,21 +16,10 @@ import (
 
 var _ pb.FliptServer = &Server{}
 
-// Option is a server option
-type Option func(s *Server)
-
-// WithCacheSize sets the cache size for the server
-func WithCacheSize(size int) Option {
-	return func(s *Server) {
-		s.cacheSize = size
-	}
-}
-
 // Server serves the Flipt backend
 type Server struct {
-	cacheSize int
-
 	logger logrus.FieldLogger
+	cache  cache.Cacher
 	storage.FlagStore
 	storage.SegmentStore
 	storage.RuleStore
@@ -58,11 +46,9 @@ func New(logger logrus.FieldLogger, db *sql.DB, opts ...Option) *Server {
 		opt(s)
 	}
 
-	if s.cacheSize > 0 {
-		lru, _ := lru.New(s.cacheSize)
-
+	if s.cache != nil {
 		// wrap flagStore with lru cache
-		s.FlagStore = cache.NewFlagCache(logger, lru, flagStore)
+		s.FlagStore = cache.NewFlagCache(logger, s.cache, flagStore)
 	}
 
 	return s
