@@ -67,9 +67,10 @@ var (
 	cfgPath string
 	print   bool
 
-	version = "dev"
-	commit  = ""
-	date    = time.Now().Format(time.RFC3339)
+	version   = "dev"
+	commit    = ""
+	date      = time.Now().Format(time.RFC3339)
+	goVersion = runtime.Version()
 )
 
 func main() {
@@ -158,7 +159,7 @@ func defaultConfig() *config {
 
 		cache: cacheConfig{
 			memory: memoryCacheConfig{
-				enabled: false,
+				enabled: true,
 			},
 		},
 
@@ -280,7 +281,7 @@ func parseDBURL(url string) (databaseDriver, string, error) {
 }
 
 func printHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\n\n", banner, version, commit, date)
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
 func execute() error {
@@ -384,7 +385,7 @@ func execute() error {
 			))
 
 			if cfg.cache.memory.enabled {
-				logger.Infof("in-memory flag cache enabled")
+				logger.Infof("in-memory cache enabled")
 				cache, err := lru.New(defaultMemoryCacheSize)
 				if err != nil {
 					return errors.Wrap(err, "creating in-memory cache")
@@ -436,7 +437,7 @@ func execute() error {
 					Version:   version,
 					Commit:    commit,
 					BuildDate: date,
-					GoVersion: runtime.Version(),
+					GoVersion: goVersion,
 				}
 
 				out, err := json.Marshal(meta)

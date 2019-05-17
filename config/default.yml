@@ -6,7 +6,7 @@
 
 # cache:
 #   memory:
-#     enabled: false
+#     enabled: true
 
 # server:
 #   host: 0.0.0.0
