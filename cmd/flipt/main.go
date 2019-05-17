@@ -143,10 +143,10 @@ const (
 )
 
 type databaseConfig struct {
-	driver         databaseDriver
-	uri            string
-	migrationsPath string
 	autoMigrate    bool
+	driver         databaseDriver
+	migrationsPath string
+	uri            string
 }
 
 func defaultConfig() *config {
