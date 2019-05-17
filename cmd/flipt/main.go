@@ -37,6 +37,7 @@ import (
 	"google.golang.org/grpc"
 
 	migrate "github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/database"
 	sqlite3 "github.com/golang-migrate/migrate/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/mattn/go-sqlite3"
@@ -48,8 +49,6 @@ import (
 )
 
 const (
-	dbSQLiteOpts = "cache=shared&_fk=true"
-
 	banner = `
     _____ _ _       _
    |  ___| (_)_ __ | |_
@@ -58,6 +57,8 @@ const (
    |_|   |_|_| .__/ \__|
              |_|
   `
+
+	defaultMemoryCacheSize = 500
 )
 
 var (
@@ -263,11 +264,19 @@ func parseDBURL(url string) (databaseDriver, string, error) {
 
 	driver := stringToDriver[parts[0]]
 	if driver == 0 {
-		return 0, "", errors.New("parsing database driver")
+		return 0, "", fmt.Errorf("unknown database driver: %s", parts[0])
 	}
 
-	// TODO: add connection opts to uri
-	return driver, parts[1], nil
+	uri := parts[1]
+
+	switch driver {
+	case sqlite:
+		uri = fmt.Sprintf("%s?cache=shared&_fk=true", parts[1])
+	case postgres:
+		// TODO:
+	}
+
+	return driver, uri, nil
 }
 
 func printHeader() {
@@ -313,6 +322,8 @@ func execute() error {
 		g.Go(func() error {
 			logger := logger.WithField("server", "grpc")
 
+			logger.Infof("connecting to %s database: %s", cfg.database.driver, cfg.database.uri)
+
 			db, err := sql.Open(cfg.database.driver.String(), cfg.database.uri)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
@@ -323,16 +334,23 @@ func execute() error {
 			if cfg.database.autoMigrate {
 				logger.Info("running migrations...")
 
-				// TODO: handle postgres too
-				driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
-				if err != nil {
-					return errors.Wrap(err, "getting db instance")
+				var driver database.Driver
+
+				switch cfg.database.driver {
+				case sqlite:
+					driver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+				case postgres:
+					// TODO:
 				}
 
-				path := filepath.Clean(cfg.database.migrationsPath)
+				if err != nil {
+					return errors.Wrap(err, "getting db driver for migrations")
+				}
+
+				path := filepath.Clean(fmt.Sprintf("%s/%s", cfg.database.migrationsPath, cfg.database.driver))
 
 				// TODO: handle postgres too
-				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), "sqlite3", driver)
+				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), cfg.database.driver.String(), driver)
 				if err != nil {
 					return errors.Wrap(err, "opening migrations")
 				}
@@ -367,7 +385,7 @@ func execute() error {
 
 			if cfg.cache.memory.enabled {
 				logger.Infof("in-memory flag cache enabled")
-				cache, err := lru.New(500)
+				cache, err := lru.New(defaultMemoryCacheSize)
 				if err != nil {
 					return errors.Wrap(err, "creating in-memory cache")
 				}

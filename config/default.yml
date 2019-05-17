@@ -14,7 +14,7 @@
 #   grpc_port: 9000
 
 # db:
-#   url: sqlite:///var/opt/flipt/flipt.db
+#   url: sqlite3:///var/opt/flipt/flipt.db
 #   migrations:
 #     auto: true
 #     path: /etc/flipt/config/migrations

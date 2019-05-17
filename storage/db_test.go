@@ -65,7 +65,7 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	mm, err := migrate.NewWithDatabaseInstance("file://../config/migrations", "sqlite3", driver)
+	mm, err := migrate.NewWithDatabaseInstance("file://../config/migrations/sqlite3", "sqlite3", driver)
 	if err != nil {
 		logger.Fatal(err)
 	}

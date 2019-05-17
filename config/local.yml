@@ -14,7 +14,7 @@ log:
 #   grpc_port: 9000
 
 db:
-  url: sqlite://flipt.db
+  url: sqlite3://flipt.db
   migrations:
     auto: true
     path: ./config/migrations
