@@ -8,13 +8,12 @@ Before starting, make sure you have the following installed:
 
 * GCC Compiler
 * [SQLite](https://sqlite.org/index.html)
-* [Go 1.10+](https://golang.org/doc/install)
+* [Go 1.12+](https://golang.org/doc/install)
 * [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
 
-1. Create the directory to clone into: `mkdir -p $GOPATH/src/github.com/markphelps`
-1. Clone this repo: `git clone https://github.com/markphelps/flipt $GOPATH/src/github.com/markphelps`
+1. Clone this repo: `git clone https://github.com/markphelps/flipt`
 1. Run `make setup` to download dependencies
 1. Run `make test` to execute the test suite
 1. Run `make dev` to build and run in development mode
@@ -32,7 +31,7 @@ Once the provisioning process is complete, run:
 
 ```shell
 $ vagrant ssh
-$ cd $GOPATH/src/github.com/markphelps/flipt
+$ cd ~/app/flipt
 $ make dev
 ```
 

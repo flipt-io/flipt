@@ -1,14 +1,5 @@
 PROJECT = flipt
 
-GOTOOLS = \
-	golang.org/x/tools/cmd/cover \
-	golang.org/x/tools/cmd/goimports \
-	google.golang.org/grpc \
-	github.com/golang/protobuf/protoc-gen-go \
-	github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
-	github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
-	github.com/golang/dep/cmd/dep \
-
 PREFIX ?= $(shell pwd)
 SOURCE_FILES ?= ./...
 
@@ -20,7 +11,6 @@ setup: ## Install dev tools
 	@if [ ! -f $(GOPATH)/bin/golangci-lint ]; then \
 		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.12.5; \
 	fi
-	go get -u $(GOTOOLS)
 
 .PHONY: test
 test: ## Run all the tests
@@ -32,7 +22,7 @@ cover: test ## Run all the tests and opens the coverage report
 
 .PHONY: fmt
 fmt: ## Run gofmt and goimports on all go files
-	@find . -name '*.go' -not -wholename './rpc/*' -not -wholename './vendor/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
+	@find . -name '*.go' -not -wholename './tools.go' -not -wholename './rpc/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
 
 .PHONY: lint
 lint: ## Run all the linters

@@ -12,8 +12,8 @@ require (
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
-	github.com/grpc-ecosystem/grpc-gateway v1.8.5
-	github.com/hashicorp/golang-lru v0.5.0
+	github.com/grpc-ecosystem/grpc-gateway v1.9.0
+	github.com/hashicorp/golang-lru v0.5.1
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
@@ -30,8 +30,13 @@ require (
 	github.com/spf13/viper v1.3.1
 	github.com/stretchr/testify v1.3.0
 	github.com/urfave/negroni v1.0.0 // indirect
-	golang.org/x/net v0.0.0-20190227160552-c95aed5357e7 // indirect
-	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
-	golang.org/x/sys v0.0.0-20181228144115-9a3f9b0469bb // indirect
-	google.golang.org/grpc v1.19.1
+	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f // indirect
+	golang.org/x/net v0.0.0-20190514140710-3ec191127204 // indirect
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/sys v0.0.0-20190516110030-61b9204099cb // indirect
+	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190517183331-d88f79806bbd // indirect
+	google.golang.org/appengine v1.6.0 // indirect
+	google.golang.org/genproto v0.0.0-20190516172635-bb713bdc0e52 // indirect
+	google.golang.org/grpc v1.20.1
 )
