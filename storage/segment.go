@@ -300,7 +300,6 @@ func (s *SegmentStorage) UpdateConstraint(ctx context.Context, r *flipt.UpdateCo
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}}).
 		ExecContext(ctx)
-
 	if err != nil {
 		return nil, err
 	}

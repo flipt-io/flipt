@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -15,8 +16,6 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-
-	"database/sql"
 
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
@@ -74,7 +73,7 @@ var (
 )
 
 func main() {
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "flipt",
 		Short: "Flipt is a self contained feature flag solution",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -247,7 +246,6 @@ func configure() (*config, error) {
 
 		cfg.database.driver = driver
 		cfg.database.uri = uri
-
 	}
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)

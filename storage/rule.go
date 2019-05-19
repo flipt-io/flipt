@@ -173,12 +173,11 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 // UpdateRule updates an existing rule
 func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("update rule")
-	var (
-		query = s.builder.Update("rules").
-			Set("segment_key", r.SegmentKey).
-			Set("updated_at", &timestamp{proto.TimestampNow()}).
-			Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
-	)
+
+	query := s.builder.Update("rules").
+		Set("segment_key", r.SegmentKey).
+		Set("updated_at", &timestamp{proto.TimestampNow()}).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -221,7 +220,6 @@ func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest
 		Where(sq.Eq{"flag_key": r.FlagKey}).
 		OrderBy("rank ASC").
 		QueryContext(ctx)
-
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -330,12 +328,10 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 func (s *RuleStorage) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	s.logger.WithField("request", r).Debug("update distribution")
 
-	var (
-		query = s.builder.Update("distributions").
-			Set("rollout", r.Rollout).
-			Set("updated_at", &timestamp{proto.TimestampNow()}).
-			Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}})
-	)
+	query := s.builder.Update("distributions").
+		Set("rollout", r.Rollout).
+		Set("updated_at", &timestamp{proto.TimestampNow()}).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -500,7 +496,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		OrderBy("r.rank ASC").
 		GroupBy("r.id").
 		QueryContext(ctx)
-
 	if err != nil {
 		return resp, err
 	}
@@ -623,7 +618,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			Join("variants v ON (d.variant_id = v.id)").
 			Where(sq.Eq{"d.rule_id": rule.ID}).
 			QueryContext(ctx)
-
 		if err != nil {
 			return resp, err
 		}

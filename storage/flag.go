@@ -254,7 +254,6 @@ func (s *FlagStorage) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantR
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
-
 	if err != nil {
 		return nil, err
 	}

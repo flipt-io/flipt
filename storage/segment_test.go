@@ -39,20 +39,19 @@ func TestGetSegmentNotFound(t *testing.T) {
 }
 
 func TestListSegments(t *testing.T) {
-	var (
-		reqs = []*flipt.CreateSegmentRequest{
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-		}
-	)
+
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
 
 	for _, req := range reqs {
 		_, err := segmentStore.CreateSegment(context.TODO(), req)
@@ -65,20 +64,19 @@ func TestListSegments(t *testing.T) {
 }
 
 func TestListSegmentsPagination(t *testing.T) {
-	var (
-		reqs = []*flipt.CreateSegmentRequest{
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-		}
-	)
+
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
 
 	for _, req := range reqs {
 		_, err := segmentStore.CreateSegment(context.TODO(), req)
@@ -347,7 +345,6 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 			assert.Nil(t, constraint)
 		})
 	}
-
 }
 
 func TestCreateConstraint_SegmentNotFound(t *testing.T) {
@@ -484,7 +481,6 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 			assert.Nil(t, constraint)
 		})
 	}
-
 }
 
 func TestUpdateConstraint_NotFound(t *testing.T) {
