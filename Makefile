@@ -15,14 +15,12 @@ SOURCE_FILES ?= ./...
 TEST_PATTERN ?= .
 TEST_OPTS ?=
 
-GO111MODULE ?= off
-
 .PHONY: setup
 setup: ## Install dev tools
 	@if [ ! -f $(GOPATH)/bin/golangci-lint ]; then \
 		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.12.5; \
 	fi
-	GO111MODULE=$(GO111MODULE) go get -u $(GOTOOLS)
+	go get -u $(GOTOOLS)
 
 .PHONY: test
 test: ## Run all the tests
@@ -63,7 +61,7 @@ ui: ## Builds the ui
 
 .PHONY: generate
 generate: ## Run go generate
-	GO111MODULE=$(GO111MODULE) go generate ./...
+	go generate ./...
 
 .PHONY: check_generate
 check_generate: generate
@@ -74,11 +72,11 @@ check_generate: generate
 
 .PHONY: build
 build: ## Build a local copy
-	GO111MODULE=$(GO111MODULE) go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
+	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
 
 .PHONY: dev
 dev: ## Build and run in development mode
-	GO111MODULE=$(GO111MODULE) go run -tags=dev ./cmd/$(PROJECT)/main.go --config ./config/local.yml
+	go run -tags=dev ./cmd/$(PROJECT)/main.go --config ./config/local.yml
 
 .PHONY: help
 help:
