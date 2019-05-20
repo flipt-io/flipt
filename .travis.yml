@@ -2,10 +2,10 @@ language: go
 go:
   - '1.12.4'
 
+go_import_path: github.com/markphelps/flipt
+
 env:
   - GO111MODULE=on
-
-go_import_path: github.com/markphelps/flipt
 
 services:
   - docker
