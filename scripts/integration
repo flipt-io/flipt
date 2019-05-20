@@ -216,7 +216,7 @@ step_7_test_meta()
 
 start()
 {
-    go run ./cmd/flipt/main.go --config ./config/local.yml &> /dev/null &
+    go run ./cmd/flipt/main.go --config ./config/local.yml &
     echo $! > /tmp/flipt.pid
 
     sleep 5
@@ -244,7 +244,7 @@ start()
 finish()
 {
     cat /tmp/flipt.pid | xargs kill
-    rm /tmp/flipt.pid || true
+    rm /tmp/flipt.pid
 }
 
 trap finish EXIT
