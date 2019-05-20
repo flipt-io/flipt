@@ -5,7 +5,7 @@ go:
 go_import_path: github.com/markphelps/flipt
 
 env:
-  - GO111MODULE=off
+  - GO111MODULE=on
 
 services:
   - docker

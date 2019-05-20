@@ -9,19 +9,6 @@ The ui directory contains these `.vue` files, along with others used in the web 
 * [NodeJS](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/en/)
 
-## Development
-
-During development it is more convenient to always use the files on disk to directly see changes without recompiling. To make this work, run `make dev` after `make ui`.
-
-Example:
-
-```shell
-$ make ui
-$ make dev
-```
-
-This would run Flipt in development mode and serve the UI assets directly from the filesystem.
-
 ## Distribution
 
 For distribution these assets must be included in the Flipt binary so that users do not need to copy these files along with the Flipt binary.
@@ -29,8 +16,7 @@ For distribution these assets must be included in the Flipt binary so that users
 To build before committing, run:
 
 ```shell
-$ make ui
-$ make generate
+$ make assets
 ```
 
 This will build and update the generated inline versions of the files to be included for release.

@@ -91,7 +91,7 @@ The Flipt UI is a Single Page Application (SPA) written in JavaScript using Vue.
 
 ### Bulma
 
-[Bulma](https://bulma.io/) is a free, open source CSS framework based on Flexbox. It makes it easy to make nice looking user interfaces with minimal CSS.
+[Bulma](https://bulma.io/) is a free, open source CSS framework based on Flexbox. It makes it easy to create nice looking user interfaces with minimal CSS.
 
 ### Buefy
 

@@ -43,13 +43,16 @@ fi
 # make /usr/local readable, required for protoc
 sudo chmod -R 755 /usr/local/
 
-mkdir -p ~/go/src/github.com/markphelps
-cd ~/go/src/github.com/markphelps && ln -s /flipt flipt && cd flipt
+mkdir -p ~/app
+cd ~/app && ln -s /flipt flipt && cd flipt
 
 echo '=== Installing dependencies'
 make setup
 
-echo '=== Running Flipt test suite'
+echo '=== Running test suite'
 make test
+
+echo '=== Generating assets'
+make assets
 
 echo "=== Done. To run Flipt, run 'make dev' from $(pwd)"

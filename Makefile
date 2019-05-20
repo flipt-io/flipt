@@ -1,28 +1,16 @@
 PROJECT = flipt
 
-GOTOOLS = \
-	golang.org/x/tools/cmd/cover \
-	golang.org/x/tools/cmd/goimports \
-	google.golang.org/grpc \
-	github.com/golang/protobuf/protoc-gen-go \
-	github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
-	github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
-	github.com/golang/dep/cmd/dep \
-
 PREFIX ?= $(shell pwd)
 SOURCE_FILES ?= ./...
 
 TEST_PATTERN ?= .
 TEST_OPTS ?=
 
-GO111MODULE ?= off
-
 .PHONY: setup
 setup: ## Install dev tools
 	@if [ ! -f $(GOPATH)/bin/golangci-lint ]; then \
 		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.12.5; \
 	fi
-	GO111MODULE=$(GO111MODULE) go get -u $(GOTOOLS)
 
 .PHONY: test
 test: ## Run all the tests
@@ -34,7 +22,7 @@ cover: test ## Run all the tests and opens the coverage report
 
 .PHONY: fmt
 fmt: ## Run gofmt and goimports on all go files
-	@find . -name '*.go' -not -wholename './rpc/*' -not -wholename './vendor/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
+	@find . -name '*.go' -not -wholename './rpc/*' -not -wholename './ui/*' -not -wholename './swagger/*' | while read -r file; do gofmt -w -s "$$file"; goimports -w "$$file"; done
 
 .PHONY: lint
 lint: ## Run all the linters
@@ -43,7 +31,6 @@ lint: ## Run all the linters
 .PHONY: clean
 clean: ## Remove built binaries
 	go clean -i $(SOURCE_FILES)
-	rm -rf ./bin/* ./dist/*
 
 .PHONY: proto
 proto: ## Build protobufs
@@ -57,28 +44,18 @@ proto: ## Build protobufs
 		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger/api \
 		$(PROJECT).proto
 
-.PHONY: ui
-ui: ## Builds the ui
-	@cd ./ui; yarn install && yarn run build
-
-.PHONY: generate
-generate: ## Run go generate
-	GO111MODULE=$(GO111MODULE) go generate ./...
-
-.PHONY: check_generate
-check_generate: generate
-	@if ! (git diff --quiet); then \
-		echo "Run 'make generate' and commit the changes to fix the error."; \
-		exit 1; \
-	fi
+.PHONY: assets
+assets: ## Build the ui and run go generate
+	@cd ./ui; yarn install && yarn run build; cd ..
+	go generate ./...
 
 .PHONY: build
 build: ## Build a local copy
-	GO111MODULE=$(GO111MODULE) go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
+	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
 
 .PHONY: dev
 dev: ## Build and run in development mode
-	GO111MODULE=$(GO111MODULE) go run -tags=dev ./cmd/$(PROJECT)/main.go --config ./config/local.yml
+	go run ./cmd/$(PROJECT)/main.go --config ./config/local.yml
 
 .PHONY: help
 help:
