@@ -19,6 +19,10 @@ Before starting, make sure you have the following installed:
 1. Run `make dev` to build and run in development mode
 1. Run `make help` to see a full list of possible make commands
 
+## Go Modules
+
+Flipt uses Go 1.12 with [Go Modules](https://github.com/golang/go/wiki/Modules) enabled. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH` or set the environment variable `GO111MODULE=on`. For more info see: [https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support](https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support).
+
 ## Vagrant
 
 You can also easily get started with a development environment running in a VM using [Vagrant](https://www.vagrantup.com/) and [Virtual Box](https://www.virtualbox.org/wiki/Downloads).
