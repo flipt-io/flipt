@@ -31,7 +31,6 @@ lint: ## Run all the linters
 .PHONY: clean
 clean: ## Remove built binaries
 	go clean -i $(SOURCE_FILES)
-	rm -rf ./bin/* ./dist/*
 
 .PHONY: proto
 proto: ## Build protobufs
@@ -45,20 +44,10 @@ proto: ## Build protobufs
 		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger/api \
 		$(PROJECT).proto
 
-.PHONY: ui
-ui: ## Builds the ui
-	@cd ./ui; yarn install && yarn run build
-
-.PHONY: generate
-generate: ## Run go generate
+.PHONY: assets
+assets: ## Build the ui and run go generate
+	@cd ./ui; yarn install && yarn run build; cd ..
 	go generate ./...
-
-.PHONY: check_generate
-check_generate: generate
-	@if ! (git diff --quiet); then \
-		echo "Run 'make generate' and commit the changes to fix the error."; \
-		exit 1; \
-	fi
 
 .PHONY: build
 build: ## Build a local copy
@@ -66,7 +55,7 @@ build: ## Build a local copy
 
 .PHONY: dev
 dev: ## Build and run in development mode
-	go run -tags=dev ./cmd/$(PROJECT)/main.go --config ./config/local.yml
+	go run ./cmd/$(PROJECT)/main.go --config ./config/local.yml
 
 .PHONY: help
 help:

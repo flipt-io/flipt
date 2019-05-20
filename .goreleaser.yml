@@ -1,8 +1,11 @@
+env:
+  - GO111MODULE=on
+
 before:
   hooks:
     - make clean
     - go mod download
-    - go generate ./...
+    - make assets
 
 builds:
   - main: ./cmd/flipt/main.go
@@ -12,6 +15,7 @@ builds:
       - linux
     goarch:
       - amd64
+
 archive:
   replacements:
     amd64: x86_64
@@ -21,12 +25,16 @@ archive:
     - CHANGELOG.md
     - ./config/migrations/*
     - ./config/default.yml
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ .Tag }}-snapshot"
+
 changelog:
   skip: true
+
 dockers:
   - binaries:
       - flipt

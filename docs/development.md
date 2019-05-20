@@ -58,7 +58,7 @@ After changing `flipt.proto`, you'll need to run `make proto`. This will regener
 
 ### Updating assets
 
-Running `make generate` will regenerate the embedded assets (ui, api documentation) so that the next time `make dev` is run they will be included.
+Running `make assets` will regenerate the embedded assets (ui, api documentation) so that the next time `make dev` is run they will be included.
 
 #### UI components
 

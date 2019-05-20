@@ -4,20 +4,19 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/markphelps/flipt/internal/fs"
-	"github.com/markphelps/flipt/ui"
 	"github.com/shurcooL/vfsgen"
 )
 
 func main() {
-	// Override all file mod times to be zero using ModTimeFS.
-	inputFS := fs.NewModTimeFS(ui.Assets)
+	source := http.Dir("dist")
 
-	err := vfsgen.Generate(inputFS, vfsgen.Options{
+	// Override all file mod times to be zero using ModTimeFS.
+	err := vfsgen.Generate(fs.NewModTimeFS(source), vfsgen.Options{
 		PackageName:  "ui",
-		BuildTags:    "!dev",
 		VariableName: "Assets",
 	})
 

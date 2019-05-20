@@ -49,10 +49,10 @@ cd ~/app && ln -s /flipt flipt && cd flipt
 echo '=== Installing dependencies'
 make setup
 
-echo '=== Building UI'
-make ui
-
 echo '=== Running test suite'
 make test
+
+echo '=== Generating assets'
+make assets
 
 echo "=== Done. To run Flipt, run 'make dev' from $(pwd)"
