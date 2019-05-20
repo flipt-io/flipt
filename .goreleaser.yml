@@ -5,7 +5,6 @@ before:
   hooks:
     - make clean
     - go mod download
-    - make assets
 
 builds:
   - main: ./cmd/flipt/main.go
