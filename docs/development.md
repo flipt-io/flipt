@@ -8,17 +8,20 @@ Before starting, make sure you have the following installed:
 
 * GCC Compiler
 * [SQLite](https://sqlite.org/index.html)
-* [Go 1.10+](https://golang.org/doc/install)
+* [Go 1.12+](https://golang.org/doc/install)
 * [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
 
-1. Create the directory to clone into: `mkdir -p $GOPATH/src/github.com/markphelps`
-1. Clone this repo: `git clone https://github.com/markphelps/flipt $GOPATH/src/github.com/markphelps`
+1. Clone this repo: `git clone https://github.com/markphelps/flipt`
 1. Run `make setup` to download dependencies
 1. Run `make test` to execute the test suite
 1. Run `make dev` to build and run in development mode
 1. Run `make help` to see a full list of possible make commands
+
+## Go Modules
+
+Flipt uses Go 1.12 with [Go Modules](https://github.com/golang/go/wiki/Modules) enabled. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH` or set the environment variable `GO111MODULE=on`. For more info see: [https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support](https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support).
 
 ## Vagrant
 
@@ -32,7 +35,7 @@ Once the provisioning process is complete, run:
 
 ```shell
 $ vagrant ssh
-$ cd $GOPATH/src/github.com/markphelps/flipt
+$ cd ~/app/flipt
 $ make dev
 ```
 
@@ -59,7 +62,7 @@ After changing `flipt.proto`, you'll need to run `make proto`. This will regener
 
 ### Updating assets
 
-Running `make generate` will regenerate the embedded assets (ui, api documentation) so that the next time `make dev` is run they will be included.
+Running `make assets` will regenerate the embedded assets (ui, api documentation) so that the next time `make dev` is run they will be included.
 
 #### UI components
 

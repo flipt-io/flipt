@@ -2,19 +2,19 @@
 
 set -euo pipefail
 
-GORELEASER_VERSION=v0.104
+GORELEASER_VERSION=v0.106
 
 cd "$(dirname "$0")/.." || exit
 
 read -r -p "Are you sure? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 then
-  echo "==> Releasing with goreleaser"
+  echo "==> Building and releasing with goreleaser"
 
   docker run --rm --privileged \
-    -v "$PWD":/go/src/github.com/markphelps/flipt \
+    -v "$PWD":/flipt \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    -w /go/src/github.com/markphelps/flipt \
+    -w /flipt \
     -e GITHUB_TOKEN \
     -e DOCKER_USERNAME \
     -e DOCKER_PASSWORD \
