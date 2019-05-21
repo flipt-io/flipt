@@ -29,6 +29,8 @@ jobs:
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: integration
+    before_script:
+      - make build
     script:
       - ./scripts/integration
 
