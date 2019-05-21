@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.." || exit
 read -r -p "Are you sure? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 then
-  echo "==> Releasing with goreleaser"
+  echo "==> Building and releasing with goreleaser"
 
   docker run --rm --privileged \
     -v "$PWD":/flipt \

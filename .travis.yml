@@ -4,11 +4,13 @@ go:
 
 go_import_path: github.com/markphelps/flipt
 
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+
 env:
   - GO111MODULE=on
-
-services:
-  - docker
 
 stages:
   - test
@@ -28,13 +30,9 @@ jobs:
 
   - stage: integration
     before_script:
-      - ./scripts/build
+      - make build
     script:
-      - docker run --rm -p 8080:8080 -d --name flipt markphelps/flipt:latest
-      - sleep 5
       - ./scripts/integration
-    after_script:
-      - docker stop flipt
 
 notifications:
   email: false
