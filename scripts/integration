@@ -2,8 +2,8 @@
 
 cd "$(dirname "$0")/.." || exit
 
-git --git-dir=/dev/null clone --depth=1 https://github.com/robwhitby/shakedown.git /tmp/shakedown
-git --git-dir=/dev/null clone --depth=1 https://github.com/vishnubob/wait-for-it.git /tmp/wait-for-it
+git --git-dir=/dev/null clone --depth=1 https://github.com/robwhitby/shakedown.git /tmp/shakedown || true
+git --git-dir=/dev/null clone --depth=1 https://github.com/vishnubob/wait-for-it.git /tmp/wait-for-it || true
 
 source /tmp/shakedown/shakedown.sh
 
@@ -216,7 +216,7 @@ step_7_test_meta()
 
 start()
 {
-    go run ./cmd/flipt/main.go --config ./config/local.yml &
+    ./bin/flipt --config ./config/local.yml &> /dev/null &
     echo $! > /tmp/flipt.pid
 
     sleep 5
@@ -243,8 +243,10 @@ start()
 
 finish()
 {
+    _finish # shakedown trap
+    status=$?
     cat /tmp/flipt.pid | xargs kill
-    rm /tmp/flipt.pid
+    exit $status
 }
 
 trap finish EXIT
