@@ -27,6 +27,7 @@ import (
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/swagger"
 	"github.com/markphelps/flipt/ui"
 	"github.com/sirupsen/logrus"
@@ -120,33 +121,9 @@ type serverConfig struct {
 	grpcPort int
 }
 
-var (
-	driverToString = map[databaseDriver]string{
-		sqliteDriver:   "sqlite3",
-		postgresDriver: "postgres",
-	}
-
-	stringToDriver = map[string]databaseDriver{
-		"sqlite3":  sqliteDriver,
-		"postgres": postgresDriver,
-	}
-)
-
-type databaseDriver uint8
-
-func (d databaseDriver) String() string {
-	return driverToString[d]
-}
-
-const (
-	_ databaseDriver = iota
-	sqliteDriver
-	postgresDriver
-)
-
 type databaseConfig struct {
 	autoMigrate    bool
-	driver         databaseDriver
+	driver         storage.Driver
 	migrationsPath string
 	uri            string
 }
@@ -172,7 +149,7 @@ func defaultConfig() *config {
 		},
 
 		database: databaseConfig{
-			driver:         sqliteDriver,
+			driver:         storage.SQLite,
 			uri:            "/var/opt/flipt/flipt.db",
 			migrationsPath: "/etc/flipt/config/migrations",
 			autoMigrate:    true,
@@ -242,7 +219,7 @@ func configure() (*config, error) {
 
 	// DB
 	if viper.IsSet(cfgDBURL) {
-		driver, uri, err := parseDBURL(viper.GetString(cfgDBURL))
+		driver, uri, err := storage.Parse(viper.GetString(cfgDBURL))
 		if err != nil {
 			return nil, err
 		}
@@ -258,27 +235,6 @@ func configure() (*config, error) {
 	}
 
 	return cfg, nil
-}
-
-func parseDBURL(url string) (databaseDriver, string, error) {
-	parts := strings.SplitN(url, "://", 2)
-	// TODO: check parts
-
-	driver := stringToDriver[parts[0]]
-	if driver == 0 {
-		return 0, "", fmt.Errorf("unknown database driver: %s", parts[0])
-	}
-
-	uri := parts[1]
-
-	switch driver {
-	case sqliteDriver:
-		uri = fmt.Sprintf("%s?cache=shared&_fk=true", parts[1])
-	case postgresDriver:
-		uri = fmt.Sprintf("postgres://%s?sslmode=disable", parts[1])
-	}
-
-	return driver, uri, nil
 }
 
 func printHeader() {
@@ -322,11 +278,14 @@ func execute() error {
 
 	if cfg.server.grpcPort > 0 {
 		g.Go(func() error {
-			logger := logger.WithField("server", "grpc")
+			var (
+				logger = logger.WithField("server", "grpc")
+				driver = cfg.database.driver
+			)
 
-			logger.Infof("connecting to %s database: %s", cfg.database.driver, cfg.database.uri)
+			logger.Infof("connecting to %s database: %s", driver, cfg.database.uri)
 
-			db, err := sql.Open(cfg.database.driver.String(), cfg.database.uri)
+			db, err := sql.Open(driver.String(), cfg.database.uri)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
@@ -336,22 +295,22 @@ func execute() error {
 			if cfg.database.autoMigrate {
 				logger.Info("running migrations...")
 
-				var driver database.Driver
+				var d database.Driver
 
-				switch cfg.database.driver {
-				case sqliteDriver:
-					driver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-				case postgresDriver:
-					driver, err = postgres.WithInstance(db, &postgres.Config{})
+				switch driver {
+				case storage.SQLite:
+					d, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+				case storage.Postgres:
+					d, err = postgres.WithInstance(db, &postgres.Config{})
 				}
 
 				if err != nil {
 					return errors.Wrap(err, "getting db driver for migrations")
 				}
 
-				path := filepath.Clean(fmt.Sprintf("%s/%s", cfg.database.migrationsPath, cfg.database.driver))
+				path := filepath.Clean(fmt.Sprintf("%s/%s", cfg.database.migrationsPath, driver))
 
-				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), cfg.database.driver.String(), driver)
+				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), driver.String(), d)
 				if err != nil {
 					return errors.Wrap(err, "opening migrations")
 				}
@@ -394,7 +353,7 @@ func execute() error {
 				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
-			srv = server.New(logger, db, serverOpts...)
+			srv = server.New(logger, db, driver, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)
 
 			pb.RegisterFliptServer(grpcServer, srv)

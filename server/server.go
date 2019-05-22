@@ -26,10 +26,22 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, db *sql.DB, opts ...Option) *Server {
-	var (
-		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+func New(logger logrus.FieldLogger, db *sql.DB, driver storage.Driver, opts ...Option) *Server {
 
+	// TODO: clean this up with a different abstraction
+	var (
+		builder sq.StatementBuilderType
+		cacher  = sq.NewStmtCacher(db)
+	)
+
+	switch driver {
+	case storage.SQLite:
+		builder = sq.StatementBuilder.RunWith(cacher)
+	case storage.Postgres:
+		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(cacher)
+	}
+
+	var (
 		flagStore    = storage.NewFlagStorage(logger, builder)
 		segmentStore = storage.NewSegmentStorage(logger, builder)
 		ruleStore    = storage.NewRuleStorage(logger, sq.NewStmtCacheProxy(db), builder)
