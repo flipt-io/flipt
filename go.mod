@@ -4,6 +4,11 @@ go 1.12
 
 require (
 	github.com/Masterminds/squirrel v1.1.0
+	github.com/Microsoft/go-winio v0.4.12 // indirect
+	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/docker/docker v1.13.1 // indirect
+	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
@@ -14,11 +19,12 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/grpc-gateway v1.9.0
 	github.com/hashicorp/golang-lru v0.5.1
-	github.com/lib/pq v1.1.1 // indirect
+	github.com/lib/pq v1.1.1
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/pkg/errors v0.8.1
 	github.com/shurcooL/httpfs v0.0.0-20181222201310-74dc9339e414 // indirect

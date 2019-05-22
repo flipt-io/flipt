@@ -37,8 +37,11 @@ import (
 
 	migrate "github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
+	postgres "github.com/golang-migrate/migrate/database/postgres"
 	sqlite3 "github.com/golang-migrate/migrate/database/sqlite3"
+
 	_ "github.com/golang-migrate/migrate/source/file"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -119,13 +122,13 @@ type serverConfig struct {
 
 var (
 	driverToString = map[databaseDriver]string{
-		sqlite:   "sqlite3",
-		postgres: "postgres",
+		sqliteDriver:   "sqlite3",
+		postgresDriver: "postgres",
 	}
 
 	stringToDriver = map[string]databaseDriver{
-		"sqlite3":  sqlite,
-		"postgres": postgres,
+		"sqlite3":  sqliteDriver,
+		"postgres": postgresDriver,
 	}
 )
 
@@ -137,8 +140,8 @@ func (d databaseDriver) String() string {
 
 const (
 	_ databaseDriver = iota
-	sqlite
-	postgres
+	sqliteDriver
+	postgresDriver
 )
 
 type databaseConfig struct {
@@ -169,7 +172,7 @@ func defaultConfig() *config {
 		},
 
 		database: databaseConfig{
-			driver:         sqlite,
+			driver:         sqliteDriver,
 			uri:            "/var/opt/flipt/flipt.db",
 			migrationsPath: "/etc/flipt/config/migrations",
 			autoMigrate:    true,
@@ -269,10 +272,10 @@ func parseDBURL(url string) (databaseDriver, string, error) {
 	uri := parts[1]
 
 	switch driver {
-	case sqlite:
+	case sqliteDriver:
 		uri = fmt.Sprintf("%s?cache=shared&_fk=true", parts[1])
-	case postgres:
-		// TODO:
+	case postgresDriver:
+		uri = fmt.Sprintf("postgres://%s?sslmode=disable", parts[1])
 	}
 
 	return driver, uri, nil
@@ -336,10 +339,10 @@ func execute() error {
 				var driver database.Driver
 
 				switch cfg.database.driver {
-				case sqlite:
+				case sqliteDriver:
 					driver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-				case postgres:
-					// TODO:
+				case postgresDriver:
+					driver, err = postgres.WithInstance(db, &postgres.Config{})
 				}
 
 				if err != nil {
@@ -348,7 +351,6 @@ func execute() error {
 
 				path := filepath.Clean(fmt.Sprintf("%s/%s", cfg.database.migrationsPath, cfg.database.driver))
 
-				// TODO: handle postgres too
 				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), cfg.database.driver.String(), driver)
 				if err != nil {
 					return errors.Wrap(err, "opening migrations")
