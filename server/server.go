@@ -25,11 +25,11 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, store *storage.Store, opts ...Option) *Server {
+func New(logger logrus.FieldLogger, db *storage.DB, opts ...Option) *Server {
 	var (
-		flagStore    = storage.NewFlagStorage(logger, store)
-		segmentStore = storage.NewSegmentStorage(logger, store)
-		ruleStore    = storage.NewRuleStorage(logger, store)
+		flagStore    = storage.NewFlagStorage(logger, db)
+		segmentStore = storage.NewSegmentStorage(logger, db)
+		ruleStore    = storage.NewRuleStorage(logger, db)
 
 		s = &Server{
 			logger:       logger,

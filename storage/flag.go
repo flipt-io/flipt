@@ -19,14 +19,14 @@ var _ FlagStore = &FlagStorage{}
 // FlagStorage is a SQL FlagStore
 type FlagStorage struct {
 	logger logrus.FieldLogger
-	*Store
+	*DB
 }
 
 // NewFlagStorage creates a FlagStorage
-func NewFlagStorage(logger logrus.FieldLogger, store *Store) *FlagStorage {
+func NewFlagStorage(logger logrus.FieldLogger, db *DB) *FlagStorage {
 	return &FlagStorage{
 		logger: logger.WithField("storage", "flag"),
-		Store:  store,
+		DB:     db,
 	}
 }
 

@@ -26,14 +26,14 @@ var _ RuleStore = &RuleStorage{}
 // RuleStorage is a SQL RuleStore
 type RuleStorage struct {
 	logger logrus.FieldLogger
-	*Store
+	*DB
 }
 
 // NewRuleStorage creates a RuleStorage
-func NewRuleStorage(logger logrus.FieldLogger, store *Store) *RuleStorage {
+func NewRuleStorage(logger logrus.FieldLogger, db *DB) *RuleStorage {
 	return &RuleStorage{
 		logger: logger.WithField("storage", "rule"),
-		Store:  store,
+		DB:     db,
 	}
 }
 

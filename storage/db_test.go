@@ -1,23 +1,17 @@
 package storage
 
 import (
-	"database/sql"
 	"flag"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 
-	sq "github.com/Masterminds/squirrel"
-	migrate "github.com/golang-migrate/migrate"
-	sqlite3 "github.com/golang-migrate/migrate/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
-	db     *sql.DB
 	logger *logrus.Logger
 	debug  bool
 
@@ -37,15 +31,13 @@ func TestMain(m *testing.M) {
 }
 
 func run(m *testing.M) int {
-	var err error
-
 	logger = logrus.New()
 
 	if debug {
 		logger.SetLevel(logrus.DebugLevel)
 	}
 
-	db, err = sql.Open("sqlite3", fmt.Sprintf("%s?_fk=true", testDBPath))
+	db, err := Open("sqlite3://" + testDBPath)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -60,28 +52,14 @@ func run(m *testing.M) int {
 		}
 	}()
 
-	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
+	err = db.Migrate("../config/migrations/")
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	mm, err := migrate.NewWithDatabaseInstance("file://../config/migrations/sqlite3", "sqlite3", driver)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
-		logger.Fatal(err)
-	}
-
-	store := Store{
-		StatementBuilderType: sq.StatementBuilder.RunWith(db),
-		DBProxyBeginner:      sq.NewStmtCacheProxy(db),
-	}
-
-	flagStore = NewFlagStorage(logger, store)
-	segmentStore = NewSegmentStorage(logger, store)
-	ruleStore = NewRuleStorage(logger, store)
+	flagStore = NewFlagStorage(logger, db)
+	segmentStore = NewSegmentStorage(logger, db)
+	ruleStore = NewRuleStorage(logger, db)
 
 	return m.Run()
 }

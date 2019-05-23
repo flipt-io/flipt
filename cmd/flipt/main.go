@@ -266,17 +266,17 @@ func execute() error {
 			logger := logger.WithField("server", "grpc")
 			logger.Infof("connecting to database: %s", cfg.database.url)
 
-			store, err := storage.Open(cfg.database.url)
+			db, err := storage.Open(cfg.database.url)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
 
-			defer store.Close()
+			defer db.Close()
 
 			if cfg.database.autoMigrate {
 				logger.Info("running migrations...")
 
-				if err := store.Migrate(cfg.database.migrationsPath); err != nil {
+				if err := db.Migrate(cfg.database.migrationsPath); err != nil {
 					return errors.Wrap(err, "migrating database")
 				}
 
@@ -314,7 +314,7 @@ func execute() error {
 				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
-			srv = server.New(logger, store, serverOpts...)
+			srv = server.New(logger, db, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)
 
 			pb.RegisterFliptServer(grpcServer, srv)
