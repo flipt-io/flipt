@@ -130,7 +130,7 @@ func defaultConfig() *config {
 
 		cache: cacheConfig{
 			memory: memoryCacheConfig{
-				enabled: true,
+				enabled: false,
 			},
 		},
 

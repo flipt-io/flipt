@@ -6,7 +6,7 @@ log:
 
 # cache:
 #   memory:
-#     enabled: true
+#     enabled: false
 
 # server:
 #   host: 0.0.0.0
@@ -14,7 +14,7 @@ log:
 #   grpc_port: 9000
 
 db:
-  url: postgres://postgres@localhost:5432/flipt
+  url: postgres://postgres@localhost:5432/flipt?sslmode=disable
   migrations:
     auto: true
     path: ./config/migrations

@@ -128,7 +128,7 @@ func parse(url string) (dbType, string, error) {
 	case dbSQLite:
 		uri = fmt.Sprintf("%s?cache=shared&_fk=true", parts[1])
 	case dbPostgres:
-		uri = fmt.Sprintf("postgres://%s?sslmode=disable", parts[1])
+		uri = fmt.Sprintf("postgres://%s", parts[1])
 	}
 
 	return dbType, uri, nil
