@@ -38,6 +38,8 @@ func (t *timestamp) Value() (driver.Value, error) {
 	return ptypes.Timestamp(t.Timestamp)
 }
 
+const pgIntegrityConstraint = "integrity_constraint_violation"
+
 // DB is an abstraction for a database
 type DB struct {
 	dbType dbType
@@ -155,6 +157,7 @@ func parse(in string) (dbType, *url.URL, error) {
 		v := u.Query()
 		v.Set("cache", "shared")
 		v.Set("_fk", "true")
+		u.RawQuery = v.Encode()
 	case dbPostgres:
 		// do nothing
 	}

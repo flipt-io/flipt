@@ -37,7 +37,7 @@ func run(m *testing.M) int {
 		logger.SetLevel(logrus.DebugLevel)
 	}
 
-	db, err := Open("sqlite3://" + testDBPath)
+	db, err := Open("file:" + testDBPath)
 	if err != nil {
 		logger.Fatal(err)
 	}

@@ -167,7 +167,7 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		case pq.Error:
-			if ierr.Code == "integrity_constraint_violation" {
+			if ierr.Code == pgIntegrityConstraint {
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		}
@@ -327,7 +327,7 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
 		case pq.Error:
-			if ierr.Code == "integrity_constraint_violation" {
+			if ierr.Code == pgIntegrityConstraint {
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}
@@ -521,11 +521,13 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 	}()
 
-	var rules []rule
+	var (
+		rules        []rule
+		existingRule rule
+	)
 
 	for rows.Next() {
 		var (
-			existingRule       *rule
 			tempRule           rule
 			optionalConstraint optionalConstraint
 		)
@@ -535,7 +537,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 
 		// current rule we know about
-		if existingRule != nil && existingRule.ID == tempRule.ID {
+		if existingRule.ID == tempRule.ID {
 			if optionalConstraint.ID.Valid {
 				constraint := constraint{
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
@@ -547,7 +549,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			}
 		} else {
 			// haven't seen this rule before
-			existingRule = &rule{
+			existingRule = rule{
 				ID:         tempRule.ID,
 				FlagKey:    tempRule.FlagKey,
 				SegmentKey: tempRule.SegmentKey,
@@ -564,7 +566,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 				existingRule.Constraints = append(existingRule.Constraints, constraint)
 			}
 
-			rules = append(rules, *existingRule)
+			rules = append(rules, existingRule)
 		}
 	}
 

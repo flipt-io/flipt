@@ -166,7 +166,7 @@ func (s *FlagStorage) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 				return nil, ErrInvalidf("flag %q is not unique", r.Key)
 			}
 		case pq.Error:
-			if ierr.Code == "integrity_constraint_violation" {
+			if ierr.Code == pgIntegrityConstraint {
 				return nil, ErrInvalidf("flag %q is not unique", r.Key)
 			}
 		}
@@ -247,7 +247,7 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 				return nil, ErrNotFoundf("flag %q", r.FlagKey)
 			}
 		case pq.Error:
-			if ierr.Code == "integrity_constraint_violation" {
+			if ierr.Code == pgIntegrityConstraint {
 				return nil, ErrNotFoundf("flag %q", r.FlagKey)
 			}
 		}
