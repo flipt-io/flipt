@@ -26,8 +26,11 @@ type SegmentStorage struct {
 // NewSegmentStorage creates a SegmentStorage
 func NewSegmentStorage(logger logrus.FieldLogger, db *DB) *SegmentStorage {
 	return &SegmentStorage{
-		logger: logger.WithField("storage", "segment"),
-		DB:     db,
+		logger: logger.WithFields(logrus.Fields{
+			"storage": "segment",
+			"db":      db.dbType,
+		}),
+		DB: db,
 	}
 }
 

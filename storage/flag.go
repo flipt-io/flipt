@@ -25,8 +25,11 @@ type FlagStorage struct {
 // NewFlagStorage creates a FlagStorage
 func NewFlagStorage(logger logrus.FieldLogger, db *DB) *FlagStorage {
 	return &FlagStorage{
-		logger: logger.WithField("storage", "flag"),
-		DB:     db,
+		logger: logger.WithFields(logrus.Fields{
+			"storage": "flag",
+			"db":      db.dbType,
+		}),
+		DB: db,
 	}
 }
 

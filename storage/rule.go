@@ -32,8 +32,11 @@ type RuleStorage struct {
 // NewRuleStorage creates a RuleStorage
 func NewRuleStorage(logger logrus.FieldLogger, db *DB) *RuleStorage {
 	return &RuleStorage{
-		logger: logger.WithField("storage", "rule"),
-		DB:     db,
+		logger: logger.WithFields(logrus.Fields{
+			"storage": "rule",
+			"db":      db.dbType,
+		}),
+		DB: db,
 	}
 }
 

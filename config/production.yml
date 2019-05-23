@@ -1,5 +1,5 @@
 log:
-  level: DEBUG
+  level: WARN
 
 # ui:
 #   enabled: true
@@ -14,7 +14,7 @@ log:
 #   grpc_port: 9000
 
 db:
-  url: file:flipt.db
+  url: postgres://postgres@localhost:5432/flipt?sslmode=disable
   migrations:
     auto: true
     path: ./config/migrations

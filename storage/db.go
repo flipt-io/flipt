@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"net/url"
 	"path/filepath"
-	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -41,7 +41,7 @@ func (t *timestamp) Value() (driver.Value, error) {
 // DB is an abstraction for a database
 type DB struct {
 	dbType dbType
-	uri    string
+	url    *url.URL
 
 	builder sq.StatementBuilderType
 	db      *sql.DB
@@ -49,12 +49,12 @@ type DB struct {
 
 // Open opens a connection to the db given a URL
 func Open(url string) (*DB, error) {
-	dbType, uri, err := parse(url)
+	dbType, u, err := parse(url)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sql.Open(dbType.String(), uri)
+	db, err := sql.Open(dbType.String(), u.String())
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func Open(url string) (*DB, error) {
 
 	return &DB{
 		dbType:  dbType,
-		uri:     uri,
+		url:     u,
 		builder: builder,
 		db:      db,
 	}, nil
@@ -122,7 +122,7 @@ var (
 	}
 
 	stringToDBType = map[string]dbType{
-		"sqlite3":  dbSQLite,
+		"file":     dbSQLite,
 		"postgres": dbPostgres,
 	}
 )
@@ -139,23 +139,25 @@ const (
 	dbPostgres
 )
 
-func parse(url string) (dbType, string, error) {
-	parts := strings.SplitN(url, "://", 2)
-	// TODO: check parts
-
-	dbType := stringToDBType[parts[0]]
-	if dbType == 0 {
-		return 0, "", fmt.Errorf("unknown database type: %s", parts[0])
+func parse(in string) (dbType, *url.URL, error) {
+	u, err := url.Parse(in)
+	if err != nil {
+		return 0, u, errors.Wrapf(err, "parsing url: %q", in)
 	}
 
-	uri := parts[1]
+	dbType := stringToDBType[u.Scheme]
+	if dbType == 0 {
+		return 0, u, fmt.Errorf("unknown database type: %s", u.Scheme)
+	}
 
 	switch dbType {
 	case dbSQLite:
-		uri = fmt.Sprintf("%s?cache=shared&_fk=true", parts[1])
+		v := u.Query()
+		v.Set("cache", "shared")
+		v.Set("_fk", "true")
 	case dbPostgres:
-		uri = fmt.Sprintf("postgres://%s", parts[1])
+		// do nothing
 	}
 
-	return dbType, uri, nil
+	return dbType, u, nil
 }
