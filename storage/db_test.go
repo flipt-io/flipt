@@ -74,14 +74,14 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	var (
-		builder = sq.StatementBuilder.RunWith(db)
-		tx      = sq.NewStmtCacheProxy(db)
-	)
+	store := Store{
+		StatementBuilderType: sq.StatementBuilder.RunWith(db),
+		DBProxyBeginner:      sq.NewStmtCacheProxy(db),
+	}
 
-	flagStore = NewFlagStorage(logger, builder)
-	segmentStore = NewSegmentStorage(logger, builder)
-	ruleStore = NewRuleStorage(logger, tx, builder)
+	flagStore = NewFlagStorage(logger, store)
+	segmentStore = NewSegmentStorage(logger, store)
+	ruleStore = NewRuleStorage(logger, store)
 
 	return m.Run()
 }

@@ -7,6 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -18,15 +19,15 @@ var _ SegmentStore = &SegmentStorage{}
 
 // SegmentStorage is a SQL SegmentStore
 type SegmentStorage struct {
-	logger  logrus.FieldLogger
-	builder sq.StatementBuilderType
+	logger logrus.FieldLogger
+	*Store
 }
 
 // NewSegmentStorage creates a SegmentStorage
-func NewSegmentStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *SegmentStorage {
+func NewSegmentStorage(logger logrus.FieldLogger, store *Store) *SegmentStorage {
 	return &SegmentStorage{
-		logger:  logger.WithField("storage", "segment"),
-		builder: builder,
+		logger: logger.WithField("storage", "segment"),
+		Store:  store,
 	}
 }
 
@@ -153,11 +154,17 @@ func (s *SegmentStorage) CreateSegment(ctx context.Context, r *flipt.CreateSegme
 	)
 
 	if _, err := query.ExecContext(ctx); err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.Code == sqlite3.ErrConstraint {
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				return nil, ErrInvalidf("segment %q is not unique", r.Key)
+			}
+		case pq.Error:
+			if ierr.Code == "integrity_constraint_violation" {
 				return nil, ErrInvalidf("segment %q is not unique", r.Key)
 			}
 		}
+
 		return nil, err
 	}
 
@@ -252,11 +259,17 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 		Values(c.Id, c.SegmentKey, c.Type, c.Property, c.Operator, c.Value, &timestamp{c.CreatedAt}, &timestamp{c.UpdatedAt})
 
 	if _, err := query.ExecContext(ctx); err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				return nil, ErrNotFoundf("segment %q", r.SegmentKey)
+			}
+		case pq.Error:
+			if ierr.Code == "integrity_constraint_violation" {
 				return nil, ErrNotFoundf("segment %q", r.SegmentKey)
 			}
 		}
+
 		return nil, err
 	}
 

@@ -6,6 +6,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -17,15 +18,15 @@ var _ FlagStore = &FlagStorage{}
 
 // FlagStorage is a SQL FlagStore
 type FlagStorage struct {
-	logger  logrus.FieldLogger
-	builder sq.StatementBuilderType
+	logger logrus.FieldLogger
+	*Store
 }
 
 // NewFlagStorage creates a FlagStorage
-func NewFlagStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *FlagStorage {
+func NewFlagStorage(logger logrus.FieldLogger, store *Store) *FlagStorage {
 	return &FlagStorage{
-		logger:  logger.WithField("storage", "flag"),
-		builder: builder,
+		logger: logger.WithField("storage", "flag"),
+		Store:  store,
 	}
 }
 
@@ -156,11 +157,17 @@ func (s *FlagStorage) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 	)
 
 	if _, err := query.ExecContext(ctx); err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.Code == sqlite3.ErrConstraint {
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				return nil, ErrInvalidf("flag %q is not unique", r.Key)
+			}
+		case pq.Error:
+			if ierr.Code == "integrity_constraint_violation" {
 				return nil, ErrInvalidf("flag %q is not unique", r.Key)
 			}
 		}
+
 		return nil, err
 	}
 
@@ -231,11 +238,17 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 	)
 
 	if _, err := query.ExecContext(ctx); err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				return nil, ErrNotFoundf("flag %q", r.FlagKey)
+			}
+		case pq.Error:
+			if ierr.Code == "integrity_constraint_violation" {
 				return nil, ErrNotFoundf("flag %q", r.FlagKey)
 			}
 		}
+
 		return nil, err
 	}
 

@@ -2,9 +2,7 @@ package server
 
 import (
 	"context"
-	"database/sql"
 
-	sq "github.com/Masterminds/squirrel"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
@@ -20,31 +18,18 @@ var _ pb.FliptServer = &Server{}
 type Server struct {
 	logger logrus.FieldLogger
 	cache  cache.Cacher
+
 	storage.FlagStore
 	storage.SegmentStore
 	storage.RuleStore
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, db *sql.DB, driver storage.Driver, opts ...Option) *Server {
-
-	// TODO: clean this up with a different abstraction
+func New(logger logrus.FieldLogger, store *storage.Store, opts ...Option) *Server {
 	var (
-		builder sq.StatementBuilderType
-		cacher  = sq.NewStmtCacher(db)
-	)
-
-	switch driver {
-	case storage.SQLite:
-		builder = sq.StatementBuilder.RunWith(cacher)
-	case storage.Postgres:
-		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(cacher)
-	}
-
-	var (
-		flagStore    = storage.NewFlagStorage(logger, builder)
-		segmentStore = storage.NewSegmentStorage(logger, builder)
-		ruleStore    = storage.NewRuleStorage(logger, sq.NewStmtCacheProxy(db), builder)
+		flagStore    = storage.NewFlagStorage(logger, store)
+		segmentStore = storage.NewSegmentStorage(logger, store)
+		ruleStore    = storage.NewRuleStorage(logger, store)
 
 		s = &Server{
 			logger:       logger,

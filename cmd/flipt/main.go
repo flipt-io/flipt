@@ -2,14 +2,12 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -35,11 +33,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-
-	migrate "github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database"
-	postgres "github.com/golang-migrate/migrate/database/postgres"
-	sqlite3 "github.com/golang-migrate/migrate/database/sqlite3"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/lib/pq"
@@ -123,9 +116,8 @@ type serverConfig struct {
 
 type databaseConfig struct {
 	autoMigrate    bool
-	driver         storage.Driver
 	migrationsPath string
-	uri            string
+	url            string
 }
 
 func defaultConfig() *config {
@@ -149,8 +141,7 @@ func defaultConfig() *config {
 		},
 
 		database: databaseConfig{
-			driver:         storage.SQLite,
-			uri:            "/var/opt/flipt/flipt.db",
+			url:            "sqlite3:///var/opt/flipt/flipt.db",
 			migrationsPath: "/etc/flipt/config/migrations",
 			autoMigrate:    true,
 		},
@@ -219,13 +210,7 @@ func configure() (*config, error) {
 
 	// DB
 	if viper.IsSet(cfgDBURL) {
-		driver, uri, err := storage.Parse(viper.GetString(cfgDBURL))
-		if err != nil {
-			return nil, err
-		}
-
-		cfg.database.driver = driver
-		cfg.database.uri = uri
+		cfg.database.url = viper.GetString(cfgDBURL)
 	}
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
@@ -278,45 +263,21 @@ func execute() error {
 
 	if cfg.server.grpcPort > 0 {
 		g.Go(func() error {
-			var (
-				logger = logger.WithField("server", "grpc")
-				driver = cfg.database.driver
-			)
+			logger := logger.WithField("server", "grpc")
+			logger.Infof("connecting to database: %s", cfg.database.url)
 
-			logger.Infof("connecting to %s database: %s", driver, cfg.database.uri)
-
-			db, err := sql.Open(driver.String(), cfg.database.uri)
+			store, err := storage.Open(cfg.database.url)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
 
-			defer db.Close()
+			defer store.Close()
 
 			if cfg.database.autoMigrate {
 				logger.Info("running migrations...")
 
-				var d database.Driver
-
-				switch driver {
-				case storage.SQLite:
-					d, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-				case storage.Postgres:
-					d, err = postgres.WithInstance(db, &postgres.Config{})
-				}
-
-				if err != nil {
-					return errors.Wrap(err, "getting db driver for migrations")
-				}
-
-				path := filepath.Clean(fmt.Sprintf("%s/%s", cfg.database.migrationsPath, driver))
-
-				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), driver.String(), d)
-				if err != nil {
-					return errors.Wrap(err, "opening migrations")
-				}
-
-				if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
-					return errors.Wrap(err, "running migrations")
+				if err := store.Migrate(cfg.database.migrationsPath); err != nil {
+					return errors.Wrap(err, "migrating database")
 				}
 
 				logger.Info("finished migrations")
@@ -353,7 +314,7 @@ func execute() error {
 				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
-			srv = server.New(logger, db, driver, serverOpts...)
+			srv = server.New(logger, store, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)
 
 			pb.RegisterFliptServer(grpcServer, srv)

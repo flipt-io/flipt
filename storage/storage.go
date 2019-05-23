@@ -2,9 +2,137 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"path/filepath"
+	"strings"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/postgres"
+	"github.com/golang-migrate/migrate/database/sqlite3"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/pkg/errors"
 )
+
+type Store struct {
+	dbType dbType
+	uri    string
+
+	builder sq.StatementBuilderType
+	db      *sql.DB
+}
+
+func Open(url string) (*Store, error) {
+	dbType, uri, err := parse(url)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := sql.Open(dbType.String(), uri)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		cacher  = sq.NewStmtCacher(db)
+		builder sq.StatementBuilderType
+	)
+
+	switch dbType {
+	case dbSQLite:
+		builder = sq.StatementBuilder.RunWith(cacher)
+	case dbPostgres:
+		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(cacher)
+	}
+
+	return &Store{
+		dbType:  dbType,
+		uri:     uri,
+		builder: builder,
+		db:      db,
+	}, nil
+}
+
+func (s *Store) Close() error {
+	return s.db.Close()
+}
+
+func (s *Store) Migrate(path string) error {
+	var (
+		d   database.Driver
+		err error
+	)
+
+	switch s.dbType {
+	case dbSQLite:
+		d, err = sqlite3.WithInstance(s.db, &sqlite3.Config{})
+	case dbPostgres:
+		d, err = postgres.WithInstance(s.db, &postgres.Config{})
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "getting db driver for migrations")
+	}
+
+	f := filepath.Clean(fmt.Sprintf("%s/%s", path, s.dbType))
+	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), s.dbType.String(), d)
+	if err != nil {
+		return errors.Wrap(err, "opening migrations")
+	}
+
+	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
+		return errors.Wrap(err, "running migrations")
+	}
+
+	return nil
+}
+
+var (
+	dbTypeToString = map[dbType]string{
+		dbSQLite:   "sqlite3",
+		dbPostgres: "postgres",
+	}
+
+	stringToDBType = map[string]dbType{
+		"sqlite3":  dbSQLite,
+		"postgres": dbPostgres,
+	}
+)
+
+type dbType uint8
+
+func (d dbType) String() string {
+	return dbTypeToString[d]
+}
+
+const (
+	_ dbType = iota
+	dbSQLite
+	dbPostgres
+)
+
+func parse(url string) (dbType, string, error) {
+	parts := strings.SplitN(url, "://", 2)
+	// TODO: check parts
+
+	dbType := stringToDBType[parts[0]]
+	if dbType == 0 {
+		return 0, "", fmt.Errorf("unknown database type: %s", parts[0])
+	}
+
+	uri := parts[1]
+
+	switch dbType {
+	case dbSQLite:
+		uri = fmt.Sprintf("%s?cache=shared&_fk=true", parts[1])
+	case dbPostgres:
+		uri = fmt.Sprintf("postgres://%s?sslmode=disable", parts[1])
+	}
+
+	return dbType, uri, nil
+}
 
 // RuleStore ...
 type RuleStore interface {

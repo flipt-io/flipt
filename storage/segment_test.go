@@ -39,7 +39,6 @@ func TestGetSegmentNotFound(t *testing.T) {
 }
 
 func TestListSegments(t *testing.T) {
-
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -64,7 +63,6 @@ func TestListSegments(t *testing.T) {
 }
 
 func TestListSegmentsPagination(t *testing.T) {
-
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),

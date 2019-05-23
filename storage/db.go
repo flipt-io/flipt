@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"database/sql/driver"
+	drv "database/sql/driver"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -24,6 +24,6 @@ func (t *timestamp) Scan(value interface{}) error {
 	return nil
 }
 
-func (t *timestamp) Value() (driver.Value, error) {
+func (t *timestamp) Value() (drv.Value, error) {
 	return ptypes.Timestamp(t.Timestamp)
 }
