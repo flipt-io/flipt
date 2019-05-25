@@ -162,8 +162,8 @@ func (s *SegmentStorage) CreateSegment(ctx context.Context, r *flipt.CreateSegme
 			if ierr.Code == sqlite3.ErrConstraint {
 				return nil, ErrInvalidf("segment %q is not unique", r.Key)
 			}
-		case pq.Error:
-			if ierr.Code == pgIntegrityConstraint {
+		case *pq.Error:
+			if ierr.Code.Name() == pgUniqueConstraint {
 				return nil, ErrInvalidf("segment %q is not unique", r.Key)
 			}
 		}
@@ -267,8 +267,8 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 			if ierr.Code == sqlite3.ErrConstraint {
 				return nil, ErrNotFoundf("segment %q", r.SegmentKey)
 			}
-		case pq.Error:
-			if ierr.Code == pgIntegrityConstraint {
+		case *pq.Error:
+			if ierr.Code.Name() == pgForeignKeyConstraint {
 				return nil, ErrNotFoundf("segment %q", r.SegmentKey)
 			}
 		}

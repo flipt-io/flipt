@@ -166,8 +166,8 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 			if ierr.Code == sqlite3.ErrConstraint {
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
-		case pq.Error:
-			if ierr.Code == pgIntegrityConstraint {
+		case *pq.Error:
+			if ierr.Code.Name() == pgForeignKeyConstraint {
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		}
@@ -326,8 +326,8 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 			if ierr.Code == sqlite3.ErrConstraint {
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
-		case pq.Error:
-			if ierr.Code == pgIntegrityConstraint {
+		case *pq.Error:
+			if ierr.Code.Name() == pgForeignKeyConstraint {
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}
@@ -509,7 +509,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		LeftJoin("constraints c ON (r.segment_key = c.segment_key)").
 		Where(sq.Eq{"r.flag_key": r.FlagKey}).
 		OrderBy("r.rank ASC").
-		GroupBy("r.id").
+		GroupBy("r.id, c.id").
 		QueryContext(ctx)
 	if err != nil {
 		return resp, err

@@ -50,12 +50,12 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
+	if err := db.truncate(); err != nil {
+		logger.Fatal(err)
+	}
+
 	defer func() {
 		if err := db.Close(); err != nil {
-			logger.Fatal(err)
-		}
-
-		if err := os.Remove(testDBPath); !os.IsNotExist(err) && err != nil {
 			logger.Fatal(err)
 		}
 	}()

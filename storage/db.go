@@ -38,7 +38,12 @@ func (t *timestamp) Value() (driver.Value, error) {
 	return ptypes.Timestamp(t.Timestamp)
 }
 
-const pgIntegrityConstraint = "integrity_constraint_violation"
+const (
+	pgForeignKeyConstraint = "foreign_key_violation"
+	pgUniqueConstraint     = "unique_violation"
+)
+
+var tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
 
 // DB is an abstraction for a database
 type DB struct {
@@ -112,6 +117,23 @@ func (d *DB) Migrate(path string) error {
 
 	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
 		return errors.Wrap(err, "running migrations")
+	}
+
+	return nil
+}
+
+// truncate all tables for testing purposes
+func (d *DB) truncate() error {
+	var stmt string
+	switch d.dbType {
+	case dbSQLite:
+		stmt = "DELETE FROM %s"
+	case dbPostgres:
+		stmt = "TRUNCATE TABLE %s CASCADE"
+	}
+
+	for _, t := range tables {
+		_, _ = d.db.Exec(fmt.Sprintf(stmt, t))
 	}
 
 	return nil

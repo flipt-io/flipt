@@ -65,7 +65,7 @@ func TestGetRule(t *testing.T) {
 	assert.NotZero(t, got.CreatedAt)
 	assert.NotZero(t, got.UpdatedAt)
 
-	got, err = ruleStore.GetRule(context.TODO(), &flipt.GetRuleRequest{
+	_, err = ruleStore.GetRule(context.TODO(), &flipt.GetRuleRequest{
 		Id:      "0",
 		FlagKey: flag.Key,
 	})
