@@ -43,8 +43,6 @@ const (
 	pgUniqueConstraint     = "unique_violation"
 )
 
-var tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
-
 // DB is an abstraction for a database
 type DB struct {
 	dbType dbType
@@ -124,7 +122,11 @@ func (d *DB) Migrate(path string) error {
 
 // truncate all tables for testing purposes
 func (d *DB) truncate() error {
-	var stmt string
+	var (
+		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
+		stmt   string
+	)
+
 	switch d.dbType {
 	case dbSQLite:
 		stmt = "DELETE FROM %s"

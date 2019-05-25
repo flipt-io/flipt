@@ -52,7 +52,7 @@ assets: ## Build the ui and run go generate
 
 .PHONY: build
 build: ## Build a local copy
-	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/main.go
+	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
 .PHONY: dev
 dev: ## Build and run in development mode
