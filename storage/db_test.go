@@ -14,17 +14,25 @@ import (
 var (
 	logger *logrus.Logger
 	debug  bool
+	dbURL  string
 
 	flagStore    FlagStore
 	segmentStore SegmentStore
 	ruleStore    RuleStore
 )
 
-const testDBPath = "../flipt_test.db"
+const (
+	testDBPath       = "../flipt_test.db"
+	defaultTestDBURL = "file:" + testDBPath
+)
+
+func init() {
+	flag.BoolVar(&debug, "debug", false, "enable debug logging")
+	flag.StringVar(&dbURL, "db", defaultTestDBURL, "url for db")
+	flag.Parse()
+}
 
 func TestMain(m *testing.M) {
-	flag.BoolVar(&debug, "debug", false, "enable debug logging")
-	flag.Parse()
 	// os.Exit skips defer calls
 	// so we need to use another fn
 	os.Exit(run(m))
@@ -37,7 +45,7 @@ func run(m *testing.M) int {
 		logger.SetLevel(logrus.DebugLevel)
 	}
 
-	db, err := Open("file:" + testDBPath)
+	db, err := Open(dbURL)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -47,7 +55,7 @@ func run(m *testing.M) int {
 			logger.Fatal(err)
 		}
 
-		if err := os.Remove(testDBPath); err != nil {
+		if err := os.Remove(testDBPath); !os.IsNotExist(err) && err != nil {
 			logger.Fatal(err)
 		}
 	}()

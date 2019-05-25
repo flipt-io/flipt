@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 
@@ -30,7 +29,6 @@ import (
 	"github.com/markphelps/flipt/ui"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
@@ -60,8 +58,8 @@ const (
 var (
 	logger = logrus.New()
 
-	cfgPath string
-	print   bool
+	cfgPath      string
+	printVersion bool
 
 	version   = "dev"
 	commit    = ""
@@ -80,7 +78,7 @@ func main() {
 		},
 	}
 
-	rootCmd.Flags().BoolVar(&print, "version", false, "print version info and exit")
+	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
 	rootCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 
 	if err := rootCmd.Execute(); err != nil {
@@ -88,147 +86,13 @@ func main() {
 	}
 }
 
-type config struct {
-	logLevel string
-	ui       uiConfig
-	cache    cacheConfig
-	server   serverConfig
-	database databaseConfig
-}
-
-type uiConfig struct {
-	enabled bool
-}
-
-type memoryCacheConfig struct {
-	enabled bool
-}
-
-type cacheConfig struct {
-	memory memoryCacheConfig
-}
-
-type serverConfig struct {
-	host     string
-	httpPort int
-	grpcPort int
-}
-
-type databaseConfig struct {
-	autoMigrate    bool
-	migrationsPath string
-	url            string
-}
-
-func defaultConfig() *config {
-	return &config{
-		logLevel: "INFO",
-
-		ui: uiConfig{
-			enabled: true,
-		},
-
-		cache: cacheConfig{
-			memory: memoryCacheConfig{
-				enabled: false,
-			},
-		},
-
-		server: serverConfig{
-			host:     "0.0.0.0",
-			httpPort: 8080,
-			grpcPort: 9000,
-		},
-
-		database: databaseConfig{
-			url:            "sqlite3:///var/opt/flipt/flipt.db",
-			migrationsPath: "/etc/flipt/config/migrations",
-			autoMigrate:    true,
-		},
-	}
-}
-
-const (
-	// Logging
-	cfgLogLevel = "log.level"
-
-	// UI
-	cfgUIEnabled = "ui.enabled"
-
-	// Cache
-	cfgCacheMemoryEnabled = "cache.memory.enabled"
-
-	// Server
-	cfgServerHost     = "server.host"
-	cfgServerHTTPPort = "server.http_port"
-	cfgServerGRPCPort = "server.grpc_port"
-
-	// DB
-	cfgDBURL            = "db.url"
-	cfgDBMigrationsPath = "db.migrations.path"
-	cfgDBAutoMigrate    = "db.migrations.auto"
-)
-
-func configure() (*config, error) {
-	viper.SetEnvPrefix("FLIPT")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-
-	viper.SetConfigFile(cfgPath)
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, errors.Wrap(err, "loading config")
-	}
-
-	cfg := defaultConfig()
-
-	// Logging
-	if viper.IsSet(cfgLogLevel) {
-		cfg.logLevel = viper.GetString(cfgLogLevel)
-	}
-
-	// UI
-	if viper.IsSet(cfgUIEnabled) {
-		cfg.ui.enabled = viper.GetBool(cfgUIEnabled)
-	}
-
-	// Cache
-	if viper.IsSet(cfgCacheMemoryEnabled) {
-		cfg.cache.memory.enabled = viper.GetBool(cfgCacheMemoryEnabled)
-	}
-
-	// Server
-	if viper.IsSet(cfgServerHost) {
-		cfg.server.host = viper.GetString(cfgServerHost)
-	}
-	if viper.IsSet(cfgServerHTTPPort) {
-		cfg.server.httpPort = viper.GetInt(cfgServerHTTPPort)
-	}
-	if viper.IsSet(cfgServerGRPCPort) {
-		cfg.server.grpcPort = viper.GetInt(cfgServerGRPCPort)
-	}
-
-	// DB
-	if viper.IsSet(cfgDBURL) {
-		cfg.database.url = viper.GetString(cfgDBURL)
-	}
-	if viper.IsSet(cfgDBMigrationsPath) {
-		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
-	}
-	if viper.IsSet(cfgDBAutoMigrate) {
-		cfg.database.autoMigrate = viper.GetBool(cfgDBAutoMigrate)
-	}
-
-	return cfg, nil
-}
-
-func printHeader() {
+func printVersionHeader() {
 	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
 func execute() error {
-	if print {
-		printHeader()
+	if printVersion {
+		printVersionHeader()
 		return nil
 	}
 
@@ -259,7 +123,7 @@ func execute() error {
 		httpServer *http.Server
 	)
 
-	printHeader()
+	printVersionHeader()
 
 	if cfg.server.grpcPort > 0 {
 		g.Go(func() error {

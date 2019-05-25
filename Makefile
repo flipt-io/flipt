@@ -5,6 +5,7 @@ SOURCE_FILES ?= ./...
 
 TEST_PATTERN ?= .
 TEST_OPTS ?=
+TEST_FLAGS ?=
 
 .PHONY: setup
 setup: ## Install dev tools
@@ -14,7 +15,7 @@ setup: ## Install dev tools
 
 .PHONY: test
 test: ## Run all the tests
-	go test $(TEST_OPTS) -v -covermode=atomic -coverprofile=coverage.txt $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=30s
+	go test $(TEST_OPTS) -v -covermode=atomic -coverprofile=coverage.txt $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
 
 .PHONY: cover
 cover: test ## Run all the tests and opens the coverage report
