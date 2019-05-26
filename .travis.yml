@@ -12,6 +12,9 @@ cache:
 env:
   - GO111MODULE=on
 
+# services:
+  # - postgresql
+
 stages:
   - test
   - name: integration
@@ -25,7 +28,7 @@ jobs:
       - go get github.com/mattn/goveralls
     script:
       - golangci-lint run
-      - go test -covermode=count -coverprofile=profile.cov ./...
+      - go test -covermode=count -coverprofile=profile.cov -count=1 ./...
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: integration

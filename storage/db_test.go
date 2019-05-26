@@ -1,3 +1,5 @@
+// +build integration
+
 package storage
 
 import (
@@ -8,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	_ "github.com/golang-migrate/migrate/source/file"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -21,14 +22,10 @@ var (
 	ruleStore    RuleStore
 )
 
-const (
-	testDBPath       = "../flipt_test.db"
-	defaultTestDBURL = "file:" + testDBPath
-)
+const defaultTestDBURL = "file:../flipt_test.db"
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
-	flag.StringVar(&dbURL, "db", defaultTestDBURL, "url for db")
 	flag.Parse()
 }
 
@@ -43,6 +40,11 @@ func run(m *testing.M) int {
 
 	if debug {
 		logger.SetLevel(logrus.DebugLevel)
+	}
+
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		dbURL = defaultTestDBURL
 	}
 
 	db, err := Open(dbURL)
