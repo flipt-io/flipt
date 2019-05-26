@@ -121,7 +121,8 @@ func (d *DB) Migrate(path string) error {
 }
 
 // truncate all tables for testing purposes
-func (d *DB) truncate() error {
+// nolint
+func (d *DB) truncate() {
 	var (
 		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
 		stmt   string
@@ -137,8 +138,6 @@ func (d *DB) truncate() error {
 	for _, t := range tables {
 		_, _ = d.db.Exec(fmt.Sprintf(stmt, t))
 	}
-
-	return nil
 }
 
 var (
