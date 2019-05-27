@@ -34,14 +34,14 @@ jobs:
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: db
-    - name: sqlite
-      script:
-        - go test -count=1 -v ./..
-    - name: postgres
-      before_script:
-        - psql -c 'create database flipt_test;' -U postgres
-      script:
-        - DB_URL="postgres://postgres@localhost:5432/flipt_test?sslmode=disable" go test -count=1 -v ./..
+    name: sqlite
+    script:
+      - go test -count=1 -v ./..
+  - name: postgres
+    before_script:
+      - psql -c 'create database flipt_test;' -U postgres
+    script:
+      - DB_URL="postgres://postgres@localhost:5432/flipt_test?sslmode=disable" go test -count=1 -v ./..
 
   - stage: integration
     before_script:
