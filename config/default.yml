@@ -7,6 +7,7 @@
 # cache:
 #   memory:
 #     enabled: false
+#     items: 500
 
 # server:
 #   host: 0.0.0.0

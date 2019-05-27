@@ -51,8 +51,6 @@ const (
    |_|   |_|_| .__/ \__|
              |_|
   `
-
-	defaultMemoryCacheSize = 500
 )
 
 var (
@@ -169,12 +167,12 @@ func execute() error {
 			))
 
 			if cfg.cache.memory.enabled {
-				logger.Infof("in-memory cache enabled")
-				cache, err := lru.New(defaultMemoryCacheSize)
+				cache, err := lru.New(cfg.cache.memory.items)
 				if err != nil {
 					return errors.Wrap(err, "creating in-memory cache")
 				}
 
+				logger.Infof("in-memory cache enabled with size: %d", cfg.cache.memory.items)
 				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 

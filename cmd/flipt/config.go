@@ -21,6 +21,7 @@ type uiConfig struct {
 
 type memoryCacheConfig struct {
 	enabled bool
+	items   int
 }
 
 type cacheConfig struct {
@@ -50,6 +51,7 @@ func defaultConfig() *config {
 		cache: cacheConfig{
 			memory: memoryCacheConfig{
 				enabled: false,
+				items:   500,
 			},
 		},
 
@@ -76,6 +78,7 @@ const (
 
 	// Cache
 	cfgCacheMemoryEnabled = "cache.memory.enabled"
+	cfgCacheMemoryItems   = "cache.memory.items"
 
 	// Server
 	cfgServerHost     = "server.host"
@@ -114,6 +117,10 @@ func configure() (*config, error) {
 	// Cache
 	if viper.IsSet(cfgCacheMemoryEnabled) {
 		cfg.cache.memory.enabled = viper.GetBool(cfgCacheMemoryEnabled)
+
+		if viper.IsSet(cfgCacheMemoryItems) {
+			cfg.cache.memory.items = viper.GetInt(cfgCacheMemoryItems)
+		}
 	}
 
 	// Server
