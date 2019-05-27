@@ -5,6 +5,7 @@ package storage
 import (
 	"context"
 	"testing"
+	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
 
@@ -104,7 +105,7 @@ func TestCreateSegment(t *testing.T) {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt, segment.UpdatedAt)
+	assert.WithinDuration(t, segment.CreatedAt, segment.UpdatedAt, time.Second)
 }
 
 func TestCreateSegment_DuplicateKey(t *testing.T) {
@@ -138,7 +139,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt, segment.UpdatedAt)
+	assert.WithinDuration(t, segment.CreatedAt, segment.UpdatedAt, time.Second)
 
 	updated, err := segmentStore.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
 		Key:         segment.Key,
@@ -275,7 +276,7 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, opEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
-	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+	assert.WithinDuration(t, constraint.CreatedAt, constraint.UpdatedAt, time.Second)
 
 	// get the segment again
 	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
@@ -387,7 +388,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, opEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
-	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+	assert.WithinDuration(t, constraint.CreatedAt, constraint.UpdatedAt, time.Second)
 
 	updated, err := segmentStore.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
 		Id:         constraint.Id,
@@ -407,7 +408,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, opEmpty, updated.Operator)
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.WithinDuration(t, updated.CreatedAt, updated.UpdatedAt, time.Second)
 
 	// get the segment again
 	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})

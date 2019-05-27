@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/stretchr/testify/assert"
@@ -233,7 +234,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, segment.Key, rule.SegmentKey)
 	assert.Equal(t, int32(1), rule.Rank)
 	assert.NotZero(t, rule.CreatedAt)
-	assert.Equal(t, rule.CreatedAt, rule.UpdatedAt)
+	assert.WithinDuration(t, rule.CreatedAt, rule.UpdatedAt, time.Second)
 
 	distribution, err := ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		RuleId:    rule.Id,
@@ -247,7 +248,7 @@ func TestCreateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, variant.Id, distribution.VariantId)
 	assert.Equal(t, float32(100), distribution.Rollout)
 	assert.NotZero(t, distribution.CreatedAt)
-	assert.Equal(t, distribution.CreatedAt, distribution.UpdatedAt)
+	assert.WithinDuration(t, distribution.CreatedAt, distribution.UpdatedAt, time.Second)
 }
 
 func TestCreateDistribution_NoRule(t *testing.T) {
@@ -354,7 +355,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, segmentOne.Key, rule.SegmentKey)
 	assert.Equal(t, int32(1), rule.Rank)
 	assert.NotZero(t, rule.CreatedAt)
-	assert.Equal(t, rule.CreatedAt, rule.UpdatedAt)
+	assert.WithinDuration(t, rule.CreatedAt, rule.UpdatedAt, time.Second)
 
 	distribution, err := ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		RuleId:    rule.Id,
@@ -368,7 +369,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, variant.Id, distribution.VariantId)
 	assert.Equal(t, float32(100), distribution.Rollout)
 	assert.NotZero(t, distribution.CreatedAt)
-	assert.Equal(t, distribution.CreatedAt, distribution.UpdatedAt)
+	assert.WithinDuration(t, distribution.CreatedAt, distribution.UpdatedAt, time.Second)
 
 	segmentTwo, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         fmt.Sprintf("%s_two", t.Name()),
@@ -392,7 +393,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, rule.FlagKey, updatedRule.FlagKey)
 	assert.Equal(t, segmentTwo.Key, updatedRule.SegmentKey)
 	assert.Equal(t, int32(1), updatedRule.Rank)
-	assert.Equal(t, rule.CreatedAt, updatedRule.CreatedAt)
+	assert.WithinDuration(t, rule.CreatedAt, updatedRule.CreatedAt, time.Second)
 	assert.NotEqual(t, rule.CreatedAt, updatedRule.UpdatedAt)
 
 	updatedDistribution, err := ruleStore.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
@@ -407,7 +408,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
 	assert.Equal(t, variant.Id, updatedDistribution.VariantId)
 	assert.Equal(t, float32(10), updatedDistribution.Rollout)
-	assert.Equal(t, distribution.CreatedAt, updatedDistribution.CreatedAt)
+	assert.WithinDuration(t, distribution.CreatedAt, updatedDistribution.CreatedAt, time.Second)
 	assert.NotEqual(t, distribution.CreatedAt, updatedDistribution.UpdatedAt)
 
 	err = ruleStore.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
