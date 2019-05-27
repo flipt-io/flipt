@@ -52,9 +52,7 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	if err := db.truncate(); err != nil {
-		logger.Fatal(err)
-	}
+	db.truncate()
 
 	defer func() {
 		if err := db.Close(); err != nil {
