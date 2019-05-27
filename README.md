@@ -27,6 +27,10 @@ This means that you can deploy Flipt within your existing infrastructure and not
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
+## :warning: Beta Software
+
+Flipt is still considered beta software until the 1.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
+
 ## Flipt Features
 
 Flipt enables you to add [feature flag](https://martinfowler.com/bliki/FeatureToggle.html) support to your existing applications, with a simple, single UI and API.

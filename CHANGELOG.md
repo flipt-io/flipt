@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * `/meta/info` endpoint for version/build info
+* Beta support for Postgres! :tada:
+
+### Changed
+
+* `cache.enabled` becomes `cache.memory.enabled`
+* `cache.size` becomes `cache.memory.items`
+* `db.path` becomes `db.url`
 
 ## [v0.4.2](https://github.com/markphelps/flipt/releases/tag/v0.4.2) - 2019-05-12
 
