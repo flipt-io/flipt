@@ -56,7 +56,7 @@ build: ## Build a local copy
 
 .PHONY: dev
 dev: ## Build and run in development mode
-	go run ./cmd/$(PROJECT)/main.go --config ./config/local.yml
+	go run ./cmd/$(PROJECT)/. --config ./config/local.yml
 
 .PHONY: help
 help:
