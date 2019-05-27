@@ -56,6 +56,32 @@ export FLIPT_SERVER_GRPC_PORT=9001
 export FLIPT_DB_URL="postgres://postgres@localhost:5432/flipt?sslmode=disable"
 ```
 
+## Databases
+
+Flipt currently supports both [SQLite](https://www.sqlite.org/index.html) and [Postgres](https://www.postgresql.org/) databases.
+
+SQLite is enabled by default for simplicity, however you should use Postgres if you intend to run multiple copies of Flipt in a high availability configuration.
+
+The database connection can be configured as follows:
+
+### SQLite
+
+```yaml
+db:
+  # file: informs flipt to use SQLite
+  url: file:/var/opt/flipt/flipt.db
+```
+
+### Postgres
+
+```yaml
+db:
+  url: postgres://postgres@localhost:5432/flipt?sslmode=disable
+```
+
+!!! note
+    The Postgres database must exist and be up and running before Flipt will be able to connect to it.
+
 ## Caching
 
 ### In-Memory
@@ -71,6 +97,9 @@ cache:
 ```
 
 Work is planned to add caching support to rule evaluation soon.
+
+!!! warning
+    Enabling in-memory caching when running more that one instance of Flipt is not advised as it will lead to unpredictable results.
 
 ## Authentication
 

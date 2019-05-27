@@ -23,7 +23,7 @@ This can range from simple on/off feature flags to more advanced use cases where
 Flipt features include:
 
 * Fast. Written in Go. Optimized for performance
-* Stand alone, easy to run server with no external dependencies
+* Stand alone, easy to run and configure
 * Ability to create advanced distribution rules to target segments of users
 * Native GRPC client SDKs to integrate with your applications
 * Simple REST API
@@ -50,7 +50,7 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 * **Security**. No Flipt data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 * **Speed**. Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
-* **Simplicity**. Flipt is a single binary with no external dependencies. This means there is no database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
+* **Simplicity** Flipt is a single binary with no external dependencies by default.
 
 ## What's Next
 

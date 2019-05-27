@@ -38,7 +38,6 @@ Flipt is built using several amazing open source technologies including:
 * [Go Programming Language](https://golang.org/)
 * [gRPC](https://grpc.io/)
 * [gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway/)
-* [SQLite](https://sqlite.org/index.html)
 * [Vue.js](https://vuejs.org/)
 * [Bulma](https://bulma.io/)
 * [Buefy](https://buefy.github.io/)
@@ -70,18 +69,6 @@ While awesome, gRPC might not be for everyone. [gRPC Gateway](https://github.com
 This means that the REST API follows the same codepaths as the gRPC service that Flipt implements, allowing for reduced bugs and a simpler architecture.
 
 The Flipt UI is also built on top of the REST API provided by gRPC gateway.
-
-### SQLite
-
-From the [SQLite](https://sqlite.org/) documentation:
-
-> SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine. SQLite is the most used database engine in the world.
-
-Two of the major goals of Flipt are to be 1) Fast and 2) Self contained. SQLite allows us to accomplish both. By embedding the datastore 'within' the application, we eliminate the need to communicate to an external database. This results in faster performance with is required if putting calls to Flipt in the 'hotpath' of your applications.
-
-Using SQLite means that you do not need to run an additional client/server RDBMS such as Postgres or MySQL in order for Flipt to store and retrieve your data. This means it's easy to get up and running with Flipt without having to install any additional software.
-
-And since a SQLite database is just a file, you can easily backup your data using traditional file backup methods.
 
 ### Vue.js
 
