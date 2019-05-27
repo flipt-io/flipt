@@ -164,7 +164,7 @@ func TestUpdateFlag(t *testing.T) {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
+	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 }
 
 func TestUpdateFlag_NotFound(t *testing.T) {
@@ -292,7 +292,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
+	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 
 	// get the flag again
 	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})

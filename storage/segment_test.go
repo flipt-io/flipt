@@ -152,7 +152,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
+	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 }
 
 func TestUpdateSegment_NotFound(t *testing.T) {
@@ -407,7 +407,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, opEmpty, updated.Operator)
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
+	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 
 	// get the segment again
 	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
