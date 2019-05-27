@@ -70,6 +70,14 @@ Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.dev/installation/) section.
 
+### Databases
+
+Flipt supports both [SQLite](https://www.sqlite.org/index.html) and [Postgres](https://www.postgresql.org/) databases as of `v0.5.0`.
+
+SQLite is enabled by default for simplicity, however you should use Postgres if you intend to run multiple copies of Flipt in a high availability configuration.
+
+See the [configuration](docs/configuration.md) documentation for more information.
+
 ## Licensing
 
 There are currently two types of licenses in place for Flipt:
