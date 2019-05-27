@@ -104,7 +104,7 @@ func TestCreateSegment(t *testing.T) {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt, segment.UpdatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
 func TestCreateSegment_DuplicateKey(t *testing.T) {
@@ -138,7 +138,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt, segment.UpdatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 
 	updated, err := segmentStore.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
 		Key:         segment.Key,
@@ -152,7 +152,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
 }
 
 func TestUpdateSegment_NotFound(t *testing.T) {
@@ -275,7 +275,7 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, opEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
-	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	// get the segment again
 	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
@@ -387,7 +387,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, opEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
-	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	updated, err := segmentStore.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
 		Id:         constraint.Id,
@@ -407,7 +407,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, opEmpty, updated.Operator)
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
 
 	// get the segment again
 	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})

@@ -110,7 +110,7 @@ func TestCreateFlag(t *testing.T) {
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, flag.CreatedAt)
-	assert.Equal(t, flag.CreatedAt, flag.UpdatedAt)
+	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
 
 func TestCreateFlag_DuplicateKey(t *testing.T) {
@@ -148,7 +148,7 @@ func TestUpdateFlag(t *testing.T) {
 	assert.Equal(t, "bar", flag.Description)
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, flag.CreatedAt)
-	assert.Equal(t, flag.CreatedAt, flag.UpdatedAt)
+	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
 	updated, err := flagStore.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
 		Key:         flag.Key,
@@ -164,7 +164,7 @@ func TestUpdateFlag(t *testing.T) {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
 }
 
 func TestUpdateFlag_NotFound(t *testing.T) {
@@ -225,7 +225,7 @@ func TestCreateVariant(t *testing.T) {
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.NotZero(t, variant.CreatedAt)
-	assert.Equal(t, variant.CreatedAt, variant.UpdatedAt)
+	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	// get the flag again
 	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
@@ -274,7 +274,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.NotZero(t, variant.CreatedAt)
-	assert.Equal(t, variant.CreatedAt, variant.UpdatedAt)
+	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	updated, err := flagStore.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
 		Id:          variant.Id,
@@ -292,7 +292,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotEqual(t, updated.CreatedAt.Seconds, updated.UpdatedAt.Seconds)
 
 	// get the flag again
 	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
