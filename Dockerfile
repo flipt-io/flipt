@@ -1,7 +1,9 @@
 FROM alpine:latest
 LABEL maintainer="mark.aaron.phelps@gmail.com"
 
-RUN apk update && apk add postgresql-client
+RUN apk add --no-cache postgresql-client \
+    openssl \
+    ca-certificates
 
 RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt

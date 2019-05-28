@@ -1,8 +1,11 @@
 .envrc
+*.bazel
 *.db
-*.md
-*.txt
 *.log
+*.md
+*.png
+*.svg
+*.txt
 
 .github/
 .vagrant/
@@ -10,11 +13,12 @@ app/
 bazel-*/
 bin/
 build/
-Dockerfile
 dist/
+Dockerfile
 docs/
-node_modules/
-site/
-
+examples/
 LICENSE
 mkdocs.yml
+node_modules/
+site/
+WORKSPACE

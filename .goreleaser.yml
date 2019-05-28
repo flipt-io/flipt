@@ -3,7 +3,6 @@ env:
 
 before:
   hooks:
-    - make clean
     - go mod download
 
 builds:
