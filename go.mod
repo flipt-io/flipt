@@ -32,7 +32,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.4
-	github.com/spf13/viper v1.3.2
+	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.3.0
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20190514140710-3ec191127204 // indirect
