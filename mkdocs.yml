@@ -10,7 +10,7 @@ theme:
   favicon: 'assets/images/favicon.ico'
   logo: 'assets/images/logo.svg'
   palette:
-    primary: 'cyan'
+    primary: 'deep purple'
 
 extra:
   social:
