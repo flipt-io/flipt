@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Beta support for Postgres! :tada:
 * `/meta/info` endpoint for version/build info
 * `/meta/config` endpoint for running configuration info
-* Beta support for Postgres! :tada:
 
 ### Changed
 
