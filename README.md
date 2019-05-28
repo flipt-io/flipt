@@ -27,10 +27,6 @@ This means that you can deploy Flipt within your existing infrastructure and not
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
-## :warning: Beta Software
-
-Flipt is still considered beta software until the 1.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
-
 ## Flipt Features
 
 Flipt enables you to add [feature flag](https://martinfowler.com/bliki/FeatureToggle.html) support to your existing applications, with a simple, single UI and API.
@@ -60,6 +56,10 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 * :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 
+### :warning: Beta Software :warning:
+
+Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
+
 ### Try It
 
 ```bash
@@ -72,7 +72,7 @@ For more permanent methods of running Flipt, see the [Installation](https://flip
 
 ### Databases
 
-Flipt supports both [SQLite](https://www.sqlite.org/index.html) and [Postgres](https://www.postgresql.org/) databases as of `v0.5.0`.
+Flipt supports **both** [SQLite](https://www.sqlite.org/index.html) and [Postgres](https://www.postgresql.org/) databases as of `v0.5.0`.
 
 SQLite is enabled by default for simplicity, however you should use Postgres if you intend to run multiple copies of Flipt in a high availability configuration.
 
@@ -115,16 +115,13 @@ No contribution is too small, whether it be bug reports/fixes, feature requests,
 
 Here are some good places to start:
 
-* [Project Kanban Board](https://github.com/markphelps/flipt/projects/1)
-* [Help Wanted](https://github.com/markphelps/flipt/labels/help%20wanted) Issues
-* [Good First Issue](https://github.com/markphelps/flipt/labels/good%20first%20issue) Issues
-* [Documentation](https://github.com/markphelps/flipt/labels/documentation) Issues
+* [Help Wanted](https://github.com/markphelps/flipt/labels/help%20wanted)
+* [Good First Issue](https://github.com/markphelps/flipt/labels/good%20first%20issue)
+* [Documentation Help](https://github.com/markphelps/flipt/labels/documentation)
 
 ### Support Development
 
-Or if you would like to support the continued development of Flipt (and my caffeine addiction), you could always [Buy Me A Coffee](https://www.buymeacoffee.com/mAZ1JDSRP)!
-
-<a href="https://www.buymeacoffee.com/mAZ1JDSRP" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+If you would like to support the continued development of Flipt (and my :coffee: addiction), you could always [Buy Me A Coffee](https://www.buymeacoffee.com/mAZ1JDSRP)!
 
 ## Pro Version
 
@@ -135,7 +132,6 @@ My plan is to soon start working on a Pro Version of Flipt for enterprise. Along
 * Audit log
 * Streaming updates
 * Metrics
-* HA support
 
 If you or your organization would like to help beta test a Pro version of Flipt, please get in touch with me:
 
