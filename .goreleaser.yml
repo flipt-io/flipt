@@ -3,11 +3,10 @@ env:
 
 before:
   hooks:
-    - make clean
     - go mod download
 
 builds:
-  - main: ./cmd/flipt/main.go
+  - main: ./cmd/flipt/.
     env:
       - CGO_ENABLED=1
     goos:

@@ -5,8 +5,9 @@
 #   enabled: true
 
 # cache:
-#   enabled: false
-#   size: 250
+#   memory:
+#     enabled: false
+#     items: 500
 
 # server:
 #   host: 0.0.0.0
@@ -14,8 +15,7 @@
 #   grpc_port: 9000
 
 # db:
-#   name: flipt
-#   path: /var/opt/flipt
+#   url: file:/var/opt/flipt/flipt.db
 #   migrations:
 #     auto: true
 #     path: /etc/flipt/config/migrations

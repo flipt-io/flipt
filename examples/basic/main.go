@@ -49,7 +49,6 @@ func main() {
 		flag, err := client.GetFlag(context.Background(), &flipt.GetFlagRequest{
 			Key: flagKey,
 		})
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

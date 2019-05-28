@@ -14,6 +14,10 @@ Flipt includes native client SDKs as well as a REST API so you can choose how to
 
 For more on Flipt and it's concepts, take a look at the [Concepts](concepts.md) documentation.
 
+## Beta Software
+
+Flipt is still considered beta software until the 1.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
+
 ## Flipt Features
 
 Flipt enables you to add [feature flag](https://martinfowler.com/bliki/FeatureToggle.html) support to your existing applications, with a simple, single UI and API.
@@ -23,7 +27,7 @@ This can range from simple on/off feature flags to more advanced use cases where
 Flipt features include:
 
 * Fast. Written in Go. Optimized for performance
-* Stand alone, easy to run server with no external dependencies
+* Stand alone, easy to run and configure
 * Ability to create advanced distribution rules to target segments of users
 * Native GRPC client SDKs to integrate with your applications
 * Simple REST API
@@ -50,7 +54,7 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 * **Security**. No Flipt data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 * **Speed**. Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
-* **Simplicity**. Flipt is a single binary with no external dependencies. This means there is no database to manage or connect to, no clusters to configure, and data backup is as simple as copying a single file.
+* **Simplicity** Flipt is a single binary with no external dependencies by default.
 
 ## What's Next
 

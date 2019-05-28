@@ -15,6 +15,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
 	proto "github.com/golang/protobuf/ptypes"
+	"github.com/lib/pq"
 	flipt "github.com/markphelps/flipt/rpc"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -24,17 +25,18 @@ var _ RuleStore = &RuleStorage{}
 
 // RuleStorage is a SQL RuleStore
 type RuleStorage struct {
-	logger  logrus.FieldLogger
-	tx      sq.DBProxyBeginner
-	builder sq.StatementBuilderType
+	logger logrus.FieldLogger
+	*DB
 }
 
 // NewRuleStorage creates a RuleStorage
-func NewRuleStorage(logger logrus.FieldLogger, tx sq.DBProxyBeginner, builder sq.StatementBuilderType) *RuleStorage {
+func NewRuleStorage(logger logrus.FieldLogger, db *DB) *RuleStorage {
 	return &RuleStorage{
-		logger:  logger.WithField("storage", "rule"),
-		tx:      tx,
-		builder: builder,
+		logger: logger.WithFields(logrus.Fields{
+			"storage": "rule",
+			"db":      db.dbType,
+		}),
+		DB: db,
 	}
 }
 
@@ -158,11 +160,18 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 		Columns("id", "flag_key", "segment_key", "rank", "created_at", "updated_at").
 		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt}).
 		ExecContext(ctx); err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+			}
+		case *pq.Error:
+			if ierr.Code.Name() == pgForeignKeyConstraint {
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		}
+
 		return nil, err
 	}
 
@@ -173,12 +182,11 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 // UpdateRule updates an existing rule
 func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("update rule")
-	var (
-		query = s.builder.Update("rules").
-			Set("segment_key", r.SegmentKey).
-			Set("updated_at", &timestamp{proto.TimestampNow()}).
-			Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
-	)
+
+	query := s.builder.Update("rules").
+		Set("segment_key", r.SegmentKey).
+		Set("updated_at", &timestamp{proto.TimestampNow()}).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -203,7 +211,7 @@ func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest
 func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
 	s.logger.WithField("request", r).Debug("delete rule")
 
-	tx, err := s.tx.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -221,7 +229,6 @@ func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest
 		Where(sq.Eq{"flag_key": r.FlagKey}).
 		OrderBy("rank ASC").
 		QueryContext(ctx)
-
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -262,7 +269,7 @@ func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest
 func (s *RuleStorage) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
 	s.logger.WithField("request", r).Debug("order rules")
 
-	tx, err := s.tx.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -314,11 +321,17 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 		Values(d.Id, d.RuleId, d.VariantId, d.Rollout, &timestamp{d.CreatedAt}, &timestamp{d.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				return nil, ErrNotFoundf("rule %q", r.RuleId)
+			}
+		case *pq.Error:
+			if ierr.Code.Name() == pgForeignKeyConstraint {
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}
+
 		return nil, err
 	}
 
@@ -330,12 +343,10 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 func (s *RuleStorage) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	s.logger.WithField("request", r).Debug("update distribution")
 
-	var (
-		query = s.builder.Update("distributions").
-			Set("rollout", r.Rollout).
-			Set("updated_at", &timestamp{proto.TimestampNow()}).
-			Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}})
-	)
+	query := s.builder.Update("distributions").
+		Set("rollout", r.Rollout).
+		Set("updated_at", &timestamp{proto.TimestampNow()}).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -498,9 +509,8 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		LeftJoin("constraints c ON (r.segment_key = c.segment_key)").
 		Where(sq.Eq{"r.flag_key": r.FlagKey}).
 		OrderBy("r.rank ASC").
-		GroupBy("r.id").
+		GroupBy("r.id, c.id").
 		QueryContext(ctx)
-
 	if err != nil {
 		return resp, err
 	}
@@ -511,11 +521,13 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 	}()
 
-	var rules []rule
+	var (
+		rules        []rule
+		existingRule rule
+	)
 
 	for rows.Next() {
 		var (
-			existingRule       *rule
 			tempRule           rule
 			optionalConstraint optionalConstraint
 		)
@@ -525,7 +537,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 
 		// current rule we know about
-		if existingRule != nil && existingRule.ID == tempRule.ID {
+		if existingRule.ID == tempRule.ID {
 			if optionalConstraint.ID.Valid {
 				constraint := constraint{
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
@@ -537,7 +549,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			}
 		} else {
 			// haven't seen this rule before
-			existingRule = &rule{
+			existingRule = rule{
 				ID:         tempRule.ID,
 				FlagKey:    tempRule.FlagKey,
 				SegmentKey: tempRule.SegmentKey,
@@ -554,7 +566,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 				existingRule.Constraints = append(existingRule.Constraints, constraint)
 			}
 
-			rules = append(rules, *existingRule)
+			rules = append(rules, existingRule)
 		}
 	}
 
@@ -623,7 +635,6 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			Join("variants v ON (d.variant_id = v.id)").
 			Where(sq.Eq{"d.rule_id": rule.ID}).
 			QueryContext(ctx)
-
 		if err != nil {
 			return resp, err
 		}

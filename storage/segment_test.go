@@ -1,3 +1,5 @@
+// +build db
+
 package storage
 
 import (
@@ -39,20 +41,18 @@ func TestGetSegmentNotFound(t *testing.T) {
 }
 
 func TestListSegments(t *testing.T) {
-	var (
-		reqs = []*flipt.CreateSegmentRequest{
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-		}
-	)
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
 
 	for _, req := range reqs {
 		_, err := segmentStore.CreateSegment(context.TODO(), req)
@@ -65,20 +65,18 @@ func TestListSegments(t *testing.T) {
 }
 
 func TestListSegmentsPagination(t *testing.T) {
-	var (
-		reqs = []*flipt.CreateSegmentRequest{
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-			{
-				Key:         uuid.Must(uuid.NewV4()).String(),
-				Name:        "foo",
-				Description: "bar",
-			},
-		}
-	)
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
 
 	for _, req := range reqs {
 		_, err := segmentStore.CreateSegment(context.TODO(), req)
@@ -106,7 +104,7 @@ func TestCreateSegment(t *testing.T) {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt, segment.UpdatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
 func TestCreateSegment_DuplicateKey(t *testing.T) {
@@ -140,7 +138,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
 	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt, segment.UpdatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 
 	updated, err := segmentStore.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
 		Key:         segment.Key,
@@ -277,7 +275,7 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, opEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
-	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	// get the segment again
 	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
@@ -347,7 +345,6 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 			assert.Nil(t, constraint)
 		})
 	}
-
 }
 
 func TestCreateConstraint_SegmentNotFound(t *testing.T) {
@@ -390,7 +387,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, opEQ, constraint.Operator)
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
-	assert.Equal(t, constraint.CreatedAt, constraint.UpdatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	updated, err := segmentStore.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
 		Id:         constraint.Id,
@@ -484,7 +481,6 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 			assert.Nil(t, constraint)
 		})
 	}
-
 }
 
 func TestUpdateConstraint_NotFound(t *testing.T) {

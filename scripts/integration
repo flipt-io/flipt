@@ -211,6 +211,14 @@ step_7_test_meta()
         contains "\"version\""
         contains "\"buildDate\""
         contains "\"goVersion\""
+
+    shakedown GET "$flipt_host/meta/config"
+        status 200
+        contains "\"logLevel\""
+        contains "\"ui\""
+        contains "\"cache\""
+        contains "\"server\""
+        contains "\"database\""
 }
 
 

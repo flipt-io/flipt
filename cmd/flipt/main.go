@@ -8,13 +8,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 
-	"database/sql"
+	lru "github.com/hashicorp/golang-lru"
 
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
@@ -26,17 +24,16 @@ import (
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/swagger"
 	"github.com/markphelps/flipt/ui"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	migrate "github.com/golang-migrate/migrate"
-	sqlite3 "github.com/golang-migrate/migrate/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/source/file"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -46,8 +43,7 @@ import (
 )
 
 const (
-	dbConnOpts = "cache=shared&_fk=true"
-	banner     = `
+	banner = `
     _____ _ _       _
    |  ___| (_)_ __ | |_
    | |_  | | | '_ \| __|
@@ -60,16 +56,17 @@ const (
 var (
 	logger = logrus.New()
 
-	cfgPath string
-	print   bool
+	cfgPath      string
+	printVersion bool
 
-	version = "dev"
-	commit  = ""
-	date    = time.Now().Format(time.RFC3339)
+	version   = "dev"
+	commit    = ""
+	date      = time.Now().Format(time.RFC3339)
+	goVersion = runtime.Version()
 )
 
 func main() {
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "flipt",
 		Short: "Flipt is a self contained feature flag solution",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -79,7 +76,7 @@ func main() {
 		},
 	}
 
-	rootCmd.Flags().BoolVar(&print, "version", false, "print version info and exit")
+	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
 	rootCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 
 	if err := rootCmd.Execute(); err != nil {
@@ -87,163 +84,63 @@ func main() {
 	}
 }
 
-type config struct {
-	logLevel string
-	ui       uiConfig
-	cache    cacheConfig
-	server   serverConfig
-	database databaseConfig
+func printVersionHeader() {
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
-type uiConfig struct {
-	enabled bool
-}
+func infoHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		meta := struct {
+			Version   string `json:"version,omitempty"`
+			Commit    string `json:"commit,omitempty"`
+			BuildDate string `json:"buildDate,omitempty"`
+			GoVersion string `json:"goVersion,omitempty"`
+		}{
+			Version:   version,
+			Commit:    commit,
+			BuildDate: date,
+			GoVersion: goVersion,
+		}
 
-type cacheConfig struct {
-	enabled bool
-	size    int
-}
+		out, err := json.Marshal(meta)
+		if err != nil {
+			logger.WithError(err).Error("getting metadata")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-type serverConfig struct {
-	host     string
-	httpPort int
-	grpcPort int
-}
+		if _, err = w.Write(out); err != nil {
+			logger.WithError(err).Error("writing response")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-type databaseConfig struct {
-	name           string
-	path           string
-	migrationsPath string
-	autoMigrate    bool
-}
-
-func defaultConfig() *config {
-	return &config{
-		logLevel: "INFO",
-
-		ui: uiConfig{
-			enabled: true,
-		},
-
-		cache: cacheConfig{
-			enabled: false,
-			size:    250,
-		},
-
-		server: serverConfig{
-			host:     "0.0.0.0",
-			httpPort: 8080,
-			grpcPort: 9000,
-		},
-
-		database: databaseConfig{
-			name:           "flipt",
-			path:           "/var/opt/flipt",
-			migrationsPath: "/etc/flipt/config/migrations",
-			autoMigrate:    true,
-		},
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
-const (
-	// Logging
-	cfgLogLevel = "log.level"
+func configHandler(cfg *config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		out, err := json.Marshal(cfg)
+		if err != nil {
+			logger.WithError(err).Error("getting config")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	// UI
-	cfgUIEnabled = "ui.enabled"
+		if _, err = w.Write(out); err != nil {
+			logger.WithError(err).Error("writing response")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-	// Cache
-	cfgCacheEnabled = "cache.enabled"
-	cfgCacheSize    = "cache.size"
-
-	// Server
-	cfgServerHost     = "server.host"
-	cfgServerHTTPPort = "server.http_port"
-	cfgServerGRPCPort = "server.grpc_port"
-
-	// DB
-	cfgDBName           = "db.name"
-	cfgDBPath           = "db.path"
-	cfgDBMigrationsPath = "db.migrations.path"
-	cfgDBAutoMigrate    = "db.migrations.auto"
-
-	// Aliases
-	cfgAliasHost        = "host"
-	cfgAliasAPIPort     = "api.port"
-	cfgAliasBackendPort = "backend.port"
-)
-
-func configure() (*config, error) {
-	viper.SetEnvPrefix("FLIPT")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-
-	viper.SetConfigFile(cfgPath)
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, errors.Wrap(err, "loading config")
+		w.WriteHeader(http.StatusOK)
 	}
-
-	// TODO: remove in 1.0 release
-	viper.RegisterAlias(cfgAliasHost, cfgServerHost)
-	viper.RegisterAlias(cfgAliasAPIPort, cfgServerHTTPPort)
-	viper.RegisterAlias(cfgAliasBackendPort, cfgServerGRPCPort)
-
-	cfg := defaultConfig()
-
-	// Logging
-	if viper.IsSet(cfgLogLevel) {
-		cfg.logLevel = viper.GetString(cfgLogLevel)
-	}
-
-	// UI
-	if viper.IsSet(cfgUIEnabled) {
-		cfg.ui.enabled = viper.GetBool(cfgUIEnabled)
-	}
-
-	// Cache
-	if viper.IsSet(cfgCacheEnabled) {
-		cfg.cache.enabled = viper.GetBool(cfgCacheEnabled)
-	}
-	if viper.IsSet(cfgCacheSize) {
-		cfg.cache.size = viper.GetInt(cfgCacheSize)
-	}
-
-	// Server
-	if viper.IsSet(cfgServerHost) {
-		cfg.server.host = viper.GetString(cfgServerHost)
-	}
-	if viper.IsSet(cfgServerHTTPPort) {
-		cfg.server.httpPort = viper.GetInt(cfgServerHTTPPort)
-	}
-	if viper.IsSet(cfgServerGRPCPort) {
-		cfg.server.grpcPort = viper.GetInt(cfgServerGRPCPort)
-	}
-
-	// DB
-	if viper.IsSet(cfgDBName) {
-		cfg.database.name = viper.GetString(cfgDBName)
-	}
-	if viper.IsSet(cfgDBPath) {
-		cfg.database.path = viper.GetString(cfgDBPath)
-	}
-	if viper.IsSet(cfgDBMigrationsPath) {
-		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
-	}
-	if viper.IsSet(cfgDBAutoMigrate) {
-		cfg.database.autoMigrate = viper.GetBool(cfgDBAutoMigrate)
-	}
-
-	return cfg, nil
-}
-
-func printHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\n\n", banner, version, commit, date)
 }
 
 func execute() error {
-	if print {
-		printHeader()
+	if printVersion {
+		printVersionHeader()
 		return nil
 	}
 
@@ -252,7 +149,7 @@ func execute() error {
 		return err
 	}
 
-	lvl, err := logrus.ParseLevel(cfg.logLevel)
+	lvl, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		return err
 	}
@@ -274,42 +171,31 @@ func execute() error {
 		httpServer *http.Server
 	)
 
-	printHeader()
+	printVersionHeader()
 
-	if cfg.server.grpcPort > 0 {
+	if cfg.Server.GRPCPort > 0 {
 		g.Go(func() error {
 			logger := logger.WithField("server", "grpc")
+			logger.Infof("connecting to database: %s", cfg.Database.URL)
 
-			path := filepath.Clean(cfg.database.path)
-			db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db?%s", path, cfg.database.name, dbConnOpts))
+			db, err := storage.Open(cfg.Database.URL)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
 
 			defer db.Close()
 
-			if cfg.database.autoMigrate {
+			if cfg.Database.AutoMigrate {
 				logger.Info("running migrations...")
 
-				driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
-				if err != nil {
-					return errors.Wrap(err, "getting db instance")
-				}
-
-				path := filepath.Clean(cfg.database.migrationsPath)
-				mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", path), "sqlite3", driver)
-				if err != nil {
-					return errors.Wrap(err, "opening migrations")
-				}
-
-				if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
-					return errors.Wrap(err, "running migrations")
+				if err := db.Migrate(cfg.Database.MigrationsPath); err != nil {
+					return errors.Wrap(err, "migrating database")
 				}
 
 				logger.Info("finished migrations")
 			}
 
-			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.grpcPort))
+			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 			if err != nil {
 				return errors.Wrap(err, "creating grpc listener")
 			}
@@ -330,9 +216,14 @@ func execute() error {
 				grpc_recovery.UnaryServerInterceptor(),
 			))
 
-			if cfg.cache.enabled {
-				logger.Infof("flag cache enabled with size: %d", cfg.cache.size)
-				serverOpts = append(serverOpts, server.WithCacheSize(cfg.cache.size))
+			if cfg.Cache.Memory.Enabled {
+				cache, err := lru.New(cfg.Cache.Memory.Items)
+				if err != nil {
+					return errors.Wrap(err, "creating in-memory cache")
+				}
+
+				logger.Infof("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
+				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
 			srv = server.New(logger, db, serverOpts...)
@@ -340,12 +231,12 @@ func execute() error {
 
 			pb.RegisterFliptServer(grpcServer, srv)
 
-			logger.Infof("grpc server running at: %s:%d", cfg.server.host, cfg.server.grpcPort)
+			logger.Infof("grpc server running at: %s:%d", cfg.Server.Host, cfg.Server.GRPCPort)
 			return grpcServer.Serve(lis)
 		})
 	}
 
-	if cfg.server.httpPort > 0 {
+	if cfg.Server.HTTPPort > 0 {
 		g.Go(func() error {
 			logger := logger.WithField("server", "http")
 
@@ -355,7 +246,7 @@ func execute() error {
 				opts = []grpc.DialOption{grpc.WithInsecure()}
 			)
 
-			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.grpcPort), opts); err != nil {
+			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts); err != nil {
 				return errors.Wrap(err, "connecting to grpc server")
 			}
 
@@ -368,54 +259,29 @@ func execute() error {
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
 
-			r.Handle("/meta/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				meta := struct {
-					Version   string `json:"version,omitempty"`
-					Commit    string `json:"commit,omitempty"`
-					BuildDate string `json:"buildDate,omitempty"`
-					GoVersion string `json:"goVersion,omitempty"`
-				}{
-					Version:   version,
-					Commit:    commit,
-					BuildDate: date,
-					GoVersion: runtime.Version(),
-				}
+			r.Route("/meta", func(r chi.Router) {
+				r.Use(middleware.SetHeader("Content-Type", "application/json"))
+				r.Handle("/info", infoHandler())
+				r.Handle("/config", configHandler(cfg))
+			})
 
-				out, err := json.Marshal(meta)
-				if err != nil {
-					logger.WithError(err).Error("getting metadata")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				w.Header().Set("Content-Type", "application/json")
-
-				if _, err = w.Write(out); err != nil {
-					logger.WithError(err).Error("writing response")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			if cfg.ui.enabled {
+			if cfg.UI.Enabled {
 				r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
 				r.Mount("/", http.FileServer(ui.Assets))
 			}
 
 			httpServer = &http.Server{
-				Addr:           fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.httpPort),
+				Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.HTTPPort),
 				Handler:        r,
 				ReadTimeout:    10 * time.Second,
 				WriteTimeout:   10 * time.Second,
 				MaxHeaderBytes: 1 << 20,
 			}
 
-			logger.Infof("api server running at: http://%s:%d/api/v1", cfg.server.host, cfg.server.httpPort)
+			logger.Infof("api server running at: http://%s:%d/api/v1", cfg.Server.Host, cfg.Server.HTTPPort)
 
-			if cfg.ui.enabled {
-				logger.Infof("ui available at: http://%s:%d", cfg.server.host, cfg.server.httpPort)
+			if cfg.UI.Enabled {
+				logger.Infof("ui available at: http://%s:%d", cfg.Server.Host, cfg.Server.HTTPPort)
 			}
 
 			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {

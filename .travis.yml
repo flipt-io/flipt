@@ -12,27 +12,41 @@ cache:
 env:
   - GO111MODULE=on
 
+services:
+  - postgresql
+
 stages:
-  - test
+  - unit
+  - name: database
+    if: branch = master OR type = pull_request
   - name: integration
     if: branch = master OR type = pull_request
 
 jobs:
   include:
-  - stage: test
+  - stage: unit
     before_script:
       - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
       - go get github.com/mattn/goveralls
     script:
       - golangci-lint run
-      - go test -covermode=count -coverprofile=profile.cov ./...
+      - go test -covermode=count -coverprofile=profile.cov -count=1 ./...
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
+
+  - stage: database
+    name: sqlite
+    script:
+      - go test -tags=db -count=1 -v ./...
+  - name: postgres
+    before_script:
+      - psql -c 'create database flipt_test;' -U postgres
+    script:
+      - DB_URL="postgres://postgres@localhost:5432/flipt_test?sslmode=disable" go test -tags=db -count=1 -v ./...
 
   - stage: integration
     before_script:
       - make build
-    script:
-      - ./scripts/integration
+    script: ./scripts/integration
 
 notifications:
   email: false
