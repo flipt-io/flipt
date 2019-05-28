@@ -13,9 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* `cache.enabled` becomes `cache.memory.enabled`
-* `cache.size` becomes `cache.memory.items`
-* `db.path` becomes `db.url`
+* `cache.enabled` config becomes `cache.memory.enabled`
+* `cache.size` config becomes `cache.memory.items`
+* `db.path` config becomes `db.url`
+
+### Removed
+
+* `db.name` config
 
 ## [v0.4.2](https://github.com/markphelps/flipt/releases/tag/v0.4.2) - 2019-05-12
 
