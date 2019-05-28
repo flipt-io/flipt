@@ -56,10 +56,6 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 * :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 
-### :warning: Beta Software :warning:
-
-Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
-
 ### Try It
 
 ```bash
@@ -69,6 +65,10 @@ Flipt is still considered beta software until the 1.0.0 release. This means that
 Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.dev/installation/) section.
+
+### Beta Software :warning:
+
+Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
 
 ### Databases
 
