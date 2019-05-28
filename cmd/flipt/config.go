@@ -8,63 +8,63 @@ import (
 )
 
 type config struct {
-	logLevel string
-	ui       uiConfig
-	cache    cacheConfig
-	server   serverConfig
-	database databaseConfig
+	LogLevel string         `json:"logLevel,omitempty"`
+	UI       uiConfig       `json:"ui,omitempty"`
+	Cache    cacheConfig    `json:"cache,omitempty"`
+	Server   serverConfig   `json:"server,omitempty"`
+	Database databaseConfig `json:"database,omitempty"`
 }
 
 type uiConfig struct {
-	enabled bool
+	Enabled bool `json:"enabled"`
 }
 
 type memoryCacheConfig struct {
-	enabled bool
-	items   int
+	Enabled bool `json:"enabled"`
+	Items   int  `json:"items,omitempty"`
 }
 
 type cacheConfig struct {
-	memory memoryCacheConfig
+	Memory memoryCacheConfig `json:"memory,omitempty"`
 }
 
 type serverConfig struct {
-	host     string
-	httpPort int
-	grpcPort int
+	Host     string `json:"host,omitempty"`
+	HTTPPort int    `json:"httpPort,omitempty"`
+	GRPCPort int    `json:"grpcPort,omitempty"`
 }
 
 type databaseConfig struct {
-	autoMigrate    bool
-	migrationsPath string
-	url            string
+	AutoMigrate    bool   `json:"autoMigrate"`
+	MigrationsPath string `json:"migrationsPath,omitempty"`
+	URL            string `json:"url,omitempty"`
 }
 
 func defaultConfig() *config {
 	return &config{
-		logLevel: "INFO",
+		LogLevel: "INFO",
 
-		ui: uiConfig{
-			enabled: true,
+		UI: uiConfig{
+			Enabled: true,
 		},
 
-		cache: cacheConfig{
-			memory: memoryCacheConfig{
-				enabled: false,
-				items:   500,
+		Cache: cacheConfig{
+			Memory: memoryCacheConfig{
+				Enabled: false,
+				Items:   500,
 			},
 		},
 
-		server: serverConfig{
-			host:     "0.0.0.0",
-			httpPort: 8080,
-			grpcPort: 9000,
+		Server: serverConfig{
+			Host:     "0.0.0.0",
+			HTTPPort: 8080,
+			GRPCPort: 9000,
 		},
 
-		database: databaseConfig{
-			url:            "file:/var/opt/flipt/flipt.db",
-			migrationsPath: "/etc/flipt/config/migrations",
-			autoMigrate:    true,
+		Database: databaseConfig{
+			URL:            "file:/var/opt/flipt/flipt.db",
+			MigrationsPath: "/etc/flipt/config/migrations",
+			AutoMigrate:    true,
 		},
 	}
 }
@@ -106,43 +106,43 @@ func configure() (*config, error) {
 
 	// Logging
 	if viper.IsSet(cfgLogLevel) {
-		cfg.logLevel = viper.GetString(cfgLogLevel)
+		cfg.LogLevel = viper.GetString(cfgLogLevel)
 	}
 
 	// UI
 	if viper.IsSet(cfgUIEnabled) {
-		cfg.ui.enabled = viper.GetBool(cfgUIEnabled)
+		cfg.UI.Enabled = viper.GetBool(cfgUIEnabled)
 	}
 
 	// Cache
 	if viper.IsSet(cfgCacheMemoryEnabled) {
-		cfg.cache.memory.enabled = viper.GetBool(cfgCacheMemoryEnabled)
+		cfg.Cache.Memory.Enabled = viper.GetBool(cfgCacheMemoryEnabled)
 
 		if viper.IsSet(cfgCacheMemoryItems) {
-			cfg.cache.memory.items = viper.GetInt(cfgCacheMemoryItems)
+			cfg.Cache.Memory.Items = viper.GetInt(cfgCacheMemoryItems)
 		}
 	}
 
 	// Server
 	if viper.IsSet(cfgServerHost) {
-		cfg.server.host = viper.GetString(cfgServerHost)
+		cfg.Server.Host = viper.GetString(cfgServerHost)
 	}
 	if viper.IsSet(cfgServerHTTPPort) {
-		cfg.server.httpPort = viper.GetInt(cfgServerHTTPPort)
+		cfg.Server.HTTPPort = viper.GetInt(cfgServerHTTPPort)
 	}
 	if viper.IsSet(cfgServerGRPCPort) {
-		cfg.server.grpcPort = viper.GetInt(cfgServerGRPCPort)
+		cfg.Server.GRPCPort = viper.GetInt(cfgServerGRPCPort)
 	}
 
 	// DB
 	if viper.IsSet(cfgDBURL) {
-		cfg.database.url = viper.GetString(cfgDBURL)
+		cfg.Database.URL = viper.GetString(cfgDBURL)
 	}
 	if viper.IsSet(cfgDBMigrationsPath) {
-		cfg.database.migrationsPath = viper.GetString(cfgDBMigrationsPath)
+		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
 	}
 	if viper.IsSet(cfgDBAutoMigrate) {
-		cfg.database.autoMigrate = viper.GetBool(cfgDBAutoMigrate)
+		cfg.Database.AutoMigrate = viper.GetBool(cfgDBAutoMigrate)
 	}
 
 	return cfg, nil

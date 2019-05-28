@@ -88,6 +88,56 @@ func printVersionHeader() {
 	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
+func infoHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		meta := struct {
+			Version   string `json:"version,omitempty"`
+			Commit    string `json:"commit,omitempty"`
+			BuildDate string `json:"buildDate,omitempty"`
+			GoVersion string `json:"goVersion,omitempty"`
+		}{
+			Version:   version,
+			Commit:    commit,
+			BuildDate: date,
+			GoVersion: goVersion,
+		}
+
+		out, err := json.Marshal(meta)
+		if err != nil {
+			logger.WithError(err).Error("getting metadata")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if _, err = w.Write(out); err != nil {
+			logger.WithError(err).Error("writing response")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func configHandler(cfg *config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		out, err := json.Marshal(cfg)
+		if err != nil {
+			logger.WithError(err).Error("getting config")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if _, err = w.Write(out); err != nil {
+			logger.WithError(err).Error("writing response")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
 func execute() error {
 	if printVersion {
 		printVersionHeader()
@@ -99,7 +149,7 @@ func execute() error {
 		return err
 	}
 
-	lvl, err := logrus.ParseLevel(cfg.logLevel)
+	lvl, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
 		return err
 	}
@@ -123,29 +173,29 @@ func execute() error {
 
 	printVersionHeader()
 
-	if cfg.server.grpcPort > 0 {
+	if cfg.Server.GRPCPort > 0 {
 		g.Go(func() error {
 			logger := logger.WithField("server", "grpc")
-			logger.Infof("connecting to database: %s", cfg.database.url)
+			logger.Infof("connecting to database: %s", cfg.Database.URL)
 
-			db, err := storage.Open(cfg.database.url)
+			db, err := storage.Open(cfg.Database.URL)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
 
 			defer db.Close()
 
-			if cfg.database.autoMigrate {
+			if cfg.Database.AutoMigrate {
 				logger.Info("running migrations...")
 
-				if err := db.Migrate(cfg.database.migrationsPath); err != nil {
+				if err := db.Migrate(cfg.Database.MigrationsPath); err != nil {
 					return errors.Wrap(err, "migrating database")
 				}
 
 				logger.Info("finished migrations")
 			}
 
-			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.grpcPort))
+			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 			if err != nil {
 				return errors.Wrap(err, "creating grpc listener")
 			}
@@ -166,13 +216,13 @@ func execute() error {
 				grpc_recovery.UnaryServerInterceptor(),
 			))
 
-			if cfg.cache.memory.enabled {
-				cache, err := lru.New(cfg.cache.memory.items)
+			if cfg.Cache.Memory.Enabled {
+				cache, err := lru.New(cfg.Cache.Memory.Items)
 				if err != nil {
 					return errors.Wrap(err, "creating in-memory cache")
 				}
 
-				logger.Infof("in-memory cache enabled with size: %d", cfg.cache.memory.items)
+				logger.Infof("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
 				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
@@ -181,12 +231,12 @@ func execute() error {
 
 			pb.RegisterFliptServer(grpcServer, srv)
 
-			logger.Infof("grpc server running at: %s:%d", cfg.server.host, cfg.server.grpcPort)
+			logger.Infof("grpc server running at: %s:%d", cfg.Server.Host, cfg.Server.GRPCPort)
 			return grpcServer.Serve(lis)
 		})
 	}
 
-	if cfg.server.httpPort > 0 {
+	if cfg.Server.HTTPPort > 0 {
 		g.Go(func() error {
 			logger := logger.WithField("server", "http")
 
@@ -196,7 +246,7 @@ func execute() error {
 				opts = []grpc.DialOption{grpc.WithInsecure()}
 			)
 
-			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.grpcPort), opts); err != nil {
+			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts); err != nil {
 				return errors.Wrap(err, "connecting to grpc server")
 			}
 
@@ -209,54 +259,29 @@ func execute() error {
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
 
-			r.Handle("/meta/info", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				meta := struct {
-					Version   string `json:"version,omitempty"`
-					Commit    string `json:"commit,omitempty"`
-					BuildDate string `json:"buildDate,omitempty"`
-					GoVersion string `json:"goVersion,omitempty"`
-				}{
-					Version:   version,
-					Commit:    commit,
-					BuildDate: date,
-					GoVersion: goVersion,
-				}
+			r.Route("/meta", func(r chi.Router) {
+				r.Use(middleware.SetHeader("Content-Type", "application/json"))
+				r.Handle("/info", infoHandler())
+				r.Handle("/config", configHandler(cfg))
+			})
 
-				out, err := json.Marshal(meta)
-				if err != nil {
-					logger.WithError(err).Error("getting metadata")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				w.Header().Set("Content-Type", "application/json")
-
-				if _, err = w.Write(out); err != nil {
-					logger.WithError(err).Error("writing response")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-
-				w.WriteHeader(http.StatusOK)
-			}))
-
-			if cfg.ui.enabled {
+			if cfg.UI.Enabled {
 				r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
 				r.Mount("/", http.FileServer(ui.Assets))
 			}
 
 			httpServer = &http.Server{
-				Addr:           fmt.Sprintf("%s:%d", cfg.server.host, cfg.server.httpPort),
+				Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.HTTPPort),
 				Handler:        r,
 				ReadTimeout:    10 * time.Second,
 				WriteTimeout:   10 * time.Second,
 				MaxHeaderBytes: 1 << 20,
 			}
 
-			logger.Infof("api server running at: http://%s:%d/api/v1", cfg.server.host, cfg.server.httpPort)
+			logger.Infof("api server running at: http://%s:%d/api/v1", cfg.Server.Host, cfg.Server.HTTPPort)
 
-			if cfg.ui.enabled {
-				logger.Infof("ui available at: http://%s:%d", cfg.server.host, cfg.server.httpPort)
+			if cfg.UI.Enabled {
+				logger.Infof("ui available at: http://%s:%d", cfg.Server.Host, cfg.Server.HTTPPort)
 			}
 
 			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
