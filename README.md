@@ -76,7 +76,7 @@ Flipt supports both [SQLite](https://www.sqlite.org/index.html) and [Postgres](h
 
 SQLite is enabled by default for simplicity, however you should use Postgres if you intend to run multiple copies of Flipt in a high availability configuration.
 
-See the [configuration](docs/configuration.md) documentation for more information.
+See the [configuration](https://flipt.dev/configuration/#databases) documentation for more information.
 
 ## Licensing
 

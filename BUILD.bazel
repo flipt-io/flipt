@@ -37,7 +37,7 @@ ruby_grpc_compile(
     deps = ["flipt_proto"],
 )
 
-## Pyhon
+## Python
 
 load("@build_stack_rules_proto//python:python_proto_compile.bzl", "python_proto_compile")
 
