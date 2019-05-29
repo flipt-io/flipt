@@ -13,7 +13,6 @@ import (
 var (
 	logger *logrus.Logger
 	debug  bool
-	dbURL  string
 
 	flagStore    FlagStore
 	segmentStore SegmentStore
