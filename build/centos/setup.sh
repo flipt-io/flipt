@@ -14,6 +14,7 @@ sudo yum update -y
 sudo yum install -y \
     gcc gcc-c++ git make \
     nodejs \
+    postgresql \
     unzip \
     wget \
     yarn

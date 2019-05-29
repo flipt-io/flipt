@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:10
+    networks:
+      - flipt_network
+    environment:
+      - POSTGRES_DB=flipt
+
+  flipt:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - flipt_network
+    environment:
+      - FLIPT_DB_URL=postgres://postgres@postgres:5432/flipt?sslmode=disable
+    command: ["./tmp/wait-for-it.sh", "postgres:5432", "--", "./flipt"]
+networks:
+  flipt_network:

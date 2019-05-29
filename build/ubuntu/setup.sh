@@ -13,8 +13,11 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/source
 sudo apt-get update -y
 sudo apt install -y --no-install-recommends \
     build-essential \
+    ca-certificates \
     nodejs \
     npm \
+    openssl \
+    postgresql-client \
     unzip \
     yarn
 
