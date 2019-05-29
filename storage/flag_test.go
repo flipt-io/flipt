@@ -1,5 +1,3 @@
-// +build db
-
 package storage
 
 import (
