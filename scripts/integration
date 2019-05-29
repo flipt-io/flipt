@@ -222,9 +222,13 @@ step_7_test_meta()
 }
 
 
-start()
+run()
 {
+    # kill any running instances
+    cat /tmp/flipt.pid | xargs kill || true
+
     ./bin/flipt --config ./config/local.yml &> /dev/null &
+
     echo $! > /tmp/flipt.pid
 
     sleep 5
@@ -247,15 +251,9 @@ start()
     step_5_test_evaluation
     step_6_test_delete
     step_7_test_meta
+
+    # kill any running instances
+    cat /tmp/flipt.pid | xargs kill || true
 }
 
-finish()
-{
-    _finish # shakedown trap
-    status=$?
-    cat /tmp/flipt.pid | xargs kill
-    exit $status
-}
-
-trap finish EXIT
-start
+run
