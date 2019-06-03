@@ -11,7 +11,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "buefy": "^0.7.0",
     "bulma": "^0.7.1",
     "lodash": "^4.17.11",
