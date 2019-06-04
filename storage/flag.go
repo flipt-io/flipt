@@ -169,8 +169,6 @@ func (s *FlagStorage) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 			if ierr.Code.Name() == pgConstraintUnique {
 				return nil, ErrInvalidf("flag %q is not unique", r.Key)
 			}
-		default:
-			s.logger.Infof("%+v", ierr)
 		}
 
 		return nil, err
@@ -251,7 +249,6 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 				} else if ierr.ExtendedCode == sqlite3.ErrConstraintUnique {
 					return nil, ErrInvalidf("variant %q is not unique", r.Key)
 				}
-				return nil, err
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
@@ -259,7 +256,6 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 			} else if ierr.Code.Name() == pgConstraintUnique {
 				return nil, ErrInvalidf("variant %q is not unique", r.Key)
 			}
-			return nil, err
 		}
 
 		return nil, err
