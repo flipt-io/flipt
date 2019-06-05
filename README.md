@@ -66,9 +66,29 @@ Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.dev/installation/) section.
 
-### Beta Software :warning:
+### :warning: Beta Software :warning:
 
 Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
+
+### Clients
+
+There are two ways to communicate with the Flipt server from your applications:
+
+1. GRPC
+1. REST API
+
+To figure out which best supports your use case and how to get client(s) in your prefered language, see the [Integration](https://flipt.dev/integration/) docs.
+
+#### Official Clients
+
+* [markphelps/flipt-grpc-go](https://github.com/markphelps/flipt-grpc-go) - Go GRPC client (Go)
+
+#### Third-Party Client Libraries
+
+Client libraries built by awesome people from the Open Source community:
+
+* [Camji55/Flipt-iOS-SDK](https://github.com/Camji55/Flipt-iOS-SDK) - Native iOS SDK for Flipt (Swift)
+* [christopherdiehl/rflipt](https://github.com/christopherdiehl/rflipt) - React components/example project to control React features backed by Flipt (React)
 
 ### Databases
 

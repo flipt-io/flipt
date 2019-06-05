@@ -67,4 +67,5 @@ This will load the API documentation which documents valid requests/responses to
 
 Client libraries built by awesome people from the Open Source community:
 
-* [Flipt-iOS-SDK](https://github.com/Camji55/Flipt-iOS-SDK)
+* [Camji55/Flipt-iOS-SDK](https://github.com/Camji55/Flipt-iOS-SDK) - Native iOS SDK for Flipt (Swift)
+* [christopherdiehl/rflipt](https://github.com/christopherdiehl/rflipt) - React components/example project to control React features backed by Flipt (React)
