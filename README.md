@@ -77,7 +77,7 @@ There are two ways to communicate with the Flipt server from your applications:
 1. GRPC
 1. REST API
 
-To figure out which best supports your use case and how to get client(s) in your prefered language, see the [Integration](https://flipt.dev/integration/) docs.
+To figure out which best supports your usecase and how to get client(s) in your preferred language, see the [Integration](https://flipt.dev/integration/) docs.
 
 #### Official Clients
 
