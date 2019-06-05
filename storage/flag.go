@@ -277,6 +277,18 @@ func (s *FlagStorage) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantR
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
 	if err != nil {
+		switch ierr := err.(type) {
+		case sqlite3.Error:
+			if ierr.Code == sqlite3.ErrConstraint {
+				if ierr.ExtendedCode == sqlite3.ErrConstraintUnique {
+					return nil, ErrInvalidf("variant %q is not unique", r.Key)
+				}
+			}
+		case *pq.Error:
+			if ierr.Code.Name() == pgConstraintUnique {
+				return nil, ErrInvalidf("variant %q is not unique", r.Key)
+			}
+		}
 		return nil, err
 	}
 
