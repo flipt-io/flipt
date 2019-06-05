@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* Variants are now only required to be unique per flag, not globally
+* Variant keys are now only required to be unique per flag, not globally
 
 ## [v0.5.0](https://github.com/markphelps/flipt/releases/tag/v0.5.0) - 2019-05-27
 
