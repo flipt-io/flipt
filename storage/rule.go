@@ -25,18 +25,17 @@ var _ RuleStore = &RuleStorage{}
 
 // RuleStorage is a SQL RuleStore
 type RuleStorage struct {
-	logger logrus.FieldLogger
-	*DB
+	logger  logrus.FieldLogger
+	builder sq.StatementBuilderType
+	db      *sql.DB
 }
 
 // NewRuleStorage creates a RuleStorage
-func NewRuleStorage(logger logrus.FieldLogger, db *DB) *RuleStorage {
+func NewRuleStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType, db *sql.DB) *RuleStorage {
 	return &RuleStorage{
-		logger: logger.WithFields(logrus.Fields{
-			"storage": "rule",
-			"db":      db.dbType,
-		}),
-		DB: db,
+		logger:  logger.WithField("storage", "rule"),
+		builder: builder,
+		db:      db,
 	}
 }
 

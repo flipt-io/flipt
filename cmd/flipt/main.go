@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"syscall"
 	"time"
@@ -21,6 +22,11 @@ import (
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/postgres"
+	"github.com/golang-migrate/migrate/database/sqlite3"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
@@ -51,6 +57,8 @@ const (
    |_|   |_|_| .__/ \__|
              |_|
   `
+
+	dbCurrentMigrationVersion uint = 1
 )
 
 var (
@@ -178,22 +186,45 @@ func execute() error {
 			logger := logger.WithField("server", "grpc")
 			logger.Infof("connecting to database: %s", cfg.Database.URL)
 
-			db, err := storage.Open(cfg.Database.URL)
+			db, driver, err := storage.Open(cfg.Database.URL)
 			if err != nil {
 				return errors.Wrap(err, "opening db")
 			}
 
 			defer db.Close()
 
-			if cfg.Database.AutoMigrate {
-				logger.Info("running migrations...")
+			var (
+				builder sq.StatementBuilderType
+				dr      database.Driver
+			)
 
-				if err := db.Migrate(cfg.Database.MigrationsPath); err != nil {
-					return errors.Wrap(err, "migrating database")
-				}
-
-				logger.Info("finished migrations")
+			switch driver {
+			case storage.SQLite:
+				builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+				dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+			case storage.Postgres:
+				builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
+				dr, err = postgres.WithInstance(db, &postgres.Config{})
 			}
+
+			if err != nil {
+				return errors.Wrapf(err, "getting db driver for: %s", driver)
+			}
+
+			f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
+
+			mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+			if err != nil {
+				return errors.Wrap(err, "opening migrations")
+			}
+
+			logger.Info("running migrations...")
+
+			if err := mm.Up(); err != nil {
+				return errors.Wrap(err, "migrating database")
+			}
+
+			logger.Info("finished migrations")
 
 			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 			if err != nil {
@@ -226,7 +257,7 @@ func execute() error {
 				serverOpts = append(serverOpts, server.WithCache(cache))
 			}
 
-			srv = server.New(logger, db, serverOpts...)
+			srv = server.New(logger, builder, db, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)
 
 			pb.RegisterFliptServer(grpcServer, srv)

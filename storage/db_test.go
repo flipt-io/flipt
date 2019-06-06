@@ -2,6 +2,7 @@ package storage
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -44,12 +45,26 @@ func run(m *testing.M) int {
 		dbURL = defaultTestDBURL
 	}
 
-	db, err := Open(dbURL)
+	db, driver, err := Open(dbURL)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	db.truncate()
+	var (
+		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
+		stmt   string
+	)
+
+	switch driver {
+	case SQLite:
+		stmt = "DELETE FROM %s"
+	case Postgres:
+		stmt = "TRUNCATE TABLE %s CASCADE"
+	}
+
+	for _, t := range tables {
+		_, _ = db.Exec(fmt.Sprintf(stmt, t))
+	}
 
 	defer func() {
 		if err := db.Close(); err != nil {

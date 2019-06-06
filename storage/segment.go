@@ -19,18 +19,15 @@ var _ SegmentStore = &SegmentStorage{}
 
 // SegmentStorage is a SQL SegmentStore
 type SegmentStorage struct {
-	logger logrus.FieldLogger
-	*DB
+	logger  logrus.FieldLogger
+	builder sq.StatementBuilderType
 }
 
 // NewSegmentStorage creates a SegmentStorage
-func NewSegmentStorage(logger logrus.FieldLogger, db *DB) *SegmentStorage {
+func NewSegmentStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *SegmentStorage {
 	return &SegmentStorage{
-		logger: logger.WithFields(logrus.Fields{
-			"storage": "segment",
-			"db":      db.dbType,
-		}),
-		DB: db,
+		logger:  logger.WithField("storage", "segment"),
+		builder: builder,
 	}
 }
 

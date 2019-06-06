@@ -35,7 +35,6 @@ type serverConfig struct {
 }
 
 type databaseConfig struct {
-	AutoMigrate    bool   `json:"autoMigrate"`
 	MigrationsPath string `json:"migrationsPath,omitempty"`
 	URL            string `json:"url,omitempty"`
 }
@@ -64,7 +63,6 @@ func defaultConfig() *config {
 		Database: databaseConfig{
 			URL:            "file:/var/opt/flipt/flipt.db",
 			MigrationsPath: "/etc/flipt/config/migrations",
-			AutoMigrate:    true,
 		},
 	}
 }
@@ -88,7 +86,6 @@ const (
 	// DB
 	cfgDBURL            = "db.url"
 	cfgDBMigrationsPath = "db.migrations.path"
-	cfgDBAutoMigrate    = "db.migrations.auto"
 )
 
 func configure() (*config, error) {
@@ -140,9 +137,6 @@ func configure() (*config, error) {
 	}
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
-	}
-	if viper.IsSet(cfgDBAutoMigrate) {
-		cfg.Database.AutoMigrate = viper.GetBool(cfgDBAutoMigrate)
 	}
 
 	return cfg, nil
