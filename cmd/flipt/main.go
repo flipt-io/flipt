@@ -218,6 +218,7 @@ func execute() error {
 				return errors.Wrap(err, "opening migrations")
 			}
 
+			// TODO: check if migrations need to be run and if so, require migrate flag is passed
 			logger.Info("running migrations...")
 
 			if err := mm.Up(); err != nil {

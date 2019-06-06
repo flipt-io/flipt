@@ -64,6 +64,7 @@ var (
 	}
 )
 
+// Driver represents a database driver type
 type Driver uint8
 
 func (d Driver) String() string {
@@ -72,7 +73,9 @@ func (d Driver) String() string {
 
 const (
 	_ Driver = iota
+	// SQLite ...
 	SQLite
+	// Postgres ...
 	Postgres
 )
 
