@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	flipt "github.com/markphelps/flipt/rpc"
@@ -245,6 +246,88 @@ func TestCreateVariant_FlagNotFound(t *testing.T) {
 	assert.EqualError(t, err, "flag \"foo\" not found")
 }
 
+func TestCreateVariant_DuplicateName(t *testing.T) {
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	// try to create another variant with the same name for this flag
+	_, err = flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	assert.EqualError(t, err, "variant \"foo\" is not unique")
+}
+
+func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
+	flag1, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         fmt.Sprintf("%s_1", t.Name()),
+		Name:        "foo_1",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag1)
+
+	variant1, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag1.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant1)
+
+	assert.NotZero(t, variant1.Id)
+	assert.Equal(t, flag1.Key, variant1.FlagKey)
+	assert.Equal(t, "foo", variant1.Key)
+
+	flag2, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         fmt.Sprintf("%s_2", t.Name()),
+		Name:        "foo_2",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag2)
+
+	variant2, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag2.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant2)
+
+	assert.NotZero(t, variant2.Id)
+	assert.Equal(t, flag2.Key, variant2.FlagKey)
+	assert.Equal(t, "foo", variant2.Key)
+}
+
 func TestUpdateVariant(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
@@ -258,7 +341,7 @@ func TestUpdateVariant(t *testing.T) {
 
 	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
-		Key:         t.Name(),
+		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
 	})
@@ -268,7 +351,7 @@ func TestUpdateVariant(t *testing.T) {
 
 	assert.NotZero(t, variant.Id)
 	assert.Equal(t, flag.Key, variant.FlagKey)
-	assert.Equal(t, t.Name(), variant.Key)
+	assert.Equal(t, "foo", variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
 	assert.NotZero(t, variant.CreatedAt)
@@ -323,6 +406,48 @@ func TestUpdateVariant_NotFound(t *testing.T) {
 	assert.EqualError(t, err, "variant \"foo\" not found")
 }
 
+func TestUpdateVariant_DuplicateName(t *testing.T) {
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant1, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "foo",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant1)
+
+	variant2, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         "bar",
+		Name:        "bar",
+		Description: "baz",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant2)
+
+	_, err = flagStore.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
+		Id:          variant2.Id,
+		FlagKey:     variant2.FlagKey,
+		Key:         variant1.Key,
+		Name:        variant2.Name,
+		Description: "foobar",
+	})
+
+	assert.EqualError(t, err, "variant \"foo\" is not unique")
+}
+
 func TestDeleteVariant(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
@@ -336,7 +461,7 @@ func TestDeleteVariant(t *testing.T) {
 
 	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
-		Key:         t.Name(),
+		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
 	})
@@ -371,7 +496,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 
 	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
-		Key:         t.Name(),
+		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
 	})

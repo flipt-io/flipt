@@ -167,7 +167,7 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		case *pq.Error:
-			if ierr.Code.Name() == pgForeignKeyConstraint {
+			if ierr.Code.Name() == pgConstraintForeignKey {
 				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		}
@@ -327,7 +327,7 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
 		case *pq.Error:
-			if ierr.Code.Name() == pgForeignKeyConstraint {
+			if ierr.Code.Name() == pgConstraintForeignKey {
 				return nil, ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}

@@ -39,8 +39,8 @@ func (t *timestamp) Value() (driver.Value, error) {
 }
 
 const (
-	pgForeignKeyConstraint = "foreign_key_violation"
-	pgUniqueConstraint     = "unique_violation"
+	pgConstraintForeignKey = "foreign_key_violation"
+	pgConstraintUnique     = "unique_violation"
 )
 
 // DB is an abstraction for a database

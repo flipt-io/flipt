@@ -18,6 +18,9 @@ Variants are options for flags. For example, if you have a flag `colorscheme` th
 
 ![Variants Example](assets/images/concepts/01_variants.png?raw=true "Variant Example")
 
+!!! note
+    Variant keys must be unique for a given flag.
+
 ## Segments
 
 Segments allow you to split your userbase or audience up into predefined slices. This is a powerful feature that enables targeting groups to determine if a flag or variant applies to them.
@@ -27,7 +30,7 @@ An example segment could be `new-users`.
 ![New Users Segment](assets/images/concepts/02_segments.png)
 
 !!! tip
-    Segments are global across the Flipt application, so they can be used with multiple flags.
+    Segments are global across the Flipt application so they can be used with multiple flags.
 
 ## Constraints
 
