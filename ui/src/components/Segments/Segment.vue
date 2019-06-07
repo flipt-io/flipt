@@ -322,7 +322,8 @@ const STRING_OPERATORS = {
   neq: "!=",
   empty: "IS EMPTY",
   notempty: "IS NOT EMPTY",
-  prefix: "HAS PREFIX"
+  prefix: "HAS PREFIX",
+  suffix: "HAS SUFFIX"
 };
 
 const NUMBER_OPERATORS = {

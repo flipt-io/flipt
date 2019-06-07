@@ -734,6 +734,7 @@ const (
 	opPresent    = "present"
 	opNotPresent = "notpresent"
 	opPrefix     = "prefix"
+	opSuffix     = "suffix"
 )
 
 var (
@@ -751,6 +752,7 @@ var (
 		opPresent:    {},
 		opNotPresent: {},
 		opPrefix:     {},
+		opSuffix:     {},
 	}
 	noValueOperators = map[string]struct{}{
 		opEmpty:      {},
@@ -764,6 +766,7 @@ var (
 		opEmpty:    {},
 		opNotEmpty: {},
 		opPrefix:   {},
+		opSuffix:   {},
 	}
 	numberOperators = map[string]struct{}{
 		opEQ:         {},
@@ -820,6 +823,8 @@ func matchesString(c constraint, v string) (bool, error) {
 		return len(strings.TrimSpace(v)) != 0, nil
 	case opPrefix:
 		return strings.HasPrefix(strings.TrimSpace(v), value), nil
+	case opSuffix:
+		return strings.HasSuffix(strings.TrimSpace(v), value), nil
 	}
 	return false, nil
 }
