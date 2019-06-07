@@ -17,5 +17,4 @@
 # db:
 #   url: file:/var/opt/flipt/flipt.db
 #   migrations:
-#     auto: true
 #     path: /etc/flipt/config/migrations

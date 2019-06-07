@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -140,4 +142,45 @@ func configure() (*config, error) {
 	}
 
 	return cfg, nil
+}
+
+func (c *config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	out, err := json.Marshal(c)
+	if err != nil {
+		logger.WithError(err).Error("getting config")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err = w.Write(out); err != nil {
+		logger.WithError(err).Error("writing response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+type info struct {
+	Version   string `json:"version,omitempty"`
+	Commit    string `json:"commit,omitempty"`
+	BuildDate string `json:"buildDate,omitempty"`
+	GoVersion string `json:"goVersion,omitempty"`
+}
+
+func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	out, err := json.Marshal(i)
+	if err != nil {
+		logger.WithError(err).Error("getting metadata")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err = w.Write(out); err != nil {
+		logger.WithError(err).Error("writing response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -58,11 +57,12 @@ const (
              |_|
   `
 
-	dbCurrentMigrationVersion uint = 1
+	dbMigrationVersion uint = 1
 )
 
 var (
 	logger = logrus.New()
+	cfg    *config
 
 	cfgPath      string
 	printVersion bool
@@ -74,18 +74,52 @@ var (
 )
 
 func main() {
-	rootCmd := &cobra.Command{
-		Use:   "flipt",
-		Short: "Flipt is a self contained feature flag solution",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := execute(); err != nil {
-				logger.Fatal(err)
-			}
-		},
+	if printVersion {
+		printVersionHeader()
+		return
 	}
 
+	var (
+		rootCmd = &cobra.Command{
+			Use:   "flipt",
+			Short: "Flipt is a self contained feature flag solution",
+			PersistentPreRun: func(cmd *cobra.Command, args []string) {
+				var err error
+
+				cfg, err = configure()
+				if err != nil {
+					logger.Fatal(err)
+				}
+
+				lvl, err := logrus.ParseLevel(cfg.LogLevel)
+				if err != nil {
+					logger.Fatal(err)
+				}
+
+				logger.SetLevel(lvl)
+			},
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := execute(); err != nil {
+					logger.Fatal(err)
+				}
+			},
+		}
+
+		migrateCmd = &cobra.Command{
+			Use:   "migrate",
+			Short: "Run pending database migrations",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := runMigrations(); err != nil {
+					logger.Fatal(err)
+				}
+			},
+		}
+	)
+
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
-	rootCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
+
+	rootCmd.AddCommand(migrateCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)
@@ -96,74 +130,46 @@ func printVersionHeader() {
 	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
-func infoHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		meta := struct {
-			Version   string `json:"version,omitempty"`
-			Commit    string `json:"commit,omitempty"`
-			BuildDate string `json:"buildDate,omitempty"`
-			GoVersion string `json:"goVersion,omitempty"`
-		}{
-			Version:   version,
-			Commit:    commit,
-			BuildDate: date,
-			GoVersion: goVersion,
-		}
-
-		out, err := json.Marshal(meta)
-		if err != nil {
-			logger.WithError(err).Error("getting metadata")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if _, err = w.Write(out); err != nil {
-			logger.WithError(err).Error("writing response")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
+func runMigrations() error {
+	db, driver, err := storage.Open(cfg.Database.URL)
+	if err != nil {
+		return errors.Wrap(err, "opening db")
 	}
-}
 
-func configHandler(cfg *config) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		out, err := json.Marshal(cfg)
-		if err != nil {
-			logger.WithError(err).Error("getting config")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	defer db.Close()
 
-		if _, err = w.Write(out); err != nil {
-			logger.WithError(err).Error("writing response")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	var dr database.Driver
 
-		w.WriteHeader(http.StatusOK)
+	switch driver {
+	case storage.SQLite:
+		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+	case storage.Postgres:
+		dr, err = postgres.WithInstance(db, &postgres.Config{})
 	}
+
+	if err != nil {
+		return errors.Wrapf(err, "getting db driver for: %s", driver)
+	}
+
+	f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
+
+	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+	if err != nil {
+		return errors.Wrap(err, "opening migrations")
+	}
+
+	logger.Info("running migrations...")
+
+	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	logger.Info("finished migrations")
+
+	return nil
 }
 
 func execute() error {
-	if printVersion {
-		printVersionHeader()
-		return nil
-	}
-
-	cfg, err := configure()
-	if err != nil {
-		return err
-	}
-
-	lvl, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return err
-	}
-
-	logger.SetLevel(lvl)
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -175,6 +181,13 @@ func execute() error {
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
+		info = info{
+			Version:   version,
+			Commit:    commit,
+			BuildDate: date,
+			GoVersion: goVersion,
+		}
+
 		grpcServer *grpc.Server
 		httpServer *http.Server
 	)
@@ -218,19 +231,28 @@ func execute() error {
 				return errors.Wrap(err, "opening migrations")
 			}
 
-			// TODO: check if migrations need to be run and if so, require migrate flag is passed
-			logger.Info("running migrations...")
-
-			if err := mm.Up(); err != nil {
-				return errors.Wrap(err, "migrating database")
+			v, _, err := mm.Version()
+			if err != nil && err != migrate.ErrNilVersion {
+				return errors.Wrap(err, "getting current migrations version")
 			}
 
-			logger.Info("finished migrations")
+			// if first run go ahead an run all migrations
+			// otherwise exit and inform user to run manually
+			if err == migrate.ErrNilVersion {
+				logger.Debug("no previous migrations run; running now")
+				if err := runMigrations(); err != nil {
+					return errors.Wrap(err, "running migrations")
+				}
+			} else if v < dbMigrationVersion {
+				logger.Debugf("migration versions: current=%d, want=%d", v, dbMigrationVersion)
+				return errors.New("migrations pending, please run `flipt migrate`")
+			}
 
 			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 			if err != nil {
 				return errors.Wrap(err, "creating grpc listener")
 			}
+
 			defer func() {
 				_ = lis.Close()
 			}()
@@ -293,8 +315,8 @@ func execute() error {
 
 			r.Route("/meta", func(r chi.Router) {
 				r.Use(middleware.SetHeader("Content-Type", "application/json"))
-				r.Handle("/info", infoHandler())
-				r.Handle("/config", configHandler(cfg))
+				r.Handle("/info", info)
+				r.Handle("/config", cfg)
 			})
 
 			if cfg.UI.Enabled {
@@ -332,6 +354,7 @@ func execute() error {
 	}
 
 	logger.Info("shutting down...")
+
 	cancel()
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)

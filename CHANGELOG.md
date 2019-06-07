@@ -5,9 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* `migrate` subcommand to run database migrations
+
 ### Changed
 
 * Variant keys are now only required to be unique per flag, not globally
+
+### Removed
+
+* `db.migrations.auto` config
 
 ## [v0.5.0](https://github.com/markphelps/flipt/releases/tag/v0.5.0) - 2019-05-27
 
