@@ -236,7 +236,7 @@ func execute() error {
 				return errors.Wrap(err, "getting current migrations version")
 			}
 
-			// if first run go ahead an run all migrations
+			// if first run, go ahead and run all migrations
 			// otherwise exit and inform user to run manually
 			if err == migrate.ErrNilVersion {
 				logger.Debug("no previous migrations run; running now")

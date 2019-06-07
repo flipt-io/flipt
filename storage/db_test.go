@@ -4,8 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/postgres"
+	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/sirupsen/logrus"
 
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -50,15 +56,30 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Fatal(err)
+		}
+	}()
+
 	var (
+		dr      database.Driver
+		builder sq.StatementBuilderType
+		stmt    string
+
 		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
-		stmt   string
 	)
 
 	switch driver {
 	case SQLite:
+		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+
 		stmt = "DELETE FROM %s"
 	case Postgres:
+		dr, err = postgres.WithInstance(db, &postgres.Config{})
+		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
+
 		stmt = "TRUNCATE TABLE %s CASCADE"
 	}
 
@@ -66,20 +87,26 @@ func run(m *testing.M) int {
 		_, _ = db.Exec(fmt.Sprintf(stmt, t))
 	}
 
-	defer func() {
-		if err := db.Close(); err != nil {
-			logger.Fatal(err)
-		}
-	}()
-
-	err = db.Migrate("../config/migrations/")
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	flagStore = NewFlagStorage(logger, db)
-	segmentStore = NewSegmentStorage(logger, db)
-	ruleStore = NewRuleStorage(logger, db)
+	f := filepath.Clean(fmt.Sprintf("../config/migrations/%s", driver))
+
+	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	logger.Info("running migrations...")
+
+	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
+		logger.Fatal(err)
+	}
+
+	flagStore = NewFlagStorage(logger, builder)
+	segmentStore = NewSegmentStorage(logger, builder)
+	ruleStore = NewRuleStorage(logger, builder, db)
 
 	return m.Run()
 }
