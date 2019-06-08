@@ -4,9 +4,9 @@ set -euo pipefail
 
 GORELEASER_VERSION=v0.106
 
-cd "$(dirname "$0")/.." || exit
+cd "$(dirname "$0")/../.." || exit
 
-echo "==> Building with goreleaser"
+echo "==> Building snapshot with goreleaser"
 
 docker run --rm --privileged \
   -v "$PWD":/flipt \
