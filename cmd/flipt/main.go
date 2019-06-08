@@ -74,30 +74,10 @@ var (
 )
 
 func main() {
-	if printVersion {
-		printVersionHeader()
-		return
-	}
-
 	var (
 		rootCmd = &cobra.Command{
 			Use:   "flipt",
 			Short: "Flipt is a self contained feature flag solution",
-			PersistentPreRun: func(cmd *cobra.Command, args []string) {
-				var err error
-
-				cfg, err = configure()
-				if err != nil {
-					logger.Fatal(err)
-				}
-
-				lvl, err := logrus.ParseLevel(cfg.LogLevel)
-				if err != nil {
-					logger.Fatal(err)
-				}
-
-				logger.SetLevel(lvl)
-			},
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := execute(); err != nil {
 					logger.Fatal(err)
@@ -116,9 +96,10 @@ func main() {
 		}
 	)
 
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
+	rootCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
 
+	migrateCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.AddCommand(migrateCmd)
 
 	if err := rootCmd.Execute(); err != nil {
@@ -127,10 +108,24 @@ func main() {
 }
 
 func printVersionHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n", banner, version, commit, date, goVersion)
 }
 
 func runMigrations() error {
+	var err error
+
+	cfg, err = configure()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	lvl, err := logrus.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	logger.SetLevel(lvl)
+
 	db, driver, err := storage.Open(cfg.Database.URL)
 	if err != nil {
 		return errors.Wrap(err, "opening db")
@@ -170,6 +165,25 @@ func runMigrations() error {
 }
 
 func execute() error {
+	if printVersion {
+		printVersionHeader()
+		return nil
+	}
+
+	var err error
+
+	cfg, err = configure()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	lvl, err := logrus.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	logger.SetLevel(lvl)
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
