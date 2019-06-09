@@ -27,7 +27,7 @@ Flipt uses Go 1.12 with [Go Modules](https://github.com/golang/go/wiki/Modules) 
 
 You can also easily get started with a development environment running in a VM using [Vagrant](https://www.vagrantup.com/) and [Virtual Box](https://www.virtualbox.org/wiki/Downloads).
 
-Once you have Vagrant and Virtual Box installed you can change into either the `build/ubuntu` or `build/centos` directories and run `vagrant up`.
+Once you have Vagrant and Virtual Box installed you can `cd` into either the `build/dev/ubuntu` or `build/dev/centos` directories and run `vagrant up`.
 
 This will provision a VM that installs the necessary dev dependencies and runs the Flipt test suite.
 

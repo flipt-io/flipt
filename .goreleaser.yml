@@ -34,7 +34,8 @@ changelog:
   skip: true
 
 dockers:
-  - binaries:
+  - dockerfile: build/release/Dockerfile
+    binaries:
       - flipt
     image_templates:
       - "markphelps/flipt:latest"
