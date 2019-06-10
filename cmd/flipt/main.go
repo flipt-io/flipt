@@ -258,8 +258,8 @@ func execute() error {
 					return errors.Wrap(err, "running migrations")
 				}
 			} else if v < dbMigrationVersion {
-				logger.Debugf("migration versions: current=%d, want=%d", v, dbMigrationVersion)
-				return errors.New("migrations pending, please run `flipt migrate`")
+				logger.Debugf("migrations pending: current=%d, want=%d", v, dbMigrationVersion)
+				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
 			}
 
 			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
