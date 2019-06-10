@@ -58,6 +58,14 @@ build: ## Build a local copy
 dev: ## Build and run in development mode
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml
 
+.PHONY: snapshot
+snapshot: ## Build a snapshot version
+	@./build/release/snapshot
+
+.PHONY: release
+release: ## Build and publish a release
+	@./build/release/release
+
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
