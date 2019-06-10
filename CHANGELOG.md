@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-* `db.migrations.auto` in config. DB migrations must be run explicitly now with `flipt migrate`
+* `db.migrations.auto` in config. DB migrations must now be run explicitly with the `flipt migrate` command
 
 ## [v0.5.0](https://github.com/markphelps/flipt/releases/tag/v0.5.0) - 2019-05-27
 
