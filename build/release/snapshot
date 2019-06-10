@@ -6,8 +6,6 @@ GORELEASER_VERSION=v0.106
 
 cd "$(dirname "$0")/../.." || exit
 
-echo "==> Building snapshot with goreleaser"
-
 docker run --rm --privileged \
   -v "$PWD":/flipt \
   -v /var/run/docker.sock:/var/run/docker.sock \

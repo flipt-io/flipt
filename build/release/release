@@ -9,8 +9,6 @@ cd "$(dirname "$0")/../.." || exit
 read -r -p "Are you sure? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 then
-  echo "==> Building and releasing with goreleaser"
-
   docker run --rm --privileged \
     -v "$PWD":/flipt \
     -v /var/run/docker.sock:/var/run/docker.sock \
@@ -20,6 +18,5 @@ then
     -e DOCKER_PASSWORD \
     goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist
 
-  echo "==> Publishing docs"
   mkdocs gh-deploy
 fi
