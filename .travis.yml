@@ -36,6 +36,9 @@ jobs:
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: verify
+    before_install:
+      - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version v1.16.0
+      - export PATH="$HOME/.yarn/bin:$PATH"
     script: make check_assets
 
   - stage: postgres
