@@ -9,7 +9,6 @@ RUN apk add --no-cache \
     postgresql-client \
     yarn
 
-ENV GO111MODULE=on
 WORKDIR /flipt
 
 COPY go.mod go.mod
@@ -38,4 +37,4 @@ COPY config /etc/flipt/config
 EXPOSE 8080
 EXPOSE 9000
 
-CMD ["/flipt"]
+CMD ["./flipt"]

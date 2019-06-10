@@ -1,6 +1,6 @@
 # https://goreleaser.com/docker/
 
-FROM alpine:latest
+FROM alpine:3.9
 LABEL maintainer="mark.aaron.phelps@gmail.com"
 
 RUN apk add --no-cache postgresql-client \
