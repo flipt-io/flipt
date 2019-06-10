@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -35,7 +37,6 @@ type serverConfig struct {
 }
 
 type databaseConfig struct {
-	AutoMigrate    bool   `json:"autoMigrate"`
 	MigrationsPath string `json:"migrationsPath,omitempty"`
 	URL            string `json:"url,omitempty"`
 }
@@ -64,7 +65,6 @@ func defaultConfig() *config {
 		Database: databaseConfig{
 			URL:            "file:/var/opt/flipt/flipt.db",
 			MigrationsPath: "/etc/flipt/config/migrations",
-			AutoMigrate:    true,
 		},
 	}
 }
@@ -88,7 +88,6 @@ const (
 	// DB
 	cfgDBURL            = "db.url"
 	cfgDBMigrationsPath = "db.migrations.path"
-	cfgDBAutoMigrate    = "db.migrations.auto"
 )
 
 func configure() (*config, error) {
@@ -141,9 +140,47 @@ func configure() (*config, error) {
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
 	}
-	if viper.IsSet(cfgDBAutoMigrate) {
-		cfg.Database.AutoMigrate = viper.GetBool(cfgDBAutoMigrate)
-	}
 
 	return cfg, nil
+}
+
+func (c *config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	out, err := json.Marshal(c)
+	if err != nil {
+		logger.WithError(err).Error("getting config")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err = w.Write(out); err != nil {
+		logger.WithError(err).Error("writing response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+type info struct {
+	Version   string `json:"version,omitempty"`
+	Commit    string `json:"commit,omitempty"`
+	BuildDate string `json:"buildDate,omitempty"`
+	GoVersion string `json:"goVersion,omitempty"`
+}
+
+func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	out, err := json.Marshal(i)
+	if err != nil {
+		logger.WithError(err).Error("getting metadata")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err = w.Write(out); err != nil {
+		logger.WithError(err).Error("writing response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

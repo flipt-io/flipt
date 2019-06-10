@@ -16,4 +16,4 @@ COPY config /etc/flipt/config
 EXPOSE 8080
 EXPOSE 9000
 
-CMD ["/flipt"]
+CMD ["./flipt"]

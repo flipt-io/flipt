@@ -39,10 +39,6 @@ This allows data to persist between Docker container restarts.
 
 After starting the container you can visit [http://0.0.0.0:8080](http://0.0.0.0:8080) to view the application.
 
-## Linux Packages
-
-**Flipt RPM/DEB binary packages coming soon!**
-
 ## Download from GitHub
 
 You can always download the latest release archive for your architecture from the [Releases](https://github.com/markphelps/flipt/releases) section on GitHub.

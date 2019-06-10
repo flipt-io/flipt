@@ -17,5 +17,4 @@ log:
 db:
   url: file:flipt.db
   migrations:
-    auto: true
     path: ./config/migrations

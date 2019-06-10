@@ -5,9 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* `migrate` subcommand to run database migrations
+
 ### Changed
 
-* Variant keys are now only required to be unique per flag, not globally
+* Variant keys are now only required to be unique per flag, not globally: [https://github.com/markphelps/flipt/issues/87](https://github.com/markphelps/flipt/issues/87)
+
+### Removed
+
+* `db.migrations.auto` in config. DB migrations must now be run explicitly with the `flipt migrate` command
 
 ## [v0.5.0](https://github.com/markphelps/flipt/releases/tag/v0.5.0) - 2019-05-27
 
@@ -25,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-* `db.name` config
+* `db.name` in config
 
 ## [v0.4.2](https://github.com/markphelps/flipt/releases/tag/v0.4.2) - 2019-05-12
 
@@ -46,11 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.4.0](https://github.com/markphelps/flipt/releases/tag/v0.4.0) - 2019-04-06
 
-### Fixed
-
-* Issue where updating a Constraint or Variant via the UI would not show the update values until a refresh: [https://github.com/markphelps/flipt/issues/43](https://github.com/markphelps/flipt/issues/43)
-* Potential IndexOutOfRange error if distribution percentage didn't add up to 100: [https://github.com/markphelps/flipt/issues/42](https://github.com/markphelps/flipt/issues/42)
-
 ### Added
 
 * `ui` config section to allow disabling the ui:
@@ -61,6 +64,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ```
 
 * `/health` HTTP healthcheck endpoint
+
+### Fixed
+
+* Issue where updating a Constraint or Variant via the UI would not show the update values until a refresh: [https://github.com/markphelps/flipt/issues/43](https://github.com/markphelps/flipt/issues/43)
+* Potential IndexOutOfRange error if distribution percentage didn't add up to 100: [https://github.com/markphelps/flipt/issues/42](https://github.com/markphelps/flipt/issues/42)
 
 ## [v0.3.0](https://github.com/markphelps/flipt/releases/tag/v0.3.0) - 2019-03-03
 

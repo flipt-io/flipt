@@ -17,5 +17,4 @@ log:
 db:
   url: postgres://postgres@localhost:5432/flipt?sslmode=disable
   migrations:
-    auto: true
     path: ./config/migrations

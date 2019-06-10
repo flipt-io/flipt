@@ -25,7 +25,6 @@ These properties are as follows:
 | server.http_port | The port on which to serve the Flipt REST API and UI | 8080 |
 | server.grpc_port | The port on which to serve the Flipt GRPC server | 9000 |
 | db.url | URL to access Flipt database | file:/var/opt/flipt/flipt.db |
-| db.migrations.auto | If database migrations are run on Flipt startup | true |
 | db.migrations.path | Where the Flipt database migration files are kept | /etc/flipt/config/migrations |
 
 ## Using Environment Variables
@@ -81,6 +80,27 @@ db:
 
 !!! note
     The Postgres database must exist and be up and running before Flipt will be able to connect to it.
+
+## Migrations
+
+From time to time the Flipt database must be updated with new schema. To accomplish this, Flipt includes a `migrate` command that will run any pending database migrations for you.
+
+If Flipt is started and there are pending migrations, you will see the following error in the console:
+
+```bash
+migrations pending, please run `flipt migrate`
+```
+
+If it is your first run of Flipt, all migrations will automatically be run before starting the Flipt server.
+
+!!! warning
+    You should backup your database before running `flipt migrate` to ensure that no data is lost if an error occurs during migration.
+
+If running Flipt via Docker, you can run the migrations in a seperate container before starting Flipt by running:
+
+```bash
+docker run -it markphelps/flipt:latest /bin/sh -c './flipt migrate'
+```
 
 ## Caching
 
