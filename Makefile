@@ -55,7 +55,7 @@ proto: ## Build protobufs
 .PHONY: assets
 assets: ## Build the ui and run go generate
 	@echo ">> generating assets"
-	@cd ./ui; yarn install --ignore-engines && yarn run build; cd ..
+	@cd ./ui; yarn install --ignore-platform --ignore-engines && yarn run build; cd ..
 	go generate ./...
 
 .PHONY: check_assets
