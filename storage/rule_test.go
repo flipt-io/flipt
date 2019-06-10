@@ -1180,6 +1180,44 @@ func Test_matchesString(t *testing.T) {
 			},
 			value: "bar",
 		},
+		{
+			name: "prefix",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "prefix",
+				Value:    "ba",
+			},
+			value:     "bar",
+			wantMatch: true,
+		},
+		{
+			name: "negative prefix",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "prefix",
+				Value:    "bar",
+			},
+			value: "nope",
+		},
+		{
+			name: "suffix",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "suffix",
+				Value:    "ar",
+			},
+			value:     "bar",
+			wantMatch: true,
+		},
+		{
+			name: "negative suffix",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "suffix",
+				Value:    "bar",
+			},
+			value: "nope",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
