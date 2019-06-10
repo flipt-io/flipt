@@ -1,25 +1,29 @@
 #!/bin/bash
 set -euxo pipefail
 
+NODE_VERSION='12.4.0'
+YARN_VERSION='1.16.0'
 GO_VERSION='1.12.4'
 PROTOC_VERSION='3.6.1'
 
 echo '=== Installing necessary system libraries to build'
 
-# add yarn repo to keyring
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-
 sudo apt-get update -y
 sudo apt install -y --no-install-recommends \
     build-essential \
     ca-certificates \
-    nodejs \
     npm \
     openssl \
     postgresql-client \
-    unzip \
-    yarn
+    unzip
+
+# install node and yarn
+sudo npm cache clean -f
+sudo npm install -g n
+sudo n "$NODE_VERSION"
+
+curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version "$YARN_VERSION"
+export PATH="$HOME/.yarn/bin:$PATH"
 
 # install go and setup GOPATH if not installed
 if [ ! -d /usr/local/go ]; then

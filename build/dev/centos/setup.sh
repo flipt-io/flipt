@@ -1,23 +1,29 @@
 #!/bin/bash
 set -euxo pipefail
 
+NODE_VERSION='12.4.0'
+YARN_VERSION='1.16.0'
 GO_VERSION='1.12.4'
 PROTOC_VERSION='3.6.1'
 
 echo '=== Installing necessary system libraries to build'
 
-# add yarn repo to keyring
-curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-
 sudo yum update -y
 sudo yum install -y \
+    epel-release
     gcc gcc-c++ git make \
-    nodejs \
     postgresql \
+    npm \
     unzip \
-    wget \
-    yarn
+    wget
+
+# install node and yarn
+sudo npm cache clean -f
+sudo npm install -g n
+sudo n "$NODE_VERSION"
+
+curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version "$YARN_VERSION"
+export PATH="$HOME/.yarn/bin:$PATH"
 
 # install go and setup GOPATH if not installed
 if [ ! -d /usr/local/go ]; then
