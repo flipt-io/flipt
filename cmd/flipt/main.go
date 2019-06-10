@@ -116,12 +116,12 @@ func runMigrations() error {
 
 	cfg, err = configure()
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	logger.SetLevel(lvl)
@@ -174,12 +174,12 @@ func execute() error {
 
 	cfg, err = configure()
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	logger.SetLevel(lvl)
