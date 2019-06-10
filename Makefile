@@ -62,9 +62,10 @@ assets: ## Build the ui and run go generate
 check_assets: assets
 	@echo ">> checking that assets are up-to-date"
 	@if ! (cd ./ui && git diff --exit-code); then \
-		echo "Run 'make assets' and commit the changes to fix the error."; \
+		echo "run 'make assets' and commit the changes to fix the error."; \
 		exit 1; \
 	fi
+	echo "ok"
 
 .PHONY: build
 build: ## Build a local copy
