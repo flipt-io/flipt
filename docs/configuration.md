@@ -88,7 +88,7 @@ From time to time the Flipt database must be updated with new schema. To accompl
 If Flipt is started and there are pending migrations, you will see the following error in the console:
 
 ```bash
-migrations pending, please run `flipt migrate`
+migrations pending, please backup your database and run `flipt migrate`
 ```
 
 If it is your first run of Flipt, all migrations will automatically be run before starting the Flipt server.
