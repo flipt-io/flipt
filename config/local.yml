@@ -4,6 +4,10 @@ log:
 # ui:
 #   enabled: true
 
+# cors:
+#   enabled: false
+#   allowed_origins: "*"
+
 # cache:
 #   memory:
 #     enabled: false

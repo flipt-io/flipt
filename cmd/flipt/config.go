@@ -12,6 +12,7 @@ import (
 type config struct {
 	LogLevel string         `json:"logLevel,omitempty"`
 	UI       uiConfig       `json:"ui,omitempty"`
+	Cors     corsConfig     `json:"cors,omitempty"`
 	Cache    cacheConfig    `json:"cache,omitempty"`
 	Server   serverConfig   `json:"server,omitempty"`
 	Database databaseConfig `json:"database,omitempty"`
@@ -19,6 +20,11 @@ type config struct {
 
 type uiConfig struct {
 	Enabled bool `json:"enabled"`
+}
+
+type corsConfig struct {
+	Enabled        bool     `json:"enabled"`
+	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
 }
 
 type memoryCacheConfig struct {
@@ -49,6 +55,11 @@ func defaultConfig() *config {
 			Enabled: true,
 		},
 
+		Cors: corsConfig{
+			Enabled:        false,
+			AllowedOrigins: []string{"*"},
+		},
+
 		Cache: cacheConfig{
 			Memory: memoryCacheConfig{
 				Enabled: false,
@@ -75,6 +86,10 @@ const (
 
 	// UI
 	cfgUIEnabled = "ui.enabled"
+
+	// CORS
+	cfgCorsEnabled        = "cors.enabled"
+	cfgCorsAllowedOrigins = "cors.allowed_origins"
 
 	// Cache
 	cfgCacheMemoryEnabled = "cache.memory.enabled"
@@ -111,6 +126,15 @@ func configure() (*config, error) {
 	// UI
 	if viper.IsSet(cfgUIEnabled) {
 		cfg.UI.Enabled = viper.GetBool(cfgUIEnabled)
+	}
+
+	// CORS
+	if viper.IsSet(cfgCorsEnabled) {
+		cfg.Cors.Enabled = viper.GetBool(cfgCorsEnabled)
+
+		if viper.IsSet(cfgCorsAllowedOrigins) {
+			cfg.Cors.AllowedOrigins = viper.GetStringSlice(cfgCorsAllowedOrigins)
+		}
 	}
 
 	// Cache
