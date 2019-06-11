@@ -19,6 +19,8 @@ These properties are as follows:
 |---|---|---|
 | log.level | Level at which messages are logged (trace, debug, info, warn, error, fatal, panic) | info |
 | ui.enabled | Enable UI and API docs | true |
+| cors.enabled | Enable CORS support | false |
+| cors.allowed_origins | Sets Access-Control-Allow-Origin header on server | "*" (all domains) |
 | cache.memory.enabled | Enable in-memory caching | false |
 | cache.memory.items | Number of items in-memory cache can hold | 500 |
 | server.host | The host address on which to serve the Flipt application | 0.0.0.0 |

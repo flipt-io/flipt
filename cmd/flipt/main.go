@@ -330,6 +330,7 @@ func execute() error {
 				})
 
 				r.Use(cors.Handler)
+				logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
 			}
 
 			r.Use(middleware.RequestID)
