@@ -1,1 +1,24 @@
 #!/usr/bin/env bats
+
+@test "check that we have a Flipt binary" {
+    run stat ./bin/flipt
+}
+
+@test "unknown command results in error" {
+    run ./bin/flipt foo
+    [ "$status" -eq 1 ]
+    [ "${lines[0]}" = "Error: unknown command \"foo\" for \"flipt\"" ]
+    [ "${lines[1]}" = "Run 'flipt --help' for usage." ]
+}
+
+@test "help prints usage" {
+    run ./bin/flipt --help
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "Flipt is a self contained feature flag solution" ]
+    [ "${lines[1]}" = "Usage:" ]
+    [ "${lines[2]}" = "  flipt [flags]" ]
+    [ "${lines[3]}" = "  flipt [command]" ]
+    [ "${lines[4]}" = "Available Commands:" ]
+    [ "${lines[5]}" = "  help        Help about any command" ]
+    [ "${lines[6]}" = "  migrate     Run pending database migrations" ]
+}
