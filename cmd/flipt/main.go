@@ -69,7 +69,7 @@ var (
 
 	version   = "dev"
 	commit    = ""
-	date      = time.Now().Format(time.RFC3339)
+	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
 )
 
