@@ -39,7 +39,9 @@ jobs:
 
   - stage: integration
     before_script: make build
-    script: ./scripts/integration
+    script:
+      - ./test/cli
+      - ./test/integration
 
 notifications:
   email: false

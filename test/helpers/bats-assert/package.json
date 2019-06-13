@@ -1,0 +1,8 @@
+{
+  "name": "bats-assert",
+  "version": "0.3.0",
+  "private": true,
+  "peerDependencies": {
+    "bats-support": "git+https://github.com/ztombol/bats-support.git#v0.2.0"
+  }
+}
