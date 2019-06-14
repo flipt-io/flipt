@@ -221,8 +221,8 @@ step_7_test_meta()
 
 run()
 {
-    # kill any running instances
-    cat /tmp/flipt.pid | xargs kill || true
+    trap "exit" INT TERM ERR
+    trap "cleanup" exit
 
     # run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
@@ -251,9 +251,13 @@ run()
     step_5_test_evaluation
     step_6_test_delete
     step_7_test_meta
+}
 
+cleanup ()
+{
     # kill any running instances
-    cat /tmp/flipt.pid | xargs kill || true
+    cat /tmp/flipt.pid | xargs kill
+    rm /tmp/flipt.pid || true
 }
 
 run
