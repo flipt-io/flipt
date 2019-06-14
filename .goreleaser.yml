@@ -22,7 +22,7 @@ archives:
       - LICENSE
       - README.md
       - CHANGELOG.md
-      - ./config/migrations/*
+      - ./config/migrations/*/**
       - ./config/default.yml
 
 checksum:
