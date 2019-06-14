@@ -17,6 +17,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
@@ -316,6 +317,20 @@ func execute() error {
 
 			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts); err != nil {
 				return errors.Wrap(err, "connecting to grpc server")
+			}
+
+			if cfg.Cors.Enabled {
+				cors := cors.New(cors.Options{
+					AllowedOrigins:   cfg.Cors.AllowedOrigins,
+					AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+					AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+					ExposedHeaders:   []string{"Link"},
+					AllowCredentials: true,
+					MaxAge:           300,
+				})
+
+				r.Use(cors.Handler)
+				logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
 			}
 
 			r.Use(middleware.RequestID)
