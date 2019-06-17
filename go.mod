@@ -17,7 +17,7 @@ require (
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
-	github.com/grpc-ecosystem/grpc-gateway v1.9.0
+	github.com/grpc-ecosystem/grpc-gateway v1.9.2
 	github.com/hashicorp/golang-lru v0.5.1
 	github.com/lib/pq v1.1.1
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
