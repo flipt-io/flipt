@@ -21,6 +21,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang-migrate/migrate"
@@ -338,7 +339,7 @@ func execute() error {
 			r.Use(middleware.Compress(gzip.DefaultCompression))
 			r.Use(middleware.Heartbeat("/health"))
 			r.Use(middleware.Recoverer)
-
+			r.Mount("/metrics", promhttp.Handler())
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
 
