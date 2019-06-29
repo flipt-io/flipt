@@ -15,14 +15,16 @@ import (
 const flagCachePrefix = "flag:"
 
 var (
-	flagCacheHitTotal = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "flagCacheHitTotal",
-		Help: "The total number of cache hits",
+	cacheHitTotal = promauto.NewCounter(prometheus.CounterOpts{
+		Name:        "cacheHitTotal",
+		ConstLabels: prometheus.Labels{"type": "flag", "cache": "memory"},
+		Help:        "The total number of cache hits",
 	})
 
-	flagCacheMissTotal = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "flagCacheMissTotal",
-		Help: "The total number of cache misses",
+	cacheMissTotal = promauto.NewCounter(prometheus.CounterOpts{
+		Name:        "cacheMissTotal",
+		ConstLabels: prometheus.Labels{"type": "flag", "cache": "memory"},
+		Help:        "The total number of cache misses",
 	})
 )
 var _ storage.FlagStore = &FlagCache{}
@@ -51,7 +53,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 	// check if flag exists in cache
 	if data, ok := f.cache.Get(key); ok {
 		f.logger.Debugf("cache hit: %q", key)
-		flagCacheHitTotal.Inc()
+		cacheHitTotal.Inc()
 		bytes, bok := data.([]byte)
 		if !bok {
 			// not bytes, bad cache
@@ -80,7 +82,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 
 	_ = f.cache.Add(flagCacheKey(r.Key), data)
 	f.logger.Debugf("cache miss; added: %q", key)
-	flagCacheMissTotal.Inc()
+	cacheMissTotal.Inc()
 	return flag, nil
 }
 
