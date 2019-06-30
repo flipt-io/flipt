@@ -2,31 +2,14 @@ package cache
 
 import (
 	"context"
-
 	"github.com/golang/protobuf/proto"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/sirupsen/logrus"
 )
 
 const flagCachePrefix = "flag:"
-
-var (
-	cacheHitTotal = promauto.NewCounter(prometheus.CounterOpts{
-		Name:        "cacheHitTotal",
-		ConstLabels: prometheus.Labels{"type": "flag", "cache": "memory"},
-		Help:        "The total number of cache hits",
-	})
-
-	cacheMissTotal = promauto.NewCounter(prometheus.CounterOpts{
-		Name:        "cacheMissTotal",
-		ConstLabels: prometheus.Labels{"type": "flag", "cache": "memory"},
-		Help:        "The total number of cache misses",
-	})
-)
 var _ storage.FlagStore = &FlagCache{}
 
 // FlagCache wraps a FlagStore and provides caching
@@ -53,7 +36,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 	// check if flag exists in cache
 	if data, ok := f.cache.Get(key); ok {
 		f.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.Inc()
+		CacheHitTotal.WithLabelValues("flag","memory").Inc()
 		bytes, bok := data.([]byte)
 		if !bok {
 			// not bytes, bad cache
@@ -82,7 +65,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 
 	_ = f.cache.Add(flagCacheKey(r.Key), data)
 	f.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.Inc()
+	CacheMissTotal.WithLabelValues("flag","memory").Inc()
 	return flag, nil
 }
 
