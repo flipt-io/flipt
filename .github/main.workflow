@@ -25,4 +25,5 @@ workflow "Run Snyk On Push" {
 action "clarkio/snyk-cli-action@master" {
   uses = "clarkio/snyk-cli-action@master"
   secrets = ["SNYK_TOKEN"]
+  args = "test"
 }
