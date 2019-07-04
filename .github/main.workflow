@@ -1,8 +1,7 @@
-workflow "On Push" {
+workflow "Publish Docs On Tag" {
   resolves = [
     "Publish Docs",
     "On Tag",
-    "clarkio/snyk-cli-action@master",
   ]
   on = "push"
 }
@@ -16,6 +15,11 @@ action "Publish Docs" {
   uses = "./actions/publish-docs"
   needs = ["On Tag"]
   secrets = ["GITHUB_TOKEN"]
+}
+
+workflow "Run Snyk On Push" {
+  resolves = ["clarkio/snyk-cli-action@master"]
+  on = "push"
 }
 
 action "clarkio/snyk-cli-action@master" {
