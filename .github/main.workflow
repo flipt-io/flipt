@@ -1,4 +1,4 @@
-workflow "Publish Docs on Release" {
+workflow "Publish Docs on Tag" {
   on = "push"
   resolves = [
     "Publish Docs",
