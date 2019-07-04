@@ -17,11 +17,6 @@ action "Publish Docs" {
   secrets = ["GITHUB_TOKEN"]
 }
 
-workflow "Run Snyk On Push" {
-  resolves = ["clarkio/snyk-cli-action@master"]
-  on = "push"
-}
-
 action "clarkio/snyk-cli-action@master" {
   uses = "clarkio/snyk-cli-action@master"
   secrets = ["SNYK_TOKEN"]
