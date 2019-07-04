@@ -10,4 +10,6 @@ LABEL "com.github.actions.color"="purple"
 
 RUN pip install mkdocs mkdocs-material pygments
 
+COPY entrypoint.sh /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
