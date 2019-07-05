@@ -47,6 +47,7 @@ import (
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
 const (
@@ -298,10 +299,8 @@ func execute() error {
 
 			srv = server.New(logger, builder, db, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)
-
 			pb.RegisterFliptServer(grpcServer, srv)
-
-			logger.Infof("grpc server running at: %s:%d", cfg.Server.Host, cfg.Server.GRPCPort)
+			grpc_prometheus.Register(grpcServer)
 			return grpcServer.Serve(lis)
 		})
 	}
@@ -333,7 +332,6 @@ func execute() error {
 				r.Use(cors.Handler)
 				logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
 			}
-			r.Use(Instrument)
 			r.Use(middleware.RequestID)
 			r.Use(middleware.RealIP)
 			r.Use(middleware.Compress(gzip.DefaultCompression))

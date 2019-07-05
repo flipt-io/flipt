@@ -4,14 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-
-	"github.com/go-chi/chi/middleware"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 type config struct {
@@ -51,38 +46,6 @@ type databaseConfig struct {
 	MigrationsPath string `json:"migrationsPath,omitempty"`
 	URL            string `json:"url,omitempty"`
 }
-
-var (
-	requestCounter = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "api_requests_total",
-			Help: "A counter for requests to the wrapped handler.",
-		},
-		[]string{"code", "method"},
-	)
-
-	// duration is partitioned by the HTTP method and handler. It uses custom
-	// buckets based on the expected request duration.
-	requestDuration = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "request_duration_seconds",
-			Help:    "A histogram of latencies for requests.",
-			Buckets: []float64{.25, .5, 1, 2.5, 5, 10},
-		},
-		[]string{"status", "method", "path"},
-	)
-
-	// responseSize has no labels, making it a zero-dimensional
-	// ObserverVec.
-	responseSize = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "response_size_bytes",
-			Help:    "A histogram of response sizes for requests.",
-			Buckets: []float64{200, 500, 900, 1500},
-		},
-		[]string{"status", "method"},
-	)
-)
 
 func defaultConfig() *config {
 	return &config{
@@ -244,20 +207,4 @@ func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-/*Instrument provides is a middleware that provides the following prometheus metrics
-* api_requests_total
-* request_duration_seconds
-* response_size_bytes
- */
-func Instrument(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		responseWriterWrapper := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-		next.ServeHTTP(w, r)
-		requestDuration.WithLabelValues(http.StatusText(responseWriterWrapper.Status()), r.Method, r.URL.Path).Observe(float64(time.Since(start).Seconds()))
-		requestCounter.WithLabelValues(http.StatusText(responseWriterWrapper.Status()), r.Method).Inc()
-		responseSize.WithLabelValues(http.StatusText(responseWriterWrapper.Status()), r.Method).Observe(float64(responseWriterWrapper.BytesWritten()))
-	})
 }
