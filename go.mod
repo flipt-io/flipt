@@ -19,8 +19,9 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway v1.9.2
-	github.com/hashicorp/golang-lru v0.5.1
+	github.com/grpc-ecosystem/grpc-gateway v1.9.3
+
+  github.com/hashicorp/golang-lru v0.5.1
 	github.com/lib/pq v1.1.1
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
 	github.com/mattn/go-colorable v0.0.9 // indirect
