@@ -12,13 +12,16 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-chi/cors v1.0.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.9.3
-	github.com/hashicorp/golang-lru v0.5.1
+
+  github.com/hashicorp/golang-lru v0.5.1
 	github.com/lib/pq v1.1.1
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
 	github.com/mattn/go-colorable v0.0.9 // indirect
@@ -27,6 +30,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/pkg/errors v0.8.1
+	github.com/prometheus/client_golang v1.0.0
 	github.com/shurcooL/httpfs v0.0.0-20181222201310-74dc9339e414 // indirect
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.4.2

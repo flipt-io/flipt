@@ -21,6 +21,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang-migrate/migrate"
@@ -46,6 +47,7 @@ import (
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
 const (
@@ -297,10 +299,8 @@ func execute() error {
 
 			srv = server.New(logger, builder, db, serverOpts...)
 			grpcServer = grpc.NewServer(grpcOpts...)
-
 			pb.RegisterFliptServer(grpcServer, srv)
-
-			logger.Infof("grpc server running at: %s:%d", cfg.Server.Host, cfg.Server.GRPCPort)
+			grpc_prometheus.Register(grpcServer)
 			return grpcServer.Serve(lis)
 		})
 	}
@@ -332,13 +332,12 @@ func execute() error {
 				r.Use(cors.Handler)
 				logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
 			}
-
 			r.Use(middleware.RequestID)
 			r.Use(middleware.RealIP)
 			r.Use(middleware.Compress(gzip.DefaultCompression))
 			r.Use(middleware.Heartbeat("/health"))
 			r.Use(middleware.Recoverer)
-
+			r.Mount("/metrics", promhttp.Handler())
 			r.Mount("/api/v1", api)
 			r.Mount("/debug", middleware.Profiler())
 
