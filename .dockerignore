@@ -10,9 +10,9 @@
 .github/
 .vagrant/
 app/
-bazel-*/
 bin/
 build/
+dev/
 dist/
 Dockerfile
 docs/
