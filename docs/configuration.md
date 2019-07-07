@@ -123,8 +123,28 @@ Work is planned to add caching support to rule evaluation soon.
 !!! warning
     Enabling in-memory caching when running more that one instance of Flipt is not advised as it will lead to unpredictable results.
 
+## Metrics
+
+Flipt exposes [Prometheus](https://prometheus.io/) metrics at the `/metrics` HTTP endpoint. To see which metrics are currently supported, point your browser to `FLIPT_HOST/metrics` (ex: `localhost:8080/metrics`).
+
+You should see a bunch of metrics being recorded such as:
+
+```text
+flipt_cache_hit_total{cache="memory",type="flag"} 1
+flipt_cache_miss_total{cache="memory",type="flag"} 1
+...
+go_gc_duration_seconds{quantile="0"} 8.641e-06
+go_gc_duration_seconds{quantile="0.25"} 2.499e-05
+go_gc_duration_seconds{quantile="0.5"} 3.5359e-05
+go_gc_duration_seconds{quantile="0.75"} 6.6594e-05
+go_gc_duration_seconds{quantile="1"} 0.00026651
+go_gc_duration_seconds_sum 0.000402094
+go_gc_duration_seconds_count 5
+...
+```
+
 ## Authentication
 
-Flipt currently has no built in authentication, authorization or encryption as Flipt was designed to work inside your trusted architecture and not be exposed publicly.
+There is currently no built in authentication, authorization or encryption as Flipt was designed to work inside your trusted architecture and not be exposed publicly.
 
 If you do wish to expose the Flipt dashboard and REST API publicly using HTTP Basic Authentication, you can do so by using a reverse proxy. There is an [example](https://github.com/markphelps/flipt/tree/master/examples/auth) provided in the GitHub repository showing how this could work.

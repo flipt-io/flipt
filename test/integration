@@ -218,6 +218,11 @@ step_7_test_meta()
         contains "\"database\""
 }
 
+step_8_test_metrics()
+{
+    shakedown GET "$flipt_host/metrics"
+        status 200
+}
 
 run()
 {
@@ -251,6 +256,7 @@ run()
     step_5_test_evaluation
     step_6_test_delete
     step_7_test_meta
+    step_8_test_metrics
 }
 
 cleanup ()
