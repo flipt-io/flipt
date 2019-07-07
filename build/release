@@ -4,7 +4,7 @@ set -euo pipefail
 
 GORELEASER_VERSION=v0.106
 
-cd "$(dirname "$0")/../.." || exit
+cd "$(dirname "$0")/.." || exit
 
 read -r -p "Are you sure? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
