@@ -61,6 +61,8 @@ func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *
 		return
 	}
 
+	errorsTotal.Inc()
+
 	switch err.(type) {
 	case storage.ErrNotFound:
 		err = status.Error(codes.NotFound, err.Error())
