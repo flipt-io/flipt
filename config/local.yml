@@ -15,7 +15,7 @@ log:
 
 # server:
 #   host: 0.0.0.0
-#   http_port: 8000
+#   http_port: 8080
 #   grpc_port: 9000
 
 db:

@@ -283,6 +283,7 @@ func execute() error {
 			grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 				grpc_ctxtags.UnaryServerInterceptor(),
 				grpc_logrus.UnaryServerInterceptor(logger),
+				grpc_prometheus.UnaryServerInterceptor,
 				srv.ErrorUnaryInterceptor,
 				grpc_recovery.UnaryServerInterceptor(),
 			))

@@ -12,14 +12,16 @@ var ErrCacheCorrupt = errors.New("cache corrupted")
 
 // Prometheus variables used throughout the cache package
 var (
-	CacheHitTotal = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "cache_hit_total",
-		Help: "The total number of cache hits",
+	cacheHitTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "flipt",
+		Name:      "cache_hit_total",
+		Help:      "The total number of cache hits",
 	}, []string{"type", "cache"})
 
-	CacheMissTotal = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "cache_miss_total",
-		Help: "The total number of cache misses",
+	cacheMissTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "flipt",
+		Name:      "cache_miss_total",
+		Help:      "The total number of cache misses",
 	}, []string{"type", "cache"})
 )
 
