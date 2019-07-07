@@ -16,5 +16,5 @@ Vagrant.configure("2") do |config|
   # guest extensions, install this plugin to do so:
   #
   # vagrant plugin install vagrant-vbguest
-  config.vm.synced_folder "../../..", "/flipt"
+  config.vm.synced_folder "../..", "/flipt"
 end

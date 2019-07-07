@@ -17,6 +17,4 @@ then
     -e DOCKER_USERNAME \
     -e DOCKER_PASSWORD \
     goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist
-
-  mkdocs gh-deploy
 fi
