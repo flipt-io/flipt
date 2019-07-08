@@ -1,5 +1,4 @@
 .envrc
-*.bazel
 *.db
 *.log
 *.md
@@ -9,6 +8,7 @@
 
 .github/
 .vagrant/
+actions/
 app/
 bin/
 build/
@@ -21,4 +21,3 @@ LICENSE
 mkdocs.yml
 node_modules/
 site/
-WORKSPACE
