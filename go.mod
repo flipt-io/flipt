@@ -12,6 +12,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-chi/cors v1.0.0
+	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
