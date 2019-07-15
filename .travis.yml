@@ -16,6 +16,7 @@ services:
   - postgresql
 
 stages:
+  - lint-vue
   - unit
   - name: postgres
     if: branch = master OR type = pull_request
@@ -24,6 +25,14 @@ stages:
 
 jobs:
   include:
+  - stage: lint-vue
+    before_script:
+      - curl -o- -L https://yarnpkg.com/install.sh | bash
+      - cd ui
+    script:
+      - yarn
+      - yarn lint
+
   - stage: unit
     before_script:
       - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
