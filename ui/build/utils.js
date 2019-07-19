@@ -34,7 +34,7 @@ exports.cssLoaders = function (options) {
     options: {
       hmr: process.env.NODE_ENV === 'development',
     },
-  },
+  };
   // generate loader string to be used with extract text plugin
   function generateLoaders(loader, loaderOptions) {
     const loaders = options.usePostCSS ? [cssLoader, postcssLoader] : [cssLoader]

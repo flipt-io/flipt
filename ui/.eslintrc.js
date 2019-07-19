@@ -36,6 +36,13 @@ module.exports = {
     'vue/require-default-prop': 'off',
     'vue/component-name-in-template-casing': ['error', 'PascalCase', {
       'ignores': ['draggable']
-    }]
+    }],
+    "no-async-promise-executor": "off",
+    "no-misleading-character-class": "off",
+    "no-prototype-builtins": "off",
+    "no-shadow-restricted-names": "off",
+    "no-useless-catch": "off",
+    "no-with": "off",
+    "require-atomic-updates": "off",
   }
 }
