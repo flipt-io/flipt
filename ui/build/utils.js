@@ -2,7 +2,6 @@
 const path = require('path')
 const config = require('../config')
 const packageConfig = require('../package.json')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 exports.assetsPath = function (_path) {
   const assetsSubDirectory = process.env.NODE_ENV === 'production'
@@ -29,12 +28,6 @@ exports.cssLoaders = function (options) {
     }
   }
 
-  const miniCSSLoader = {
-    loader: MiniCssExtractPlugin.loader,
-    options: {
-      hmr: process.env.NODE_ENV === 'development',
-    },
-  };
   // generate loader string to be used with extract text plugin
   function generateLoaders(loader, loaderOptions) {
     const loaders = options.usePostCSS ? [cssLoader, postcssLoader] : [cssLoader]
@@ -48,13 +41,11 @@ exports.cssLoaders = function (options) {
       })
     }
 
-    // Extract CSS when that option is specified
-    // (which is the case during production build)
-    if (options.extract) {
-      loaders.push(miniCSSLoader);
-    } else {
+    // If extract is used, then rely on miniCSS being set in production config
+    if (!options.extract) {
       return ['vue-style-loader'].concat(loaders)
     }
+    return loaders;
   }
 
   // https://vue-loader.vuejs.org/en/configurations/extract-css.html
@@ -81,7 +72,6 @@ exports.styleLoaders = function (options) {
       use: loader
     })
   }
-
   return output
 }
 

@@ -39,11 +39,17 @@ const webpackConfig = merge(baseWebpackConfig, {
     }
   },
   module: {
-    rules: utils.styleLoaders({
-      sourceMap: config.build.productionSourceMap,
-      extract: true,
-      usePostCSS: true
-    })
+    rules: [
+        ...utils.styleLoaders({
+        sourceMap: config.build.productionSourceMap,
+        extract: true,
+        usePostCSS: true 
+      }),
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      }
+  ]
   },
   devtool: config.build.productionSourceMap ? config.build.devtool : false,
   output: {
