@@ -18,7 +18,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     splitChunks: {
       chunks: 'async',
       minSize: 30000,
-      maxSize: 0,
+      maxSize: 100000,
       minChunks: 1,
       maxAsyncRequests: 5,
       maxInitialRequests: 3,
@@ -30,6 +30,12 @@ const webpackConfig = merge(baseWebpackConfig, {
           test: /[\\/]node_modules[\\/]/,
           priority: -10
         },
+        styles: {
+          name: 'styles',
+          test: /\.css$/,
+          chunks: 'all',
+          enforce: true,
+        },
         default: {
           minChunks: 2,
           priority: -20,
@@ -40,16 +46,21 @@ const webpackConfig = merge(baseWebpackConfig, {
   },
   module: {
     rules: [
-        ...utils.styleLoaders({
-        sourceMap: config.build.productionSourceMap,
-        extract: true,
-        usePostCSS: true 
-      }),
       {
-        test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
-      }
-  ]
+        test: /\.(sa|sc|c)ss$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              hmr: process.env.NODE_ENV === 'development',
+            },
+          },
+          'css-loader',
+          'postcss-loader',
+          'sass-loader',
+        ],
+      },
+    ]
   },
   devtool: config.build.productionSourceMap ? config.build.devtool : false,
   output: {
@@ -137,5 +148,4 @@ if (config.build.bundleAnalyzerReport) {
   const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
   webpackConfig.plugins.push(new BundleAnalyzerPlugin())
 }
-
 module.exports = webpackConfig
