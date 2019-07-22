@@ -19,7 +19,7 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway v1.9.3
+	github.com/grpc-ecosystem/grpc-gateway v1.9.4
 
 	github.com/hashicorp/golang-lru v0.5.1
 	github.com/lib/pq v1.1.1
