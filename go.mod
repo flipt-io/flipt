@@ -26,7 +26,7 @@ require (
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
-	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/pkg/errors v0.8.1
