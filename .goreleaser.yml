@@ -35,7 +35,7 @@ changelog:
   skip: true
 
 dockers:
-  - dockerfile: build/release/Dockerfile
+  - dockerfile: build/Dockerfile
     binaries:
       - flipt
     image_templates:

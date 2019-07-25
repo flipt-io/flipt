@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.7.1](https://github.com/markphelps/flipt/releases/tag/v0.7.1) - 2019-07-25
+
+### Added
+
+* Exposed errors metrics via Prometheus
+
+### Changed
+
+* Updated JS dev dependencies
+* Updated grpc/protobuf versions
+* Updated pq version
+* Updated go-sqlite3 version
+
 ## [v0.7.0](https://github.com/markphelps/flipt/releases/tag/v0.7.0) - 2019-07-07
 
 ### Added
