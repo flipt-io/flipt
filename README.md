@@ -27,7 +27,7 @@ This means that you can deploy Flipt within your existing infrastructure and not
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
-## Flipt Features
+## Features
 
 Flipt enables you to add [feature flag](https://martinfowler.com/bliki/FeatureToggle.html) support to your existing applications, with a simple, single UI and API.
 
@@ -92,11 +92,11 @@ Client libraries built by awesome people from the Open Source community:
 
 ### Databases
 
-Flipt supports **both** [SQLite](https://www.sqlite.org/index.html) and [Postgres](https://www.postgresql.org/) databases as of `v0.5.0`.
+Flipt supports **both** [SQLite](https://www.sqlite.org/index.html) and [Postgres](https://www.postgresql.org/) databases as of [v0.5.0](https://github.com/markphelps/flipt/releases/tag/v0.5.0).
 
 SQLite is enabled by default for simplicity, however you should use Postgres if you intend to run multiple copies of Flipt in a high availability configuration.
 
-See the [configuration](https://flipt.dev/configuration/#databases) documentation for more information.
+See the [Configuration](https://flipt.dev/configuration/#databases) documentation for more information.
 
 ## Licensing
 
