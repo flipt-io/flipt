@@ -31,12 +31,12 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		},
 		{
 			name:     "server invalid field",
-			err:      InvalidFieldError("bar", "is wrong"),
+			err:      invalidFieldError("bar", "is wrong"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
 			name:     "server empty field",
-			err:      EmptyFieldError("bar"),
+			err:      emptyFieldError("bar"),
 			wantCode: codes.InvalidArgument,
 		},
 		{

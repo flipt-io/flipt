@@ -17,7 +17,7 @@ func (s *Server) GetRule(ctx context.Context, req *flipt.GetRuleRequest) (*flipt
 // ListRules lists all rules
 func (s *Server) ListRules(ctx context.Context, req *flipt.ListRuleRequest) (*flipt.RuleList, error) {
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 
 	rules, err := s.RuleStore.ListRules(ctx, req)
@@ -37,13 +37,13 @@ func (s *Server) ListRules(ctx context.Context, req *flipt.ListRuleRequest) (*fl
 // CreateRule creates a rule
 func (s *Server) CreateRule(ctx context.Context, req *flipt.CreateRuleRequest) (*flipt.Rule, error) {
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if req.SegmentKey == "" {
-		return nil, EmptyFieldError("segmentKey")
+		return nil, emptyFieldError("segmentKey")
 	}
 	if req.Rank <= 0 {
-		return nil, InvalidFieldError("rank", "must be greater than 0")
+		return nil, invalidFieldError("rank", "must be greater than 0")
 	}
 	return s.RuleStore.CreateRule(ctx, req)
 }
@@ -51,13 +51,13 @@ func (s *Server) CreateRule(ctx context.Context, req *flipt.CreateRuleRequest) (
 // UpdateRule updates an existing rule
 func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	if req.Id == "" {
-		return nil, EmptyFieldError("id")
+		return nil, emptyFieldError("id")
 	}
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if req.SegmentKey == "" {
-		return nil, EmptyFieldError("segmentKey")
+		return nil, emptyFieldError("segmentKey")
 	}
 	return s.RuleStore.UpdateRule(ctx, req)
 }
@@ -65,10 +65,10 @@ func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (
 // DeleteRule deletes a rule
 func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (*empty.Empty, error) {
 	if req.Id == "" {
-		return nil, EmptyFieldError("id")
+		return nil, emptyFieldError("id")
 	}
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 
 	if err := s.RuleStore.DeleteRule(ctx, req); err != nil {
@@ -81,10 +81,10 @@ func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (
 // OrderRules orders rules
 func (s *Server) OrderRules(ctx context.Context, req *flipt.OrderRulesRequest) (*empty.Empty, error) {
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if len(req.RuleIds) < 2 {
-		return nil, InvalidFieldError("ruleIds", "must contain atleast 2 elements")
+		return nil, invalidFieldError("ruleIds", "must contain atleast 2 elements")
 	}
 
 	if err := s.RuleStore.OrderRules(ctx, req); err != nil {
@@ -97,19 +97,19 @@ func (s *Server) OrderRules(ctx context.Context, req *flipt.OrderRulesRequest) (
 // CreateDistribution creates a distribution
 func (s *Server) CreateDistribution(ctx context.Context, req *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if req.RuleId == "" {
-		return nil, EmptyFieldError("ruleId")
+		return nil, emptyFieldError("ruleId")
 	}
 	if req.VariantId == "" {
-		return nil, EmptyFieldError("variantId")
+		return nil, emptyFieldError("variantId")
 	}
 	if req.Rollout < 0 {
-		return nil, InvalidFieldError("rollout", "must be greater than or equal to '0'")
+		return nil, invalidFieldError("rollout", "must be greater than or equal to '0'")
 	}
 	if req.Rollout > 100 {
-		return nil, InvalidFieldError("rollout", "must be less than or equal to '100'")
+		return nil, invalidFieldError("rollout", "must be less than or equal to '100'")
 	}
 	return s.RuleStore.CreateDistribution(ctx, req)
 }
@@ -117,22 +117,22 @@ func (s *Server) CreateDistribution(ctx context.Context, req *flipt.CreateDistri
 // UpdateDistribution updates an existing distribution
 func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	if req.Id == "" {
-		return nil, EmptyFieldError("id")
+		return nil, emptyFieldError("id")
 	}
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if req.RuleId == "" {
-		return nil, EmptyFieldError("ruleId")
+		return nil, emptyFieldError("ruleId")
 	}
 	if req.VariantId == "" {
-		return nil, EmptyFieldError("variantId")
+		return nil, emptyFieldError("variantId")
 	}
 	if req.Rollout < 0 {
-		return nil, InvalidFieldError("rollout", "must be greater than or equal to '0'")
+		return nil, invalidFieldError("rollout", "must be greater than or equal to '0'")
 	}
 	if req.Rollout > 100 {
-		return nil, InvalidFieldError("rollout", "must be less than or equal to '100'")
+		return nil, invalidFieldError("rollout", "must be less than or equal to '100'")
 	}
 	return s.RuleStore.UpdateDistribution(ctx, req)
 }
@@ -140,16 +140,16 @@ func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistri
 // DeleteDistribution deletes a distribution
 func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistributionRequest) (*empty.Empty, error) {
 	if req.Id == "" {
-		return nil, EmptyFieldError("id")
+		return nil, emptyFieldError("id")
 	}
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if req.RuleId == "" {
-		return nil, EmptyFieldError("ruleId")
+		return nil, emptyFieldError("ruleId")
 	}
 	if req.VariantId == "" {
-		return nil, EmptyFieldError("variantId")
+		return nil, emptyFieldError("variantId")
 	}
 
 	if err := s.RuleStore.DeleteDistribution(ctx, req); err != nil {
@@ -162,10 +162,10 @@ func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistri
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	if req.FlagKey == "" {
-		return nil, EmptyFieldError("flagKey")
+		return nil, emptyFieldError("flagKey")
 	}
 	if req.EntityId == "" {
-		return nil, EmptyFieldError("entityId")
+		return nil, emptyFieldError("entityId")
 	}
 
 	startTime := time.Now()

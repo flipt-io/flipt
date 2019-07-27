@@ -144,7 +144,7 @@ func TestListRules(t *testing.T) {
 				}, nil
 			},
 			rules: nil,
-			e:     EmptyFieldError("flagKey"),
+			e:     emptyFieldError("flagKey"),
 		},
 		{
 			name: "error test",
@@ -229,7 +229,7 @@ func TestCreateRule(t *testing.T) {
 				}, nil
 			},
 			rule: nil,
-			e:    EmptyFieldError("flagKey"),
+			e:    emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -251,7 +251,7 @@ func TestCreateRule(t *testing.T) {
 				}, nil
 			},
 			rule: nil,
-			e:    EmptyFieldError("segmentKey"),
+			e:    emptyFieldError("segmentKey"),
 		},
 		{
 			name: "rank_lesser_than_0",
@@ -273,7 +273,7 @@ func TestCreateRule(t *testing.T) {
 				}, nil
 			},
 			rule: nil,
-			e:    InvalidFieldError("rank", "must be greater than 0"),
+			e:    invalidFieldError("rank", "must be greater than 0"),
 		},
 	}
 
@@ -346,7 +346,7 @@ func TestUpdateRule(t *testing.T) {
 				}, nil
 			},
 			rule: nil,
-			e:    EmptyFieldError("id"),
+			e:    emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -368,7 +368,7 @@ func TestUpdateRule(t *testing.T) {
 				}, nil
 			},
 			rule: nil,
-			e:    EmptyFieldError("flagKey"),
+			e:    emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -390,7 +390,7 @@ func TestUpdateRule(t *testing.T) {
 				}, nil
 			},
 			rule: nil,
-			e:    EmptyFieldError("segmentKey"),
+			e:    emptyFieldError("segmentKey"),
 		},
 	}
 
@@ -439,7 +439,7 @@ func TestDeleteRule(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("id"),
+			e:     emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -451,7 +451,7 @@ func TestDeleteRule(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("flagKey"),
+			e:     emptyFieldError("flagKey"),
 		},
 		{
 			name: "error test",
@@ -512,7 +512,7 @@ func TestOrderRules(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("flagKey"),
+			e:     emptyFieldError("flagKey"),
 		},
 		{
 			name: "ruleIds length lesser than 2",
@@ -525,7 +525,7 @@ func TestOrderRules(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     InvalidFieldError("ruleIds", "must contain atleast 2 elements"),
+			e:     invalidFieldError("ruleIds", "must contain atleast 2 elements"),
 		},
 		{
 			name: "error test",
@@ -599,7 +599,7 @@ func TestCreateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("flagKey"),
+			e:    emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyRuleID",
@@ -616,7 +616,7 @@ func TestCreateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("ruleId"),
+			e:    emptyFieldError("ruleId"),
 		},
 		{
 			name: "emptyVariantID",
@@ -633,7 +633,7 @@ func TestCreateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("variantId"),
+			e:    emptyFieldError("variantId"),
 		},
 		{
 			name: "rollout is less than 0",
@@ -650,7 +650,7 @@ func TestCreateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    InvalidFieldError("rollout", "must be greater than or equal to '0'"),
+			e:    invalidFieldError("rollout", "must be greater than or equal to '0'"),
 		},
 		{
 			name: "rollout is more than 100",
@@ -667,7 +667,7 @@ func TestCreateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    InvalidFieldError("rollout", "must be less than or equal to '100'"),
+			e:    invalidFieldError("rollout", "must be less than or equal to '100'"),
 		},
 	}
 
@@ -734,7 +734,7 @@ func TestUpdateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("id"),
+			e:    emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -753,7 +753,7 @@ func TestUpdateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("flagKey"),
+			e:    emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyRuleID",
@@ -772,7 +772,7 @@ func TestUpdateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("ruleId"),
+			e:    emptyFieldError("ruleId"),
 		},
 		{
 			name: "emptyVariantID",
@@ -791,7 +791,7 @@ func TestUpdateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    EmptyFieldError("variantId"),
+			e:    emptyFieldError("variantId"),
 		},
 		{
 			name: "rollout is lesser than 0",
@@ -810,7 +810,7 @@ func TestUpdateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    InvalidFieldError("rollout", "must be greater than or equal to '0'"),
+			e:    invalidFieldError("rollout", "must be greater than or equal to '0'"),
 		},
 		{
 			name: "rollout is greater than 100",
@@ -829,7 +829,7 @@ func TestUpdateDistribution(t *testing.T) {
 				}, nil
 			},
 			dist: nil,
-			e:    InvalidFieldError("rollout", "must be less than or equal to '100'"),
+			e:    invalidFieldError("rollout", "must be less than or equal to '100'"),
 		},
 	}
 
@@ -884,7 +884,7 @@ func TestDeleteDistribution(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("id"),
+			e:     emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -899,7 +899,7 @@ func TestDeleteDistribution(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("flagKey"),
+			e:     emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyRuleID",
@@ -914,7 +914,7 @@ func TestDeleteDistribution(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("ruleId"),
+			e:     emptyFieldError("ruleId"),
 		},
 		{
 			name: "emptyVariantID",
@@ -929,7 +929,7 @@ func TestDeleteDistribution(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("variantId"),
+			e:     emptyFieldError("variantId"),
 		},
 		{
 			name: "error test",
@@ -1004,7 +1004,7 @@ func TestEvaluate(t *testing.T) {
 				}, nil
 			},
 			eval: nil,
-			e:    EmptyFieldError("flagKey"),
+			e:    emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyEntityId",
@@ -1020,7 +1020,7 @@ func TestEvaluate(t *testing.T) {
 				}, nil
 			},
 			eval: nil,
-			e:    EmptyFieldError("entityId"),
+			e:    emptyFieldError("entityId"),
 		},
 		{
 			name: "error test",

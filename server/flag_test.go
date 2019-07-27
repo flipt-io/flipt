@@ -92,7 +92,7 @@ func TestGetFlag(t *testing.T) {
 				}, nil
 			},
 			flag: nil,
-			e:    EmptyFieldError("key"),
+			e:    emptyFieldError("key"),
 		},
 	}
 
@@ -223,7 +223,7 @@ func TestCreateFlag(t *testing.T) {
 				}, nil
 			},
 			flag: nil,
-			e:    EmptyFieldError("key"),
+			e:    emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -248,7 +248,7 @@ func TestCreateFlag(t *testing.T) {
 				}, nil
 			},
 			flag: nil,
-			e:    EmptyFieldError("name"),
+			e:    emptyFieldError("name"),
 		},
 	}
 
@@ -328,7 +328,7 @@ func TestUpdateFlag(t *testing.T) {
 				}, nil
 			},
 			flag: nil,
-			e:    EmptyFieldError("key"),
+			e:    emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -353,7 +353,7 @@ func TestUpdateFlag(t *testing.T) {
 				}, nil
 			},
 			flag: nil,
-			e:    EmptyFieldError("name"),
+			e:    emptyFieldError("name"),
 		},
 	}
 
@@ -402,7 +402,7 @@ func TestDeleteFlag(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("key"),
+			e:     emptyFieldError("key"),
 		},
 		{
 			name: "error",
@@ -494,7 +494,7 @@ func TestCreateVariant(t *testing.T) {
 				}, nil
 			},
 			variant: nil,
-			e:       EmptyFieldError("flagKey"),
+			e:       emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyKey",
@@ -519,7 +519,7 @@ func TestCreateVariant(t *testing.T) {
 				}, nil
 			},
 			variant: nil,
-			e:       EmptyFieldError("key"),
+			e:       emptyFieldError("key"),
 		},
 	}
 
@@ -594,7 +594,7 @@ func TestUpdateVariant(t *testing.T) {
 				}, nil
 			},
 			variant: nil,
-			e:       EmptyFieldError("id"),
+			e:       emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -616,7 +616,7 @@ func TestUpdateVariant(t *testing.T) {
 				}, nil
 			},
 			variant: nil,
-			e:       EmptyFieldError("flagKey"),
+			e:       emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyKey",
@@ -638,7 +638,7 @@ func TestUpdateVariant(t *testing.T) {
 				}, nil
 			},
 			variant: nil,
-			e:       EmptyFieldError("key"),
+			e:       emptyFieldError("key"),
 		},
 	}
 
@@ -689,7 +689,7 @@ func TestDeleteVariant(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("id"),
+			e:     emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -702,7 +702,7 @@ func TestDeleteVariant(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("flagKey"),
+			e:     emptyFieldError("flagKey"),
 		},
 		{
 			name: "error",

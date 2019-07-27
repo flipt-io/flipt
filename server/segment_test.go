@@ -92,7 +92,7 @@ func TestGetSegment(t *testing.T) {
 				}, nil
 			},
 			segment: nil,
-			e:       EmptyFieldError("key"),
+			e:       emptyFieldError("key"),
 		},
 	}
 
@@ -216,7 +216,7 @@ func TestCreateSegment(t *testing.T) {
 				}, nil
 			},
 			segment: nil,
-			e:       EmptyFieldError("key"),
+			e:       emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -238,7 +238,7 @@ func TestCreateSegment(t *testing.T) {
 				}, nil
 			},
 			segment: nil,
-			e:       EmptyFieldError("name"),
+			e:       emptyFieldError("name"),
 		},
 	}
 
@@ -311,7 +311,7 @@ func TestUpdateSegment(t *testing.T) {
 				}, nil
 			},
 			segment: nil,
-			e:       EmptyFieldError("key"),
+			e:       emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -333,7 +333,7 @@ func TestUpdateSegment(t *testing.T) {
 				}, nil
 			},
 			segment: nil,
-			e:       EmptyFieldError("name"),
+			e:       emptyFieldError("name"),
 		},
 	}
 
@@ -380,7 +380,7 @@ func TestDeleteSegment(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("key"),
+			e:     emptyFieldError("key"),
 		},
 		{
 			name: "error test",
@@ -478,7 +478,7 @@ func TestCreateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("segmentKey"),
+			e:          emptyFieldError("segmentKey"),
 		},
 		{
 			name: "emptyProperty",
@@ -506,7 +506,7 @@ func TestCreateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("property"),
+			e:          emptyFieldError("property"),
 		},
 		{
 			name: "emptyOperator",
@@ -534,7 +534,7 @@ func TestCreateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("operator"),
+			e:          emptyFieldError("operator"),
 		},
 	}
 
@@ -628,7 +628,7 @@ func TestUpdateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("id"),
+			e:          emptyFieldError("id"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -659,7 +659,7 @@ func TestUpdateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("segmentKey"),
+			e:          emptyFieldError("segmentKey"),
 		},
 		{
 			name: "emptyProperty",
@@ -690,7 +690,7 @@ func TestUpdateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("property"),
+			e:          emptyFieldError("property"),
 		},
 		{
 			name: "emptyOperator",
@@ -721,7 +721,7 @@ func TestUpdateConstraint(t *testing.T) {
 				}, nil
 			},
 			constraint: nil,
-			e:          EmptyFieldError("operator"),
+			e:          emptyFieldError("operator"),
 		},
 	}
 
@@ -770,7 +770,7 @@ func TestDeleteConstraint(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("id"),
+			e:     emptyFieldError("id"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -782,7 +782,7 @@ func TestDeleteConstraint(t *testing.T) {
 				return nil
 			},
 			empty: nil,
-			e:     EmptyFieldError("segmentKey"),
+			e:     emptyFieldError("segmentKey"),
 		},
 		{
 			name: "error test",
