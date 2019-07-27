@@ -15,8 +15,12 @@
 
 # server:
 #   host: 0.0.0.0
+#   protocol: http
 #   http_port: 8080
+#   https_port: 443
 #   grpc_port: 9000
+#   cert_file:
+#   cert_key:
 
 # db:
 #   url: file:/var/opt/flipt/flipt.db
