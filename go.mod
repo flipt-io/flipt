@@ -12,7 +12,6 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-chi/cors v1.0.0
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
@@ -40,7 +39,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190516110030-61b9204099cb // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135
 	google.golang.org/appengine v1.6.0 // indirect
