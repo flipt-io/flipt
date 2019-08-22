@@ -233,7 +233,6 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			flag:    nil,
 			wantErr: emptyFieldError("key"),
 		},
 		{
@@ -258,7 +257,6 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			flag:    nil,
 			wantErr: emptyFieldError("name"),
 		},
 	}
@@ -422,7 +420,6 @@ func TestDeleteFlag(t *testing.T) {
 
 				return nil
 			},
-			empty:   nil,
 			wantErr: emptyFieldError("key"),
 		},
 		{
@@ -434,7 +431,6 @@ func TestDeleteFlag(t *testing.T) {
 
 				return errors.New("test error")
 			},
-			empty:   nil,
 			wantErr: errors.New("test error"),
 		},
 	}
