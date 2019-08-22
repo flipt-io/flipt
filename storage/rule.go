@@ -595,7 +595,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 
 			switch c.Type {
 			case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-				match, err = matchesString(c, v)
+				match = matchesString(c, v)
 			case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
 				match, err = matchesNumber(c, v)
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
@@ -809,23 +809,23 @@ func validate(c constraint) error {
 	return nil
 }
 
-func matchesString(c constraint, v string) (bool, error) {
+func matchesString(c constraint, v string) bool {
 	value := c.Value
 	switch c.Operator {
 	case opEQ:
-		return value == v, nil
+		return value == v
 	case opNEQ:
-		return value != v, nil
+		return value != v
 	case opEmpty:
-		return len(strings.TrimSpace(v)) == 0, nil
+		return len(strings.TrimSpace(v)) == 0
 	case opNotEmpty:
-		return len(strings.TrimSpace(v)) != 0, nil
+		return len(strings.TrimSpace(v)) != 0
 	case opPrefix:
-		return strings.HasPrefix(strings.TrimSpace(v), value), nil
+		return strings.HasPrefix(strings.TrimSpace(v), value)
 	case opSuffix:
-		return strings.HasSuffix(strings.TrimSpace(v), value), nil
+		return strings.HasSuffix(strings.TrimSpace(v), value)
 	}
-	return false, nil
+	return false
 }
 
 func matchesNumber(c constraint, v string) (bool, error) {

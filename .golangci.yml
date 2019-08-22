@@ -36,6 +36,9 @@ linters:
     - structcheck
     - varcheck
   enable-all: false
+  presets:
+    - bugs
+    - unused
 
 issues:
   # List of regexps of issue texts to exclude, empty list by default.

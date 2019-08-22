@@ -62,7 +62,7 @@ func TestGetSegment(t *testing.T) {
 		req     *flipt.GetSegmentRequest
 		f       func(context.Context, *flipt.GetSegmentRequest) (*flipt.Segment, error)
 		segment *flipt.Segment
-		e       error
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -78,7 +78,6 @@ func TestGetSegment(t *testing.T) {
 			segment: &flipt.Segment{
 				Key: "key",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyKey",
@@ -91,22 +90,28 @@ func TestGetSegment(t *testing.T) {
 					Key: "",
 				}, nil
 			},
-			segment: nil,
-			e:       emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			segment = tt.segment
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					getSegmentFn: tt.f,
+					getSegmentFn: f,
 				},
 			}
 
-			segment, err := s.GetSegment(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.segment, segment)
+			got, err := s.GetSegment(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, segment, got)
 		})
 	}
 }
@@ -117,7 +122,7 @@ func TestListSegments(t *testing.T) {
 		req      *flipt.ListSegmentRequest
 		f        func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
 		segments *flipt.SegmentList
-		e        error
+		wantErr  error
 	}{
 		{
 			name: "ok",
@@ -134,7 +139,6 @@ func TestListSegments(t *testing.T) {
 					},
 				},
 			},
-			e: nil,
 		},
 		{
 			name: "error test",
@@ -142,22 +146,28 @@ func TestListSegments(t *testing.T) {
 			f: func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
 				return nil, errors.New("error test")
 			},
-			segments: nil,
-			e:        errors.New("error test"),
+			wantErr: errors.New("error test"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f        = tt.f
+			req      = tt.req
+			segments = tt.segments
+			wantErr  = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					listSegmentsFn: tt.f,
+					listSegmentsFn: f,
 				},
 			}
 
-			segments, err := s.ListSegments(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.segments, segments)
+			got, err := s.ListSegments(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, segments, got)
 		})
 	}
 }
@@ -168,7 +178,7 @@ func TestCreateSegment(t *testing.T) {
 		req     *flipt.CreateSegmentRequest
 		f       func(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 		segment *flipt.Segment
-		e       error
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -194,7 +204,6 @@ func TestCreateSegment(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyKey",
@@ -215,8 +224,7 @@ func TestCreateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			segment: nil,
-			e:       emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -237,22 +245,28 @@ func TestCreateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			segment: nil,
-			e:       emptyFieldError("name"),
+			wantErr: emptyFieldError("name"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			segment = tt.segment
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					createSegmentFn: tt.f,
+					createSegmentFn: f,
 				},
 			}
 
-			segment, err := s.CreateSegment(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.segment, segment)
+			got, err := s.CreateSegment(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, segment, got)
 		})
 	}
 }
@@ -263,7 +277,7 @@ func TestUpdateSegment(t *testing.T) {
 		req     *flipt.UpdateSegmentRequest
 		f       func(context.Context, *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 		segment *flipt.Segment
-		e       error
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -289,7 +303,6 @@ func TestUpdateSegment(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyKey",
@@ -310,8 +323,7 @@ func TestUpdateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			segment: nil,
-			e:       emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -332,33 +344,39 @@ func TestUpdateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			segment: nil,
-			e:       emptyFieldError("name"),
+			wantErr: emptyFieldError("name"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			segment = tt.segment
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					updateSegmentFn: tt.f,
+					updateSegmentFn: f,
 				},
 			}
 
-			segment, err := s.UpdateSegment(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.segment, segment)
+			got, err := s.UpdateSegment(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, segment, got)
 		})
 	}
 }
 
 func TestDeleteSegment(t *testing.T) {
 	tests := []struct {
-		name  string
-		req   *flipt.DeleteSegmentRequest
-		f     func(context.Context, *flipt.DeleteSegmentRequest) error
-		empty *empty.Empty
-		e     error
+		name    string
+		req     *flipt.DeleteSegmentRequest
+		f       func(context.Context, *flipt.DeleteSegmentRequest) error
+		empty   *empty.Empty
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -369,7 +387,6 @@ func TestDeleteSegment(t *testing.T) {
 				return nil
 			},
 			empty: &empty.Empty{},
-			e:     nil,
 		},
 		{
 			name: "emptyKey",
@@ -379,8 +396,7 @@ func TestDeleteSegment(t *testing.T) {
 				assert.Equal(t, "", r.Key)
 				return nil
 			},
-			empty: nil,
-			e:     emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "error test",
@@ -390,22 +406,28 @@ func TestDeleteSegment(t *testing.T) {
 				assert.Equal(t, "key", r.Key)
 				return errors.New("error test")
 			},
-			empty: nil,
-			e:     errors.New("error test"),
+			wantErr: errors.New("error test"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			empty   = tt.empty
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					deleteSegmentFn: tt.f,
+					deleteSegmentFn: f,
 				},
 			}
 
-			resp, err := s.DeleteSegment(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.empty, resp)
+			got, err := s.DeleteSegment(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, empty, got)
 		})
 	}
 }
@@ -416,7 +438,7 @@ func TestCreateConstraint(t *testing.T) {
 		req        *flipt.CreateConstraintRequest
 		f          func(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
 		constraint *flipt.Constraint
-		e          error
+		wantErr    error
 	}{
 		{
 			name: "ok",
@@ -450,7 +472,6 @@ func TestCreateConstraint(t *testing.T) {
 				Operator:   "EQ",
 				Value:      "bar",
 			},
-			e: nil,
 		},
 		{
 			name: "emptySegmentKey",
@@ -477,8 +498,7 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("segmentKey"),
+			wantErr: emptyFieldError("segmentKey"),
 		},
 		{
 			name: "emptyProperty",
@@ -505,8 +525,7 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("property"),
+			wantErr: emptyFieldError("property"),
 		},
 		{
 			name: "emptyOperator",
@@ -533,22 +552,28 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("operator"),
+			wantErr: emptyFieldError("operator"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f          = tt.f
+			req        = tt.req
+			constraint = tt.constraint
+			wantErr    = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					createConstraintFn: tt.f,
+					createConstraintFn: f,
 				},
 			}
 
-			constraint, err := s.CreateConstraint(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.constraint, constraint)
+			got, err := s.CreateConstraint(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, constraint, got)
 		})
 	}
 }
@@ -559,7 +584,7 @@ func TestUpdateConstraint(t *testing.T) {
 		req        *flipt.UpdateConstraintRequest
 		f          func(context.Context, *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
 		constraint *flipt.Constraint
-		e          error
+		wantErr    error
 	}{
 		{
 			name: "ok",
@@ -597,7 +622,6 @@ func TestUpdateConstraint(t *testing.T) {
 				Operator:   "EQ",
 				Value:      "bar",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyID",
@@ -627,8 +651,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("id"),
+			wantErr: emptyFieldError("id"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -658,8 +681,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("segmentKey"),
+			wantErr: emptyFieldError("segmentKey"),
 		},
 		{
 			name: "emptyProperty",
@@ -689,8 +711,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("property"),
+			wantErr: emptyFieldError("property"),
 		},
 		{
 			name: "emptyOperator",
@@ -720,33 +741,39 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			constraint: nil,
-			e:          emptyFieldError("operator"),
+			wantErr: emptyFieldError("operator"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f          = tt.f
+			req        = tt.req
+			constraint = tt.constraint
+			wantErr    = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					updateConstraintFn: tt.f,
+					updateConstraintFn: f,
 				},
 			}
 
-			constraint, err := s.UpdateConstraint(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.constraint, constraint)
+			got, err := s.UpdateConstraint(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, constraint, got)
 		})
 	}
 }
 
 func TestDeleteConstraint(t *testing.T) {
 	tests := []struct {
-		name  string
-		req   *flipt.DeleteConstraintRequest
-		f     func(context.Context, *flipt.DeleteConstraintRequest) error
-		empty *empty.Empty
-		e     error
+		name    string
+		req     *flipt.DeleteConstraintRequest
+		f       func(context.Context, *flipt.DeleteConstraintRequest) error
+		empty   *empty.Empty
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -758,7 +785,6 @@ func TestDeleteConstraint(t *testing.T) {
 				return nil
 			},
 			empty: &empty.Empty{},
-			e:     nil,
 		},
 		{
 			name: "emptyID",
@@ -769,8 +795,7 @@ func TestDeleteConstraint(t *testing.T) {
 				assert.Equal(t, "segmentKey", r.SegmentKey)
 				return nil
 			},
-			empty: nil,
-			e:     emptyFieldError("id"),
+			wantErr: emptyFieldError("id"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -781,8 +806,7 @@ func TestDeleteConstraint(t *testing.T) {
 				assert.Equal(t, "", r.SegmentKey)
 				return nil
 			},
-			empty: nil,
-			e:     emptyFieldError("segmentKey"),
+			wantErr: emptyFieldError("segmentKey"),
 		},
 		{
 			name: "error test",
@@ -793,22 +817,28 @@ func TestDeleteConstraint(t *testing.T) {
 				assert.Equal(t, "segmentKey", r.SegmentKey)
 				return errors.New("error test")
 			},
-			empty: nil,
-			e:     errors.New("error test"),
+			wantErr: errors.New("error test"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			empty   = tt.empty
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				SegmentStore: &segmentStoreMock{
-					deleteConstraintFn: tt.f,
+					deleteConstraintFn: f,
 				},
 			}
 
-			resp, err := s.DeleteConstraint(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.empty, resp)
+			got, err := s.DeleteConstraint(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, empty, got)
 		})
 	}
 }

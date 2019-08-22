@@ -482,6 +482,7 @@ func TestDeleteVariant(t *testing.T) {
 }
 
 func TestDeleteVariant_ExistingRule(t *testing.T) {
+	// TODO
 	t.SkipNow()
 
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{

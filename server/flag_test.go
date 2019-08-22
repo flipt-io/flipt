@@ -58,11 +58,11 @@ func (m *flagStoreMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVarian
 
 func TestGetFlag(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.GetFlagRequest
-		f    func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
-		flag *flipt.Flag
-		e    error
+		name    string
+		req     *flipt.GetFlagRequest
+		f       func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
+		flag    *flipt.Flag
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -78,7 +78,6 @@ func TestGetFlag(t *testing.T) {
 			flag: &flipt.Flag{
 				Key: "key",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyKey",
@@ -91,33 +90,40 @@ func TestGetFlag(t *testing.T) {
 					Key: "",
 				}, nil
 			},
-			flag: nil,
-			e:    emptyFieldError("key"),
+			flag:    nil,
+			wantErr: emptyFieldError("key"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			flag    = tt.flag
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					getFlagFn: tt.f,
+					getFlagFn: f,
 				},
 			}
 
-			flag, err := s.GetFlag(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.flag, flag)
+			got, err := s.GetFlag(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, flag, got)
 		})
 	}
 }
 
 func TestListFlags(t *testing.T) {
 	tests := []struct {
-		name  string
-		req   *flipt.ListFlagRequest
-		f     func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
-		flags *flipt.FlagList
-		e     error
+		name    string
+		req     *flipt.ListFlagRequest
+		f       func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+		flags   *flipt.FlagList
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -134,7 +140,6 @@ func TestListFlags(t *testing.T) {
 					},
 				},
 			},
-			e: nil,
 		},
 		{
 			name: "err",
@@ -142,33 +147,40 @@ func TestListFlags(t *testing.T) {
 			f: func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
 				return nil, errors.New("test error")
 			},
-			flags: nil,
-			e:     errors.New("test error"),
+			flags:   nil,
+			wantErr: errors.New("test error"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			flags   = tt.flags
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					listFlagsFn: tt.f,
+					listFlagsFn: f,
 				},
 			}
 
-			resp, err := s.ListFlags(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.flags, resp)
+			got, err := s.ListFlags(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, flags, got)
 		})
 	}
 }
 
 func TestCreateFlag(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.CreateFlagRequest
-		f    func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
-		flag *flipt.Flag
-		e    error
+		name    string
+		req     *flipt.CreateFlagRequest
+		f       func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
+		flag    *flipt.Flag
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -198,7 +210,6 @@ func TestCreateFlag(t *testing.T) {
 				Description: "desc",
 				Enabled:     true,
 			},
-			e: nil,
 		},
 		{
 			name: "emptyKey",
@@ -222,8 +233,8 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			flag: nil,
-			e:    emptyFieldError("key"),
+			flag:    nil,
+			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -247,33 +258,40 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			flag: nil,
-			e:    emptyFieldError("name"),
+			flag:    nil,
+			wantErr: emptyFieldError("name"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			flag    = tt.flag
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					createFlagFn: tt.f,
+					createFlagFn: f,
 				},
 			}
 
-			flag, err := s.CreateFlag(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.flag, flag)
+			got, err := s.CreateFlag(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, flag, got)
 		})
 	}
 }
 
 func TestUpdateFlag(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.UpdateFlagRequest
-		f    func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
-		flag *flipt.Flag
-		e    error
+		name    string
+		req     *flipt.UpdateFlagRequest
+		f       func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
+		flag    *flipt.Flag
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -303,7 +321,6 @@ func TestUpdateFlag(t *testing.T) {
 				Description: "desc",
 				Enabled:     true,
 			},
-			e: nil,
 		},
 		{
 			name: "emptyKey",
@@ -327,8 +344,7 @@ func TestUpdateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			flag: nil,
-			e:    emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -352,33 +368,39 @@ func TestUpdateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			flag: nil,
-			e:    emptyFieldError("name"),
+			wantErr: emptyFieldError("name"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			flag    = tt.flag
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					updateFlagFn: tt.f,
+					updateFlagFn: f,
 				},
 			}
 
-			flag, err := s.UpdateFlag(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.flag, flag)
+			got, err := s.UpdateFlag(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, flag, got)
 		})
 	}
 }
 
 func TestDeleteFlag(t *testing.T) {
 	tests := []struct {
-		name  string
-		req   *flipt.DeleteFlagRequest
-		f     func(context.Context, *flipt.DeleteFlagRequest) error
-		empty *empty.Empty
-		e     error
+		name    string
+		req     *flipt.DeleteFlagRequest
+		f       func(context.Context, *flipt.DeleteFlagRequest) error
+		empty   *empty.Empty
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -390,7 +412,6 @@ func TestDeleteFlag(t *testing.T) {
 				return nil
 			},
 			empty: &empty.Empty{},
-			e:     nil,
 		},
 		{
 			name: "emptyKey",
@@ -401,8 +422,8 @@ func TestDeleteFlag(t *testing.T) {
 
 				return nil
 			},
-			empty: nil,
-			e:     emptyFieldError("key"),
+			empty:   nil,
+			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "error",
@@ -413,22 +434,29 @@ func TestDeleteFlag(t *testing.T) {
 
 				return errors.New("test error")
 			},
-			empty: nil,
-			e:     errors.New("test error"),
+			empty:   nil,
+			wantErr: errors.New("test error"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			empty   = tt.empty
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					deleteFlagFn: tt.f,
+					deleteFlagFn: f,
 				},
 			}
 
-			resp, err := s.DeleteFlag(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.empty, resp)
+			got, err := s.DeleteFlag(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, empty, got)
 		})
 	}
 }
@@ -439,7 +467,7 @@ func TestCreateVariant(t *testing.T) {
 		req     *flipt.CreateVariantRequest
 		f       func(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
 		variant *flipt.Variant
-		e       error
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -469,7 +497,6 @@ func TestCreateVariant(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyFlagKey",
@@ -493,8 +520,7 @@ func TestCreateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			variant: nil,
-			e:       emptyFieldError("flagKey"),
+			wantErr: emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyKey",
@@ -518,22 +544,28 @@ func TestCreateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			variant: nil,
-			e:       emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			variant = tt.variant
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					createVariantFn: tt.f,
+					createVariantFn: f,
 				},
 			}
 
-			variant, err := s.CreateVariant(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.variant, variant)
+			got, err := s.CreateVariant(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, variant, got)
 		})
 	}
 }
@@ -544,7 +576,7 @@ func TestUpdateVariant(t *testing.T) {
 		req     *flipt.UpdateVariantRequest
 		f       func(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
 		variant *flipt.Variant
-		e       error
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -572,7 +604,6 @@ func TestUpdateVariant(t *testing.T) {
 				Name:        "name",
 				Description: "desc",
 			},
-			e: nil,
 		},
 		{
 			name: "emptyID",
@@ -593,8 +624,7 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			variant: nil,
-			e:       emptyFieldError("id"),
+			wantErr: emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -615,8 +645,7 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			variant: nil,
-			e:       emptyFieldError("flagKey"),
+			wantErr: emptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyKey",
@@ -637,33 +666,39 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			variant: nil,
-			e:       emptyFieldError("key"),
+			wantErr: emptyFieldError("key"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			variant = tt.variant
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					updateVariantFn: tt.f,
+					updateVariantFn: f,
 				},
 			}
 
-			variant, err := s.UpdateVariant(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.variant, variant)
+			got, err := s.UpdateVariant(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, variant, got)
 		})
 	}
 }
 
 func TestDeleteVariant(t *testing.T) {
 	tests := []struct {
-		name  string
-		req   *flipt.DeleteVariantRequest
-		f     func(context.Context, *flipt.DeleteVariantRequest) error
-		empty *empty.Empty
-		e     error
+		name    string
+		req     *flipt.DeleteVariantRequest
+		f       func(context.Context, *flipt.DeleteVariantRequest) error
+		empty   *empty.Empty
+		wantErr error
 	}{
 		{
 			name: "ok",
@@ -676,7 +711,6 @@ func TestDeleteVariant(t *testing.T) {
 				return nil
 			},
 			empty: &empty.Empty{},
-			e:     nil,
 		},
 		{
 			name: "emptyID",
@@ -688,8 +722,7 @@ func TestDeleteVariant(t *testing.T) {
 
 				return nil
 			},
-			empty: nil,
-			e:     emptyFieldError("id"),
+			wantErr: emptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -701,8 +734,7 @@ func TestDeleteVariant(t *testing.T) {
 
 				return nil
 			},
-			empty: nil,
-			e:     emptyFieldError("flagKey"),
+			wantErr: emptyFieldError("flagKey"),
 		},
 		{
 			name: "error",
@@ -714,22 +746,28 @@ func TestDeleteVariant(t *testing.T) {
 
 				return errors.New("error test")
 			},
-			empty: nil,
-			e:     errors.New("error test"),
+			wantErr: errors.New("error test"),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			f       = tt.f
+			req     = tt.req
+			wantErr = tt.wantErr
+			empty   = tt.empty
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
 				FlagStore: &flagStoreMock{
-					deleteVariantFn: tt.f,
+					deleteVariantFn: f,
 				},
 			}
 
-			resp, err := s.DeleteVariant(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
-			assert.Equal(t, tt.empty, resp)
+			got, err := s.DeleteVariant(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
+			assert.Equal(t, empty, got)
 		})
 	}
 }
