@@ -7,6 +7,11 @@ if [ -z "${GITHUB_TOKEN}" ]; then
     exit 1
 fi
 
+if [ -z "${GITHUB_ACTOR}" ]; then
+    echo "error: not found GITHUB_ACTOR"
+    exit 1
+fi
+
 git config user.name "${GITHUB_ACTOR}"
 git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 git remote add gh-token "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/markphelps/flipt.git"

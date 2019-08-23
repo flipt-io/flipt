@@ -13,9 +13,66 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 )
+
+func TestParse(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		driver  Driver
+		url     string
+		wantErr bool
+	}{
+		{
+			name:   "sqlite",
+			input:  "file:flipt.db",
+			driver: SQLite,
+			url:    "file:flipt.db?_fk=true&cache=shared",
+		},
+		{
+			name:   "postres",
+			input:  "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+			driver: Postgres,
+			url:    "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+		},
+		{
+			name:    "invalid url",
+			input:   "http://a b",
+			wantErr: true,
+		},
+		{
+			name:    "unknown driver ",
+			input:   "mongo://127.0.0.1",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			input   = tt.input
+			driver  = tt.driver
+			url     = tt.url
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			d, u, err := parse(input)
+
+			if wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, driver, d)
+			assert.Equal(t, url, u.String())
+		})
+	}
+}
 
 var (
 	logger *logrus.Logger
