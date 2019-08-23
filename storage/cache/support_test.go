@@ -22,9 +22,9 @@ func (c *cacherSpy) Add(key interface{}, value interface{}) bool {
 	return c.cache.Add(key, value)
 }
 
-func (c *cacherSpy) Remove(key interface{}) {
+func (c *cacherSpy) Remove(key interface{}) bool {
 	c.removeCalled++
-	c.cache.Remove(key)
+	return c.cache.Remove(key)
 }
 
 var _ storage.FlagStore = &flagStoreMock{}
