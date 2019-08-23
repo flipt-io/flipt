@@ -90,8 +90,7 @@ func parse(in string) (Driver, *url.URL, error) {
 		return 0, u, fmt.Errorf("unknown database driver for: %s", u.Scheme)
 	}
 
-	switch driver {
-	case SQLite:
+	if driver == SQLite {
 		v := u.Query()
 		v.Set("cache", "shared")
 		v.Set("_fk", "true")

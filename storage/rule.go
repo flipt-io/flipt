@@ -281,12 +281,12 @@ func (s *RuleStorage) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest
 	return tx.Commit()
 }
 
-func (s *RuleStorage) orderRules(ctx context.Context, tx *sql.Tx, flagKey string, ruleIDs []string) error {
+func (s *RuleStorage) orderRules(ctx context.Context, runner sq.BaseRunner, flagKey string, ruleIDs []string) error {
 	updatedAt := proto.TimestampNow()
 
 	for i, id := range ruleIDs {
 		_, err := s.builder.Update("rules").
-			RunWith(tx).
+			RunWith(runner).
 			Set("rank", i+1).
 			Set("updated_at", &timestamp{updatedAt}).
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"flag_key": flagKey}}).
