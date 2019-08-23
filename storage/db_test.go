@@ -23,8 +23,8 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		driver  Driver
 		url     string
+		driver  Driver
 		wantErr bool
 	}{
 		{
