@@ -1,8 +1,8 @@
 on:
   push:
-    tags:
-      - *
-name: Publish Docs On Tag
+    branches:
+      - master
+name: Publish Docs On Master
 jobs:
   publish:
     name: Publish Docs
