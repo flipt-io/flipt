@@ -1,0 +1,16 @@
+on: push
+name: Publish Docs On Tag
+jobs:
+  onTag:
+    name: On Tag
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: On Tag
+      uses: actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da
+      with:
+        args: tag
+    - name: Publish Docs
+      uses: ./build/actions/publish-docs
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
