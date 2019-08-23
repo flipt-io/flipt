@@ -27,26 +27,28 @@ This means that you can deploy Flipt within your existing infrastructure and not
 
 Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
 
+## Why Flipt
+
+Flipt allows you to focus on building your applications without having to worry about implementing your own [feature flag](https://martinfowler.com/bliki/FeatureToggle.html) solution that works across your entire infrastructure.
+
+With Flipt you can:
+
+* Use simple on/off feature flags to toggle functionality in your applications
+* Rollout features to a subset of your audience
+* Use advanced segmentation to target and serve users based on custom properties that you define
+
+On top of all this, Flipt provides a clean, modern UI so that you can always monitor the state of your feature flags and experiments in a single place.
+
 ## Features
-
-Flipt enables you to add [feature flag](https://martinfowler.com/bliki/FeatureToggle.html) support to your existing applications, with a simple, single UI and API.
-
-This can range from simple on/off feature flags to more advanced use cases where you want to be able to rollout different versions of a feature to percentages of your users.
 
 Flipt features include:
 
 * Fast. Written in Go. Optimized for performance
 * Stand alone, easy to run and configure
 * Ability to create advanced distribution rules to target segments of users
-* Native GRPC client SDKs to integrate with your applications
+* Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
 * Simple REST API
 * Modern UI and debug console
-
-## Why Flipt
-
-Flipt allows you to focus on building your applications without having to worry about implementing your own feature flag solution that works across your infrastructure.
-
-On top of this, Flipt provides a nice, modern UI so that you can always monitor the state of your feature flags and experiments in a single place.
 
 ## Running Flipt
 
@@ -74,7 +76,7 @@ Flipt is still considered beta software until the 1.0.0 release. This means that
 
 There are two ways to communicate with the Flipt server from your applications:
 
-1. GRPC
+1. [GRPC](https://grpc.io/)
 1. REST API
 
 To figure out which best supports your usecase and how to get client(s) in your preferred language, see the [Integration](https://flipt.dev/integration/) docs.
@@ -129,8 +131,6 @@ If there are any concerns about the use of this license for the server, please [
 
 I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
 
-### How To Contribute
-
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
 Here are some good places to start:
@@ -138,10 +138,6 @@ Here are some good places to start:
 * [Help Wanted](https://github.com/markphelps/flipt/labels/help%20wanted)
 * [Good First Issue](https://github.com/markphelps/flipt/labels/good%20first%20issue)
 * [Documentation Help](https://github.com/markphelps/flipt/labels/documentation)
-
-### Support Development
-
-If you would like to support the continued development of Flipt (and my :coffee: addiction), you could always [Buy Me A Coffee](https://www.buymeacoffee.com/mAZ1JDSRP)!
 
 ## Pro Version
 
@@ -151,7 +147,6 @@ My plan is to soon start working on a Pro Version of Flipt for enterprise. Along
 * Multiple environments
 * Audit log
 * Streaming updates
-* Metrics
 
 If you or your organization would like to help beta test a Pro version of Flipt, please get in touch with me:
 
