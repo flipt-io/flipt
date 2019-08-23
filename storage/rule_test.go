@@ -762,14 +762,19 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		var (
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := ruleStore.Evaluate(context.TODO(), tt.req)
+			resp, err := ruleStore.Evaluate(context.TODO(), req)
 			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, flag.Key, resp.FlagKey)
-			assert.Equal(t, tt.req.Context, resp.RequestContext)
+			assert.Equal(t, req.Context, resp.RequestContext)
 
-			if !tt.wantMatch {
+			if !wantMatch {
 				assert.False(t, resp.Match)
 				assert.Empty(t, resp.SegmentKey)
 				return
@@ -895,14 +900,20 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := ruleStore.Evaluate(context.TODO(), tt.req)
+			resp, err := ruleStore.Evaluate(context.TODO(), req)
 			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, flag.Key, resp.FlagKey)
-			assert.Equal(t, tt.req.Context, resp.RequestContext)
+			assert.Equal(t, req.Context, resp.RequestContext)
 
-			if !tt.wantMatch {
+			if !wantMatch {
 				assert.False(t, resp.Match)
 				assert.Empty(t, resp.SegmentKey)
 				return
@@ -910,7 +921,7 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 
 			assert.True(t, resp.Match)
 			assert.Equal(t, segment.Key, resp.SegmentKey)
-			assert.Equal(t, tt.matchesVariantKey, resp.Value)
+			assert.Equal(t, matchesVariantKey, resp.Value)
 		})
 	}
 }
@@ -1016,14 +1027,20 @@ func TestEvaluate_NoConstraints(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := ruleStore.Evaluate(context.TODO(), tt.req)
+			resp, err := ruleStore.Evaluate(context.TODO(), req)
 			require.NoError(t, err)
 			assert.NotNil(t, resp)
 			assert.Equal(t, flag.Key, resp.FlagKey)
-			assert.Equal(t, tt.req.Context, resp.RequestContext)
+			assert.Equal(t, req.Context, resp.RequestContext)
 
-			if !tt.wantMatch {
+			if !wantMatch {
 				assert.False(t, resp.Match)
 				assert.Empty(t, resp.SegmentKey)
 				return
@@ -1031,7 +1048,7 @@ func TestEvaluate_NoConstraints(t *testing.T) {
 
 			assert.True(t, resp.Match)
 			assert.Equal(t, segment.Key, resp.SegmentKey)
-			assert.Equal(t, tt.matchesVariantKey, resp.Value)
+			assert.Equal(t, matchesVariantKey, resp.Value)
 		})
 	}
 }
@@ -1078,10 +1095,15 @@ func Test_validate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validate(tt.constraint)
+		var (
+			constraint = tt.constraint
+			wantErr    = tt.wantErr
+		)
 
-			if tt.wantErr {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validate(constraint)
+
+			if wantErr {
 				require.Error(t, err)
 				return
 			}
@@ -1097,7 +1119,6 @@ func Test_matchesString(t *testing.T) {
 		constraint constraint
 		value      string
 		wantMatch  bool
-		wantErr    bool
 	}{
 		{
 			name: "eq",
@@ -1220,16 +1241,15 @@ func Test_matchesString(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		var (
+			constraint = tt.constraint
+			value      = tt.value
+			wantMatch  = tt.wantMatch
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
-			match, err := matchesString(tt.constraint, tt.value)
-
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.Equal(t, tt.wantMatch, match)
+			match := matchesString(constraint, value)
+			assert.Equal(t, wantMatch, match)
 		})
 	}
 }
@@ -1428,16 +1448,23 @@ func Test_matchesNumber(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			match, err := matchesNumber(tt.constraint, tt.value)
+		var (
+			constraint = tt.constraint
+			value      = tt.value
+			wantMatch  = tt.wantMatch
+			wantErr    = tt.wantErr
+		)
 
-			if tt.wantErr {
+		t.Run(tt.name, func(t *testing.T) {
+			match, err := matchesNumber(constraint, value)
+
+			if wantErr {
 				require.Error(t, err)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.wantMatch, match)
+			assert.Equal(t, wantMatch, match)
 		})
 	}
 }
@@ -1543,16 +1570,23 @@ func Test_matchesBool(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			match, err := matchesBool(tt.constraint, tt.value)
+		var (
+			constraint = tt.constraint
+			value      = tt.value
+			wantMatch  = tt.wantMatch
+			wantErr    = tt.wantErr
+		)
 
-			if tt.wantErr {
+		t.Run(tt.name, func(t *testing.T) {
+			match, err := matchesBool(constraint, value)
+
+			if wantErr {
 				require.Error(t, err)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.wantMatch, match)
+			assert.Equal(t, wantMatch, match)
 		})
 	}
 }

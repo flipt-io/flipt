@@ -16,32 +16,32 @@ import (
 func TestErrorUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name     string
-		err      error
+		wantErr  error
 		wantCode codes.Code
 	}{
 		{
 			name:     "storage not found error",
-			err:      storage.ErrNotFound("foo"),
+			wantErr:  storage.ErrNotFound("foo"),
 			wantCode: codes.NotFound,
 		},
 		{
 			name:     "storage invalid error",
-			err:      storage.ErrInvalid("foo"),
+			wantErr:  storage.ErrInvalid("foo"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
 			name:     "server invalid field",
-			err:      InvalidFieldError("bar", "is wrong"),
+			wantErr:  invalidFieldError("bar", "is wrong"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
 			name:     "server empty field",
-			err:      EmptyFieldError("bar"),
+			wantErr:  emptyFieldError("bar"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
 			name:     "other error",
-			err:      errors.New("foo"),
+			wantErr:  errors.New("foo"),
 			wantCode: codes.Internal,
 		},
 		{
@@ -50,20 +50,25 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		var (
+			wantErr  = tt.wantErr
+			wantCode = tt.wantCode
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
 			var (
 				subject = &Server{}
 
 				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
-					return nil, tt.err
+					return nil, wantErr
 				})
 			)
 
 			_, err := subject.ErrorUnaryInterceptor(context.Background(), nil, nil, spyHandler)
-			if tt.err != nil {
+			if wantErr != nil {
 				require.Error(t, err)
 				status := status.Convert(err)
-				assert.Equal(t, tt.wantCode, status.Code())
+				assert.Equal(t, wantCode, status.Code())
 				return
 			}
 

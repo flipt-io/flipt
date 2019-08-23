@@ -12,7 +12,7 @@ action "On Tag" {
 }
 
 action "Publish Docs" {
-  uses = "./actions/publish-docs"
+  uses = "./build/actions/publish-docs"
   needs = ["On Tag"]
   secrets = ["GITHUB_TOKEN"]
 }
