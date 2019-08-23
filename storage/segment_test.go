@@ -178,6 +178,7 @@ func TestDeleteSegment(t *testing.T) {
 }
 
 func TestDeleteSegment_ExistingRule(t *testing.T) {
+	// TODO
 	t.SkipNow()
 
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -286,9 +287,9 @@ func TestCreateConstraint(t *testing.T) {
 
 func TestCreateConstraint_ErrInvalid(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.CreateConstraintRequest
-		e    ErrInvalid
+		name    string
+		req     *flipt.CreateConstraintRequest
+		wantErr ErrInvalid
 	}{
 		{
 			name: "invalid for type string",
@@ -299,7 +300,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "LT",
 				Value:      "baz",
 			},
-			e: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
+			wantErr: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
 		},
 		{
 			name: "invalid for type number",
@@ -310,7 +311,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "Empty",
 				Value:      "2",
 			},
-			e: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
+			wantErr: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
 		},
 		{
 			name: "invalid for type boolean",
@@ -321,7 +322,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "GT",
 				Value:      "false",
 			},
-			e: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
+			wantErr: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
 		},
 		{
 			name: "invalid for type unknown",
@@ -332,14 +333,19 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "EQ",
 				Value:      "+",
 			},
-			e: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+			wantErr: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
-			constraint, err := segmentStore.CreateConstraint(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
+			constraint, err := segmentStore.CreateConstraint(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
 			assert.Nil(t, constraint)
 		})
 	}
@@ -418,9 +424,9 @@ func TestUpdateConstraint(t *testing.T) {
 
 func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 	tests := []struct {
-		name string
-		req  *flipt.UpdateConstraintRequest
-		e    ErrInvalid
+		name    string
+		req     *flipt.UpdateConstraintRequest
+		wantErr ErrInvalid
 	}{
 		{
 			name: "invalid for type string",
@@ -432,7 +438,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "LT",
 				Value:      "baz",
 			},
-			e: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
+			wantErr: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
 		},
 		{
 			name: "invalid for type number",
@@ -444,7 +450,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "Empty",
 				Value:      "2",
 			},
-			e: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
+			wantErr: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
 		},
 		{
 			name: "invalid for type boolean",
@@ -456,7 +462,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "GT",
 				Value:      "false",
 			},
-			e: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
+			wantErr: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
 		},
 		{
 			name: "invalid for type unknown",
@@ -468,14 +474,19 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "EQ",
 				Value:      "+",
 			},
-			e: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+			wantErr: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 	}
 
 	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
 		t.Run(tt.name, func(t *testing.T) {
-			constraint, err := segmentStore.UpdateConstraint(context.TODO(), tt.req)
-			assert.Equal(t, tt.e, err)
+			constraint, err := segmentStore.UpdateConstraint(context.TODO(), req)
+			assert.Equal(t, wantErr, err)
 			assert.Nil(t, constraint)
 		})
 	}

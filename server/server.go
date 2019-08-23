@@ -68,7 +68,7 @@ func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *
 		err = status.Error(codes.NotFound, err.Error())
 	case storage.ErrInvalid:
 		err = status.Error(codes.InvalidArgument, err.Error())
-	case ErrInvalidField:
+	case errInvalidField:
 		err = status.Error(codes.InvalidArgument, err.Error())
 	default:
 		err = status.Error(codes.Internal, err.Error())
