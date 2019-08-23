@@ -1,13 +1,13 @@
 language: go
 go:
-  - '1.12.5'
+  - '1.12.x'
 
 go_import_path: github.com/markphelps/flipt
 
 cache:
   directories:
     - $HOME/.cache/go-build
-    - $HOME/gopath/pkg/mod
+    - $GOPATH/pkg/mod
 
 env:
   - GO111MODULE=on
