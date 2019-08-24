@@ -213,20 +213,23 @@ func execute() error {
 
 	printVersionHeader()
 
-	if cfg.Server.CertFile == "" {
-		return errors.New("cert_file cannot be empty when using HTTPS")
-	}
+	// check for required files upfront
+	if cfg.Server.Protocol == HTTPS {
+		if cfg.Server.CertFile == "" {
+			return errors.New("cert_file cannot be empty when using HTTPS")
+		}
 
-	if cfg.Server.KeyFile == "" {
-		return errors.New("key_file cannot be empty when using HTTPS")
-	}
+		if cfg.Server.KeyFile == "" {
+			return errors.New("key_file cannot be empty when using HTTPS")
+		}
 
-	if _, err := os.Stat(cfg.Server.CertFile); os.IsNotExist(err) {
-		return fmt.Errorf("cannot find SSL cert_file at %v", cfg.Server.CertFile)
-	}
+		if _, err := os.Stat(cfg.Server.CertFile); os.IsNotExist(err) {
+			return fmt.Errorf("cannot find SSL cert_file at %v", cfg.Server.CertFile)
+		}
 
-	if _, err := os.Stat(cfg.Server.KeyFile); os.IsNotExist(err) {
-		return fmt.Errorf("cannot find SSL key_file at %v", cfg.Server.KeyFile)
+		if _, err := os.Stat(cfg.Server.KeyFile); os.IsNotExist(err) {
+			return fmt.Errorf("cannot find SSL key_file at %v", cfg.Server.KeyFile)
+		}
 	}
 
 	g.Go(func() error {
@@ -444,9 +447,10 @@ func execute() error {
 		}
 
 		if err != http.ErrServerClosed {
-			return errors.Wrap(err, "http server listening")
+			return errors.Wrap(err, "http server")
 		}
 
+		logger.Info("server shutdown gracefully")
 		return nil
 	})
 
