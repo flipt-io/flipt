@@ -36,10 +36,37 @@ type cacheConfig struct {
 	Memory memoryCacheConfig `json:"memory,omitempty"`
 }
 
+type Scheme uint
+
+func (s Scheme) String() string {
+	return schemeToString[s]
+}
+
+const (
+	HTTP Scheme = iota
+	HTTPS
+)
+
+var (
+	schemeToString = map[Scheme]string{
+		HTTP:  "http",
+		HTTPS: "https",
+	}
+
+	stringToScheme = map[string]Scheme{
+		"http":  HTTP,
+		"https": HTTPS,
+	}
+)
+
 type serverConfig struct {
-	Host     string `json:"host,omitempty"`
-	HTTPPort int    `json:"httpPort,omitempty"`
-	GRPCPort int    `json:"grpcPort,omitempty"`
+	Host      string `json:"host,omitempty"`
+	Protocol  Scheme `json:"protocol,omitempty"`
+	HTTPPort  int    `json:"httpPort,omitempty"`
+	HTTPSPort int    `json:"https_port,omitempty"`
+	GRPCPort  int    `json:"grpcPort,omitempty"`
+	CertFile  string `json:"cert_file,omitempty"`
+	KeyFile   string `json:"key_file,omitempty"`
 }
 
 type databaseConfig struct {
@@ -96,9 +123,13 @@ const (
 	cfgCacheMemoryItems   = "cache.memory.items"
 
 	// Server
-	cfgServerHost     = "server.host"
-	cfgServerHTTPPort = "server.http_port"
-	cfgServerGRPCPort = "server.grpc_port"
+	cfgServerHost      = "server.host"
+	cfgServerProtocol  = "server.protocol"
+	cfgServerHTTPPort  = "server.http_port"
+	cfgServerHTTPSPort = "server.https_port"
+	cfgServerGRPCPort  = "server.grpc_port"
+	cfgServerCertFile  = "server.cert_file"
+	cfgServerKeyFile   = "server.key_file"
 
 	// DB
 	cfgDBURL            = "db.url"
@@ -150,11 +181,23 @@ func configure() (*config, error) {
 	if viper.IsSet(cfgServerHost) {
 		cfg.Server.Host = viper.GetString(cfgServerHost)
 	}
+	if viper.IsSet(cfgServerProtocol) {
+		cfg.Server.Protocol = stringToScheme[viper.GetString(cfgServerProtocol)]
+	}
 	if viper.IsSet(cfgServerHTTPPort) {
 		cfg.Server.HTTPPort = viper.GetInt(cfgServerHTTPPort)
 	}
+	if viper.IsSet(cfgServerHTTPSPort) {
+		cfg.Server.HTTPSPort = viper.GetInt(cfgServerHTTPSPort)
+	}
 	if viper.IsSet(cfgServerGRPCPort) {
 		cfg.Server.GRPCPort = viper.GetInt(cfgServerGRPCPort)
+	}
+	if viper.IsSet(cfgServerCertFile) {
+		cfg.Server.CertFile = viper.GetString(cfgServerCertFile)
+	}
+	if viper.IsSet(cfgServerKeyFile) {
+		cfg.Server.KeyFile = viper.GetString(cfgServerKeyFile)
 	}
 
 	// DB
