@@ -436,7 +436,7 @@ func execute() error {
 				},
 			}
 
-			httpServer.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0)
+			httpServer.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 
 			err = httpServer.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.KeyFile)
 		} else {
