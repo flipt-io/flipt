@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  flipt:
+    build: .
+    ports:
+      - "443:443"
+    networks:
+      - flipt_network
+    environment:
+      - FLIPT_SERVER_PROTOCOL=https
+      - FLIPT_SERVER_CERT_FILE=/var/opt/flipt/cert.pem
+      - FLIPT_SERVER_KEY_FILE=/var/opt/flipt/key.pem
+      - FLIPT_SERVER_HTTPS_PORT=443
+networks:
+  flipt_network:

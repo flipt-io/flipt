@@ -16,6 +16,7 @@ _test
 *.prof
 *.spelling
 *.test
+*.pem
 bazel-*
 bin
 coverage.txt
