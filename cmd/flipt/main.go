@@ -119,7 +119,7 @@ func printVersionHeader() {
 func runMigrations() error {
 	var err error
 
-	cfg, err = configure()
+	cfg, err = configure(cfgPath)
 	if err != nil {
 		return err
 	}
@@ -177,9 +177,9 @@ func execute() error {
 
 	var err error
 
-	cfg, err = configure()
+	cfg, err = configure(cfgPath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "loading configuration")
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
@@ -212,25 +212,6 @@ func execute() error {
 	)
 
 	printVersionHeader()
-
-	// check for required files upfront
-	if cfg.Server.Protocol == HTTPS {
-		if cfg.Server.CertFile == "" {
-			return errors.New("cert_file cannot be empty when using HTTPS")
-		}
-
-		if cfg.Server.KeyFile == "" {
-			return errors.New("key_file cannot be empty when using HTTPS")
-		}
-
-		if _, err := os.Stat(cfg.Server.CertFile); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find SSL cert_file at %v", cfg.Server.CertFile)
-		}
-
-		if _, err := os.Stat(cfg.Server.KeyFile); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find SSL key_file at %v", cfg.Server.KeyFile)
-		}
-	}
 
 	g.Go(func() error {
 		logger := logger.WithField("server", "grpc")

@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -138,12 +140,12 @@ const (
 	cfgDBMigrationsPath = "db.migrations.path"
 )
 
-func configure() (*config, error) {
+func configure(path string) (*config, error) {
 	viper.SetEnvPrefix("FLIPT")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	viper.SetConfigFile(cfgPath)
+	viper.SetConfigFile(path)
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, errors.Wrap(err, "loading config")
@@ -210,7 +212,33 @@ func configure() (*config, error) {
 		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
 	}
 
+	if err := cfg.validate(); err != nil {
+		return &config{}, err
+	}
+
 	return cfg, nil
+}
+
+func (c *config) validate() error {
+	if c.Server.Protocol == HTTPS {
+		if c.Server.CertFile == "" {
+			return errors.New("cert_file cannot be empty when using HTTPS")
+		}
+
+		if c.Server.KeyFile == "" {
+			return errors.New("key_file cannot be empty when using HTTPS")
+		}
+
+		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
+			return fmt.Errorf("cannot find SSL cert_file at %v", c.Server.CertFile)
+		}
+
+		if _, err := os.Stat(c.Server.KeyFile); os.IsNotExist(err) {
+			return fmt.Errorf("cannot find SSL key_file at %v", c.Server.KeyFile)
+		}
+	}
+
+	return nil
 }
 
 func (c *config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
