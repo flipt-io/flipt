@@ -1,9 +1,6 @@
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'docs/*'
+  release:
+    type: created
 name: Publish Docs On Master
 jobs:
   publish:
