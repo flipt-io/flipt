@@ -17,7 +17,6 @@ _test
 *.spelling
 *.test
 *.pem
-bazel-*
 bin
 coverage.txt
 dist
