@@ -1,7 +1,7 @@
 on:
   release:
     type: created
-name: Publish Docs On Master
+name: Publish Docs On Release
 jobs:
   publish:
     name: Publish Docs
