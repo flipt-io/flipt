@@ -20,7 +20,7 @@ server:
   https_port: 443
   grpc_port: 9000
   cert_file: cert.pem
-  key_file: key.pem
+  cert_key: key.pem
 
 db:
   url: postgres://postgres@localhost:5432/flipt?sslmode=disable

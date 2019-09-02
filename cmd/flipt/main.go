@@ -302,7 +302,7 @@ func execute() error {
 		))
 
 		if cfg.Server.Protocol == HTTPS {
-			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.KeyFile)
+			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
 			if err != nil {
 				return errors.Wrap(err, "loading TLS credentials")
 			}
@@ -422,7 +422,7 @@ func execute() error {
 
 			httpServer.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 
-			err = httpServer.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.KeyFile)
+			err = httpServer.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.CertKey)
 		} else {
 			err = httpServer.ListenAndServe()
 		}

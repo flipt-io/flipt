@@ -23,9 +23,13 @@ These properties are as follows:
 | cors.allowed_origins | Sets Access-Control-Allow-Origin header on server | "*" (all domains) |
 | cache.memory.enabled | Enable in-memory caching | false |
 | cache.memory.items | Number of items in-memory cache can hold | 500 |
+| server.protocol | `http` or `https` | http |
 | server.host | The host address on which to serve the Flipt application | 0.0.0.0 |
-| server.http_port | The port on which to serve the Flipt REST API and UI | 8080 |
+| server.http_port | The HTTP port on which to serve the Flipt REST API and UI | 8080 |
+| server.https_port | The HTTPS port on which to serve the Flipt REST API and UI | 443 |
 | server.grpc_port | The port on which to serve the Flipt GRPC server | 9000 |
+| server.cert_file | Path to the certificate file (if protocol is set to `https`) | |
+| server.cert_key | Path to the certificate key file (if protocol is set to `https`) | |
 | db.url | URL to access Flipt database | file:/var/opt/flipt/flipt.db |
 | db.migrations.path | Where the Flipt database migration files are kept | /etc/flipt/config/migrations |
 

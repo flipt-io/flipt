@@ -65,10 +65,10 @@ type serverConfig struct {
 	Host      string `json:"host,omitempty"`
 	Protocol  Scheme `json:"protocol,omitempty"`
 	HTTPPort  int    `json:"httpPort,omitempty"`
-	HTTPSPort int    `json:"https_port,omitempty"`
+	HTTPSPort int    `json:"httpsPort,omitempty"`
 	GRPCPort  int    `json:"grpcPort,omitempty"`
-	CertFile  string `json:"cert_file,omitempty"`
-	KeyFile   string `json:"key_file,omitempty"`
+	CertFile  string `json:"certFile,omitempty"`
+	CertKey   string `json:"certKey,omitempty"`
 }
 
 type databaseConfig struct {
@@ -133,7 +133,7 @@ const (
 	cfgServerHTTPSPort = "server.https_port"
 	cfgServerGRPCPort  = "server.grpc_port"
 	cfgServerCertFile  = "server.cert_file"
-	cfgServerKeyFile   = "server.key_file"
+	cfgServerCertKey   = "server.cert_key"
 
 	// DB
 	cfgDBURL            = "db.url"
@@ -200,8 +200,8 @@ func configure(path string) (*config, error) {
 	if viper.IsSet(cfgServerCertFile) {
 		cfg.Server.CertFile = viper.GetString(cfgServerCertFile)
 	}
-	if viper.IsSet(cfgServerKeyFile) {
-		cfg.Server.KeyFile = viper.GetString(cfgServerKeyFile)
+	if viper.IsSet(cfgServerCertKey) {
+		cfg.Server.CertKey = viper.GetString(cfgServerCertKey)
 	}
 
 	// DB
@@ -225,16 +225,16 @@ func (c *config) validate() error {
 			return errors.New("cert_file cannot be empty when using HTTPS")
 		}
 
-		if c.Server.KeyFile == "" {
-			return errors.New("key_file cannot be empty when using HTTPS")
+		if c.Server.CertKey == "" {
+			return errors.New("cert_key cannot be empty when using HTTPS")
 		}
 
 		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
 			return fmt.Errorf("cannot find SSL cert_file at %q", c.Server.CertFile)
 		}
 
-		if _, err := os.Stat(c.Server.KeyFile); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find SSL key_file at %q", c.Server.KeyFile)
+		if _, err := os.Stat(c.Server.CertKey); os.IsNotExist(err) {
+			return fmt.Errorf("cannot find SSL cert_key at %q", c.Server.CertKey)
 		}
 	}
 
