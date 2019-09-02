@@ -41,14 +41,13 @@ On top of all this, Flipt provides a clean, modern UI so that you can always mon
 
 ## Features
 
-Flipt features include:
-
 * Fast. Written in Go. Optimized for performance
 * Stand alone, easy to run and configure
 * Ability to create advanced distribution rules to target segments of users
 * Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
 * Simple REST API
 * Modern UI and debug console
+* Support for multiple databases
 
 ## Running Flipt
 
