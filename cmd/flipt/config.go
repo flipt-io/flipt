@@ -224,15 +224,12 @@ func (c *config) validate() error {
 		if c.Server.CertFile == "" {
 			return errors.New("cert_file cannot be empty when using HTTPS")
 		}
-
 		if c.Server.CertKey == "" {
 			return errors.New("cert_key cannot be empty when using HTTPS")
 		}
-
 		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
 			return fmt.Errorf("cannot find TLS cert_file at %q", c.Server.CertFile)
 		}
-
 		if _, err := os.Stat(c.Server.CertKey); os.IsNotExist(err) {
 			return fmt.Errorf("cannot find TLS cert_key at %q", c.Server.CertKey)
 		}
