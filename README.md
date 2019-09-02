@@ -8,16 +8,36 @@
 
 ![Flipt](docs/assets/images/flipt.png)
 
-[![Build Status](https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master)](https://travis-ci.com/markphelps/flipt)
-[![Coverage Status](https://coveralls.io/repos/github/markphelps/flipt/badge.svg)](https://coveralls.io/github/markphelps/flipt)
-[![Go Report Card](https://goreportcard.com/badge/github.com/markphelps/flipt)](https://goreportcard.com/report/github.com/markphelps/flipt)
-[![GitHub Release](https://img.shields.io/github/release/markphelps/flipt.svg?style=flat)](https://github.com/markphelps/flipt/releases)
-[![Docker Pulls](https://img.shields.io/docker/pulls/markphelps/flipt.svg)](https://hub.docker.com/r/markphelps/flipt)
-[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
+<div align="center">
+    <a href="https://travis-ci.com/markphelps/flipt">
+        <img src="https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master" alt="Build Status" />
+    </a>
+    <a href="https://coveralls.io/github/markphelps/flipt">
+        <img src="https://coveralls.io/repos/github/markphelps/flipt/badge.svg" alt="Coverage" />
+    </a>
+    <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
+        <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />
+    </a>
+    <a href="https://github.com/markphelps/flipt/releases">
+        <img src="https://img.shields.io/github/release/markphelps/flipt.svg?style=flat" alt="Releases" />
+    </a>
+    <a href="https://hub.docker.com/r/markphelps/flipt">
+        <img src="https://img.shields.io/docker/pulls/markphelps/flipt.svg" alt="Docker Pulls" />
+    </a>
+    <a href="https://github.com/avelino/awesome-go">
+        <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
+    </a>
+</div>
 
-## Documentation
-
-[https://flipt.dev/](https://flipt.dev/)
+<div align="center">
+    <h4>
+        <a href="https://flipt.dev/">Documentation</a> |
+        <a href="#features">Features</a> |
+        <a href="#running-flipt">Running</a> |
+        <a href="./docs/configuration.md">Configuration</a> |
+        <a href="./docs/getting_started.md">Getting Started</a>
+    </h4>
+</div>
 
 ## What is Flipt
 
