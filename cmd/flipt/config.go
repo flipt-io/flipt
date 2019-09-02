@@ -230,11 +230,11 @@ func (c *config) validate() error {
 		}
 
 		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find SSL cert_file at %q", c.Server.CertFile)
+			return fmt.Errorf("cannot find TLS cert_file at %q", c.Server.CertFile)
 		}
 
 		if _, err := os.Stat(c.Server.CertKey); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find SSL cert_key at %q", c.Server.CertKey)
+			return fmt.Errorf("cannot find TLS cert_key at %q", c.Server.CertKey)
 		}
 	}
 
