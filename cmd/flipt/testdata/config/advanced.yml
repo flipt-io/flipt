@@ -1,0 +1,28 @@
+log:
+  level: WARN
+
+ui:
+  enabled: false
+
+cors:
+  enabled: true
+  allowed_origins: "foo.com"
+
+cache:
+  memory:
+    enabled: true
+    items: 5000
+
+server:
+  protocol: https
+  host: 127.0.0.1
+  http_port: 8081
+  https_port: 8080
+  grpc_port: 9001
+  cert_file: "./testdata/config/ssl_cert.pem"
+  cert_key: "./testdata/config/ssl_key.pem"
+
+db:
+  url: postgres://postgres@localhost:5432/flipt?sslmode=disable
+  migrations:
+    path: ./config/migrations
