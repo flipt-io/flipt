@@ -17,6 +17,7 @@ _test
 *.spelling
 *.test
 *.pem
+!**/**/testdata/**/*.pem
 bin
 coverage.txt
 dist
