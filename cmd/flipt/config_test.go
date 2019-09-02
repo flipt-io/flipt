@@ -58,10 +58,16 @@ func TestConfigure(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := configure(tt.path)
+		var (
+			path     = tt.path
+			wantErr  = tt.wantErr
+			expected = tt.expected
+		)
 
-			if tt.wantErr {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg, err := configure(path)
+
+			if wantErr {
 				require.Error(t, err)
 				return
 			}
@@ -69,7 +75,7 @@ func TestConfigure(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.NotNil(t, cfg)
-			assert.Equal(t, tt.expected, cfg)
+			assert.Equal(t, expected, cfg)
 		})
 	}
 }
@@ -152,12 +158,18 @@ func TestValidate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.cfg.validate()
+		var (
+			cfg        = tt.cfg
+			wantErr    = tt.wantErr
+			wantErrMsg = tt.wantErrMsg
+		)
 
-			if tt.wantErr {
+		t.Run(tt.name, func(t *testing.T) {
+			err := cfg.validate()
+
+			if wantErr {
 				require.Error(t, err)
-				assert.EqualError(t, err, tt.wantErrMsg)
+				assert.EqualError(t, err, wantErrMsg)
 				return
 			}
 
@@ -176,6 +188,8 @@ func TestConfigServeHTTP(t *testing.T) {
 	cfg.ServeHTTP(w, req)
 
 	resp := w.Result()
+	defer resp.Body.Close()
+
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -197,6 +211,8 @@ func TestInfoServeHTTP(t *testing.T) {
 	i.ServeHTTP(w, req)
 
 	resp := w.Result()
+	defer resp.Body.Close()
+
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
