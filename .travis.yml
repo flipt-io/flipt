@@ -26,11 +26,11 @@ jobs:
   include:
   - stage: unit
     before_script:
-      - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
+      - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.9
       - go get github.com/mattn/goveralls
     script:
       - golangci-lint run
-      - go test -covermode=count -coverprofile=profile.cov -count=1 ./...
+      - go test -tags test -covermode=count -coverprofile=profile.cov -count=1 ./...
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: postgres
