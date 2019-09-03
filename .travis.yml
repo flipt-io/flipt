@@ -30,7 +30,7 @@ jobs:
       - go get github.com/mattn/goveralls
     script:
       - golangci-lint run
-      - go test -tags test -covermode=count -coverprofile=profile.cov -count=1 ./...
+      - go test -covermode=count -coverprofile=profile.cov -count=1 ./...
       - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
   - stage: postgres
