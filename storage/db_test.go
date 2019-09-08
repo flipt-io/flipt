@@ -75,7 +75,6 @@ func TestParse(t *testing.T) {
 
 var (
 	logger *logrus.Logger
-	debug  bool
 
 	flagStore    FlagStore
 	segmentStore SegmentStore
@@ -92,10 +91,6 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger = logrus.New()
-
-	if debug {
-		logger.SetLevel(logrus.DebugLevel)
-	}
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
