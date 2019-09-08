@@ -19,10 +19,10 @@ jobs:
         fetch-depth: 1
 
     - name: Install golangci-lint
-      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
+      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
 
     - name: Lint
-      run: $GOPATH/bin/golangci-lint run --deadline=5m
+      run: ./bin/golangci-lint run --deadline=5m
 
     - name: Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
