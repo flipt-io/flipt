@@ -11,7 +11,7 @@ jobs:
         go: ['1.12', '1.13']
 
     steps:
-    - name: Setup Go ${{ matrix.go }}
+    - name: Setup Go
       uses: actions/setup-go@v1
       with:
         go-version: ${{ matrix.go }}

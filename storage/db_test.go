@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -84,11 +83,6 @@ var (
 )
 
 const defaultTestDBURL = "file:../flipt_test.db"
-
-func init() {
-	flag.BoolVar(&debug, "debug", false, "enable debug logging")
-	flag.Parse()
-}
 
 func TestMain(m *testing.M) {
 	// os.Exit skips defer calls
