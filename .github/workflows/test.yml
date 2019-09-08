@@ -11,7 +11,7 @@ jobs:
         go: ['1.12', '1.13']
 
     steps:
-    - name: Set up Go ${{matrix.go}}
+    - name: Setup Go
       uses: actions/setup-go@v1
       with:
         go-version: ${{matrix.go}}
@@ -27,6 +27,7 @@ jobs:
 
     - name: Lint
       run: ./bin/golangci-lint run
+      if: ${{matrix.go}} != '1.13'
 
     - name: Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
