@@ -27,7 +27,7 @@ jobs:
 
     - name: Lint
       run: ./bin/golangci-lint run
-      if: ${{matrix.go}} != '1.13'
+      if: matrix.go != '1.13'
 
     - name: Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
