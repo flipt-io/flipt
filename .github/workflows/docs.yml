@@ -1,13 +1,17 @@
+name: Publish Docs On Release
 on:
   release:
     type: created
-name: Publish Docs On Release
 jobs:
+
   publish:
     name: Publish Docs
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+
+    - name: Check out code
+      uses: actions/checkout@master
+
     - name: Publish Docs
       uses: ./build/actions/publish-docs
       env:
