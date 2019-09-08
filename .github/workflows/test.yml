@@ -1,4 +1,4 @@
-name: Test
+name: Tests
 on: [push]
 jobs:
 
@@ -15,10 +15,14 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
 
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
+    - name: Install golangci-lint
+      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
+
+    - name: Lint
+      run: golangci-lint run --deadline=5m
 
     - name: Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
