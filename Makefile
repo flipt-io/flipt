@@ -11,7 +11,7 @@ TEST_FLAGS ?=
 setup: ## Install dev tools
 	@echo ">> installing dev tools"
 	@if [ ! -f $(GOPATH)/bin/golangci-lint ]; then \
-		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.12.5; \
+		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.17.1; \
 	fi
 
 .PHONY: test

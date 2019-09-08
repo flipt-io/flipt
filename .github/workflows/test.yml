@@ -5,12 +5,16 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    steps:
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.12', '1.13']
 
-    - name: Set up Go 1.12
+    steps:
+    - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.12
+        go-version: ${{ matrix.go }}
       id: go
 
     - name: Check out code into the Go module directory
@@ -19,10 +23,11 @@ jobs:
         fetch-depth: 1
 
     - name: Install golangci-lint
-      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
+      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
 
     - name: Lint
-      run: $GOPATH/bin/golangci-lint run --deadline=5m
+      run: ./bin/golangci-lint run
+      if: matrix.go != '1.13'
 
     - name: Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...

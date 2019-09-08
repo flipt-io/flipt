@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -76,7 +75,6 @@ func TestParse(t *testing.T) {
 
 var (
 	logger *logrus.Logger
-	debug  bool
 
 	flagStore    FlagStore
 	segmentStore SegmentStore
@@ -84,11 +82,6 @@ var (
 )
 
 const defaultTestDBURL = "file:../flipt_test.db"
-
-func init() {
-	flag.BoolVar(&debug, "debug", false, "enable debug logging")
-	flag.Parse()
-}
 
 func TestMain(m *testing.M) {
 	// os.Exit skips defer calls
@@ -98,10 +91,6 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger = logrus.New()
-
-	if debug {
-		logger.SetLevel(logrus.DebugLevel)
-	}
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
