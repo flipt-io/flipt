@@ -1,6 +1,27 @@
 name: Tests
 on: [push]
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.12
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Install golangci-lint
+      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
+
+    - name: Lint
+      run: ./bin/golangci-lint run
 
   test:
     name: Test
@@ -21,13 +42,6 @@ jobs:
       uses: actions/checkout@v1
       with:
         fetch-depth: 1
-
-    - name: Install golangci-lint
-      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.17.1
-
-    - name: Lint
-      run: ./bin/golangci-lint run
-      if: matrix.go != '1.13'
 
     - name: Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
