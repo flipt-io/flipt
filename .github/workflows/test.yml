@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - '*.go'
+      - '*/*.go'
+      - '*/*/*.go'
 
 jobs:
   lint:
