@@ -2,9 +2,9 @@ name: Tests
 on:
   push:
     paths:
-      - '*.go'
-      - '*/*.go'
-      - '*/*/*.go'
+      - '*'
+      - '!/docs/*'
+      - '!*.md'
 
 jobs:
   lint:
