@@ -6,8 +6,9 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        go: [1.12, 1.13]
+        go: ['1.12', '1.13']
 
     steps:
     - name: Set up Go ${{matrix.go}}
