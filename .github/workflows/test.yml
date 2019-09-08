@@ -1,5 +1,9 @@
 name: Tests
-on: [push]
+on:
+  push:
+    paths:
+      - '*.go'
+
 jobs:
   lint:
     name: Lint
