@@ -84,7 +84,6 @@ var (
 const defaultTestDBURL = "file:../flipt_test.db"
 
 func TestMain(m *testing.M) {
-
 	// os.Exit skips defer calls
 	// so we need to use another fn
 	os.Exit(run(m))
