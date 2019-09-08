@@ -9,8 +9,8 @@
 ![Flipt](docs/assets/images/flipt.png)
 
 <div align="center">
-    <a href="https://travis-ci.com/markphelps/flipt">
-        <img src="https://travis-ci.com/markphelps/flipt.svg?token=TBiDDmnBkCmRa867CqCG&branch=master" alt="Build Status" />
+    <a href="https://github.com/markphelps/flipt/actions">
+        <img src="https://github.com/markphelps/flipt/workflows/Tests/badge.svg" alt="Build Status" />
     </a>
     <a href="https://coveralls.io/github/markphelps/flipt">
         <img src="https://coveralls.io/repos/github/markphelps/flipt/badge.svg" alt="Coverage" />
