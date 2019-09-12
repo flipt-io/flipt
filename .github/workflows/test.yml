@@ -1,10 +1,10 @@
 name: tests
-on:
-  push:
-    paths:
-      - '*'
-      - '!/docs/*'
-      - '!*.md'
+on: [push]
+#push:
+    #paths:
+      #- '*'
+      #- '!/docs/*'
+      #- '!*.md'
 
 jobs:
   lint:
