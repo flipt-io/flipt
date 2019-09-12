@@ -57,5 +57,26 @@ jobs:
         docker run -e POSTGRES_DB=flipt_test -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD='' -d -p 5432:5432 postgres:11
         DB_URL="postgres://postgres@localhost:5432/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
-    - name: Integration Tests
-      run: make integration
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.12
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Build binary
+      run: make build
+
+    - name: Test CLI
+      uses: actions/bin/bats@master
+      args: ./test/*.bats
+
