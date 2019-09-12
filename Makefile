@@ -24,6 +24,12 @@ cover: test ## Run all the tests and opens the coverage report
 	@echo ">> generating test coverage"
 	go tool cover -html=coverage.txt
 
+.PHONY: integration
+integration: build ## Run the integration tests
+	@echo ">> running integration tests"
+	@./test/cli
+	@./test/api
+
 .PHONY: fmt
 fmt: ## Run gofmt and goimports on all go files
 	@echo ">> running gofmt"
