@@ -14,7 +14,9 @@ log:
 #     items: 500
 
 # server:
+#   protocol: http
 #   host: 0.0.0.0
+#   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
 

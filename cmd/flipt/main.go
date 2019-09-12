@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -38,6 +39,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/lib/pq"
@@ -117,7 +119,7 @@ func printVersionHeader() {
 func runMigrations() error {
 	var err error
 
-	cfg, err = configure()
+	cfg, err = configure(cfgPath)
 	if err != nil {
 		return err
 	}
@@ -175,9 +177,9 @@ func execute() error {
 
 	var err error
 
-	cfg, err = configure()
+	cfg, err = configure(cfgPath)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "loading configuration")
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
@@ -211,170 +213,227 @@ func execute() error {
 
 	printVersionHeader()
 
-	if cfg.Server.GRPCPort > 0 {
-		g.Go(func() error {
-			logger := logger.WithField("server", "grpc")
-			logger.Infof("connecting to database: %s", cfg.Database.URL)
+	g.Go(func() error {
+		logger := logger.WithField("server", "grpc")
+		logger.Infof("connecting to database: %s", cfg.Database.URL)
 
-			db, driver, err := storage.Open(cfg.Database.URL)
+		db, driver, err := storage.Open(cfg.Database.URL)
+		if err != nil {
+			return errors.Wrap(err, "opening db")
+		}
+
+		defer db.Close()
+
+		var (
+			builder sq.StatementBuilderType
+			dr      database.Driver
+		)
+
+		switch driver {
+		case storage.SQLite:
+			builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+			dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+		case storage.Postgres:
+			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
+			dr, err = postgres.WithInstance(db, &postgres.Config{})
+		}
+
+		if err != nil {
+			return errors.Wrapf(err, "getting db driver for: %s", driver)
+		}
+
+		f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
+
+		mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+		if err != nil {
+			return errors.Wrap(err, "opening migrations")
+		}
+
+		v, _, err := mm.Version()
+		if err != nil && err != migrate.ErrNilVersion {
+			return errors.Wrap(err, "getting current migrations version")
+		}
+
+		// if first run, go ahead and run all migrations
+		// otherwise exit and inform user to run manually
+		if err == migrate.ErrNilVersion {
+			logger.Debug("no previous migrations run; running now")
+			if err := runMigrations(); err != nil {
+				return errors.Wrap(err, "running migrations")
+			}
+		} else if v < dbMigrationVersion {
+			logger.Debugf("migrations pending: current=%d, want=%d", v, dbMigrationVersion)
+			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+		}
+
+		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
+		if err != nil {
+			return errors.Wrap(err, "creating grpc listener")
+		}
+
+		defer func() {
+			_ = lis.Close()
+		}()
+
+		var (
+			grpcOpts   []grpc.ServerOption
+			serverOpts []server.Option
+			srv        *server.Server
+		)
+
+		if cfg.Cache.Memory.Enabled {
+			cache, err := lru.New(cfg.Cache.Memory.Items)
 			if err != nil {
-				return errors.Wrap(err, "opening db")
+				return errors.Wrap(err, "creating in-memory cache")
 			}
 
-			defer db.Close()
+			logger.Infof("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
+			serverOpts = append(serverOpts, server.WithCache(cache))
+		}
 
-			var (
-				builder sq.StatementBuilderType
-				dr      database.Driver
-			)
+		srv = server.New(logger, builder, db, serverOpts...)
 
-			switch driver {
-			case storage.SQLite:
-				builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
-				dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-			case storage.Postgres:
-				builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
-				dr, err = postgres.WithInstance(db, &postgres.Config{})
-			}
+		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
+			grpc_ctxtags.UnaryServerInterceptor(),
+			grpc_logrus.UnaryServerInterceptor(logger),
+			grpc_prometheus.UnaryServerInterceptor,
+			srv.ErrorUnaryInterceptor,
+			grpc_recovery.UnaryServerInterceptor(),
+		))
 
+		if cfg.Server.Protocol == HTTPS {
+			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
 			if err != nil {
-				return errors.Wrapf(err, "getting db driver for: %s", driver)
+				return errors.Wrap(err, "loading TLS credentials")
 			}
 
-			f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
+			grpcOpts = append(grpcOpts, grpc.Creds(creds))
+		}
 
-			mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+		grpcServer = grpc.NewServer(grpcOpts...)
+		pb.RegisterFliptServer(grpcServer, srv)
+		grpc_prometheus.Register(grpcServer)
+		return grpcServer.Serve(lis)
+	})
+
+	g.Go(func() error {
+		logger := logger.WithField("server", cfg.Server.Protocol.String())
+
+		var (
+			r        = chi.NewRouter()
+			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false}))
+			opts     = []grpc.DialOption{grpc.WithBlock()}
+			httpPort int
+		)
+
+		switch cfg.Server.Protocol {
+		case HTTPS:
+			creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")
 			if err != nil {
-				return errors.Wrap(err, "opening migrations")
+				return errors.Wrap(err, "loading TLS credentials")
 			}
 
-			v, _, err := mm.Version()
-			if err != nil && err != migrate.ErrNilVersion {
-				return errors.Wrap(err, "getting current migrations version")
-			}
+			opts = append(opts, grpc.WithTransportCredentials(creds))
+			httpPort = cfg.Server.HTTPSPort
+		case HTTP:
+			opts = append(opts, grpc.WithInsecure())
+			httpPort = cfg.Server.HTTPPort
+		}
 
-			// if first run, go ahead and run all migrations
-			// otherwise exit and inform user to run manually
-			if err == migrate.ErrNilVersion {
-				logger.Debug("no previous migrations run; running now")
-				if err := runMigrations(); err != nil {
-					return errors.Wrap(err, "running migrations")
-				}
-			} else if v < dbMigrationVersion {
-				logger.Debugf("migrations pending: current=%d, want=%d", v, dbMigrationVersion)
-				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
-			}
+		dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
+		defer dialCancel()
 
-			lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
-			if err != nil {
-				return errors.Wrap(err, "creating grpc listener")
-			}
+		conn, err := grpc.DialContext(dialCtx, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts...)
+		if err != nil {
+			return errors.Wrap(err, "connecting to grpc server")
+		}
 
-			defer func() {
-				_ = lis.Close()
-			}()
+		if err := pb.RegisterFliptHandler(ctx, api, conn); err != nil {
+			return errors.Wrap(err, "registering grpc gateway")
+		}
 
-			var (
-				grpcOpts   []grpc.ServerOption
-				serverOpts []server.Option
-				srv        *server.Server
-			)
-
-			grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
-				grpc_ctxtags.UnaryServerInterceptor(),
-				grpc_logrus.UnaryServerInterceptor(logger),
-				grpc_prometheus.UnaryServerInterceptor,
-				srv.ErrorUnaryInterceptor,
-				grpc_recovery.UnaryServerInterceptor(),
-			))
-
-			if cfg.Cache.Memory.Enabled {
-				cache, err := lru.New(cfg.Cache.Memory.Items)
-				if err != nil {
-					return errors.Wrap(err, "creating in-memory cache")
-				}
-
-				logger.Infof("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
-				serverOpts = append(serverOpts, server.WithCache(cache))
-			}
-
-			srv = server.New(logger, builder, db, serverOpts...)
-			grpcServer = grpc.NewServer(grpcOpts...)
-			pb.RegisterFliptServer(grpcServer, srv)
-			grpc_prometheus.Register(grpcServer)
-			return grpcServer.Serve(lis)
-		})
-	}
-
-	if cfg.Server.HTTPPort > 0 {
-		g.Go(func() error {
-			logger := logger.WithField("server", "http")
-
-			var (
-				r    = chi.NewRouter()
-				api  = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false}))
-				opts = []grpc.DialOption{grpc.WithInsecure()}
-			)
-
-			if err := pb.RegisterFliptHandlerFromEndpoint(ctx, api, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts); err != nil {
-				return errors.Wrap(err, "connecting to grpc server")
-			}
-
-			if cfg.Cors.Enabled {
-				cors := cors.New(cors.Options{
-					AllowedOrigins:   cfg.Cors.AllowedOrigins,
-					AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-					AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-					ExposedHeaders:   []string{"Link"},
-					AllowCredentials: true,
-					MaxAge:           300,
-				})
-
-				r.Use(cors.Handler)
-				logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
-			}
-
-			r.Use(middleware.RequestID)
-			r.Use(middleware.RealIP)
-			r.Use(middleware.Compress(gzip.DefaultCompression))
-			r.Use(middleware.Heartbeat("/health"))
-			r.Use(middleware.Recoverer)
-			r.Mount("/metrics", promhttp.Handler())
-			r.Mount("/api/v1", api)
-			r.Mount("/debug", middleware.Profiler())
-
-			r.Route("/meta", func(r chi.Router) {
-				r.Use(middleware.SetHeader("Content-Type", "application/json"))
-				r.Handle("/info", info)
-				r.Handle("/config", cfg)
+		if cfg.Cors.Enabled {
+			cors := cors.New(cors.Options{
+				AllowedOrigins:   cfg.Cors.AllowedOrigins,
+				AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+				AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+				ExposedHeaders:   []string{"Link"},
+				AllowCredentials: true,
+				MaxAge:           300,
 			})
 
-			if cfg.UI.Enabled {
-				r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
-				r.Mount("/", http.FileServer(ui.Assets))
-			}
+			r.Use(cors.Handler)
+			logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
+		}
 
-			httpServer = &http.Server{
-				Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.HTTPPort),
-				Handler:        r,
-				ReadTimeout:    10 * time.Second,
-				WriteTimeout:   10 * time.Second,
-				MaxHeaderBytes: 1 << 20,
-			}
+		r.Use(middleware.RequestID)
+		r.Use(middleware.RealIP)
+		r.Use(middleware.Compress(gzip.DefaultCompression))
+		r.Use(middleware.Heartbeat("/health"))
+		r.Use(middleware.Recoverer)
+		r.Mount("/metrics", promhttp.Handler())
+		r.Mount("/api/v1", api)
+		r.Mount("/debug", middleware.Profiler())
 
-			logger.Infof("api server running at: http://%s:%d/api/v1", cfg.Server.Host, cfg.Server.HTTPPort)
-
-			if cfg.UI.Enabled {
-				logger.Infof("ui available at: http://%s:%d", cfg.Server.Host, cfg.Server.HTTPPort)
-			}
-
-			if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
-				return err
-			}
-
-			return nil
+		r.Route("/meta", func(r chi.Router) {
+			r.Use(middleware.SetHeader("Content-Type", "application/json"))
+			r.Handle("/info", info)
+			r.Handle("/config", cfg)
 		})
-	}
+
+		if cfg.UI.Enabled {
+			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
+			r.Mount("/", http.FileServer(ui.Assets))
+		}
+
+		httpServer = &http.Server{
+			Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
+			Handler:        r,
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}
+
+		logger.Infof("api server running at: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+
+		if cfg.UI.Enabled {
+			logger.Infof("ui available at: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		}
+
+		if cfg.Server.Protocol == HTTPS {
+			httpServer.TLSConfig = &tls.Config{
+				MinVersion:               tls.VersionTLS12,
+				PreferServerCipherSuites: true,
+				CipherSuites: []uint16{
+					tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+					tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+					tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+					tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+					tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+					tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				},
+			}
+
+			httpServer.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
+
+			err = httpServer.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.CertKey)
+		} else {
+			err = httpServer.ListenAndServe()
+		}
+
+		if err != http.ErrServerClosed {
+			return errors.Wrap(err, "http server")
+		}
+
+		logger.Info("server shutdown gracefully")
+		return nil
+	})
 
 	select {
 	case <-interrupt:
