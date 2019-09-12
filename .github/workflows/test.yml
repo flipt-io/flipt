@@ -1,4 +1,4 @@
-name: Tests
+name: tests
 on:
   push:
     paths:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    name: Lint
+    name: lint
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
       run: ./bin/golangci-lint run
 
   test:
-    name: Test
+    name: test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -49,5 +49,10 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Test
+    - name: Unit Test
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
+
+    - name: Unit Test (Postgres)
+      run: |
+        docker run -e POSTGRES_DB=flipt_test -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD='' -d -p 5432:5432 postgres:11
+        DB_URL="postgres://postgres@localhost:5432/flipt_test?sslmode=disable" go test -count=1 -v ./...
