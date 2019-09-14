@@ -43,7 +43,8 @@ jobs:
     services:
       postgres:
         image: postgres:11
-        ports: 5432:5432
+        ports:
+          - 5432:5432
         env:
           POSTGRES_DB: flipt_test
           POSTGRES_USER: postgres
