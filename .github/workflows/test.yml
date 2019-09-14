@@ -1,12 +1,9 @@
 name: Tests
-on:
-  push:
-    paths:
-      - '*'
-      - '!/docs/*'
-      - '!*.md'
+on: [push]
 
 jobs:
+
+  ## Lint
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -29,6 +26,7 @@ jobs:
     - name: Lint
       run: ./bin/golangci-lint run
 
+  ## Unit Tests
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -36,6 +34,16 @@ jobs:
       fail-fast: false
       matrix:
         go: ['1.12', '1.13']
+
+    services:
+      postgres:
+        image: postgres:11
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: flipt_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ''
 
     steps:
     - name: Setup Go
@@ -49,5 +57,9 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Test
+    - name: Unit Test (SQLite)
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
+
+    - name: Unit Test (Postgres)
+      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
+
