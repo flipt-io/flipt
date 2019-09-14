@@ -1,0 +1,36 @@
+#!/usr/bin/env bats
+
+load 'helpers/bats-support/load'
+load 'helpers/bats-assert/load'
+
+@test "unknown command results in error" {
+    run ./bin/flipt foo
+    assert_failure
+    assert_equal "${lines[0]}" "Error: unknown command \"foo\" for \"flipt\""
+    assert_equal "${lines[1]}" "Run 'flipt --help' for usage."
+}
+
+@test "help flag prints usage" {
+    run ./bin/flipt --help
+    assert_success
+    assert_equal "${lines[0]}" "Flipt is a self contained feature flag solution"
+    assert_equal "${lines[1]}" "Usage:"
+    assert_equal "${lines[2]}" "  flipt [flags]"
+    assert_equal "${lines[3]}" "  flipt [command]"
+    assert_equal "${lines[4]}" "Available Commands:"
+    assert_equal "${lines[5]}" "  help        Help about any command"
+    assert_equal "${lines[6]}" "  migrate     Run pending database migrations"
+    assert_equal "${lines[7]}" "Flags:" ]
+    assert_equal "${lines[8]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
+    assert_equal "${lines[9]}" "  -h, --help            help for flipt"
+    assert_equal "${lines[10]}" "      --version         print version info and exit"
+}
+
+@test "version flag prints version info" {
+    run ./bin/flipt --version
+    assert_success
+    assert_output -p "Version:"
+    assert_output -p "Commit:"
+    assert_output -e "Build Date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
+    assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
+}

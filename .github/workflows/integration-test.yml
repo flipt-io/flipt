@@ -1,0 +1,38 @@
+name: integration tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  ## Integration Tests
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.12
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Build binary
+      run: make build
+
+    - name: Test CLI
+      uses: actions/bin/bats@master
+      with:
+        args: ./script/test/*.bats
+
+    - name: Test API
+      run: ./script/test/api

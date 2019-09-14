@@ -1,14 +1,16 @@
 name: tests
-on: [push]
-#push:
-    #paths:
-      #- '*'
-      #- '!/docs/*'
-      #- '!*.md'
+on:
+  push:
+    paths:
+      - '*'
+      - '!/docs/*'
+      - '!*.md'
 
 jobs:
+
+  ## Lint
   lint:
-    name: lint
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
@@ -29,13 +31,23 @@ jobs:
     - name: Lint
       run: ./bin/golangci-lint run
 
+  ## Unit Tests
   test:
-    name: test
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         go: ['1.12', '1.13']
+
+    services:
+      postgres:
+        image: postgres:11
+        ports: 5432:5432
+        env:
+          POSTGRES_DB: flipt_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ''
 
     steps:
     - name: Setup Go
@@ -53,31 +65,5 @@ jobs:
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
 
     - name: Unit Test (Postgres)
-      run: |
-        docker run -e POSTGRES_DB=flipt_test -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD='' -d -p 5432:5432 postgres:11
-        DB_URL="postgres://postgres@localhost:5432/flipt_test?sslmode=disable" go test -count=1 -v ./...
-
-  integration:
-    name: integration
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Setup Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.12
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-
-    - name: Build binary
-      run: make build
-
-    - name: Test CLI
-      uses: actions/bin/bats@master
-      with:
-        args: ./test/*.bats
+      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
