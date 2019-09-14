@@ -1,5 +1,9 @@
-FROM alpine:3.10
+FROM debian:stable-slim
 
-RUN apk add --no-cache bash curl
+RUN apt-get update && \
+	apt-get install curl -y && \
+	apt-get clean -y
 
-CMD "./script/test/api"
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
