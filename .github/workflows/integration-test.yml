@@ -35,4 +35,5 @@ jobs:
         args: ./script/test/*.bats
 
     - name: Test API
+      uses: docker://alpine:3.10
       run: ./script/test/api
