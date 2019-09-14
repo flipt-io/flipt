@@ -226,15 +226,10 @@ step_8_test_metrics()
 
 run()
 {
-    trap "exit" INT TERM ERR
-    trap "cleanup" exit
-
     # run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
-
-    echo $! > /tmp/flipt.pid
 
     sleep 5
 
@@ -257,13 +252,6 @@ run()
     step_6_test_delete
     step_7_test_meta
     step_8_test_metrics
-}
-
-cleanup ()
-{
-    # kill any running instances
-    cat /tmp/flipt.pid | xargs kill
-    rm /tmp/flipt.pid || true
 }
 
 run
