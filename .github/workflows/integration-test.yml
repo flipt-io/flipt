@@ -36,4 +36,5 @@ jobs:
 
     - name: Test API
       uses: docker://alpine:3.10
-      run: ./script/test/api
+      with:
+        args: ./script/test/api
