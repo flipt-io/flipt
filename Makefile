@@ -80,12 +80,12 @@ dev: ## Build and run in development mode
 .PHONY: snapshot
 snapshot: ## Build a snapshot version
 	@echo ">> building a snapshot version"
-	@./build/snapshot
+	@./script/build/snapshot
 
 .PHONY: release
 release: ## Build and publish a release
 	@echo ">> building and publishing a release"
-	@./build/release
+	@./script/build/release
 
 .PHONY: help
 help:
