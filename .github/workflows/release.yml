@@ -1,0 +1,24 @@
+name: Release
+on: [push]
+
+jobs:
+
+  ## Release
+  release:
+    name: release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.12
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Build Snapshot
+      run: ./script/build/snapshot
