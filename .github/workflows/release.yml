@@ -8,7 +8,7 @@ jobs:
 
   ## Release
   release:
-    name: release
+    name: Create Release
     runs-on: ubuntu-latest
 
     steps:
