@@ -2,17 +2,21 @@ name: Publish Docs On Release
 on:
   release:
     type: created
+
 jobs:
 
+  # Publish Docs
   publish:
     name: Publish Docs
     runs-on: ubuntu-latest
     steps:
 
     - name: Check out code
-      uses: actions/checkout@master
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
 
     - name: Publish Docs
-      uses: ./build/actions/publish-docs
+      uses: ./.github/actions/publish-docs
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
