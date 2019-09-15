@@ -2,7 +2,8 @@ name: Release
 on:
   push:
     tags:
-    - '*'
+      - '*'
+
 jobs:
 
   ## Release
