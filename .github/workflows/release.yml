@@ -1,6 +1,8 @@
 name: Release
-on: [push]
-
+on:
+  push:
+    tags:
+    - '*'
 jobs:
 
   ## Release
@@ -20,5 +22,9 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Build Snapshot
-      run: ./script/build/snapshot
+    - name: Release
+      run: ./script/build/release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
