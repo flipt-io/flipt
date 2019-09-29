@@ -102,7 +102,7 @@ If it is your first run of Flipt, all migrations will automatically be run befor
 !!! warning
     You should backup your database before running `flipt migrate` to ensure that no data is lost if an error occurs during migration.
 
-If running Flipt via Docker, you can run the migrations in a seperate container before starting Flipt by running:
+If running Flipt via Docker, you can run the migrations in a separate container before starting Flipt by running:
 
 ```bash
 docker run -it markphelps/flipt:latest /bin/sh -c './flipt migrate'
