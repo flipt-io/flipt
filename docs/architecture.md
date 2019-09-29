@@ -19,17 +19,25 @@ All three of these components run side by side in a single binary. The UI and RE
 
 The Flipt Backend Service is the main entrypoint to the application and implements all of the business logic for Flipt. This is what users of the gRPC client SDKs will communicate with, allowing for fast, efficient communication with your applications.
 
-## REST API
+### REST API
 
 The Flipt REST API is implemented on top of the Backend Service using gRPC Gateway (described below).
 
 The REST API is served under `/api/v1` and allows all actions that the client SDKs allow.
 
-## Web UI
+### Web UI
 
 The Flipt Web UI is a modern, minimalist UI to allow you to easily setup and monitor your feature flags and experiments. It's served as a JavaScript Single Page Application (SPA) and communicates with the Flipt Backend Service through the REST API.
 
 A guide to using the UI for the first time can be found in the [Getting Started](getting_started.md) documentation.
+
+## Database
+
+Flipt can be run with either a SQLite or Postgres database. The [Configuration](configuration.md) documentation shows how to enable each datastore.
+
+### Schema
+
+!["Flipt Database Schema Diagram"](assets/images/schema.svg)
 
 ## Technologies
 
