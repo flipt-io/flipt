@@ -124,69 +124,74 @@
     >
       <div class="modal-background" @click.prevent="cancelAddConstraint" />
       <div class="modal-content" @keyup.esc="cancelAddConstraint">
-        <div class="box">
-          <form>
-            <BField label="Property">
-              <BInput
-                v-model="newConstraint.property"
-                placeholder="Property"
-                required
-              />
-            </BField>
-            <BField label="Comparison Type">
-              <BSelect v-model="newConstraint.type" placeholder="Select a type">
-                <option
-                  v-for="(value, key, index) in comparisons"
-                  :key="index"
-                  :value="key"
+        <div class="container">
+          <div class="box">
+            <form>
+              <BField label="Property">
+                <BInput
+                  v-model="newConstraint.property"
+                  placeholder="Property"
+                  required
+                />
+              </BField>
+              <BField label="Comparison Type">
+                <BSelect
+                  v-model="newConstraint.type"
+                  placeholder="Select a type"
                 >
-                  {{ value }}
-                </option>
-              </BSelect>
-            </BField>
-            <BField label="Operator">
-              <BSelect
-                v-model="newConstraint.operator"
-                placeholder="Select an operator"
-                :disabled="!newConstraint.type"
-              >
-                <option
-                  v-for="(value, key, index) in operators(newConstraint.type)"
-                  :key="index"
-                  :value="key"
+                  <option
+                    v-for="(value, key, index) in comparisons"
+                    :key="index"
+                    :value="key"
+                  >
+                    {{ value }}
+                  </option>
+                </BSelect>
+              </BField>
+              <BField label="Operator">
+                <BSelect
+                  v-model="newConstraint.operator"
+                  placeholder="Select an operator"
+                  :disabled="!newConstraint.type"
                 >
-                  {{ value }}
-                </option>
-              </BSelect>
-            </BField>
-            <BField v-show="hasValue(newConstraint.operator)" label="Value">
-              <BInput v-model="newConstraint.value" placeholder="Value" />
-            </BField>
-            <div class="field is-grouped">
-              <div class="control">
-                <button
-                  class="button is-primary"
-                  :disabled="!canAddConstraint"
-                  @click.prevent="addConstraint"
-                >
-                  Add Constraint
-                </button>
-                <button
-                  class="button is-text"
-                  @click.prevent="cancelAddConstraint"
-                >
-                  Cancel
-                </button>
+                  <option
+                    v-for="(value, key, index) in operators(newConstraint.type)"
+                    :key="index"
+                    :value="key"
+                  >
+                    {{ value }}
+                  </option>
+                </BSelect>
+              </BField>
+              <BField v-show="hasValue(newConstraint.operator)" label="Value">
+                <BInput v-model="newConstraint.value" placeholder="Value" />
+              </BField>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    class="button is-primary"
+                    :disabled="!canAddConstraint"
+                    @click.prevent="addConstraint"
+                  >
+                    Add Constraint
+                  </button>
+                  <button
+                    class="button is-text"
+                    @click.prevent="cancelAddConstraint"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click.prevent="cancelAddConstraint"
+          />
         </div>
       </div>
-      <button
-        class="modal-close is-large"
-        aria-label="close"
-        @click.prevent="cancelAddConstraint"
-      />
     </div>
 
     <div
@@ -196,76 +201,81 @@
     >
       <div class="modal-background" @click.prevent="cancelEditConstraint" />
       <div class="modal-content" @keyup.esc="cancelAddConstraint">
-        <div class="box">
-          <form>
-            <BField label="Property">
-              <BInput
-                v-model="selectedConstraint.property"
-                placeholder="Property"
-                required
-              />
-            </BField>
-            <BField label="Comparison Type">
-              <BSelect
-                v-model="selectedConstraint.type"
-                placeholder="Select a type"
+        <div class="container">
+          <div class="box">
+            <form>
+              <BField label="Property">
+                <BInput
+                  v-model="selectedConstraint.property"
+                  placeholder="Property"
+                  required
+                />
+              </BField>
+              <BField label="Comparison Type">
+                <BSelect
+                  v-model="selectedConstraint.type"
+                  placeholder="Select a type"
+                >
+                  <option
+                    v-for="(value, key, index) in comparisons"
+                    :key="index"
+                    :value="key"
+                  >
+                    {{ value }}
+                  </option>
+                </BSelect>
+              </BField>
+              <BField label="Operator">
+                <BSelect
+                  v-model="selectedConstraint.operator"
+                  placeholder="Select an operator"
+                >
+                  <option
+                    v-for="(value, key, index) in operators(
+                      selectedConstraint.type
+                    )"
+                    :key="index"
+                    :value="key"
+                  >
+                    {{ value }}
+                  </option>
+                </BSelect>
+              </BField>
+              <BField
+                v-show="hasValue(selectedConstraint.operator)"
+                label="Value"
               >
-                <option
-                  v-for="(value, key, index) in comparisons"
-                  :key="index"
-                  :value="key"
-                >
-                  {{ value }}
-                </option>
-              </BSelect>
-            </BField>
-            <BField label="Operator">
-              <BSelect
-                v-model="selectedConstraint.operator"
-                placeholder="Select an operator"
-              >
-                <option
-                  v-for="(value, key, index) in operators(
-                    selectedConstraint.type
-                  )"
-                  :key="index"
-                  :value="key"
-                >
-                  {{ value }}
-                </option>
-              </BSelect>
-            </BField>
-            <BField
-              v-show="hasValue(selectedConstraint.operator)"
-              label="Value"
-            >
-              <BInput v-model="selectedConstraint.value" placeholder="Value" />
-            </BField>
-            <div class="field is-grouped">
-              <div class="control">
-                <button
-                  class="button is-primary"
-                  :disabled="!canUpdateConstraint"
-                  @click.prevent="updateConstraint"
-                >
-                  Update Constraint
-                </button>
-                <button
-                  class="button is-text"
-                  @click.prevent="cancelEditConstraint"
-                >
-                  Cancel
-                </button>
+                <BInput
+                  v-model="selectedConstraint.value"
+                  placeholder="Value"
+                />
+              </BField>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    class="button is-primary"
+                    :disabled="!canUpdateConstraint"
+                    @click.prevent="updateConstraint"
+                  >
+                    Update Constraint
+                  </button>
+                  <button
+                    class="button is-text"
+                    @click.prevent="cancelEditConstraint"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click.prevent="cancelEditConstraint"
+          />
         </div>
       </div>
-      <button
-        class="modal-close is-large"
-        aria-label="close"
-        @click.prevent="cancelEditConstraint"
-      />
     </div>
 
     <div
@@ -281,29 +291,31 @@
         class="modal-content"
         @keyup.esc="dialogDeleteSegmentVisible = false"
       >
-        <div class="box">
-          <p class="has-text-centered">
-            Are you sure you want to delete this segment?
-          </p>
-          <br />
-          <div class="control has-text-centered">
-            <button class="button is-danger" @click.prevent="deleteSegment">
-              Confirm
-            </button>
-            <button
-              class="button is-text"
-              @click="dialogDeleteSegmentVisible = false"
-            >
-              Cancel
-            </button>
+        <div class="container">
+          <div class="box">
+            <p class="has-text-centered">
+              Are you sure you want to delete this segment?
+            </p>
+            <br />
+            <div class="control has-text-centered">
+              <button class="button is-danger" @click.prevent="deleteSegment">
+                Confirm
+              </button>
+              <button
+                class="button is-text"
+                @click="dialogDeleteSegmentVisible = false"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click="dialogDeleteSegmentVisible = false"
+          />
         </div>
       </div>
-      <button
-        class="modal-close is-large"
-        aria-label="close"
-        @click="dialogDeleteSegmentVisible = false"
-      />
     </div>
   </div>
 </template>

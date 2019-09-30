@@ -124,49 +124,51 @@
     >
       <div class="modal-background" @click.prevent="cancelAddVariant" />
       <div class="modal-content" @keyup.esc="cancelAddVariant">
-        <div class="box">
-          <form>
-            <BField label="New Variant">
-              <BInput
-                v-model="newVariant.key"
-                placeholder="Key"
-                required
-                @input="formatVariantKey(newVariant)"
-              />
-            </BField>
-            <BField label="Name (optional)">
-              <BInput v-model="newVariant.name" placeholder="Name" />
-            </BField>
-            <BField label="Description (optional)">
-              <BInput
-                v-model="newVariant.description"
-                placeholder="Description"
-              />
-            </BField>
-            <div class="field is-grouped">
-              <div class="control">
-                <button
-                  class="button is-primary"
-                  :disabled="!canAddVariant"
-                  @click.prevent="addVariant"
-                >
-                  Add Variant
-                </button>
-                <button
-                  class="button is-text"
-                  @click.prevent="cancelAddVariant"
-                >
-                  Cancel
-                </button>
+        <div class="container">
+          <div class="box">
+            <form>
+              <BField label="New Variant">
+                <BInput
+                  v-model="newVariant.key"
+                  placeholder="Key"
+                  required
+                  @input="formatVariantKey(newVariant)"
+                />
+              </BField>
+              <BField label="Name (optional)">
+                <BInput v-model="newVariant.name" placeholder="Name" />
+              </BField>
+              <BField label="Description (optional)">
+                <BInput
+                  v-model="newVariant.description"
+                  placeholder="Description"
+                />
+              </BField>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    class="button is-primary"
+                    :disabled="!canAddVariant"
+                    @click.prevent="addVariant"
+                  >
+                    Add Variant
+                  </button>
+                  <button
+                    class="button is-text"
+                    @click.prevent="cancelAddVariant"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click.prevent="cancelAddVariant"
+          />
         </div>
-        <button
-          class="modal-close is-large"
-          aria-label="close"
-          @click.prevent="cancelAddVariant"
-        />
       </div>
     </div>
 
@@ -177,49 +179,51 @@
     >
       <div class="modal-background" @click.prevent="cancelEditVariant" />
       <div class="modal-content" @keyup.esc="cancelEditVariant">
-        <div class="box">
-          <form>
-            <BField label="New Variant">
-              <BInput
-                v-model="selectedVariant.key"
-                placeholder="Key"
-                required
-                @input="formatVariantKey(selectedVariant)"
-              />
-            </BField>
-            <BField label="Name (optional)">
-              <BInput v-model="selectedVariant.name" placeholder="Name" />
-            </BField>
-            <BField label="Description (optional)">
-              <BInput
-                v-model="selectedVariant.description"
-                placeholder="Description"
-              />
-            </BField>
-            <div class="field is-grouped">
-              <div class="control">
-                <button
-                  class="button is-primary"
-                  :disabled="!canUpdateVariant"
-                  @click.prevent="updateVariant"
-                >
-                  Update Variant
-                </button>
-                <button
-                  class="button is-text"
-                  @click.prevent="cancelEditVariant"
-                >
-                  Cancel
-                </button>
+        <div class="container">
+          <div class="box">
+            <form>
+              <BField label="New Variant">
+                <BInput
+                  v-model="selectedVariant.key"
+                  placeholder="Key"
+                  required
+                  @input="formatVariantKey(selectedVariant)"
+                />
+              </BField>
+              <BField label="Name (optional)">
+                <BInput v-model="selectedVariant.name" placeholder="Name" />
+              </BField>
+              <BField label="Description (optional)">
+                <BInput
+                  v-model="selectedVariant.description"
+                  placeholder="Description"
+                />
+              </BField>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    class="button is-primary"
+                    :disabled="!canUpdateVariant"
+                    @click.prevent="updateVariant"
+                  >
+                    Update Variant
+                  </button>
+                  <button
+                    class="button is-text"
+                    @click.prevent="cancelEditVariant"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click.prevent="cancelEditVariant"
+          />
         </div>
-        <button
-          class="modal-close is-large"
-          aria-label="close"
-          @click.prevent="cancelEditVariant"
-        />
       </div>
     </div>
 
@@ -230,29 +234,31 @@
     >
       <div class="modal-background" @click="dialogDeleteFlagVisible = false" />
       <div class="modal-content" @keyup.esc="dialogDeleteFlagVisible = false">
-        <div class="box">
-          <p class="has-text-centered">
-            Are you sure you want to delete this flag?
-          </p>
-          <br />
-          <div class="control has-text-centered">
-            <button class="button is-danger" @click.prevent="deleteFlag">
-              Confirm
-            </button>
-            <button
-              class="button is-text"
-              @click.prevent="dialogDeleteFlagVisible = false"
-            >
-              Cancel
-            </button>
+        <div class="container">
+          <div class="box">
+            <p class="has-text-centered">
+              Are you sure you want to delete this flag?
+            </p>
+            <br />
+            <div class="control has-text-centered">
+              <button class="button is-danger" @click.prevent="deleteFlag">
+                Confirm
+              </button>
+              <button
+                class="button is-text"
+                @click.prevent="dialogDeleteFlagVisible = false"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
+        <button
+          class="modal-close is-large"
+          aria-label="close"
+          @click="dialogDeleteFlagVisible = false"
+        />
       </div>
-      <button
-        class="modal-close is-large"
-        aria-label="close"
-        @click="dialogDeleteFlagVisible = false"
-      />
     </div>
   </div>
 </template>

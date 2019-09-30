@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -91,6 +92,7 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger = logrus.New()
+	logger.Out = ioutil.Discard
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
