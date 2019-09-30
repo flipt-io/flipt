@@ -34,7 +34,7 @@ RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
 COPY --from=build /go/bin/flipt /
-COPY config/migrations/ /etc/flipt/config/
+COPY config/migrations/ /etc/flipt/config/migrations/
 COPY config/*.yml /etc/flipt/config/
 
 EXPOSE 8080
