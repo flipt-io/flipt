@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -30,6 +31,7 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
@@ -67,7 +69,7 @@ const (
 
 var (
 	logger = logrus.New()
-	cfg    *config
+	cfg    *config.Config
 
 	cfgPath      string
 	printVersion bool
@@ -119,7 +121,7 @@ func printVersionHeader() {
 func runMigrations() error {
 	var err error
 
-	cfg, err = configure(cfgPath)
+	cfg, err = config.Load(cfgPath)
 	if err != nil {
 		return err
 	}
@@ -177,7 +179,7 @@ func execute() error {
 
 	var err error
 
-	cfg, err = configure(cfgPath)
+	cfg, err = config.Load(cfgPath)
 	if err != nil {
 		return errors.Wrap(err, "loading configuration")
 	}
@@ -301,7 +303,7 @@ func execute() error {
 			grpc_recovery.UnaryServerInterceptor(),
 		))
 
-		if cfg.Server.Protocol == HTTPS {
+		if cfg.Server.Protocol == config.HTTPS {
 			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
 			if err != nil {
 				return errors.Wrap(err, "loading TLS credentials")
@@ -327,7 +329,7 @@ func execute() error {
 		)
 
 		switch cfg.Server.Protocol {
-		case HTTPS:
+		case config.HTTPS:
 			creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")
 			if err != nil {
 				return errors.Wrap(err, "loading TLS credentials")
@@ -335,7 +337,7 @@ func execute() error {
 
 			opts = append(opts, grpc.WithTransportCredentials(creds))
 			httpPort = cfg.Server.HTTPSPort
-		case HTTP:
+		case config.HTTP:
 			opts = append(opts, grpc.WithInsecure())
 			httpPort = cfg.Server.HTTPPort
 		}
@@ -400,7 +402,7 @@ func execute() error {
 			logger.Infof("ui available at: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 		}
 
-		if cfg.Server.Protocol == HTTPS {
+		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
 				MinVersion:               tls.VersionTLS12,
 				PreferServerCipherSuites: true,
@@ -457,4 +459,26 @@ func execute() error {
 	}
 
 	return g.Wait()
+}
+
+type info struct {
+	Version   string `json:"version,omitempty"`
+	Commit    string `json:"commit,omitempty"`
+	BuildDate string `json:"buildDate,omitempty"`
+	GoVersion string `json:"goVersion,omitempty"`
+}
+
+func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	out, err := json.Marshal(i)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err = w.Write(out); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type config struct {
+type Config struct {
 	LogLevel string         `json:"logLevel,omitempty"`
 	UI       uiConfig       `json:"ui,omitempty"`
 	Cors     corsConfig     `json:"cors,omitempty"`
@@ -76,8 +76,8 @@ type databaseConfig struct {
 	URL            string `json:"url,omitempty"`
 }
 
-func defaultConfig() *config {
-	return &config{
+func Default() *Config {
+	return &Config{
 		LogLevel: "INFO",
 
 		UI: uiConfig{
@@ -140,7 +140,7 @@ const (
 	cfgDBMigrationsPath = "db.migrations.path"
 )
 
-func configure(path string) (*config, error) {
+func Load(path string) (*Config, error) {
 	viper.SetEnvPrefix("FLIPT")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
@@ -151,7 +151,7 @@ func configure(path string) (*config, error) {
 		return nil, errors.Wrap(err, "loading config")
 	}
 
-	cfg := defaultConfig()
+	cfg := Default()
 
 	// Logging
 	if viper.IsSet(cfgLogLevel) {
@@ -213,13 +213,13 @@ func configure(path string) (*config, error) {
 	}
 
 	if err := cfg.validate(); err != nil {
-		return &config{}, err
+		return &Config{}, err
 	}
 
 	return cfg, nil
 }
 
-func (c *config) validate() error {
+func (c *Config) validate() error {
 	if c.Server.Protocol == HTTPS {
 		if c.Server.CertFile == "" {
 			return errors.New("cert_file cannot be empty when using HTTPS")
@@ -238,40 +238,14 @@ func (c *config) validate() error {
 	return nil
 }
 
-func (c *config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	out, err := json.Marshal(c)
 	if err != nil {
-		logger.WithError(err).Error("getting config")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if _, err = w.Write(out); err != nil {
-		logger.WithError(err).Error("writing response")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-type info struct {
-	Version   string `json:"version,omitempty"`
-	Commit    string `json:"commit,omitempty"`
-	BuildDate string `json:"buildDate,omitempty"`
-	GoVersion string `json:"goVersion,omitempty"`
-}
-
-func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	out, err := json.Marshal(i)
-	if err != nil {
-		logger.WithError(err).Error("getting metadata")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if _, err = w.Write(out); err != nil {
-		logger.WithError(err).Error("writing response")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

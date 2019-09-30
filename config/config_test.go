@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"io/ioutil"
@@ -10,22 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfigure(t *testing.T) {
+func TestLoad(t *testing.T) {
 	tests := []struct {
 		name     string
 		path     string
 		wantErr  bool
-		expected *config
+		expected *Config
 	}{
 		{
 			name:     "defaults",
 			path:     "./testdata/config/default.yml",
-			expected: defaultConfig(),
+			expected: Default(),
 		},
 		{
 			name: "configured",
 			path: "./testdata/config/advanced.yml",
-			expected: &config{
+			expected: &Config{
 				LogLevel: "WARN",
 				UI: uiConfig{
 					Enabled: false,
@@ -65,7 +65,7 @@ func TestConfigure(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := configure(path)
+			cfg, err := Load(path)
 
 			if wantErr {
 				require.Error(t, err)
@@ -83,13 +83,13 @@ func TestConfigure(t *testing.T) {
 func TestValidate(t *testing.T) {
 	tests := []struct {
 		name       string
-		cfg        *config
+		cfg        *Config
 		wantErr    bool
 		wantErrMsg string
 	}{
 		{
 			name: "https: valid",
-			cfg: &config{
+			cfg: &Config{
 				Server: serverConfig{
 					Protocol: HTTPS,
 					CertFile: "./testdata/config/ssl_cert.pem",
@@ -99,7 +99,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			name: "http: valid",
-			cfg: &config{
+			cfg: &Config{
 				Server: serverConfig{
 					Protocol: HTTP,
 					CertFile: "foo.pem",
@@ -109,7 +109,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			name: "https: empty cert_file path",
-			cfg: &config{
+			cfg: &Config{
 				Server: serverConfig{
 					Protocol: HTTPS,
 					CertFile: "",
@@ -121,7 +121,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			name: "https: empty key_file path",
-			cfg: &config{
+			cfg: &Config{
 				Server: serverConfig{
 					Protocol: HTTPS,
 					CertFile: "./testdata/config/ssl_cert.pem",
@@ -133,7 +133,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			name: "https: missing cert_file",
-			cfg: &config{
+			cfg: &Config{
 				Server: serverConfig{
 					Protocol: HTTPS,
 					CertFile: "foo.pem",
@@ -145,7 +145,7 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			name: "https: missing key_file",
-			cfg: &config{
+			cfg: &Config{
 				Server: serverConfig{
 					Protocol: HTTPS,
 					CertFile: "./testdata/config/ssl_cert.pem",
@@ -178,37 +178,14 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-func TestConfigServeHTTP(t *testing.T) {
+func TestServeHTTP(t *testing.T) {
 	var (
-		cfg = defaultConfig()
+		cfg = Default()
 		req = httptest.NewRequest("GET", "http://example.com/foo", nil)
 		w   = httptest.NewRecorder()
 	)
 
 	cfg.ServeHTTP(w, req)
-
-	resp := w.Result()
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.NotEmpty(t, body)
-}
-
-func TestInfoServeHTTP(t *testing.T) {
-	var (
-		i = info{
-			Version:   "1.0.0",
-			Commit:    "12345",
-			BuildDate: "2019-09-01",
-			GoVersion: "1.12.9",
-		}
-		req = httptest.NewRequest("GET", "http://example.com/foo", nil)
-		w   = httptest.NewRecorder()
-	)
-
-	i.ServeHTTP(w, req)
 
 	resp := w.Result()
 	defer resp.Body.Close()
