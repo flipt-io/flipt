@@ -1,18 +1,10 @@
 PROJECT = flipt
 
-PREFIX ?= $(shell pwd)
 SOURCE_FILES ?= ./...
 
 TEST_PATTERN ?= .
 TEST_OPTS ?=
 TEST_FLAGS ?=
-
-.PHONY: setup
-setup: ## Install dev tools
-	@echo ">> installing dev tools"
-	@if [ ! -f $(GOPATH)/bin/golangci-lint ]; then \
-		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH)/bin v1.17.1; \
-	fi
 
 .PHONY: test
 test: ## Run all the tests
@@ -43,9 +35,6 @@ clean: ## Remove built binaries
 proto: ## Build protobufs
 	@echo ">> generating protobufs"
 	protoc -I/usr/local/include -I. \
-		-I $(GOPATH)/src \
-		-I $(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway \
-		-I $(GOPATH)/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		-I rpc \
 		--go_out=plugins=grpc:./rpc \
 		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \

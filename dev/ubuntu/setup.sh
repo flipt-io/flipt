@@ -1,10 +1,10 @@
 #!/bin/bash
 set -euxo pipefail
 
-NODE_VERSION='12.4.0'
-YARN_VERSION='1.16.0'
+NODE_VERSION='12.10.0'
+YARN_VERSION='1.17.3'
 GO_VERSION='1.13.1'
-PROTOC_VERSION='3.6.1'
+PROTOC_VERSION='3.9.2'
 
 echo '=== Installing necessary system libraries to build'
 
@@ -52,9 +52,6 @@ sudo chmod -R 755 /usr/local/
 
 mkdir -p ~/app
 cd ~/app && ln -s /flipt flipt && cd flipt
-
-echo '=== Installing dependencies'
-make setup
 
 echo '=== Running test suite'
 make test
