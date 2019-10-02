@@ -1,6 +1,8 @@
 name: Docs
 on:
   push:
+    branches:
+      - master
     paths:
       - 'docs/*'
 
@@ -20,4 +22,4 @@ jobs:
     - name: Publish
       uses: ./.github/actions/publish-docs
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}

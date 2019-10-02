@@ -33,7 +33,7 @@ A guide to using the UI for the first time can be found in the [Getting Started]
 
 ## Database
 
-Flipt can be run with either a SQLite or Postgres database. The [Configuration](configuration.md) documentation shows how to enable each datastore.
+Flipt can be run with either a SQLite or Postgres database. The [Configuration](configuration.md) documentation shows how to enable each database.
 
 ### Schema
 
