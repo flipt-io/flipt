@@ -53,9 +53,6 @@ sudo chmod -R 755 /usr/local/
 mkdir -p ~/app
 cd ~/app && ln -s /flipt flipt && cd flipt
 
-echo '=== Installing dependencies'
-make setup
-
 echo '=== Running test suite'
 make test
 

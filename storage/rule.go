@@ -534,9 +534,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 		}
 	}()
 
-	var (
-		rules = make(map[string]*rule)
-	)
+	rules := make(map[string]*rule)
 
 	for rows.Next() {
 		var (
@@ -593,7 +591,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 
 	for _, rule := range rules {
 
-		var matchCount int
+		matchCount := 0
 
 		for _, c := range rule.Constraints {
 			if err := validate(c); err != nil {
