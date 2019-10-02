@@ -92,6 +92,7 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger = logrus.New()
+	logger.Level = logrus.DebugLevel
 	logger.Out = ioutil.Discard
 
 	dbURL := os.Getenv("DB_URL")

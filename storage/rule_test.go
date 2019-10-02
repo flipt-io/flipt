@@ -796,12 +796,23 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 
 	require.NoError(t, err)
 
+	// constraint: bar (string) == baz
 	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
 		Operator:   opEQ,
 		Value:      "baz",
+	})
+
+	require.NoError(t, err)
+
+	// constraint: admin (bool) == true
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+		Property:   "admin",
+		Operator:   opTrue,
 	})
 
 	require.NoError(t, err)
@@ -833,7 +844,8 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 				FlagKey:  flag.Key,
 				EntityId: "1",
 				Context: map[string]string{
-					"bar": "baz",
+					"bar":   "baz",
+					"admin": "true",
 				},
 			},
 			wantMatch: true,
@@ -844,7 +856,28 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 				FlagKey:  flag.Key,
 				EntityId: "1",
 				Context: map[string]string{
-					"bar": "boz",
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
 				},
 			},
 		},

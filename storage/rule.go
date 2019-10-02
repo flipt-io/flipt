@@ -535,8 +535,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 	}()
 
 	var (
-		rules        []rule
-		existingRule rule
+		rules = make(map[string]*rule)
 	)
 
 	for rows.Next() {
@@ -549,8 +548,8 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			return resp, err
 		}
 
-		// current rule we know about
-		if existingRule.ID == tempRule.ID {
+		if existingRule, ok := rules[tempRule.ID]; ok {
+			// current rule we know about
 			if optionalConstraint.ID.Valid {
 				constraint := constraint{
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
@@ -562,7 +561,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 			}
 		} else {
 			// haven't seen this rule before
-			existingRule = rule{
+			existingRule = &rule{
 				ID:         tempRule.ID,
 				FlagKey:    tempRule.FlagKey,
 				SegmentKey: tempRule.SegmentKey,
@@ -579,7 +578,7 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 				existingRule.Constraints = append(existingRule.Constraints, constraint)
 			}
 
-			rules = append(rules, existingRule)
+			rules[existingRule.ID] = existingRule
 		}
 	}
 
@@ -593,7 +592,8 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 	}
 
 	for _, rule := range rules {
-		matchCount := 0
+
+		var matchCount int
 
 		for _, c := range rule.Constraints {
 			if err := validate(c); err != nil {
