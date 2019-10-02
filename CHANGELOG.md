@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Support evaluating flags without variants: [https://github.com/markphelps/flipt/issues/138](https://github.com/markphelps/flipt/issues/138)
 
+### Fixed
+
+* Segments not matching on all constraints: [https://github.com/markphelps/flipt/issues/140](https://github.com/markphelps/flipt/issues/140)
+
 ## [v0.8.0](https://github.com/markphelps/flipt/releases/tag/v0.8.0) - 2019-09-15
 
 ### Added
@@ -39,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-* missing migrations folders in release archive: [https://github.com/markphelps/flipt/issues/97](https://github.com/markphelps/flipt/issues/97)
+* Missing migrations folders in release archive: [https://github.com/markphelps/flipt/issues/97](https://github.com/markphelps/flipt/issues/97)
 
 ## [v0.6.0](https://github.com/markphelps/flipt/releases/tag/v0.6.0) - 2019-06-10
 
