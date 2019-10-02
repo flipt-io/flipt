@@ -11,7 +11,8 @@ RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
 COPY flipt /
-COPY config /etc/flipt/config
+COPY config/migrations/ /etc/flipt/config/migrations/
+COPY config/*.yml /etc/flipt/config/
 
 EXPOSE 8080
 EXPOSE 9000

@@ -21,6 +21,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// RuleStore stores and retrieves rules
+type RuleStore interface {
+	GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error)
+	ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error)
+	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
+	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
+	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
+	OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error
+	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
+	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
+	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
+	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
+}
+
 var _ RuleStore = &RuleStorage{}
 
 // RuleStorage is a SQL RuleStore
@@ -678,7 +692,8 @@ func (s *RuleStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) 
 
 		// no distributions for rule
 		if len(distributions) == 0 {
-			logger.Warn("no distributions for rule")
+			logger.Info("no distributions for rule")
+			resp.Match = true
 			return resp, nil
 		}
 

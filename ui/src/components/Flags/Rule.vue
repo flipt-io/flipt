@@ -6,54 +6,58 @@
       </div>
       <div class="column">
         <div class="field is-horizontal">
-          <div class="field-label is-normal">Segment:</div>
+          <div class="field-label is-normal">
+            <strong>IF</strong> Matches Segment:
+          </div>
           <div class="field-body">
             <div class="field">
               <span class="tag is-medium"> {{ segmentName }} </span>
             </div>
           </div>
         </div>
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">Then serve:</div>
-          <div class="field-body">
-            <div class="field">
-              <div class="select">
-                <select disabled>
-                  <option v-if="distributions.length === 1">
-                    {{ distributions[0].variantKey }}
-                  </option>
-                  <option v-else> A Percentage Rollout </option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-        <template v-if="distributions.length > 1">
-          <hr />
-          <div
-            v-for="(distribution, i) in distributions"
-            :key="distribution.id"
-            class="field is-horizontal"
-          >
-            <div class="field-label">
-              <span class="tag is-small">{{ distribution.variantKey }}</span>
-            </div>
+        <template v-if="distributions.length > 0">
+          <div class="field is-horizontal">
+            <div class="field-label is-normal">Then serve:</div>
             <div class="field-body">
               <div class="field">
-                <BInput
-                  v-model="distributions[i].rollout"
-                  placeholder="Percentage"
-                  disabled
-                  type="number"
-                  icon-pack="fas"
-                  icon="percent"
-                  size="is-small"
-                  min="0"
-                  max="100"
-                />
+                <div class="select">
+                  <select disabled>
+                    <option v-if="distributions.length === 1">
+                      {{ distributions[0].variantKey }}
+                    </option>
+                    <option v-else> A Percentage Rollout </option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
+          <template v-if="distributions.length > 1">
+            <hr />
+            <div
+              v-for="(distribution, i) in distributions"
+              :key="distribution.id"
+              class="field is-horizontal"
+            >
+              <div class="field-label">
+                <span class="tag is-small">{{ distribution.variantKey }}</span>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <BInput
+                    v-model="distributions[i].rollout"
+                    placeholder="Percentage"
+                    disabled
+                    type="number"
+                    icon-pack="fas"
+                    icon="percent"
+                    size="is-small"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
         </template>
       </div>
     </div>

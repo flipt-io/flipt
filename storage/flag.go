@@ -14,6 +14,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// FlagStore stores and retrieves flags
+type FlagStore interface {
+	GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error)
+	ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
+	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
+	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
+	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
+	UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error)
+	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
+}
+
 var _ FlagStore = &FlagStorage{}
 
 // FlagStorage is a SQL FlagStore

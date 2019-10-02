@@ -45,7 +45,6 @@
         <div class="control">
           <button
             class="button is-primary"
-            :disabled="!hasVariants"
             @click.prevent="dialogAddRuleVisible = true"
           >
             New Rule
@@ -70,69 +69,160 @@
     >
       <div class="modal-background" @click.prevent="cancelAddRule" />
       <div class="modal-content" @keyup.esc="cancelAddRule">
-        <div class="box">
-          <form>
-            <div class="field is-horizontal">
-              <div class="field-label is-normal">Segment:</div>
-              <div class="field-body">
-                <div class="field">
-                  <BAutocomplete
-                    v-model="newRule.segmentName"
-                    :data="segments"
-                    field="name"
-                    :open-on-focus="true"
-                    placeholder="e.g. All Users"
-                    @select="selectSegment"
-                  >
-                    <template slot="empty"
-                      >No segments found. Create a
-                      <RouterLink :to="{ name: 'new-segment' }"
-                        >New Segment</RouterLink
-                      >.</template
-                    >
-                  </BAutocomplete>
+        <div class="container">
+          <div class="box">
+            <form>
+              <div class="field is-horizontal">
+                <div class="field-label is-normal">
+                  <strong>IF</strong> Matches Segment:
                 </div>
-              </div>
-            </div>
-            <div class="field is-horizontal">
-              <div class="field-label is-normal">Then serve:</div>
-              <div class="field-body">
-                <div class="field">
-                  <div class="select">
-                    <select
-                      :disabled="!newRule.segmentKey"
-                      @change="ruleTypeChanged"
+                <div class="field-body">
+                  <div class="field">
+                    <BAutocomplete
+                      v-model="newRule.segmentName"
+                      :data="segments"
+                      field="name"
+                      :open-on-focus="true"
+                      placeholder="e.g. All Users"
+                      @select="selectSegment"
                     >
-                      <option value="">Choose Value</option>
-                      <option disabled>──────────</option>
-                      <option
-                        v-for="variant in flag.variants"
-                        :key="variant.id"
-                        :value="variant.id"
+                      <template slot="empty"
+                        >No segments found. Create a
+                        <RouterLink :to="{ name: 'new-segment' }"
+                          >New Segment</RouterLink
+                        >.</template
                       >
-                        {{ variant.key }}
-                      </option>
-                      <option disabled>──────────</option>
-                      <option value="rollout">A Percentage Rollout</option>
-                    </select>
+                    </BAutocomplete>
                   </div>
                 </div>
               </div>
-            </div>
-            <template v-if="newRule.distributions.length > 1">
+              <template v-if="hasVariants">
+                <div class="field is-horizontal">
+                  <div class="field-label is-normal">
+                    <strong>THEN</strong> Serve Variant(s):
+                  </div>
+                  <div class="field-body">
+                    <div class="field">
+                      <div class="select">
+                        <select
+                          :disabled="!newRule.segmentKey"
+                          @change="ruleTypeChanged"
+                        >
+                          <option value="">Choose Value</option>
+                          <option disabled>──────────</option>
+                          <option
+                            v-for="variant in flag.variants"
+                            :key="variant.id"
+                            :value="variant.id"
+                          >
+                            {{ variant.key }}
+                          </option>
+                          <option disabled>──────────</option>
+                          <option value="rollout">A Percentage Rollout</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <template v-if="newRule.distributions.length > 1">
+                  <hr />
+                  <div
+                    v-for="(variant, index) in flag.variants"
+                    :key="variant.id"
+                    class="field is-horizontal"
+                  >
+                    <div class="field-label">
+                      <span class="tag is-small">{{ variant.key }}</span>
+                    </div>
+                    <div class="field-body">
+                      <div class="field">
+                        <BInput
+                          v-model="newRule.distributions[index].rollout"
+                          placeholder="Percentage"
+                          type="number"
+                          icon-pack="fas"
+                          icon="percent"
+                          size="is-small"
+                          min="0"
+                          max="100"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </template>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button
+                    class="button is-primary"
+                    :disabled="!canAddRule"
+                    @click.prevent="addRule"
+                  >
+                    Add Rule
+                  </button>
+                  <button class="button is-text" @click.prevent="cancelAddRule">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click.prevent="cancelAddRule"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="editRule"
+      class="modal"
+      :class="{ 'is-active': dialogEditRuleVisible }"
+    >
+      <div class="modal-background" @click.prevent="cancelEditRule" />
+      <div class="modal-content" @keyup.esc="cancelEditRule">
+        <div class="container">
+          <div class="box">
+            <form>
+              <div class="field is-horizontal">
+                <div class="field-label is-normal">Segment:</div>
+                <div class="field-body">
+                  <div class="field">
+                    <span class="tag is-medium">
+                      {{ selectedRule.segmentName }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="field is-horizontal">
+                <div class="field-label is-normal">Then serve:</div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="select">
+                      <select disabled>
+                        <option selected>A Percentage Rollout</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <hr />
               <div
-                v-for="(variant, index) in flag.variants"
-                :key="variant.id"
+                v-for="(distribution, index) in selectedRule.distributions"
+                :key="distribution.id"
                 class="field is-horizontal"
               >
                 <div class="field-label">
-                  <span class="tag is-small">{{ variant.key }}</span>
+                  <span class="tag is-small">
+                    {{ distribution.variantKey }}
+                  </span>
                 </div>
                 <div class="field-body">
                   <div class="field">
                     <BInput
-                      v-model="newRule.distributions[index].rollout"
+                      v-model="selectedRule.distributions[index].rollout"
                       placeholder="Percentage"
                       type="number"
                       icon-pack="fas"
@@ -144,107 +234,27 @@
                   </div>
                 </div>
               </div>
-            </template>
-            <div class="field is-grouped">
-              <div class="control">
-                <button
-                  class="button is-primary"
-                  :disabled="!canAddRule"
-                  @click.prevent="addRule"
-                >
-                  Add Rule
-                </button>
-                <button class="button is-text" @click.prevent="cancelAddRule">
-                  Cancel
-                </button>
+              <div class="field is-grouped">
+                <div class="control">
+                  <button class="button is-primary" @click.prevent="updateRule">
+                    Update Rule
+                  </button>
+                  <button
+                    class="button is-text"
+                    @click.prevent="cancelEditRule"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
+          <button
+            class="modal-close is-large"
+            aria-label="close"
+            @click.prevent="cancelEditRule"
+          />
         </div>
-        <button
-          class="modal-close is-large"
-          aria-label="close"
-          @click.prevent="cancelAddRule"
-        />
-      </div>
-    </div>
-
-    <div
-      id="editRule"
-      class="modal"
-      :class="{ 'is-active': dialogEditRuleVisible }"
-    >
-      <div class="modal-background" @click.prevent="cancelEditRule" />
-      <div class="modal-content" @keyup.esc="cancelEditRule">
-        <div class="box">
-          <form>
-            <div class="field is-horizontal">
-              <div class="field-label is-normal">Segment:</div>
-              <div class="field-body">
-                <div class="field">
-                  <span class="tag is-medium">
-                    {{ selectedRule.segmentName }}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div class="field is-horizontal">
-              <div class="field-label is-normal">Then serve:</div>
-              <div class="field-body">
-                <div class="field">
-                  <div class="select">
-                    <select disabled>
-                      <option selected>A Percentage Rollout</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <hr />
-            <div
-              v-for="(distribution, index) in selectedRule.distributions"
-              :key="distribution.id"
-              class="field is-horizontal"
-            >
-              <div class="field-label">
-                <span class="tag is-small">{{ distribution.variantKey }}</span>
-              </div>
-              <div class="field-body">
-                <div class="field">
-                  <BInput
-                    v-model="selectedRule.distributions[index].rollout"
-                    placeholder="Percentage"
-                    type="number"
-                    icon-pack="fas"
-                    icon="percent"
-                    size="is-small"
-                    min="0"
-                    max="100"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="field is-grouped">
-              <div class="control">
-                <button
-                  class="button is-primary"
-                  :disabled="!canUpdateRule"
-                  @click.prevent="updateRule"
-                >
-                  Update Rule
-                </button>
-                <button class="button is-text" @click.prevent="cancelEditRule">
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-        <button
-          class="modal-close is-large"
-          aria-label="close"
-          @click.prevent="cancelEditRule"
-        />
       </div>
     </div>
   </section>
@@ -298,10 +308,7 @@ export default {
       return this.flag.variants && this.flag.variants.length > 0;
     },
     canAddRule() {
-      return this.newRule.segmentKey && this.newRule.distributions.length > 0;
-    },
-    canUpdateRule() {
-      return this.selectedRule.distributions.length > 0;
+      return this.newRule.segmentKey;
     }
   },
   mounted() {

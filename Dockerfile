@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.12
+ARG GO_VERSION=1.13.1
 
 FROM golang:$GO_VERSION-alpine AS build
 
@@ -34,7 +34,8 @@ RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
 COPY --from=build /go/bin/flipt /
-COPY config /etc/flipt/config
+COPY config/migrations/ /etc/flipt/config/migrations/
+COPY config/*.yml /etc/flipt/config/
 
 EXPOSE 8080
 EXPOSE 9000

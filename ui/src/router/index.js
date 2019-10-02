@@ -1,12 +1,13 @@
 import Vue from "vue";
 import Router from "vue-router";
-import Flags from "@/components/Flags";
-import NewFlag from "@/components/Flags/NewFlag";
-import Flag from "@/components/Flags/Flag";
-import Targeting from "@/components/Flags/Targeting";
-import Segments from "@/components/Segments";
-import Segment from "@/components/Segments/Segment";
-import NewSegment from "@/components/Segments/NewSegment";
+
+const Flags = () => import("@/components/Flags");
+const NewFlag = () => import("@/components/Flags/NewFlag");
+const Flag = () => import("@/components/Flags/Flag");
+const Targeting = () => import("@/components/Flags/Targeting");
+const Segments = () => import("@/components/Segments");
+const Segment = () => import("@/components/Segments/Segment");
+const NewSegment = () => import("@/components/Segments/NewSegment");
 
 Vue.use(Router);
 

@@ -15,6 +15,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// SegmentStore stores and retrieves segments
+type SegmentStore interface {
+	GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
+	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
+	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
+	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+	UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
+	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
+}
+
 var _ SegmentStore = &SegmentStorage{}
 
 // SegmentStorage is a SQL SegmentStore
