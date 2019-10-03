@@ -62,7 +62,7 @@ jobs:
 
     - name: Unit Test (SQLite)
       env:
-        GOBIN=$PWD/bin
+        GOBIN: $PWD/bin
       run: |
         go install github.com/mattn/goveralls
         go test -covermode=count -coverprofile=profile.cov -count=1 ./...
