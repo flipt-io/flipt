@@ -4,6 +4,9 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
+  pull_request:
+    branches:
+      - master
 
 jobs:
 
@@ -63,6 +66,7 @@ jobs:
 
     - name: Unit Test (SQLite)
       env:
+        CI_BRANCH: ${{ github.ref }}
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
         GOBIN=$PWD/bin go install github.com/mattn/goveralls # see https://github.com/actions/setup-go/issues/14
