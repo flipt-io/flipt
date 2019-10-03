@@ -13,6 +13,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "rochacon",
+      "name": "Rodrigo Chacon",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/321351?v=4",
+      "profile": "http://twitter.com/rochacon",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
