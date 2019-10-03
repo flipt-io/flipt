@@ -1,5 +1,6 @@
 log:
   level: WARN
+  file: "testLogFile.txt"
 
 ui:
   enabled: false

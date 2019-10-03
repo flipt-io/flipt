@@ -12,12 +12,17 @@ import (
 )
 
 type Config struct {
-	LogLevel string         `json:"logLevel,omitempty"`
+	Log      logConfig      `json:"log,omitempty"`
 	UI       uiConfig       `json:"ui,omitempty"`
 	Cors     corsConfig     `json:"cors,omitempty"`
 	Cache    cacheConfig    `json:"cache,omitempty"`
 	Server   serverConfig   `json:"server,omitempty"`
 	Database databaseConfig `json:"database,omitempty"`
+}
+
+type logConfig struct {
+	Level string `json:"level"`
+	File  string `json:"file,omitempty"`
 }
 
 type uiConfig struct {
@@ -78,7 +83,9 @@ type databaseConfig struct {
 
 func Default() *Config {
 	return &Config{
-		LogLevel: "INFO",
+		Log: logConfig{
+			Level: "INFO",
+		},
 
 		UI: uiConfig{
 			Enabled: true,
@@ -114,6 +121,7 @@ func Default() *Config {
 const (
 	// Logging
 	cfgLogLevel = "log.level"
+	cfgLogFile  = "log.file"
 
 	// UI
 	cfgUIEnabled = "ui.enabled"
@@ -155,7 +163,10 @@ func Load(path string) (*Config, error) {
 
 	// Logging
 	if viper.IsSet(cfgLogLevel) {
-		cfg.LogLevel = viper.GetString(cfgLogLevel)
+		cfg.Log.Level = viper.GetString(cfgLogLevel)
+	}
+	if viper.IsSet(cfgLogFile) {
+		cfg.Log.File = viper.GetString(cfgLogFile)
 	}
 
 	// UI

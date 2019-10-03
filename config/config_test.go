@@ -26,7 +26,10 @@ func TestLoad(t *testing.T) {
 			name: "configured",
 			path: "./testdata/config/advanced.yml",
 			expected: &Config{
-				LogLevel: "WARN",
+				Log: logConfig{
+					Level: "WARN",
+					File: "testLogFile.txt",
+				},
 				UI: uiConfig{
 					Enabled: false,
 				},
