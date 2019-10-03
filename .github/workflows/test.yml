@@ -62,16 +62,14 @@ jobs:
         fetch-depth: 1
 
     - name: Unit Test (SQLite)
-      env:
-        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        CI_NAME: github
-        CI_BUILD_NUMBER: ${{ github.sha }}
-        CI_BUILD_URL: https://github.com/markphelps/flipt/actions
-        CI_BRANCH: ${{ github.ref }}
       run: |
-        GOBIN=$PWD/bin go install github.com/mattn/goveralls # see https://github.com/actions/setup-go/issues/14
         go test -covermode=count -coverprofile=profile.cov -count=1 ./...
-        ./bin/goveralls -coverprofile=profile.cov -service=github
+
+    - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: ./profile.cov
 
     - name: Unit Test (Postgres)
       run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
