@@ -62,6 +62,8 @@ jobs:
         fetch-depth: 1
 
     - name: Unit Test (SQLite)
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       run: |
         GOBIN=$PWD/bin go install github.com/mattn/goveralls # see https://github.com/actions/setup-go/issues/14
         go test -covermode=count -coverprofile=profile.cov -count=1 ./...
