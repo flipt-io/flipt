@@ -68,8 +68,9 @@ const (
 )
 
 var (
-	logger = logrus.New()
-	cfg    *config.Config
+	logger  = logrus.New()
+	cfg     *config.Config
+	logFile *os.File
 
 	cfgPath      string
 	printVersion bool
@@ -103,14 +104,31 @@ func main() {
 		}
 	)
 
-	rootCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
 
-	migrateCmd.Flags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.AddCommand(migrateCmd)
+	cobra.OnInitialize(initConfig)
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)
+	}
+
+	logrus.Exit(0)
+}
+
+func initConfig() {
+	// Do not load the config if the user just wants the version
+	if !printVersion {
+		var err error
+		cfg, err = config.Load(cfgPath)
+		if err != nil {
+			logger.Fatal(errors.Wrap(err, "loading configuration"))
+		}
+
+		if err = setupLogger(cfg); err != nil {
+			logger.Fatal(err)
+		}
 	}
 }
 
@@ -119,20 +137,6 @@ func printVersionHeader() {
 }
 
 func runMigrations() error {
-	var err error
-
-	cfg, err = config.Load(cfgPath)
-	if err != nil {
-		return err
-	}
-
-	lvl, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return err
-	}
-
-	logger.SetLevel(lvl)
-
 	db, driver, err := storage.Open(cfg.Database.URL)
 	if err != nil {
 		return errors.Wrap(err, "opening db")
@@ -176,20 +180,6 @@ func execute() error {
 		printVersionHeader()
 		return nil
 	}
-
-	var err error
-
-	cfg, err = config.Load(cfgPath)
-	if err != nil {
-		return errors.Wrap(err, "loading configuration")
-	}
-
-	lvl, err := logrus.ParseLevel(cfg.LogLevel)
-	if err != nil {
-		return err
-	}
-
-	logger.SetLevel(lvl)
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -315,6 +305,7 @@ func execute() error {
 		grpcServer = grpc.NewServer(grpcOpts...)
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.Register(grpcServer)
+
 		return grpcServer.Serve(lis)
 	})
 
@@ -451,6 +442,50 @@ func execute() error {
 	}
 
 	return g.Wait()
+}
+
+func setupLogger(cfg *config.Config) error {
+	if err := setLogOutput(cfg); err != nil {
+		return err
+	}
+
+	if err := setLogLevel(cfg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func setLogOutput(cfg *config.Config) error {
+	if cfg.Log.File != "" {
+		logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+
+		logger.SetOutput(logFile)
+		logrus.RegisterExitHandler(closeLogFile)
+	} else {
+		logger.SetOutput(os.Stdout)
+	}
+
+	return nil
+}
+
+func setLogLevel(cfg *config.Config) error {
+	lvl, err := logrus.ParseLevel(cfg.Log.Level)
+	if err != nil {
+		return err
+	}
+
+	logger.SetLevel(lvl)
+	return nil
+}
+
+func closeLogFile() {
+	if logFile != nil {
+		logFile.Close()
+	}
 }
 
 type info struct {
