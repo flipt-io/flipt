@@ -1,8 +1,9 @@
 name: Tests
 on:
   push:
-    branches:
-      - '*'
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
 
 jobs:
 
@@ -61,7 +62,12 @@ jobs:
         fetch-depth: 1
 
     - name: Unit Test (SQLite)
-      run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
+      env:
+        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      run: |
+        GOBIN=$PWD/bin go install github.com/mattn/goveralls # see https://github.com/actions/setup-go/issues/14
+        go test -covermode=count -coverprofile=profile.cov -count=1 ./...
+        ./bin/goveralls -coverprofile=profile.cov -service=github -repotoken $COVERALLS_TOKEN
 
     - name: Unit Test (Postgres)
       run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
