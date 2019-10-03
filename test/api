@@ -211,7 +211,7 @@ step_7_test_meta()
 
     shakedown GET "$flipt_host/meta/config"
         status 200
-        contains "\"logLevel\""
+        contains "\"log\""
         contains "\"ui\""
         contains "\"cache\""
         contains "\"server\""
