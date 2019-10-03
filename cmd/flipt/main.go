@@ -118,14 +118,17 @@ func main() {
 }
 
 func initConfig() {
-	var err error
-	cfg, err = config.Load(cfgPath)
-	if err != nil {
-		logger.Fatal(errors.Wrap(err, "loading configuration"))
-	}
+	// Do not load the config if the user just wants the version
+	if !printVersion {
+		var err error
+		cfg, err = config.Load(cfgPath)
+		if err != nil {
+			logger.Fatal(errors.Wrap(err, "loading configuration"))
+		}
 
-	if err = setupLogger(cfg); err != nil {
-		logger.Fatal(err)
+		if err = setupLogger(cfg); err != nil {
+			logger.Fatal(err)
+		}
 	}
 }
 
