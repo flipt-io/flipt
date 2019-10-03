@@ -1,4 +1,5 @@
 <p align=center>
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
 	<img src="logo.svg" alt="Flipt" width=200 height=200 />
 </p>
 
@@ -171,3 +172,19 @@ If you or your organization would like to help beta test a Pro version of Flipt,
 
 * Twitter: [@mark_a_phelps](https://twitter.com/mark_a_phelps)
 * Email: _mark.aaron.phelps at gmail.com_
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore -->
+<table>
+  <tr>
+    <td align="center"><a href="http://aaronraff.github.io"><img src="https://avatars0.githubusercontent.com/u/16910064?v=4" width="100px;" alt="Aaron Raff"/><br /><sub><b>Aaron Raff</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=aaronraff" title="Code">💻</a></td>
+  </tr>
+</table>
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
