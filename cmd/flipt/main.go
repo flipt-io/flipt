@@ -68,7 +68,7 @@ const (
 )
 
 var (
-	logger = logrus.New()
+	logger  = logrus.New()
 	cfg     *config.Config
 	logFile *os.File
 
@@ -136,7 +136,7 @@ func printVersionHeader() {
 	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n", banner, version, commit, date, goVersion)
 }
 
-func runMigrations() error {	
+func runMigrations() error {
 	db, driver, err := storage.Open(cfg.Database.URL)
 	if err != nil {
 		return errors.Wrap(err, "opening db")
@@ -446,11 +446,11 @@ func execute() error {
 
 func setupLogger(cfg *config.Config) error {
 	if err := setLogOutput(cfg); err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	if err := setLogLevel(cfg); err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	return nil

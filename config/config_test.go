@@ -28,7 +28,7 @@ func TestLoad(t *testing.T) {
 			expected: &Config{
 				Log: logConfig{
 					Level: "WARN",
-					File: "testLogFile.txt",
+					File:  "testLogFile.txt",
 				},
 				UI: uiConfig{
 					Enabled: false,
