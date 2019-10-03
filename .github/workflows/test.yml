@@ -60,13 +60,13 @@ jobs:
       with:
         fetch-depth: 1
 
-    - name: Install goveralls
-      run: go install github.com/mattn/goveralls
-
     - name: Unit Test (SQLite)
+      env:
+        GOBIN=$PWD/bin
       run: |
+        go install github.com/mattn/goveralls
         go test -covermode=count -coverprofile=profile.cov -count=1 ./...
-        $GOPATH/bin/goveralls -coverprofile=profile.cov
+        $GOBIN/goveralls -coverprofile=profile.cov
 
     - name: Unit Test (Postgres)
       run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
