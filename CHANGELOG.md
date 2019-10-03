@@ -3,15 +3,20 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v0.9.0]((https://github.com/markphelps/flipt/releases/tag/v0.9.0) - 2019-10-02
 
 ### Added
 
 * Support evaluating flags without variants: [https://github.com/markphelps/flipt/issues/138](https://github.com/markphelps/flipt/issues/138)
 
+### Changed
+
+* Dropped support for Go 1.12
+
 ### Fixed
 
 * Segments not matching on all constraints: [https://github.com/markphelps/flipt/issues/140](https://github.com/markphelps/flipt/issues/140)
+* Modal content streching to fit entire screen
 
 ## [v0.8.0](https://github.com/markphelps/flipt/releases/tag/v0.8.0) - 2019-09-15
 
