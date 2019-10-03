@@ -15,7 +15,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.12
+        go-version: 1.13.1
       id: go
 
     - name: Check out code into the Go module directory
@@ -24,8 +24,8 @@ jobs:
         fetch-depth: 1
 
     - name: Release
-      run: ./script/build/release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: ./script/build/release
