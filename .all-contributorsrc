@@ -31,6 +31,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "achew22",
+      "name": "Andrew Z Allen",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/37206?v=4",
+      "profile": "https://www.andrewzallen.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
