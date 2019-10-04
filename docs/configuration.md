@@ -18,6 +18,7 @@ These properties are as follows:
 | Property | Description | Default |
 |---|---|---|
 | log.level | Level at which messages are logged (trace, debug, info, warn, error, fatal, panic) | info |
+| log.file | File to log to instead of STDOUT | |
 | ui.enabled | Enable UI and API docs | true |
 | cors.enabled | Enable CORS support | false |
 | cors.allowed_origins | Sets Access-Control-Allow-Origin header on server | "*" (all domains) |
