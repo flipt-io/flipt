@@ -1,6 +1,8 @@
 name: Tests
 on:
   push:
+    branches:
+      - master
     paths-ignore:
       - 'docs/**'
       - '*.md'
@@ -29,8 +31,6 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
 
     - name: Install golangci-lint
       run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.19.1
@@ -42,10 +42,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        go: ['1.13.1']
 
     services:
       postgres:
@@ -61,13 +57,11 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: ${{ matrix.go }}
+        go-version: 1.13.1
       id: go
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
 
     - name: Unit Test (SQLite)
       env:
