@@ -1,18 +1,6 @@
 log:
   level: WARN
 
-# ui:
-#   enabled: true
-
-# cors:
-#   enabled: false
-#   allowed_origins: "*"
-
-# cache:
-#   memory:
-#     enabled: false
-#     items: 500
-
 server:
   protocol: https
   host: 0.0.0.0
