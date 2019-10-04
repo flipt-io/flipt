@@ -306,6 +306,7 @@ func execute() error {
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.Register(grpcServer)
 
+		logger.Debug("starting grpc server")
 		return grpcServer.Serve(lis)
 	})
 
@@ -387,11 +388,15 @@ func execute() error {
 			MaxHeaderBytes: 1 << 20,
 		}
 
-		color.Green("\nAPI: %s://%s:%d/api/v1\n", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		logger.Debug("starting http server")
+
+		color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 
 		if cfg.UI.Enabled {
-			color.Green("UI: %s://%s:%d\n\n", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			color.Green("UI: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 		}
+
+		fmt.Println()
 
 		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
