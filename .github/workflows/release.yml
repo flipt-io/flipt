@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  ## Release
+  ## Release and publish docs
   release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -27,3 +27,8 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: ./script/build/release
+
+    - name: Publish Docs
+      uses: ./.github/actions/publish-docs
+      env:
+        PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
