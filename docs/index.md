@@ -58,7 +58,7 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 ## What's Next
 
-Want to get up and running with Flipt? See [Getting Started](getting_started).
+Want to get up and running with Flipt? See [Getting Started](getting_started.md).
 
 For a more detailed guide on how to setup and run Flipt, checkout the [Installation](installation.md) documentation.
 
