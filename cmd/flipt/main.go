@@ -133,7 +133,7 @@ func initConfig() {
 }
 
 func printVersionHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n", banner, version, commit, date, goVersion)
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
 func runMigrations() error {
@@ -207,7 +207,7 @@ func execute() error {
 
 	g.Go(func() error {
 		logger := logger.WithField("server", "grpc")
-		logger.Infof("connecting to database: %s", cfg.Database.URL)
+		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
 		db, driver, err := storage.Open(cfg.Database.URL)
 		if err != nil {
@@ -279,7 +279,7 @@ func execute() error {
 				return errors.Wrap(err, "creating in-memory cache")
 			}
 
-			logger.Infof("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
+			logger.Debugf("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
 			serverOpts = append(serverOpts, server.WithCache(cache))
 		}
 
@@ -387,10 +387,10 @@ func execute() error {
 			MaxHeaderBytes: 1 << 20,
 		}
 
-		logger.Infof("api server running at: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		color.Green("\nAPI: %s://%s:%d/api/v1\n", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 
 		if cfg.UI.Enabled {
-			logger.Infof("ui available at: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			color.Green("UI: %s://%s:%d\n\n", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 		}
 
 		if cfg.Server.Protocol == config.HTTPS {
@@ -449,11 +449,7 @@ func setupLogger(cfg *config.Config) error {
 		return err
 	}
 
-	if err := setLogLevel(cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return setLogLevel(cfg)
 }
 
 func setLogOutput(cfg *config.Config) error {
