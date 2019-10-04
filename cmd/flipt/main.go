@@ -133,7 +133,7 @@ func initConfig() {
 }
 
 func printVersionHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n", banner, version, commit, date, goVersion)
+	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
 }
 
 func runMigrations() error {
@@ -207,7 +207,7 @@ func execute() error {
 
 	g.Go(func() error {
 		logger := logger.WithField("server", "grpc")
-		logger.Infof("connecting to database: %s", cfg.Database.URL)
+		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
 		db, driver, err := storage.Open(cfg.Database.URL)
 		if err != nil {
@@ -279,7 +279,7 @@ func execute() error {
 				return errors.Wrap(err, "creating in-memory cache")
 			}
 
-			logger.Infof("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
+			logger.Debugf("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
 			serverOpts = append(serverOpts, server.WithCache(cache))
 		}
 
@@ -306,6 +306,7 @@ func execute() error {
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.Register(grpcServer)
 
+		logger.Debug("starting grpc server")
 		return grpcServer.Serve(lis)
 	})
 
@@ -387,11 +388,15 @@ func execute() error {
 			MaxHeaderBytes: 1 << 20,
 		}
 
-		logger.Infof("api server running at: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		logger.Debug("starting http server")
+
+		color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 
 		if cfg.UI.Enabled {
-			logger.Infof("ui available at: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			color.Green("UI: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 		}
+
+		fmt.Println()
 
 		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
@@ -449,11 +454,7 @@ func setupLogger(cfg *config.Config) error {
 		return err
 	}
 
-	if err := setLogLevel(cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return setLogLevel(cfg)
 }
 
 func setLogOutput(cfg *config.Config) error {

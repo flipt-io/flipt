@@ -2,16 +2,30 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"testing"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/markphelps/flipt/storage"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+func TestNew(t *testing.T) {
+	var (
+		logger, _ = test.NewNullLogger()
+		builder   = sq.StatementBuilderType{}
+		db        = new(sql.DB)
+	)
+
+	server := New(logger, builder, db)
+	assert.NotNil(t, server)
+}
 
 func TestErrorUnaryInterceptor(t *testing.T) {
 	tests := []struct {

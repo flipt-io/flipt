@@ -10,6 +10,36 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestScheme(t *testing.T) {
+	tests := []struct {
+		name   string
+		scheme Scheme
+		want   string
+	}{
+		{
+			name:   "https",
+			scheme: HTTPS,
+			want:   "https",
+		},
+		{
+			name:   "http",
+			scheme: HTTP,
+			want:   "http",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			scheme = tt.scheme
+			want   = tt.want
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, want, scheme.String())
+		})
+	}
+}
+
 func TestLoad(t *testing.T) {
 	tests := []struct {
 		name     string
