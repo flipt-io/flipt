@@ -30,6 +30,7 @@ lint: ## Run all the linters
 clean: ## Remove built binaries
 	@echo ">> running go clean"
 	go clean -i $(SOURCE_FILES)
+	packr clean
 
 .PHONY: proto
 proto: ## Build protobufs
@@ -45,7 +46,7 @@ proto: ## Build protobufs
 assets: ## Build the ui and run go generate
 	@echo ">> generating assets"
 	@cd ./ui; yarn install --ignore-platform --ignore-engines && yarn run build; cd ..
-	go generate ./...
+	packr -v
 
 .PHONY: check_assets
 check_assets: assets

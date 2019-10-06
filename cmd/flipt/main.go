@@ -14,29 +14,26 @@ import (
 	"syscall"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
-
+	sq "github.com/Masterminds/squirrel"
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/phyber/negroni-gzip/gzip"
-	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	sq "github.com/Masterminds/squirrel"
+	"github.com/gobuffalo/packr"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/swagger"
-	"github.com/markphelps/flipt/ui"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/phyber/negroni-gzip/gzip"
+	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -376,8 +373,11 @@ func execute() error {
 		})
 
 		if cfg.UI.Enabled {
-			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger.Assets)))
-			r.Mount("/", http.FileServer(ui.Assets))
+			swagger := packr.NewBox("../../swagger")
+			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger)))
+
+			ui := packr.NewBox("../../ui/dist")
+			r.Mount("/", http.FileServer(ui))
 		}
 
 		httpServer = &http.Server{
