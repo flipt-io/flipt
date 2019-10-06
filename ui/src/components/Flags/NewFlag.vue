@@ -25,7 +25,6 @@
         </BField>
         <BField label="Key">
           <BInput
-		  	id="new-flag-key"
             v-model="flag.key"
             placeholder="Flag key"
             required
