@@ -10,6 +10,14 @@
         </ul>
       </nav>
       <form>
+        <BField label="Name">
+          <BInput
+            v-model="segment.name"
+            placeholder="Segment name"
+            required
+            @input="setKeyIfSameAsName"
+          />
+        </BField>
         <BField label="Key">
           <BInput
             v-model="segment.key"
@@ -17,9 +25,6 @@
             required
             @input="formatKey"
           />
-        </BField>
-        <BField label="Name">
-          <BInput v-model="segment.name" placeholder="Segment name" required />
         </BField>
         <BField label="Description (optional)">
           <BInput
@@ -75,10 +80,30 @@ export default {
   },
   methods: {
     formatKey() {
-      this.segment.key = this.segment.key
+      this.segment.key = this.formatStringAsKey(this.segment.key);
+    },
+    formatStringAsKey(str) {
+      return str
         .toLowerCase()
         .split(" ")
         .join("-");
+    },
+    setKeyIfSameAsName() {
+      // Remove the character that was just added before comparing
+      let prevName = this.segment.name.slice(0, -1);
+
+      // Check if the name and key are currently in sync
+      // We do this so we don't override a custom key value
+      if (
+        this.keyIsUndefinedOrEmpty() ||
+        this.segment.key === this.formatStringAsKey(prevName)
+      ) {
+        this.segment.key = this.segment.name;
+        this.formatKey();
+      }
+    },
+    keyIsUndefinedOrEmpty() {
+      return this.segment.key === undefined || this.segment.key === "";
     },
     createSegment() {
       Api.post("/segments", this.segment)
