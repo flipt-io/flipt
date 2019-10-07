@@ -16,11 +16,11 @@
       </div>
       <form>
         <BField label="Name">
-          <BInput 
-            v-model="flag.name" 
-            placeholder="Flag name" 
+          <BInput
+            v-model="flag.name"
+            placeholder="Flag name"
             required
-            @input="setKeyIfSameAsName" 
+            @input="setKeyIfSameAsName"
           />
         </BField>
         <BField label="Key">
@@ -98,7 +98,10 @@ export default {
 
       // Check if the name and key are currently in sync
       // We do this so we don't override a custom key value
-      if(this.keyIsUndefinedOrEmpty() || this.flag.key === this.formatStringAsKey(prevName)) {
+      if (
+        this.keyIsUndefinedOrEmpty() ||
+        this.flag.key === this.formatStringAsKey(prevName)
+      ) {
         this.flag.key = this.flag.name;
         this.formatKey();
       }
