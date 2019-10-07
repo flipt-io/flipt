@@ -58,10 +58,9 @@ proto: ## Build protobufs
 		$(PROJECT).proto
 
 .PHONY: assets
-assets: ## Build the ui and run go generate
+assets: ## Build the ui
 	@echo ">> generating assets"
 	@cd ./ui; yarn install --ignore-platform --ignore-engines && yarn run build; cd ..
-	packr -v
 
 .PHONY: build
 build: ## Build a local copy
