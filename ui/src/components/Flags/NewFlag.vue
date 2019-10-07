@@ -15,6 +15,14 @@
         </ul>
       </div>
       <form>
+        <BField label="Name">
+          <BInput 
+            v-model="flag.name" 
+            placeholder="Flag name" 
+            required
+            @input="setKeyIfSameAsName" 
+          />
+        </BField>
         <BField label="Key">
           <BInput
             v-model="flag.key"
@@ -22,9 +30,6 @@
             required
             @input="formatKey"
           />
-        </BField>
-        <BField label="Name">
-          <BInput v-model="flag.name" placeholder="Flag name" required />
         </BField>
         <BField label="Description (optional)">
           <BInput v-model="flag.description" placeholder="Flag description" />
@@ -79,10 +84,27 @@ export default {
   },
   methods: {
     formatKey() {
-      this.flag.key = this.flag.key
+      this.flag.key = this.formatStringAsKey(this.flag.key);
+    },
+    formatStringAsKey(str) {
+      return str
         .toLowerCase()
         .split(" ")
         .join("-");
+    },
+    setKeyIfSameAsName() {
+      // Remove the character that was just added before comparing
+      let prevName = this.flag.name.slice(0, -1);
+
+      // Check if the name and key are currently in sync
+      // We do this so we don't override a custom key value
+      if(this.keyIsUndefinedOrEmpty() || this.flag.key === this.formatStringAsKey(prevName)) {
+        this.flag.key = this.flag.name;
+        this.formatKey();
+      }
+    },
+    keyIsUndefinedOrEmpty() {
+      return this.flag.key === undefined || this.flag.key === "";
     },
     createFlag() {
       Api.post("/flags", this.flag)
