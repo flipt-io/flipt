@@ -4,6 +4,8 @@ env:
 before:
   hooks:
     - go mod download
+    - make setup
+    - packr
 
 builds:
   - main: ./cmd/flipt/.

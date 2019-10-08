@@ -6,6 +6,21 @@ TEST_PATTERN ?= .
 TEST_OPTS ?=
 TEST_FLAGS ?=
 
+TOOLS = \
+	"github.com/gobuffalo/packr/packr" \
+	"github.com/golang/protobuf/protoc-gen-go" \
+	"github.com/golangci/golangci-lint/cmd/golangci-lint" \
+	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway" \
+	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger" \
+	"golang.org/x/tools/cmd/cover" \
+	"golang.org/x/tools/cmd/goimports" \
+	"google.golang.org/grpc" \
+
+.PHONY: setup
+setup: ## Install dev tools
+	@echo ">> installing dev tools"
+	go install -v $(TOOLS)
+
 .PHONY: test
 test: ## Run all the tests
 	@echo ">> running tests"
@@ -30,6 +45,7 @@ lint: ## Run all the linters
 clean: ## Remove built binaries
 	@echo ">> running go clean"
 	go clean -i $(SOURCE_FILES)
+	packr clean
 
 .PHONY: proto
 proto: ## Build protobufs
@@ -42,19 +58,9 @@ proto: ## Build protobufs
 		$(PROJECT).proto
 
 .PHONY: assets
-assets: ## Build the ui and run go generate
+assets: ## Build the ui
 	@echo ">> generating assets"
 	@cd ./ui; yarn install --ignore-platform --ignore-engines && yarn run build; cd ..
-	go generate ./...
-
-.PHONY: check_assets
-check_assets: assets
-	@echo ">> checking that assets are up-to-date"
-	@if ! (cd ./ui && git diff --exit-code); then \
-		echo "run 'make assets' and commit the changes to fix the error."; \
-		exit 1; \
-	fi
-	echo "ok"
 
 .PHONY: build
 build: ## Build a local copy
