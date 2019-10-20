@@ -5,7 +5,6 @@ before:
   hooks:
     - go mod download
     - make setup
-    - make assets
     - packr -v -i cmd/flipt
 
 builds:
