@@ -43,5 +43,7 @@ dockers:
     image_templates:
       - "markphelps/flipt:latest"
       - "markphelps/flipt:{{ .Tag }}"
+      - "docker.pkg.github.com/markphelps/flipt:latest"
+      - "docker.pkg.github.com/markphelps/flipt:{{ .Tag }}"
     extra_files:
       - config
