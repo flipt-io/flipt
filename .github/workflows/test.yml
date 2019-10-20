@@ -5,6 +5,8 @@ on:
       - 'docs/**'
       - '*.md'
       - '.all-contributorsrc'
+    tags-ignore:
+      - 'v*'
 
 jobs:
 
