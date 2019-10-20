@@ -4,7 +4,6 @@ env:
 before:
   hooks:
     - go mod download
-    - make setup
     - packr -v -i cmd/flipt
 
 builds:
