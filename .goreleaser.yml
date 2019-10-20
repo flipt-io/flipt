@@ -6,7 +6,7 @@ before:
     - go mod download
     - make setup
     - make assets
-    - packr
+    - packr -v -i cmd/flipt
 
 builds:
   - main: ./cmd/flipt/.
