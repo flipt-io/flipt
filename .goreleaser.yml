@@ -4,7 +4,9 @@ env:
 before:
   hooks:
     - go mod download
+    - go get -u github.com/gobuffalo/packr/packr
     - packr -v -i cmd/flipt
+    - go mod tidy
 
 builds:
   - main: ./cmd/flipt/.
