@@ -4,7 +4,7 @@ env:
 before:
   hooks:
     - go mod download
-    - go get -u github.com/gobuffalo/packr/packr
+    - go get -v github.com/gobuffalo/packr/packr
     - packr -v -i cmd/flipt
     - go mod tidy
 
@@ -44,7 +44,5 @@ dockers:
     image_templates:
       - "markphelps/flipt:latest"
       - "markphelps/flipt:{{ .Tag }}"
-      - "docker.pkg.github.com/markphelps/flipt:latest"
-      - "docker.pkg.github.com/markphelps/flipt:{{ .Tag }}"
     extra_files:
       - config
