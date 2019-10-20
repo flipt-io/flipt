@@ -38,7 +38,7 @@ jobs:
     - name: Test CLI
       uses: ./.github/actions/api-test
       with:
-        args: ./script/test/*.bats
+        args: ./script/test/cli
 
     - name: Test API
       uses: ./.github/actions/api-test
