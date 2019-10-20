@@ -35,13 +35,12 @@ jobs:
     - name: Build binary
       run: make build
 
-    # TODO: looks like GitHub removed actions/bin
-    # Need to find or create a custom bats action
-    #
-    #- name: Test CLI
-      #uses: actions/bin/bats@master
-      #with:
-        #args: ./script/test/*.bats
+    - name: Test CLI
+      uses: ./.github/actions/api-test
+      with:
+        args: ./script/test/*.bats
 
     - name: Test API
       uses: ./.github/actions/api-test
+      with:
+        args: ./script/test/api
