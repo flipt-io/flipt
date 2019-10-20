@@ -103,6 +103,7 @@ To figure out which best supports your usecase and how to get client(s) in your 
 #### Official Clients
 
 * [markphelps/flipt-grpc-go](https://github.com/markphelps/flipt-grpc-go) - Go GRPC client (Go)
+* [markphelps/flipt-grpc-ruby](https://github.com/markphelps/flipt-grpc-ruby) - Ruby GRPC client (Ruby)
 
 #### Third-Party Client Libraries
 
