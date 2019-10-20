@@ -3,11 +3,15 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v0.10.0](https://github.com/markphelps/flipt/releases/tag/v0.10.0) - 2019-10-20
 
 ### Added
 
 * Ability to write logs to file instead of STDOUT: [https://github.com/markphelps/flipt/issues/141](https://github.com/markphelps/flipt/issues/141)
+
+### Changed
+
+* Automatically populate flag/segment key based on name: [https://github.com/markphelps/flipt/pull/155](https://github.com/markphelps/flipt/pull/155)
 
 ## [v0.9.0](https://github.com/markphelps/flipt/releases/tag/v0.9.0) - 2019-10-02
 
