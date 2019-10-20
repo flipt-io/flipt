@@ -3,7 +3,7 @@ set -euxo pipefail
 
 NODE_VERSION='12.10.0'
 YARN_VERSION='1.17.3'
-GO_VERSION='1.13.1'
+GO_VERSION='1.13.3'
 PROTOC_VERSION='3.9.2'
 
 echo '=== Installing necessary system libraries to build'

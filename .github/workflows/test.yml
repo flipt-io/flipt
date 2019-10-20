@@ -17,7 +17,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.1
+        go-version: 1.13.3
       id: go
 
     - name: Check out code into the Go module directory
@@ -48,7 +48,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.1
+        go-version: 1.13.3
       id: go
 
     - name: Check out code into the Go module directory
@@ -61,10 +61,9 @@ jobs:
       if: github.repository == 'markphelps/flipt' # don't run coverage on forks since secrets are not copied to forked repos
       env:
         CI_BRANCH: ${{ github.ref }}
-        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
       run: |
         GOBIN=$PWD/bin go install github.com/mattn/goveralls # see https://github.com/actions/setup-go/issues/14
-        ./bin/goveralls -coverprofile=profile.cov -service=github -repotoken $COVERALLS_TOKEN
+        ./bin/goveralls -coverprofile=profile.cov -service=github -repotoken ${{ secrets.COVERALLS_TOKEN }} || true
 
     - name: Unit Test (Postgres)
       run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
