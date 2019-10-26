@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-GORELEASER_VERSION=v0.118
+GORELEASER_VERSION=v0.120.3
 
 cd "$(dirname "$0")/../.." || exit
 
