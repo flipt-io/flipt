@@ -177,7 +177,6 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 	}
 
 	for _, rule := range rules {
-
 		matchCount := 0
 
 		for _, c := range rule.Constraints {
