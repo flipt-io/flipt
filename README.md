@@ -143,9 +143,9 @@ If there are any concerns about the use of this license for the server, please [
 
 ## Author
 
-* Website: [https://markphelps.me](https://markphelps.me)
-* Twitter: [@mark_a_phelps](https://twitter.com/mark_a_phelps)
-* Email: _mark.aaron.phelps at gmail.com_
+| [![twitter/mark_a_phelps](https://secure.gravatar.com/avatar/274e2d4b1bbb9f86b454aebabad2cba1)](https://twitter.com/intent/user?screen_name=mark_a_phelps "Follow @mark_a_phelps on Twitter") |
+|---|
+| [Mark Phelps](https://markphelps.me/) |
 
 ## Contributing
 
