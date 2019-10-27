@@ -2,11 +2,11 @@ package cache
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/golang/protobuf/proto"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,7 +48,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 		flag := &flipt.Flag{}
 
 		if err := proto.Unmarshal(bytes, flag); err != nil {
-			return nil, errors.Wrap(err, "getting from cache")
+			return nil, fmt.Errorf("getting from cache: %w", err)
 		}
 
 		return flag, nil
@@ -62,7 +62,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 
 	data, err := proto.Marshal(flag)
 	if err != nil {
-		return flag, errors.Wrap(err, "adding to cache")
+		return flag, fmt.Errorf("adding to cache: %w", err)
 	}
 
 	_ = f.cache.Add(flagCacheKey(r.Key), data)
@@ -85,7 +85,7 @@ func (f *FlagCache) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 
 	data, err := proto.Marshal(flag)
 	if err != nil {
-		return flag, errors.Wrap(err, "adding to cache")
+		return flag, fmt.Errorf("adding to cache: %w", err)
 	}
 
 	key := flagCacheKey(r.Key)

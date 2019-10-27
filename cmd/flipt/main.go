@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -32,7 +33,6 @@ import (
 	"github.com/markphelps/flipt/storage"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -120,11 +120,11 @@ func initConfig() {
 		var err error
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
-			logger.Fatal(errors.Wrap(err, "loading configuration"))
+			logger.Fatal(fmt.Errorf("loading configuration: %w", err))
 		}
 
 		if err = setupLogger(cfg); err != nil {
-			logger.Fatal(err)
+			logger.Fatal(fmt.Errorf("setting up logger: %w", err))
 		}
 	}
 }
@@ -136,7 +136,7 @@ func printVersionHeader() {
 func runMigrations() error {
 	db, driver, err := storage.Open(cfg.Database.URL)
 	if err != nil {
-		return errors.Wrap(err, "opening db")
+		return fmt.Errorf("opening db: %w", err)
 	}
 
 	defer db.Close()
@@ -151,14 +151,14 @@ func runMigrations() error {
 	}
 
 	if err != nil {
-		return errors.Wrapf(err, "getting db driver for: %s", driver)
+		return fmt.Errorf("getting db driver for: %s: %w", driver, err)
 	}
 
 	f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
 	if err != nil {
-		return errors.Wrap(err, "opening migrations")
+		return fmt.Errorf("opening migrations: %w", err)
 	}
 
 	logger.Info("running migrations...")
@@ -208,7 +208,7 @@ func execute() error {
 
 		db, driver, err := storage.Open(cfg.Database.URL)
 		if err != nil {
-			return errors.Wrap(err, "opening db")
+			return fmt.Errorf("opening db: %w", err)
 		}
 
 		defer db.Close()
@@ -228,19 +228,19 @@ func execute() error {
 		}
 
 		if err != nil {
-			return errors.Wrapf(err, "getting db driver for: %s", driver)
+			return fmt.Errorf("getting db driver for: %s: %w", driver, err)
 		}
 
 		f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
 
 		mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
 		if err != nil {
-			return errors.Wrap(err, "opening migrations")
+			return fmt.Errorf("opening migrations: %w", err)
 		}
 
 		v, _, err := mm.Version()
 		if err != nil && err != migrate.ErrNilVersion {
-			return errors.Wrap(err, "getting current migrations version")
+			return fmt.Errorf("getting current migrations version: %w", err)
 		}
 
 		// if first run, go ahead and run all migrations
@@ -248,7 +248,7 @@ func execute() error {
 		if err == migrate.ErrNilVersion {
 			logger.Debug("no previous migrations run; running now")
 			if err := runMigrations(); err != nil {
-				return errors.Wrap(err, "running migrations")
+				return fmt.Errorf("running migrations: %w", err)
 			}
 		} else if v < dbMigrationVersion {
 			logger.Debugf("migrations pending: current=%d, want=%d", v, dbMigrationVersion)
@@ -257,7 +257,7 @@ func execute() error {
 
 		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 		if err != nil {
-			return errors.Wrap(err, "creating grpc listener")
+			return fmt.Errorf("creating grpc listener: %w", err)
 		}
 
 		defer func() {
@@ -273,7 +273,7 @@ func execute() error {
 		if cfg.Cache.Memory.Enabled {
 			cache, err := lru.New(cfg.Cache.Memory.Items)
 			if err != nil {
-				return errors.Wrap(err, "creating in-memory cache")
+				return fmt.Errorf("creating in-memory cache: %w", err)
 			}
 
 			logger.Debugf("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
@@ -293,7 +293,7 @@ func execute() error {
 		if cfg.Server.Protocol == config.HTTPS {
 			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
 			if err != nil {
-				return errors.Wrap(err, "loading TLS credentials")
+				return fmt.Errorf("loading TLS credentials: %w", err)
 			}
 
 			grpcOpts = append(grpcOpts, grpc.Creds(creds))
@@ -321,7 +321,7 @@ func execute() error {
 		case config.HTTPS:
 			creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")
 			if err != nil {
-				return errors.Wrap(err, "loading TLS credentials")
+				return fmt.Errorf("loading TLS credentials: %w", err)
 			}
 
 			opts = append(opts, grpc.WithTransportCredentials(creds))
@@ -336,11 +336,11 @@ func execute() error {
 
 		conn, err := grpc.DialContext(dialCtx, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts...)
 		if err != nil {
-			return errors.Wrap(err, "connecting to grpc server")
+			return fmt.Errorf("connecting to grpc server: %w", err)
 		}
 
 		if err := pb.RegisterFliptHandler(ctx, api, conn); err != nil {
-			return errors.Wrap(err, "registering grpc gateway")
+			return fmt.Errorf("registering grpc gateway: %w", err)
 		}
 
 		if cfg.Cors.Enabled {
@@ -418,7 +418,7 @@ func execute() error {
 		}
 
 		if err != http.ErrServerClosed {
-			return errors.Wrap(err, "http server")
+			return fmt.Errorf("http server: %w", err)
 		}
 
 		logger.Info("server shutdown gracefully")

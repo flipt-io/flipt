@@ -46,6 +46,7 @@ clean: ## Remove built binaries
 	@echo ">> running go clean"
 	go clean -i $(SOURCE_FILES)
 	packr clean
+	rm -rf dist/*
 
 .PHONY: proto
 proto: ## Build protobufs
