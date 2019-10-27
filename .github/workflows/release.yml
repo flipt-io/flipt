@@ -10,6 +10,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    if: github.repository == 'markphelps/flipt'
 
     steps:
     - name: Setup Go
@@ -18,15 +19,22 @@ jobs:
         go-version: 1.13.3
       id: go
 
-    - name: Check out code into the Go module directory
+    - name: Checkout
       uses: actions/checkout@v1
+
+    - name: Generate Release Notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        GOBIN=$PWD/bin go install github.com/buchanae/github-release-notes # see https://github.com/actions/setup-go/issues/14
+        ./bin/github-release-notes -org markphelps -repo flipt --since-latest-release | tee release.out
 
     - name: Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: ./script/build/release
+      run: ./script/build/release release.out
 
     - name: Publish Docs
       uses: ./.github/actions/publish-docs

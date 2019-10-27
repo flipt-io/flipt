@@ -13,4 +13,4 @@ docker run --rm --privileged \
   -e GITHUB_TOKEN \
   -e DOCKER_USERNAME \
   -e DOCKER_PASSWORD \
-  goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist
+  goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --release-notes "$1"
