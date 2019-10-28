@@ -160,11 +160,11 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 		}
 	)
 
-	if _, err := s.builder.Insert("rules").
+	if _, err := s.builder.
+		Insert("rules").
 		Columns("id", "flag_key", "segment_key", "rank", "created_at", "updated_at").
 		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt}).
 		ExecContext(ctx); err != nil {
-
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
@@ -320,11 +320,11 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 		}
 	)
 
-	if _, err := s.builder.Insert("distributions").
+	if _, err := s.builder.
+		Insert("distributions").
 		Columns("id", "rule_id", "variant_id", "rollout", "created_at", "updated_at").
 		Values(d.Id, d.RuleId, d.VariantId, d.Rollout, &timestamp{d.CreatedAt}, &timestamp{d.UpdatedAt}).
 		ExecContext(ctx); err != nil {
-
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {

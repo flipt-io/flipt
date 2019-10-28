@@ -9,7 +9,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	proto "github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/pkg/errors"
 )
 
 type timestamp struct {
@@ -82,7 +81,7 @@ const (
 func parse(in string) (Driver, *url.URL, error) {
 	u, err := url.Parse(in)
 	if err != nil {
-		return 0, u, errors.Wrapf(err, "parsing url: %q", in)
+		return 0, u, fmt.Errorf("parsing url: %q: %w", in, err)
 	}
 
 	driver := schemeToDriver[u.Scheme]

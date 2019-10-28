@@ -2,12 +2,12 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -156,7 +156,7 @@ func Load(path string) (*Config, error) {
 	viper.SetConfigFile(path)
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, errors.Wrap(err, "loading config")
+		return nil, fmt.Errorf("loading config: %w", err)
 	}
 
 	cfg := Default()
