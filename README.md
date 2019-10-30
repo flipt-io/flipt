@@ -33,7 +33,7 @@
     <h4>
         <a href="https://flipt.dev/">Documentation</a> |
         <a href="#features">Features</a> |
-        <a href="#running-flipt">Running</a> |
+        <a href="#try-it">Running</a> |
         <a href="./docs/configuration.md">Configuration</a> |
         <a href="./docs/getting_started.md">Getting Started</a>
     </h4>
