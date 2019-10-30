@@ -45,7 +45,12 @@ Flipt is an open source feature flag application that allows you to run experime
 
 This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
-Flipt includes native client SDKs as well as a REST API so you can choose how to best integrate Flipt with your applications.
+Flipt is a single, self contained binary that you run on your own servers or cloud infrastructure. There are a multitude of benefits to running Flipt yourself, including:
+
+* :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+* :rocket: **Speed** - As Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
+* :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
+* :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 
 ## Why Flipt
 
@@ -69,15 +74,7 @@ On top of all this, Flipt provides a clean, modern UI so that you can always mon
 * Modern UI and debug console
 * Support for multiple databases
 
-## Running Flipt
-
-Flipt is a single, self contained binary that you run on your own servers or cloud infrastructure. There are a multitude of benefits to running Flipt yourself, including:
-
-* :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-* :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet to another application running on the other side of the world which can add excessive latency and slow down your applications.
-* :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-
-### Try It
+## Try It!
 
 ```bash
 ❯ docker run --rm -p 8080:8080 -p 9000:9000 markphelps/flipt:latest
