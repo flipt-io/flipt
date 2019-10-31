@@ -32,6 +32,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v1
 
+    - name: Restore Cache
+      uses: actions/cache@preview
+      id: cache
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+
     - name: Build binary
       run: make build
 
