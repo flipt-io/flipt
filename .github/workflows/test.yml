@@ -59,7 +59,7 @@ jobs:
       id: cache
       with:
         path: "$GOPATH/pkg/mod"
-        key: ${{ runner.os }}-${{ hashFiles('./go.sum') }}
+        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (SQLite)
       run: go test -covermode=count -coverprofile=profile.cov -count=1 ./...
