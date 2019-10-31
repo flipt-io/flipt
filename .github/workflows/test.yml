@@ -58,7 +58,7 @@ jobs:
       uses: actions/cache@preview
       id: cache
       with:
-        path: "$GOPATH/pkg/mod"
+        path: ~/go/pkg/mod
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (SQLite)
