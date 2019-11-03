@@ -150,14 +150,6 @@ I would love your help! Before submitting a PR, please read over the [Contributi
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
-## Support
-
-Want to support Flipt development without contributing?
-
-[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/markphelps)
-
-<a href="https://www.producthunt.com/posts/flipt?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=173236&theme=light" alt="Flipt - A feature flag solution for your existing infrastructure | Product Hunt Embed" style="width: 250px; height: 54px;" width="250px" height="54px" /></a>
-
 ## Pro Version
 
 My plan is to soon start working on a Pro Version of Flipt for enterprise. Along with **support**, some of the planned features include:
@@ -190,3 +182,11 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+## Support
+
+Want to support Flipt development without contributing?
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/markphelps)
+
+<a href="https://www.producthunt.com/posts/flipt?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=173236&theme=light" alt="Flipt - A feature flag solution for your existing infrastructure | Product Hunt Embed" style="width: 250px; height: 54px;" width="250px" height="54px" /></a>
