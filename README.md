@@ -49,8 +49,8 @@ Flipt is a single, self contained binary that you run on your own servers or clo
 
 * :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 * :rocket: **Speed** - As Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
-* :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
+* :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
 
 ## Why Flipt
 
