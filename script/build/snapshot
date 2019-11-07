@@ -10,4 +10,4 @@ docker run --rm --privileged \
   -v "$PWD":/flipt \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -w /flipt \
-  goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish --release-notes "$1"
+  goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish
