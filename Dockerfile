@@ -23,7 +23,7 @@ RUN go get -v github.com/gobuffalo/packr/packr
 RUN packr -v -i cmd/flipt
 RUN go install -v ./cmd/flipt/
 
-FROM alpine:3.9
+FROM alpine:3.10
 LABEL maintainer="mark.aaron.phelps@gmail.com"
 
 RUN apk add --no-cache \
