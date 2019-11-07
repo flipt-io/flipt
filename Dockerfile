@@ -19,7 +19,8 @@ RUN go mod download
 
 COPY . .
 RUN cd ./ui && yarn install && yarn run build
-RUN go generate -v ./...
+RUN go get -v github.com/gobuffalo/packr/packr
+RUN packr -v -i cmd/flipt
 RUN go install -v ./cmd/flipt/
 
 FROM alpine:3.9
