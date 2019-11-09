@@ -496,10 +496,11 @@ func TestEvaluate_RolloutDistribution_WithMatchAll(t *testing.T) {
 
 	require.NoError(t, err)
 
-	// subscriber segment rollout distribution of 50/50
+	// first rule: subscriber segment rollout distribution of 50/50
 	rolloutRule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: subscriberSegment.Key,
+		Rank:       0,
 	})
 
 	require.NoError(t, err)
@@ -530,10 +531,11 @@ func TestEvaluate_RolloutDistribution_WithMatchAll(t *testing.T) {
 
 	require.NoError(t, err)
 
-	// all users segment return unreleased
+	// second rule: all users segment return unreleased
 	allUsersRule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: allUsersSegment.Key,
+		Rank:       1,
 	})
 
 	require.NoError(t, err)
@@ -547,37 +549,20 @@ func TestEvaluate_RolloutDistribution_WithMatchAll(t *testing.T) {
 
 	require.NoError(t, err)
 
-	var (
-		uuid                   = uuid.Must(uuid.NewV4())
-		subscriberSegmentCount = 0
-		allUsersSegmentCount   = 0
-	)
+	resp, err := evaluator.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		FlagKey:  flag.Key,
+		EntityId: uuid.Must(uuid.NewV4()).String(),
+		Context: map[string]string{
+			"premium_user": "true",
+		},
+	})
 
-	for i := 0; i < 5; i++ {
-		resp, err := evaluator.Evaluate(context.TODO(), &flipt.EvaluationRequest{
-			FlagKey:  flag.Key,
-			EntityId: uuid.String(),
-			Context: map[string]string{
-				"premium_user": "true",
-			},
-		})
+	require.NoError(t, err)
 
-		require.NoError(t, err)
-
-		assert.NotNil(t, resp)
-		assert.True(t, resp.Match)
-
-		if resp.SegmentKey == subscriberSegment.Key {
-			subscriberSegmentCount++
-		} else if resp.SegmentKey == allUsersSegment.Key {
-			allUsersSegmentCount++
-		} else {
-			require.FailNowf(t, "unknown segment key: %s", resp.SegmentKey)
-		}
-	}
-
-	assert.Equal(t, 5, subscriberSegmentCount)
-	assert.Equal(t, 0, allUsersSegmentCount)
+	assert.NotNil(t, resp)
+	assert.True(t, resp.Match)
+	assert.Equal(t, subscriberSegment.Key, resp.SegmentKey)
+	assert.Equal(t, flag.Key, resp.FlagKey)
 }
 
 func TestEvaluate_NoConstraints(t *testing.T) {

@@ -77,10 +77,10 @@ func TestParse(t *testing.T) {
 var (
 	logger *logrus.Logger
 
-	flagStore    FlagStore
-	segmentStore SegmentStore
-	ruleStore    RuleStore
-	evaluator    Evaluator
+	flagStore    *FlagStorage
+	segmentStore *SegmentStorage
+	ruleStore    *RuleStorage
+	evaluator    *EvaluatorStorage
 )
 
 const defaultTestDBURL = "file:../flipt_test.db"
@@ -94,7 +94,11 @@ func TestMain(m *testing.M) {
 func run(m *testing.M) int {
 	logger = logrus.New()
 	logger.Level = logrus.DebugLevel
-	logger.Out = ioutil.Discard
+
+	debug := os.Getenv("DEBUG")
+	if debug == "" {
+		logger.Out = ioutil.Discard
+	}
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
