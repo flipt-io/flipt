@@ -3,6 +3,7 @@
 package tools
 
 import (
+	_ "github.com/buchanae/github-release-notes"
 	_ "github.com/gobuffalo/packr/packr"
 	_ "github.com/golang/protobuf/protoc-gen-go"
 	_ "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway"

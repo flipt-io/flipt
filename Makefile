@@ -15,6 +15,7 @@ TOOLS = \
 	"golang.org/x/tools/cmd/cover" \
 	"golang.org/x/tools/cmd/goimports" \
 	"google.golang.org/grpc" \
+	"github.com/buchanae/github-release-notes" \
 
 .PHONY: setup
 setup: ## Install dev tools
