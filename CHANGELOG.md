@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.10.1](https://github.com/markphelps/flipt/releases/tag/v0.10.1) - 2019-11-09
+
+### Changed
+
+* Use go 1.13 style errors
+* Updated outdated JS dependencies
+* Updated prometheus client version
+
+### Fixed
+
+* Inconsistent matching of rules: [https://github.com/markphelps/flipt/issues/166](https://github.com/markphelps/flipt/issues/166)
+
 ## [v0.10.0](https://github.com/markphelps/flipt/releases/tag/v0.10.0) - 2019-10-20
 
 ### Added
