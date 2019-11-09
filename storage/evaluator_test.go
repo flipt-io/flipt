@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/gofrs/uuid"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -448,6 +449,120 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 			assert.Equal(t, matchesVariantKey, resp.Value)
 		})
 	}
+}
+
+func TestEvaluate_RolloutDistribution_WithMatchAll(t *testing.T) {
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        t.Name(),
+		Description: "foo",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+
+	var variants []*flipt.Variant
+
+	for _, req := range []*flipt.CreateVariantRequest{
+		{
+			FlagKey: flag.Key,
+			Key:     fmt.Sprintf("released_%s", t.Name()),
+		},
+		{
+			FlagKey: flag.Key,
+			Key:     fmt.Sprintf("unreleased_%s", t.Name()),
+		},
+	} {
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+		require.NoError(t, err)
+		variants = append(variants, variant)
+	}
+
+	// subscriber segment
+	subscriberSegment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:  fmt.Sprintf("subscriber_%s", t.Name()),
+		Name: fmt.Sprintf("subscriber %s", t.Name()),
+	})
+
+	require.NoError(t, err)
+
+	// subscriber segment constraint: premium_user (bool) == true
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: subscriberSegment.Key,
+		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+		Property:   "premium_user",
+		Operator:   opTrue,
+	})
+
+	require.NoError(t, err)
+
+	// first rule: subscriber segment rollout distribution of 50/50
+	rolloutRule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: subscriberSegment.Key,
+		Rank:       0,
+	})
+
+	require.NoError(t, err)
+
+	for _, req := range []*flipt.CreateDistributionRequest{
+		{
+			FlagKey:   flag.Key,
+			RuleId:    rolloutRule.Id,
+			VariantId: variants[0].Id,
+			Rollout:   50,
+		},
+		{
+			FlagKey:   flag.Key,
+			RuleId:    rolloutRule.Id,
+			VariantId: variants[1].Id,
+			Rollout:   50,
+		},
+	} {
+		_, err := ruleStore.CreateDistribution(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	// all users segment
+	allUsersSegment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:  fmt.Sprintf("all_users_%s", t.Name()),
+		Name: fmt.Sprintf("all users %s", t.Name()),
+	})
+
+	require.NoError(t, err)
+
+	// second rule: all users segment return unreleased
+	allUsersRule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: allUsersSegment.Key,
+		Rank:       1,
+	})
+
+	require.NoError(t, err)
+
+	_, err = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+		FlagKey:   flag.Key,
+		RuleId:    allUsersRule.Id,
+		VariantId: variants[1].Id,
+		Rollout:   100,
+	})
+
+	require.NoError(t, err)
+
+	resp, err := evaluator.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		FlagKey:  flag.Key,
+		EntityId: uuid.Must(uuid.NewV4()).String(),
+		Context: map[string]string{
+			"premium_user": "true",
+		},
+	})
+
+	require.NoError(t, err)
+
+	assert.NotNil(t, resp)
+	assert.True(t, resp.Match)
+	assert.Equal(t, subscriberSegment.Key, resp.SegmentKey)
+	assert.Equal(t, flag.Key, resp.FlagKey)
 }
 
 func TestEvaluate_NoConstraints(t *testing.T) {

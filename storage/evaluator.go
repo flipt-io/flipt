@@ -121,7 +121,10 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		}
 	}()
 
-	rules := make(map[string]*rule)
+	var (
+		seenRules = make(map[string]*rule)
+		rules     = []*rule{}
+	)
 
 	for rows.Next() {
 		var (
@@ -133,7 +136,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			return resp, err
 		}
 
-		if existingRule, ok := rules[tempRule.ID]; ok {
+		if existingRule, ok := seenRules[tempRule.ID]; ok {
 			// current rule we know about
 			if optionalConstraint.ID.Valid {
 				constraint := constraint{
@@ -146,7 +149,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			}
 		} else {
 			// haven't seen this rule before
-			existingRule = &rule{
+			newRule := &rule{
 				ID:         tempRule.ID,
 				FlagKey:    tempRule.FlagKey,
 				SegmentKey: tempRule.SegmentKey,
@@ -160,10 +163,11 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
 				}
-				existingRule.Constraints = append(existingRule.Constraints, constraint)
+				newRule.Constraints = append(newRule.Constraints, constraint)
 			}
 
-			rules[existingRule.ID] = existingRule
+			seenRules[newRule.ID] = newRule
+			rules = append(rules, newRule)
 		}
 	}
 
@@ -177,7 +181,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 	}
 
 	for _, rule := range rules {
-		matchCount := 0
+		constraintMatches := 0
 
 		for _, c := range rule.Constraints {
 			if err := validate(c); err != nil {
@@ -214,11 +218,11 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			}
 
 			// otherwise, increase the matchCount
-			matchCount++
+			constraintMatches++
 		}
 
 		// all constraints did not match
-		if matchCount != len(rule.Constraints) {
+		if constraintMatches != len(rule.Constraints) {
 			logger.Debug("did not match all constraints")
 			continue
 		}
