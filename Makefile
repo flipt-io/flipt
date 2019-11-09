@@ -6,6 +6,11 @@ TEST_PATTERN ?= .
 TEST_OPTS ?=
 TEST_FLAGS ?=
 
+UI_PATH = ui
+UI_SOURCE_FILES = $(wildcard $(UI_PATH)/src/* $(UI_PATH)/static/* $(UI_PATH)/index.html)
+UI_OUTPUT_DIR = $(UI_PATH)/dist
+UI_NODE_MODULES_PATH = $(UI_PATH)/node_modules
+
 TOOLS = \
 	"github.com/gobuffalo/packr/packr" \
 	"github.com/golang/protobuf/protoc-gen-go" \
@@ -59,10 +64,17 @@ proto: ## Build protobufs
 		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger/api \
 		$(PROJECT).proto
 
+$(UI_NODE_MODULES_PATH): $(UI_PATH)/package.json $(UI_PATH)/yarn.lock
+	@cd $(UI_PATH) && yarn --frozen-lockfile; cd ..
+
+$(UI_OUTPUT_DIR): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
+	@echo ">> building ui"
+	@cd ./ui; yarn build; cd ..
+
 .PHONY: assets
-assets: ## Build the ui
+assets: $(UI_OUTPUT_DIR) ## Build the ui
 	@echo ">> generating assets"
-	@cd ./ui; yarn install --ignore-platform --ignore-engines && yarn run build; cd ..
+	packr -i cmd/flipt
 
 .PHONY: build
 build: ## Build a local copy
