@@ -39,6 +39,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 	if data, ok := f.cache.Get(key); ok {
 		f.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues("flag", "memory").Inc()
+
 		bytes, bok := data.([]byte)
 		if !bok {
 			// not bytes, bad cache
@@ -68,6 +69,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 	_ = f.cache.Add(flagCacheKey(r.Key), data)
 	f.logger.Debugf("cache miss; added: %q", key)
 	cacheMissTotal.WithLabelValues("flag", "memory").Inc()
+
 	return flag, nil
 }
 
@@ -101,6 +103,7 @@ func (f *FlagCache) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) 
 	key := flagCacheKey(r.Key)
 	f.cache.Remove(key)
 	f.logger.Debugf("removed: %q", key)
+
 	return f.store.UpdateFlag(ctx, r)
 }
 
@@ -109,6 +112,7 @@ func (f *FlagCache) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) 
 	key := flagCacheKey(r.Key)
 	f.cache.Remove(key)
 	f.logger.Debugf("removed: %q", key)
+
 	return f.store.DeleteFlag(ctx, r)
 }
 
@@ -117,6 +121,7 @@ func (f *FlagCache) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 	key := flagCacheKey(r.FlagKey)
 	f.cache.Remove(key)
 	f.logger.Debugf("removed: %q", key)
+
 	return f.store.CreateVariant(ctx, r)
 }
 
@@ -125,6 +130,7 @@ func (f *FlagCache) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 	key := flagCacheKey(r.FlagKey)
 	f.cache.Remove(key)
 	f.logger.Debugf("removed: %q", key)
+
 	return f.store.UpdateVariant(ctx, r)
 }
 
@@ -133,6 +139,7 @@ func (f *FlagCache) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	key := flagCacheKey(r.FlagKey)
 	f.cache.Remove(key)
 	f.logger.Debugf("removed: %q", key)
+
 	return f.store.DeleteVariant(ctx, r)
 }
 

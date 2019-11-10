@@ -96,6 +96,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		if err == sql.ErrNoRows {
 			return resp, ErrNotFoundf("flag %q", r.FlagKey)
 		}
+
 		return resp, err
 	}
 
@@ -281,7 +282,9 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		// no distributions for rule
 		if len(distributions) == 0 {
 			logger.Info("no distributions for rule")
+
 			resp.Match = true
+
 			return resp, nil
 		}
 
@@ -290,11 +293,14 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 
 		if ok {
 			logger.Debugf("matched distribution: %+v", distribution)
+
 			resp.Value = distribution.VariantKey
+
 			return resp, nil
 		}
 
 		logger.Debug("did not match any distributions")
+
 		return resp, nil
 	}
 
@@ -401,9 +407,11 @@ func validate(c constraint) error {
 	if c.Property == "" {
 		return errors.New("empty property")
 	}
+
 	if c.Operator == "" {
 		return errors.New("empty operator")
 	}
+
 	op := strings.ToLower(c.Operator)
 	if _, ok := validOperators[op]; !ok {
 		return fmt.Errorf("unsupported operator: %q", op)
@@ -414,6 +422,7 @@ func validate(c constraint) error {
 
 func matchesString(c constraint, v string) bool {
 	value := c.Value
+
 	switch c.Operator {
 	case opEQ:
 		return value == v
@@ -428,6 +437,7 @@ func matchesString(c constraint, v string) bool {
 	case opSuffix:
 		return strings.HasSuffix(strings.TrimSpace(v), value)
 	}
+
 	return false
 }
 

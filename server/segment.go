@@ -12,6 +12,7 @@ func (s *Server) GetSegment(ctx context.Context, req *flipt.GetSegmentRequest) (
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	return s.SegmentStore.GetSegment(ctx, req)
 }
 
@@ -36,9 +37,11 @@ func (s *Server) CreateSegment(ctx context.Context, req *flipt.CreateSegmentRequ
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	if req.Name == "" {
 		return nil, emptyFieldError("name")
 	}
+
 	return s.SegmentStore.CreateSegment(ctx, req)
 }
 
@@ -47,9 +50,11 @@ func (s *Server) UpdateSegment(ctx context.Context, req *flipt.UpdateSegmentRequ
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	if req.Name == "" {
 		return nil, emptyFieldError("name")
 	}
+
 	return s.SegmentStore.UpdateSegment(ctx, req)
 }
 
@@ -71,12 +76,15 @@ func (s *Server) CreateConstraint(ctx context.Context, req *flipt.CreateConstrai
 	if req.SegmentKey == "" {
 		return nil, emptyFieldError("segmentKey")
 	}
+
 	if req.Property == "" {
 		return nil, emptyFieldError("property")
 	}
+
 	if req.Operator == "" {
 		return nil, emptyFieldError("operator")
 	}
+
 	return s.SegmentStore.CreateConstraint(ctx, req)
 }
 
@@ -85,15 +93,19 @@ func (s *Server) UpdateConstraint(ctx context.Context, req *flipt.UpdateConstrai
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.SegmentKey == "" {
 		return nil, emptyFieldError("segmentKey")
 	}
+
 	if req.Property == "" {
 		return nil, emptyFieldError("property")
 	}
+
 	if req.Operator == "" {
 		return nil, emptyFieldError("operator")
 	}
+
 	return s.SegmentStore.UpdateConstraint(ctx, req)
 }
 
@@ -102,6 +114,7 @@ func (s *Server) DeleteConstraint(ctx context.Context, req *flipt.DeleteConstrai
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.SegmentKey == "" {
 		return nil, emptyFieldError("segmentKey")
 	}

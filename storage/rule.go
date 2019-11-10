@@ -49,6 +49,7 @@ func (s *RuleStorage) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*fl
 	s.logger.WithField("request", r).Debug("get rule")
 	rule, err := s.rule(ctx, r.Id, r.FlagKey)
 	s.logger.WithField("response", rule).Debug("get rule")
+
 	return rule, err
 }
 
@@ -83,6 +84,7 @@ func (s *RuleStorage) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (
 	s.logger.WithField("request", r).Debug("list rules")
 	rules, err := s.rules(ctx, r)
 	s.logger.WithField("response", rules).Debug("list rules")
+
 	return rules, err
 }
 
@@ -99,6 +101,7 @@ func (s *RuleStorage) rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*f
 	if r.Limit > 0 {
 		query = query.Limit(uint64(r.Limit))
 	}
+
 	if r.Offset > 0 {
 		query = query.Offset(uint64(r.Offset))
 	}
@@ -180,6 +183,7 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 	}
 
 	s.logger.WithField("response", rule).Debug("create rule")
+
 	return rule, nil
 }
 
@@ -208,6 +212,7 @@ func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest
 
 	rule, err := s.rule(ctx, r.Id, r.FlagKey)
 	s.logger.WithField("response", rule).Debug("update rule")
+
 	return rule, err
 }
 
@@ -249,10 +254,12 @@ func (s *RuleStorage) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest
 
 	for rows.Next() {
 		var ruleID string
+
 		if err := rows.Scan(&ruleID); err != nil {
 			_ = tx.Rollback()
 			return err
 		}
+
 		ruleIDs = append(ruleIDs, ruleID)
 	}
 
@@ -340,6 +347,7 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 	}
 
 	s.logger.WithField("response", d).Debug("create distribution")
+
 	return d, nil
 }
 
@@ -385,6 +393,7 @@ func (s *RuleStorage) UpdateDistribution(ctx context.Context, r *flipt.UpdateDis
 	distribution.UpdatedAt = updatedAt.Timestamp
 
 	s.logger.WithField("response", distribution).Debug("update distribution")
+
 	return distribution, nil
 }
 

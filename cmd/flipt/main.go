@@ -118,6 +118,7 @@ func initConfig() {
 	// Do not load the config if the user just wants the version
 	if !printVersion {
 		var err error
+
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
 			logger.Fatal(fmt.Errorf("loading configuration: %w", err))
@@ -180,10 +181,12 @@ func execute() error {
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
+
 	defer cancel()
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
 	defer signal.Stop(interrupt)
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -438,6 +441,7 @@ func execute() error {
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
+
 	if httpServer != nil {
 		_ = httpServer.Shutdown(shutdownCtx)
 	}
@@ -480,6 +484,7 @@ func setLogLevel(cfg *config.Config) error {
 	}
 
 	logger.SetLevel(lvl)
+
 	return nil
 }
 

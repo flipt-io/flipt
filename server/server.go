@@ -76,5 +76,6 @@ func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *
 	default:
 		err = status.Error(codes.Internal, err.Error())
 	}
+
 	return
 }

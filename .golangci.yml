@@ -32,19 +32,25 @@ linters:
     - errcheck
     - goconst
     - gocritic
+    #- godox
     - goimports
     - golint
     - gosec
+    - gosimple
     - govet
     - ineffassign
     - interfacer
     - maligned
     - megacheck
     - misspell
+    - staticcheck
     - structcheck
+    - stylecheck
     - unconvert
+    - unparam
     - varcheck
     - whitespace
+    #- wsl
   enable-all: false
   presets:
     - bugs

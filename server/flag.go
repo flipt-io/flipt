@@ -12,6 +12,7 @@ func (s *Server) GetFlag(ctx context.Context, req *flipt.GetFlagRequest) (*flipt
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	return s.FlagStore.GetFlag(ctx, req)
 }
 
@@ -36,9 +37,11 @@ func (s *Server) CreateFlag(ctx context.Context, req *flipt.CreateFlagRequest) (
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	if req.Name == "" {
 		return nil, emptyFieldError("name")
 	}
+
 	return s.FlagStore.CreateFlag(ctx, req)
 }
 
@@ -47,9 +50,11 @@ func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	if req.Name == "" {
 		return nil, emptyFieldError("name")
 	}
+
 	return s.FlagStore.UpdateFlag(ctx, req)
 }
 
@@ -71,9 +76,11 @@ func (s *Server) CreateVariant(ctx context.Context, req *flipt.CreateVariantRequ
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	return s.FlagStore.CreateVariant(ctx, req)
 }
 
@@ -82,12 +89,15 @@ func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequ
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.Key == "" {
 		return nil, emptyFieldError("key")
 	}
+
 	return s.FlagStore.UpdateVariant(ctx, req)
 }
 
@@ -96,6 +106,7 @@ func (s *Server) DeleteVariant(ctx context.Context, req *flipt.DeleteVariantRequ
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}

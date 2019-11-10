@@ -16,14 +16,15 @@ type timestamp struct {
 }
 
 func (t *timestamp) Scan(value interface{}) error {
-	v, ok := value.(time.Time)
-	if ok {
+	if v, ok := value.(time.Time); ok {
 		val, err := ptypes.TimestampProto(v)
 		if err != nil {
 			return err
 		}
+
 		t.Timestamp = val
 	}
+
 	return nil
 }
 

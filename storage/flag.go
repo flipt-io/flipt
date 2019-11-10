@@ -47,6 +47,7 @@ func (s *FlagStorage) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*fl
 	s.logger.WithField("request", r).Debug("get flag")
 	flag, err := s.flag(ctx, r.Key)
 	s.logger.WithField("response", flag).Debug("get flag")
+
 	return flag, err
 }
 
@@ -74,6 +75,7 @@ func (s *FlagStorage) flag(ctx context.Context, key string) (*flipt.Flag, error)
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFoundf("flag %q", key)
 		}
+
 		return nil, err
 	}
 
@@ -102,6 +104,7 @@ func (s *FlagStorage) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (
 	if r.Limit > 0 {
 		query = query.Limit(uint64(r.Limit))
 	}
+
 	if r.Offset > 0 {
 		query = query.Offset(uint64(r.Offset))
 	}
@@ -145,6 +148,7 @@ func (s *FlagStorage) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (
 	}
 
 	s.logger.WithField("response", flags).Debug("list flags")
+
 	return flags, rows.Err()
 }
 
@@ -184,6 +188,7 @@ func (s *FlagStorage) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 	}
 
 	s.logger.WithField("response", flag).Debug("create flag")
+
 	return flag, nil
 }
 
@@ -214,6 +219,7 @@ func (s *FlagStorage) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest
 
 	flag, err := s.flag(ctx, r.Key)
 	s.logger.WithField("response", flag).Debug("update flag")
+
 	return flag, err
 }
 
@@ -271,6 +277,7 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 	}
 
 	s.logger.WithField("response", v).Debug("create variant")
+
 	return v, nil
 }
 
@@ -298,6 +305,7 @@ func (s *FlagStorage) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantR
 				return nil, ErrInvalidf("variant %q is not unique", r.Key)
 			}
 		}
+
 		return nil, err
 	}
 
@@ -329,6 +337,7 @@ func (s *FlagStorage) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantR
 	v.UpdatedAt = updatedAt.Timestamp
 
 	s.logger.WithField("response", v).Debug("update variant")
+
 	return v, nil
 }
 

@@ -188,6 +188,7 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 	} {
 		variant, err := flagStore.CreateVariant(context.TODO(), req)
 		require.NoError(t, err)
+
 		variants = append(variants, variant)
 	}
 
@@ -336,6 +337,7 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 	} {
 		variant, err := flagStore.CreateVariant(context.TODO(), req)
 		require.NoError(t, err)
+
 		variants = append(variants, variant)
 	}
 
@@ -475,6 +477,7 @@ func TestEvaluate_RolloutDistribution_WithMatchAll(t *testing.T) {
 	} {
 		variant, err := flagStore.CreateVariant(context.TODO(), req)
 		require.NoError(t, err)
+
 		variants = append(variants, variant)
 	}
 
@@ -589,6 +592,7 @@ func TestEvaluate_NoConstraints(t *testing.T) {
 	} {
 		variant, err := flagStore.CreateVariant(context.TODO(), req)
 		require.NoError(t, err)
+
 		variants = append(variants, variant)
 	}
 

@@ -37,12 +37,15 @@ func (s *Server) CreateRule(ctx context.Context, req *flipt.CreateRuleRequest) (
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.SegmentKey == "" {
 		return nil, emptyFieldError("segmentKey")
 	}
+
 	if req.Rank <= 0 {
 		return nil, invalidFieldError("rank", "must be greater than 0")
 	}
+
 	return s.RuleStore.CreateRule(ctx, req)
 }
 
@@ -51,12 +54,15 @@ func (s *Server) UpdateRule(ctx context.Context, req *flipt.UpdateRuleRequest) (
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.SegmentKey == "" {
 		return nil, emptyFieldError("segmentKey")
 	}
+
 	return s.RuleStore.UpdateRule(ctx, req)
 }
 
@@ -65,6 +71,7 @@ func (s *Server) DeleteRule(ctx context.Context, req *flipt.DeleteRuleRequest) (
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
@@ -81,6 +88,7 @@ func (s *Server) OrderRules(ctx context.Context, req *flipt.OrderRulesRequest) (
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if len(req.RuleIds) < 2 {
 		return nil, invalidFieldError("ruleIds", "must contain atleast 2 elements")
 	}
@@ -97,18 +105,23 @@ func (s *Server) CreateDistribution(ctx context.Context, req *flipt.CreateDistri
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.RuleId == "" {
 		return nil, emptyFieldError("ruleId")
 	}
+
 	if req.VariantId == "" {
 		return nil, emptyFieldError("variantId")
 	}
+
 	if req.Rollout < 0 {
 		return nil, invalidFieldError("rollout", "must be greater than or equal to '0'")
 	}
+
 	if req.Rollout > 100 {
 		return nil, invalidFieldError("rollout", "must be less than or equal to '100'")
 	}
+
 	return s.RuleStore.CreateDistribution(ctx, req)
 }
 
@@ -117,21 +130,27 @@ func (s *Server) UpdateDistribution(ctx context.Context, req *flipt.UpdateDistri
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.RuleId == "" {
 		return nil, emptyFieldError("ruleId")
 	}
+
 	if req.VariantId == "" {
 		return nil, emptyFieldError("variantId")
 	}
+
 	if req.Rollout < 0 {
 		return nil, invalidFieldError("rollout", "must be greater than or equal to '0'")
 	}
+
 	if req.Rollout > 100 {
 		return nil, invalidFieldError("rollout", "must be less than or equal to '100'")
 	}
+
 	return s.RuleStore.UpdateDistribution(ctx, req)
 }
 
@@ -140,12 +159,15 @@ func (s *Server) DeleteDistribution(ctx context.Context, req *flipt.DeleteDistri
 	if req.Id == "" {
 		return nil, emptyFieldError("id")
 	}
+
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.RuleId == "" {
 		return nil, emptyFieldError("ruleId")
 	}
+
 	if req.VariantId == "" {
 		return nil, emptyFieldError("variantId")
 	}

@@ -13,6 +13,7 @@ func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*f
 	if req.FlagKey == "" {
 		return nil, emptyFieldError("flagKey")
 	}
+
 	if req.EntityId == "" {
 		return nil, emptyFieldError("entityId")
 	}

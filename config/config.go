@@ -165,6 +165,7 @@ func Load(path string) (*Config, error) {
 	if viper.IsSet(cfgLogLevel) {
 		cfg.Log.Level = viper.GetString(cfgLogLevel)
 	}
+
 	if viper.IsSet(cfgLogFile) {
 		cfg.Log.File = viper.GetString(cfgLogFile)
 	}
@@ -196,21 +197,27 @@ func Load(path string) (*Config, error) {
 	if viper.IsSet(cfgServerHost) {
 		cfg.Server.Host = viper.GetString(cfgServerHost)
 	}
+
 	if viper.IsSet(cfgServerProtocol) {
 		cfg.Server.Protocol = stringToScheme[viper.GetString(cfgServerProtocol)]
 	}
+
 	if viper.IsSet(cfgServerHTTPPort) {
 		cfg.Server.HTTPPort = viper.GetInt(cfgServerHTTPPort)
 	}
+
 	if viper.IsSet(cfgServerHTTPSPort) {
 		cfg.Server.HTTPSPort = viper.GetInt(cfgServerHTTPSPort)
 	}
+
 	if viper.IsSet(cfgServerGRPCPort) {
 		cfg.Server.GRPCPort = viper.GetInt(cfgServerGRPCPort)
 	}
+
 	if viper.IsSet(cfgServerCertFile) {
 		cfg.Server.CertFile = viper.GetString(cfgServerCertFile)
 	}
+
 	if viper.IsSet(cfgServerCertKey) {
 		cfg.Server.CertKey = viper.GetString(cfgServerCertKey)
 	}
@@ -219,6 +226,7 @@ func Load(path string) (*Config, error) {
 	if viper.IsSet(cfgDBURL) {
 		cfg.Database.URL = viper.GetString(cfgDBURL)
 	}
+
 	if viper.IsSet(cfgDBMigrationsPath) {
 		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
 	}
@@ -235,12 +243,15 @@ func (c *Config) validate() error {
 		if c.Server.CertFile == "" {
 			return errors.New("cert_file cannot be empty when using HTTPS")
 		}
+
 		if c.Server.CertKey == "" {
 			return errors.New("cert_key cannot be empty when using HTTPS")
 		}
+
 		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
 			return fmt.Errorf("cannot find TLS cert_file at %q", c.Server.CertFile)
 		}
+
 		if _, err := os.Stat(c.Server.CertKey); os.IsNotExist(err) {
 			return fmt.Errorf("cannot find TLS cert_key at %q", c.Server.CertKey)
 		}

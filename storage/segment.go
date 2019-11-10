@@ -48,6 +48,7 @@ func (s *SegmentStorage) GetSegment(ctx context.Context, r *flipt.GetSegmentRequ
 	s.logger.WithField("request", r).Debug("get segment")
 	segment, err := s.segment(ctx, r.Key)
 	s.logger.WithField("response", segment).Debug("get segment")
+
 	return segment, err
 }
 
@@ -73,6 +74,7 @@ func (s SegmentStorage) segment(ctx context.Context, key string) (*flipt.Segment
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFoundf("segment %q", key)
 		}
+
 		return nil, err
 	}
 
@@ -101,6 +103,7 @@ func (s *SegmentStorage) ListSegments(ctx context.Context, r *flipt.ListSegmentR
 	if r.Limit > 0 {
 		query = query.Limit(uint64(r.Limit))
 	}
+
 	if r.Offset > 0 {
 		query = query.Offset(uint64(r.Offset))
 	}
@@ -143,6 +146,7 @@ func (s *SegmentStorage) ListSegments(ctx context.Context, r *flipt.ListSegmentR
 	}
 
 	s.logger.WithField("response", segments).Debug("list segments")
+
 	return segments, rows.Err()
 }
 
@@ -181,6 +185,7 @@ func (s *SegmentStorage) CreateSegment(ctx context.Context, r *flipt.CreateSegme
 	}
 
 	s.logger.WithField("response", segment).Debug("create segment")
+
 	return segment, nil
 }
 
@@ -209,7 +214,9 @@ func (s *SegmentStorage) UpdateSegment(ctx context.Context, r *flipt.UpdateSegme
 	}
 
 	segment, err := s.segment(ctx, r.Key)
+
 	s.logger.WithField("response", segment).Debug("update segment")
+
 	return segment, err
 }
 
@@ -286,6 +293,7 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 	}
 
 	s.logger.WithField("response", c).Debug("create constraint")
+
 	return c, nil
 }
 
@@ -357,6 +365,7 @@ func (s *SegmentStorage) UpdateConstraint(ctx context.Context, r *flipt.UpdateCo
 	c.UpdatedAt = updatedAt.Timestamp
 
 	s.logger.WithField("response", c).Debug("update constraint")
+
 	return c, nil
 }
 
