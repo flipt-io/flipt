@@ -48,7 +48,7 @@ This means that you can deploy Flipt within your existing infrastructure and not
 Flipt is a single, self contained binary that you run on your own servers or cloud infrastructure. There are a multitude of benefits to running Flipt yourself, including:
 
 * :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-* :rocket: **Speed** - As Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
+* :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 * :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
 
