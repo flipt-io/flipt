@@ -18,6 +18,7 @@ _test
 *.test
 *.pem
 !**/**/testdata/**/*.pem
+benchmark
 bin
 coverage.txt
 dist
