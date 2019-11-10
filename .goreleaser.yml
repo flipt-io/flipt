@@ -1,11 +1,5 @@
-env:
-  - GO111MODULE=on
-
 before:
   hooks:
-    - go mod download
-    - go get -v github.com/gobuffalo/packr/packr
-    - packr -v -i cmd/flipt
     - go mod tidy
 
 builds:

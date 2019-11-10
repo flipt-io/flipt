@@ -21,7 +21,6 @@ _test
 bin
 coverage.txt
 dist
-!ui/dist
 node_modules
 site
 tmp

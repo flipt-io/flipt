@@ -19,4 +19,4 @@ To build before committing, run:
 $ make assets
 ```
 
-This will build and update the generated inline versions of the files to be included for release.
+This will build and update the generated in-line versions of the files to be included for release.
