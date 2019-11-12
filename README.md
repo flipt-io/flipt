@@ -185,8 +185,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## Support
 
-Want to support Flipt development without contributing?
+Want to support Flipt development in other ways?
 
 [<img src="https://user-images.githubusercontent.com/1685680/61808727-4925de00-ae3c-11e9-9d60-66bef358fd8e.png" alt="drawing" width="180"/>](https://www.buymeacoffee.com/markphelps)
 
-<a href="https://www.producthunt.com/posts/flipt?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=173236&theme=light" alt="Flipt - A feature flag solution for your existing infrastructure | Product Hunt Embed" style="width: 250px; height: 54px;" width="250px" height="54px" /></a>
+<a href="https://www.producthunt.com/posts/flipt?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-flipt" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=173236&theme=dark" alt="Flipt - A feature flag solution for your existing infrastructure | Product Hunt Embed" style="width: 250px; height: 54px;" width="250px" height="54px" /></a>
