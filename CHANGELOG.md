@@ -3,6 +3,17 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.10.2](https://github.com/markphelps/flipt/releases/tag/v0.10.2) - 2019-11-11
+
+### Changed
+
+* Updated grpc and protobuf versions
+* Updated spf13/viper version
+
+### Fixed
+
+* Update chi compress middleware to fix large number of memory allocations
+
 ## [v0.10.1](https://github.com/markphelps/flipt/releases/tag/v0.10.1) - 2019-11-09
 
 ### Changed
@@ -55,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Updated JS dev dependencies
-* Updated grpc/protobuf versions
+* Updated grpc and protobuf versions
 * Updated pq version
 * Updated go-sqlite3 version
 

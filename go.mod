@@ -42,7 +42,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
-	golang.org/x/net v0.0.0-20190923162816-aa69164e4478 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
 	golang.org/x/text v0.3.2 // indirect
@@ -50,5 +49,4 @@ require (
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/grpc v1.25.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
