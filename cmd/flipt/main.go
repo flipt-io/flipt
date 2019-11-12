@@ -387,7 +387,7 @@ func execute() error {
 			Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
 			Handler:        r,
 			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
+			WriteTimeout:   30 * time.Second,
 			MaxHeaderBytes: 1 << 20,
 		}
 
