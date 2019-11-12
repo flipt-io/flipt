@@ -2,10 +2,32 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "protoc-gen-swagger/options/annotations.proto";
 
 package flipt;
 
 option go_package = "flipt";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+		title: "Flipt API";
+		version: "latest";
+		contact: {
+			name: "Mark Phelps";
+			url: "https://github.com/markphelps/flipt";
+			email: "mark.aaron.phelps@gmail.com";
+		};
+	};
+	external_docs: {
+		url: "https://flipt.dev";
+		description: "Flipt Docs";
+	}
+	schemes: HTTP;
+	schemes: HTTPS;
+	schemes: WSS;
+	consumes: "application/json";
+	produces: "application/json";
+};
 
 message EvaluationRequest {
   string request_id = 1;
@@ -254,7 +276,12 @@ message DeleteDistributionRequest {
 }
 
 service Flipt {
-  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {}
+  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+			description: "Evaluate";
+			tags: "evaluate";
+    };
+  }
 
   rpc GetFlag(GetFlagRequest) returns (Flag) {}
 
