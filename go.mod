@@ -23,7 +23,7 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway v1.11.3
+	github.com/grpc-ecosystem/grpc-gateway v1.12.1
 
 	github.com/hashicorp/golang-lru v0.5.3
 	github.com/lib/pq v1.2.0
@@ -48,7 +48,7 @@ require (
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20191010075000-0337d82405ff
 	google.golang.org/appengine v1.6.0 // indirect
-	google.golang.org/grpc v1.24.0
+	google.golang.org/grpc v1.25.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 )
