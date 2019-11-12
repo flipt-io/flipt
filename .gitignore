@@ -18,11 +18,11 @@ _test
 *.test
 *.pem
 !**/**/testdata/**/*.pem
-benchmark
 bin
 coverage.txt
 dist
 node_modules
+profile
 site
 tmp
 
