@@ -396,7 +396,7 @@ service Flipt {
 
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-			description: "Update Distribution";
+			description: "Delete Distribution";
 			tags: "distributions";
     };
   }
