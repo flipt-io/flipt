@@ -224,6 +224,12 @@ step_8_test_metrics()
         status 200
 }
 
+step_9_test_docs()
+{
+    shakedown GET "$flipt_host/docs"
+        status 200
+}
+
 run()
 {
     # run any pending db migrations
@@ -252,6 +258,7 @@ run()
     step_6_test_delete
     step_7_test_meta
     step_8_test_metrics
+    step_9_test_docs
 }
 
 run
