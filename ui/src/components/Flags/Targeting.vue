@@ -321,18 +321,23 @@ export default {
           this.segments = response.data.segments;
 
           let key = this.$route.params.key;
-          Api.get("/flags/" + key).then(response => {
-            this.flag = response.data;
+          Api.get("/flags/" + key)
+            .then(response => {
+              this.flag = response.data;
 
-            Api.get("/flags/" + key + "/rules").then(response => {
-              this.rules = map(response.data.rules, r => {
-                return this.processRule(r);
+              Api.get("/flags/" + key + "/rules").then(response => {
+                this.rules = map(response.data.rules, r => {
+                  return this.processRule(r);
+                });
               });
+            })
+            .catch(() => {
+              this.notifyError("Error loading flag.");
+              this.$router.push("/flags");
             });
-          });
         })
         .catch(error => {
-          this.notifyError("Error loading data");
+          this.notifyError("Error loading data.");
           console.error(error);
         });
     },
