@@ -323,9 +323,9 @@ export default {
             ? response.data.variants
             : [];
         })
-        .catch(error => {
+        .catch(() => {
           this.notifyError("Error loading flag.");
-          console.error(error);
+          this.$router.push("/flags");
         });
     },
     deleteFlag() {

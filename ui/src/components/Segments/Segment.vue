@@ -444,9 +444,9 @@ export default {
             ? response.data.constraints
             : [];
         })
-        .catch(error => {
+        .catch(() => {
           this.notifyError("Error loading segment.");
-          console.error(error);
+          this.$router.push("/segments");
         });
     },
     deleteSegment() {
