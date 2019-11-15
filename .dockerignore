@@ -1,3 +1,4 @@
+.DS_Store
 .envrc
 *.db
 *.log
@@ -8,17 +9,14 @@
 
 .github/
 .vagrant/
-actions/
-app/
+.vscode/
+Dockerfile
+LICENSE
 bin/
-build/
 dev/
 dist/
-!ui/dist
-Dockerfile
 docs/
 examples/
-LICENSE
 mkdocs.yml
-node_modules/
+script/
 site/
