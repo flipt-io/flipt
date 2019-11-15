@@ -226,7 +226,7 @@ step_8_test_metrics()
 
 step_9_test_docs()
 {
-    shakedown GET "$flipt_host/docs"
+    shakedown GET "$flipt_host/docs/"
         status 200
 }
 
