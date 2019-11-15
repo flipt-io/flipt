@@ -8,7 +8,7 @@ Before starting, make sure you have the following installed:
 
 * GCC Compiler
 * [SQLite](https://sqlite.org/index.html)
-* [Go 1.12+](https://golang.org/doc/install)
+* [Go 1.13+](https://golang.org/doc/install)
 * [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
@@ -21,24 +21,6 @@ Before starting, make sure you have the following installed:
 ## Go
 
 Flipt is built with Go 1.13. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH` or set the environment variable `GO111MODULE=on`. For more info see: [https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support](https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support).
-
-## Vagrant
-
-You can also easily get started with a development environment running in a VM using [Vagrant](https://www.vagrantup.com/) and [Virtual Box](https://www.virtualbox.org/wiki/Downloads).
-
-Once you have Vagrant and Virtual Box installed you can `cd` into either the `dev/ubuntu` or `dev/centos` directories and run `vagrant up`.
-
-This will provision a VM that installs the necessary dev dependencies and runs the Flipt test suite.
-
-Once the provisioning process is complete, run:
-
-```shell
-$ vagrant ssh
-$ cd ~/app/flipt
-$ make dev
-```
-
-This will run Flipt in development mode inside your VM.
 
 ## Configuration
 
@@ -61,7 +43,7 @@ After changing `flipt.proto`, you'll need to run `make proto`. This will regener
 
 ### Updating assets
 
-Running `make assets` will regenerate the embedded assets (ui, api documentation) so that the next time `make dev` is run they will be included.
+Running `make assets` will regenerate the embedded assets (ui, api documentation).
 
 #### UI components
 
