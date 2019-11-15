@@ -64,10 +64,11 @@
 import capitalize from "lodash/capitalize";
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import autoKeys from "@/mixins/autoKeys";
 
 export default {
   name: "NewSegment",
-  mixins: [notify],
+  mixins: [notify, autoKeys],
   data() {
     return {
       segment: {}
@@ -81,12 +82,6 @@ export default {
   methods: {
     formatKey() {
       this.segment.key = this.formatStringAsKey(this.segment.key);
-    },
-    formatStringAsKey(str) {
-      return str
-        .toLowerCase()
-        .split(" ")
-        .join("-");
     },
     setKeyIfSameAsName() {
       // Remove the character that was just added before comparing
