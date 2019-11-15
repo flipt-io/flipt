@@ -362,8 +362,9 @@ func execute() error {
 
 		r.Use(middleware.RequestID)
 		r.Use(middleware.RealIP)
-		r.Use(middleware.Compress(gzip.DefaultCompression))
+		r.Use(middleware.StripSlashes)
 		r.Use(middleware.Heartbeat("/health"))
+		r.Use(middleware.Compress(gzip.DefaultCompression))
 		r.Use(middleware.Recoverer)
 		r.Mount("/metrics", promhttp.Handler())
 		r.Mount("/api/v1", api)
@@ -512,6 +513,4 @@ func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }

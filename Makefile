@@ -53,10 +53,10 @@ clean: ## Remove built binaries
 proto: ## Build protobufs
 	@echo ">> generating protobufs"
 	protoc -I/usr/local/include -I. \
-		-I rpc \
+		-Irpc \
 		--go_out=plugins=grpc:./rpc \
 		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \
-		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger/api \
+		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger \
 		$(PROJECT).proto
 
 .PHONY: assets
