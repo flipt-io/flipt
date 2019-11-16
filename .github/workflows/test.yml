@@ -69,7 +69,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (SQLite)
-      run: go test -covermode=count -coverprofile=profile.txt -count=1 ./...
+      run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
 
     - name: Coverage
       if: github.repository == 'markphelps/flipt' # don't run coverage on forks since secrets are not copied to forked repos
