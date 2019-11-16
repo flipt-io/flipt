@@ -19,6 +19,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.3.2
+	github.com/golangci/golangci-lint v1.21.0
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
@@ -28,7 +29,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3
 	github.com/lib/pq v1.2.0
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
-	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
@@ -37,16 +37,13 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.5.0
 	github.com/stretchr/testify v1.4.0
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20191110163157-d32e6e3b99c4 // indirect
-	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20191010075000-0337d82405ff
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/grpc v1.25.1
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )

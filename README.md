@@ -12,8 +12,8 @@
     <a href="https://github.com/markphelps/flipt/actions">
         <img src="https://github.com/markphelps/flipt/workflows/Tests/badge.svg" alt="Build Status" />
     </a>
-    <a href="https://coveralls.io/github/markphelps/flipt">
-        <img src="https://coveralls.io/repos/github/markphelps/flipt/badge.svg" alt="Coverage" />
+    <a href="https://codecov.io/gh/markphelps/flipt">
+        <img src="https://codecov.io/gh/markphelps/flipt/branch/master/graph/badge.svg" alt="Coverage" />
     </a>
     <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
         <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />

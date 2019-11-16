@@ -3,6 +3,16 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.10.3](https://github.com/markphelps/flipt/releases/tag/v0.10.3) - 2019-11-15
+
+### Changed
+
+* Update swagger docs to be built completely from protobufs: [https://github.com/markphelps/flipt/pull/175](https://github.com/markphelps/flipt/pull/175)
+
+### Fixed
+
+* Handle flags/segments not found in UI: [https://github.com/markphelps/flipt/pull/175](https://github.com/markphelps/flipt/pull/175)
+
 ## [v0.10.2](https://github.com/markphelps/flipt/releases/tag/v0.10.2) - 2019-11-11
 
 ### Changed

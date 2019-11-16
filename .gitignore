@@ -19,6 +19,7 @@ _test
 *.pem
 !**/**/testdata/**/*.pem
 bin
+benchmark
 coverage.txt
 dist
 node_modules
