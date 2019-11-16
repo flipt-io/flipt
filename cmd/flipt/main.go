@@ -362,7 +362,6 @@ func execute() error {
 
 		r.Use(middleware.RequestID)
 		r.Use(middleware.RealIP)
-		r.Use(middleware.StripSlashes)
 		r.Use(middleware.Heartbeat("/health"))
 		r.Use(middleware.Compress(gzip.DefaultCompression))
 		r.Use(middleware.Recoverer)
