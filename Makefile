@@ -17,6 +17,17 @@ TOOLS = \
 	"google.golang.org/grpc" \
 	"github.com/buchanae/github-release-notes" \
 
+UI_PATH = ui
+UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/* $(UI_PATH)/index.html)
+UI_NODE_MODULES_PATH = $(UI_PATH)/node_modules
+UI_OUTPUT_PATH = $(UI_PATH)/dist
+
+$(UI_NODE_MODULES_PATH): $(UI_PATH)/package.json $(UI_PATH)/yarn.lock
+	@cd $(UI_PATH) && yarn --frozen-lockfile
+
+$(UI_OUTPUT_PATH): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
+	@cd $(UI_PATH) && yarn build
+
 .PHONY: setup
 setup: ## Install dev tools
 	@echo ">> installing dev tools"
@@ -43,8 +54,8 @@ lint: ## Run all the linters
 	golangci-lint run
 
 .PHONY: clean
-clean: ## Remove built binaries
-	@echo ">> running go clean"
+clean: ## Cleanup generated files
+	@echo ">> cleaning up"
 	go clean -i $(SOURCE_FILES)
 	packr clean
 	rm -rf dist/*
@@ -60,9 +71,7 @@ proto: ## Build protobufs
 		$(PROJECT).proto
 
 .PHONY: assets
-assets: ## Build the ui
-	@echo ">> generating assets"
-	@cd ./ui; yarn --frozen-lockfile; yarn build; cd ..
+assets: $(UI_OUTPUT_PATH) ## Build the ui
 
 .PHONY: pack
 pack: ## Pack the assets in the binary
@@ -70,12 +79,12 @@ pack: ## Pack the assets in the binary
 	packr -i cmd/flipt
 
 .PHONY: build
-build: ## Build a local copy
+build: clean assets pack ## Build a local copy
 	@echo ">> building a local copy"
 	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
 .PHONY: dev
-dev: ## Build and run in development mode
+dev: clean assets ## Build and run in development mode
 	@echo ">> building and running in development mode"
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml
 
