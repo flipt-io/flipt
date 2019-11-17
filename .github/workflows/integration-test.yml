@@ -40,7 +40,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Build binary
-	    run: go build -o ./bin/flipt ./cmd/flipt/.
+      run: go build -o ./bin/flipt ./cmd/flipt/.
 
     - name: Test CLI
       uses: ./.github/actions/api-test
