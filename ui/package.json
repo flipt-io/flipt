@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "lint": "eslint --ext .js,.vue src",
-    "build": "node build/build.js"
+    "lint": "eslint --ext .js,.vue src __tests__",
+    "build": "node build/build.js",
+    "test": "jest"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -25,7 +26,7 @@
     "vuedraggable": "^2.16.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0",
+    "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
@@ -36,11 +37,14 @@
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/plugin-syntax-import-meta": "^7.0.0",
     "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.7.0",
     "@babel/plugin-transform-runtime": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "@babel/runtime-corejs2": "^7.7.2",
     "autoprefixer": "^9.6.1",
     "babel-eslint": "^10.0.1",
     "babel-helper-vue-jsx-merge-props": "^2.0.3",
+    "babel-jest": "^24.9.0",
     "babel-loader": "^8.0.0",
     "babel-plugin-transform-vue-jsx": "^4.0.1",
     "chalk": "^2.0.1",
@@ -60,6 +64,7 @@
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^3.2.0",
+    "jest": "^24.9.0",
     "mini-css-extract-plugin": "^0.8.0",
     "node-notifier": "^5.1.2",
     "optimize-css-assets-webpack-plugin": "^3.2.0",
@@ -90,5 +95,10 @@
     "> 1%",
     "last 2 versions",
     "not ie <= 8"
-  ]
+  ],
+  "jest": {
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    }
+  }
 }
