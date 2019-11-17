@@ -68,10 +68,11 @@ import capitalize from "lodash/capitalize";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import autoKeys from "@/mixins/autoKeys";
 
 export default {
   name: "NewFlag",
-  mixins: [notify],
+  mixins: [notify, autoKeys],
   data() {
     return {
       flag: {}
@@ -85,12 +86,6 @@ export default {
   methods: {
     formatKey() {
       this.flag.key = this.formatStringAsKey(this.flag.key);
-    },
-    formatStringAsKey(str) {
-      return str
-        .toLowerCase()
-        .split(" ")
-        .join("-");
     },
     setKeyIfSameAsName() {
       // Remove the character that was just added before comparing
