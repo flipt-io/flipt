@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    networks:
+      - flipt_network
+
+  flipt:
+    image: markphelps/flipt:latest
+    depends_on:
+      - prometheus
+    ports:
+      - "8080:8080"
+    networks:
+      - flipt_network
+networks:
+  flipt_network:
