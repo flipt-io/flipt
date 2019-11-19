@@ -3,6 +3,22 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.10.4](https://github.com/markphelps/flipt/releases/tag/v0.10.4) - 2019-11-19
+
+### Added
+
+* Example using Prometheus for capturing metrics: [https://github.com/markphelps/flipt/pull/178](https://github.com/markphelps/flipt/pull/178)
+
+### Changed
+
+* Update Go versions to 1.13.4
+* Update Makefile to only build assets on change
+* Update go-sqlite3 version
+
+### Fixed
+
+* Remove extra dashes when auto-generating flag/segment key in UI: [https://github.com/markphelps/flipt/pull/177](https://github.com/markphelps/flipt/pull/177)
+
 ## [v0.10.3](https://github.com/markphelps/flipt/releases/tag/v0.10.3) - 2019-11-15
 
 ### Changed
