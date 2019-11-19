@@ -13,22 +13,22 @@
           </ul>
         </nav>
         <form>
-          <BField label="Key">
-            <BInput v-model="segment.key" disabled />
-          </BField>
-          <BField label="Name">
-            <BInput
+          <b-field label="Key">
+            <b-input v-model="segment.key" disabled />
+          </b-field>
+          <b-field label="Name">
+            <b-input
               v-model="segment.name"
               placeholder="Segment name"
               required
             />
-          </BField>
-          <BField label="Description (optional)">
-            <BInput
+          </b-field>
+          <b-field label="Description (optional)">
+            <b-input
               v-model="segment.description"
               placeholder="Segment description"
             />
-          </BField>
+          </b-field>
           <div class="level">
             <div class="level-left">
               <div class="level-item">
@@ -71,21 +71,21 @@
         <hr />
         <h5 class="title is-5">Constraints</h5>
         <p class="subtitle is-7">Match All</p>
-        <BTable :data="segment.constraints">
+        <b-table :data="segment.constraints">
           <template slot-scope="props">
-            <BTableColumn field="property" label="Property" sortable>
+            <b-table-column field="property" label="Property" sortable>
               {{ props.row.property }}
-            </BTableColumn>
-            <BTableColumn field="type" label="Type" sortable>
+            </b-table-column>
+            <b-table-column field="type" label="Type" sortable>
               {{ comparisons[props.row.type] }}
-            </BTableColumn>
-            <BTableColumn field="operator" label="Operator" centered>
+            </b-table-column>
+            <b-table-column field="operator" label="Operator" centered>
               {{ allOperators[props.row.operator] }}
-            </BTableColumn>
-            <BTableColumn field="value" label="Value">
+            </b-table-column>
+            <b-table-column field="value" label="Value">
               {{ props.row.value }}
-            </BTableColumn>
-            <BTableColumn field="" label="" width="110" centered>
+            </b-table-column>
+            <b-table-column field="" label="" width="110" centered>
               <a
                 class="button is-white"
                 @click.prevent="editConstraint(props.index)"
@@ -100,9 +100,9 @@
               >
                 <span class="icon is-small"> <i class="fas fa-times" /> </span>
               </a>
-            </BTableColumn>
+            </b-table-column>
           </template>
-        </BTable>
+        </b-table>
         <br />
         <div class="field">
           <div class="control">
@@ -127,14 +127,14 @@
         <div class="container">
           <div class="box">
             <form>
-              <BField label="Property">
-                <BInput
+              <b-field label="Property">
+                <b-input
                   v-model="newConstraint.property"
                   placeholder="Property"
                   required
                 />
-              </BField>
-              <BField label="Comparison Type">
+              </b-field>
+              <b-field label="Comparison Type">
                 <BSelect
                   v-model="newConstraint.type"
                   placeholder="Select a type"
@@ -147,8 +147,8 @@
                     {{ value }}
                   </option>
                 </BSelect>
-              </BField>
-              <BField label="Operator">
+              </b-field>
+              <b-field label="Operator">
                 <BSelect
                   v-model="newConstraint.operator"
                   placeholder="Select an operator"
@@ -162,10 +162,10 @@
                     {{ value }}
                   </option>
                 </BSelect>
-              </BField>
-              <BField v-show="hasValue(newConstraint.operator)" label="Value">
-                <BInput v-model="newConstraint.value" placeholder="Value" />
-              </BField>
+              </b-field>
+              <b-field v-show="hasValue(newConstraint.operator)" label="Value">
+                <b-input v-model="newConstraint.value" placeholder="Value" />
+              </b-field>
               <div class="field is-grouped">
                 <div class="control">
                   <button
@@ -204,14 +204,14 @@
         <div class="container">
           <div class="box">
             <form>
-              <BField label="Property">
-                <BInput
+              <b-field label="Property">
+                <b-input
                   v-model="selectedConstraint.property"
                   placeholder="Property"
                   required
                 />
-              </BField>
-              <BField label="Comparison Type">
+              </b-field>
+              <b-field label="Comparison Type">
                 <BSelect
                   v-model="selectedConstraint.type"
                   placeholder="Select a type"
@@ -224,8 +224,8 @@
                     {{ value }}
                   </option>
                 </BSelect>
-              </BField>
-              <BField label="Operator">
+              </b-field>
+              <b-field label="Operator">
                 <BSelect
                   v-model="selectedConstraint.operator"
                   placeholder="Select an operator"
@@ -240,16 +240,16 @@
                     {{ value }}
                   </option>
                 </BSelect>
-              </BField>
-              <BField
+              </b-field>
+              <b-field
                 v-show="hasValue(selectedConstraint.operator)"
                 label="Value"
               >
-                <BInput
+                <b-input
                   v-model="selectedConstraint.value"
                   placeholder="Value"
                 />
-              </BField>
+              </b-field>
               <div class="field is-grouped">
                 <div class="control">
                   <button
