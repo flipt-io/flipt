@@ -187,10 +187,10 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 Want to support Flipt development in other ways?
 
-BTC:
+### BTC
 
 ![send me some satoshi](qr.png)
 
-:coffee::
+### Coffee :coffee:
 
 [<img src="https://user-images.githubusercontent.com/1685680/61808727-4925de00-ae3c-11e9-9d60-66bef358fd8e.png" alt="buy me a coffee" width="180"/>](https://www.buymeacoffee.com/markphelps)
