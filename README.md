@@ -189,6 +189,8 @@ Want to support Flipt development in other ways?
 
 ### BTC
 
+Send me some satoshi: `3B6ct7jZnDJRAfWSCpX12ZobvBqFNDx7hz`
+
 ![send me some satoshi](qr.png)
 
 ### Coffee :coffee:
