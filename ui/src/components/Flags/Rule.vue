@@ -43,7 +43,7 @@
               </div>
               <div class="field-body">
                 <div class="field">
-                  <BInput
+                  <b-input
                     v-model="distributions[i].rollout"
                     placeholder="Percentage"
                     disabled

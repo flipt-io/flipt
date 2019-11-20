@@ -25,36 +25,36 @@
           </div>
         </div>
       </div>
-      <BTable :data="filteredFlags">
+      <b-table :data="filteredFlags">
         <template slot-scope="props">
-          <BTableColumn field="enabled" label="Enabled">
+          <b-table-column field="enabled" label="Enabled">
             <span v-if="props.row.enabled" class="tag is-primary is-rounded"
               >On</span
             >
             <span v-else class="tag is-light is-rounded">Off</span>
-          </BTableColumn>
-          <BTableColumn field="key" label="Key" sortable>
+          </b-table-column>
+          <b-table-column field="key" label="Key" sortable>
             <RouterLink :to="{ name: 'flag', params: { key: props.row.key } }">
               {{ props.row.key }}
             </RouterLink>
-          </BTableColumn>
-          <BTableColumn field="name" label="Name" sortable>
+          </b-table-column>
+          <b-table-column field="name" label="Name" sortable>
             <RouterLink :to="{ name: 'flag', params: { key: props.row.key } }">
               {{ props.row.name }}
             </RouterLink>
-          </BTableColumn>
-          <BTableColumn field="hasVariants" label="Variants" sortable>
+          </b-table-column>
+          <b-table-column field="hasVariants" label="Variants" sortable>
             {{ props.row.variants ? "yes" : "no" }}
-          </BTableColumn>
-          <BTableColumn field="description" label="Description">
+          </b-table-column>
+          <b-table-column field="description" label="Description">
             <small>{{ props.row.description }}</small>
-          </BTableColumn>
-          <BTableColumn field="createdAt" label="Created" sortable>
+          </b-table-column>
+          <b-table-column field="createdAt" label="Created" sortable>
             <small>{{ props.row.createdAt | moment("from", "now") }}</small>
-          </BTableColumn>
-          <BTableColumn field="updatedAt" label="Updated" sortable>
+          </b-table-column>
+          <b-table-column field="updatedAt" label="Updated" sortable>
             <small>{{ props.row.updatedAt | moment("from", "now") }}</small>
-          </BTableColumn>
+          </b-table-column>
         </template>
 
         <template slot="empty">
@@ -67,7 +67,7 @@
             </div>
           </section>
         </template>
-      </BTable>
+      </b-table>
     </div>
   </section>
 </template>

@@ -10,28 +10,28 @@
         </ul>
       </nav>
       <form>
-        <BField label="Name">
-          <BInput
+        <b-field label="Name">
+          <b-input
             v-model="segment.name"
             placeholder="Segment name"
             required
             @input="setKeyIfSameAsName"
           />
-        </BField>
-        <BField label="Key">
-          <BInput
+        </b-field>
+        <b-field label="Key">
+          <b-input
             v-model="segment.key"
             placeholder="Segment key"
             required
             @input="formatKey"
           />
-        </BField>
-        <BField label="Description (optional)">
-          <BInput
+        </b-field>
+        <b-field label="Description (optional)">
+          <b-input
             v-model="segment.description"
             placeholder="Segment description"
           />
-        </BField>
+        </b-field>
         <hr />
         <div class="level">
           <div class="level-left">

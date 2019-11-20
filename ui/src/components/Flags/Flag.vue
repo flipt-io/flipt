@@ -23,14 +23,21 @@
           </ul>
         </div>
         <form>
-          <BField label="Key"> <BInput v-model="flag.key" disabled /> </BField>
-          <BField label="Name">
-            <BInput v-model="flag.name" placeholder="Flag name" required />
-          </BField>
-          <BField label="Description (optional)">
-            <BInput v-model="flag.description" placeholder="Flag description" />
-          </BField>
-          <BField label="Enabled"> <BSwitch v-model="flag.enabled" /> </BField>
+          <b-field label="Key">
+            <b-input v-model="flag.key" disabled />
+          </b-field>
+          <b-field label="Name">
+            <b-input v-model="flag.name" placeholder="Flag name" required />
+          </b-field>
+          <b-field label="Description (optional)">
+            <b-input
+              v-model="flag.description"
+              placeholder="Flag description"
+            />
+          </b-field>
+          <b-field label="Enabled">
+            <b-switch v-model="flag.enabled" />
+          </b-field>
           <br />
           <div class="level">
             <div class="level-left">
@@ -74,18 +81,18 @@
         <p class="subtitle is-7">
           Return different values based on rules you define
         </p>
-        <BTable :data="flag.variants">
+        <b-table :data="flag.variants">
           <template slot-scope="props">
-            <BTableColumn field="key" label="Key" sortable>
+            <b-table-column field="key" label="Key" sortable>
               {{ props.row.key }}
-            </BTableColumn>
-            <BTableColumn field="name" label="Name" sortable>
+            </b-table-column>
+            <b-table-column field="name" label="Name" sortable>
               {{ props.row.name }}
-            </BTableColumn>
-            <BTableColumn field="description" label="Description" sortable>
+            </b-table-column>
+            <b-table-column field="description" label="Description" sortable>
               {{ props.row.description }}
-            </BTableColumn>
-            <BTableColumn field="" label="" width="110" centered>
+            </b-table-column>
+            <b-table-column field="" label="" width="110" centered>
               <a
                 class="button is-white"
                 @click.prevent="editVariant(props.index)"
@@ -100,9 +107,9 @@
               >
                 <span class="icon is-small"> <i class="fas fa-times" /> </span>
               </a>
-            </BTableColumn>
+            </b-table-column>
           </template>
-        </BTable>
+        </b-table>
         <br />
         <div class="field">
           <div class="control">
@@ -127,23 +134,23 @@
         <div class="container">
           <div class="box">
             <form>
-              <BField label="New Variant">
-                <BInput
+              <b-field label="New Variant">
+                <b-input
                   v-model="newVariant.key"
                   placeholder="Key"
                   required
                   @input="formatVariantKey(newVariant)"
                 />
-              </BField>
-              <BField label="Name (optional)">
-                <BInput v-model="newVariant.name" placeholder="Name" />
-              </BField>
-              <BField label="Description (optional)">
-                <BInput
+              </b-field>
+              <b-field label="Name (optional)">
+                <b-input v-model="newVariant.name" placeholder="Name" />
+              </b-field>
+              <b-field label="Description (optional)">
+                <b-input
                   v-model="newVariant.description"
                   placeholder="Description"
                 />
-              </BField>
+              </b-field>
               <div class="field is-grouped">
                 <div class="control">
                   <button
@@ -182,23 +189,23 @@
         <div class="container">
           <div class="box">
             <form>
-              <BField label="New Variant">
-                <BInput
+              <b-field label="New Variant">
+                <b-input
                   v-model="selectedVariant.key"
                   placeholder="Key"
                   required
                   @input="formatVariantKey(selectedVariant)"
                 />
-              </BField>
-              <BField label="Name (optional)">
-                <BInput v-model="selectedVariant.name" placeholder="Name" />
-              </BField>
-              <BField label="Description (optional)">
-                <BInput
+              </b-field>
+              <b-field label="Name (optional)">
+                <b-input v-model="selectedVariant.name" placeholder="Name" />
+              </b-field>
+              <b-field label="Description (optional)">
+                <b-input
                   v-model="selectedVariant.description"
                   placeholder="Description"
                 />
-              </BField>
+              </b-field>
               <div class="field is-grouped">
                 <div class="control">
                   <button
