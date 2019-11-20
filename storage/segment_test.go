@@ -16,6 +16,7 @@ func TestGetSegment(t *testing.T) {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
+		MatchType:   flipt.MatchType_ALL_MATCH_TYPE,
 	})
 
 	require.NoError(t, err)
@@ -31,6 +32,7 @@ func TestGetSegment(t *testing.T) {
 	assert.Equal(t, segment.Description, got.Description)
 	assert.NotZero(t, segment.CreatedAt)
 	assert.NotZero(t, segment.UpdatedAt)
+	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
 func TestGetSegmentNotFound(t *testing.T) {
@@ -94,6 +96,7 @@ func TestCreateSegment(t *testing.T) {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
+		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
 	})
 
 	require.NoError(t, err)
@@ -101,6 +104,24 @@ func TestCreateSegment(t *testing.T) {
 	assert.Equal(t, t.Name(), segment.Key)
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
+	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
+	assert.NotZero(t, segment.CreatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
+}
+
+func TestCreateSegment_DefaultMatchAll(t *testing.T) {
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, t.Name(), segment.Key)
+	assert.Equal(t, "foo", segment.Name)
+	assert.Equal(t, "bar", segment.Description)
+	assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
 	assert.NotZero(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
@@ -135,6 +156,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, t.Name(), segment.Key)
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
+	assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
 	assert.NotZero(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 
@@ -142,6 +164,7 @@ func TestUpdateSegment(t *testing.T) {
 		Key:         segment.Key,
 		Name:        segment.Name,
 		Description: "foobar",
+		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
 	})
 
 	require.NoError(t, err)
@@ -149,6 +172,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, segment.Key, updated.Key)
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
+	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, updated.MatchType)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 }

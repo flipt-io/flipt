@@ -41,6 +41,9 @@
               {{ props.row.name }}
             </RouterLink>
           </b-table-column>
+          <b-table-column field="hasConstraints" label="Constraints" sortable>
+            {{ props.row.constraints ? "yes" : "no" }}
+          </b-table-column>
           <b-table-column field="description" label="Description">
             <small>{{ props.row.description }}</small>
           </b-table-column>

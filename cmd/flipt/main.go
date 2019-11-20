@@ -61,7 +61,7 @@ const (
              |_|
   `
 
-	dbMigrationVersion uint = 1
+	dbMigrationVersion uint = 2
 )
 
 var (
@@ -71,6 +71,7 @@ var (
 
 	cfgPath      string
 	printVersion bool
+	forceMigrate bool
 
 	version   = "dev"
 	commit    = ""
@@ -103,6 +104,8 @@ func main() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
+	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
+	rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
 	cobra.OnInitialize(initConfig)
@@ -247,15 +250,23 @@ func execute() error {
 		}
 
 		// if first run, go ahead and run all migrations
-		// otherwise exit and inform user to run manually
+		// otherwise exit and inform user to run manually if migrations are pending
 		if err == migrate.ErrNilVersion {
 			logger.Debug("no previous migrations run; running now")
 			if err := runMigrations(); err != nil {
 				return fmt.Errorf("running migrations: %w", err)
 			}
 		} else if v < dbMigrationVersion {
-			logger.Debugf("migrations pending: current=%d, want=%d", v, dbMigrationVersion)
-			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+			logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, dbMigrationVersion)
+
+			if forceMigrate {
+				logger.Debugf("force-migrate set; running now")
+				if err := runMigrations(); err != nil {
+					return fmt.Errorf("running migrations: %w", err)
+				}
+			} else {
+				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+			}
 		}
 
 		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))

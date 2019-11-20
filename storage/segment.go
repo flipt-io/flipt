@@ -59,13 +59,14 @@ func (s SegmentStorage) segment(ctx context.Context, key string) (*flipt.Segment
 
 		segment = &flipt.Segment{}
 
-		err = s.builder.Select("key, name, description, created_at, updated_at").
+		err = s.builder.Select("key, name, description, match_type, created_at, updated_at").
 			From("segments").
 			Where(sq.Eq{"key": key}).
 			QueryRowContext(ctx).Scan(
 			&segment.Key,
 			&segment.Name,
 			&segment.Description,
+			&segment.MatchType,
 			&createdAt,
 			&updatedAt)
 	)
@@ -95,7 +96,7 @@ func (s *SegmentStorage) ListSegments(ctx context.Context, r *flipt.ListSegmentR
 	var (
 		segments []*flipt.Segment
 
-		query = s.builder.Select("key, name, description, created_at, updated_at").
+		query = s.builder.Select("key, name, description, match_type, created_at, updated_at").
 			From("segments").
 			OrderBy("created_at ASC")
 	)
@@ -130,6 +131,7 @@ func (s *SegmentStorage) ListSegments(ctx context.Context, r *flipt.ListSegmentR
 			&segment.Key,
 			&segment.Name,
 			&segment.Description,
+			&segment.MatchType,
 			&createdAt,
 			&updatedAt); err != nil {
 			return segments, err
@@ -160,13 +162,14 @@ func (s *SegmentStorage) CreateSegment(ctx context.Context, r *flipt.CreateSegme
 			Key:         r.Key,
 			Name:        r.Name,
 			Description: r.Description,
+			MatchType:   r.MatchType,
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
 
 		query = s.builder.Insert("segments").
-			Columns("key", "name", "description", "created_at", "updated_at").
-			Values(segment.Key, segment.Name, segment.Description, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt})
+			Columns("key", "name", "description", "match_type", "created_at", "updated_at").
+			Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt})
 	)
 
 	if _, err := query.ExecContext(ctx); err != nil {
@@ -196,6 +199,7 @@ func (s *SegmentStorage) UpdateSegment(ctx context.Context, r *flipt.UpdateSegme
 	query := s.builder.Update("segments").
 		Set("name", r.Name).
 		Set("description", r.Description).
+		Set("match_type", r.MatchType).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
 		Where(sq.Eq{"key": r.Key})
 

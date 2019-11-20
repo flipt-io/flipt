@@ -118,6 +118,11 @@ message DeleteVariantRequest {
   string flag_key = 2;
 }
 
+enum MatchType {
+  ALL_MATCH_TYPE = 0;
+  ANY_MATCH_TYPE = 1;
+}
+
 message Segment {
   string key = 1;
   string name = 2;
@@ -125,6 +130,7 @@ message Segment {
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp updated_at = 5;
   repeated Constraint constraints = 6;
+  MatchType match_type = 7;
 }
 
 message SegmentList {
@@ -144,12 +150,14 @@ message CreateSegmentRequest {
   string key = 1;
   string name = 2;
   string description = 3;
+  MatchType match_type = 4;
 }
 
 message UpdateSegmentRequest {
   string key= 1;
   string name = 2;
   string description = 3;
+  MatchType match_type = 4;
 }
 
 message DeleteSegmentRequest {

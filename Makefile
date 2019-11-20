@@ -86,7 +86,7 @@ build: clean assets pack ## Build a local copy
 .PHONY: dev
 dev: clean assets ## Build and run in development mode
 	@echo ">> building and running in development mode"
-	go run ./cmd/$(PROJECT)/. --config ./config/local.yml
+	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
 snapshot: clean assets pack ## Build a snapshot version

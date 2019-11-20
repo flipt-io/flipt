@@ -135,14 +135,16 @@ func run(m *testing.M) int {
 		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
 
 		stmt = "TRUNCATE TABLE %s CASCADE"
-	}
-
-	for _, t := range tables {
-		_, _ = db.Exec(fmt.Sprintf(stmt, t))
+	default:
+		logger.Fatalf("unknown driver: %s", driver)
 	}
 
 	if err != nil {
 		logger.Fatal(err)
+	}
+
+	for _, t := range tables {
+		_, _ = db.Exec(fmt.Sprintf(stmt, t))
 	}
 
 	f := filepath.Clean(fmt.Sprintf("../config/migrations/%s", driver))
