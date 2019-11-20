@@ -70,7 +70,15 @@
         </form>
         <hr />
         <h5 class="title is-5">Constraints</h5>
-        <p class="subtitle is-7">Match All</p>
+        <p class="subtitle is-7">{{ segmentTypeText }}</p>
+        <b-field>
+          <b-radio v-model="radio" native-value="all">
+            Match All
+          </b-radio>
+          <b-radio v-model="radio" native-value="any">
+            Match Any
+          </b-radio>
+        </b-field>
         <b-table :data="segment.constraints">
           <template slot-scope="props">
             <b-table-column field="property" label="Property" sortable>
@@ -374,6 +382,7 @@ export default {
   mixins: [notify],
   data() {
     return {
+      radio: "all",
       dialogDeleteSegmentVisible: false,
       dialogAddConstraintVisible: false,
       dialogEditConstraintVisible: false,
@@ -400,6 +409,13 @@ export default {
     },
     canUpdateConstraint() {
       return this.selectedConstraint.property && this.selectedConstraint.type;
+    },
+    segmentTypeText() {
+      if (this.radio === "all") {
+        return "All constraints must match.";
+      } else {
+        return "At least one constraint must match.";
+      }
     }
   },
   mounted() {
