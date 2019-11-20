@@ -78,7 +78,7 @@
                 </div>
                 <div class="field-body">
                   <div class="field">
-                    <BAutocomplete
+                    <b-autocomplete
                       v-model="newRule.segmentName"
                       :data="segments"
                       field="name"
@@ -92,7 +92,7 @@
                           >New Segment</RouterLink
                         >.</template
                       >
-                    </BAutocomplete>
+                    </b-autocomplete>
                   </div>
                 </div>
               </div>
@@ -136,7 +136,7 @@
                     </div>
                     <div class="field-body">
                       <div class="field">
-                        <BInput
+                        <b-input
                           v-model="newRule.distributions[index].rollout"
                           placeholder="Percentage"
                           type="number"
@@ -221,7 +221,7 @@
                 </div>
                 <div class="field-body">
                   <div class="field">
-                    <BInput
+                    <b-input
                       v-model="selectedRule.distributions[index].rollout"
                       placeholder="Percentage"
                       type="number"

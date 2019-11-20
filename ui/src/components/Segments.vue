@@ -25,31 +25,31 @@
           </div>
         </div>
       </div>
-      <BTable :data="filteredSegments">
+      <b-table :data="filteredSegments">
         <template slot-scope="props">
-          <BTableColumn field="key" label="Key" sortable>
+          <b-table-column field="key" label="Key" sortable>
             <RouterLink
               :to="{ name: 'segment', params: { key: props.row.key } }"
             >
               {{ props.row.key }}
             </RouterLink>
-          </BTableColumn>
-          <BTableColumn field="name" label="Name" sortable>
+          </b-table-column>
+          <b-table-column field="name" label="Name" sortable>
             <RouterLink
               :to="{ name: 'segment', params: { key: props.row.key } }"
             >
               {{ props.row.name }}
             </RouterLink>
-          </BTableColumn>
-          <BTableColumn field="description" label="Description">
+          </b-table-column>
+          <b-table-column field="description" label="Description">
             <small>{{ props.row.description }}</small>
-          </BTableColumn>
-          <BTableColumn field="createdAt" label="Created" sortable>
+          </b-table-column>
+          <b-table-column field="createdAt" label="Created" sortable>
             <small>{{ props.row.createdAt | moment("from", "now") }}</small>
-          </BTableColumn>
-          <BTableColumn field="updatedAt" label="Updated" sortable>
+          </b-table-column>
+          <b-table-column field="updatedAt" label="Updated" sortable>
             <small>{{ props.row.updatedAt | moment("from", "now") }}</small>
-          </BTableColumn>
+          </b-table-column>
         </template>
 
         <template slot="empty">
@@ -64,7 +64,7 @@
             </div>
           </section>
         </template>
-      </BTable>
+      </b-table>
     </div>
   </section>
 </template>

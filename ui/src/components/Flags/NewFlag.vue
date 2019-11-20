@@ -15,26 +15,26 @@
         </ul>
       </div>
       <form>
-        <BField label="Name">
-          <BInput
+        <b-field label="Name">
+          <b-input
             v-model="flag.name"
             placeholder="Flag name"
             required
             @input="setKeyIfSameAsName"
           />
-        </BField>
-        <BField label="Key">
-          <BInput
+        </b-field>
+        <b-field label="Key">
+          <b-input
             v-model="flag.key"
             placeholder="Flag key"
             required
             @input="formatKey"
           />
-        </BField>
-        <BField label="Description (optional)">
-          <BInput v-model="flag.description" placeholder="Flag description" />
-        </BField>
-        <BField label="Enabled"> <BSwitch v-model="flag.enabled" /> </BField>
+        </b-field>
+        <b-field label="Description (optional)">
+          <b-input v-model="flag.description" placeholder="Flag description" />
+        </b-field>
+        <b-field label="Enabled"> <b-switch v-model="flag.enabled" /> </b-field>
         <hr />
         <div class="level">
           <div class="level-left">
