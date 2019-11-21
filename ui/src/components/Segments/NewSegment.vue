@@ -32,6 +32,16 @@
             placeholder="Segment description"
           />
         </b-field>
+        <b-field label="Match Type" :message="matchTypeText">
+          <div class="block">
+            <b-radio v-model="radio" native-value="all">
+              Match All
+            </b-radio>
+            <b-radio v-model="radio" native-value="any">
+              Match Any
+            </b-radio>
+          </div>
+        </b-field>
         <hr />
         <div class="level">
           <div class="level-left">
@@ -71,12 +81,20 @@ export default {
   mixins: [notify, autoKeys],
   data() {
     return {
+      radio: "all",
       segment: {}
     };
   },
   computed: {
     canCreate() {
       return this.segment.name && this.segment.key;
+    },
+    matchTypeText() {
+      if (this.radio === "all") {
+        return "All constraints must match.";
+      } else {
+        return "At least one constraint must match.";
+      }
     }
   },
   methods: {

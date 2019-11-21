@@ -65,10 +65,12 @@
     <div
       id="addRuleDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogAddRuleVisible }"
+      @keyup.esc="cancelAddRule"
     >
       <div class="modal-background" @click.prevent="cancelAddRule" />
-      <div class="modal-content" @keyup.esc="cancelAddRule">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -179,10 +181,12 @@
     <div
       id="editRule"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogEditRuleVisible }"
+      @keyup.esc="cancelEditRule"
     >
       <div class="modal-background" @click.prevent="cancelEditRule" />
-      <div class="modal-content" @keyup.esc="cancelEditRule">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>

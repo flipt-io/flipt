@@ -29,6 +29,17 @@
               placeholder="Segment description"
             />
           </b-field>
+          <b-field label="Match Type" :message="matchTypeText">
+            <div class="block">
+              <b-radio v-model="radio" native-value="all">
+                Match All
+              </b-radio>
+              <b-radio v-model="radio" native-value="any">
+                Match Any
+              </b-radio>
+            </div>
+          </b-field>
+          <hr />
           <div class="level">
             <div class="level-left">
               <div class="level-item">
@@ -68,17 +79,14 @@
             </div>
           </div>
         </form>
-        <hr />
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
         <h5 class="title is-5">Constraints</h5>
-        <p class="subtitle is-7">{{ segmentTypeText }}</p>
-        <b-field>
-          <b-radio v-model="radio" native-value="all">
-            Match All
-          </b-radio>
-          <b-radio v-model="radio" native-value="any">
-            Match Any
-          </b-radio>
-        </b-field>
+        <p class="subtitle is-7">
+          Determine if an entity matches your segment
+        </p>
         <b-table :data="segment.constraints">
           <template slot-scope="props">
             <b-table-column field="property" label="Property" sortable>
@@ -128,10 +136,12 @@
     <div
       id="addConstraintDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogAddConstraintVisible }"
+      @keyup.esc="cancelAddConstraint"
     >
       <div class="modal-background" @click.prevent="cancelAddConstraint" />
-      <div class="modal-content" @keyup.esc="cancelAddConstraint">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -205,10 +215,12 @@
     <div
       id="editConstraintDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogEditConstraintVisible }"
+      @keyup.esc="cancelEditConstraint"
     >
       <div class="modal-background" @click.prevent="cancelEditConstraint" />
-      <div class="modal-content" @keyup.esc="cancelAddConstraint">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -289,16 +301,15 @@
     <div
       id="deleteSegmentDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogDeleteSegmentVisible }"
+      @keyup.esc="dialogDeleteSegmentVisible = false"
     >
       <div
         class="modal-background"
         @click="dialogDeleteSegmentVisible = false"
       />
-      <div
-        class="modal-content"
-        @keyup.esc="dialogDeleteSegmentVisible = false"
-      >
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <p class="has-text-centered">
@@ -410,7 +421,7 @@ export default {
     canUpdateConstraint() {
       return this.selectedConstraint.property && this.selectedConstraint.type;
     },
-    segmentTypeText() {
+    matchTypeText() {
       if (this.radio === "all") {
         return "All constraints must match.";
       } else {
