@@ -469,7 +469,13 @@ func setupLogger(cfg *config.Config) error {
 		return err
 	}
 
-	return setLogLevel(cfg)
+	lvl, err := logrus.ParseLevel(cfg.Log.Level)
+	if err != nil {
+		return err
+	}
+
+	logger.SetLevel(lvl)
+	return nil
 }
 
 func setLogOutput(cfg *config.Config) error {
@@ -480,29 +486,16 @@ func setLogOutput(cfg *config.Config) error {
 		}
 
 		logger.SetOutput(logFile)
-		logrus.RegisterExitHandler(closeLogFile)
+		logrus.RegisterExitHandler(func() {
+			if logFile != nil {
+				_ = logFile.Close()
+			}
+		})
 	} else {
 		logger.SetOutput(os.Stdout)
 	}
 
 	return nil
-}
-
-func setLogLevel(cfg *config.Config) error {
-	lvl, err := logrus.ParseLevel(cfg.Log.Level)
-	if err != nil {
-		return err
-	}
-
-	logger.SetLevel(lvl)
-
-	return nil
-}
-
-func closeLogFile() {
-	if logFile != nil {
-		logFile.Close()
-	}
 }
 
 type info struct {

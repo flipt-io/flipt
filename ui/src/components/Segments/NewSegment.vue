@@ -34,10 +34,10 @@
         </b-field>
         <b-field label="Match Type" :message="matchTypeText">
           <div class="block">
-            <b-radio v-model="radio" native-value="all">
+            <b-radio v-model="segment.matchType" native-value="ALL_MATCH_TYPE">
               Match All
             </b-radio>
-            <b-radio v-model="radio" native-value="any">
+            <b-radio v-model="segment.matchType" native-value="ANY_MATCH_TYPE">
               Match Any
             </b-radio>
           </div>
@@ -81,8 +81,9 @@ export default {
   mixins: [notify, autoKeys],
   data() {
     return {
-      radio: "all",
-      segment: {}
+      segment: {
+        matchType: "ALL_MATCH_TYPE"
+      }
     };
   },
   computed: {
@@ -90,7 +91,7 @@ export default {
       return this.segment.name && this.segment.key;
     },
     matchTypeText() {
-      if (this.radio === "all") {
+      if (this.segment.matchType === "ALL_MATCH_TYPE") {
         return "All constraints must match.";
       } else {
         return "At least one constraint must match.";

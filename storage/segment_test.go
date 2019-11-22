@@ -109,23 +109,6 @@ func TestCreateSegment(t *testing.T) {
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
-func TestCreateSegment_DefaultMatchAll(t *testing.T) {
-	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-	})
-
-	require.NoError(t, err)
-
-	assert.Equal(t, t.Name(), segment.Key)
-	assert.Equal(t, "foo", segment.Name)
-	assert.Equal(t, "bar", segment.Description)
-	assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
-}
-
 func TestCreateSegment_DuplicateKey(t *testing.T) {
 	_, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
@@ -149,6 +132,7 @@ func TestUpdateSegment(t *testing.T) {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
+		MatchType:   flipt.MatchType_ALL_MATCH_TYPE,
 	})
 
 	require.NoError(t, err)
