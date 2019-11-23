@@ -33,6 +33,11 @@ setup: ## Install dev tools
 	@echo ">> installing dev tools"
 	go install -v $(TOOLS)
 
+.PHONY: bench
+bench: ## Run all the benchmarks
+	@echo ">> running benchmarks"
+	go test -v -bench=. $(SOURCE_FILES) -run=XXX
+
 .PHONY: test
 test: ## Run all the tests
 	@echo ">> running tests"
