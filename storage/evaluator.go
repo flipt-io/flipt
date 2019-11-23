@@ -112,7 +112,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		LeftJoin("constraints c ON (s.key = c.segment_key)").
 		Where(sq.Eq{"r.flag_key": r.FlagKey}).
 		OrderBy("r.rank ASC").
-		GroupBy("r.id, c.id").
+		GroupBy("r.id, c.id, s.match_type").
 		QueryContext(ctx)
 	if err != nil {
 		return resp, err
