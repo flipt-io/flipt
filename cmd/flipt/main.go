@@ -65,9 +65,8 @@ const (
 )
 
 var (
-	logger  = logrus.New()
-	cfg     *config.Config
-	logFile *os.File
+	logger = logrus.New()
+	cfg    *config.Config
 
 	cfgPath      string
 	printVersion bool
@@ -105,7 +104,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
-	rootCmd.Flags().MarkHidden("force-migrate")
+	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
 	cobra.OnInitialize(initConfig)
@@ -326,7 +325,7 @@ func execute() error {
 
 		var (
 			r        = chi.NewRouter()
-			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false}))
+			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false, EmitDefaults: true}))
 			opts     = []grpc.DialOption{grpc.WithBlock()}
 			httpPort int
 		)

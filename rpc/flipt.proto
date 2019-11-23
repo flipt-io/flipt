@@ -119,9 +119,8 @@ message DeleteVariantRequest {
 }
 
 enum MatchType {
-  UNKNOWN_MATCH_TYPE = 0;
-  ALL_MATCH_TYPE = 1;
-  ANY_MATCH_TYPE = 2;
+  ALL_MATCH_TYPE = 0;
+  ANY_MATCH_TYPE = 1;
 }
 
 message Segment {

@@ -10,6 +10,18 @@ load 'helpers/bats-assert/load'
     assert_equal "${lines[1]}" "Run 'flipt --help' for usage."
 }
 
+@test "config file does not exists results in error" {
+    run ./bin/flipt --config /foo/bar.yml
+    assert_failure
+    assert_output -p "loading config: open /foo/bar.yml: no such file or directory"
+}
+
+@test "config file not yaml results in error" {
+    run ./bin/flipt --config /tmp
+    assert_failure
+    assert_output -p "loading config: Unsupported Config Type"
+}
+
 @test "help flag prints usage" {
     run ./bin/flipt --help
     assert_success
