@@ -153,10 +153,11 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		} else {
 			// haven't seen this rule before
 			newRule := &rule{
-				ID:         tempRule.ID,
-				FlagKey:    tempRule.FlagKey,
-				SegmentKey: tempRule.SegmentKey,
-				Rank:       tempRule.Rank,
+				ID:               tempRule.ID,
+				FlagKey:          tempRule.FlagKey,
+				SegmentKey:       tempRule.SegmentKey,
+				SegmentMatchType: tempRule.SegmentMatchType,
+				Rank:             tempRule.Rank,
 			}
 
 			if optionalConstraint.ID.Valid {
@@ -248,14 +249,14 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 
 		switch rule.SegmentMatchType {
 		case flipt.MatchType_ALL_MATCH_TYPE:
-			if constraintMatches != len(rule.Constraints) {
+			if len(rule.Constraints) != constraintMatches {
 				// all constraints did not match, continue to next rule
 				logger.Debug("did not match ALL constraints")
 				continue
 			}
 
 		case flipt.MatchType_ANY_MATCH_TYPE:
-			if constraintMatches == 0 {
+			if len(rule.Constraints) > 0 && constraintMatches == 0 {
 				// no constraints matched, continue to next rule
 				logger.Debug("did not match ANY constraints")
 				continue

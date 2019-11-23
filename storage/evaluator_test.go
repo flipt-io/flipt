@@ -1055,7 +1055,7 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 			name: "match string value - variant 2",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
-				EntityId: "10",
+				EntityId: "200",
 				Context: map[string]string{
 					"bar": "baz",
 				},
@@ -1290,7 +1290,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 			name: "match no value - variant 1",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
-				EntityId: "01",
+				EntityId: "00",
 				Context:  map[string]string{},
 			},
 			matchesVariantKey: variants[0].Key,
@@ -1300,7 +1300,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 			name: "match no value - variant 2",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
-				EntityId: "10",
+				EntityId: "01",
 				Context:  map[string]string{},
 			},
 			matchesVariantKey: variants[1].Key,
@@ -1310,7 +1310,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 			name: "match string value - variant 2",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
-				EntityId: "10",
+				EntityId: "01",
 				Context: map[string]string{
 					"bar": "boz",
 				},
