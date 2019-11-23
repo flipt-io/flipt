@@ -93,10 +93,10 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger = logrus.New()
-	logger.Level = logrus.DebugLevel
 
 	debug := os.Getenv("DEBUG")
 	if debug == "" {
+		logger.Level = logrus.DebugLevel
 		logger.Out = ioutil.Discard
 	}
 
