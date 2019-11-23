@@ -1975,7 +1975,7 @@ func Test_evaluate(t *testing.T) {
 	})
 }
 
-func BenchmarkEvaluate_SingleVariantDistribution(b *testing.B) {
+func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
 	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
@@ -2037,7 +2037,7 @@ func BenchmarkEvaluate_SingleVariantDistribution(b *testing.B) {
 		req  *flipt.EvaluationRequest
 	}{
 		{
-			name: "match string value",
+			name: "match all",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
 				EntityId: "1",
@@ -2048,7 +2048,7 @@ func BenchmarkEvaluate_SingleVariantDistribution(b *testing.B) {
 			},
 		},
 		{
-			name: "no match string value",
+			name: "no match all",
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
 				EntityId: "1",
@@ -2093,7 +2093,7 @@ func BenchmarkEvaluate_SingleVariantDistribution(b *testing.B) {
 	}
 }
 
-func BenchmarkEvaluate_RolloutDistribution(b *testing.B) {
+func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
 	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
@@ -2202,7 +2202,7 @@ func BenchmarkEvaluate_RolloutDistribution(b *testing.B) {
 	}
 }
 
-func BenchmarkEvaluate_NoConstraints(b *testing.B) {
+func BenchmarkEvaluate_MatchAll_NoConstraints(b *testing.B) {
 	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
@@ -2279,6 +2279,148 @@ func BenchmarkEvaluate_NoConstraints(b *testing.B) {
 			req: &flipt.EvaluationRequest{
 				FlagKey:  flag.Key,
 				EntityId: "10",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	}
+
+	for _, bb := range runs {
+		req := bb.req
+
+		b.Run(bb.name, func(b *testing.B) {
+			b.ReportAllocs()
+
+			for i := 0; i < b.N; i++ {
+				_, _ = evaluator.Evaluate(context.TODO(), req)
+			}
+		})
+	}
+}
+
+func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
+	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         b.Name(),
+		Name:        b.Name(),
+		Description: "foo",
+		Enabled:     true,
+	})
+
+	var variants []*flipt.Variant
+
+	for _, req := range []*flipt.CreateVariantRequest{
+		{
+			FlagKey: flag.Key,
+			Key:     fmt.Sprintf("foo_%s", b.Name()),
+		},
+		{
+			FlagKey: flag.Key,
+			Key:     fmt.Sprintf("bar_%s", b.Name()),
+		},
+	} {
+		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variants = append(variants, variant)
+	}
+
+	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         b.Name(),
+		Name:        b.Name(),
+		Description: "foo",
+		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	// constraint: bar (string) == baz
+	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:   "bar",
+		Operator:   opEQ,
+		Value:      "baz",
+	})
+
+	// constraint: admin (bool) == true
+	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+		Property:   "admin",
+		Operator:   opTrue,
+	})
+
+	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+	})
+
+	_, _ = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+		FlagKey:   flag.Key,
+		RuleId:    rule.Id,
+		VariantId: variants[0].Id,
+		Rollout:   100,
+	})
+
+	runs := []struct {
+		name string
+		req  *flipt.EvaluationRequest
+	}{
+		{
+			name: "matches all",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "matches one",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "matches none",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "false",
+				},
+			},
+		},
+		{
+			name: "matches just bool value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "false",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  flag.Key,
+				EntityId: "1",
 				Context: map[string]string{
 					"bar": "boz",
 				},

@@ -2,9 +2,10 @@ PROJECT = flipt
 
 SOURCE_FILES ?= ./...
 
+BENCH_PATTERN ?= .
 TEST_PATTERN ?= .
 TEST_OPTS ?=
-TEST_FLAGS ?=
+TEST_FLAGS ?= -v
 
 TOOLS = \
 	"github.com/gobuffalo/packr/packr" \
@@ -36,12 +37,12 @@ setup: ## Install dev tools
 .PHONY: bench
 bench: ## Run all the benchmarks
 	@echo ">> running benchmarks"
-	go test -v -bench=. $(SOURCE_FILES) -run=XXX
+	go test -bench=$(BENCH_PATTERN) $(SOURCE_FILES) -run=XXX $(TEST_FLAGS)
 
 .PHONY: test
 test: ## Run all the tests
 	@echo ">> running tests"
-	go test $(TEST_OPTS) -v -covermode=atomic -count=1 -coverprofile=coverage.txt $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
+	go test $(TEST_OPTS) -covermode=atomic -count=1 -coverprofile=coverage.txt $(SOURCE_FILES) -run=$(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
 
 .PHONY: cover
 cover: test ## Run all the tests and opens the coverage report
