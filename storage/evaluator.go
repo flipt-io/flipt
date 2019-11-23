@@ -188,8 +188,6 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 	for _, rule := range rules {
 		constraintMatches := 0
 
-		logger = logger.WithField("rule", rule)
-
 		// constraint loop
 		for _, c := range rule.Constraints {
 			if err := validate(c); err != nil {

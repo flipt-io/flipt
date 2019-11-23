@@ -181,7 +181,7 @@
                   </option>
                 </BSelect>
               </b-field>
-              <b-field v-show="hasValue(newConstraint.operator)" label="Value">
+              <b-field v-show="hasValue(newConstraint)" label="Value">
                 <b-input v-model="newConstraint.value" placeholder="Value" />
               </b-field>
               <div class="field is-grouped">
@@ -451,14 +451,18 @@ export default {
           return BOOLEAN_OPERATORS;
       }
     },
-    hasValue(operator) {
+    hasValue(constraint) {
+      if (constraint.type === "BOOLEAN_COMPARISON_TYPE") {
+        return false;
+      }
+
       return (
-        operator !== "present" &&
-        operator !== "notpresent" &&
-        operator !== "empty" &&
-        operator !== "notempty" &&
-        operator !== "true" &&
-        operator !== "false"
+        constraint.operator !== "present" &&
+        constraint.operator !== "notpresent" &&
+        constraint.operator !== "empty" &&
+        constraint.operator !== "notempty" &&
+        constraint.operator !== "true" &&
+        constraint.operator !== "false"
       );
     },
     getSegment() {
