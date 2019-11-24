@@ -1,4 +1,4 @@
-package storage
+package db
 
 import (
 	"context"
@@ -11,23 +11,12 @@ import (
 
 	proto "github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
-// SegmentStore stores and retrieves segments
-type SegmentStore interface {
-	GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
-	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
-	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
-	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
-	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
-	UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
-	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
-}
-
-var _ SegmentStore = &SegmentStorage{}
+var _ storage.SegmentStore = &SegmentStorage{}
 
 // SegmentStorage is a SQL SegmentStore
 type SegmentStorage struct {
@@ -73,7 +62,7 @@ func (s SegmentStorage) segment(ctx context.Context, key string) (*flipt.Segment
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, ErrNotFoundf("segment %q", key)
+			return nil, storage.ErrNotFoundf("segment %q", key)
 		}
 
 		return nil, err
@@ -176,11 +165,11 @@ func (s *SegmentStorage) CreateSegment(ctx context.Context, r *flipt.CreateSegme
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, ErrInvalidf("segment %q is not unique", r.Key)
+				return nil, storage.ErrInvalidf("segment %q is not unique", r.Key)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, ErrInvalidf("segment %q is not unique", r.Key)
+				return nil, storage.ErrInvalidf("segment %q is not unique", r.Key)
 			}
 		}
 
@@ -214,7 +203,7 @@ func (s *SegmentStorage) UpdateSegment(ctx context.Context, r *flipt.UpdateSegme
 	}
 
 	if count != 1 {
-		return nil, ErrNotFoundf("segment %q", r.Key)
+		return nil, storage.ErrNotFoundf("segment %q", r.Key)
 	}
 
 	segment, err := s.segment(ctx, r.Key)
@@ -258,18 +247,18 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 	switch c.Type {
 	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
 		if _, ok := stringOperators[c.Operator]; !ok {
-			return nil, ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
+			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
 		}
 	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
 		if _, ok := numberOperators[c.Operator]; !ok {
-			return nil, ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
+			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
 		}
 	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 		if _, ok := booleanOperators[c.Operator]; !ok {
-			return nil, ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
+			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
 		}
 	default:
-		return nil, ErrInvalidf("invalid constraint type: %q", c.Type.String())
+		return nil, storage.ErrInvalidf("invalid constraint type: %q", c.Type.String())
 	}
 
 	// unset value if operator does not require it
@@ -285,11 +274,11 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, ErrNotFoundf("segment %q", r.SegmentKey)
+				return nil, storage.ErrNotFoundf("segment %q", r.SegmentKey)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, ErrNotFoundf("segment %q", r.SegmentKey)
+				return nil, storage.ErrNotFoundf("segment %q", r.SegmentKey)
 			}
 		}
 
@@ -310,18 +299,18 @@ func (s *SegmentStorage) UpdateConstraint(ctx context.Context, r *flipt.UpdateCo
 	switch r.Type {
 	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
 		if _, ok := stringOperators[operator]; !ok {
-			return nil, ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
+			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
 		}
 	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
 		if _, ok := numberOperators[operator]; !ok {
-			return nil, ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
+			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
 		}
 	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 		if _, ok := booleanOperators[operator]; !ok {
-			return nil, ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
+			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
 		}
 	default:
-		return nil, ErrInvalidf("invalid constraint type: %q", r.Type.String())
+		return nil, storage.ErrInvalidf("invalid constraint type: %q", r.Type.String())
 	}
 
 	// unset value if operator does not require it
@@ -347,7 +336,7 @@ func (s *SegmentStorage) UpdateConstraint(ctx context.Context, r *flipt.UpdateCo
 	}
 
 	if count != 1 {
-		return nil, ErrNotFoundf("constraint %q", r.Id)
+		return nil, storage.ErrNotFoundf("constraint %q", r.Id)
 	}
 
 	var (

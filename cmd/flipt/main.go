@@ -30,7 +30,7 @@ import (
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
-	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/db"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -137,20 +137,20 @@ func printVersionHeader() {
 }
 
 func runMigrations() error {
-	db, driver, err := storage.Open(cfg.Database.URL)
+	sql, driver, err := db.Open(cfg.Database.URL)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
 
-	defer db.Close()
+	defer sql.Close()
 
 	var dr database.Driver
 
 	switch driver {
-	case storage.SQLite:
-		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-	case storage.Postgres:
-		dr, err = postgres.WithInstance(db, &postgres.Config{})
+	case db.SQLite:
+		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
+	case db.Postgres:
+		dr, err = postgres.WithInstance(sql, &postgres.Config{})
 	}
 
 	if err != nil {
@@ -211,25 +211,26 @@ func execute() error {
 		logger := logger.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		db, driver, err := storage.Open(cfg.Database.URL)
+		sql, driver, err := db.Open(cfg.Database.URL)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
 
-		defer db.Close()
+		defer sql.Close()
 
 		var (
-			builder sq.StatementBuilderType
-			dr      database.Driver
+			builder    sq.StatementBuilderType
+			dr         database.Driver
+			stmtCacher = sq.NewStmtCacher(sql)
 		)
 
 		switch driver {
-		case storage.SQLite:
-			builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
-			dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		case storage.Postgres:
-			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
-			dr, err = postgres.WithInstance(db, &postgres.Config{})
+		case db.SQLite:
+			builder = sq.StatementBuilder.RunWith(stmtCacher)
+			dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
+		case db.Postgres:
+			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+			dr, err = postgres.WithInstance(sql, &postgres.Config{})
 		}
 
 		if err != nil {
@@ -293,7 +294,7 @@ func execute() error {
 			serverOpts = append(serverOpts, server.WithCache(cache))
 		}
 
-		srv = server.New(logger, builder, db, serverOpts...)
+		srv = server.New(logger, builder, sql, serverOpts...)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_ctxtags.UnaryServerInterceptor(),

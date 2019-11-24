@@ -1,4 +1,4 @@
-package storage
+package db
 
 import (
 	"context"
@@ -14,14 +14,11 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
 )
 
-type Evaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
-}
-
-var _ Evaluator = &EvaluatorStorage{}
+var _ storage.Evaluator = &EvaluatorStorage{}
 
 // EvaluatorStorage is a SQL Evaluator
 type EvaluatorStorage struct {
@@ -95,14 +92,14 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return resp, ErrNotFoundf("flag %q", r.FlagKey)
+			return resp, storage.ErrNotFoundf("flag %q", r.FlagKey)
 		}
 
 		return resp, err
 	}
 
 	if !enabled {
-		return resp, ErrInvalidf("flag %q is disabled", r.FlagKey)
+		return resp, storage.ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
 	// get all rules for flag with their constraints if any
@@ -209,7 +206,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
 			default:
-				return resp, ErrInvalid("unknown constraint type")
+				return resp, storage.ErrInvalid("unknown constraint type")
 			}
 
 			if err != nil {

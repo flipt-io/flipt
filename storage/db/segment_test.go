@@ -1,10 +1,11 @@
-package storage
+package db
 
 import (
 	"context"
 	"testing"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -297,7 +298,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 	tests := []struct {
 		name    string
 		req     *flipt.CreateConstraintRequest
-		wantErr ErrInvalid
+		wantErr storage.ErrInvalid
 	}{
 		{
 			name: "invalid for type string",
@@ -308,7 +309,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "LT",
 				Value:      "baz",
 			},
-			wantErr: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
+			wantErr: storage.ErrInvalid("constraint operator \"LT\" is not valid for type string"),
 		},
 		{
 			name: "invalid for type number",
@@ -319,7 +320,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "Empty",
 				Value:      "2",
 			},
-			wantErr: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
+			wantErr: storage.ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
 		},
 		{
 			name: "invalid for type boolean",
@@ -330,7 +331,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "GT",
 				Value:      "false",
 			},
-			wantErr: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
+			wantErr: storage.ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
 		},
 		{
 			name: "invalid for type unknown",
@@ -341,7 +342,7 @@ func TestCreateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "EQ",
 				Value:      "+",
 			},
-			wantErr: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+			wantErr: storage.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 	}
 
@@ -434,7 +435,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 	tests := []struct {
 		name    string
 		req     *flipt.UpdateConstraintRequest
-		wantErr ErrInvalid
+		wantErr storage.ErrInvalid
 	}{
 		{
 			name: "invalid for type string",
@@ -446,7 +447,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "LT",
 				Value:      "baz",
 			},
-			wantErr: ErrInvalid("constraint operator \"LT\" is not valid for type string"),
+			wantErr: storage.ErrInvalid("constraint operator \"LT\" is not valid for type string"),
 		},
 		{
 			name: "invalid for type number",
@@ -458,7 +459,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "Empty",
 				Value:      "2",
 			},
-			wantErr: ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
+			wantErr: storage.ErrInvalid("constraint operator \"Empty\" is not valid for type number"),
 		},
 		{
 			name: "invalid for type boolean",
@@ -470,7 +471,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "GT",
 				Value:      "false",
 			},
-			wantErr: ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
+			wantErr: storage.ErrInvalid("constraint operator \"GT\" is not valid for type boolean"),
 		},
 		{
 			name: "invalid for type unknown",
@@ -482,7 +483,7 @@ func TestUpdateConstraint_ErrInvalid(t *testing.T) {
 				Operator:   "EQ",
 				Value:      "+",
 			},
-			wantErr: ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+			wantErr: storage.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 	}
 

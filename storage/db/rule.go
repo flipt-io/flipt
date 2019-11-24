@@ -1,4 +1,4 @@
-package storage
+package db
 
 import (
 	"context"
@@ -9,24 +9,12 @@ import (
 	proto "github.com/golang/protobuf/ptypes"
 	"github.com/lib/pq"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
-// RuleStore stores and retrieves rules
-type RuleStore interface {
-	GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error)
-	ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error)
-	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
-	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
-	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
-	OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error
-	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
-	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
-	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
-}
-
-var _ RuleStore = &RuleStorage{}
+var _ storage.RuleStore = &RuleStorage{}
 
 // RuleStorage is a SQL RuleStore
 type RuleStorage struct {
@@ -171,11 +159,11 @@ func (s *RuleStorage) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+				return nil, storage.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+				return nil, storage.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		}
 
@@ -207,7 +195,7 @@ func (s *RuleStorage) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest
 	}
 
 	if count != 1 {
-		return nil, ErrNotFoundf("rule %q", r.Id)
+		return nil, storage.ErrNotFoundf("rule %q", r.Id)
 	}
 
 	rule, err := s.rule(ctx, r.Id, r.FlagKey)
@@ -335,11 +323,11 @@ func (s *RuleStorage) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, ErrNotFoundf("rule %q", r.RuleId)
+				return nil, storage.ErrNotFoundf("rule %q", r.RuleId)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, ErrNotFoundf("rule %q", r.RuleId)
+				return nil, storage.ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}
 
@@ -371,7 +359,7 @@ func (s *RuleStorage) UpdateDistribution(ctx context.Context, r *flipt.UpdateDis
 	}
 
 	if count != 1 {
-		return nil, ErrNotFoundf("distribution %q", r.Id)
+		return nil, storage.ErrNotFoundf("distribution %q", r.Id)
 	}
 
 	var (

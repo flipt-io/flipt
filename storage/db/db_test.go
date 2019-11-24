@@ -1,4 +1,4 @@
-package storage
+package db
 
 import (
 	"fmt"
@@ -83,7 +83,7 @@ var (
 	evaluator    *EvaluatorStorage
 )
 
-const defaultTestDBURL = "file:../flipt_test.db"
+const defaultTestDBURL = "file:../../flipt_test.db"
 
 func TestMain(m *testing.M) {
 	// os.Exit skips defer calls
@@ -147,7 +147,7 @@ func run(m *testing.M) int {
 		_, _ = db.Exec(fmt.Sprintf(stmt, t))
 	}
 
-	f := filepath.Clean(fmt.Sprintf("../config/migrations/%s", driver))
+	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
 	if err != nil {
