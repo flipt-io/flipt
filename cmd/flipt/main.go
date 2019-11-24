@@ -467,24 +467,12 @@ func execute() error {
 }
 
 func setupLogger(cfg *config.Config) error {
-	if err := setLogOutput(cfg); err != nil {
-		return err
-	}
+	logger.SetOutput(os.Stdout)
 
-	lvl, err := logrus.ParseLevel(cfg.Log.Level)
-	if err != nil {
-		return err
-	}
-
-	logger.SetLevel(lvl)
-	return nil
-}
-
-func setLogOutput(cfg *config.Config) error {
 	if cfg.Log.File != "" {
 		logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
-			return err
+			return fmt.Errorf("opening log file: %s %w", cfg.Log.File, err)
 		}
 
 		logger.SetOutput(logFile)
@@ -493,10 +481,14 @@ func setLogOutput(cfg *config.Config) error {
 				_ = logFile.Close()
 			}
 		})
-	} else {
-		logger.SetOutput(os.Stdout)
 	}
 
+	lvl, err := logrus.ParseLevel(cfg.Log.Level)
+	if err != nil {
+		return fmt.Errorf("parsing log level: %s %w", cfg.Log.Level, err)
+	}
+
+	logger.SetLevel(lvl)
 	return nil
 }
 
