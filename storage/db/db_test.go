@@ -161,9 +161,9 @@ func run(m *testing.M) int {
 	}
 
 	flagStore = NewFlagStore(logger, builder)
-	segmentStore = NewSegmentStorage(logger, builder)
-	ruleStore = NewRuleStorage(logger, builder, db)
-	evaluator = NewEvaluatorStorage(logger, builder)
+	segmentStore = NewSegmentStore(logger, builder)
+	ruleStore = NewRuleStore(logger, builder, db)
+	evaluator = NewEvaluator(logger, builder)
 
 	return m.Run()
 }
