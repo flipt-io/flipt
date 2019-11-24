@@ -11,7 +11,7 @@ type Evaluator interface {
 	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
 }
 
-// FlagStore stores and retrieves flags
+// FlagStore stores and retrieves flags and variants
 type FlagStore interface {
 	GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error)
 	ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error)
@@ -36,7 +36,7 @@ type RuleStore interface {
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
 }
 
-// SegmentStore stores and retrieves segments
+// SegmentStore stores and retrieves segments and constraints
 type SegmentStore interface {
 	GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error)
 	ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error)

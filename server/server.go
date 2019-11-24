@@ -32,10 +32,10 @@ type Server struct {
 // New creates a new Server
 func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB, opts ...Option) *Server {
 	var (
-		flagStore    = db.NewFlagStorage(logger, builder)
-		segmentStore = db.NewSegmentStorage(logger, builder)
-		ruleStore    = db.NewRuleStorage(logger, builder, sql)
-		evaluator    = db.NewEvaluatorStorage(logger, builder)
+		flagStore    = db.NewFlagStore(logger, builder)
+		segmentStore = db.NewSegmentStore(logger, builder)
+		ruleStore    = db.NewRuleStore(logger, builder, sql)
+		evaluator    = db.NewEvaluator(logger, builder)
 
 		s = &Server{
 			logger:       logger,

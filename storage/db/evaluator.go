@@ -18,17 +18,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var _ storage.Evaluator = &EvaluatorStorage{}
+var _ storage.Evaluator = &Evaluator{}
 
-// EvaluatorStorage is a SQL Evaluator
-type EvaluatorStorage struct {
+// Evaluator is a SQL Evaluator
+type Evaluator struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
-// NewEvaluatorStorage creates an EvaluatorStorage
-func NewEvaluatorStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *EvaluatorStorage {
-	return &EvaluatorStorage{
+// NewEvaluator creates an Evaluator
+func NewEvaluator(logger logrus.FieldLogger, builder sq.StatementBuilderType) *Evaluator {
+	return &Evaluator{
 		logger:  logger.WithField("storage", "evaluator"),
 		builder: builder,
 	}
@@ -67,7 +67,7 @@ type distribution struct {
 }
 
 // Evaluate evaluates a request for a given flag and entity
-func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+func (s *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	logger := s.logger.WithField("request", r)
 	logger.Debug("evaluate")
 

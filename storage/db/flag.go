@@ -15,24 +15,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var _ storage.FlagStore = &FlagStorage{}
+var _ storage.FlagStore = &FlagStore{}
 
-// FlagStorage is a SQL FlagStore
-type FlagStorage struct {
+// FlagStore is a SQL FlagStore
+type FlagStore struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
-// NewFlagStorage creates a FlagStorage
-func NewFlagStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *FlagStorage {
-	return &FlagStorage{
+// NewFlagStore creates a FlagStore
+func NewFlagStore(logger logrus.FieldLogger, builder sq.StatementBuilderType) *FlagStore {
+	return &FlagStore{
 		logger:  logger.WithField("storage", "flag"),
 		builder: builder,
 	}
 }
 
 // GetFlag gets a flag
-func (s *FlagStorage) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+func (s *FlagStore) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("get flag")
 	flag, err := s.flag(ctx, r.Key)
 	s.logger.WithField("response", flag).Debug("get flag")
@@ -40,7 +40,7 @@ func (s *FlagStorage) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*fl
 	return flag, err
 }
 
-func (s *FlagStorage) flag(ctx context.Context, key string) (*flipt.Flag, error) {
+func (s *FlagStore) flag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
@@ -79,7 +79,7 @@ func (s *FlagStorage) flag(ctx context.Context, key string) (*flipt.Flag, error)
 }
 
 // ListFlags lists all flags
-func (s *FlagStorage) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+func (s *FlagStore) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("list flags")
 
 	var (
@@ -142,7 +142,7 @@ func (s *FlagStorage) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (
 }
 
 // CreateFlag creates a flag
-func (s *FlagStorage) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("create flag")
 
 	var (
@@ -182,7 +182,7 @@ func (s *FlagStorage) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 }
 
 // UpdateFlag updates an existing flag
-func (s *FlagStorage) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("update flag")
 
 	query := s.builder.Update("flags").
@@ -213,7 +213,7 @@ func (s *FlagStorage) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest
 }
 
 // DeleteFlag deletes a flag
-func (s *FlagStorage) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+func (s *FlagStore) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	s.logger.WithField("request", r).Debug("delete flag")
 
 	_, err := s.builder.Delete("flags").
@@ -224,7 +224,7 @@ func (s *FlagStorage) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest
 }
 
 // CreateVariant creates a variant
-func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	s.logger.WithField("request", r).Debug("create variant")
 
 	var (
@@ -271,7 +271,7 @@ func (s *FlagStorage) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 }
 
 // UpdateVariant updates an existing variant
-func (s *FlagStorage) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	s.logger.WithField("request", r).Debug("update variant")
 
 	res, err := s.builder.Update("variants").
@@ -331,7 +331,7 @@ func (s *FlagStorage) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantR
 }
 
 // DeleteVariant deletes a variant
-func (s *FlagStorage) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (s *FlagStore) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
 	s.logger.WithField("request", r).Debug("delete variant")
 
 	_, err := s.builder.Delete("variants").
@@ -341,7 +341,7 @@ func (s *FlagStorage) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantR
 	return err
 }
 
-func (s *FlagStorage) variants(ctx context.Context, flag *flipt.Flag) (err error) {
+func (s *FlagStore) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 	query := s.builder.Select("id, flag_key, key, name, description, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"flag_key": flag.Key}).

@@ -77,10 +77,10 @@ func TestParse(t *testing.T) {
 var (
 	logger *logrus.Logger
 
-	flagStore    *FlagStorage
-	segmentStore *SegmentStorage
-	ruleStore    *RuleStorage
-	evaluator    *EvaluatorStorage
+	flagStore    *FlagStore
+	segmentStore *SegmentStore
+	ruleStore    *RuleStore
+	evaluator    *Evaluator
 )
 
 const defaultTestDBURL = "file:../../flipt_test.db"
@@ -160,7 +160,7 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	flagStore = NewFlagStorage(logger, builder)
+	flagStore = NewFlagStore(logger, builder)
 	segmentStore = NewSegmentStorage(logger, builder)
 	ruleStore = NewRuleStorage(logger, builder, db)
 	evaluator = NewEvaluatorStorage(logger, builder)
