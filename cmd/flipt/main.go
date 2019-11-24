@@ -249,6 +249,8 @@ func execute() error {
 			return fmt.Errorf("getting current migrations version: %w", err)
 		}
 
+		logger = logger.WithField("storage", driver.String())
+
 		// if first run, go ahead and run all migrations
 		// otherwise exit and inform user to run manually if migrations are pending
 		if err == migrate.ErrNilVersion {

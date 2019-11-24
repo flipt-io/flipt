@@ -26,7 +26,7 @@ type FlagStore struct {
 // NewFlagStore creates a FlagStore
 func NewFlagStore(logger logrus.FieldLogger, builder sq.StatementBuilderType) *FlagStore {
 	return &FlagStore{
-		logger:  logger.WithField("storage", "flag"),
+		logger:  logger,
 		builder: builder,
 	}
 }

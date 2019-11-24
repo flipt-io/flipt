@@ -26,7 +26,7 @@ type RuleStore struct {
 // NewRuleStore creates a RuleStore
 func NewRuleStore(logger logrus.FieldLogger, builder sq.StatementBuilderType, db *sql.DB) *RuleStore {
 	return &RuleStore{
-		logger:  logger.WithField("storage", "rule"),
+		logger:  logger,
 		builder: builder,
 		db:      db,
 	}

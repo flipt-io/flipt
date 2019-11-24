@@ -29,7 +29,7 @@ type Evaluator struct {
 // NewEvaluator creates an Evaluator
 func NewEvaluator(logger logrus.FieldLogger, builder sq.StatementBuilderType) *Evaluator {
 	return &Evaluator{
-		logger:  logger.WithField("storage", "evaluator"),
+		logger:  logger,
 		builder: builder,
 	}
 }

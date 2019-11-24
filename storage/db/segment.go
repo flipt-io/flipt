@@ -27,7 +27,7 @@ type SegmentStore struct {
 // NewSegmentStore creates a SegmentStore
 func NewSegmentStore(logger logrus.FieldLogger, builder sq.StatementBuilderType) *SegmentStore {
 	return &SegmentStore{
-		logger:  logger.WithField("storage", "segment"),
+		logger:  logger,
 		builder: builder,
 	}
 }
