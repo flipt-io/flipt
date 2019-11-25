@@ -490,19 +490,18 @@ export default {
     ruleTypeChanged(event) {
       let val = event.target.value;
       if (val === "rollout") {
-        let n = this.flag.variants.length
-        let percentages = this.computePercentages(n)
-        console.log(percentages)
-        let distributions = []
+        let n = this.flag.variants.length;
+        let percentages = this.computePercentages(n);
+        let distributions = [];
 
         for (let i = 0; i < n; i++) {
-          let v = this.flag.variants[i]
+          let v = this.flag.variants[i];
 
           distributions.push({
             variantId: v.id,
             variantKey: v.key,
             rollout: percentages[i]
-          })
+          });
         }
 
         this.newRule.distributions = distributions;
@@ -512,11 +511,11 @@ export default {
           {
             variantId: variant.id,
             variantKey: variant.key,
-            rollout: 100.00
+            rollout: 100
           }
         ];
       }
-    },
+    }
   },
   beforeRouteLeave(to, from, next) {
     if (this.reordered === false) {
