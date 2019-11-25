@@ -8,7 +8,8 @@ export default {
         function(acc, d) {
           return acc + Number(d.rollout);
         },
-      0);
+        0
+      );
       return sum <= 100;
     },
 
@@ -21,11 +22,11 @@ export default {
       let result = [];
       let i = 0;
 
-      while(++i && i <= n) {
-        result.push((i <= remainder ? d + 1 : d) / 100)
+      while (++i && i <= n) {
+        result.push((i <= remainder ? d + 1 : d) / 100);
       }
 
-      return result
+      return result;
     }
   }
-}
+};

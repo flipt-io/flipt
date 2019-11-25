@@ -35,7 +35,7 @@
             <hr />
             <div
               v-for="(distribution, i) in distributions"
-              :key="distribution.id"
+              :key="i"
               class="field is-horizontal"
             >
               <div class="field-label">

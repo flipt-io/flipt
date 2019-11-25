@@ -128,7 +128,7 @@
                   <hr />
                   <div
                     v-for="(variant, index) in flag.variants"
-                    :key="variant.id"
+                    :key="index"
                     class="field is-horizontal"
                   >
                     <div class="field-label">
@@ -211,7 +211,7 @@
               <hr />
               <div
                 v-for="(distribution, index) in selectedRule.distributions"
-                :key="distribution.id"
+                :key="index"
                 class="field is-horizontal"
               >
                 <div class="field-label">
