@@ -271,6 +271,7 @@ import draggable from "vuedraggable";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import targeting from "@/mixins/targeting";
 import Rule from "./Rule";
 import DebugConsole from "./DebugConsole";
 
@@ -288,7 +289,7 @@ export default {
     Rule,
     DebugConsole
   },
-  mixins: [notify],
+  mixins: [notify, targeting],
   data() {
     return {
       dialogAddRuleVisible: false,
@@ -348,8 +349,8 @@ export default {
       this.newRule.segmentKey = option.key;
     },
     addRule() {
-      if (!this.validRolloutPercentage(this.newRule)) {
-        this.notifyError("Total percentage cannot exceed 100%.");
+      if (!this.validRollout(this.newRule.distributions)) {
+        this.notifyError("Total distribution percentage cannot exceed 100%.");
         return;
       }
 
@@ -401,8 +402,8 @@ export default {
       this.newRule = clone(DEFAULT_RULE);
     },
     updateRule() {
-      if (!this.validRolloutPercentage(this.selectedRule)) {
-        this.notifyError("Total percentage cannot exceed 100%.");
+      if (!this.validRollout(this.selectedRule.distributions)) {
+        this.notifyError("Total distribution percentage cannot exceed 100%.");
         return;
       }
 
@@ -489,14 +490,21 @@ export default {
     ruleTypeChanged(event) {
       let val = event.target.value;
       if (val === "rollout") {
-        let distributions = [];
-        forEach(this.flag.variants, v => {
+        let n = this.flag.variants.length
+        let percentages = this.computePercentages(n)
+        console.log(percentages)
+        let distributions = []
+
+        for (let i = 0; i < n; i++) {
+          let v = this.flag.variants[i]
+
           distributions.push({
             variantId: v.id,
             variantKey: v.key,
-            rollout: Number(100 / this.flag.variants.length).toFixed(2)
-          });
-        });
+            rollout: percentages[i]
+          })
+        }
+
         this.newRule.distributions = distributions;
       } else {
         let variant = find(this.flag.variants, { id: val });
@@ -504,18 +512,11 @@ export default {
           {
             variantId: variant.id,
             variantKey: variant.key,
-            rollout: 100
+            rollout: 100.00
           }
         ];
       }
     },
-    validRolloutPercentage(rule) {
-      let rollout = 0;
-      forEach(rule.distributions, d => {
-        rollout += Number(d.rollout);
-      });
-      return rollout <= 100;
-    }
   },
   beforeRouteLeave(to, from, next) {
     if (this.reordered === false) {
