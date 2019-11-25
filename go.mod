@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3
 	github.com/lib/pq v1.2.0
 	github.com/markphelps/flipt-grpc-go v0.0.0-20190303144529-3ebb133e62c0
-	github.com/mattn/go-sqlite3 v1.12.0
+	github.com/mattn/go-sqlite3 v1.13.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/prometheus/client_golang v1.2.1
