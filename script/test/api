@@ -98,11 +98,10 @@ step_3_test_segments_and_constraints()
     # update segment
     segment_name_2=$(uuid_str)
 
-    shakedown PUT "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"matchType\":\"ANY_MATCH_TYPE\",\"description\":\"description\"}"
+    shakedown PUT "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_2\""
-        matches "\"matchType\":\"ALL_MATCH_TYPE\""
 
     # list segments
     shakedown GET "$flipt_api/segments" -H 'Content-Type:application/json'
