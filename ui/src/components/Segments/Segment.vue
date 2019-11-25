@@ -31,10 +31,16 @@
           </b-field>
           <b-field label="Match Type" :message="matchTypeText">
             <div class="block">
-              <b-radio v-model="segment.matchType" native-value="ALL_MATCH_TYPE">
+              <b-radio
+                v-model="segment.matchType"
+                native-value="ALL_MATCH_TYPE"
+              >
                 Match All
               </b-radio>
-              <b-radio v-model="segment.matchType" native-value="ANY_MATCH_TYPE">
+              <b-radio
+                v-model="segment.matchType"
+                native-value="ANY_MATCH_TYPE"
+              >
                 Match Any
               </b-radio>
             </div>
