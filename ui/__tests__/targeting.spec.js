@@ -33,7 +33,15 @@ test("validRollout returns true if rollouts sum to equal to 100", () => {
 
 const computePercentages = targeting.methods.computePercentages;
 
-test("computePercentages returns an array of percentages evenly distributed for factors of 100", () => {
+test("computePercentages returns an array of 1 percentage for n = 1", () => {
+  let n = 1
+  let expected = [100.00]
+  let got = computePercentages(n)
+
+  expect(got).toStrictEqual(expected)
+});
+
+test("computePercentages returns an array of percentages evenly distributed if 100 % n = 0", () => {
   let n = 5
   let expected = [20.00, 20.00, 20.00, 20.00, 20.00]
   let got = computePercentages(n)
@@ -47,7 +55,7 @@ test("computePercentages returns an array of percentages evenly distributed for 
   expect(sum.toFixed(2)).toBe("100.00")
 });
 
-test("computePercentages returns any array of percentages that add up to 100 for non-factors", () => {
+test("computePercentages returns any array of percentages that add up to 100 if 100 % n != 0", () => {
   let n = 3
   let expected = [33.34, 33.33, 33.33]
   let got = computePercentages(n)
