@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/markphelps/flipt/errors"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
@@ -59,7 +60,7 @@ func TestEvaluate(t *testing.T) {
 					EntityId: r.EntityId,
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyEntityId",
@@ -74,7 +75,7 @@ func TestEvaluate(t *testing.T) {
 					EntityId: "",
 				}, nil
 			},
-			wantErr: emptyFieldError("entityId"),
+			wantErr: errors.EmptyFieldError("entityId"),
 		},
 		{
 			name: "error test",

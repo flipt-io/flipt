@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/markphelps/flipt/errors"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
@@ -67,11 +68,11 @@ func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *
 	errorsTotal.Inc()
 
 	switch err.(type) {
-	case storage.ErrNotFound:
+	case errors.ErrNotFound:
 		err = status.Error(codes.NotFound, err.Error())
-	case storage.ErrInvalid:
+	case errors.ErrInvalid:
 		err = status.Error(codes.InvalidArgument, err.Error())
-	case errInvalidField:
+	case errors.ErrValidation:
 		err = status.Error(codes.InvalidArgument, err.Error())
 	default:
 		err = status.Error(codes.Internal, err.Error())

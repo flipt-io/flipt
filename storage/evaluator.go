@@ -3,13 +3,14 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/markphelps/flipt/errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
@@ -94,14 +95,14 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return resp, ErrNotFoundf("flag %q", r.FlagKey)
+			return resp, errors.ErrNotFoundf("flag %q", r.FlagKey)
 		}
 
 		return resp, err
 	}
 
 	if !enabled {
-		return resp, ErrInvalidf("flag %q is disabled", r.FlagKey)
+		return resp, errors.ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
 	// get all rules for flag with their constraints if any
@@ -204,7 +205,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
 			default:
-				return resp, ErrInvalid("unknown constraint type")
+				return resp, errors.ErrInvalid("unknown constraint type")
 			}
 
 			if err != nil {

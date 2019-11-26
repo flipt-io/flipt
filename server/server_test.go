@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"testing"
 
+	"github.com/markphelps/flipt/errors"
+
 	sq "github.com/Masterminds/squirrel"
-	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,23 +34,23 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		wantCode codes.Code
 	}{
 		{
-			name:     "storage not found error",
-			wantErr:  storage.ErrNotFound("foo"),
+			name:     "not found error",
+			wantErr:  errors.ErrNotFound("foo"),
 			wantCode: codes.NotFound,
 		},
 		{
-			name:     "storage invalid error",
-			wantErr:  storage.ErrInvalid("foo"),
+			name:     "invalid error",
+			wantErr:  errors.ErrInvalid("foo"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
-			name:     "server invalid field",
-			wantErr:  invalidFieldError("bar", "is wrong"),
+			name:     "invalid field",
+			wantErr:  errors.InvalidFieldError("bar", "is wrong"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
-			name:     "server empty field",
-			wantErr:  emptyFieldError("bar"),
+			name:     "empty field",
+			wantErr:  errors.EmptyFieldError("bar"),
 			wantCode: codes.InvalidArgument,
 		},
 		{

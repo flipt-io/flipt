@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/markphelps/flipt/errors"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -142,7 +143,7 @@ func TestListRules(t *testing.T) {
 					{FlagKey: ""},
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "error test",
@@ -231,7 +232,7 @@ func TestCreateRule(t *testing.T) {
 					Rank:       r.Rank,
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -252,7 +253,7 @@ func TestCreateRule(t *testing.T) {
 					Rank:       r.Rank,
 				}, nil
 			},
-			wantErr: emptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey"),
 		},
 		{
 			name: "rank_lesser_than_0",
@@ -273,7 +274,7 @@ func TestCreateRule(t *testing.T) {
 					Rank:       r.Rank,
 				}, nil
 			},
-			wantErr: invalidFieldError("rank", "must be greater than 0"),
+			wantErr: errors.InvalidFieldError("rank", "must be greater than 0"),
 		},
 	}
 
@@ -351,7 +352,7 @@ func TestUpdateRule(t *testing.T) {
 					SegmentKey: r.SegmentKey,
 				}, nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -372,7 +373,7 @@ func TestUpdateRule(t *testing.T) {
 					SegmentKey: r.SegmentKey,
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -393,7 +394,7 @@ func TestUpdateRule(t *testing.T) {
 					SegmentKey: "",
 				}, nil
 			},
-			wantErr: emptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey"),
 		},
 	}
 
@@ -447,7 +448,7 @@ func TestDeleteRule(t *testing.T) {
 				assert.Equal(t, "flagKey", r.FlagKey)
 				return nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -458,7 +459,7 @@ func TestDeleteRule(t *testing.T) {
 				assert.Equal(t, "", r.FlagKey)
 				return nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "error test",
@@ -523,7 +524,7 @@ func TestOrderRules(t *testing.T) {
 				assert.Equal(t, []string{"1", "2"}, r.RuleIds)
 				return nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "ruleIds length lesser than 2",
@@ -535,7 +536,7 @@ func TestOrderRules(t *testing.T) {
 				assert.Equal(t, 1, len(r.RuleIds))
 				return nil
 			},
-			wantErr: invalidFieldError("ruleIds", "must contain atleast 2 elements"),
+			wantErr: errors.InvalidFieldError("ruleIds", "must contain atleast 2 elements"),
 		},
 		{
 			name: "error test",
@@ -613,7 +614,7 @@ func TestCreateDistribution(t *testing.T) {
 					VariantId: "variantID",
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyRuleID",
@@ -629,7 +630,7 @@ func TestCreateDistribution(t *testing.T) {
 					VariantId: "variantID",
 				}, nil
 			},
-			wantErr: emptyFieldError("ruleId"),
+			wantErr: errors.EmptyFieldError("ruleId"),
 		},
 		{
 			name: "emptyVariantID",
@@ -645,7 +646,7 @@ func TestCreateDistribution(t *testing.T) {
 					VariantId: "",
 				}, nil
 			},
-			wantErr: emptyFieldError("variantId"),
+			wantErr: errors.EmptyFieldError("variantId"),
 		},
 		{
 			name: "rollout is less than 0",
@@ -661,7 +662,7 @@ func TestCreateDistribution(t *testing.T) {
 					VariantId: "variantID",
 				}, nil
 			},
-			wantErr: invalidFieldError("rollout", "must be greater than or equal to '0'"),
+			wantErr: errors.InvalidFieldError("rollout", "must be greater than or equal to '0'"),
 		},
 		{
 			name: "rollout is more than 100",
@@ -677,7 +678,7 @@ func TestCreateDistribution(t *testing.T) {
 					VariantId: "variantID",
 				}, nil
 			},
-			wantErr: invalidFieldError("rollout", "must be less than or equal to '100'"),
+			wantErr: errors.InvalidFieldError("rollout", "must be less than or equal to '100'"),
 		},
 	}
 
@@ -749,7 +750,7 @@ func TestUpdateDistribution(t *testing.T) {
 					VariantId: r.VariantId,
 				}, nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -767,7 +768,7 @@ func TestUpdateDistribution(t *testing.T) {
 					VariantId: r.VariantId,
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyRuleID",
@@ -785,7 +786,7 @@ func TestUpdateDistribution(t *testing.T) {
 					VariantId: r.VariantId,
 				}, nil
 			},
-			wantErr: emptyFieldError("ruleId"),
+			wantErr: errors.EmptyFieldError("ruleId"),
 		},
 		{
 			name: "emptyVariantID",
@@ -803,7 +804,7 @@ func TestUpdateDistribution(t *testing.T) {
 					VariantId: "",
 				}, nil
 			},
-			wantErr: emptyFieldError("variantId"),
+			wantErr: errors.EmptyFieldError("variantId"),
 		},
 		{
 			name: "rollout is lesser than 0",
@@ -821,7 +822,7 @@ func TestUpdateDistribution(t *testing.T) {
 					VariantId: r.VariantId,
 				}, nil
 			},
-			wantErr: invalidFieldError("rollout", "must be greater than or equal to '0'"),
+			wantErr: errors.InvalidFieldError("rollout", "must be greater than or equal to '0'"),
 		},
 		{
 			name: "rollout is greater than 100",
@@ -839,7 +840,7 @@ func TestUpdateDistribution(t *testing.T) {
 					VariantId: r.VariantId,
 				}, nil
 			},
-			wantErr: invalidFieldError("rollout", "must be less than or equal to '100'"),
+			wantErr: errors.InvalidFieldError("rollout", "must be less than or equal to '100'"),
 		},
 	}
 
@@ -899,7 +900,7 @@ func TestDeleteDistribution(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -913,7 +914,7 @@ func TestDeleteDistribution(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyRuleID",
@@ -927,7 +928,7 @@ func TestDeleteDistribution(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("ruleId"),
+			wantErr: errors.EmptyFieldError("ruleId"),
 		},
 		{
 			name: "emptyVariantID",
@@ -941,7 +942,7 @@ func TestDeleteDistribution(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("variantId"),
+			wantErr: errors.EmptyFieldError("variantId"),
 		},
 		{
 			name: "error test",

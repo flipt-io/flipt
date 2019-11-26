@@ -5,17 +5,18 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 )
 
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	if req.FlagKey == "" {
-		return nil, emptyFieldError("flagKey")
+		return nil, errors.EmptyFieldError("flagKey")
 	}
 
 	if req.EntityId == "" {
-		return nil, emptyFieldError("entityId")
+		return nil, errors.EmptyFieldError("entityId")
 	}
 
 	startTime := time.Now()

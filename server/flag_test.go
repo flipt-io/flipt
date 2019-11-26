@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/markphelps/flipt/errors"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -91,7 +92,7 @@ func TestGetFlag(t *testing.T) {
 				}, nil
 			},
 			flag:    nil,
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 	}
 
@@ -233,7 +234,7 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -257,7 +258,7 @@ func TestCreateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			wantErr: emptyFieldError("name"),
+			wantErr: errors.EmptyFieldError("name"),
 		},
 	}
 
@@ -342,7 +343,7 @@ func TestUpdateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -366,7 +367,7 @@ func TestUpdateFlag(t *testing.T) {
 					Enabled:     r.Enabled,
 				}, nil
 			},
-			wantErr: emptyFieldError("name"),
+			wantErr: errors.EmptyFieldError("name"),
 		},
 	}
 
@@ -420,7 +421,7 @@ func TestDeleteFlag(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
 			name: "error",
@@ -516,7 +517,7 @@ func TestCreateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyKey",
@@ -540,7 +541,7 @@ func TestCreateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 	}
 
@@ -620,7 +621,7 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -641,7 +642,7 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "emptyKey",
@@ -662,7 +663,7 @@ func TestUpdateVariant(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 	}
 
@@ -718,7 +719,7 @@ func TestDeleteVariant(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptyFlagKey",
@@ -730,7 +731,7 @@ func TestDeleteVariant(t *testing.T) {
 
 				return nil
 			},
-			wantErr: emptyFieldError("flagKey"),
+			wantErr: errors.EmptyFieldError("flagKey"),
 		},
 		{
 			name: "error",

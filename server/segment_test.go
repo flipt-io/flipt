@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/markphelps/flipt/errors"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -90,7 +91,7 @@ func TestGetSegment(t *testing.T) {
 					Key: "",
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 	}
 
@@ -224,7 +225,7 @@ func TestCreateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -245,7 +246,7 @@ func TestCreateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("name"),
+			wantErr: errors.EmptyFieldError("name"),
 		},
 	}
 
@@ -323,7 +324,7 @@ func TestUpdateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
 			name: "emptyName",
@@ -344,7 +345,7 @@ func TestUpdateSegment(t *testing.T) {
 					Description: r.Description,
 				}, nil
 			},
-			wantErr: emptyFieldError("name"),
+			wantErr: errors.EmptyFieldError("name"),
 		},
 	}
 
@@ -396,7 +397,7 @@ func TestDeleteSegment(t *testing.T) {
 				assert.Equal(t, "", r.Key)
 				return nil
 			},
-			wantErr: emptyFieldError("key"),
+			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
 			name: "error test",
@@ -498,7 +499,7 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey"),
 		},
 		{
 			name: "emptyProperty",
@@ -525,7 +526,7 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("property"),
+			wantErr: errors.EmptyFieldError("property"),
 		},
 		{
 			name: "emptyOperator",
@@ -552,7 +553,7 @@ func TestCreateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("operator"),
+			wantErr: errors.EmptyFieldError("operator"),
 		},
 	}
 
@@ -651,7 +652,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -681,7 +682,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey"),
 		},
 		{
 			name: "emptyProperty",
@@ -711,7 +712,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("property"),
+			wantErr: errors.EmptyFieldError("property"),
 		},
 		{
 			name: "emptyOperator",
@@ -741,7 +742,7 @@ func TestUpdateConstraint(t *testing.T) {
 					Value:      r.Value,
 				}, nil
 			},
-			wantErr: emptyFieldError("operator"),
+			wantErr: errors.EmptyFieldError("operator"),
 		},
 	}
 
@@ -795,7 +796,7 @@ func TestDeleteConstraint(t *testing.T) {
 				assert.Equal(t, "segmentKey", r.SegmentKey)
 				return nil
 			},
-			wantErr: emptyFieldError("id"),
+			wantErr: errors.EmptyFieldError("id"),
 		},
 		{
 			name: "emptySegmentKey",
@@ -806,7 +807,7 @@ func TestDeleteConstraint(t *testing.T) {
 				assert.Equal(t, "", r.SegmentKey)
 				return nil
 			},
-			wantErr: emptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey"),
 		},
 		{
 			name: "error test",
