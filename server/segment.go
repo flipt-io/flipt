@@ -85,6 +85,8 @@ func (s *Server) CreateConstraint(ctx context.Context, req *flipt.CreateConstrai
 		return nil, emptyFieldError("operator")
 	}
 
+	// TODO: test for empty value if operator ! [EMPTY, NOT_EMPTY, PRESENT, NOT_PRESENT]
+
 	return s.SegmentStore.CreateConstraint(ctx, req)
 }
 
@@ -105,6 +107,8 @@ func (s *Server) UpdateConstraint(ctx context.Context, req *flipt.UpdateConstrai
 	if req.Operator == "" {
 		return nil, emptyFieldError("operator")
 	}
+
+	// TODO: test for empty value if operator ! [EMPTY, NOT_EMPTY, PRESENT, NOT_PRESENT]
 
 	return s.SegmentStore.UpdateConstraint(ctx, req)
 }

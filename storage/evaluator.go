@@ -421,8 +421,6 @@ func validate(c constraint) error {
 }
 
 func matchesString(c constraint, v string) bool {
-	value := c.Value
-
 	switch c.Operator {
 	case opEmpty:
 		return len(strings.TrimSpace(v)) == 0
@@ -433,6 +431,8 @@ func matchesString(c constraint, v string) bool {
 	if v == "" {
 		return false
 	}
+
+	value := c.Value
 
 	switch c.Operator {
 	case opEQ:

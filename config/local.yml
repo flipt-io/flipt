@@ -5,3 +5,10 @@ db:
   url: file:flipt.db
   migrations:
     path: ./config/migrations
+
+ui:
+  enabled: false
+
+cors:
+  enabled: true
+  allowed_origins: "*"
