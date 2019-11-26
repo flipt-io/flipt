@@ -3,8 +3,6 @@ name: Bug report
 about: Create a report to help us improve
 title: ''
 labels: bug
-assignees: markphelps
-
 ---
 
 **Describe the bug**
@@ -26,6 +24,7 @@ If applicable, add screenshots to help explain your problem.
 Add any other context about the problem here.
 
 Examples:
+
 * OS
 * Config file used
 * Database used (SQLite or Postgres)
