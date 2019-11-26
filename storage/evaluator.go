@@ -424,14 +424,21 @@ func matchesString(c constraint, v string) bool {
 	value := c.Value
 
 	switch c.Operator {
-	case opEQ:
-		return value == v
-	case opNEQ:
-		return value != v
 	case opEmpty:
 		return len(strings.TrimSpace(v)) == 0
 	case opNotEmpty:
 		return len(strings.TrimSpace(v)) != 0
+	}
+
+	if v == "" {
+		return false
+	}
+
+	switch c.Operator {
+	case opEQ:
+		return value == v
+	case opNEQ:
+		return value != v
 	case opPrefix:
 		return strings.HasPrefix(strings.TrimSpace(v), value)
 	case opSuffix:

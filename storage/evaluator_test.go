@@ -774,6 +774,16 @@ func Test_matchesString(t *testing.T) {
 			wantMatch: true,
 		},
 		{
+			name: "eq whitespace value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    " ",
+			},
+			value:     " ",
+			wantMatch: true,
+		},
+		{
 			name: "negative eq",
 			constraint: constraint{
 				Property: "foo",
@@ -781,6 +791,23 @@ func Test_matchesString(t *testing.T) {
 				Value:    "bar",
 			},
 			value: "baz",
+		},
+		{
+			name: "negative eq empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "bar",
+			},
+		},
+		{
+			name: "negative eq whitespace value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "bar",
+			},
+			value: " ",
 		},
 		{
 			name: "neq",
@@ -793,6 +820,24 @@ func Test_matchesString(t *testing.T) {
 			wantMatch: true,
 		},
 		{
+			name: "neq whitespace value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "bar",
+			},
+			value:     " ",
+			wantMatch: true,
+		},
+		{
+			name: "neq empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "bar",
+			},
+		},
+		{
 			name: "negative neq",
 			constraint: constraint{
 				Property: "foo",
@@ -803,6 +848,14 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "empty",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "empty",
+			},
+			wantMatch: true,
+		},
+		{
+			name: "empty whitespace",
 			constraint: constraint{
 				Property: "foo",
 				Operator: "empty",
@@ -833,7 +886,14 @@ func Test_matchesString(t *testing.T) {
 				Property: "foo",
 				Operator: "notempty",
 			},
-			value: "",
+		},
+		{
+			name: "negative not empty whitespace",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "notempty",
+			},
+			value: " ",
 		},
 		{
 			name: "unknown operator",
@@ -864,6 +924,14 @@ func Test_matchesString(t *testing.T) {
 			value: "nope",
 		},
 		{
+			name: "negative prefix empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "prefix",
+				Value:    "bar",
+			},
+		},
+		{
 			name: "suffix",
 			constraint: constraint{
 				Property: "foo",
@@ -881,6 +949,14 @@ func Test_matchesString(t *testing.T) {
 				Value:    "bar",
 			},
 			value: "nope",
+		},
+		{
+			name: "negative suffix empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "suffix",
+				Value:    "bar",
+			},
 		},
 	}
 	for _, tt := range tests {
