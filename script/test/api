@@ -180,13 +180,19 @@ step_4_test_rules_and_distributions()
 
 step_5_test_evaluation()
 {
-    # evaluate
+    # evaluate match
     shakedown POST "$flipt_api/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\"}}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"match\":true"
         matches "\"value\":\"$variant_key_1\""
+
+    # evaluate no match
+    shakedown POST "$flipt_api/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}"
+        status 200
+        matches "\"flagKey\":\"$flag_key\""
+        matches "\"match\":false"
 }
 
 step_6_test_delete()
