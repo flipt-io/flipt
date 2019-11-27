@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/markphelps/flipt/errors"
+	flipt "github.com/markphelps/flipt/rpc"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
@@ -56,6 +57,17 @@ func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, db *sql.DB,
 	}
 
 	return s
+}
+
+// ValidationUnaryInterceptor validates incomming requests
+func (s *Server) ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	if v, ok := req.(flipt.Validator); ok {
+		if err := v.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
+	return handler(ctx, req)
 }
 
 // ErrorUnaryInterceptor intercepts known errors and returns the appropriate GRPC status code
