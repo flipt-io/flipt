@@ -112,7 +112,7 @@ export default {
       // Check if the name and key are currently in sync
       // We do this so we don't override a custom key value
       if (
-        this.isPresent(this.segment.key) ||
+        this.isEmpty(this.segment.key) ||
         this.segment.key === this.formatStringAsKey(prevName)
       ) {
         this.segment.key = this.segment.name;

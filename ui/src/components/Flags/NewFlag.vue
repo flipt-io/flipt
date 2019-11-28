@@ -95,7 +95,7 @@ export default {
       // Check if the name and key are currently in sync
       // We do this so we don't override a custom key value
       if (
-        this.isPresent(this.flag.key) ||
+        this.isEmpty(this.flag.key) ||
         this.flag.key === this.formatStringAsKey(prevName)
       ) {
         this.flag.key = this.flag.name;
