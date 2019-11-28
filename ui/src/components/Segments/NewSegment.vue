@@ -50,7 +50,7 @@
                 <div class="control">
                   <button
                     class="button is-primary"
-                    :disabled="!canCreate"
+                    :disabled="!canCreateSegment"
                     @click.prevent="createSegment()"
                   >
                     Create
@@ -88,7 +88,7 @@ export default {
     };
   },
   computed: {
-    canCreate() {
+    canCreateSegment() {
       return (
         this.isPresent(this.segment.name) && this.isPresent(this.segment.key)
       );

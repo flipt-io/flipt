@@ -43,7 +43,7 @@
                 <div class="control">
                   <button
                     class="button is-primary"
-                    :disabled="!canCreate"
+                    :disabled="!canCreateFlag"
                     @click.prevent="createFlag()"
                   >
                     Create
@@ -80,7 +80,7 @@ export default {
     };
   },
   computed: {
-    canCreate() {
+    canCreateFlag() {
       return this.isPresent(this.flag.name) && this.isPresent(this.flag.key);
     }
   },
