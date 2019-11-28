@@ -535,6 +535,50 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("operator"),
 		},
+		{
+			name: "invalidStringType",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "false",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"false\" is not valid for type string"),
+		},
+		{
+			name: "invalidNumberType",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "false",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"false\" is not valid for type number"),
+		},
+		{
+			name: "invalidBooleanType",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"eq\" is not valid for type boolean"),
+		},
+		{
+			name: "invalidType",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_UNKNOWN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+		},
 	}
 
 	for _, tt := range tests {
@@ -603,6 +647,54 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Value:      "bar",
 			},
 			wantErr: errors.EmptyFieldError("operator"),
+		},
+		{
+			name: "invalidStringType",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "false",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"false\" is not valid for type string"),
+		},
+		{
+			name: "invalidNumberType",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "false",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"false\" is not valid for type number"),
+		},
+		{
+			name: "invalidBooleanType",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("constraint operator \"eq\" is not valid for type boolean"),
+		},
+		{
+			name: "invalidType",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_UNKNOWN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "bar",
+			},
+			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 	}
 

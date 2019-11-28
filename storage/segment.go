@@ -251,26 +251,8 @@ func (s *SegmentStorage) CreateConstraint(ctx context.Context, r *flipt.CreateCo
 		}
 	)
 
-	// validate operator works for this constraint type
-	switch c.Type {
-	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-		if _, ok := stringOperators[c.Operator]; !ok {
-			return nil, errors.ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
-		}
-	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-		if _, ok := numberOperators[c.Operator]; !ok {
-			return nil, errors.ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
-		}
-	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-		if _, ok := booleanOperators[c.Operator]; !ok {
-			return nil, errors.ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
-		}
-	default:
-		return nil, errors.ErrInvalidf("invalid constraint type: %q", c.Type.String())
-	}
-
 	// unset value if operator does not require it
-	if _, ok := noValueOperators[c.Operator]; ok {
+	if _, ok := flipt.NoValueOperators[c.Operator]; ok {
 		c.Value = ""
 	}
 
@@ -303,26 +285,9 @@ func (s *SegmentStorage) UpdateConstraint(ctx context.Context, r *flipt.UpdateCo
 	s.logger.WithField("request", r).Debug("update constraint")
 
 	operator := strings.ToLower(r.Operator)
-	// validate operator works for this constraint type
-	switch r.Type {
-	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-		if _, ok := stringOperators[operator]; !ok {
-			return nil, errors.ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
-		}
-	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-		if _, ok := numberOperators[operator]; !ok {
-			return nil, errors.ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
-		}
-	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-		if _, ok := booleanOperators[operator]; !ok {
-			return nil, errors.ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
-		}
-	default:
-		return nil, errors.ErrInvalidf("invalid constraint type: %q", r.Type.String())
-	}
 
 	// unset value if operator does not require it
-	if _, ok := noValueOperators[operator]; ok {
+	if _, ok := flipt.NoValueOperators[operator]; ok {
 		r.Value = ""
 	}
 
