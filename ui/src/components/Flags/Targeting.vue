@@ -276,6 +276,7 @@ import draggable from "vuedraggable";
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
 import targeting from "@/mixins/targeting";
+import utils from "@/mixins/utils";
 import Rule from "./Rule";
 import DebugConsole from "./DebugConsole";
 
@@ -293,7 +294,7 @@ export default {
     Rule,
     DebugConsole
   },
-  mixins: [notify, targeting],
+  mixins: [notify, targeting, utils],
   data() {
     return {
       dialogAddRuleVisible: false,
@@ -313,7 +314,7 @@ export default {
       return this.flag.variants && this.flag.variants.length > 0;
     },
     canAddRule() {
-      return this.newRule.segmentKey;
+      return this.isPresent(this.newRule.segmentKey);
     }
   },
   mounted() {

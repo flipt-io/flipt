@@ -75,10 +75,11 @@ import capitalize from "lodash/capitalize";
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
 import autoKeys from "@/mixins/autoKeys";
+import utils from "@/mixins/utils";
 
 export default {
   name: "NewSegment",
-  mixins: [notify, autoKeys],
+  mixins: [notify, autoKeys, utils],
   data() {
     return {
       segment: {
@@ -88,7 +89,9 @@ export default {
   },
   computed: {
     canCreate() {
-      return this.segment.name && this.segment.key;
+      return (
+        this.isPresent(this.segment.name) && this.isPresent(this.segment.key)
+      );
     },
     matchTypeText() {
       if (this.segment.matchType === "ALL_MATCH_TYPE") {
@@ -109,15 +112,12 @@ export default {
       // Check if the name and key are currently in sync
       // We do this so we don't override a custom key value
       if (
-        this.keyIsUndefinedOrEmpty() ||
+        this.isPresent(this.segment.key) ||
         this.segment.key === this.formatStringAsKey(prevName)
       ) {
         this.segment.key = this.segment.name;
         this.formatKey();
       }
-    },
-    keyIsUndefinedOrEmpty() {
-      return this.segment.key === undefined || this.segment.key === "";
     },
     createSegment() {
       Api.post("/segments", this.segment)

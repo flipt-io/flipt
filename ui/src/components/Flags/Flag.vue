@@ -286,6 +286,7 @@ import capitalize from "lodash/capitalize";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import utils from "@/mixins/utils";
 
 const DEFAULT_VARIANT = {
   key: "",
@@ -295,7 +296,7 @@ const DEFAULT_VARIANT = {
 
 export default {
   name: "Flag",
-  mixins: [notify],
+  mixins: [notify, utils],
   data() {
     return {
       dialogDeleteFlagVisible: false,
@@ -310,13 +311,13 @@ export default {
   },
   computed: {
     canUpdateFlag() {
-      return this.flag.key && this.flag.name;
+      return this.isPresent(this.flag.key) && this.isPresent(this.flag.name);
     },
     canAddVariant() {
-      return this.newVariant.key;
+      return this.isPresent(this.newVariant.key);
     },
     canUpdateVariant() {
-      return this.selectedVariant.key;
+      return this.isPresent(this.selectedVariant.key);
     }
   },
   mounted() {

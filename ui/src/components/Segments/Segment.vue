@@ -358,6 +358,7 @@ import merge from "lodash/merge";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import utils from "@/mixins/utils";
 
 const STRING_OPERATORS = {
   eq: "==",
@@ -401,7 +402,7 @@ const DEFAULT_CONSTRAINT = {
 
 export default {
   name: "Segment",
-  mixins: [notify],
+  mixins: [notify, utils],
   data() {
     return {
       dialogDeleteSegmentVisible: false,
@@ -424,28 +425,30 @@ export default {
   },
   computed: {
     canUpdateSegment() {
-      return this.segment.key && this.segment.name;
+      return (
+        this.isPresent(this.segment.key) && this.isPresent(this.segment.name)
+      );
     },
     canAddConstraint() {
       let valid =
-        this.newConstraint.property &&
-        this.newConstraint.type &&
-        this.newConstraint.operator;
+        this.isPresent(this.newConstraint.property) &&
+        this.isPresent(this.newConstraint.type) &&
+        this.isPresent(this.newConstraint.operator);
 
-      if (this.hasValue(this.newConstraint.operator)) {
-        return valid && this.newConstraint.value;
+      if (this.hasValue(this.newConstraint)) {
+        return valid && this.isPresent(this.newConstraint.value);
       }
 
       return valid;
     },
     canUpdateConstraint() {
       let valid =
-        this.selectedConstraint.property &&
-        this.selectedConstraint.type &&
-        this.selectedConstraint.operator;
+        this.isPresent(this.selectedConstraint.property) &&
+        this.isPresent(this.selectedConstraint.type) &&
+        this.isPresent(this.selectedConstraint.operator);
 
-      if (this.hasValue(this.selectedConstraint.operator)) {
-        return valid && this.selectedConstraint.value;
+      if (this.hasValue(this.selectedConstraint)) {
+        return valid && this.isPresent(this.selectedConstraint.value);
       }
 
       return valid;
@@ -489,9 +492,7 @@ export default {
         constraint.operator !== "present" &&
         constraint.operator !== "notpresent" &&
         constraint.operator !== "empty" &&
-        constraint.operator !== "notempty" &&
-        constraint.operator !== "true" &&
-        constraint.operator !== "false"
+        constraint.operator !== "notempty"
       );
     },
     getSegment() {
