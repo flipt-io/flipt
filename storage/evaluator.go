@@ -186,7 +186,6 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		constraintMatches := 0
 
 		for _, c := range rule.Constraints {
-
 			v := r.Context[c.Property]
 
 			var (

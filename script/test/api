@@ -83,16 +83,6 @@ step_3_test_segments_and_constraints()
     segment_key=$(uuid_str)
     segment_name_1=$(uuid_str)
 
-    # create segment - missing key
-    shakedown POST "$flipt_api/segments" -H 'Content-Type:application/json' -d "{\"name\":\"$segment_name_1\",\"description\":\"description\"}"
-        status 400
-        matches "\"error\":\"invalid field key: must not be empty\""
-
-    # create segment - missing name
-    shakedown POST "$flipt_api/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"description\":\"description\"}"
-        status 400
-        matches "\"error\":\"invalid field name: must not be empty\""
-
     # create segment
     shakedown POST "$flipt_api/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_1\",\"description\":\"description\"}"
         status 200
@@ -106,16 +96,6 @@ step_3_test_segments_and_constraints()
         matches "\"name\":\"$segment_name_1\""
 
     segment_name_2=$(uuid_str)
-
-    # update segment - missing key
-    shakedown PUT "$flipt_api/segments/" -H 'Content-Type:application/json' -d "{\"name\":\"$segment_name_2\",\"description\":\"description\"}"
-        status 400
-        matches "\"error\":\"invalid field key: must not be empty\""
-
-    # update segment - missing name
-    shakedown PUT "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"description\":\"description\"}"
-        status 400
-        matches "\"error\":\"invalid field name: must not be empty\""
 
     # update segment
     shakedown PUT "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"description\":\"description\"}"
