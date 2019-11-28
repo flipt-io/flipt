@@ -879,6 +879,16 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 		{
+			name: "ok",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "bar",
+			},
+		},
+		{
 			name: "emptyValue ok",
 			req: &CreateConstraintRequest{
 				SegmentKey: "segmentKey",
@@ -1013,6 +1023,17 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Value:      "bar",
 			},
 			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+		},
+		{
+			name: "ok",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "bar",
+			},
 		},
 		{
 			name: "emptyValue ok",

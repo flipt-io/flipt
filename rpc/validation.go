@@ -331,9 +331,11 @@ func (req *CreateConstraintRequest) Validate() error {
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
 	}
 
-	// check if value is required
-	if _, ok := NoValueOperators[operator]; !ok {
-		return errors.EmptyFieldError("value")
+	if req.Value == "" {
+		// check if value is required
+		if _, ok := NoValueOperators[operator]; !ok {
+			return errors.EmptyFieldError("value")
+		}
 	}
 
 	return nil
@@ -375,9 +377,11 @@ func (req *UpdateConstraintRequest) Validate() error {
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
 	}
 
-	// check if value is required
-	if _, ok := NoValueOperators[operator]; !ok {
-		return errors.EmptyFieldError("value")
+	if req.Value == "" {
+		// check if value is required
+		if _, ok := NoValueOperators[operator]; !ok {
+			return errors.EmptyFieldError("value")
+		}
 	}
 
 	return nil

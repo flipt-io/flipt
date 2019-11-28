@@ -80,10 +80,10 @@ step_2_test_flags_and_variants()
 
 step_3_test_segments_and_constraints()
 {
+    # create segment
     segment_key=$(uuid_str)
     segment_name_1=$(uuid_str)
 
-    # create segment
     shakedown POST "$flipt_api/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_1\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
@@ -95,9 +95,9 @@ step_3_test_segments_and_constraints()
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_1\""
 
+    # update segment
     segment_name_2=$(uuid_str)
 
-    # update segment
     shakedown PUT "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
