@@ -48,37 +48,7 @@ func TestEvaluate(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyFlagKey",
-			req:  &flipt.EvaluationRequest{FlagKey: "", EntityId: "entityID"},
-			f: func(_ context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.FlagKey)
-				assert.Equal(t, "entityID", r.EntityId)
-
-				return &flipt.EvaluationResponse{
-					FlagKey:  "",
-					EntityId: r.EntityId,
-				}, nil
-			},
-			wantErr: errors.EmptyFieldError("flagKey"),
-		},
-		{
-			name: "emptyEntityId",
-			req:  &flipt.EvaluationRequest{FlagKey: "flagKey", EntityId: ""},
-			f: func(_ context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "", r.EntityId)
-
-				return &flipt.EvaluationResponse{
-					FlagKey:  r.FlagKey,
-					EntityId: "",
-				}, nil
-			},
-			wantErr: errors.EmptyFieldError("entityId"),
-		},
-		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.EvaluationRequest{FlagKey: "flagKey", EntityId: "entityID"},
 			f: func(_ context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 				assert.NotNil(t, r)

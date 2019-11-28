@@ -11,6 +11,20 @@ type Validator interface {
 	Validate() error
 }
 
+// Evaluate
+
+func (req *EvaluationRequest) Validate() error {
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	if req.EntityId == "" {
+		return errors.EmptyFieldError("entityId")
+	}
+
+	return nil
+}
+
 // Flags
 
 func (req *GetFlagRequest) Validate() error {
