@@ -299,11 +299,12 @@ func execute() error {
 		srv = server.New(logger, builder, sql, serverOpts...)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
+			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_logrus.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
 			srv.ErrorUnaryInterceptor,
-			grpc_recovery.UnaryServerInterceptor(),
+			srv.ValidationUnaryInterceptor,
 		))
 
 		if cfg.Server.Protocol == config.HTTPS {

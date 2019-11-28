@@ -10,6 +10,7 @@ import (
 	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
+	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
@@ -62,7 +63,7 @@ func (s *SegmentStore) segment(ctx context.Context, key string) (*flipt.Segment,
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, storage.ErrNotFoundf("segment %q", key)
+			return nil, errors.ErrNotFoundf("segment %q", key)
 		}
 
 		return nil, err
@@ -165,11 +166,11 @@ func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegment
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, storage.ErrInvalidf("segment %q is not unique", r.Key)
+				return nil, errors.ErrInvalidf("segment %q is not unique", r.Key)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, storage.ErrInvalidf("segment %q is not unique", r.Key)
+				return nil, errors.ErrInvalidf("segment %q is not unique", r.Key)
 			}
 		}
 
@@ -203,7 +204,7 @@ func (s *SegmentStore) UpdateSegment(ctx context.Context, r *flipt.UpdateSegment
 	}
 
 	if count != 1 {
-		return nil, storage.ErrNotFoundf("segment %q", r.Key)
+		return nil, errors.ErrNotFoundf("segment %q", r.Key)
 	}
 
 	segment, err := s.segment(ctx, r.Key)
@@ -243,26 +244,8 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 		}
 	)
 
-	// validate operator works for this constraint type
-	switch c.Type {
-	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-		if _, ok := stringOperators[c.Operator]; !ok {
-			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
-		}
-	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-		if _, ok := numberOperators[c.Operator]; !ok {
-			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
-		}
-	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-		if _, ok := booleanOperators[c.Operator]; !ok {
-			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
-		}
-	default:
-		return nil, storage.ErrInvalidf("invalid constraint type: %q", c.Type.String())
-	}
-
 	// unset value if operator does not require it
-	if _, ok := noValueOperators[c.Operator]; ok {
+	if _, ok := flipt.NoValueOperators[c.Operator]; ok {
 		c.Value = ""
 	}
 
@@ -274,11 +257,11 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, storage.ErrNotFoundf("segment %q", r.SegmentKey)
+				return nil, errors.ErrNotFoundf("segment %q", r.SegmentKey)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, storage.ErrNotFoundf("segment %q", r.SegmentKey)
+				return nil, errors.ErrNotFoundf("segment %q", r.SegmentKey)
 			}
 		}
 
@@ -295,26 +278,9 @@ func (s *SegmentStore) UpdateConstraint(ctx context.Context, r *flipt.UpdateCons
 	s.logger.WithField("request", r).Debug("update constraint")
 
 	operator := strings.ToLower(r.Operator)
-	// validate operator works for this constraint type
-	switch r.Type {
-	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-		if _, ok := stringOperators[operator]; !ok {
-			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type string", r.Operator)
-		}
-	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-		if _, ok := numberOperators[operator]; !ok {
-			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type number", r.Operator)
-		}
-	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-		if _, ok := booleanOperators[operator]; !ok {
-			return nil, storage.ErrInvalidf("constraint operator %q is not valid for type boolean", r.Operator)
-		}
-	default:
-		return nil, storage.ErrInvalidf("invalid constraint type: %q", r.Type.String())
-	}
 
 	// unset value if operator does not require it
-	if _, ok := noValueOperators[operator]; ok {
+	if _, ok := flipt.NoValueOperators[operator]; ok {
 		r.Value = ""
 	}
 
@@ -336,7 +302,7 @@ func (s *SegmentStore) UpdateConstraint(ctx context.Context, r *flipt.UpdateCons
 	}
 
 	if count != 1 {
-		return nil, storage.ErrNotFoundf("constraint %q", r.Id)
+		return nil, errors.ErrNotFoundf("constraint %q", r.Id)
 	}
 
 	var (

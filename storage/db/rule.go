@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	proto "github.com/golang/protobuf/ptypes"
 	"github.com/lib/pq"
+	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
@@ -159,11 +160,11 @@ func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) 
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, storage.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+				return nil, errors.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, storage.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+				return nil, errors.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 			}
 		}
 
@@ -195,7 +196,7 @@ func (s *RuleStore) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) 
 	}
 
 	if count != 1 {
-		return nil, storage.ErrNotFoundf("rule %q", r.Id)
+		return nil, errors.ErrNotFoundf("rule %q", r.Id)
 	}
 
 	rule, err := s.rule(ctx, r.Id, r.FlagKey)
@@ -323,11 +324,11 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, storage.ErrNotFoundf("rule %q", r.RuleId)
+				return nil, errors.ErrNotFoundf("rule %q", r.RuleId)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, storage.ErrNotFoundf("rule %q", r.RuleId)
+				return nil, errors.ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}
 
@@ -359,7 +360,7 @@ func (s *RuleStore) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistr
 	}
 
 	if count != 1 {
-		return nil, storage.ErrNotFoundf("distribution %q", r.Id)
+		return nil, errors.ErrNotFoundf("distribution %q", r.Id)
 	}
 
 	var (

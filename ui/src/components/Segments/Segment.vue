@@ -188,7 +188,11 @@
                 </BSelect>
               </b-field>
               <b-field v-show="hasValue(newConstraint)" label="Value">
-                <b-input v-model="newConstraint.value" placeholder="Value" />
+                <b-input
+                  v-model="newConstraint.value"
+                  placeholder="Value"
+                  required
+                />
               </b-field>
               <div class="field is-grouped">
                 <div class="control">
@@ -274,6 +278,7 @@
                 <b-input
                   v-model="selectedConstraint.value"
                   placeholder="Value"
+                  required
                 />
               </b-field>
               <div class="field is-grouped">
@@ -422,10 +427,28 @@ export default {
       return this.segment.key && this.segment.name;
     },
     canAddConstraint() {
-      return this.newConstraint.property && this.newConstraint.type;
+      let valid =
+        this.newConstraint.property &&
+        this.newConstraint.type &&
+        this.newConstraint.operator;
+
+      if (this.hasValue(this.newConstraint.operator)) {
+        return valid && this.newConstraint.value;
+      }
+
+      return valid;
     },
     canUpdateConstraint() {
-      return this.selectedConstraint.property && this.selectedConstraint.type;
+      let valid =
+        this.selectedConstraint.property &&
+        this.selectedConstraint.type &&
+        this.selectedConstraint.operator;
+
+      if (this.hasValue(this.selectedConstraint.operator)) {
+        return valid && this.selectedConstraint.value;
+      }
+
+      return valid;
     },
     matchTypeText() {
       if (this.segment.matchType === "ALL_MATCH_TYPE") {

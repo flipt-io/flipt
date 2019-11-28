@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"testing"
 
+	"github.com/markphelps/flipt/errors"
+
 	sq "github.com/Masterminds/squirrel"
-	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,6 +27,59 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, server)
 }
 
+type validatable struct {
+	err error
+}
+
+func (v *validatable) Validate() error {
+	return v.err
+}
+
+func TestValidationUnaryInterceptor(t *testing.T) {
+	tests := []struct {
+		name       string
+		req        interface{}
+		wantCalled int
+	}{
+		{
+			name:       "does not implement Validate",
+			req:        struct{}{},
+			wantCalled: 1,
+		},
+		{
+			name:       "implements validate no error",
+			req:        &validatable{},
+			wantCalled: 1,
+		},
+		{
+			name: "implements validate error",
+			req:  &validatable{err: errors.New("invalid")},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req        = tt.req
+			wantCalled = tt.wantCalled
+			called     int
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				subject = &Server{}
+
+				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+					called++
+					return nil, nil
+				})
+			)
+
+			_, _ = subject.ValidationUnaryInterceptor(context.Background(), req, nil, spyHandler)
+			assert.Equal(t, wantCalled, called)
+		})
+	}
+}
+
 func TestErrorUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -34,23 +87,23 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 		wantCode codes.Code
 	}{
 		{
-			name:     "storage not found error",
-			wantErr:  storage.ErrNotFound("foo"),
+			name:     "not found error",
+			wantErr:  errors.ErrNotFound("foo"),
 			wantCode: codes.NotFound,
 		},
 		{
-			name:     "storage invalid error",
-			wantErr:  storage.ErrInvalid("foo"),
+			name:     "invalid error",
+			wantErr:  errors.ErrInvalid("foo"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
-			name:     "server invalid field",
-			wantErr:  invalidFieldError("bar", "is wrong"),
+			name:     "invalid field",
+			wantErr:  errors.InvalidFieldError("bar", "is wrong"),
 			wantCode: codes.InvalidArgument,
 		},
 		{
-			name:     "server empty field",
-			wantErr:  emptyFieldError("bar"),
+			name:     "empty field",
+			wantErr:  errors.EmptyFieldError("bar"),
 			wantCode: codes.InvalidArgument,
 		},
 		{

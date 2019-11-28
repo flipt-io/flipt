@@ -1,0 +1,2 @@
+ignore:
+  - "rpc/flipt.pb.*"

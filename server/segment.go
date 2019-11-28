@@ -9,10 +9,6 @@ import (
 
 // GetSegment gets a segment
 func (s *Server) GetSegment(ctx context.Context, req *flipt.GetSegmentRequest) (*flipt.Segment, error) {
-	if req.Key == "" {
-		return nil, emptyFieldError("key")
-	}
-
 	return s.SegmentStore.GetSegment(ctx, req)
 }
 
@@ -34,36 +30,16 @@ func (s *Server) ListSegments(ctx context.Context, req *flipt.ListSegmentRequest
 
 // CreateSegment creates a segment
 func (s *Server) CreateSegment(ctx context.Context, req *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
-	if req.Key == "" {
-		return nil, emptyFieldError("key")
-	}
-
-	if req.Name == "" {
-		return nil, emptyFieldError("name")
-	}
-
 	return s.SegmentStore.CreateSegment(ctx, req)
 }
 
 // UpdateSegment updates an existing segment
 func (s *Server) UpdateSegment(ctx context.Context, req *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
-	if req.Key == "" {
-		return nil, emptyFieldError("key")
-	}
-
-	if req.Name == "" {
-		return nil, emptyFieldError("name")
-	}
-
 	return s.SegmentStore.UpdateSegment(ctx, req)
 }
 
 // DeleteSegment deletes a segment
 func (s *Server) DeleteSegment(ctx context.Context, req *flipt.DeleteSegmentRequest) (*empty.Empty, error) {
-	if req.Key == "" {
-		return nil, emptyFieldError("key")
-	}
-
 	if err := s.SegmentStore.DeleteSegment(ctx, req); err != nil {
 		return nil, err
 	}
@@ -73,52 +49,16 @@ func (s *Server) DeleteSegment(ctx context.Context, req *flipt.DeleteSegmentRequ
 
 // CreateConstraint creates a constraint
 func (s *Server) CreateConstraint(ctx context.Context, req *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
-	if req.SegmentKey == "" {
-		return nil, emptyFieldError("segmentKey")
-	}
-
-	if req.Property == "" {
-		return nil, emptyFieldError("property")
-	}
-
-	if req.Operator == "" {
-		return nil, emptyFieldError("operator")
-	}
-
 	return s.SegmentStore.CreateConstraint(ctx, req)
 }
 
 // UpdateConstraint updates an existing constraint
 func (s *Server) UpdateConstraint(ctx context.Context, req *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
-	if req.Id == "" {
-		return nil, emptyFieldError("id")
-	}
-
-	if req.SegmentKey == "" {
-		return nil, emptyFieldError("segmentKey")
-	}
-
-	if req.Property == "" {
-		return nil, emptyFieldError("property")
-	}
-
-	if req.Operator == "" {
-		return nil, emptyFieldError("operator")
-	}
-
 	return s.SegmentStore.UpdateConstraint(ctx, req)
 }
 
 // DeleteConstraint deletes a constraint
 func (s *Server) DeleteConstraint(ctx context.Context, req *flipt.DeleteConstraintRequest) (*empty.Empty, error) {
-	if req.Id == "" {
-		return nil, emptyFieldError("id")
-	}
-
-	if req.SegmentKey == "" {
-		return nil, emptyFieldError("segmentKey")
-	}
-
 	if err := s.SegmentStore.DeleteConstraint(ctx, req); err != nil {
 		return nil, err
 	}

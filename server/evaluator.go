@@ -10,14 +10,6 @@ import (
 
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	if req.FlagKey == "" {
-		return nil, emptyFieldError("flagKey")
-	}
-
-	if req.EntityId == "" {
-		return nil, emptyFieldError("entityId")
-	}
-
 	startTime := time.Now()
 
 	// set request ID if not present

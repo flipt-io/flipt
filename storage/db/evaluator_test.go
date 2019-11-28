@@ -98,7 +98,7 @@ func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -206,7 +206,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -217,7 +217,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	require.NoError(t, err)
@@ -354,7 +354,7 @@ func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -495,7 +495,7 @@ func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 		SegmentKey: subscriberSegment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "premium_user",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	require.NoError(t, err)
@@ -721,7 +721,7 @@ func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -830,7 +830,7 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -841,7 +841,7 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	require.NoError(t, err)
@@ -1002,7 +1002,7 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -1144,7 +1144,7 @@ func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 		SegmentKey: subscriberSegment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "premium_user",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	require.NoError(t, err)
@@ -1343,66 +1343,6 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, segment.Key, resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
-		})
-	}
-}
-
-func Test_validate(t *testing.T) {
-	tests := []struct {
-		name       string
-		constraint constraint
-		wantErr    bool
-	}{
-		{
-			name: "missing property",
-			constraint: constraint{
-				Operator: "eq",
-				Value:    "bar",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing operator",
-			constraint: constraint{
-				Property: "foo",
-				Value:    "bar",
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid operator",
-			constraint: constraint{
-				Property: "foo",
-				Operator: "?",
-				Value:    "bar",
-			},
-			wantErr: true,
-		},
-		{
-			name: "valid",
-			constraint: constraint{
-				Property: "foo",
-				Operator: "eq",
-				Value:    "bar",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			constraint = tt.constraint
-			wantErr    = tt.wantErr
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			err := validate(constraint)
-
-			if wantErr {
-				require.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
 		})
 	}
 }
@@ -1739,6 +1679,14 @@ func Test_matchesNumber(t *testing.T) {
 			},
 			value: "0.11",
 		},
+		{
+			name: "negative suffix empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "suffix",
+				Value:    "bar",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -2009,7 +1957,7 @@ func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -2017,7 +1965,7 @@ func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
@@ -2127,7 +2075,7 @@ func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -2335,7 +2283,7 @@ func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -2344,7 +2292,7 @@ func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
@@ -2476,7 +2424,7 @@ func BenchmarkEvaluate_MatchAny_RolloutDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
