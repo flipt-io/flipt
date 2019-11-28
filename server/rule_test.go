@@ -133,7 +133,7 @@ func TestListRules(t *testing.T) {
 			},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.ListRuleRequest{FlagKey: "flagKey"},
 			f: func(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
 				assert.NotNil(t, r)
@@ -301,7 +301,7 @@ func TestDeleteRule(t *testing.T) {
 			empty: &empty.Empty{},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.DeleteRuleRequest{Id: "id", FlagKey: "flagKey"},
 			f: func(_ context.Context, r *flipt.DeleteRuleRequest) error {
 				assert.NotNil(t, r)
@@ -355,7 +355,7 @@ func TestOrderRules(t *testing.T) {
 			empty: &empty.Empty{},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.OrderRulesRequest{FlagKey: "flagKey", RuleIds: []string{"1", "2"}},
 			f: func(_ context.Context, r *flipt.OrderRulesRequest) error {
 				assert.NotNil(t, r)
@@ -517,7 +517,7 @@ func TestDeleteDistribution(t *testing.T) {
 			empty: &empty.Empty{},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.DeleteDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"},
 			f: func(_ context.Context, r *flipt.DeleteDistributionRequest) error {
 				assert.NotNil(t, r)

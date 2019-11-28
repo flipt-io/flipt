@@ -1,13 +1,96 @@
 package flipt
 
 import (
-	"github.com/markphelps/flipt/errors"
 	"strings"
+
+	"github.com/markphelps/flipt/errors"
 )
 
 // Validator validates types
 type Validator interface {
 	Validate() error
+}
+
+// Flags
+
+func (req *GetFlagRequest) Validate() error {
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	return nil
+}
+
+func (req *CreateFlagRequest) Validate() error {
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	if req.Name == "" {
+		return errors.EmptyFieldError("name")
+	}
+
+	return nil
+}
+
+func (req *UpdateFlagRequest) Validate() error {
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	if req.Name == "" {
+		return errors.EmptyFieldError("name")
+	}
+
+	return nil
+}
+
+func (req *DeleteFlagRequest) Validate() error {
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	return nil
+}
+
+func (req *CreateVariantRequest) Validate() error {
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	return nil
+}
+
+func (req *UpdateVariantRequest) Validate() error {
+	if req.Id == "" {
+		return errors.EmptyFieldError("id")
+	}
+
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	return nil
+}
+
+func (req *DeleteVariantRequest) Validate() error {
+	if req.Id == "" {
+		return errors.EmptyFieldError("id")
+	}
+
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	return nil
 }
 
 // Rules
@@ -234,7 +317,11 @@ func (req *CreateConstraintRequest) Validate() error {
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
 	}
 
-	// TODO: test for empty value if operator ! [EMPTY, NOT_EMPTY, PRESENT, NOT_PRESENT]
+	// check if value is required
+	if _, ok := NoValueOperators[operator]; !ok {
+		return errors.EmptyFieldError("value")
+	}
+
 	return nil
 }
 
@@ -274,7 +361,11 @@ func (req *UpdateConstraintRequest) Validate() error {
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
 	}
 
-	// TODO: test for empty value if operator ! [EMPTY, NOT_EMPTY, PRESENT, NOT_PRESENT]
+	// check if value is required
+	if _, ok := NoValueOperators[operator]; !ok {
+		return errors.EmptyFieldError("value")
+	}
+
 	return nil
 }
 

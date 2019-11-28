@@ -7,6 +7,274 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestValidate_GetFlagRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *GetFlagRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyKey",
+			req:     &GetFlagRequest{Key: ""},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_CreateFlagRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *CreateFlagRequest
+		wantErr error
+	}{
+		{
+			name: "emptyKey",
+			req: &CreateFlagRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &CreateFlagRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+				Enabled:     true,
+			},
+			wantErr: errors.EmptyFieldError("name"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_UpdateFlagRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *UpdateFlagRequest
+		wantErr error
+	}{
+		{
+			name: "emptyKey",
+			req: &UpdateFlagRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+				Enabled:     true,
+			},
+			wantErr: errors.EmptyFieldError("name"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_DeleteFlagRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *DeleteFlagRequest
+		wantErr error
+	}{
+		{
+			name: "emptyKey",
+			req: &DeleteFlagRequest{
+				Key: "",
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_CreateVariantRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *CreateVariantRequest
+		wantErr error
+	}{
+		{
+			name: "emptyFlagKey",
+			req: &CreateVariantRequest{
+				FlagKey:     "",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptyKey",
+			req: &CreateVariantRequest{
+				FlagKey:     "flagKey",
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_UpdateVariantRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *UpdateVariantRequest
+		wantErr error
+	}{
+		{
+			name: "emptyId",
+			req: &UpdateVariantRequest{
+				Id:          "",
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name: "emptyFlagKey",
+			req: &UpdateVariantRequest{
+				Id:          "id",
+				FlagKey:     "",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptyKey",
+			req: &UpdateVariantRequest{
+				Id:          "id",
+				FlagKey:     "flagKey",
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_DeleteVariantRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *DeleteVariantRequest
+		wantErr error
+	}{
+		{
+			name: "emptyId",
+			req: &DeleteVariantRequest{
+				Id:      "",
+				FlagKey: "flagKey",
+			},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name: "emptyFlagKey",
+			req: &DeleteVariantRequest{
+				Id:      "id",
+				FlagKey: "",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
 func TestValidate_ListRuleRequest(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -579,6 +847,25 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			},
 			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
+		{
+			name: "emptyValue ok",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "notempty",
+			},
+		},
+		{
+			name: "emptyValue not allowed",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+			},
+			wantErr: errors.EmptyFieldError("value"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -695,6 +982,27 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Value:      "bar",
 			},
 			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
+		},
+		{
+			name: "emptyValue ok",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "notempty",
+			},
+		},
+		{
+			name: "emptyValue not allowed",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+			},
+			wantErr: errors.EmptyFieldError("value"),
 		},
 	}
 

@@ -129,7 +129,7 @@ func TestListSegments(t *testing.T) {
 			},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.ListSegmentRequest{},
 			f: func(context.Context, *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
 				return nil, errors.New("error test")
@@ -293,7 +293,7 @@ func TestDeleteSegment(t *testing.T) {
 			empty: &empty.Empty{},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.DeleteSegmentRequest{Key: "key"},
 			f: func(_ context.Context, r *flipt.DeleteSegmentRequest) error {
 				assert.NotNil(t, r)
@@ -480,7 +480,7 @@ func TestDeleteConstraint(t *testing.T) {
 			empty: &empty.Empty{},
 		},
 		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.DeleteConstraintRequest{Id: "id", SegmentKey: "segmentKey"},
 			f: func(_ context.Context, r *flipt.DeleteConstraintRequest) error {
 				assert.NotNil(t, r)
