@@ -97,7 +97,7 @@ func TestEvaluate_NoVariants_NoDistributions(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -205,7 +205,7 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -216,7 +216,7 @@ func TestEvaluate_SingleVariantDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	require.NoError(t, err)
@@ -353,7 +353,7 @@ func TestEvaluate_RolloutDistribution(t *testing.T) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -494,7 +494,7 @@ func TestEvaluate_RolloutDistribution_WithMatchAll(t *testing.T) {
 		SegmentKey: subscriberSegment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "premium_user",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	require.NoError(t, err)
@@ -696,66 +696,6 @@ func TestEvaluate_NoConstraints(t *testing.T) {
 	}
 }
 
-func Test_validate(t *testing.T) {
-	tests := []struct {
-		name       string
-		constraint constraint
-		wantErr    bool
-	}{
-		{
-			name: "missing property",
-			constraint: constraint{
-				Operator: "eq",
-				Value:    "bar",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing operator",
-			constraint: constraint{
-				Property: "foo",
-				Value:    "bar",
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid operator",
-			constraint: constraint{
-				Property: "foo",
-				Operator: "?",
-				Value:    "bar",
-			},
-			wantErr: true,
-		},
-		{
-			name: "valid",
-			constraint: constraint{
-				Property: "foo",
-				Operator: "eq",
-				Value:    "bar",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			constraint = tt.constraint
-			wantErr    = tt.wantErr
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			err := validate(constraint)
-
-			if wantErr {
-				require.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-		})
-	}
-}
-
 func Test_matchesString(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -774,6 +714,16 @@ func Test_matchesString(t *testing.T) {
 			wantMatch: true,
 		},
 		{
+			name: "eq whitespace value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    " ",
+			},
+			value:     " ",
+			wantMatch: true,
+		},
+		{
 			name: "negative eq",
 			constraint: constraint{
 				Property: "foo",
@@ -781,6 +731,23 @@ func Test_matchesString(t *testing.T) {
 				Value:    "bar",
 			},
 			value: "baz",
+		},
+		{
+			name: "negative eq empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "bar",
+			},
+		},
+		{
+			name: "negative eq whitespace value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "bar",
+			},
+			value: " ",
 		},
 		{
 			name: "neq",
@@ -793,6 +760,24 @@ func Test_matchesString(t *testing.T) {
 			wantMatch: true,
 		},
 		{
+			name: "neq whitespace value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "bar",
+			},
+			value:     " ",
+			wantMatch: true,
+		},
+		{
+			name: "neq empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "bar",
+			},
+		},
+		{
 			name: "negative neq",
 			constraint: constraint{
 				Property: "foo",
@@ -803,6 +788,14 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "empty",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "empty",
+			},
+			wantMatch: true,
+		},
+		{
+			name: "empty whitespace",
 			constraint: constraint{
 				Property: "foo",
 				Operator: "empty",
@@ -833,7 +826,14 @@ func Test_matchesString(t *testing.T) {
 				Property: "foo",
 				Operator: "notempty",
 			},
-			value: "",
+		},
+		{
+			name: "negative not empty whitespace",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "notempty",
+			},
+			value: " ",
 		},
 		{
 			name: "unknown operator",
@@ -864,6 +864,14 @@ func Test_matchesString(t *testing.T) {
 			value: "nope",
 		},
 		{
+			name: "negative prefix empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "prefix",
+				Value:    "bar",
+			},
+		},
+		{
 			name: "suffix",
 			constraint: constraint{
 				Property: "foo",
@@ -881,6 +889,14 @@ func Test_matchesString(t *testing.T) {
 				Value:    "bar",
 			},
 			value: "nope",
+		},
+		{
+			name: "negative suffix empty value",
+			constraint: constraint{
+				Property: "foo",
+				Operator: "suffix",
+				Value:    "bar",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -1358,7 +1374,7 @@ func BenchmarkEvaluate_SingleVariantDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 
@@ -1366,7 +1382,7 @@ func BenchmarkEvaluate_SingleVariantDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
-		Operator:   opTrue,
+		Operator:   flipt.OpTrue,
 	})
 
 	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
@@ -1476,7 +1492,7 @@ func BenchmarkEvaluate_RolloutDistribution(b *testing.B) {
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
-		Operator:   opEQ,
+		Operator:   flipt.OpEQ,
 		Value:      "baz",
 	})
 

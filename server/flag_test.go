@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/markphelps/flipt/errors"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
@@ -79,20 +80,6 @@ func TestGetFlag(t *testing.T) {
 				Key: "key",
 			},
 		},
-		{
-			name: "emptyKey",
-			req:  &flipt.GetFlagRequest{Key: ""},
-			f: func(_ context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.Key)
-
-				return &flipt.Flag{
-					Key: "",
-				}, nil
-			},
-			flag:    nil,
-			wantErr: emptyFieldError("key"),
-		},
 	}
 
 	for _, tt := range tests {
@@ -142,7 +129,7 @@ func TestListFlags(t *testing.T) {
 			},
 		},
 		{
-			name: "err",
+			name: "error",
 			req:  &flipt.ListFlagRequest{},
 			f: func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
 				return nil, errors.New("test error")
@@ -211,54 +198,6 @@ func TestCreateFlag(t *testing.T) {
 				Enabled:     true,
 			},
 		},
-		{
-			name: "emptyKey",
-			req: &flipt.CreateFlagRequest{
-				Key:         "",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-			},
-			f: func(_ context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-				assert.True(t, r.Enabled)
-
-				return &flipt.Flag{
-					Key:         "",
-					Name:        r.Name,
-					Description: r.Description,
-					Enabled:     r.Enabled,
-				}, nil
-			},
-			wantErr: emptyFieldError("key"),
-		},
-		{
-			name: "emptyName",
-			req: &flipt.CreateFlagRequest{
-				Key:         "key",
-				Name:        "",
-				Description: "desc",
-				Enabled:     true,
-			},
-			f: func(_ context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "", r.Name)
-				assert.Equal(t, "desc", r.Description)
-				assert.True(t, r.Enabled)
-
-				return &flipt.Flag{
-					Key:         r.Key,
-					Name:        "",
-					Description: r.Description,
-					Enabled:     r.Enabled,
-				}, nil
-			},
-			wantErr: emptyFieldError("name"),
-		},
 	}
 
 	for _, tt := range tests {
@@ -320,54 +259,6 @@ func TestUpdateFlag(t *testing.T) {
 				Enabled:     true,
 			},
 		},
-		{
-			name: "emptyKey",
-			req: &flipt.UpdateFlagRequest{
-				Key:         "",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-			},
-			f: func(_ context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-				assert.True(t, r.Enabled)
-
-				return &flipt.Flag{
-					Key:         "",
-					Name:        r.Name,
-					Description: r.Description,
-					Enabled:     r.Enabled,
-				}, nil
-			},
-			wantErr: emptyFieldError("key"),
-		},
-		{
-			name: "emptyName",
-			req: &flipt.UpdateFlagRequest{
-				Key:         "key",
-				Name:        "",
-				Description: "desc",
-				Enabled:     true,
-			},
-			f: func(_ context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "", r.Name)
-				assert.Equal(t, "desc", r.Description)
-				assert.True(t, r.Enabled)
-
-				return &flipt.Flag{
-					Key:         r.Key,
-					Name:        "",
-					Description: r.Description,
-					Enabled:     r.Enabled,
-				}, nil
-			},
-			wantErr: emptyFieldError("name"),
-		},
 	}
 
 	for _, tt := range tests {
@@ -410,17 +301,6 @@ func TestDeleteFlag(t *testing.T) {
 				return nil
 			},
 			empty: &empty.Empty{},
-		},
-		{
-			name: "emptyKey",
-			req:  &flipt.DeleteFlagRequest{Key: ""},
-			f: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.Key)
-
-				return nil
-			},
-			wantErr: emptyFieldError("key"),
 		},
 		{
 			name: "error",
@@ -494,54 +374,6 @@ func TestCreateVariant(t *testing.T) {
 				Description: "desc",
 			},
 		},
-		{
-			name: "emptyFlagKey",
-			req: &flipt.CreateVariantRequest{
-				FlagKey:     "",
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-			},
-			f: func(_ context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.FlagKey)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-
-				return &flipt.Variant{
-					FlagKey:     "",
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			wantErr: emptyFieldError("flagKey"),
-		},
-		{
-			name: "emptyKey",
-			req: &flipt.CreateVariantRequest{
-				FlagKey:     "flagKey",
-				Key:         "",
-				Name:        "name",
-				Description: "desc",
-			},
-			f: func(_ context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-
-				return &flipt.Variant{
-					FlagKey:     r.FlagKey,
-					Key:         "",
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			wantErr: emptyFieldError("key"),
-		},
 	}
 
 	for _, tt := range tests {
@@ -601,69 +433,6 @@ func TestUpdateVariant(t *testing.T) {
 				Description: "desc",
 			},
 		},
-		{
-			name: "emptyID",
-			req:  &flipt.UpdateVariantRequest{Id: "", FlagKey: "flagKey", Key: "key", Name: "name", Description: "desc"},
-			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "", r.Id)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-
-				return &flipt.Variant{
-					Id:          "",
-					FlagKey:     r.FlagKey,
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			wantErr: emptyFieldError("id"),
-		},
-		{
-			name: "emptyFlagKey",
-			req:  &flipt.UpdateVariantRequest{Id: "id", FlagKey: "", Key: "key", Name: "name", Description: "desc"},
-			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.FlagKey)
-				assert.Equal(t, "id", r.Id)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-
-				return &flipt.Variant{
-					Id:          r.Id,
-					FlagKey:     "",
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			wantErr: emptyFieldError("flagKey"),
-		},
-		{
-			name: "emptyKey",
-			req:  &flipt.UpdateVariantRequest{Id: "id", FlagKey: "flagKey", Key: "", Name: "name", Description: "desc"},
-			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "id", r.Id)
-				assert.Equal(t, "", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-
-				return &flipt.Variant{
-					Id:          r.Id,
-					FlagKey:     r.FlagKey,
-					Key:         "",
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			wantErr: emptyFieldError("key"),
-		},
 	}
 
 	for _, tt := range tests {
@@ -707,30 +476,6 @@ func TestDeleteVariant(t *testing.T) {
 				return nil
 			},
 			empty: &empty.Empty{},
-		},
-		{
-			name: "emptyID",
-			req:  &flipt.DeleteVariantRequest{Id: "", FlagKey: "flagKey"},
-			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.Id)
-				assert.Equal(t, "flagKey", r.FlagKey)
-
-				return nil
-			},
-			wantErr: emptyFieldError("id"),
-		},
-		{
-			name: "emptyFlagKey",
-			req:  &flipt.DeleteVariantRequest{Id: "id", FlagKey: ""},
-			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "id", r.Id)
-				assert.Equal(t, "", r.FlagKey)
-
-				return nil
-			},
-			wantErr: emptyFieldError("flagKey"),
 		},
 		{
 			name: "error",

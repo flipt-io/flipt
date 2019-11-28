@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/markphelps/flipt/errors"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
@@ -47,37 +48,7 @@ func TestEvaluate(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyFlagKey",
-			req:  &flipt.EvaluationRequest{FlagKey: "", EntityId: "entityID"},
-			f: func(_ context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "", r.FlagKey)
-				assert.Equal(t, "entityID", r.EntityId)
-
-				return &flipt.EvaluationResponse{
-					FlagKey:  "",
-					EntityId: r.EntityId,
-				}, nil
-			},
-			wantErr: emptyFieldError("flagKey"),
-		},
-		{
-			name: "emptyEntityId",
-			req:  &flipt.EvaluationRequest{FlagKey: "flagKey", EntityId: ""},
-			f: func(_ context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "", r.EntityId)
-
-				return &flipt.EvaluationResponse{
-					FlagKey:  r.FlagKey,
-					EntityId: "",
-				}, nil
-			},
-			wantErr: emptyFieldError("entityId"),
-		},
-		{
-			name: "error test",
+			name: "error",
 			req:  &flipt.EvaluationRequest{FlagKey: "flagKey", EntityId: "entityID"},
 			f: func(_ context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 				assert.NotNil(t, r)

@@ -3,13 +3,14 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/markphelps/flipt/errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
@@ -94,14 +95,14 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return resp, ErrNotFoundf("flag %q", r.FlagKey)
+			return resp, errors.ErrNotFoundf("flag %q", r.FlagKey)
 		}
 
 		return resp, err
 	}
 
 	if !enabled {
-		return resp, ErrInvalidf("flag %q is disabled", r.FlagKey)
+		return resp, errors.ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
 	// get all rules for flag with their constraints if any
@@ -185,10 +186,6 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		constraintMatches := 0
 
 		for _, c := range rule.Constraints {
-			if err := validate(c); err != nil {
-				return resp, err
-			}
-
 			v := r.Context[c.Property]
 
 			var (
@@ -204,7 +201,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
 			default:
-				return resp, ErrInvalid("unknown constraint type")
+				return resp, errors.ErrInvalid("unknown constraint type")
 			}
 
 			if err != nil {
@@ -329,72 +326,6 @@ func crc32Num(entityID string, salt string) uint {
 }
 
 const (
-	opEQ         = "eq"
-	opNEQ        = "neq"
-	opLT         = "lt"
-	opLTE        = "lte"
-	opGT         = "gt"
-	opGTE        = "gte"
-	opEmpty      = "empty"
-	opNotEmpty   = "notempty"
-	opTrue       = "true"
-	opFalse      = "false"
-	opPresent    = "present"
-	opNotPresent = "notpresent"
-	opPrefix     = "prefix"
-	opSuffix     = "suffix"
-)
-
-var (
-	validOperators = map[string]struct{}{
-		opEQ:         {},
-		opNEQ:        {},
-		opLT:         {},
-		opLTE:        {},
-		opGT:         {},
-		opGTE:        {},
-		opEmpty:      {},
-		opNotEmpty:   {},
-		opTrue:       {},
-		opFalse:      {},
-		opPresent:    {},
-		opNotPresent: {},
-		opPrefix:     {},
-		opSuffix:     {},
-	}
-	noValueOperators = map[string]struct{}{
-		opEmpty:      {},
-		opNotEmpty:   {},
-		opPresent:    {},
-		opNotPresent: {},
-	}
-	stringOperators = map[string]struct{}{
-		opEQ:       {},
-		opNEQ:      {},
-		opEmpty:    {},
-		opNotEmpty: {},
-		opPrefix:   {},
-		opSuffix:   {},
-	}
-	numberOperators = map[string]struct{}{
-		opEQ:         {},
-		opNEQ:        {},
-		opLT:         {},
-		opLTE:        {},
-		opGT:         {},
-		opGTE:        {},
-		opPresent:    {},
-		opNotPresent: {},
-	}
-	booleanOperators = map[string]struct{}{
-		opTrue:       {},
-		opFalse:      {},
-		opPresent:    {},
-		opNotPresent: {},
-	}
-)
-
-const (
 	// totalBucketNum represents how many buckets we can use to determine the consistent hashing
 	// distribution and rollout
 	totalBucketNum uint = 1000
@@ -403,38 +334,28 @@ const (
 	percentMultiplier float32 = float32(totalBucketNum) / 100
 )
 
-func validate(c constraint) error {
-	if c.Property == "" {
-		return errors.New("empty property")
-	}
-
-	if c.Operator == "" {
-		return errors.New("empty operator")
-	}
-
-	op := strings.ToLower(c.Operator)
-	if _, ok := validOperators[op]; !ok {
-		return fmt.Errorf("unsupported operator: %q", op)
-	}
-
-	return nil
-}
-
 func matchesString(c constraint, v string) bool {
+	switch c.Operator {
+	case flipt.OpEmpty:
+		return len(strings.TrimSpace(v)) == 0
+	case flipt.OpNotEmpty:
+		return len(strings.TrimSpace(v)) != 0
+	}
+
+	if v == "" {
+		return false
+	}
+
 	value := c.Value
 
 	switch c.Operator {
-	case opEQ:
+	case flipt.OpEQ:
 		return value == v
-	case opNEQ:
+	case flipt.OpNEQ:
 		return value != v
-	case opEmpty:
-		return len(strings.TrimSpace(v)) == 0
-	case opNotEmpty:
-		return len(strings.TrimSpace(v)) != 0
-	case opPrefix:
+	case flipt.OpPrefix:
 		return strings.HasPrefix(strings.TrimSpace(v), value)
-	case opSuffix:
+	case flipt.OpSuffix:
 		return strings.HasSuffix(strings.TrimSpace(v), value)
 	}
 
@@ -443,9 +364,9 @@ func matchesString(c constraint, v string) bool {
 
 func matchesNumber(c constraint, v string) (bool, error) {
 	switch c.Operator {
-	case opNotPresent:
+	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil
-	case opPresent:
+	case flipt.OpPresent:
 		return len(strings.TrimSpace(v)) != 0, nil
 	}
 
@@ -465,17 +386,17 @@ func matchesNumber(c constraint, v string) (bool, error) {
 	}
 
 	switch c.Operator {
-	case opEQ:
+	case flipt.OpEQ:
 		return value == n, nil
-	case opNEQ:
+	case flipt.OpNEQ:
 		return value != n, nil
-	case opLT:
+	case flipt.OpLT:
 		return n < value, nil
-	case opLTE:
+	case flipt.OpLTE:
 		return n <= value, nil
-	case opGT:
+	case flipt.OpGT:
 		return n > value, nil
-	case opGTE:
+	case flipt.OpGTE:
 		return n >= value, nil
 	}
 
@@ -484,9 +405,9 @@ func matchesNumber(c constraint, v string) (bool, error) {
 
 func matchesBool(c constraint, v string) (bool, error) {
 	switch c.Operator {
-	case opNotPresent:
+	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil
-	case opPresent:
+	case flipt.OpPresent:
 		return len(strings.TrimSpace(v)) != 0, nil
 	}
 
@@ -501,9 +422,9 @@ func matchesBool(c constraint, v string) (bool, error) {
 	}
 
 	switch c.Operator {
-	case opTrue:
+	case flipt.OpTrue:
 		return value, nil
-	case opFalse:
+	case flipt.OpFalse:
 		return !value, nil
 	}
 

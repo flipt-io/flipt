@@ -2,12 +2,11 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
-	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,7 +47,7 @@ func TestGetFlagNotFound(t *testing.T) {
 		logger, _ = test.NewNullLogger()
 		store     = &flagStoreMock{
 			getFlagFn: func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return nil, storage.ErrNotFound("foo")
+				return nil, errors.ErrNotFound("foo")
 			},
 		}
 		cache, _ = lru.New(1)
