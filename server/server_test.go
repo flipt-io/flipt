@@ -59,8 +59,9 @@ func TestValidationUnaryInterceptor(t *testing.T) {
 
 	for _, tt := range tests {
 		var (
-			req    = tt.req
-			called int
+			req        = tt.req
+			wantCalled = tt.wantCalled
+			called     int
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,7 +75,7 @@ func TestValidationUnaryInterceptor(t *testing.T) {
 			)
 
 			_, _ = subject.ValidationUnaryInterceptor(context.Background(), req, nil, spyHandler)
-			assert.Equal(t, tt.wantCalled, called)
+			assert.Equal(t, wantCalled, called)
 		})
 	}
 }
