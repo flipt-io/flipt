@@ -7,6 +7,365 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestValidate_ListRuleRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *ListRuleRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyFlagKey",
+			req:     &ListRuleRequest{FlagKey: ""},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_GetRuleRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *GetRuleRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyId",
+			req:     &GetRuleRequest{Id: ""},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name:    "emptyFlagKey",
+			req:     &GetRuleRequest{Id: "id", FlagKey: ""},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_CreateRuleRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *CreateRuleRequest
+		wantErr error
+	}{
+		{
+			name: "emptyFlagKey",
+			req: &CreateRuleRequest{
+				FlagKey:    "",
+				SegmentKey: "segmentKey",
+				Rank:       1,
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptySegmentKey",
+			req: &CreateRuleRequest{
+				FlagKey:    "flagKey",
+				SegmentKey: "",
+				Rank:       1,
+			},
+			wantErr: errors.EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "rankLessThanZero",
+			req: &CreateRuleRequest{
+				FlagKey:    "flagKey",
+				SegmentKey: "segmentKey",
+				Rank:       -1,
+			},
+			wantErr: errors.InvalidFieldError("rank", "must be greater than 0"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_UpdateRuleRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *UpdateRuleRequest
+		wantErr error
+	}{
+		{
+			name: "emptyID",
+			req: &UpdateRuleRequest{
+				Id:         "",
+				FlagKey:    "flagKey",
+				SegmentKey: "segmentKey",
+			},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name: "emptyFlagKey",
+			req: &UpdateRuleRequest{
+				Id:         "id",
+				FlagKey:    "",
+				SegmentKey: "segmentKey",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptySegmentKey",
+			req: &UpdateRuleRequest{
+				Id:         "id",
+				FlagKey:    "flagKey",
+				SegmentKey: "",
+			},
+			wantErr: errors.EmptyFieldError("segmentKey"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_DeleteRuleRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *DeleteRuleRequest
+		wantErr error
+	}{
+		{
+			name: "emptyID",
+			req: &DeleteRuleRequest{
+				Id:      "",
+				FlagKey: "flagKey",
+			},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name: "emptyFlagKey",
+			req: &DeleteRuleRequest{
+				Id:      "id",
+				FlagKey: "",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_OrderRulesRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *OrderRulesRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyFlagKey",
+			req:     &OrderRulesRequest{FlagKey: "", RuleIds: []string{"1", "2"}},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name:    "ruleIds length lesser than 2",
+			req:     &OrderRulesRequest{FlagKey: "flagKey", RuleIds: []string{"1"}},
+			wantErr: errors.InvalidFieldError("ruleIds", "must contain atleast 2 elements"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_CreateDistributionRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *CreateDistributionRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyFlagKey",
+			req:     &CreateDistributionRequest{FlagKey: "", RuleId: "ruleID", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name:    "emptyRuleID",
+			req:     &CreateDistributionRequest{FlagKey: "flagKey", RuleId: "", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("ruleId"),
+		},
+		{
+			name:    "emptyVariantID",
+			req:     &CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: ""},
+			wantErr: errors.EmptyFieldError("variantId"),
+		},
+		{
+			name:    "rollout is less than 0",
+			req:     &CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: -1},
+			wantErr: errors.InvalidFieldError("rollout", "must be greater than or equal to '0'"),
+		},
+		{
+			name:    "rollout is more than 100",
+			req:     &CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: 101},
+			wantErr: errors.InvalidFieldError("rollout", "must be less than or equal to '100'"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_UpdateDistributionRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *UpdateDistributionRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyID",
+			req:     &UpdateDistributionRequest{Id: "", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name:    "emptyFlagKey",
+			req:     &UpdateDistributionRequest{Id: "id", FlagKey: "", RuleId: "ruleID", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name:    "emptyRuleID",
+			req:     &UpdateDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("ruleId"),
+		},
+		{
+			name:    "emptyVariantID",
+			req:     &UpdateDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: ""},
+			wantErr: errors.EmptyFieldError("variantId"),
+		},
+		{
+			name:    "rollout is less than 0",
+			req:     &UpdateDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: -1},
+			wantErr: errors.InvalidFieldError("rollout", "must be greater than or equal to '0'"),
+		},
+		{
+			name:    "rollout is more than 100",
+			req:     &UpdateDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: 101},
+			wantErr: errors.InvalidFieldError("rollout", "must be less than or equal to '100'"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_DeleteDistributionRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *DeleteDistributionRequest
+		wantErr error
+	}{
+		{
+			name:    "emptyID",
+			req:     &DeleteDistributionRequest{Id: "", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name:    "emptyFlagKey",
+			req:     &DeleteDistributionRequest{Id: "id", FlagKey: "", RuleId: "ruleID", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name:    "emptyRuleID",
+			req:     &DeleteDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "", VariantId: "variantID"},
+			wantErr: errors.EmptyFieldError("ruleId"),
+		},
+		{
+			name:    "emptyVariantID",
+			req:     &DeleteDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: ""},
+			wantErr: errors.EmptyFieldError("variantId"),
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
 func TestValidate_GetSegmentRequest(t *testing.T) {
 	tests := []struct {
 		name    string
