@@ -27,6 +27,58 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, server)
 }
 
+type validatable struct {
+	err error
+}
+
+func (v *validatable) Validate() error {
+	return v.err
+}
+
+func TestValidationUnaryInterceptor(t *testing.T) {
+	tests := []struct {
+		name       string
+		req        interface{}
+		wantCalled int
+	}{
+		{
+			name:       "does not implement Validate",
+			req:        struct{}{},
+			wantCalled: 1,
+		},
+		{
+			name:       "implements validate no error",
+			req:        &validatable{},
+			wantCalled: 1,
+		},
+		{
+			name: "implements validate error",
+			req:  &validatable{err: errors.New("invalid")},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req    = tt.req
+			called int
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				subject = &Server{}
+
+				spyHandler = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+					called++
+					return nil, nil
+				})
+			)
+
+			_, _ = subject.ValidationUnaryInterceptor(context.Background(), req, nil, spyHandler)
+			assert.Equal(t, tt.wantCalled, called)
+		})
+	}
+}
+
 func TestErrorUnaryInterceptor(t *testing.T) {
 	tests := []struct {
 		name     string

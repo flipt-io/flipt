@@ -23,6 +23,10 @@ func TestValidate_EvaluationRequest(t *testing.T) {
 			req:     &EvaluationRequest{FlagKey: "flagKey", EntityId: ""},
 			wantErr: errors.EmptyFieldError("entityId"),
 		},
+		{
+			name: "valid",
+			req:  &EvaluationRequest{FlagKey: "flagKey", EntityId: "entityId"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -48,6 +52,10 @@ func TestValidate_GetFlagRequest(t *testing.T) {
 			name:    "emptyKey",
 			req:     &GetFlagRequest{Key: ""},
 			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "valid",
+			req:  &GetFlagRequest{Key: "key"},
 		},
 	}
 
@@ -90,6 +98,15 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
+		{
+			name: "valid",
+			req: &CreateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -131,6 +148,15 @@ func TestValidate_UpdateFlagRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
+		{
+			name: "valid",
+			req: &UpdateFlagRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -158,6 +184,12 @@ func TestValidate_DeleteFlagRequest(t *testing.T) {
 				Key: "",
 			},
 			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "valid",
+			req: &DeleteFlagRequest{
+				Key: "key",
+			},
 		},
 	}
 
@@ -199,6 +231,15 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 				Description: "desc",
 			},
 			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "valid",
+			req: &CreateVariantRequest{
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
 		},
 	}
 
@@ -254,6 +295,16 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("key"),
 		},
+		{
+			name: "valid",
+			req: &UpdateVariantRequest{
+				Id:          "id",
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -291,6 +342,13 @@ func TestValidate_DeleteVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("flagKey"),
 		},
+		{
+			name: "valid",
+			req: &DeleteVariantRequest{
+				Id:      "id",
+				FlagKey: "flagKey",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -316,6 +374,10 @@ func TestValidate_ListRuleRequest(t *testing.T) {
 			name:    "emptyFlagKey",
 			req:     &ListRuleRequest{FlagKey: ""},
 			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "valid",
+			req:  &ListRuleRequest{FlagKey: "flagKey"},
 		},
 	}
 
@@ -347,6 +409,10 @@ func TestValidate_GetRuleRequest(t *testing.T) {
 			name:    "emptyFlagKey",
 			req:     &GetRuleRequest{Id: "id", FlagKey: ""},
 			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "valid",
+			req:  &GetRuleRequest{Id: "id", FlagKey: "flagKey"},
 		},
 	}
 
@@ -396,6 +462,14 @@ func TestValidate_CreateRuleRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError("rank", "must be greater than 0"),
 		},
+		{
+			name: "valid",
+			req: &CreateRuleRequest{
+				FlagKey:    "flagKey",
+				SegmentKey: "segmentKey",
+				Rank:       1,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -444,6 +518,14 @@ func TestValidate_UpdateRuleRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("segmentKey"),
 		},
+		{
+			name: "valid",
+			req: &UpdateRuleRequest{
+				Id:         "id",
+				FlagKey:    "flagKey",
+				SegmentKey: "segmentKey",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -481,6 +563,13 @@ func TestValidate_DeleteRuleRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("flagKey"),
 		},
+		{
+			name: "valid",
+			req: &DeleteRuleRequest{
+				Id:      "id",
+				FlagKey: "flagKey",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -511,6 +600,10 @@ func TestValidate_OrderRulesRequest(t *testing.T) {
 			name:    "ruleIds length lesser than 2",
 			req:     &OrderRulesRequest{FlagKey: "flagKey", RuleIds: []string{"1"}},
 			wantErr: errors.InvalidFieldError("ruleIds", "must contain atleast 2 elements"),
+		},
+		{
+			name: "valid",
+			req:  &OrderRulesRequest{FlagKey: "flagKey", RuleIds: []string{"1", "2"}},
 		},
 	}
 
@@ -557,6 +650,10 @@ func TestValidate_CreateDistributionRequest(t *testing.T) {
 			name:    "rollout is more than 100",
 			req:     &CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: 101},
 			wantErr: errors.InvalidFieldError("rollout", "must be less than or equal to '100'"),
+		},
+		{
+			name: "valid",
+			req:  &CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: 100},
 		},
 	}
 
@@ -609,6 +706,10 @@ func TestValidate_UpdateDistributionRequest(t *testing.T) {
 			req:     &UpdateDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: 101},
 			wantErr: errors.InvalidFieldError("rollout", "must be less than or equal to '100'"),
 		},
+		{
+			name: "valid",
+			req:  &UpdateDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID", Rollout: 100},
+		},
 	}
 
 	for _, tt := range tests {
@@ -650,6 +751,10 @@ func TestValidate_DeleteDistributionRequest(t *testing.T) {
 			req:     &DeleteDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: ""},
 			wantErr: errors.EmptyFieldError("variantId"),
 		},
+		{
+			name: "emptyVariantID",
+			req:  &DeleteDistributionRequest{Id: "id", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -675,6 +780,10 @@ func TestValidate_GetSegmentRequest(t *testing.T) {
 			name:    "emptyKey",
 			req:     &GetSegmentRequest{Key: ""},
 			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "valid",
+			req:  &GetSegmentRequest{Key: "key"},
 		},
 	}
 
@@ -715,6 +824,14 @@ func TestValidate_CreateSegmentRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
+		{
+			name: "valid",
+			req: &CreateSegmentRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -754,6 +871,14 @@ func TestValidate_UpdateSegmentRequest(t *testing.T) {
 			},
 			wantErr: errors.EmptyFieldError("name"),
 		},
+		{
+			name: "valid",
+			req: &UpdateSegmentRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -779,6 +904,10 @@ func TestValidate_DeleteSegmentRequest(t *testing.T) {
 			name:    "emptyKey",
 			req:     &DeleteSegmentRequest{Key: ""},
 			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "valid",
+			req:  &DeleteSegmentRequest{Key: "key"},
 		},
 	}
 
@@ -879,7 +1008,7 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 		{
-			name: "ok",
+			name: "valid",
 			req: &CreateConstraintRequest{
 				SegmentKey: "segmentKey",
 				Type:       ComparisonType_STRING_COMPARISON_TYPE,
@@ -889,7 +1018,7 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyValue ok",
+			name: "emptyValue valid",
 			req: &CreateConstraintRequest{
 				SegmentKey: "segmentKey",
 				Type:       ComparisonType_STRING_COMPARISON_TYPE,
@@ -1025,7 +1154,7 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 			wantErr: errors.ErrInvalid("invalid constraint type: \"UNKNOWN_COMPARISON_TYPE\""),
 		},
 		{
-			name: "ok",
+			name: "valid",
 			req: &UpdateConstraintRequest{
 				Id:         "1",
 				SegmentKey: "segmentKey",
@@ -1036,7 +1165,7 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyValue ok",
+			name: "emptyValue valid",
 			req: &UpdateConstraintRequest{
 				Id:         "1",
 				SegmentKey: "segmentKey",
@@ -1086,6 +1215,10 @@ func TestValidate_DeleteConstraintRequest(t *testing.T) {
 			name:    "emptySegmentKey",
 			req:     &DeleteConstraintRequest{Id: "id", SegmentKey: ""},
 			wantErr: errors.EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "valid",
+			req:  &DeleteConstraintRequest{Id: "id", SegmentKey: "segmentKey"},
 		},
 	}
 
