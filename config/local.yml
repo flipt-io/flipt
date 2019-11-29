@@ -1,6 +1,25 @@
 log:
   level: DEBUG
 
+# ui:
+#   enabled: true
+
+# cors:
+#   enabled: false
+#   allowed_origins: "*"
+
+# cache:
+#   memory:
+#     enabled: false
+#     items: 500
+
+# server:
+#   protocol: http
+#   host: 0.0.0.0
+#   https_port: 443
+#   http_port: 8080
+#   grpc_port: 9000
+
 db:
   url: file:flipt.db
   migrations:

@@ -4,7 +4,7 @@
       <div class="level">
         <div class="level-left">
           <div class="level-item">
-            <div v-if="flags.length > 5" class="field has-addons">
+            <div v-if="flags.length > 10" class="field has-addons">
               <p class="control">
                 <input
                   v-model="search"
@@ -25,7 +25,13 @@
           </div>
         </div>
       </div>
-      <b-table :data="filteredFlags">
+      <b-table
+        :data="filteredFlags"
+        :paginated="flags.length > 20"
+        per-page="20"
+        icon-pack="fas"
+        hoverable="true"
+      >
         <template slot-scope="props">
           <b-table-column field="enabled" label="Enabled">
             <span v-if="props.row.enabled" class="tag is-primary is-rounded"
@@ -43,7 +49,7 @@
               {{ props.row.name }}
             </RouterLink>
           </b-table-column>
-          <b-table-column field="hasVariants" label="Variants" sortable>
+          <b-table-column field="hasVariants" label="Variants">
             {{ props.row.variants ? "yes" : "no" }}
           </b-table-column>
           <b-table-column field="description" label="Description">

@@ -4,7 +4,7 @@
       <div class="level">
         <div class="level-left">
           <div class="level-item">
-            <div v-if="segments.length > 5" class="field has-addons">
+            <div v-if="segments.length > 10" class="field has-addons">
               <p class="control">
                 <input
                   v-model="search"
@@ -25,7 +25,13 @@
           </div>
         </div>
       </div>
-      <b-table :data="filteredSegments">
+      <b-table
+        :data="filteredSegments"
+        :paginated="segments.length > 20"
+        per-page="20"
+        icon-pack="fas"
+        hoverable="true"
+      >
         <template slot-scope="props">
           <b-table-column field="key" label="Key" sortable>
             <RouterLink
