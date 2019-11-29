@@ -17,7 +17,9 @@
         </div>
         <template v-if="distributions.length > 0">
           <div class="field is-horizontal">
-            <div class="field-label is-normal">Then serve:</div>
+            <div class="field-label is-normal">
+              <strong>THEN</strong> Serve Variant(s):
+            </div>
             <div class="field-body">
               <div class="field">
                 <div class="select">
