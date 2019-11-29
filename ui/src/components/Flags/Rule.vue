@@ -11,12 +11,12 @@
           </div>
           <div class="field-body">
             <div class="field">
-              <b-tooltip :label="segmentName" type="is-dark">
+              <b-tooltip :label="segmentKey" type="is-dark">
                 <span class="tag is-medium">
                   <RouterLink
                     :to="{ name: 'segment', params: { key: segmentKey } }"
                   >
-                    {{ segmentKey }}
+                    {{ segmentName }}
                   </RouterLink>
                 </span>
               </b-tooltip>
