@@ -271,10 +271,7 @@
                   </option>
                 </BSelect>
               </b-field>
-              <b-field
-                v-show="hasValue(selectedConstraint.operator)"
-                label="Value"
-              >
+              <b-field v-show="hasValue(selectedConstraint)" label="Value">
                 <b-input
                   v-model="selectedConstraint.value"
                   placeholder="Value"
