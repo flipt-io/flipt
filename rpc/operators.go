@@ -35,6 +35,8 @@ var (
 		OpSuffix:     {},
 	}
 	NoValueOperators = map[string]struct{}{
+		OpTrue:       {},
+		OpFalse:      {},
 		OpEmpty:      {},
 		OpNotEmpty:   {},
 		OpPresent:    {},

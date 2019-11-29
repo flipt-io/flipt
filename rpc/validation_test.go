@@ -1018,7 +1018,7 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyValue valid",
+			name: "emptyValue string valid",
 			req: &CreateConstraintRequest{
 				SegmentKey: "segmentKey",
 				Type:       ComparisonType_STRING_COMPARISON_TYPE,
@@ -1027,7 +1027,7 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyValue not allowed",
+			name: "emptyValue string not allowed",
 			req: &CreateConstraintRequest{
 				SegmentKey: "segmentKey",
 				Type:       ComparisonType_STRING_COMPARISON_TYPE,
@@ -1035,6 +1035,24 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 				Operator:   "eq",
 			},
 			wantErr: errors.EmptyFieldError("value"),
+		},
+		{
+			name: "emptyValue boolean valid",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "true",
+			},
+		},
+		{
+			name: "emptyValue number valid",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "present",
+			},
 		},
 	}
 
@@ -1165,7 +1183,7 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyValue valid",
+			name: "emptyValue string valid",
 			req: &UpdateConstraintRequest{
 				Id:         "1",
 				SegmentKey: "segmentKey",
@@ -1175,7 +1193,7 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "emptyValue not allowed",
+			name: "emptyValue string not allowed",
 			req: &UpdateConstraintRequest{
 				Id:         "1",
 				SegmentKey: "segmentKey",
@@ -1184,6 +1202,26 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Operator:   "eq",
 			},
 			wantErr: errors.EmptyFieldError("value"),
+		},
+		{
+			name: "emptyValue boolean valid",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_BOOLEAN_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "true",
+			},
+		},
+		{
+			name: "emptyValue number valid",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "present",
+			},
 		},
 	}
 
