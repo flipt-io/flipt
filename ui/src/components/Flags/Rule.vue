@@ -11,7 +11,15 @@
           </div>
           <div class="field-body">
             <div class="field">
-              <span class="tag is-medium"> {{ segmentName }} </span>
+              <b-tooltip :label="segmentName" type="is-dark">
+                <span class="tag is-medium">
+                  <RouterLink
+                    :to="{ name: 'segment', params: { key: segmentKey } }"
+                  >
+                    {{ segmentKey }}
+                  </RouterLink>
+                </span>
+              </b-tooltip>
             </div>
           </div>
         </div>
@@ -81,6 +89,7 @@
 export default {
   props: {
     id: String,
+    segmentKey: String,
     segmentName: String,
     index: Number,
     distributions: Array
