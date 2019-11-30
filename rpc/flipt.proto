@@ -15,7 +15,6 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 		contact: {
 			name: "Mark Phelps";
 			url: "https://github.com/markphelps/flipt";
-			email: "mark.aaron.phelps@gmail.com";
 		};
 	};
 	external_docs: {
