@@ -29,6 +29,12 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 };
 
 message EvaluationRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flag_key", "entity_id"]
+    }
+  };
+
   string request_id = 1;
   string flag_key = 2;
   string entity_id = 3;
@@ -62,6 +68,12 @@ message FlagList {
 }
 
 message GetFlagRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key"]
+    }
+  };
+
   string key = 1;
 }
 
@@ -71,6 +83,12 @@ message ListFlagRequest {
 }
 
 message CreateFlagRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key", "name"]
+    }
+  };
+
   string key = 1;
   string name = 2;
   string description = 3;
@@ -78,6 +96,12 @@ message CreateFlagRequest {
 }
 
 message UpdateFlagRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key", "name"]
+    }
+  };
+
   string key = 1;
   string name = 2;
   string description = 3;
@@ -85,6 +109,12 @@ message UpdateFlagRequest {
 }
 
 message DeleteFlagRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key"]
+    }
+  };
+
   string key = 1;
 }
 
@@ -99,6 +129,12 @@ message Variant {
 }
 
 message CreateVariantRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flag_key", "key"]
+    }
+  };
+
   string flag_key = 1;
   string key = 2;
   string name = 3;
@@ -106,6 +142,12 @@ message CreateVariantRequest {
 }
 
 message UpdateVariantRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key", "key"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
   string key = 3;
@@ -114,6 +156,12 @@ message UpdateVariantRequest {
 }
 
 message DeleteVariantRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
 }
@@ -138,6 +186,12 @@ message SegmentList {
 }
 
 message GetSegmentRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key"]
+    }
+  };
+
   string key = 1;
 }
 
@@ -147,6 +201,12 @@ message ListSegmentRequest {
 }
 
 message CreateSegmentRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key", "name"]
+    }
+  };
+
   string key = 1;
   string name = 2;
   string description = 3;
@@ -154,6 +214,12 @@ message CreateSegmentRequest {
 }
 
 message UpdateSegmentRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key", "name"]
+    }
+  };
+
   string key= 1;
   string name = 2;
   string description = 3;
@@ -161,6 +227,12 @@ message UpdateSegmentRequest {
 }
 
 message DeleteSegmentRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["key"]
+    }
+  };
+
   string key = 1;
 }
 
@@ -183,6 +255,12 @@ message Constraint {
 }
 
 message CreateConstraintRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["segment_key", "type", "property", "operator"]
+    }
+  };
+
   string segment_key = 1;
   ComparisonType type = 2;
   string property = 3;
@@ -191,6 +269,12 @@ message CreateConstraintRequest {
 }
 
 message UpdateConstraintRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "segment_key", "type", "property", "operator"]
+    }
+  };
+
   string id = 1;
   string segment_key = 2;
   ComparisonType type = 3;
@@ -200,6 +284,12 @@ message UpdateConstraintRequest {
 }
 
 message DeleteConstraintRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "segment_key"]
+    }
+  };
+
   string id = 1;
   string segment_key = 2;
 }
@@ -219,34 +309,70 @@ message RuleList {
 }
 
 message ListRuleRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flag_key"]
+    }
+  };
+
   int32 limit = 1;
   int32 offset = 2;
   string flag_key = 3;
 }
 
 message GetRuleRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
 }
 
 message CreateRuleRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flag_key", "segment_key", "rank"]
+    }
+  };
+
   string flag_key = 1;
   string segment_key = 2;
   int32 rank = 3;
 }
 
 message UpdateRuleRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key", "segment_key"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
   string segment_key = 3;
 }
 
 message DeleteRuleRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
 }
 
 message OrderRulesRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flag_key", "rule_ids"]
+    }
+  };
+
   string flag_key = 1;
   repeated string rule_ids = 2;
 }
@@ -261,6 +387,12 @@ message Distribution {
 }
 
 message CreateDistributionRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flag_key", "rule_id", "variant_id", "rollout"]
+    }
+  };
+
   string flag_key = 1;
   string rule_id = 2;
   string variant_id = 3;
@@ -268,6 +400,12 @@ message CreateDistributionRequest {
 }
 
 message UpdateDistributionRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key", "rule_id", "variant_id", "rollout"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
   string rule_id = 3;
@@ -276,6 +414,12 @@ message UpdateDistributionRequest {
 }
 
 message DeleteDistributionRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["id", "flag_key", "rule_id", "variant_id"]
+    }
+  };
+
   string id = 1;
   string flag_key = 2;
   string rule_id = 3;
