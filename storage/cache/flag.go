@@ -24,7 +24,7 @@ type FlagCache struct {
 // NewFlagCache creates a FlagCache by wrapping a storage.FlagStore
 func NewFlagCache(logger logrus.FieldLogger, cacher Cacher, store storage.FlagStore) *FlagCache {
 	return &FlagCache{
-		logger: logger.WithField("cache", "flag"),
+		logger: logger.WithField("cache", "lru"),
 		cache:  cacher,
 		store:  store,
 	}

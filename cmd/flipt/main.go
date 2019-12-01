@@ -30,7 +30,7 @@ import (
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
-	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/db"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -61,16 +61,16 @@ const (
              |_|
   `
 
-	dbMigrationVersion uint = 1
+	dbMigrationVersion uint = 2
 )
 
 var (
-	logger  = logrus.New()
-	cfg     *config.Config
-	logFile *os.File
+	logger = logrus.New()
+	cfg    *config.Config
 
 	cfgPath      string
 	printVersion bool
+	forceMigrate bool
 
 	version   = "dev"
 	commit    = ""
@@ -103,6 +103,8 @@ func main() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
+	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
+	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
 	cobra.OnInitialize(initConfig)
@@ -135,20 +137,20 @@ func printVersionHeader() {
 }
 
 func runMigrations() error {
-	db, driver, err := storage.Open(cfg.Database.URL)
+	sql, driver, err := db.Open(cfg.Database.URL)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
 
-	defer db.Close()
+	defer sql.Close()
 
 	var dr database.Driver
 
 	switch driver {
-	case storage.SQLite:
-		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-	case storage.Postgres:
-		dr, err = postgres.WithInstance(db, &postgres.Config{})
+	case db.SQLite:
+		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
+	case db.Postgres:
+		dr, err = postgres.WithInstance(sql, &postgres.Config{})
 	}
 
 	if err != nil {
@@ -209,25 +211,26 @@ func execute() error {
 		logger := logger.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		db, driver, err := storage.Open(cfg.Database.URL)
+		sql, driver, err := db.Open(cfg.Database.URL)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
 
-		defer db.Close()
+		defer sql.Close()
 
 		var (
-			builder sq.StatementBuilderType
-			dr      database.Driver
+			builder    sq.StatementBuilderType
+			dr         database.Driver
+			stmtCacher = sq.NewStmtCacher(sql)
 		)
 
 		switch driver {
-		case storage.SQLite:
-			builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
-			dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		case storage.Postgres:
-			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
-			dr, err = postgres.WithInstance(db, &postgres.Config{})
+		case db.SQLite:
+			builder = sq.StatementBuilder.RunWith(stmtCacher)
+			dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
+		case db.Postgres:
+			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+			dr, err = postgres.WithInstance(sql, &postgres.Config{})
 		}
 
 		if err != nil {
@@ -246,16 +249,26 @@ func execute() error {
 			return fmt.Errorf("getting current migrations version: %w", err)
 		}
 
+		logger = logger.WithField("storage", driver.String())
+
 		// if first run, go ahead and run all migrations
-		// otherwise exit and inform user to run manually
+		// otherwise exit and inform user to run manually if migrations are pending
 		if err == migrate.ErrNilVersion {
 			logger.Debug("no previous migrations run; running now")
 			if err := runMigrations(); err != nil {
 				return fmt.Errorf("running migrations: %w", err)
 			}
 		} else if v < dbMigrationVersion {
-			logger.Debugf("migrations pending: current=%d, want=%d", v, dbMigrationVersion)
-			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+			logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, dbMigrationVersion)
+
+			if forceMigrate {
+				logger.Debugf("force-migrate set; running now")
+				if err := runMigrations(); err != nil {
+					return fmt.Errorf("running migrations: %w", err)
+				}
+			} else {
+				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+			}
 		}
 
 		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
@@ -283,7 +296,7 @@ func execute() error {
 			serverOpts = append(serverOpts, server.WithCache(cache))
 		}
 
-		srv = server.New(logger, builder, db, serverOpts...)
+		srv = server.New(logger, builder, sql, serverOpts...)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
@@ -316,7 +329,7 @@ func execute() error {
 
 		var (
 			r        = chi.NewRouter()
-			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false}))
+			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false, EmitDefaults: true}))
 			opts     = []grpc.DialOption{grpc.WithBlock()}
 			httpPort int
 		)
@@ -455,44 +468,29 @@ func execute() error {
 }
 
 func setupLogger(cfg *config.Config) error {
-	if err := setLogOutput(cfg); err != nil {
-		return err
-	}
+	logger.SetOutput(os.Stdout)
 
-	return setLogLevel(cfg)
-}
-
-func setLogOutput(cfg *config.Config) error {
 	if cfg.Log.File != "" {
 		logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
 		if err != nil {
-			return err
+			return fmt.Errorf("opening log file: %s %w", cfg.Log.File, err)
 		}
 
 		logger.SetOutput(logFile)
-		logrus.RegisterExitHandler(closeLogFile)
-	} else {
-		logger.SetOutput(os.Stdout)
+		logrus.RegisterExitHandler(func() {
+			if logFile != nil {
+				_ = logFile.Close()
+			}
+		})
 	}
 
-	return nil
-}
-
-func setLogLevel(cfg *config.Config) error {
 	lvl, err := logrus.ParseLevel(cfg.Log.Level)
 	if err != nil {
-		return err
+		return fmt.Errorf("parsing log level: %s %w", cfg.Log.Level, err)
 	}
 
 	logger.SetLevel(lvl)
-
 	return nil
-}
-
-func closeLogFile() {
-	if logFile != nil {
-		logFile.Close()
-	}
 }
 
 type info struct {

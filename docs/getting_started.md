@@ -55,7 +55,7 @@ Next we'll create a segment with a constraint that will be used to determine the
 
 ### Create a Segment
 
-Segments are used to split your userbase into subsets.
+Segments are used to split your user base into subsets.
 
 To create a segment:
 
@@ -124,8 +124,8 @@ To test evaluation:
 1. Navigate to the `Targeting` section for your flag that you created above.
 1. Scroll down to the `Debug Console` section and click into the left pane where you will see a JSON payload. This represents the body of the request that will be evaluated.
 1. Notice the `flagKey` matches the `key` field of your flag.
-1. Notice that `entityId` is prepopulated with a random UUID. This represents the ID that you would use to uniquely identify entities (ex: users) that you want to test against your flags.
-1. Note that the `context` object is prepopulated as well. This corresponds to the properties that will be evaluated to determine if your request matches any constraints of your segments.
+1. Notice that `entityId` is pre-populated with a random UUID. This represents the ID that you would use to uniquely identify entities (ex: users) that you want to test against your flags.
+1. Note that the `context` object is pre-populated as well. This corresponds to the properties that will be evaluated to determine if your request matches any constraints of your segments.
 1. Update the `context` object as shown.
 1. Click `Debug`.
 1. Note the `Response` pane to the right has been populated with the evaluation response from the server, informing you that this request would match your segment that you created earlier, and return one of the variants defined.

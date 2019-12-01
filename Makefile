@@ -2,9 +2,10 @@ PROJECT = flipt
 
 SOURCE_FILES ?= ./...
 
+BENCH_PATTERN ?= .
 TEST_PATTERN ?= .
 TEST_OPTS ?=
-TEST_FLAGS ?=
+TEST_FLAGS ?= -v
 
 TOOLS = \
 	"github.com/gobuffalo/packr/packr" \
@@ -18,7 +19,7 @@ TOOLS = \
 	"github.com/buchanae/github-release-notes" \
 
 UI_PATH = ui
-UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
+UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
 UI_NODE_MODULES_PATH = $(UI_PATH)/node_modules
 UI_OUTPUT_PATH = $(UI_PATH)/dist
 
@@ -36,12 +37,12 @@ setup: ## Install dev tools
 .PHONY: bench
 bench: ## Run all the benchmarks
 	@echo ">> running benchmarks"
-	go test -v -bench=. $(SOURCE_FILES) -run=XXX
+	go test -bench=$(BENCH_PATTERN) $(SOURCE_FILES) -run=XXX $(TEST_FLAGS)
 
 .PHONY: test
 test: ## Run all the tests
 	@echo ">> running tests"
-	go test $(TEST_OPTS) -v -covermode=atomic -count=1 -coverprofile=coverage.txt $(SOURCE_FILES) -run $(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
+	go test $(TEST_OPTS) -covermode=atomic -count=1 -coverprofile=coverage.txt $(SOURCE_FILES) -run=$(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
 
 .PHONY: cover
 cover: test ## Run all the tests and opens the coverage report
@@ -91,7 +92,7 @@ build: clean assets pack ## Build a local copy
 .PHONY: dev
 dev: clean assets ## Build and run in development mode
 	@echo ">> building and running in development mode"
-	go run ./cmd/$(PROJECT)/. --config ./config/local.yml
+	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
 snapshot: clean assets pack ## Build a snapshot version

@@ -145,18 +145,6 @@ func (req *CreateRuleRequest) Validate() error {
 	return nil
 }
 
-func (req *DeleteRuleRequest) Validate() error {
-	if req.Id == "" {
-		return errors.EmptyFieldError("id")
-	}
-
-	if req.FlagKey == "" {
-		return errors.EmptyFieldError("flagKey")
-	}
-
-	return nil
-}
-
 func (req *UpdateRuleRequest) Validate() error {
 	if req.Id == "" {
 		return errors.EmptyFieldError("id")
@@ -168,6 +156,18 @@ func (req *UpdateRuleRequest) Validate() error {
 
 	if req.SegmentKey == "" {
 		return errors.EmptyFieldError("segmentKey")
+	}
+
+	return nil
+}
+
+func (req *DeleteRuleRequest) Validate() error {
+	if req.Id == "" {
+		return errors.EmptyFieldError("id")
+	}
+
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package storage
+package db
 
 import (
 	"context"
@@ -15,25 +15,22 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
 )
 
-type Evaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
-}
+var _ storage.Evaluator = &Evaluator{}
 
-var _ Evaluator = &EvaluatorStorage{}
-
-// EvaluatorStorage is a SQL Evaluator
-type EvaluatorStorage struct {
+// Evaluator is a SQL Evaluator
+type Evaluator struct {
 	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
-// NewEvaluatorStorage creates an EvaluatorStorage
-func NewEvaluatorStorage(logger logrus.FieldLogger, builder sq.StatementBuilderType) *EvaluatorStorage {
-	return &EvaluatorStorage{
-		logger:  logger.WithField("storage", "evaluator"),
+// NewEvaluator creates an Evaluator
+func NewEvaluator(logger logrus.FieldLogger, builder sq.StatementBuilderType) *Evaluator {
+	return &Evaluator{
+		logger:  logger,
 		builder: builder,
 	}
 }
@@ -54,11 +51,12 @@ type constraint struct {
 }
 
 type rule struct {
-	ID          string
-	FlagKey     string
-	SegmentKey  string
-	Rank        int32
-	Constraints []constraint
+	ID               string
+	FlagKey          string
+	SegmentKey       string
+	SegmentMatchType flipt.MatchType
+	Rank             int32
+	Constraints      []constraint
 }
 
 type distribution struct {
@@ -70,7 +68,7 @@ type distribution struct {
 }
 
 // Evaluate evaluates a request for a given flag and entity
-func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+func (s *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	logger := s.logger.WithField("request", r)
 	logger.Debug("evaluate")
 
@@ -106,12 +104,13 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 	}
 
 	// get all rules for flag with their constraints if any
-	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, r.rank, c.id, c.type, c.property, c.operator, c.value").
+	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.rank, c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
-		LeftJoin("constraints c ON (r.segment_key = c.segment_key)").
+		Join("segments s on (r.segment_key = s.key)").
+		LeftJoin("constraints c ON (s.key = c.segment_key)").
 		Where(sq.Eq{"r.flag_key": r.FlagKey}).
 		OrderBy("r.rank ASC").
-		GroupBy("r.id, c.id").
+		GroupBy("r.id, c.id, s.match_type").
 		QueryContext(ctx)
 	if err != nil {
 		return resp, err
@@ -134,7 +133,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 			optionalConstraint optionalConstraint
 		)
 
-		if err := rows.Scan(&tempRule.ID, &tempRule.FlagKey, &tempRule.SegmentKey, &tempRule.Rank, &optionalConstraint.ID, &optionalConstraint.Type, &optionalConstraint.Property, &optionalConstraint.Operator, &optionalConstraint.Value); err != nil {
+		if err := rows.Scan(&tempRule.ID, &tempRule.FlagKey, &tempRule.SegmentKey, &tempRule.SegmentMatchType, &tempRule.Rank, &optionalConstraint.ID, &optionalConstraint.Type, &optionalConstraint.Property, &optionalConstraint.Operator, &optionalConstraint.Value); err != nil {
 			return resp, err
 		}
 
@@ -152,10 +151,11 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		} else {
 			// haven't seen this rule before
 			newRule := &rule{
-				ID:         tempRule.ID,
-				FlagKey:    tempRule.FlagKey,
-				SegmentKey: tempRule.SegmentKey,
-				Rank:       tempRule.Rank,
+				ID:               tempRule.ID,
+				FlagKey:          tempRule.FlagKey,
+				SegmentKey:       tempRule.SegmentKey,
+				SegmentMatchType: tempRule.SegmentMatchType,
+				Rank:             tempRule.Rank,
 			}
 
 			if optionalConstraint.ID.Valid {
@@ -182,9 +182,11 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		return resp, nil
 	}
 
+	// rule loop
 	for _, rule := range rules {
 		constraintMatches := 0
 
+		// constraint loop
 		for _, c := range rule.Constraints {
 			v := r.Context[c.Property]
 
@@ -208,20 +210,51 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 				return resp, err
 			}
 
-			// constraint doesn't match, we can short circuit and move to the next rule
-			// because we must match ALL constraints
-			if !match {
+			if match {
+				logger.Debugf("constraint: %+v matches", c)
+
+				// increase the matchCount
+				constraintMatches++
+
+				switch rule.SegmentMatchType {
+				case flipt.MatchType_ANY_MATCH_TYPE:
+					// can short circuit here since we had at least one match
+					break
+				default:
+					// keep looping as we need to match all constraints
+					continue
+				}
+			} else {
+				// no match
 				logger.Debugf("constraint: %+v does not match", c)
-				break
+
+				switch rule.SegmentMatchType {
+				case flipt.MatchType_ALL_MATCH_TYPE:
+					// we can short circuit because we must match all constraints
+					break
+				default:
+					// keep looping to see if we match the next constraint
+					continue
+				}
+			}
+		} // end constraint loop
+
+		switch rule.SegmentMatchType {
+		case flipt.MatchType_ALL_MATCH_TYPE:
+			if len(rule.Constraints) != constraintMatches {
+				// all constraints did not match, continue to next rule
+				logger.Debug("did not match ALL constraints")
+				continue
 			}
 
-			// otherwise, increase the matchCount
-			constraintMatches++
-		}
-
-		// all constraints did not match
-		if constraintMatches != len(rule.Constraints) {
-			logger.Debug("did not match all constraints")
+		case flipt.MatchType_ANY_MATCH_TYPE:
+			if len(rule.Constraints) > 0 && constraintMatches == 0 {
+				// no constraints matched, continue to next rule
+				logger.Debug("did not match ANY constraints")
+				continue
+			}
+		default:
+			logger.Errorf("unknown match type: %v", rule.SegmentMatchType)
 			continue
 		}
 
@@ -299,7 +332,7 @@ func (s *EvaluatorStorage) Evaluate(ctx context.Context, r *flipt.EvaluationRequ
 		logger.Debug("did not match any distributions")
 
 		return resp, nil
-	}
+	} // end rule loop
 
 	return resp, nil
 }

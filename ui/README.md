@@ -8,15 +8,3 @@ The ui directory contains these `.vue` files, along with others used in the web 
 
 * [NodeJS](https://nodejs.org/en/)
 * [Yarn](https://yarnpkg.com/en/)
-
-## Distribution
-
-For distribution these assets must be included in the Flipt binary so that users do not need to copy these files along with the Flipt binary.
-
-To build before committing, run:
-
-```shell
-$ make assets
-```
-
-This will build and update the generated in-line versions of the files to be included for release.

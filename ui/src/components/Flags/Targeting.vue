@@ -65,10 +65,12 @@
     <div
       id="addRuleDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogAddRuleVisible }"
+      @keyup.esc="cancelAddRule"
     >
       <div class="modal-background" @click.prevent="cancelAddRule" />
-      <div class="modal-content" @keyup.esc="cancelAddRule">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -179,10 +181,12 @@
     <div
       id="editRule"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogEditRuleVisible }"
+      @keyup.esc="cancelEditRule"
     >
       <div class="modal-background" @click.prevent="cancelEditRule" />
-      <div class="modal-content" @keyup.esc="cancelEditRule">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -272,6 +276,7 @@ import draggable from "vuedraggable";
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
 import targeting from "@/mixins/targeting";
+import utils from "@/mixins/utils";
 import Rule from "./Rule";
 import DebugConsole from "./DebugConsole";
 
@@ -289,7 +294,7 @@ export default {
     Rule,
     DebugConsole
   },
-  mixins: [notify, targeting],
+  mixins: [notify, targeting, utils],
   data() {
     return {
       dialogAddRuleVisible: false,
@@ -309,7 +314,7 @@ export default {
       return this.flag.variants && this.flag.variants.length > 0;
     },
     canAddRule() {
-      return this.newRule.segmentKey;
+      return this.isPresent(this.newRule.segmentKey);
     }
   },
   mounted() {

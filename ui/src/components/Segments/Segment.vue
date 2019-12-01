@@ -29,6 +29,23 @@
               placeholder="Segment description"
             />
           </b-field>
+          <b-field label="Match Type" :message="matchTypeText">
+            <div class="block">
+              <b-radio
+                v-model="segment.matchType"
+                native-value="ALL_MATCH_TYPE"
+              >
+                Match All
+              </b-radio>
+              <b-radio
+                v-model="segment.matchType"
+                native-value="ANY_MATCH_TYPE"
+              >
+                Match Any
+              </b-radio>
+            </div>
+          </b-field>
+          <hr />
           <div class="level">
             <div class="level-left">
               <div class="level-item">
@@ -68,9 +85,14 @@
             </div>
           </div>
         </form>
-        <hr />
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
         <h5 class="title is-5">Constraints</h5>
-        <p class="subtitle is-7">Match All</p>
+        <p class="subtitle is-7">
+          Determine if an entity matches your segment
+        </p>
         <b-table :data="segment.constraints">
           <template slot-scope="props">
             <b-table-column field="property" label="Property" sortable>
@@ -120,10 +142,12 @@
     <div
       id="addConstraintDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogAddConstraintVisible }"
+      @keyup.esc="cancelAddConstraint"
     >
       <div class="modal-background" @click.prevent="cancelAddConstraint" />
-      <div class="modal-content" @keyup.esc="cancelAddConstraint">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -201,10 +225,12 @@
     <div
       id="editConstraintDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogEditConstraintVisible }"
+      @keyup.esc="cancelEditConstraint"
     >
       <div class="modal-background" @click.prevent="cancelEditConstraint" />
-      <div class="modal-content" @keyup.esc="cancelAddConstraint">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -283,16 +309,15 @@
     <div
       id="deleteSegmentDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogDeleteSegmentVisible }"
+      @keyup.esc="dialogDeleteSegmentVisible = false"
     >
       <div
         class="modal-background"
         @click="dialogDeleteSegmentVisible = false"
       />
-      <div
-        class="modal-content"
-        @keyup.esc="dialogDeleteSegmentVisible = false"
-      >
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <p class="has-text-centered">
@@ -330,6 +355,7 @@ import merge from "lodash/merge";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import utils from "@/mixins/utils";
 
 const STRING_OPERATORS = {
   eq: "==",
@@ -373,13 +399,14 @@ const DEFAULT_CONSTRAINT = {
 
 export default {
   name: "Segment",
-  mixins: [notify],
+  mixins: [notify, utils],
   data() {
     return {
       dialogDeleteSegmentVisible: false,
       dialogAddConstraintVisible: false,
       dialogEditConstraintVisible: false,
       segment: {
+        matchType: "ALL_MATCH_TYPE",
         constraints: []
       },
       newConstraint: clone(DEFAULT_CONSTRAINT),
@@ -395,31 +422,40 @@ export default {
   },
   computed: {
     canUpdateSegment() {
-      return this.segment.key && this.segment.name;
+      return (
+        this.isPresent(this.segment.key) && this.isPresent(this.segment.name)
+      );
     },
     canAddConstraint() {
       let valid =
-        this.newConstraint.property &&
-        this.newConstraint.type &&
-        this.newConstraint.operator;
+        this.isPresent(this.newConstraint.property) &&
+        this.isPresent(this.newConstraint.type) &&
+        this.isPresent(this.newConstraint.operator);
 
       if (this.hasValue(this.newConstraint)) {
-        return valid && this.newConstraint.value;
+        return valid && this.isPresent(this.newConstraint.value);
       }
 
       return valid;
     },
     canUpdateConstraint() {
       let valid =
-        this.selectedConstraint.property &&
-        this.selectedConstraint.type &&
-        this.selectedConstraint.operator;
+        this.isPresent(this.selectedConstraint.property) &&
+        this.isPresent(this.selectedConstraint.type) &&
+        this.isPresent(this.selectedConstraint.operator);
 
       if (this.hasValue(this.selectedConstraint)) {
-        return valid && this.selectedConstraint.value;
+        return valid && this.isPresent(this.selectedConstraint.value);
       }
 
       return valid;
+    },
+    matchTypeText() {
+      if (this.segment.matchType === "ALL_MATCH_TYPE") {
+        return "All constraints must match.";
+      } else {
+        return "At least one constraint must match.";
+      }
     }
   },
   mounted() {

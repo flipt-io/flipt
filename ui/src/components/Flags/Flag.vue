@@ -38,7 +38,7 @@
           <b-field label="Enabled">
             <b-switch v-model="flag.enabled" />
           </b-field>
-          <br />
+          <hr />
           <div class="level">
             <div class="level-left">
               <div class="level-item">
@@ -76,7 +76,10 @@
             </div>
           </div>
         </form>
-        <hr />
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
         <h5 class="title is-5">Variants</h5>
         <p class="subtitle is-7">
           Return different values based on rules you define
@@ -127,10 +130,12 @@
     <div
       id="addVariantDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogAddVariantVisible }"
+      @keyup.esc="cancelAddVariant"
     >
       <div class="modal-background" @click.prevent="cancelAddVariant" />
-      <div class="modal-content" @keyup.esc="cancelAddVariant">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -182,10 +187,12 @@
     <div
       id="editVariantDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogEditVariantVisible }"
+      @keyup.esc="cancelEditVariant"
     >
       <div class="modal-background" @click.prevent="cancelEditVariant" />
-      <div class="modal-content" @keyup.esc="cancelEditVariant">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <form>
@@ -237,10 +244,12 @@
     <div
       id="deleteFlagDialog"
       class="modal"
+      tabindex="0"
       :class="{ 'is-active': dialogDeleteFlagVisible }"
+      @keyup.esc="dialogDeleteFlagVisible = false"
     >
       <div class="modal-background" @click="dialogDeleteFlagVisible = false" />
-      <div class="modal-content" @keyup.esc="dialogDeleteFlagVisible = false">
+      <div class="modal-content">
         <div class="container">
           <div class="box">
             <p class="has-text-centered">
@@ -277,6 +286,7 @@ import capitalize from "lodash/capitalize";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
+import utils from "@/mixins/utils";
 
 const DEFAULT_VARIANT = {
   key: "",
@@ -286,7 +296,7 @@ const DEFAULT_VARIANT = {
 
 export default {
   name: "Flag",
-  mixins: [notify],
+  mixins: [notify, utils],
   data() {
     return {
       dialogDeleteFlagVisible: false,
@@ -301,13 +311,13 @@ export default {
   },
   computed: {
     canUpdateFlag() {
-      return this.flag.key && this.flag.name;
+      return this.isPresent(this.flag.key) && this.isPresent(this.flag.name);
     },
     canAddVariant() {
-      return this.newVariant.key;
+      return this.isPresent(this.newVariant.key);
     },
     canUpdateVariant() {
-      return this.selectedVariant.key;
+      return this.isPresent(this.selectedVariant.key);
     }
   },
   mounted() {

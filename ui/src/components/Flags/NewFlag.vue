@@ -43,7 +43,7 @@
                 <div class="control">
                   <button
                     class="button is-primary"
-                    :disabled="!canCreate"
+                    :disabled="!canCreateFlag"
                     @click.prevent="createFlag()"
                   >
                     Create
@@ -69,18 +69,19 @@ import capitalize from "lodash/capitalize";
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
 import autoKeys from "@/mixins/autoKeys";
+import utils from "@/mixins/utils";
 
 export default {
   name: "NewFlag",
-  mixins: [notify, autoKeys],
+  mixins: [notify, autoKeys, utils],
   data() {
     return {
       flag: {}
     };
   },
   computed: {
-    canCreate() {
-      return this.flag.name && this.flag.key;
+    canCreateFlag() {
+      return this.isPresent(this.flag.name) && this.isPresent(this.flag.key);
     }
   },
   methods: {
@@ -94,15 +95,12 @@ export default {
       // Check if the name and key are currently in sync
       // We do this so we don't override a custom key value
       if (
-        this.keyIsUndefinedOrEmpty() ||
+        this.isEmpty(this.flag.key) ||
         this.flag.key === this.formatStringAsKey(prevName)
       ) {
         this.flag.key = this.flag.name;
         this.formatKey();
       }
-    },
-    keyIsUndefinedOrEmpty() {
-      return this.flag.key === undefined || this.flag.key === "";
     },
     createFlag() {
       Api.post("/flags", this.flag)

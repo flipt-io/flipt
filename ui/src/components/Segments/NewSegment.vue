@@ -32,6 +32,16 @@
             placeholder="Segment description"
           />
         </b-field>
+        <b-field label="Match Type" :message="matchTypeText">
+          <div class="block">
+            <b-radio v-model="segment.matchType" native-value="ALL_MATCH_TYPE">
+              Match All
+            </b-radio>
+            <b-radio v-model="segment.matchType" native-value="ANY_MATCH_TYPE">
+              Match Any
+            </b-radio>
+          </div>
+        </b-field>
         <hr />
         <div class="level">
           <div class="level-left">
@@ -40,7 +50,7 @@
                 <div class="control">
                   <button
                     class="button is-primary"
-                    :disabled="!canCreate"
+                    :disabled="!canCreateSegment"
                     @click.prevent="createSegment()"
                   >
                     Create
@@ -65,18 +75,30 @@ import capitalize from "lodash/capitalize";
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
 import autoKeys from "@/mixins/autoKeys";
+import utils from "@/mixins/utils";
 
 export default {
   name: "NewSegment",
-  mixins: [notify, autoKeys],
+  mixins: [notify, autoKeys, utils],
   data() {
     return {
-      segment: {}
+      segment: {
+        matchType: "ALL_MATCH_TYPE"
+      }
     };
   },
   computed: {
-    canCreate() {
-      return this.segment.name && this.segment.key;
+    canCreateSegment() {
+      return (
+        this.isPresent(this.segment.name) && this.isPresent(this.segment.key)
+      );
+    },
+    matchTypeText() {
+      if (this.segment.matchType === "ALL_MATCH_TYPE") {
+        return "All constraints must match.";
+      } else {
+        return "At least one constraint must match.";
+      }
     }
   },
   methods: {
@@ -90,15 +112,12 @@ export default {
       // Check if the name and key are currently in sync
       // We do this so we don't override a custom key value
       if (
-        this.keyIsUndefinedOrEmpty() ||
+        this.isEmpty(this.segment.key) ||
         this.segment.key === this.formatStringAsKey(prevName)
       ) {
         this.segment.key = this.segment.name;
         this.formatKey();
       }
-    },
-    keyIsUndefinedOrEmpty() {
-      return this.segment.key === undefined || this.segment.key === "";
     },
     createSegment() {
       Api.post("/segments", this.segment)

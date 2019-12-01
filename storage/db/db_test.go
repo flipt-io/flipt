@@ -1,4 +1,4 @@
-package storage
+package db
 
 import (
 	"fmt"
@@ -77,13 +77,13 @@ func TestParse(t *testing.T) {
 var (
 	logger *logrus.Logger
 
-	flagStore    *FlagStorage
-	segmentStore *SegmentStorage
-	ruleStore    *RuleStorage
-	evaluator    *EvaluatorStorage
+	flagStore    *FlagStore
+	segmentStore *SegmentStore
+	ruleStore    *RuleStore
+	evaluator    *Evaluator
 )
 
-const defaultTestDBURL = "file:../flipt_test.db"
+const defaultTestDBURL = "file:../../flipt_test.db"
 
 func TestMain(m *testing.M) {
 	// os.Exit skips defer calls
@@ -135,17 +135,19 @@ func run(m *testing.M) int {
 		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
 
 		stmt = "TRUNCATE TABLE %s CASCADE"
-	}
-
-	for _, t := range tables {
-		_, _ = db.Exec(fmt.Sprintf(stmt, t))
+	default:
+		logger.Fatalf("unknown driver: %s", driver)
 	}
 
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	f := filepath.Clean(fmt.Sprintf("../config/migrations/%s", driver))
+	for _, t := range tables {
+		_, _ = db.Exec(fmt.Sprintf(stmt, t))
+	}
+
+	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
 	if err != nil {
@@ -158,10 +160,10 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	flagStore = NewFlagStorage(logger, builder)
-	segmentStore = NewSegmentStorage(logger, builder)
-	ruleStore = NewRuleStorage(logger, builder, db)
-	evaluator = NewEvaluatorStorage(logger, builder)
+	flagStore = NewFlagStore(logger, builder)
+	segmentStore = NewSegmentStore(logger, builder)
+	ruleStore = NewRuleStore(logger, builder, db)
+	evaluator = NewEvaluator(logger, builder)
 
 	return m.Run()
 }

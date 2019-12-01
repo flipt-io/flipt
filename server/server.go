@@ -9,6 +9,7 @@ import (
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
+	"github.com/markphelps/flipt/storage/db"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/sirupsen/logrus"
@@ -31,12 +32,12 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, db *sql.DB, opts ...Option) *Server {
+func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB, opts ...Option) *Server {
 	var (
-		flagStore    = storage.NewFlagStorage(logger, builder)
-		segmentStore = storage.NewSegmentStorage(logger, builder)
-		ruleStore    = storage.NewRuleStorage(logger, builder, db)
-		evaluator    = storage.NewEvaluatorStorage(logger, builder)
+		flagStore    = db.NewFlagStore(logger, builder)
+		segmentStore = db.NewSegmentStore(logger, builder)
+		ruleStore    = db.NewRuleStore(logger, builder, sql)
+		evaluator    = db.NewEvaluator(logger, builder)
 
 		s = &Server{
 			logger:       logger,
