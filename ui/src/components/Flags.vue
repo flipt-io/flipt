@@ -53,7 +53,7 @@
             {{ props.row.variants ? "yes" : "no" }}
           </b-table-column>
           <b-table-column field="description" label="Description">
-            <small>{{ props.row.description }}</small>
+            <small>{{ props.row.description | limit }}</small>
           </b-table-column>
           <b-table-column field="createdAt" label="Created" sortable>
             <small>{{ props.row.createdAt | moment("from", "now") }}</small>

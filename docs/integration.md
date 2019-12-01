@@ -92,7 +92,7 @@ This will load the API documentation which documents valid requests/responses to
 
 ### Generate
 
-You can use [swagger-codegen](https://github.com/swagger-api/swagger-codegen) to generate client code in your prefered language from the OpenAPI v2 specification linked above.
+You can use [swagger-codegen](https://github.com/swagger-api/swagger-codegen) to generate client code in your preferred language from the OpenAPI v2 specification linked above.
 
 While generating clients in all languages supported by swagger-codegen is outside of the scope of this documentation, an example of generating a Java client is below.
 

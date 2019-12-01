@@ -19,7 +19,7 @@ TOOLS = \
 	"github.com/buchanae/github-release-notes" \
 
 UI_PATH = ui
-UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
+UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
 UI_NODE_MODULES_PATH = $(UI_PATH)/node_modules
 UI_OUTPUT_PATH = $(UI_PATH)/dist
 

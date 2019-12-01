@@ -47,11 +47,14 @@
               {{ props.row.name }}
             </RouterLink>
           </b-table-column>
-          <b-table-column field="hasConstraints" label="Constraints" sortable>
+          <b-table-column field="hasConstraints" label="Constraints">
             {{ props.row.constraints ? "yes" : "no" }}
           </b-table-column>
+          <b-table-column field="hasConstraints" label="Match">
+            {{ props.row.matchType === "ANY_MATCH_TYPE" ? "any" : "all" }}
+          </b-table-column>
           <b-table-column field="description" label="Description">
-            <small>{{ props.row.description }}</small>
+            <small>{{ props.row.description | limit }}</small>
           </b-table-column>
           <b-table-column field="createdAt" label="Created" sortable>
             <small>{{ props.row.createdAt | moment("from", "now") }}</small>

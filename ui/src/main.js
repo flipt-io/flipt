@@ -10,6 +10,16 @@ Vue.config.productionTip = false;
 Vue.use(require("vue-moment"));
 Vue.use(Buefy);
 
+Vue.filter("limit", function(value) {
+  if (!value) return "";
+  value = value.toString();
+  if (value.length > 30) {
+    return value.substring(0, 29) + "...";
+  } else {
+    return value;
+  }
+});
+
 /* eslint-disable no-new */
 new Vue({
   el: "#app",

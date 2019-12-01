@@ -8,7 +8,7 @@ Flags are the basic unit in the Flipt ecosystem. Flags represent experiments or 
 
 For example, a flag named `new-contact-page`, could be used to determine whether or not a given user sees the latest version of a contact us page that you are working on when they visit your homepage.
 
-Flags can be used as simple on/off toggles or with variants and rules to support more elaborate usecases.
+Flags can be used as simple on/off toggles or with variants and rules to support more elaborate use cases.
 
 ![Flags Example](assets/images/concepts/00_flags.png?raw=true "Flags Example")
 
@@ -23,14 +23,24 @@ Variants are options for flags. For example, if you have a flag `colorscheme` th
 
 ## Segments
 
-Segments allow you to split your userbase or audience up into predefined slices. This is a powerful feature that enables targeting groups to determine if a flag or variant applies to them.
+Segments allow you to split your user base or audience up into predefined slices. This is a powerful feature that enables targeting groups to determine if a flag or variant applies to them.
 
 An example segment could be `new-users`.
 
 ![New Users Segment](assets/images/concepts/02_segments.png)
 
 !!! tip
-    Segments are global across the Flipt application so they can be used with multiple flags.
+    Segments are global across the Flipt application so they can be used in multiple rules.
+
+### Match Types
+
+When configuring a segment you can choose a `Match Type` of either:
+
+**Match All** which requires ALL constraints to match for the segment to apply for evaluation.
+
+_or_
+
+**Match Any** which requires AT LEAST ONE constraint to match for the segment to apply for evaluation.
 
 ## Constraints
 
@@ -53,9 +63,6 @@ All constraints have a *property*, *type*, *operator* and optionally a *value*.
 <dd>what to compare with the operator<dd>
 </dl>
 
-!!! note
-    In order for a segment to match, it must match **ALL** of it's constraints.
-
 ## Rules
 
 Rules allow you to tie your flags, variants and segments together by specifying which segments are targeted by which variants.
@@ -71,7 +78,7 @@ Continuing our previous example, we may want to return the flag variant `blue` f
 
 ## Distributions
 
-Distributions allow you to rollout different variants of your flag to percentages of your userbase based on your rules.
+Distributions allow you to rollout different variants of your flag to percentages of your user base based on your rules.
 
 Let's say that instead of always showing the `blue` variant to your `new-users` segment, you want to show blue to 30% of `new-users`, `red` to 10%, and `green` to the remaining 60%. You would accomplish this using rules with distributions:
 
@@ -83,7 +90,7 @@ This is an extremely powerful feature of Flipt that can help you seamlessly depl
 
 Evaluation is the process of sending requests to the Flipt server to process and determine if that request matches any of your segments, and if so which variant to return.
 
-In the above example involving colors, evaluation is where you send information about your current user to determine if they are a `new-user`, and which color (`blue`, `red`, or `green`) that they should see for their main colorscheme.
+In the above example involving colors, evaluation is where you send information about your current user to determine if they are a `new-user`, and which color (`blue`, `red`, or `green`) that they should see for their main color scheme.
 
 ### Entities
 
