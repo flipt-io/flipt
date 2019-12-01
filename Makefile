@@ -104,6 +104,11 @@ release: clean assets pack ## Build and publish a release
 	@echo ">> building and publishing a release"
 	@./script/build/release
 
+.PHONY: clients
+clients: ## Generate GRPC clients
+	@echo ">> generating clients"
+	@./script/build/clients
+
 .PHONY: help
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
