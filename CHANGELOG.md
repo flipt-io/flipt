@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.11.0](https://github.com/markphelps/flipt/releases/tag/v0.11.0) - 2019-12-01
+
+### Added
+
+* Ability to match ANY constraints for a segment: [https://github.com/markphelps/flipt/issues/180](https://github.com/markphelps/flipt/issues/180)
+* Pagination for Flag/Segment grids
+* Required fields in API Swagger Documentation
+
+### Changed
+
+* All JSON fields in responses are returned, even empty ones
+* Various UI Tweaks: [https://github.com/markphelps/flipt/issues/190](https://github.com/markphelps/flipt/issues/190)
+
 ## [v0.10.6](https://github.com/markphelps/flipt/releases/tag/v0.10.6) - 2019-11-28
 
 ### Changed
