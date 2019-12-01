@@ -1923,13 +1923,19 @@ func Test_evaluate(t *testing.T) {
 	})
 }
 
+var benchResult *flipt.EvaluationResponse
+
 func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
-	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		Enabled:     true,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	var variants []*flipt.Variant
 
@@ -1943,17 +1949,26 @@ func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
 			Key:     fmt.Sprintf("bar_%s", b.Name()),
 		},
 	} {
-		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
+
 		variants = append(variants, variant)
 	}
 
-	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 	})
 
-	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
@@ -1961,24 +1976,40 @@ func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
 		Value:      "baz",
 	})
 
-	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
 		Operator:   flipt.OpTrue,
 	})
 
-	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
 
-	_, _ = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variants[0].Id,
 		Rollout:   100,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	runs := []struct {
 		name string
@@ -2032,22 +2063,28 @@ func BenchmarkEvaluate_MatchAll_SingleVariantDistribution(b *testing.B) {
 		req := bb.req
 
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
+			var r *flipt.EvaluationResponse
 
 			for i := 0; i < b.N; i++ {
-				_, _ = evaluator.Evaluate(context.TODO(), req)
+				r, _ = evaluator.Evaluate(context.TODO(), req)
 			}
+
+			benchResult = r
 		})
 	}
 }
 
 func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
-	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		Enabled:     true,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	var variants []*flipt.Variant
 
@@ -2061,17 +2098,26 @@ func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
 			Key:     fmt.Sprintf("bar_%s", b.Name()),
 		},
 	} {
-		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
+
 		variants = append(variants, variant)
 	}
 
-	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 	})
 
-	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
@@ -2079,10 +2125,18 @@ func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
 		Value:      "baz",
 	})
 
-	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	for _, req := range []*flipt.CreateDistributionRequest{
 		{
@@ -2098,7 +2152,11 @@ func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
 			Rollout:   50,
 		},
 	} {
-		_, _ = ruleStore.CreateDistribution(context.TODO(), req)
+		_, err = ruleStore.CreateDistribution(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 
 	runs := []struct {
@@ -2141,22 +2199,28 @@ func BenchmarkEvaluate_MatchAll_RolloutDistribution(b *testing.B) {
 		req := bb.req
 
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
+			var r *flipt.EvaluationResponse
 
 			for i := 0; i < b.N; i++ {
-				_, _ = evaluator.Evaluate(context.TODO(), req)
+				r, _ = evaluator.Evaluate(context.TODO(), req)
 			}
+
+			benchResult = r
 		})
 	}
 }
 
 func BenchmarkEvaluate_MatchAll_NoConstraints(b *testing.B) {
-	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		Enabled:     true,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	var variants []*flipt.Variant
 
@@ -2170,20 +2234,33 @@ func BenchmarkEvaluate_MatchAll_NoConstraints(b *testing.B) {
 			Key:     fmt.Sprintf("bar_%s", b.Name()),
 		},
 	} {
-		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
+
 		variants = append(variants, variant)
 	}
 
-	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 	})
 
-	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	for _, req := range []*flipt.CreateDistributionRequest{
 		{
@@ -2199,7 +2276,11 @@ func BenchmarkEvaluate_MatchAll_NoConstraints(b *testing.B) {
 			Rollout:   50,
 		},
 	} {
-		_, _ = ruleStore.CreateDistribution(context.TODO(), req)
+		_, err = ruleStore.CreateDistribution(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 
 	runs := []struct {
@@ -2238,22 +2319,28 @@ func BenchmarkEvaluate_MatchAll_NoConstraints(b *testing.B) {
 		req := bb.req
 
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
+			var r *flipt.EvaluationResponse
 
 			for i := 0; i < b.N; i++ {
-				_, _ = evaluator.Evaluate(context.TODO(), req)
+				r, _ = evaluator.Evaluate(context.TODO(), req)
 			}
+
+			benchResult = r
 		})
 	}
 }
 
 func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
-	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		Enabled:     true,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	var variants []*flipt.Variant
 
@@ -2267,19 +2354,28 @@ func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
 			Key:     fmt.Sprintf("bar_%s", b.Name()),
 		},
 	} {
-		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
+
 		variants = append(variants, variant)
 	}
 
-	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
 	})
 
+	if err != nil {
+		b.Fatal(err)
+	}
+
 	// constraint: bar (string) == baz
-	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
@@ -2287,25 +2383,41 @@ func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
 		Value:      "baz",
 	})
 
+	if err != nil {
+		b.Fatal(err)
+	}
+
 	// constraint: admin (bool) == true
-	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 		Property:   "admin",
 		Operator:   flipt.OpTrue,
 	})
 
-	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
 
-	_, _ = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = ruleStore.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variants[0].Id,
 		Rollout:   100,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	runs := []struct {
 		name string
@@ -2380,22 +2492,28 @@ func BenchmarkEvaluate_MatchAny_SingleVariantDistribution(b *testing.B) {
 		req := bb.req
 
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
+			var r *flipt.EvaluationResponse
 
 			for i := 0; i < b.N; i++ {
-				_, _ = evaluator.Evaluate(context.TODO(), req)
+				r, _ = evaluator.Evaluate(context.TODO(), req)
 			}
+
+			benchResult = r
 		})
 	}
 }
 
 func BenchmarkEvaluate_MatchAny_RolloutDistribution(b *testing.B) {
-	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		Enabled:     true,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	var variants []*flipt.Variant
 
@@ -2409,18 +2527,27 @@ func BenchmarkEvaluate_MatchAny_RolloutDistribution(b *testing.B) {
 			Key:     fmt.Sprintf("bar_%s", b.Name()),
 		},
 	} {
-		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
+
 		variants = append(variants, variant)
 	}
 
-	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
 	})
 
-	_, _ = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = segmentStore.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "bar",
@@ -2428,10 +2555,18 @@ func BenchmarkEvaluate_MatchAny_RolloutDistribution(b *testing.B) {
 		Value:      "baz",
 	})
 
-	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	for _, req := range []*flipt.CreateDistributionRequest{
 		{
@@ -2447,7 +2582,11 @@ func BenchmarkEvaluate_MatchAny_RolloutDistribution(b *testing.B) {
 			Rollout:   50,
 		},
 	} {
-		_, _ = ruleStore.CreateDistribution(context.TODO(), req)
+		_, err = ruleStore.CreateDistribution(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 
 	runs := []struct {
@@ -2490,22 +2629,28 @@ func BenchmarkEvaluate_MatchAny_RolloutDistribution(b *testing.B) {
 		req := bb.req
 
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
+			var r *flipt.EvaluationResponse
 
 			for i := 0; i < b.N; i++ {
-				_, _ = evaluator.Evaluate(context.TODO(), req)
+				r, _ = evaluator.Evaluate(context.TODO(), req)
 			}
+
+			benchResult = r
 		})
 	}
 }
 
 func BenchmarkEvaluate_MatchAny_NoConstraints(b *testing.B) {
-	flag, _ := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		Enabled:     true,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	var variants []*flipt.Variant
 
@@ -2519,21 +2664,34 @@ func BenchmarkEvaluate_MatchAny_NoConstraints(b *testing.B) {
 			Key:     fmt.Sprintf("bar_%s", b.Name()),
 		},
 	} {
-		variant, _ := flagStore.CreateVariant(context.TODO(), req)
+		variant, err := flagStore.CreateVariant(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
+
 		variants = append(variants, variant)
 	}
 
-	segment, _ := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         b.Name(),
 		Name:        b.Name(),
 		Description: "foo",
 		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
 	})
 
-	rule, _ := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	for _, req := range []*flipt.CreateDistributionRequest{
 		{
@@ -2549,7 +2707,11 @@ func BenchmarkEvaluate_MatchAny_NoConstraints(b *testing.B) {
 			Rollout:   50,
 		},
 	} {
-		_, _ = ruleStore.CreateDistribution(context.TODO(), req)
+		_, err = ruleStore.CreateDistribution(context.TODO(), req)
+
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 
 	runs := []struct {
@@ -2588,11 +2750,13 @@ func BenchmarkEvaluate_MatchAny_NoConstraints(b *testing.B) {
 		req := bb.req
 
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
+			var r *flipt.EvaluationResponse
 
 			for i := 0; i < b.N; i++ {
-				_, _ = evaluator.Evaluate(context.TODO(), req)
+				r, _ = evaluator.Evaluate(context.TODO(), req)
 			}
+
+			benchResult = r
 		})
 	}
 }

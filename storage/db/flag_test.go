@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	lru "github.com/hashicorp/golang-lru"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage/cache"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -564,4 +566,58 @@ func TestDeleteVariant_NotFound(t *testing.T) {
 	})
 
 	require.NoError(t, err)
+}
+
+var benchFlag *flipt.Flag
+
+func BenchmarkGetFlag(b *testing.B) {
+	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         b.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Run("get-flag", func(b *testing.B) {
+		var f *flipt.Flag
+
+		for i := 0; i < b.N; i++ {
+			f, _ = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+		}
+
+		benchFlag = f
+	})
+}
+
+func BenchmarkGetFlag_CacheMemory(b *testing.B) {
+	var (
+		lru, _         = lru.New(10)
+		flagStoreCache = cache.NewFlagCache(logger, lru, flagStore)
+	)
+
+	flag, err := flagStoreCache.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         b.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	var f *flipt.Flag
+
+	b.Run("get-flag-cache", func(b *testing.B) {
+
+		for i := 0; i < b.N; i++ {
+			f, _ = flagStoreCache.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+		}
+
+		benchFlag = f
+	})
 }
