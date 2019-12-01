@@ -35,10 +35,6 @@ A guide to using the UI for the first time can be found in the [Getting Started]
 
 Flipt can be run with either a SQLite or Postgres database. The [Configuration](configuration.md) documentation shows how to enable each database.
 
-### Schema
-
-!["Flipt Database Schema Diagram"](assets/images/schema.svg)
-
 ## Technologies
 
 Flipt is built using several amazing open source technologies including:
