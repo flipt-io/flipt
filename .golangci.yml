@@ -49,8 +49,6 @@ linters:
     - unconvert
     - unparam
     - varcheck
-    - whitespace
-    #- wsl
   enable-all: false
   presets:
     - bugs
