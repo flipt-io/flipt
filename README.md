@@ -33,6 +33,7 @@
     <h4>
         <a href="https://flipt.dev/">Documentation</a> |
         <a href="#features">Features</a> |
+	<a href="#examples">Examples</a> |
         <a href="#try-it">Running</a> |
         <a href="./docs/configuration.md">Configuration</a> |
         <a href="./docs/getting_started.md">Getting Started</a>
@@ -73,6 +74,12 @@ On top of all this, Flipt provides a clean, modern UI so that you can always mon
 * Simple REST API
 * Modern UI and debug console
 * Support for multiple databases
+
+## Examples
+
+Check out the [examples](/examples) to see how Flipt works.
+
+Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/basic) to get started!
 
 ## Try It!
 
