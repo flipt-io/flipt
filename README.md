@@ -83,6 +83,8 @@ Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/ba
 
 ## Try It!
 
+Try Flipt out yourself with Docker:
+
 ```bash
 ❯ docker run --rm -p 8080:8080 -p 9000:9000 markphelps/flipt:latest
 ```
