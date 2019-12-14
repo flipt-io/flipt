@@ -1,12 +1,12 @@
 package main
 
 const bannerTmpl = `
-______ _         _
+ _____ _ _       _
 |  ___| (_)_ __ | |_
 | |_  | | | '_ \| __|
 |  _| | | | |_) | |_
 |_|   |_|_| .__/ \__|
-         |_|
+          |_|
 
 Version: {{.Version}}
 Commit: {{.Commit}}
