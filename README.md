@@ -9,6 +9,9 @@
 ![Flipt](docs/assets/images/flipt.png)
 
 <div align="center">
+    <a href="https://bestpractices.coreinfrastructure.org/projects/3498">
+	<img src="https://bestpractices.coreinfrastructure.org/projects/3498/badge">
+    </a> 
     <a href="https://github.com/markphelps/flipt/actions">
         <img src="https://github.com/markphelps/flipt/workflows/Tests/badge.svg" alt="Build Status" />
     </a>
