@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -13,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"syscall"
+	"text/template"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -51,40 +53,31 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
-const (
-	banner = `
-    _____ _ _       _
-   |  ___| (_)_ __ | |_
-   | |_  | | | '_ \| __|
-   |  _| | | | |_) | |_
-   |_|   |_|_| .__/ \__|
-             |_|
-  `
-
-	dbMigrationVersion uint = 2
-)
+const dbMigrationVersion uint = 2
 
 var (
 	logger = logrus.New()
 	cfg    *config.Config
 
 	cfgPath      string
-	printVersion bool
 	forceMigrate bool
 
 	version   = "dev"
 	commit    = ""
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
+
+	banner string
 )
 
 func main() {
 	var (
 		rootCmd = &cobra.Command{
-			Use:   "flipt",
-			Short: "Flipt is a self contained feature flag solution",
+			Use:     "flipt",
+			Short:   "Flipt is a self contained feature flag solution",
+			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := execute(); err != nil {
+				if err := run(); err != nil {
 					logger.Fatal(err)
 				}
 			},
@@ -101,13 +94,30 @@ func main() {
 		}
 	)
 
+	var (
+		t   = template.Must(template.New("banner").Parse(bannerTmpl))
+		buf = new(bytes.Buffer)
+	)
+
+	if err := t.Execute(buf, &bannerOpts{
+		Version:   version,
+		Commit:    commit,
+		Date:      date,
+		GoVersion: goVersion,
+	}); err != nil {
+		logger.Fatal(fmt.Errorf("executing template: %w", err))
+	}
+
+	banner = buf.String()
+
+	cobra.OnInitialize(initialize)
+
+	rootCmd.SetVersionTemplate(banner)
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
-	rootCmd.Flags().BoolVar(&printVersion, "version", false, "print version info and exit")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
-	cobra.OnInitialize(initConfig)
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)
@@ -116,24 +126,17 @@ func main() {
 	logrus.Exit(0)
 }
 
-func initConfig() {
-	// Do not load the config if the user just wants the version
-	if !printVersion {
-		var err error
+func initialize() {
+	var err error
 
-		cfg, err = config.Load(cfgPath)
-		if err != nil {
-			logger.Fatal(fmt.Errorf("loading configuration: %w", err))
-		}
-
-		if err = setupLogger(cfg); err != nil {
-			logger.Fatal(fmt.Errorf("setting up logger: %w", err))
-		}
+	cfg, err = config.Load(cfgPath)
+	if err != nil {
+		logger.Fatal(fmt.Errorf("loading configuration: %w", err))
 	}
-}
 
-func printVersionHeader() {
-	color.Cyan("%s\nVersion: %s\nCommit: %s\nBuild Date: %s\nGo Version: %s\n\n", banner, version, commit, date, goVersion)
+	if err = setupLogger(cfg); err != nil {
+		logger.Fatal(fmt.Errorf("setting up logger: %w", err))
+	}
 }
 
 func runMigrations() error {
@@ -175,11 +178,9 @@ func runMigrations() error {
 	return nil
 }
 
-func execute() error {
-	if printVersion {
-		printVersionHeader()
-		return nil
-	}
+func run() error {
+	color.Cyan(banner)
+	fmt.Println()
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -194,18 +195,9 @@ func execute() error {
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
-		info = info{
-			Version:   version,
-			Commit:    commit,
-			BuildDate: date,
-			GoVersion: goVersion,
-		}
-
 		grpcServer *grpc.Server
 		httpServer *http.Server
 	)
-
-	printVersionHeader()
 
 	g.Go(func() error {
 		logger := logger.WithField("server", "grpc")
@@ -385,7 +377,12 @@ func execute() error {
 
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
-			r.Handle("/info", info)
+			r.Handle("/info", info{
+				Version:   version,
+				Commit:    commit,
+				BuildDate: date,
+				GoVersion: goVersion,
+			})
 			r.Handle("/config", cfg)
 		})
 
