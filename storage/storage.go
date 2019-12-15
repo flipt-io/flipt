@@ -6,9 +6,34 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 )
 
-// Evaluator evaluates requests to determine matches
-type Evaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
+type Rule struct {
+	ID               string
+	FlagKey          string
+	SegmentKey       string
+	SegmentMatchType flipt.MatchType
+	Rank             int32
+	Constraints      []Constraint
+}
+
+type Constraint struct {
+	Type     flipt.ComparisonType
+	Property string
+	Operator string
+	Value    string
+}
+
+type Distribution struct {
+	ID         string
+	RuleID     string
+	VariantID  string
+	Rollout    float32
+	VariantKey string
+}
+
+// EvaluationStore returns data necessary for evaluation
+type EvaluationStore interface {
+	GetRules(ctx context.Context, flagKey string) ([]*Rule, error)
+	GetDistributions(ctx context.Context, ruleID string) ([]*Distribution, error)
 }
 
 // FlagStore stores and retrieves flags and variants
