@@ -38,8 +38,7 @@ func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*f
 }
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	logger := s.logger.WithField("request", r)
-	logger.Debug("evaluate")
+	s.logger.Debug("evaluate")
 
 	var (
 		ts, _ = ptypes.TimestampProto(time.Now().UTC())
@@ -67,7 +66,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	}
 
 	if len(rules) == 0 {
-		logger.Debug("no rules match")
+		s.logger.Debug("no rules match")
 		return resp, nil
 	}
 
@@ -100,7 +99,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			}
 
 			if match {
-				logger.Debugf("constraint: %+v matches", c)
+				s.logger.Debugf("constraint: %+v matches", c)
 
 				// increase the matchCount
 				constraintMatches++
@@ -115,7 +114,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 				}
 			} else {
 				// no match
-				logger.Debugf("constraint: %+v does not match", c)
+				s.logger.Debugf("constraint: %+v does not match", c)
 
 				switch rule.SegmentMatchType {
 				case flipt.MatchType_ALL_MATCH_TYPE:
@@ -132,18 +131,18 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		case flipt.MatchType_ALL_MATCH_TYPE:
 			if len(rule.Constraints) != constraintMatches {
 				// all constraints did not match, continue to next rule
-				logger.Debug("did not match ALL constraints")
+				s.logger.Debug("did not match ALL constraints")
 				continue
 			}
 
 		case flipt.MatchType_ANY_MATCH_TYPE:
 			if len(rule.Constraints) > 0 && constraintMatches == 0 {
 				// no constraints matched, continue to next rule
-				logger.Debug("did not match ANY constraints")
+				s.logger.Debug("did not match ANY constraints")
 				continue
 			}
 		default:
-			logger.Errorf("unknown match type: %v", rule.SegmentMatchType)
+			s.logger.Errorf("unknown match type: %v", rule.SegmentMatchType)
 			continue
 		}
 
@@ -179,7 +178,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 		// no distributions for rule
 		if len(validDistributions) == 0 {
-			logger.Info("no distributions for rule")
+			s.logger.Info("no distributions for rule")
 
 			resp.Match = true
 
@@ -198,16 +197,16 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		if index == len(validDistributions) {
 			resp.Match = false
 
-			logger.Debug("did not match any distributions")
+			s.logger.Debug("did not match any distributions")
 
 			return resp, nil
 		}
 
-		matchingDistribution := validDistributions[index]
-		logger.Debugf("matched distribution: %+v", matchingDistribution)
+		d := validDistributions[index]
+		s.logger.Debugf("matched distribution: %+v", d)
 
 		resp.Match = true
-		resp.Value = matchingDistribution.VariantKey
+		resp.Value = d.VariantKey
 	} // end rule loop
 
 	return resp, nil
