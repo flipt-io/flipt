@@ -26,12 +26,12 @@ func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*f
 	}
 
 	resp, err := s.evaluate(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
 	if resp != nil {
 		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+	}
+
+	if err != nil {
+		return resp, err
 	}
 
 	return resp, nil
@@ -60,7 +60,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		return resp, errors.ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
-	rules, err := s.EvaluationStore.GetRules(ctx, r.FlagKey)
+	rules, err := s.EvaluationStore.GetEvaluationRules(ctx, r.FlagKey)
 	if err != nil {
 		return resp, err
 	}
@@ -70,8 +70,16 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		return resp, nil
 	}
 
+	var lastRank int32
+
 	// rule loop
 	for _, rule := range rules {
+		if rule.Rank < lastRank {
+			return resp, errors.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
+		}
+
+		lastRank = rule.Rank
+
 		constraintMatches := 0
 
 		// constraint loop
@@ -150,13 +158,13 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		// based on the distributions
 		resp.SegmentKey = rule.SegmentKey
 
-		distributions, err := s.EvaluationStore.GetDistributions(ctx, rule.ID)
+		distributions, err := s.EvaluationStore.GetEvaluationDistributions(ctx, rule.ID)
 		if err != nil {
 			return resp, err
 		}
 
 		var (
-			validDistributions []*storage.Distribution
+			validDistributions []*storage.EvaluationDistribution
 			buckets            []int
 		)
 
@@ -172,16 +180,13 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 					bucket := buckets[i-1] + int(d.Rollout*percentMultiplier)
 					buckets = append(buckets, bucket)
 				}
-				i++
 			}
 		}
 
 		// no distributions for rule
 		if len(validDistributions) == 0 {
 			s.logger.Info("no distributions for rule")
-
 			resp.Match = true
-
 			return resp, nil
 		}
 
@@ -196,9 +201,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		// if index is outside of our existing buckets then it does not match any distribution
 		if index == len(validDistributions) {
 			resp.Match = false
-
 			s.logger.Debug("did not match any distributions")
-
 			return resp, nil
 		}
 
@@ -207,6 +210,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 		resp.Match = true
 		resp.Value = d.VariantKey
+		return resp, nil
 	} // end rule loop
 
 	return resp, nil
@@ -225,7 +229,7 @@ const (
 	percentMultiplier float32 = float32(totalBucketNum) / 100
 )
 
-func matchesString(c storage.Constraint, v string) bool {
+func matchesString(c storage.EvaluationConstraint, v string) bool {
 	switch c.Operator {
 	case flipt.OpEmpty:
 		return len(strings.TrimSpace(v)) == 0
@@ -253,7 +257,7 @@ func matchesString(c storage.Constraint, v string) bool {
 	return false
 }
 
-func matchesNumber(c storage.Constraint, v string) (bool, error) {
+func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil
@@ -294,7 +298,7 @@ func matchesNumber(c storage.Constraint, v string) (bool, error) {
 	return false, nil
 }
 
-func matchesBool(c storage.Constraint, v string) (bool, error) {
+func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
 	switch c.Operator {
 	case flipt.OpNotPresent:
 		return len(strings.TrimSpace(v)) == 0, nil

@@ -34,7 +34,9 @@ func NewEvaluationStore(logger logrus.FieldLogger, builder sq.StatementBuilderTy
 	}
 }
 
-func (s *EvaluationStore) GetRules(ctx context.Context, flagKey string) ([]*storage.Rule, error) {
+func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
+	s.logger.WithField("flagKey", flagKey).Debug("get eval rules")
+
 	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.rank, c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
@@ -55,13 +57,13 @@ func (s *EvaluationStore) GetRules(ctx context.Context, flagKey string) ([]*stor
 	}()
 
 	var (
-		seenRules = make(map[string]*storage.Rule)
-		rules     = []*storage.Rule{}
+		seenRules = make(map[string]*storage.EvaluationRule)
+		rules     = []*storage.EvaluationRule{}
 	)
 
 	for rows.Next() {
 		var (
-			tempRule           storage.Rule
+			tempRule           storage.EvaluationRule
 			optionalConstraint optionalConstraint
 		)
 
@@ -72,7 +74,8 @@ func (s *EvaluationStore) GetRules(ctx context.Context, flagKey string) ([]*stor
 		if existingRule, ok := seenRules[tempRule.ID]; ok {
 			// current rule we know about
 			if optionalConstraint.ID.Valid {
-				constraint := storage.Constraint{
+				constraint := storage.EvaluationConstraint{
+					ID:       optionalConstraint.ID.String,
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
@@ -82,7 +85,7 @@ func (s *EvaluationStore) GetRules(ctx context.Context, flagKey string) ([]*stor
 			}
 		} else {
 			// haven't seen this rule before
-			newRule := &storage.Rule{
+			newRule := &storage.EvaluationRule{
 				ID:               tempRule.ID,
 				FlagKey:          tempRule.FlagKey,
 				SegmentKey:       tempRule.SegmentKey,
@@ -91,7 +94,8 @@ func (s *EvaluationStore) GetRules(ctx context.Context, flagKey string) ([]*stor
 			}
 
 			if optionalConstraint.ID.Valid {
-				constraint := storage.Constraint{
+				constraint := storage.EvaluationConstraint{
+					ID:       optionalConstraint.ID.String,
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
@@ -109,10 +113,13 @@ func (s *EvaluationStore) GetRules(ctx context.Context, flagKey string) ([]*stor
 		return nil, err
 	}
 
+	s.logger.WithField("rules", rules).Debug("get eval rules")
 	return rules, nil
 }
 
-func (s *EvaluationStore) GetDistributions(ctx context.Context, ruleID string) ([]*storage.Distribution, error) {
+func (s *EvaluationStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+	s.logger.WithField("ruleID", ruleID).Debug("get eval distributions")
+
 	rows, err := s.builder.Select("d.id", "d.rule_id", "d.variant_id", "d.rollout", "v.key").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
@@ -128,10 +135,10 @@ func (s *EvaluationStore) GetDistributions(ctx context.Context, ruleID string) (
 		}
 	}()
 
-	var distributions []*storage.Distribution
+	var distributions []*storage.EvaluationDistribution
 
 	for rows.Next() {
-		var d storage.Distribution
+		var d storage.EvaluationDistribution
 
 		if err := rows.Scan(&d.ID, &d.RuleID, &d.VariantID, &d.Rollout, &d.VariantKey); err != nil {
 			return nil, err
@@ -144,5 +151,6 @@ func (s *EvaluationStore) GetDistributions(ctx context.Context, ruleID string) (
 		return nil, err
 	}
 
+	s.logger.WithField("distributions", distributions).Debug("get eval distributions")
 	return distributions, nil
 }

@@ -26,34 +26,58 @@ type segmentStoreMock struct {
 }
 
 func (m *segmentStoreMock) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
+	if m.getSegmentFn == nil {
+		return &flipt.Segment{}, nil
+	}
 	return m.getSegmentFn(ctx, r)
 }
 
 func (m *segmentStoreMock) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
+	if m.listSegmentsFn == nil {
+		return []*flipt.Segment{}, nil
+	}
 	return m.listSegmentsFn(ctx, r)
 }
 
 func (m *segmentStoreMock) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+	if m.createSegmentFn == nil {
+		return &flipt.Segment{}, nil
+	}
 	return m.createSegmentFn(ctx, r)
 }
 
 func (m *segmentStoreMock) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+	if m.updateSegmentFn == nil {
+		return &flipt.Segment{}, nil
+	}
 	return m.updateSegmentFn(ctx, r)
 }
 
 func (m *segmentStoreMock) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+	if m.deleteSegmentFn == nil {
+		return nil
+	}
 	return m.deleteSegmentFn(ctx, r)
 }
 
 func (m *segmentStoreMock) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+	if m.createConstraintFn == nil {
+		return &flipt.Constraint{}, nil
+	}
 	return m.createConstraintFn(ctx, r)
 }
 
 func (m *segmentStoreMock) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+	if m.updateConstraintFn == nil {
+		return &flipt.Constraint{}, nil
+	}
 	return m.updateConstraintFn(ctx, r)
 }
 
 func (m *segmentStoreMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+	if m.deleteConstraintFn == nil {
+		return nil
+	}
 	return m.deleteConstraintFn(ctx, r)
 }
 

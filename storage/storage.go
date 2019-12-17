@@ -6,23 +6,28 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 )
 
-type Rule struct {
+// EvaluationRule represents a rule and constraints required for evaluating if a
+// given flagKey matches a segment
+type EvaluationRule struct {
 	ID               string
 	FlagKey          string
 	SegmentKey       string
 	SegmentMatchType flipt.MatchType
 	Rank             int32
-	Constraints      []Constraint
+	Constraints      []EvaluationConstraint
 }
 
-type Constraint struct {
+// EvaluationConstraint represents a segment constraint that is used for evaluation
+type EvaluationConstraint struct {
+	ID       string
 	Type     flipt.ComparisonType
 	Property string
 	Operator string
 	Value    string
 }
 
-type Distribution struct {
+// EvaluationDistribution represents a rule distribution along with its variant for evaluation
+type EvaluationDistribution struct {
 	ID         string
 	RuleID     string
 	VariantID  string
@@ -32,8 +37,10 @@ type Distribution struct {
 
 // EvaluationStore returns data necessary for evaluation
 type EvaluationStore interface {
-	GetRules(ctx context.Context, flagKey string) ([]*Rule, error)
-	GetDistributions(ctx context.Context, ruleID string) ([]*Distribution, error)
+	// GetEvaluationRules returns rules applicable to flagKey provided
+	// Note: Rules MUST be returned in order by Rank
+	GetEvaluationRules(ctx context.Context, flagKey string) ([]*EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
 }
 
 // FlagStore stores and retrieves flags and variants
@@ -48,7 +55,7 @@ type FlagStore interface {
 	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
 }
 
-// RuleStore stores and retrieves rules
+// RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
 	GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error)
 	ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error)
