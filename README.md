@@ -86,6 +86,8 @@ Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/ba
 
 ## Try It!
 
+[![Try in PWD](https://raw.githubusercontent.com/play-with-docker/stacks/master/assets/images/button.png)](https://labs.play-with-docker.com/?stack=https://raw.githubusercontent.com/markphelps/flipt/master/docker-compose.yml)
+
 Try Flipt out yourself with Docker:
 
 ```bash
