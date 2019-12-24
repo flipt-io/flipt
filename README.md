@@ -34,7 +34,7 @@
 
 <div align="center">
     <h4>
-        <a href="https://flipt.dev/">Documentation</a> |
+        <a href="https://flipt.io/">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
         <a href="#usecases">Usecases</a> |
@@ -42,9 +42,9 @@
     </h4>
 </div>
 
-Flipt is an open source feature flag application that allows you to run experiments across services in **your** environment.
+Flipt is an on-prem flag application that allows you to run experiments across services in **your** environment.
 
-This means that you can deploy Flipt within your existing infrastructure and not have to worry about your information being sent to a third party or the latency required to communicate across the internet.
+Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
 ## Features
 
@@ -87,7 +87,7 @@ Try Flipt out yourself with Docker:
 
 Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
 
-For more permanent methods of running Flipt, see the [Installation](https://flipt.dev/installation/) section.
+For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
 
 ### :warning: Beta Software :warning:
 
