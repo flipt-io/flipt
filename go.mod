@@ -27,7 +27,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.12.1
 
 	github.com/hashicorp/golang-lru v0.5.3
-	github.com/lib/pq v1.2.0
+	github.com/lib/pq v1.3.0
 	github.com/markphelps/flipt-grpc-go v0.2.0
 	github.com/mattn/go-sqlite3 v1.13.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
