@@ -8,15 +8,11 @@
 *.txt
 
 .github/
-.vagrant/
 .vscode/
 Dockerfile
 LICENSE
 bin/
-dev/
 dist/
-docs/
 examples/
-mkdocs.yml
 script/
 site/
