@@ -37,9 +37,10 @@
       <div class="navbar-end">
         <a
           class="navbar-item has-text-weight-semibold"
-          href="https://flipt.dev/"
-          >Documentation</a
+          href="https://flipt.io/"
         >
+          Documentation
+        </a>
         <a class="navbar-item has-text-weight-semibold" href="/docs/">API</a>
       </div>
     </div>

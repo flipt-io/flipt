@@ -38,8 +38,8 @@ Changing certain types of files such as the protobuf, ui or documentation files 
 
 After changing `flipt.proto`, you'll need to run `make proto`. This will regenerate the following files:
 
-* `flipt.pb.go`
-* `flipt.pb.gw.go`
+* `rpc/flipt.pb.go`
+* `rpc/flipt.pb.gw.go`
 
 ### Updating assets
 
