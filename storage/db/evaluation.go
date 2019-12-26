@@ -35,7 +35,7 @@ func NewEvaluationStore(logger logrus.FieldLogger, builder sq.StatementBuilderTy
 }
 
 func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
-	s.logger.WithField("flagKey", flagKey).Debug("get eval rules")
+	s.logger.WithField("flagKey", flagKey).Debug("get evaluation rules")
 
 	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.rank, c.id, c.type, c.property, c.operator, c.value").
@@ -113,12 +113,12 @@ func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string
 		return nil, err
 	}
 
-	s.logger.WithField("rules", rules).Debug("get eval rules")
+	s.logger.WithField("rules", rules).Debug("get evaluation rules")
 	return rules, nil
 }
 
 func (s *EvaluationStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	s.logger.WithField("ruleID", ruleID).Debug("get eval distributions")
+	s.logger.WithField("ruleID", ruleID).Debug("get evaluation distributions")
 
 	rows, err := s.builder.Select("d.id", "d.rule_id", "d.variant_id", "d.rollout", "v.key").
 		From("distributions d").
@@ -151,6 +151,6 @@ func (s *EvaluationStore) GetEvaluationDistributions(ctx context.Context, ruleID
 		return nil, err
 	}
 
-	s.logger.WithField("distributions", distributions).Debug("get eval distributions")
+	s.logger.WithField("distributions", distributions).Debug("get evaluation distributions")
 	return distributions, nil
 }
