@@ -26,34 +26,58 @@ type flagStoreMock struct {
 }
 
 func (m *flagStoreMock) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+	if m.getFlagFn == nil {
+		return &flipt.Flag{}, nil
+	}
 	return m.getFlagFn(ctx, r)
 }
 
 func (m *flagStoreMock) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+	if m.listFlagsFn == nil {
+		return []*flipt.Flag{}, nil
+	}
 	return m.listFlagsFn(ctx, r)
 }
 
 func (m *flagStoreMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+	if m.createFlagFn == nil {
+		return &flipt.Flag{}, nil
+	}
 	return m.createFlagFn(ctx, r)
 }
 
 func (m *flagStoreMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+	if m.updateFlagFn == nil {
+		return &flipt.Flag{}, nil
+	}
 	return m.updateFlagFn(ctx, r)
 }
 
 func (m *flagStoreMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+	if m.deleteFlagFn == nil {
+		return nil
+	}
 	return m.deleteFlagFn(ctx, r)
 }
 
 func (m *flagStoreMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+	if m.createVariantFn == nil {
+		return &flipt.Variant{}, nil
+	}
 	return m.createVariantFn(ctx, r)
 }
 
 func (m *flagStoreMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+	if m.updateVariantFn == nil {
+		return &flipt.Variant{}, nil
+	}
 	return m.updateVariantFn(ctx, r)
 }
 
 func (m *flagStoreMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+	if m.deleteVariantFn == nil {
+		return nil
+	}
 	return m.deleteVariantFn(ctx, r)
 }
 

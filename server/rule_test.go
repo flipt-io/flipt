@@ -28,38 +28,65 @@ type ruleStoreMock struct {
 }
 
 func (m *ruleStoreMock) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
+	if m.getRuleFn == nil {
+		return &flipt.Rule{}, nil
+	}
 	return m.getRuleFn(ctx, r)
 }
 
 func (m *ruleStoreMock) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
+	if m.listRulesFn == nil {
+		return []*flipt.Rule{}, nil
+	}
 	return m.listRulesFn(ctx, r)
 }
 
 func (m *ruleStoreMock) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+	if m.createRuleFn == nil {
+		return &flipt.Rule{}, nil
+	}
 	return m.createRuleFn(ctx, r)
 }
 
 func (m *ruleStoreMock) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+	if m.updateRuleFn == nil {
+		return &flipt.Rule{}, nil
+	}
 	return m.updateRuleFn(ctx, r)
 }
 
 func (m *ruleStoreMock) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
+	if m.deleteRuleFn == nil {
+		return nil
+	}
 	return m.deleteRuleFn(ctx, r)
 }
 
 func (m *ruleStoreMock) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
+	if m.orderRuleFn == nil {
+		return nil
+	}
 	return m.orderRuleFn(ctx, r)
 }
 
 func (m *ruleStoreMock) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+	if m.createDistributionFn == nil {
+		return &flipt.Distribution{}, nil
+	}
 	return m.createDistributionFn(ctx, r)
 }
 
 func (m *ruleStoreMock) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+	if m.updateDistributionFn == nil {
+		return &flipt.Distribution{}, nil
+	}
 	return m.updateDistributionFn(ctx, r)
 }
 
 func (m *ruleStoreMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
+	if m.deleteDistributionFn == nil {
+		return nil
+	}
 	return m.deleteDistributionFn(ctx, r)
 }
 
