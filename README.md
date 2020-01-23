@@ -6,7 +6,7 @@
 
 <hr />
 
-![Flipt](flipt.png)
+![Flipt](demo.gif)
 
 <div align="center">
     <a href="https://github.com/markphelps/flipt/actions">

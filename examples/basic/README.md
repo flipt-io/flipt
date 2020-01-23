@@ -2,9 +2,7 @@
 
 This example shows how you could integrate Flipt into your application.
 
-It uses the [Go GRPC Flipt client](https://github.com/markphelps/flipt-grpc-go) to query for an existing flag and then show's different content whether or not that flag is enabled.
-
-!["demo"](https://github.com/markphelps/flipt/blob/master/docs/assets/images/demo.gif?raw=true)
+It uses the [Go GRPC Flipt client](https://github.com/markphelps/flipt-grpc-go) to query for an existing flag and then shows different content whether or not that flag is enabled.
 
 ## Requirements
 
