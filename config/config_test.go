@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,8 +70,8 @@ func TestLoad(t *testing.T) {
 				},
 				Cache: cacheConfig{
 					Memory: memoryCacheConfig{
-						Enabled: true,
-						Items:   5000,
+						Enabled:            true,
+						ExpirationDuration: 5 * time.Minute,
 					},
 				},
 				Server: serverConfig{

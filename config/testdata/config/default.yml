@@ -11,7 +11,7 @@
 # cache:
 #   memory:
 #     enabled: false
-#     items: 500
+#     expiration: -1 # No Expiration
 
 # server:
 #   protocol: http

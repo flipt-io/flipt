@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -20,9 +19,8 @@ func TestGetFlag(t *testing.T) {
 				return &flipt.Flag{Key: r.Key}, nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	got, err := subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
@@ -30,7 +28,7 @@ func TestGetFlag(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	assert.Equal(t, 1, spy.addCalled)
+	assert.Equal(t, 1, spy.setCalled)
 	assert.Equal(t, 1, spy.getCalled)
 
 	got, err = subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
@@ -38,7 +36,7 @@ func TestGetFlag(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// should already exist in the cache so it should NOT be added
-	assert.Equal(t, 1, spy.addCalled)
+	assert.Equal(t, 1, spy.setCalled)
 	assert.Equal(t, 2, spy.getCalled)
 }
 
@@ -50,16 +48,15 @@ func TestGetFlagNotFound(t *testing.T) {
 				return nil, errors.ErrNotFound("foo")
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	_, err := subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
-	assert.Equal(t, 0, spy.addCalled)
+	assert.Equal(t, 0, spy.setCalled)
 	assert.Equal(t, 1, spy.getCalled)
 }
 
@@ -74,9 +71,8 @@ func TestListFlags(t *testing.T) {
 				}, nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	got, err := subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
@@ -84,8 +80,18 @@ func TestListFlags(t *testing.T) {
 	assert.NotEmpty(t, got)
 	assert.Len(t, got, 2)
 
-	// doesnt read from the cache
-	assert.Equal(t, 0, spy.getCalled)
+	// shouldnt exist in the cache so it should be added
+	assert.Equal(t, 1, spy.setCalled)
+	assert.Equal(t, 1, spy.getCalled)
+
+	got, err = subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	require.NoError(t, err)
+	assert.NotEmpty(t, got)
+	assert.Len(t, got, 2)
+
+	// should already exist in the cache so it should NOT be added
+	assert.Equal(t, 1, spy.setCalled)
+	assert.Equal(t, 2, spy.getCalled)
 }
 
 func TestCreateFlag(t *testing.T) {
@@ -98,37 +104,18 @@ func TestCreateFlag(t *testing.T) {
 				}, nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	flag, err := subject.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	// should be added
-	assert.Equal(t, 1, spy.addCalled)
-}
-
-func TestCreateFlag_Error(t *testing.T) {
-	var (
-		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			createFlagFn: func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-				return nil, errors.New("error")
-			},
-		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
-	)
-
-	_, err := subject.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{Key: "foo"})
-	require.Error(t, err)
-
-	// should NOT be added
-	assert.Equal(t, 0, spy.addCalled)
+	// should not be added
+	assert.Equal(t, 0, spy.setCalled)
+	// should flush cache
+	assert.Equal(t, 1, spy.flushCalled)
 }
 
 func TestUpdateFlag(t *testing.T) {
@@ -139,18 +126,17 @@ func TestUpdateFlag(t *testing.T) {
 				return &flipt.Flag{Key: r.Key}, nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	_, err := subject.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 
-	// it should be removed
-	assert.Equal(t, 1, spy.removeCalled)
-	assert.Equal(t, 0, spy.addCalled)
-	assert.Equal(t, 0, spy.getCalled)
+	// should not be added
+	assert.Equal(t, 0, spy.setCalled)
+	// should flush cache
+	assert.Equal(t, 1, spy.flushCalled)
 }
 
 func TestDeleteFlag(t *testing.T) {
@@ -161,18 +147,17 @@ func TestDeleteFlag(t *testing.T) {
 				return nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	err := subject.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 
-	// it should be removed
-	assert.Equal(t, 1, spy.removeCalled)
-	assert.Equal(t, 0, spy.addCalled)
-	assert.Equal(t, 0, spy.getCalled)
+	// should not be added
+	assert.Equal(t, 0, spy.setCalled)
+	// should flush cache
+	assert.Equal(t, 1, spy.flushCalled)
 }
 
 func TestCreateVariant(t *testing.T) {
@@ -183,18 +168,17 @@ func TestCreateVariant(t *testing.T) {
 				return &flipt.Variant{FlagKey: r.FlagKey}, nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	_, err := subject.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{FlagKey: "foo"})
 	require.NoError(t, err)
 
-	// it should be removed
-	assert.Equal(t, 1, spy.removeCalled)
-	assert.Equal(t, 0, spy.addCalled)
-	assert.Equal(t, 0, spy.getCalled)
+	// should not be added
+	assert.Equal(t, 0, spy.setCalled)
+	// should flush cache
+	assert.Equal(t, 1, spy.flushCalled)
 }
 
 func TestUpdateVariant(t *testing.T) {
@@ -205,18 +189,17 @@ func TestUpdateVariant(t *testing.T) {
 				return &flipt.Variant{FlagKey: r.FlagKey}, nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	_, err := subject.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{FlagKey: "foo"})
 	require.NoError(t, err)
 
-	// it should be removed
-	assert.Equal(t, 1, spy.removeCalled)
-	assert.Equal(t, 0, spy.addCalled)
-	assert.Equal(t, 0, spy.getCalled)
+	// should not be added
+	assert.Equal(t, 0, spy.setCalled)
+	// should flush cache
+	assert.Equal(t, 1, spy.flushCalled)
 }
 
 func TestDeleteVariant(t *testing.T) {
@@ -227,16 +210,15 @@ func TestDeleteVariant(t *testing.T) {
 				return nil
 			},
 		}
-		cache, _ = lru.New(1)
-		spy      = &cacherSpy{cache: cache}
-		subject  = NewFlagCache(logger, spy, store)
+		spy     = newCacherSpy()
+		subject = NewFlagCache(logger, spy, store)
 	)
 
 	err := subject.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{FlagKey: "foo"})
 	require.NoError(t, err)
 
-	// it should be removed
-	assert.Equal(t, 1, spy.removeCalled)
-	assert.Equal(t, 0, spy.addCalled)
-	assert.Equal(t, 0, spy.getCalled)
+	// should not be added
+	assert.Equal(t, 0, spy.setCalled)
+	// should flush cache
+	assert.Equal(t, 1, spy.flushCalled)
 }

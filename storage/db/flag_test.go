@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	lru "github.com/hashicorp/golang-lru"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage/cache"
 
@@ -582,6 +582,8 @@ func BenchmarkGetFlag(b *testing.B) {
 		b.Fatal(err)
 	}
 
+	b.ResetTimer()
+
 	b.Run("get-flag", func(b *testing.B) {
 		var f *flipt.Flag
 
@@ -595,8 +597,8 @@ func BenchmarkGetFlag(b *testing.B) {
 
 func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	var (
-		lru, _         = lru.New(10)
-		flagStoreCache = cache.NewFlagCache(logger, lru, flagStore)
+		cacher         = cache.NewInMemoryCache(5 * time.Minute)
+		flagStoreCache = cache.NewFlagCache(logger, cacher, flagStore)
 	)
 
 	flag, err := flagStoreCache.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -611,6 +613,11 @@ func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	}
 
 	var f *flipt.Flag
+
+	// warm the cache
+	f, _ = flagStoreCache.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+
+	b.ResetTimer()
 
 	b.Run("get-flag-cache", func(b *testing.B) {
 

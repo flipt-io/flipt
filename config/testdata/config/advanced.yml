@@ -12,7 +12,7 @@ cors:
 cache:
   memory:
     enabled: true
-    items: 5000
+    expiration: 5m
 
 server:
   protocol: https

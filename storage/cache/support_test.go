@@ -2,29 +2,60 @@ package cache
 
 import (
 	"context"
+	"sync"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 )
 
+// cacherSpy is a simple in memory map that acts as a cache
+// and records interactions for tests
 type cacherSpy struct {
-	addCalled, removeCalled, getCalled int
-	cache                              Cacher
+	getCalled, setCalled, deleteCalled, flushCalled int
+	cache                                           map[string]interface{}
+	mu                                              sync.Mutex
 }
 
-func (c *cacherSpy) Get(key interface{}) (interface{}, bool) {
+func newCacherSpy() *cacherSpy {
+	return &cacherSpy{
+		cache: make(map[string]interface{}),
+	}
+}
+
+func (c *cacherSpy) Get(key string) (interface{}, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.getCalled++
-	return c.cache.Get(key)
+	if v, ok := c.cache[key]; ok {
+		return v, true
+	}
+
+	return nil, false
 }
 
-func (c *cacherSpy) Add(key interface{}, value interface{}) bool {
-	c.addCalled++
-	return c.cache.Add(key, value)
+func (c *cacherSpy) Set(key string, value interface{}) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.setCalled++
+	c.cache[key] = value
 }
 
-func (c *cacherSpy) Remove(key interface{}) bool {
-	c.removeCalled++
-	return c.cache.Remove(key)
+func (c *cacherSpy) Delete(key string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.deleteCalled++
+	delete(c.cache, key)
+}
+
+func (c *cacherSpy) Flush() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.flushCalled++
+	c.cache = make(map[string]interface{})
 }
 
 var _ storage.FlagStore = &flagStoreMock{}

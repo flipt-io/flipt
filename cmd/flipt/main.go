@@ -28,10 +28,10 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
+	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
@@ -279,13 +279,9 @@ func run() error {
 		)
 
 		if cfg.Cache.Memory.Enabled {
-			cache, err := lru.New(cfg.Cache.Memory.Items)
-			if err != nil {
-				return fmt.Errorf("creating in-memory cache: %w", err)
-			}
-
-			logger.Debugf("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
-			serverOpts = append(serverOpts, server.WithCache(cache))
+			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.ExpirationDuration)
+			logger.Debugf("in-memory cache enabled with exipration: %v", cfg.Cache.Memory.ExpirationDuration)
+			serverOpts = append(serverOpts, server.WithCache(cacher))
 		}
 
 		srv = server.New(logger, builder, sql, serverOpts...)
