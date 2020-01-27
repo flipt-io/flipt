@@ -36,8 +36,8 @@ type corsConfig struct {
 }
 
 type memoryCacheConfig struct {
-	Enabled            bool          `json:"enabled"`
-	ExpirationDuration time.Duration `json:"expirationDuration"`
+	Enabled    bool          `json:"enabled"`
+	Expiration time.Duration `json:"expirationDuration"`
 }
 
 type cacheConfig struct {
@@ -99,8 +99,8 @@ func Default() *Config {
 
 		Cache: cacheConfig{
 			Memory: memoryCacheConfig{
-				Enabled:            false,
-				ExpirationDuration: -1,
+				Enabled:    false,
+				Expiration: -1,
 			},
 		},
 
@@ -190,7 +190,7 @@ func Load(path string) (*Config, error) {
 		cfg.Cache.Memory.Enabled = viper.GetBool(cfgCacheMemoryEnabled)
 
 		if viper.IsSet(cfgCacheMemoryExpiration) {
-			cfg.Cache.Memory.ExpirationDuration = viper.GetDuration(cfgCacheMemoryExpiration)
+			cfg.Cache.Memory.Expiration = viper.GetDuration(cfgCacheMemoryExpiration)
 		}
 	}
 

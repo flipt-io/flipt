@@ -54,6 +54,11 @@ func TestLoad(t *testing.T) {
 			expected: Default(),
 		},
 		{
+			name:     "deprecated defaults",
+			path:     "./testdata/config/deprecated.yml",
+			expected: Default(),
+		},
+		{
 			name: "configured",
 			path: "./testdata/config/advanced.yml",
 			expected: &Config{
@@ -70,8 +75,8 @@ func TestLoad(t *testing.T) {
 				},
 				Cache: cacheConfig{
 					Memory: memoryCacheConfig{
-						Enabled:            true,
-						ExpirationDuration: 5 * time.Minute,
+						Enabled:    true,
+						Expiration: 5 * time.Minute,
 					},
 				},
 				Server: serverConfig{

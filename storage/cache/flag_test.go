@@ -8,72 +8,76 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetFlag(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			getFlagFn: func(_ context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{Key: r.Key}, nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
+	cacher.On("Get", mock.Anything).Return(&flipt.Flag{}, false).Once()
+	cacher.On("Set", mock.Anything, mock.Anything)
 
 	got, err := subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	assert.Equal(t, 1, spy.setCalled)
-	assert.Equal(t, 1, spy.getCalled)
+	cacher.AssertCalled(t, "Set", "f:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "f:foo")
+
+	cacher.On("Get", mock.Anything).Return(&flipt.Flag{Key: "foo"}, true)
 
 	got, err = subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	// should already exist in the cache so it should NOT be added
-	assert.Equal(t, 1, spy.setCalled)
-	assert.Equal(t, 2, spy.getCalled)
+	cacher.AssertNumberOfCalls(t, "Set", 1)
+	cacher.AssertNumberOfCalls(t, "Get", 2)
 }
 
 func TestGetFlagNotFound(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			getFlagFn: func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return nil, errors.ErrNotFound("foo")
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{}, errors.ErrNotFound("foo"))
+	cacher.On("Get", mock.Anything).Return(&flipt.Flag{}, false).Once()
 
 	_, err := subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
-	assert.Equal(t, 0, spy.setCalled)
-	assert.Equal(t, 1, spy.getCalled)
+	cacher.AssertNotCalled(t, "Set")
+	cacher.AssertCalled(t, "Get", "f:foo")
 }
 
 func TestListFlags(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			listFlagsFn: func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-				return []*flipt.Flag{
-					{Key: "foo"},
-					{Key: "bar"},
-				}, nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	ret := []*flipt.Flag{
+		{Key: "foo"},
+		{Key: "bar"},
+	}
+
+	store.On("ListFlags", mock.Anything, mock.Anything).Return(ret, nil)
+	cacher.On("Get", mock.Anything).Return([]*flipt.Flag{}, false).Once()
+	cacher.On("Set", mock.Anything, mock.Anything)
 
 	got, err := subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
 	require.NoError(t, err)
@@ -81,8 +85,10 @@ func TestListFlags(t *testing.T) {
 	assert.Len(t, got, 2)
 
 	// shouldnt exist in the cache so it should be added
-	assert.Equal(t, 1, spy.setCalled)
-	assert.Equal(t, 1, spy.getCalled)
+	cacher.AssertCalled(t, "Set", "f", mock.Anything)
+	cacher.AssertCalled(t, "Get", "f")
+
+	cacher.On("Get", mock.Anything).Return(ret, true)
 
 	got, err = subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
 	require.NoError(t, err)
@@ -90,135 +96,127 @@ func TestListFlags(t *testing.T) {
 	assert.Len(t, got, 2)
 
 	// should already exist in the cache so it should NOT be added
-	assert.Equal(t, 1, spy.setCalled)
-	assert.Equal(t, 2, spy.getCalled)
+	cacher.AssertNumberOfCalls(t, "Set", 1)
+	cacher.AssertNumberOfCalls(t, "Get", 2)
 }
 
 func TestCreateFlag(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			createFlagFn: func(_ context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key: r.Key,
-				}, nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("CreateFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
+	cacher.On("Flush")
 
 	flag, err := subject.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
 	// should not be added
-	assert.Equal(t, 0, spy.setCalled)
+	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	assert.Equal(t, 1, spy.flushCalled)
+	cacher.AssertCalled(t, "Flush")
 }
 
 func TestUpdateFlag(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			updateFlagFn: func(_ context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{Key: r.Key}, nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("UpdateFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
+	cacher.On("Flush")
 
 	_, err := subject.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 
 	// should not be added
-	assert.Equal(t, 0, spy.setCalled)
+	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	assert.Equal(t, 1, spy.flushCalled)
+	cacher.AssertCalled(t, "Flush")
 }
 
 func TestDeleteFlag(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			deleteFlagFn: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
-				return nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("DeleteFlag", mock.Anything, mock.Anything).Return(nil)
+	cacher.On("Flush")
 
 	err := subject.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 
 	// should not be added
-	assert.Equal(t, 0, spy.setCalled)
+	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	assert.Equal(t, 1, spy.flushCalled)
+	cacher.AssertCalled(t, "Flush")
 }
 
 func TestCreateVariant(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			createVariantFn: func(_ context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-				return &flipt.Variant{FlagKey: r.FlagKey}, nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("CreateVariant", mock.Anything, mock.Anything).Return(&flipt.Variant{FlagKey: "foo"}, nil)
+	cacher.On("Flush")
 
 	_, err := subject.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{FlagKey: "foo"})
 	require.NoError(t, err)
 
 	// should not be added
-	assert.Equal(t, 0, spy.setCalled)
+	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	assert.Equal(t, 1, spy.flushCalled)
+	cacher.AssertCalled(t, "Flush")
 }
 
 func TestUpdateVariant(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			updateVariantFn: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-				return &flipt.Variant{FlagKey: r.FlagKey}, nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("UpdateVariant", mock.Anything, mock.Anything).Return(&flipt.Variant{FlagKey: "foo"}, nil)
+	cacher.On("Flush")
 
 	_, err := subject.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{FlagKey: "foo"})
 	require.NoError(t, err)
 
 	// should not be added
-	assert.Equal(t, 0, spy.setCalled)
+	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	assert.Equal(t, 1, spy.flushCalled)
+	cacher.AssertCalled(t, "Flush")
 }
 
 func TestDeleteVariant(t *testing.T) {
 	var (
 		logger, _ = test.NewNullLogger()
-		store     = &flagStoreMock{
-			deleteVariantFn: func(context.Context, *flipt.DeleteVariantRequest) error {
-				return nil
-			},
-		}
-		spy     = newCacherSpy()
-		subject = NewFlagCache(logger, spy, store)
+		store     = &flagStoreMock{}
+		cacher    = &cacherSpy{}
+		subject   = NewFlagCache(logger, cacher, store)
 	)
+
+	store.On("DeleteVariant", mock.Anything, mock.Anything).Return(nil)
+	cacher.On("Flush")
 
 	err := subject.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{FlagKey: "foo"})
 	require.NoError(t, err)
 
 	// should not be added
-	assert.Equal(t, 0, spy.setCalled)
+	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	assert.Equal(t, 1, spy.flushCalled)
+	cacher.AssertCalled(t, "Flush")
 }

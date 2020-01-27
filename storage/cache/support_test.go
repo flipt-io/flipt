@@ -2,103 +2,124 @@ package cache
 
 import (
 	"context"
-	"sync"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
+	"github.com/stretchr/testify/mock"
 )
 
 // cacherSpy is a simple in memory map that acts as a cache
 // and records interactions for tests
 type cacherSpy struct {
-	getCalled, setCalled, deleteCalled, flushCalled int
-	cache                                           map[string]interface{}
-	mu                                              sync.Mutex
+	mock.Mock
 }
 
-func newCacherSpy() *cacherSpy {
-	return &cacherSpy{
-		cache: make(map[string]interface{}),
-	}
+func (s *cacherSpy) Get(key string) (interface{}, bool) {
+	args := s.Called(key)
+	return args.Get(0), args.Bool(1)
 }
 
-func (c *cacherSpy) Get(key string) (interface{}, bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.getCalled++
-	if v, ok := c.cache[key]; ok {
-		return v, true
-	}
-
-	return nil, false
+func (s *cacherSpy) Set(key string, value interface{}) {
+	s.Called(key, value)
 }
 
-func (c *cacherSpy) Set(key string, value interface{}) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.setCalled++
-	c.cache[key] = value
+func (s *cacherSpy) Delete(key string) {
+	s.Called(key)
 }
 
-func (c *cacherSpy) Delete(key string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.deleteCalled++
-	delete(c.cache, key)
+func (s *cacherSpy) Flush() {
+	s.Called()
 }
 
-func (c *cacherSpy) Flush() {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.flushCalled++
-	c.cache = make(map[string]interface{})
-}
-
-var _ storage.FlagStore = &flagStoreMock{}
+var (
+	_ storage.FlagStore    = &flagStoreMock{}
+	_ storage.SegmentStore = &segmentStoreMock{}
+)
 
 type flagStoreMock struct {
-	getFlagFn       func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
-	listFlagsFn     func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
-	createFlagFn    func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
-	updateFlagFn    func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
-	deleteFlagFn    func(context.Context, *flipt.DeleteFlagRequest) error
-	createVariantFn func(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
-	updateVariantFn func(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
-	deleteVariantFn func(context.Context, *flipt.DeleteVariantRequest) error
+	mock.Mock
 }
 
 func (m *flagStoreMock) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	return m.getFlagFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
 func (m *flagStoreMock) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-	return m.listFlagsFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Get(0).([]*flipt.Flag), args.Error(1)
 }
 
 func (m *flagStoreMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	return m.createFlagFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
 func (m *flagStoreMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	return m.updateFlagFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
 func (m *flagStoreMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
-	return m.deleteFlagFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Error(0)
 }
 
 func (m *flagStoreMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	return m.createVariantFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Variant), args.Error(1)
 }
 
 func (m *flagStoreMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	return m.updateVariantFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Variant), args.Error(1)
 }
 
 func (m *flagStoreMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
-	return m.deleteVariantFn(ctx, r)
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
+type segmentStoreMock struct {
+	mock.Mock
+}
+
+func (m *segmentStoreMock) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Segment), args.Error(1)
+}
+
+func (m *segmentStoreMock) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).([]*flipt.Segment), args.Error(1)
+}
+
+func (m *segmentStoreMock) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Segment), args.Error(1)
+}
+
+func (m *segmentStoreMock) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Segment), args.Error(1)
+}
+
+func (m *segmentStoreMock) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
+func (m *segmentStoreMock) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Constraint), args.Error(1)
+}
+
+func (m *segmentStoreMock) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Constraint), args.Error(1)
+}
+
+func (m *segmentStoreMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
 }

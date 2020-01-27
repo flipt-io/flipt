@@ -279,8 +279,8 @@ func run() error {
 		)
 
 		if cfg.Cache.Memory.Enabled {
-			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.ExpirationDuration)
-			logger.Debugf("in-memory cache enabled with exipration: %v", cfg.Cache.Memory.ExpirationDuration)
+			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration)
+			logger.Debugf("in-memory cache enabled with exipration: %v", cfg.Cache.Memory.Expiration)
 			serverOpts = append(serverOpts, server.WithCache(cacher))
 		}
 
