@@ -1770,3 +1770,238 @@ func Test_matchesBool(t *testing.T) {
 		})
 	}
 }
+
+// Since we skip rollout buckets that have 0% distribution, ensure that things still work
+// when a 0% distribution is the first available one.
+// Fixes a previously existing bug in that specific situation
+func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
+	s := &Server{
+		logger: logger,
+		FlagStore: &flagStoreMock{
+			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+				return &flipt.Flag{
+					Key:     "foo",
+					Enabled: true,
+				}, nil
+			},
+		},
+		EvaluationStore: &evaluationStoreMock{
+			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
+				return []*storage.EvaluationRule{
+					{
+						ID:               "1",
+						FlagKey:          "foo",
+						SegmentKey:       "bar",
+						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Rank:             0,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
+					},
+				}, nil
+			},
+			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
+				return []*storage.EvaluationDistribution{
+					{
+						ID:         "4",
+						RuleID:     "1",
+						VariantID:  "5",
+						Rollout:    0,
+						VariantKey: "boz",
+					},
+					{
+						ID:         "6",
+						RuleID:     "1",
+						VariantID:  "7",
+						Rollout:    100,
+						VariantKey: "booz",
+					},
+				}, nil
+			},
+		},
+	}
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "booz",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+		})
+	}
+}
+
+// Ensure things work properly when many rollout distributions have a 0% value.
+// Fixes a previously existing bug in that specific situation
+func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
+	s := &Server{
+		logger: logger,
+		FlagStore: &flagStoreMock{
+			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+				return &flipt.Flag{
+					Key:     "foo",
+					Enabled: true,
+				}, nil
+			},
+		},
+		EvaluationStore: &evaluationStoreMock{
+			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
+				return []*storage.EvaluationRule{
+					{
+						ID:               "1",
+						FlagKey:          "foo",
+						SegmentKey:       "bar",
+						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Rank:             0,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
+					},
+				}, nil
+			},
+			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
+				return []*storage.EvaluationDistribution{
+					{
+						ID:         "1",
+						RuleID:     "1",
+						VariantID:  "1",
+						VariantKey: "1",
+						Rollout:    0,
+					},
+					{
+						ID:         "2",
+						RuleID:     "2",
+						VariantID:  "2",
+						VariantKey: "2",
+						Rollout:    0,
+					},
+					{
+						ID:         "3",
+						RuleID:     "3",
+						VariantID:  "3",
+						VariantKey: "3",
+						Rollout:    50,
+					},
+					{
+						ID:         "4",
+						RuleID:     "4",
+						VariantID:  "4",
+						VariantKey: "4",
+						Rollout:    0,
+					},
+					{
+						ID:         "5",
+						RuleID:     "5",
+						VariantID:  "5",
+						VariantKey: "5",
+						Rollout:    0,
+					},
+					{
+						ID:         "6",
+						RuleID:     "6",
+						VariantID:  "6",
+						VariantKey: "6",
+						Rollout:    50,
+					},
+				}, nil
+			},
+		},
+	}
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "3",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+		})
+	}
+}
