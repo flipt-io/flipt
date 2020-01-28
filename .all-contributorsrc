@@ -40,11 +40,21 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "khepin",
+      "name": "Sebastien Armand",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/455656?v=4",
+      "profile": "http://sf.khepin.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
   "projectName": "flipt",
   "projectOwner": "markphelps",
   "repoType": "github",
-  "repoHost": "https://github.com"
+  "repoHost": "https://github.com",
+  "skipCi": true
 }
