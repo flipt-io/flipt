@@ -49,6 +49,8 @@ linters:
     - unconvert
     - unparam
     - varcheck
+  disable:
+    - rowserrcheck
   enable-all: false
   presets:
     - bugs
