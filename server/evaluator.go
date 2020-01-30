@@ -168,16 +168,16 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			buckets            []int
 		)
 
-		for i, d := range distributions {
+		for _, d := range distributions {
 			// don't include 0% rollouts
 			if d.Rollout > 0 {
 				validDistributions = append(validDistributions, d)
 
-				if i == 0 {
+				if buckets == nil {
 					bucket := int(d.Rollout * percentMultiplier)
 					buckets = append(buckets, bucket)
 				} else {
-					bucket := buckets[i-1] + int(d.Rollout*percentMultiplier)
+					bucket := buckets[len(buckets)-1] + int(d.Rollout*percentMultiplier)
 					buckets = append(buckets, bucket)
 				}
 			}

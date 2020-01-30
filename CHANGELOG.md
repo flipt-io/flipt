@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.11.1](https://github.com/markphelps/flipt/releases/tag/v0.11.1) - 2020-01-28
+
+### Changed
+
+* Moved evaluation logic to be independent of datastore
+* Updated several dependencies
+* Moved documentation to https://github.com/markphelps/flipt.io
+* Updated documentation link in UI
+
+### Fixed
+
+* Potential index out of range issue with 0% distributions: [https://github.com/markphelps/flipt/pull/213](https://github.com/markphelps/flipt/pull/213)
+
 ## [v0.11.0](https://github.com/markphelps/flipt/releases/tag/v0.11.0) - 2019-12-01
 
 ### Added
