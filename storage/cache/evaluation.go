@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	evaluationCachePrefix              = "eval:"
-	evaluationRulesCachePrefix         = "r:"
-	evaluationDistributionsCachePrefix = "d:"
+//evaluationCachePrefix = "eval:"
+//evaluationRulesCachePrefix         = "r:"
+//evaluationDistributionsCachePrefix = "d:"
 )
 
 var _ storage.EvaluationStore = &EvaluationCache{}
@@ -41,6 +41,6 @@ func (e *EvaluationCache) GetEvaluationDistributions(ctx context.Context, ruleID
 	panic("not implemented") // TODO: Implement
 }
 
-func evalCacheKey(t, k string) string {
-	return evaluationCachePrefix + t + k
-}
+//func evalCacheKey(t, k string) string {
+//return evaluationCachePrefix + t + k
+//}
