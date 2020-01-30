@@ -1,26 +1,4 @@
-# log:
-#   level: INFO
-
-# ui:
-#   enabled: true
-
-# cors:
-#   enabled: false
-#   allowed_origins: "*"
-
-# cache:
-#   memory:
-#     enabled: false
-#     items: 500
-
-# server:
-#   protocol: http
-#   host: 0.0.0.0
-#   https_port: 443
-#   http_port: 8080
-#   grpc_port: 9000
-
-# db:
-#   url: file:/var/opt/flipt/flipt.db
-#   migrations:
-#     path: /etc/flipt/config/migrations
+cache:
+ memory:
+   enabled: false
+   items: 500
