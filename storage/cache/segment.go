@@ -69,7 +69,7 @@ func (s *SegmentCache) ListSegments(ctx context.Context, r *flipt.ListSegmentReq
 
 		segments, ok := data.([]*flipt.Segment)
 		if !ok {
-			// not flags slice, bad cache
+			// not segments slice, bad cache
 			return nil, ErrCacheCorrupt
 		}
 
