@@ -123,3 +123,52 @@ func (m *segmentStoreMock) DeleteConstraint(ctx context.Context, r *flipt.Delete
 	args := m.Called(ctx, r)
 	return args.Error(0)
 }
+
+type ruleStoreMock struct {
+	mock.Mock
+}
+
+func (m *ruleStoreMock) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Rule), args.Error(1)
+}
+
+func (m *ruleStoreMock) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).([]*flipt.Rule), args.Error(1)
+}
+
+func (m *ruleStoreMock) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Rule), args.Error(1)
+}
+
+func (m *ruleStoreMock) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Rule), args.Error(1)
+}
+
+func (m *ruleStoreMock) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
+func (m *ruleStoreMock) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
+func (m *ruleStoreMock) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Distribution), args.Error(1)
+}
+
+func (m *ruleStoreMock) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Distribution), args.Error(1)
+}
+
+func (m *ruleStoreMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
