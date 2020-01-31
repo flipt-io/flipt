@@ -34,7 +34,7 @@ func NewFlagCache(logger logrus.FieldLogger, cacher Cacher, store storage.FlagSt
 // GetFlag returns the flag from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	key := flagCacheKey(r.Key)
+	key := flagCachePrefix + r.Key
 
 	// check if flag exists in cache
 	if data, ok := f.cache.Get(key); ok {
@@ -56,7 +56,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 		return flag, err
 	}
 
-	f.cache.Set(flagCacheKey(r.Key), flag)
+	f.cache.Set(key, flag)
 	f.logger.Debugf("cache miss; added: %q", key)
 	cacheMissTotal.WithLabelValues("flag", "memory").Inc()
 
@@ -68,7 +68,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 func (f *FlagCache) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
 	// check if flags exists in cache
 	if data, ok := f.cache.Get(flagsCacheKey); ok {
-		f.logger.Debug("cache hit: flags")
+		f.logger.Debugf("cache hit: %q", flagsCacheKey)
 		cacheHitTotal.WithLabelValues("flags", "memory").Inc()
 
 		flags, ok := data.([]*flipt.Flag)
@@ -87,7 +87,7 @@ func (f *FlagCache) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]
 	}
 
 	f.cache.Set(flagsCacheKey, flags)
-	f.logger.Debug("cache miss; added flags")
+	f.logger.Debugf("cache miss; added %q", flagsCacheKey)
 	cacheMissTotal.WithLabelValues("flags", "memory").Inc()
 
 	return flags, nil
@@ -133,8 +133,4 @@ func (f *FlagCache) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	f.cache.Flush()
 	f.logger.Debug("flushed cache")
 	return f.store.DeleteVariant(ctx, r)
-}
-
-func flagCacheKey(k string) string {
-	return flagCachePrefix + k
 }

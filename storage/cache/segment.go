@@ -31,8 +31,10 @@ func NewSegmentCache(logger logrus.FieldLogger, cacher Cacher, store storage.Seg
 	}
 }
 
+// GetSegment returns the segment from the cache if it exists; otherwise it delegates to the underlying store
+// caching the result if no error
 func (s *SegmentCache) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
-	key := segmentCacheKey(r.Key)
+	key := segmentCachePrefix + r.Key
 
 	// check if segment exists in cache
 	if data, ok := s.cache.Get(key); ok {
@@ -54,17 +56,19 @@ func (s *SegmentCache) GetSegment(ctx context.Context, r *flipt.GetSegmentReques
 		return segment, err
 	}
 
-	s.cache.Set(segmentCacheKey(r.Key), segment)
+	s.cache.Set(key, segment)
 	s.logger.Debugf("cache miss; added: %q", key)
 	cacheMissTotal.WithLabelValues("segment", "memory").Inc()
 
 	return segment, nil
 }
 
+// ListSegments returns all segments from the cache if they exist; otherwise it delegates to the underlying store
+// caching the result if no error
 func (s *SegmentCache) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
 	// check if segments exists in cache
 	if data, ok := s.cache.Get(segmentsCacheKey); ok {
-		s.logger.Debug("cache hit: segments")
+		s.logger.Debugf("cache hit: %q", segmentsCacheKey)
 		cacheHitTotal.WithLabelValues("segments", "memory").Inc()
 
 		segments, ok := data.([]*flipt.Segment)
@@ -83,48 +87,50 @@ func (s *SegmentCache) ListSegments(ctx context.Context, r *flipt.ListSegmentReq
 	}
 
 	s.cache.Set(segmentsCacheKey, segments)
-	s.logger.Debug("cache miss; added segments")
+	s.logger.Debugf("cache miss; added %q", segmentsCacheKey)
 	cacheMissTotal.WithLabelValues("segments", "memory").Inc()
 
 	return segments, nil
 }
 
+// CreateSegment delegates to the underlying store, flushing the cache in the process
 func (s *SegmentCache) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	s.cache.Flush()
 	s.logger.Debug("flushed cache")
 	return s.store.CreateSegment(ctx, r)
 }
 
+// UpdateSegment delegates to the underlying store, flushing the cache in the process
 func (s *SegmentCache) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
 	s.cache.Flush()
 	s.logger.Debug("flushed cache")
 	return s.store.UpdateSegment(ctx, r)
 }
 
+// DeleteSegment delegates to the underlying store, flushing the cache in the process
 func (s *SegmentCache) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
 	s.cache.Flush()
 	s.logger.Debug("flushed cache")
 	return s.store.DeleteSegment(ctx, r)
 }
 
+// CreateConstraint delegates to the underlying store, flushing the cache in the process
 func (s *SegmentCache) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	s.cache.Flush()
 	s.logger.Debug("flushed cache")
 	return s.store.CreateConstraint(ctx, r)
 }
 
+// UpdateConstraint delegates to the underlying store, flushing the cache in the process
 func (s *SegmentCache) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
 	s.cache.Flush()
 	s.logger.Debug("flushed cache")
 	return s.store.UpdateConstraint(ctx, r)
 }
 
+// DeleteConstraint delegates to the underlying store, flushing the cache in the process
 func (s *SegmentCache) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
 	s.cache.Flush()
 	s.logger.Debug("flushed cache")
 	return s.store.DeleteConstraint(ctx, r)
-}
-
-func segmentCacheKey(k string) string {
-	return segmentCachePrefix + k
 }

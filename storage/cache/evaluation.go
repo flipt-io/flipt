@@ -8,9 +8,8 @@ import (
 )
 
 const (
-//evaluationCachePrefix = "eval:"
-//evaluationRulesCachePrefix         = "r:"
-//evaluationDistributionsCachePrefix = "d:"
+	evaluationRulesCachePrefix         = "e:r:f:"
+	evaluationDistributionsCachePrefix = "e:d:r:"
 )
 
 var _ storage.EvaluationStore = &EvaluationCache{}
@@ -31,16 +30,64 @@ func NewEvaluationCache(logger logrus.FieldLogger, cacher Cacher, store storage.
 	}
 }
 
-// GetEvaluationRules returns rules applicable to flagKey provided
-// Note: Rules MUST be returned in order by Rank
+// GetEvaluationRules returns all rules applicable to the flagKey provided from the cache if they exist; delegating to the underlying store and caching the result if no error
 func (e *EvaluationCache) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
-	panic("not implemented") // TODO: Implement
+	key := evaluationRulesCachePrefix + flagKey
+
+	// check if rules exists in cache
+	if data, ok := e.cache.Get(key); ok {
+		e.logger.Debugf("cache hit: %q", key)
+		cacheHitTotal.WithLabelValues("eval_rules", "memory").Inc()
+
+		rules, ok := data.([]*storage.EvaluationRule)
+		if !ok {
+			// not rules slice, bad cache
+			return nil, ErrCacheCorrupt
+		}
+
+		return rules, nil
+	}
+
+	// else, get them and add to cache
+	rules, err := e.store.GetEvaluationRules(ctx, flagKey)
+	if err != nil {
+		return rules, err
+	}
+
+	e.cache.Set(key, rules)
+	e.logger.Debugf("cache miss; added: %q", key)
+	cacheMissTotal.WithLabelValues("eval_rules", "memory").Inc()
+
+	return rules, nil
 }
 
+// GetEvaluationDistributions returns all distributions applicable to the ruleID provided from the cache if they exist; delegating to the underlying store and caching the result if no error
 func (e *EvaluationCache) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	panic("not implemented") // TODO: Implement
-}
+	key := evaluationDistributionsCachePrefix + ruleID
 
-//func evalCacheKey(t, k string) string {
-//return evaluationCachePrefix + t + k
-//}
+	// check if distributions exists in cache
+	if data, ok := e.cache.Get(key); ok {
+		e.logger.Debugf("cache hit: %q", key)
+		cacheHitTotal.WithLabelValues("eval_distributions", "memory").Inc()
+
+		distributions, ok := data.([]*storage.EvaluationDistribution)
+		if !ok {
+			// not distributions slice, bad cache
+			return nil, ErrCacheCorrupt
+		}
+
+		return distributions, nil
+	}
+
+	// else, get them and add to cache
+	distributions, err := e.store.GetEvaluationDistributions(ctx, ruleID)
+	if err != nil {
+		return distributions, err
+	}
+
+	e.cache.Set(key, distributions)
+	e.logger.Debugf("cache miss; added %q", key)
+	cacheMissTotal.WithLabelValues("eval_distributions", "memory").Inc()
+
+	return distributions, nil
+}
