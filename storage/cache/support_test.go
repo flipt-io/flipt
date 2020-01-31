@@ -5,8 +5,11 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/mock"
 )
+
+var logger, _ = test.NewNullLogger()
 
 // cacherSpy is a simple in memory map that acts as a cache
 // and records interactions for tests

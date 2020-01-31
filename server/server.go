@@ -53,8 +53,11 @@ func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB
 	}
 
 	if s.cache != nil {
-		// wrap flagStore with lru cache
+		// wrap stores with caches
 		s.FlagStore = cache.NewFlagCache(logger, s.cache, flagStore)
+		s.SegmentStore = cache.NewSegmentCache(logger, s.cache, segmentStore)
+		s.RuleStore = cache.NewRuleCache(logger, s.cache, ruleStore)
+		s.EvaluationStore = cache.NewEvaluationCache(logger, s.cache, evaluationStore)
 	}
 
 	return s

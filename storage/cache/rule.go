@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	ruleCachePrefix = "r:"
-	rulesCacheKey   = "r"
+	ruleCachePrefix  = "r:"
+	rulesCachePrefix = "rs:"
 )
 
 var _ storage.RuleStore = &RuleCache{}
@@ -66,9 +66,11 @@ func (c *RuleCache) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flip
 // ListRules returns all rules from the cache if they exist; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *RuleCache) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
+	key := rulesCachePrefix + r.FlagKey
+
 	// check if rules exists in cache
-	if data, ok := c.cache.Get(rulesCacheKey); ok {
-		c.logger.Debugf("cache hit: %q", rulesCacheKey)
+	if data, ok := c.cache.Get(key); ok {
+		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues("rules", "memory").Inc()
 
 		rules, ok := data.([]*flipt.Rule)
@@ -86,8 +88,8 @@ func (c *RuleCache) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]
 		return rules, err
 	}
 
-	c.cache.Set(rulesCacheKey, rules)
-	c.logger.Debugf("cache miss; added %q", rulesCacheKey)
+	c.cache.Set(key, rules)
+	c.logger.Debugf("cache miss; added %q", key)
 	cacheMissTotal.WithLabelValues("rules", "memory").Inc()
 
 	return rules, nil

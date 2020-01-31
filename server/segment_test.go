@@ -116,6 +116,7 @@ func TestGetSegment(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					getSegmentFn: f,
 				},
@@ -172,6 +173,7 @@ func TestListSegments(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					listSegmentsFn: f,
 				},
@@ -229,6 +231,7 @@ func TestCreateSegment(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					createSegmentFn: f,
 				},
@@ -286,6 +289,7 @@ func TestUpdateSegment(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					updateSegmentFn: f,
 				},
@@ -338,6 +342,7 @@ func TestDeleteSegment(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					deleteSegmentFn: f,
 				},
@@ -403,6 +408,7 @@ func TestCreateConstraint(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					createConstraintFn: f,
 				},
@@ -472,6 +478,7 @@ func TestUpdateConstraint(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					updateConstraintFn: f,
 				},
@@ -526,6 +533,7 @@ func TestDeleteConstraint(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				SegmentStore: &segmentStoreMock{
 					deleteConstraintFn: f,
 				},

@@ -16,11 +16,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var logger, _ = test.NewNullLogger()
+
 func TestNew(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		builder   = sq.StatementBuilderType{}
-		db        = new(sql.DB)
+		builder = sq.StatementBuilderType{}
+		db      = new(sql.DB)
 	)
 
 	server := New(logger, builder, db)

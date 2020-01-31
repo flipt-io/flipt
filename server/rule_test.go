@@ -120,6 +120,7 @@ func TestGetRule(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					getRuleFn: f,
 				},
@@ -182,6 +183,7 @@ func TestListRules(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					listRulesFn: f,
 				},
@@ -239,6 +241,7 @@ func TestCreateRule(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					createRuleFn: f,
 				},
@@ -296,6 +299,7 @@ func TestUpdateRule(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					updateRuleFn: f,
 				},
@@ -350,6 +354,7 @@ func TestDeleteRule(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					deleteRuleFn: f,
 				},
@@ -404,6 +409,7 @@ func TestOrderRules(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					orderRuleFn: f,
 				},
@@ -455,6 +461,7 @@ func TestCreateDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					createDistributionFn: f,
 				},
@@ -509,6 +516,7 @@ func TestUpdateDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					updateDistributionFn: f,
 				},
@@ -569,6 +577,7 @@ func TestDeleteDistribution(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				RuleStore: &ruleStoreMock{
 					deleteDistributionFn: f,
 				},

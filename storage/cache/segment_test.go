@@ -6,7 +6,6 @@ import (
 
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -14,10 +13,9 @@ import (
 
 func TestGetSegment(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
@@ -45,10 +43,9 @@ func TestGetSegment(t *testing.T) {
 
 func TestGetSegmentNotFound(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{}, errors.ErrNotFound("foo"))
@@ -64,10 +61,9 @@ func TestGetSegmentNotFound(t *testing.T) {
 
 func TestListSegments(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	ret := []*flipt.Segment{
@@ -102,10 +98,9 @@ func TestListSegments(t *testing.T) {
 
 func TestCreateSegment(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("CreateSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
@@ -123,10 +118,9 @@ func TestCreateSegment(t *testing.T) {
 
 func TestUpdateSegment(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("UpdateSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
@@ -143,10 +137,9 @@ func TestUpdateSegment(t *testing.T) {
 
 func TestDeleteSegment(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("DeleteSegment", mock.Anything, mock.Anything).Return(nil)
@@ -163,10 +156,9 @@ func TestDeleteSegment(t *testing.T) {
 
 func TestCreateConstraint(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("CreateConstraint", mock.Anything, mock.Anything).Return(&flipt.Constraint{SegmentKey: "foo"}, nil)
@@ -183,10 +175,9 @@ func TestCreateConstraint(t *testing.T) {
 
 func TestUpdateConstraint(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("UpdateConstraint", mock.Anything, mock.Anything).Return(&flipt.Constraint{SegmentKey: "foo"}, nil)
@@ -203,10 +194,9 @@ func TestUpdateConstraint(t *testing.T) {
 
 func TestDeleteConstraint(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &segmentStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewSegmentCache(logger, cacher, store)
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
 	)
 
 	store.On("DeleteConstraint", mock.Anything, mock.Anything).Return(nil)

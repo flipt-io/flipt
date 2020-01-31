@@ -116,6 +116,7 @@ func TestGetFlag(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					getFlagFn: f,
 				},
@@ -173,6 +174,7 @@ func TestListFlags(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					listFlagsFn: f,
 				},
@@ -234,6 +236,7 @@ func TestCreateFlag(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					createFlagFn: f,
 				},
@@ -295,6 +298,7 @@ func TestUpdateFlag(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					updateFlagFn: f,
 				},
@@ -349,6 +353,7 @@ func TestDeleteFlag(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					deleteFlagFn: f,
 				},
@@ -410,6 +415,7 @@ func TestCreateVariant(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					createVariantFn: f,
 				},
@@ -469,6 +475,7 @@ func TestUpdateVariant(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					updateVariantFn: f,
 				},
@@ -525,6 +532,7 @@ func TestDeleteVariant(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
+				logger: logger,
 				FlagStore: &flagStoreMock{
 					deleteVariantFn: f,
 				},

@@ -8,7 +8,6 @@ import (
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,8 +32,6 @@ func (m *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ru
 	}
 	return m.getEvaluationDistributionsFn(ctx, ruleID)
 }
-
-var logger, _ = test.NewNullLogger()
 
 func TestEvaluate_FlagNotFound(t *testing.T) {
 	s := &Server{
