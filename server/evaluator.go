@@ -17,15 +17,16 @@ import (
 )
 
 // Evaluate evaluates a request for a given flag and entity
-func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+	s.logger.WithField("request", r).Debug("get evaluation rules")
 	startTime := time.Now()
 
 	// set request ID if not present
-	if req.RequestId == "" {
-		req.RequestId = uuid.Must(uuid.NewV4()).String()
+	if r.RequestId == "" {
+		r.RequestId = uuid.Must(uuid.NewV4()).String()
 	}
 
-	resp, err := s.evaluate(ctx, req)
+	resp, err := s.evaluate(ctx, r)
 	if resp != nil {
 		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 	}
@@ -34,12 +35,11 @@ func (s *Server) Evaluate(ctx context.Context, req *flipt.EvaluationRequest) (*f
 		return resp, err
 	}
 
+	s.logger.WithField("response", resp).Debug("get evaluation rules")
 	return resp, nil
 }
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	s.logger.Debug("evaluate")
-
 	var (
 		ts, _ = ptypes.TimestampProto(time.Now().UTC())
 		resp  = &flipt.EvaluationResponse{

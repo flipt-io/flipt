@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -75,8 +74,6 @@ func TestParse(t *testing.T) {
 }
 
 var (
-	logger *logrus.Logger
-
 	flagStore       *FlagStore
 	segmentStore    *SegmentStore
 	ruleStore       *RuleStore
@@ -92,13 +89,7 @@ func TestMain(m *testing.M) {
 }
 
 func run(m *testing.M) int {
-	logger = logrus.New()
-
-	debug := os.Getenv("DEBUG")
-	if debug == "" {
-		logger.Level = logrus.DebugLevel
-		logger.Out = ioutil.Discard
-	}
+	logger := logrus.New()
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
@@ -160,10 +151,10 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	flagStore = NewFlagStore(logger, builder)
-	segmentStore = NewSegmentStore(logger, builder)
-	ruleStore = NewRuleStore(logger, builder, db)
-	evaluationStore = NewEvaluationStore(logger, builder)
+	flagStore = NewFlagStore(builder)
+	segmentStore = NewSegmentStore(builder)
+	ruleStore = NewRuleStore(builder, db)
+	evaluationStore = NewEvaluationStore(builder)
 
 	return m.Run()
 }

@@ -8,6 +8,7 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage/cache"
+	"github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -597,6 +598,7 @@ func BenchmarkGetFlag(b *testing.B) {
 
 func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	var (
+		logger, _      = test.NewNullLogger()
 		cacher         = cache.NewInMemoryCache(5 * time.Minute)
 		flagStoreCache = cache.NewFlagCache(logger, cacher, flagStore)
 	)

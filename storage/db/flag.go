@@ -13,21 +13,18 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
-	"github.com/sirupsen/logrus"
 )
 
 var _ storage.FlagStore = &FlagStore{}
 
 // FlagStore is a SQL FlagStore
 type FlagStore struct {
-	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
 // NewFlagStore creates a FlagStore
-func NewFlagStore(logger logrus.FieldLogger, builder sq.StatementBuilderType) *FlagStore {
+func NewFlagStore(builder sq.StatementBuilderType) *FlagStore {
 	return &FlagStore{
-		logger:  logger,
 		builder: builder,
 	}
 }

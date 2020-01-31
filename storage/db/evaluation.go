@@ -7,7 +7,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/sirupsen/logrus"
 )
 
 var _ storage.EvaluationStore = &EvaluationStore{}
@@ -22,21 +21,17 @@ type optionalConstraint struct {
 
 // EvaluationStore is a SQL EvaluationStore
 type EvaluationStore struct {
-	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 }
 
 // NewEvaluationStore creates an EvaluationStore
-func NewEvaluationStore(logger logrus.FieldLogger, builder sq.StatementBuilderType) *EvaluationStore {
+func NewEvaluationStore(builder sq.StatementBuilderType) *EvaluationStore {
 	return &EvaluationStore{
-		logger:  logger,
 		builder: builder,
 	}
 }
 
 func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
-	s.logger.WithField("flagKey", flagKey).Debug("get evaluation rules")
-
 	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.rank, c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
@@ -113,13 +108,10 @@ func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string
 		return nil, err
 	}
 
-	s.logger.WithField("rules", rules).Debug("get evaluation rules")
 	return rules, nil
 }
 
 func (s *EvaluationStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	s.logger.WithField("ruleID", ruleID).Debug("get evaluation distributions")
-
 	rows, err := s.builder.Select("d.id", "d.rule_id", "d.variant_id", "d.rollout", "v.key").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
@@ -151,6 +143,5 @@ func (s *EvaluationStore) GetEvaluationDistributions(ctx context.Context, ruleID
 		return nil, err
 	}
 
-	s.logger.WithField("distributions", distributions).Debug("get evaluation distributions")
 	return distributions, nil
 }
