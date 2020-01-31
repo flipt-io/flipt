@@ -172,3 +172,17 @@ func (m *ruleStoreMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteD
 	args := m.Called(ctx, r)
 	return args.Error(0)
 }
+
+type evaluationStoreMock struct {
+	mock.Mock
+}
+
+func (m *evaluationStoreMock) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
+	args := m.Called(ctx, flagKey)
+	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
+}
+
+func (m *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+	args := m.Called(ctx, ruleID)
+	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
+}
