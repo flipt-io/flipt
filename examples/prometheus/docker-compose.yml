@@ -18,5 +18,10 @@ services:
       - "8080:8080"
     networks:
       - flipt_network
+    environment:
+      - "FLIPT_LOG_LEVEL=debug"
+      - "FLIPT_CACHE_MEMORY_ENABLED=true"
+      - "FLIPT_CACHE_MEMORY_EXPIRATION=1m"
+      - "FLIPT_CACHE_MEMORY_EVICTION_INTERVAL=2m"
 networks:
   flipt_network:

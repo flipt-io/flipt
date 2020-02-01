@@ -34,10 +34,10 @@ type Server struct {
 // New creates a new Server
 func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB, opts ...Option) *Server {
 	var (
-		flagStore       = db.NewFlagStore(logger, builder)
-		segmentStore    = db.NewSegmentStore(logger, builder)
-		ruleStore       = db.NewRuleStore(logger, builder, sql)
-		evaluationStore = db.NewEvaluationStore(logger, builder)
+		flagStore       = db.NewFlagStore(builder)
+		segmentStore    = db.NewSegmentStore(builder)
+		ruleStore       = db.NewRuleStore(builder, sql)
+		evaluationStore = db.NewEvaluationStore(builder)
 
 		s = &Server{
 			logger:          logger,
@@ -53,8 +53,11 @@ func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB
 	}
 
 	if s.cache != nil {
-		// wrap flagStore with lru cache
+		// wrap stores with caches
 		s.FlagStore = cache.NewFlagCache(logger, s.cache, flagStore)
+		s.SegmentStore = cache.NewSegmentCache(logger, s.cache, segmentStore)
+		s.RuleStore = cache.NewRuleCache(logger, s.cache, ruleStore)
+		s.EvaluationStore = cache.NewEvaluationCache(logger, s.cache, evaluationStore)
 	}
 
 	return s

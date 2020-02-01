@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -35,8 +36,9 @@ type corsConfig struct {
 }
 
 type memoryCacheConfig struct {
-	Enabled bool `json:"enabled"`
-	Items   int  `json:"items,omitempty"`
+	Enabled          bool          `json:"enabled"`
+	Expiration       time.Duration `json:"expiration"`
+	EvictionInterval time.Duration `json:"evictionInterval"`
 }
 
 type cacheConfig struct {
@@ -98,8 +100,9 @@ func Default() *Config {
 
 		Cache: cacheConfig{
 			Memory: memoryCacheConfig{
-				Enabled: false,
-				Items:   500,
+				Enabled:          false,
+				Expiration:       -1,
+				EvictionInterval: 10 * time.Minute,
 			},
 		},
 
@@ -131,8 +134,9 @@ const (
 	cfgCorsAllowedOrigins = "cors.allowed_origins"
 
 	// Cache
-	cfgCacheMemoryEnabled = "cache.memory.enabled"
-	cfgCacheMemoryItems   = "cache.memory.items"
+	cfgCacheMemoryEnabled          = "cache.memory.enabled"
+	cfgCacheMemoryExpiration       = "cache.memory.expiration"
+	cfgCacheMemoryEvictionInterval = "cache.memory.eviction_interval"
 
 	// Server
 	cfgServerHost      = "server.host"
@@ -188,8 +192,11 @@ func Load(path string) (*Config, error) {
 	if viper.IsSet(cfgCacheMemoryEnabled) {
 		cfg.Cache.Memory.Enabled = viper.GetBool(cfgCacheMemoryEnabled)
 
-		if viper.IsSet(cfgCacheMemoryItems) {
-			cfg.Cache.Memory.Items = viper.GetInt(cfgCacheMemoryItems)
+		if viper.IsSet(cfgCacheMemoryExpiration) {
+			cfg.Cache.Memory.Expiration = viper.GetDuration(cfgCacheMemoryExpiration)
+		}
+		if viper.IsSet(cfgCacheMemoryEvictionInterval) {
+			cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cfgCacheMemoryEvictionInterval)
 		}
 	}
 

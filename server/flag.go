@@ -8,13 +8,18 @@ import (
 )
 
 // GetFlag gets a flag
-func (s *Server) GetFlag(ctx context.Context, req *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	return s.FlagStore.GetFlag(ctx, req)
+func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
+	s.logger.WithField("request", r).Debug("get flag")
+	flag, err := s.FlagStore.GetFlag(ctx, r)
+	s.logger.WithField("response", flag).Debug("get flag")
+	return flag, err
 }
 
 // ListFlags lists all flags
-func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*flipt.FlagList, error) {
-	flags, err := s.FlagStore.ListFlags(ctx, req)
+func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
+	s.logger.WithField("request", r).Debug("list flags")
+
+	flags, err := s.FlagStore.ListFlags(ctx, r)
 	if err != nil {
 		return nil, err
 	}
@@ -25,22 +30,31 @@ func (s *Server) ListFlags(ctx context.Context, req *flipt.ListFlagRequest) (*fl
 		resp.Flags = append(resp.Flags, flags[i])
 	}
 
+	s.logger.WithField("response", resp).Debug("list flags")
 	return &resp, nil
 }
 
 // CreateFlag creates a flag
-func (s *Server) CreateFlag(ctx context.Context, req *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	return s.FlagStore.CreateFlag(ctx, req)
+func (s *Server) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+	s.logger.WithField("request", r).Debug("create flag")
+	flag, err := s.FlagStore.CreateFlag(ctx, r)
+	s.logger.WithField("response", flag).Debug("create flag")
+	return flag, err
 }
 
 // UpdateFlag updates an existing flag
-func (s *Server) UpdateFlag(ctx context.Context, req *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	return s.FlagStore.UpdateFlag(ctx, req)
+func (s *Server) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+	s.logger.WithField("request", r).Debug("update flag")
+	flag, err := s.FlagStore.UpdateFlag(ctx, r)
+	s.logger.WithField("response", flag).Debug("update flag")
+	return flag, err
 }
 
 // DeleteFlag deletes a flag
-func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (*empty.Empty, error) {
-	if err := s.FlagStore.DeleteFlag(ctx, req); err != nil {
+func (s *Server) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) (*empty.Empty, error) {
+	s.logger.WithField("request", r).Debug("delete flag")
+
+	if err := s.FlagStore.DeleteFlag(ctx, r); err != nil {
 		return nil, err
 	}
 
@@ -48,18 +62,25 @@ func (s *Server) DeleteFlag(ctx context.Context, req *flipt.DeleteFlagRequest) (
 }
 
 // CreateVariant creates a variant
-func (s *Server) CreateVariant(ctx context.Context, req *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	return s.FlagStore.CreateVariant(ctx, req)
+func (s *Server) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+	s.logger.WithField("request", r).Debug("create variant")
+	variant, err := s.FlagStore.CreateVariant(ctx, r)
+	s.logger.WithField("response", variant).Debug("create variant")
+	return variant, err
 }
 
 // UpdateVariant updates an existing variant
-func (s *Server) UpdateVariant(ctx context.Context, req *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	return s.FlagStore.UpdateVariant(ctx, req)
+func (s *Server) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+	s.logger.WithField("request", r).Debug("update variant")
+	variant, err := s.FlagStore.UpdateVariant(ctx, r)
+	s.logger.WithField("response", variant).Debug("update variant")
+	return variant, err
 }
 
 // DeleteVariant deletes a variant
-func (s *Server) DeleteVariant(ctx context.Context, req *flipt.DeleteVariantRequest) (*empty.Empty, error) {
-	if err := s.FlagStore.DeleteVariant(ctx, req); err != nil {
+func (s *Server) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) (*empty.Empty, error) {
+	s.logger.WithField("request", r).Debug("delete variant")
+	if err := s.FlagStore.DeleteVariant(ctx, r); err != nil {
 		return nil, err
 	}
 

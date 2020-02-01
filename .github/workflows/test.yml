@@ -2,7 +2,6 @@ name: Tests
 on:
   push:
     paths-ignore:
-      - 'docs/**'
       - '*.md'
       - '.all-contributorsrc'
 
@@ -17,7 +16,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.4
+        go-version: 1.13.7
       id: go
 
     - name: Check out code into the Go module directory
@@ -55,7 +54,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.13.4
+        go-version: 1.13.7
       id: go
 
     - name: Checkout

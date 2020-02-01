@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage/cache"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -606,4 +609,140 @@ func TestOrderRules(t *testing.T) {
 	assert.Equal(t, int32(2), got[1].Rank)
 	assert.Equal(t, rules[2].Id, got[2].Id)
 	assert.Equal(t, int32(3), got[2].Rank)
+}
+
+var benchRule *flipt.Rule
+
+func BenchmarkGetRule(b *testing.B) {
+	var (
+		ctx       = context.Background()
+		flag, err = flagStore.CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Key:         b.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+	)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = flagStore.CreateVariant(ctx, &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         b.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	segment, err := segmentStore.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+		Key:         b.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStore.CreateRule(ctx, &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+		Rank:       1,
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+
+	b.Run("get-rule", func(b *testing.B) {
+		var r *flipt.Rule
+
+		for i := 0; i < b.N; i++ {
+			r, _ = ruleStore.GetRule(ctx, &flipt.GetRuleRequest{
+				Id:      rule.Id,
+				FlagKey: flag.Key,
+			})
+		}
+
+		benchRule = r
+	})
+}
+
+func BenchmarkGetRule_CacheMemory(b *testing.B) {
+	var (
+		logger, _      = test.NewNullLogger()
+		cacher         = cache.NewInMemoryCache(5*time.Minute, 10*time.Minute, logger)
+		ruleStoreCache = cache.NewRuleCache(logger, cacher, ruleStore)
+
+		ctx       = context.Background()
+		flag, err = flagStore.CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Key:         b.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+	)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = flagStore.CreateVariant(ctx, &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         b.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	segment, err := segmentStore.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+		Key:         b.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	rule, err := ruleStoreCache.CreateRule(ctx, &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+		Rank:       1,
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	var r *flipt.Rule
+
+	// warm the cache
+	r, _ = ruleStoreCache.GetRule(ctx, &flipt.GetRuleRequest{
+		Id:      rule.Id,
+		FlagKey: flag.Key,
+	})
+
+	b.ResetTimer()
+
+	b.Run("get-rule-cache", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			r, _ = ruleStoreCache.GetRule(ctx, &flipt.GetRuleRequest{
+				Id:      rule.Id,
+				FlagKey: flag.Key,
+			})
+		}
+
+		benchRule = r
+	})
 }

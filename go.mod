@@ -25,12 +25,11 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.12.2
-
-	github.com/hashicorp/golang-lru v0.5.4
 	github.com/lib/pq v1.3.0
 	github.com/markphelps/flipt-grpc-go v0.2.0
 	github.com/mattn/go-sqlite3 v1.13.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/prometheus/client_golang v1.3.0
 	github.com/rogpeppe/go-internal v1.5.0 // indirect

@@ -11,7 +11,8 @@ log:
 # cache:
 #   memory:
 #     enabled: false
-#     items: 500
+#     expiration: -1 # Items Do Not Expire
+#     eviction_interval: 10m # Evict Expired Items Every 10m
 
 # server:
 #   protocol: http

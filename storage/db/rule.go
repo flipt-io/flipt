@@ -12,22 +12,19 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
-	"github.com/sirupsen/logrus"
 )
 
 var _ storage.RuleStore = &RuleStore{}
 
 // RuleStore is a SQL RuleStore
 type RuleStore struct {
-	logger  logrus.FieldLogger
 	builder sq.StatementBuilderType
 	db      *sql.DB
 }
 
 // NewRuleStore creates a RuleStore
-func NewRuleStore(logger logrus.FieldLogger, builder sq.StatementBuilderType, db *sql.DB) *RuleStore {
+func NewRuleStore(builder sq.StatementBuilderType, db *sql.DB) *RuleStore {
 	return &RuleStore{
-		logger:  logger,
 		builder: builder,
 		db:      db,
 	}
@@ -35,11 +32,7 @@ func NewRuleStore(logger logrus.FieldLogger, builder sq.StatementBuilderType, db
 
 // GetRule gets a rule
 func (s *RuleStore) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
-	s.logger.WithField("request", r).Debug("get rule")
-	rule, err := s.rule(ctx, r.Id, r.FlagKey)
-	s.logger.WithField("response", rule).Debug("get rule")
-
-	return rule, err
+	return s.rule(ctx, r.Id, r.FlagKey)
 }
 
 func (s *RuleStore) rule(ctx context.Context, id, flagKey string) (*flipt.Rule, error) {
@@ -70,11 +63,7 @@ func (s *RuleStore) rule(ctx context.Context, id, flagKey string) (*flipt.Rule, 
 
 // ListRules lists all rules
 func (s *RuleStore) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
-	s.logger.WithField("request", r).Debug("list rules")
-	rules, err := s.rules(ctx, r)
-	s.logger.WithField("response", rules).Debug("list rules")
-
-	return rules, err
+	return s.rules(ctx, r)
 }
 
 func (s *RuleStore) rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
@@ -138,8 +127,6 @@ func (s *RuleStore) rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*fli
 
 // CreateRule creates a rule
 func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	s.logger.WithField("request", r).Debug("create rule")
-
 	var (
 		now  = proto.TimestampNow()
 		rule = &flipt.Rule{
@@ -171,15 +158,11 @@ func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) 
 		return nil, err
 	}
 
-	s.logger.WithField("response", rule).Debug("create rule")
-
 	return rule, nil
 }
 
 // UpdateRule updates an existing rule
 func (s *RuleStore) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	s.logger.WithField("request", r).Debug("update rule")
-
 	query := s.builder.Update("rules").
 		Set("segment_key", r.SegmentKey).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
@@ -199,16 +182,11 @@ func (s *RuleStore) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) 
 		return nil, errors.ErrNotFoundf("rule %q", r.Id)
 	}
 
-	rule, err := s.rule(ctx, r.Id, r.FlagKey)
-	s.logger.WithField("response", rule).Debug("update rule")
-
-	return rule, err
+	return s.rule(ctx, r.Id, r.FlagKey)
 }
 
 // DeleteRule deletes a rule
 func (s *RuleStore) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
-	s.logger.WithField("request", r).Debug("delete rule")
-
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -267,8 +245,6 @@ func (s *RuleStore) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) 
 
 // OrderRules orders rules
 func (s *RuleStore) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
-	s.logger.WithField("request", r).Debug("order rules")
-
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -302,8 +278,6 @@ func (s *RuleStore) orderRules(ctx context.Context, runner sq.BaseRunner, flagKe
 
 // CreateDistribution creates a distribution
 func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	s.logger.WithField("request", r).Debug("create distribution")
-
 	var (
 		now = proto.TimestampNow()
 		d   = &flipt.Distribution{
@@ -335,15 +309,11 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 		return nil, err
 	}
 
-	s.logger.WithField("response", d).Debug("create distribution")
-
 	return d, nil
 }
 
 // UpdateDistribution updates an existing distribution
 func (s *RuleStore) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	s.logger.WithField("request", r).Debug("update distribution")
-
 	query := s.builder.Update("distributions").
 		Set("rollout", r.Rollout).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
@@ -381,15 +351,11 @@ func (s *RuleStore) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistr
 	distribution.CreatedAt = createdAt.Timestamp
 	distribution.UpdatedAt = updatedAt.Timestamp
 
-	s.logger.WithField("response", distribution).Debug("update distribution")
-
 	return distribution, nil
 }
 
 // DeleteDistribution deletes a distribution
 func (s *RuleStore) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	s.logger.WithField("request", r).Debug("delete distribution")
-
 	_, err := s.builder.Delete("distributions").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}}).
 		ExecContext(ctx)

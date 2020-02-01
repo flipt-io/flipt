@@ -37,7 +37,7 @@
       <div class="navbar-end">
         <a
           class="navbar-item has-text-weight-semibold"
-          href="https://flipt.io/"
+          href="https://flipt.io/docs/getting_started/?utm_source=app"
         >
           Documentation
         </a>

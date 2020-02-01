@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -53,6 +54,11 @@ func TestLoad(t *testing.T) {
 			expected: Default(),
 		},
 		{
+			name:     "deprecated defaults",
+			path:     "./testdata/config/deprecated.yml",
+			expected: Default(),
+		},
+		{
 			name: "configured",
 			path: "./testdata/config/advanced.yml",
 			expected: &Config{
@@ -69,8 +75,9 @@ func TestLoad(t *testing.T) {
 				},
 				Cache: cacheConfig{
 					Memory: memoryCacheConfig{
-						Enabled: true,
-						Items:   5000,
+						Enabled:          true,
+						Expiration:       5 * time.Minute,
+						EvictionInterval: 1 * time.Minute,
 					},
 				},
 				Server: serverConfig{

@@ -8,16 +8,17 @@ import (
 
 type noopCacher struct{}
 
-func (n *noopCacher) Get(key interface{}) (interface{}, bool) {
+func (n *noopCacher) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
-func (n *noopCacher) Add(key interface{}, value interface{}) bool {
-	return false
+func (n *noopCacher) Set(key string, value interface{}) {
 }
 
-func (n *noopCacher) Remove(key interface{}) bool {
-	return false
+func (n *noopCacher) Delete(key string) {
+}
+
+func (n *noopCacher) Flush() {
 }
 
 func TestWithCache(t *testing.T) {

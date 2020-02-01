@@ -28,10 +28,10 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
+	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
@@ -254,7 +254,7 @@ func run() error {
 			logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, dbMigrationVersion)
 
 			if forceMigrate {
-				logger.Debugf("force-migrate set; running now")
+				logger.Info("force-migrate set; running now")
 				if err := runMigrations(); err != nil {
 					return fmt.Errorf("running migrations: %w", err)
 				}
@@ -279,13 +279,13 @@ func run() error {
 		)
 
 		if cfg.Cache.Memory.Enabled {
-			cache, err := lru.New(cfg.Cache.Memory.Items)
-			if err != nil {
-				return fmt.Errorf("creating in-memory cache: %w", err)
+			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
+			if cfg.Cache.Memory.Expiration > 0 {
+				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
+			} else {
+				logger.Info("in-memory cache enabled with no expiration")
 			}
-
-			logger.Debugf("in-memory cache enabled with size: %d", cfg.Cache.Memory.Items)
-			serverOpts = append(serverOpts, server.WithCache(cache))
+			serverOpts = append(serverOpts, server.WithCache(cacher))
 		}
 
 		srv = server.New(logger, builder, sql, serverOpts...)
@@ -363,7 +363,7 @@ func run() error {
 			})
 
 			r.Use(cors.Handler)
-			logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
+			logger.Infof("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
 		}
 
 		r.Use(middleware.RequestID)
