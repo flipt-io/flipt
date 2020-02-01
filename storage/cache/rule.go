@@ -88,9 +88,11 @@ func (c *RuleCache) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]
 		return rules, err
 	}
 
-	c.cache.Set(key, rules)
-	c.logger.Debugf("cache miss; added %q", key)
-	cacheMissTotal.WithLabelValues("rules", "memory").Inc()
+	if len(rules) > 0 {
+		c.cache.Set(key, rules)
+		c.logger.Debugf("cache miss; added %q", key)
+		cacheMissTotal.WithLabelValues("rules", "memory").Inc()
+	}
 
 	return rules, nil
 }

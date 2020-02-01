@@ -86,9 +86,11 @@ func (s *SegmentCache) ListSegments(ctx context.Context, r *flipt.ListSegmentReq
 		return segments, err
 	}
 
-	s.cache.Set(segmentsCacheKey, segments)
-	s.logger.Debugf("cache miss; added %q", segmentsCacheKey)
-	cacheMissTotal.WithLabelValues("segments", "memory").Inc()
+	if len(segments) > 0 {
+		s.cache.Set(segmentsCacheKey, segments)
+		s.logger.Debugf("cache miss; added %q", segmentsCacheKey)
+		cacheMissTotal.WithLabelValues("segments", "memory").Inc()
+	}
 
 	return segments, nil
 }

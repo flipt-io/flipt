@@ -86,9 +86,11 @@ func (f *FlagCache) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]
 		return flags, err
 	}
 
-	f.cache.Set(flagsCacheKey, flags)
-	f.logger.Debugf("cache miss; added %q", flagsCacheKey)
-	cacheMissTotal.WithLabelValues("flags", "memory").Inc()
+	if len(flags) > 0 {
+		f.cache.Set(flagsCacheKey, flags)
+		f.logger.Debugf("cache miss; added %q", flagsCacheKey)
+		cacheMissTotal.WithLabelValues("flags", "memory").Inc()
+	}
 
 	return flags, nil
 }

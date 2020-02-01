@@ -54,9 +54,11 @@ func (e *EvaluationCache) GetEvaluationRules(ctx context.Context, flagKey string
 		return rules, err
 	}
 
-	e.cache.Set(key, rules)
-	e.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("eval_rules", "memory").Inc()
+	if len(rules) > 0 {
+		e.cache.Set(key, rules)
+		e.logger.Debugf("cache miss; added: %q", key)
+		cacheMissTotal.WithLabelValues("eval_rules", "memory").Inc()
+	}
 
 	return rules, nil
 }
@@ -85,9 +87,11 @@ func (e *EvaluationCache) GetEvaluationDistributions(ctx context.Context, ruleID
 		return distributions, err
 	}
 
-	e.cache.Set(key, distributions)
-	e.logger.Debugf("cache miss; added %q", key)
-	cacheMissTotal.WithLabelValues("eval_distributions", "memory").Inc()
+	if len(distributions) > 0 {
+		e.cache.Set(key, distributions)
+		e.logger.Debugf("cache miss; added %q", key)
+		cacheMissTotal.WithLabelValues("eval_distributions", "memory").Inc()
+	}
 
 	return distributions, nil
 }

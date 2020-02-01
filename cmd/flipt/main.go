@@ -254,7 +254,7 @@ func run() error {
 			logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, dbMigrationVersion)
 
 			if forceMigrate {
-				logger.Debugf("force-migrate set; running now")
+				logger.Infof("force-migrate set; running now")
 				if err := runMigrations(); err != nil {
 					return fmt.Errorf("running migrations: %w", err)
 				}
@@ -280,7 +280,11 @@ func run() error {
 
 		if cfg.Cache.Memory.Enabled {
 			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
-			logger.Debugf("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
+			if cfg.Cache.Memory.Expiration > 0 {
+				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
+			} else {
+				logger.Info("in-memory cache enabled with no expiration")
+			}
 			serverOpts = append(serverOpts, server.WithCache(cacher))
 		}
 
@@ -359,7 +363,7 @@ func run() error {
 			})
 
 			r.Use(cors.Handler)
-			logger.Debugf("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
+			logger.Infof("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
 		}
 
 		r.Use(middleware.RequestID)

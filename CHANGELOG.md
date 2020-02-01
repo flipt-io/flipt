@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+* Fixed documentation link in app
+* Underlying caching library from golang-lru to go-cache
+
+### Added
+
+* Caching support for segments, rules AND evaluation! [https://github.com/markphelps/flipt/issues/100](https://github.com/markphelps/flipt/issues/100)
+* `cache.memory.expiration` configuration option
+* `cache.memory.eviction_interval` configuration option
+
+### Removed
+
+* `cache.memory.items` configuration option
+
 ## [v0.11.1](https://github.com/markphelps/flipt/releases/tag/v0.11.1) - 2020-01-28
 
 ### Changed
