@@ -96,6 +96,34 @@ func TestListSegments(t *testing.T) {
 	cacher.AssertNumberOfCalls(t, "Get", 2)
 }
 
+func TestListSegments_NoResults(t *testing.T) {
+	var (
+		store   = &segmentStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewSegmentCache(logger, cacher, store)
+	)
+
+	ret := []*flipt.Segment{}
+
+	store.On("ListSegments", mock.Anything, mock.Anything).Return(ret, nil)
+	cacher.On("Get", mock.Anything).Return([]*flipt.Segment{}, false).Once()
+	cacher.On("Set", mock.Anything, mock.Anything)
+
+	got, err := subject.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	// should not be set in the cache
+	cacher.AssertNotCalled(t, "Set")
+	cacher.AssertCalled(t, "Get", "segments")
+
+	cacher.On("Get", mock.Anything).Return(ret, true)
+
+	got, err = subject.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+}
+
 func TestCreateSegment(t *testing.T) {
 	var (
 		store   = &segmentStoreMock{}

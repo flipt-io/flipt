@@ -96,6 +96,34 @@ func TestListRules(t *testing.T) {
 	cacher.AssertNumberOfCalls(t, "Get", 2)
 }
 
+func TestListRules_NoResults(t *testing.T) {
+	var (
+		store   = &ruleStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewRuleCache(logger, cacher, store)
+	)
+
+	ret := []*flipt.Rule{}
+
+	store.On("ListRules", mock.Anything, mock.Anything).Return(ret, nil)
+	cacher.On("Get", mock.Anything).Return([]*flipt.Rule{}, false).Once()
+	cacher.On("Set", mock.Anything, mock.Anything)
+
+	got, err := subject.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "foo"})
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	// shouldnt be set in the cahe
+	cacher.AssertNotCalled(t, "Set")
+	cacher.AssertCalled(t, "Get", "rules:flag:foo")
+
+	cacher.On("Get", mock.Anything).Return(ret, true)
+
+	got, err = subject.ListRules(context.TODO(), &flipt.ListRuleRequest{})
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+}
+
 func TestCreateRule(t *testing.T) {
 	var (
 		store   = &ruleStoreMock{}

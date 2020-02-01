@@ -96,6 +96,34 @@ func TestListFlags(t *testing.T) {
 	cacher.AssertNumberOfCalls(t, "Get", 2)
 }
 
+func TestListFlags_NoResults(t *testing.T) {
+	var (
+		store   = &flagStoreMock{}
+		cacher  = &cacherSpy{}
+		subject = NewFlagCache(logger, cacher, store)
+	)
+
+	ret := []*flipt.Flag{}
+
+	store.On("ListFlags", mock.Anything, mock.Anything).Return(ret, nil)
+	cacher.On("Get", mock.Anything).Return([]*flipt.Flag{}, false).Once()
+	cacher.On("Set", mock.Anything, mock.Anything)
+
+	got, err := subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	// should not be set in the cache
+	cacher.AssertNotCalled(t, "Set")
+	cacher.AssertCalled(t, "Get", "flags")
+
+	cacher.On("Get", mock.Anything).Return(ret, true)
+
+	got, err = subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+}
+
 func TestCreateFlag(t *testing.T) {
 	var (
 		store   = &flagStoreMock{}
