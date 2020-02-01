@@ -30,8 +30,8 @@ func TestGetEvaluationRules(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "e:r:f:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "e:r:f:foo")
+	cacher.AssertCalled(t, "Set", "eval:rules:flag:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "eval:rules:flag:foo")
 
 	cacher.On("Get", mock.Anything).Return(ret, true)
 
@@ -63,8 +63,8 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "e:d:r:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "e:d:r:foo")
+	cacher.AssertCalled(t, "Set", "eval:dist:rule:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "eval:dist:rule:foo")
 
 	cacher.On("Get", mock.Anything).Return(ret, true)
 

@@ -27,8 +27,8 @@ func TestGetFlag(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "f:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "f:foo")
+	cacher.AssertCalled(t, "Set", "flag:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "flag:foo")
 
 	cacher.On("Get", mock.Anything).Return(&flipt.Flag{Key: "foo"}, true)
 
@@ -56,7 +56,7 @@ func TestGetFlagNotFound(t *testing.T) {
 
 	// doesnt exists so it should not be added
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "f:foo")
+	cacher.AssertCalled(t, "Get", "flag:foo")
 }
 
 func TestListFlags(t *testing.T) {
@@ -81,8 +81,8 @@ func TestListFlags(t *testing.T) {
 	assert.Len(t, got, 2)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "f", mock.Anything)
-	cacher.AssertCalled(t, "Get", "f")
+	cacher.AssertCalled(t, "Set", "flags", mock.Anything)
+	cacher.AssertCalled(t, "Get", "flags")
 
 	cacher.On("Get", mock.Anything).Return(ret, true)
 

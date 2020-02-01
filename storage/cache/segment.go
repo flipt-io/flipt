@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	segmentCachePrefix = "s:"
-	segmentsCacheKey   = "s"
+	segmentCachePrefix = "segment:"
+	segmentsCacheKey   = "segments"
 )
 
 var _ storage.SegmentStore = &SegmentCache{}

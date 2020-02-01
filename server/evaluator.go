@@ -18,7 +18,7 @@ import (
 
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	s.logger.WithField("request", r).Debug("get evaluation rules")
+	s.logger.WithField("request", r).Debug("evaluate")
 	startTime := time.Now()
 
 	// set request ID if not present
@@ -35,7 +35,7 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		return resp, err
 	}
 
-	s.logger.WithField("response", resp).Debug("get evaluation rules")
+	s.logger.WithField("response", resp).Debug("evaluate")
 	return resp, nil
 }
 

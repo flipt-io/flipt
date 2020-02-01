@@ -27,8 +27,8 @@ func TestGetSegment(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "s:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "s:foo")
+	cacher.AssertCalled(t, "Set", "segment:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "segment:foo")
 
 	cacher.On("Get", mock.Anything).Return(&flipt.Segment{Key: "foo"}, true)
 
@@ -56,7 +56,7 @@ func TestGetSegmentNotFound(t *testing.T) {
 
 	// doesnt exists so it should not be added
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "s:foo")
+	cacher.AssertCalled(t, "Get", "segment:foo")
 }
 
 func TestListSegments(t *testing.T) {
@@ -81,8 +81,8 @@ func TestListSegments(t *testing.T) {
 	assert.Len(t, got, 2)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "s", mock.Anything)
-	cacher.AssertCalled(t, "Get", "s")
+	cacher.AssertCalled(t, "Set", "segments", mock.Anything)
+	cacher.AssertCalled(t, "Get", "segments")
 
 	cacher.On("Get", mock.Anything).Return(ret, true)
 

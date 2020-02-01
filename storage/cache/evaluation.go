@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	evaluationRulesCachePrefix         = "e:r:f:"
-	evaluationDistributionsCachePrefix = "e:d:r:"
+	evaluationRulesCachePrefix         = "eval:rules:flag:"
+	evaluationDistributionsCachePrefix = "eval:dist:rule:"
 )
 
 var _ storage.EvaluationStore = &EvaluationCache{}

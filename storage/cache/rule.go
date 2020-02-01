@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	ruleCachePrefix  = "r:"
-	rulesCachePrefix = "rs:"
+	ruleCachePrefix  = "rule:"
+	rulesCachePrefix = "rules:flag:"
 )
 
 var _ storage.RuleStore = &RuleCache{}

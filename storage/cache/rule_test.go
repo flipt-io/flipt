@@ -27,8 +27,8 @@ func TestGetRule(t *testing.T) {
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "r:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "r:foo")
+	cacher.AssertCalled(t, "Set", "rule:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "rule:foo")
 
 	cacher.On("Get", mock.Anything).Return(&flipt.Rule{Id: "foo"}, true)
 
@@ -56,7 +56,7 @@ func TestGetRuleNotFound(t *testing.T) {
 
 	// doesnt exists so it should not be added
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "r:foo")
+	cacher.AssertCalled(t, "Get", "rule:foo")
 }
 
 func TestListRules(t *testing.T) {
@@ -81,8 +81,8 @@ func TestListRules(t *testing.T) {
 	assert.Len(t, got, 2)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "rs:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "rs:foo")
+	cacher.AssertCalled(t, "Set", "rules:flag:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", "rules:flag:foo")
 
 	cacher.On("Get", mock.Anything).Return(ret, true)
 

@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	flagCachePrefix = "f:"
-	flagsCacheKey   = "f"
+	flagCachePrefix = "flag:"
+	flagsCacheKey   = "flags"
 )
 
 var _ storage.FlagStore = &FlagCache{}
