@@ -5,6 +5,7 @@ import (
 	"time"
 
 	gocache "github.com/patrickmn/go-cache"
+	"github.com/sirupsen/logrus"
 )
 
 // ErrCacheCorrupt represents a corrupt cache error
@@ -25,10 +26,15 @@ type InMemoryCache struct {
 
 // NewInMemoryCache creates a new InMemoryCache with the provided expirationDuration
 // and 10 minute cleanupDuration
-func NewInMemoryCache(expDuration time.Duration) *InMemoryCache {
-	return &InMemoryCache{
-		c: gocache.New(expDuration, 10*time.Minute),
-	}
+func NewInMemoryCache(expDuration time.Duration, logger logrus.FieldLogger) *InMemoryCache {
+	logger = logger.WithField("cache", "memory")
+
+	c := gocache.New(expDuration, 10*time.Minute)
+	c.OnEvicted(func(s string, _ interface{}) {
+		logger.Debugf("evicted key: %q", s)
+	})
+
+	return &InMemoryCache{c: c}
 }
 
 func (i *InMemoryCache) Get(key string) (interface{}, bool) {

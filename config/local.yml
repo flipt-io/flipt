@@ -8,10 +8,10 @@ log:
 #   enabled: false
 #   allowed_origins: "*"
 
-cache:
- memory:
-   enabled: true
-   expiration: 5m
+# cache:
+#   memory:
+#     enabled: false
+#     expiration: -1 # No Expiration
 
 # server:
 #   protocol: http
