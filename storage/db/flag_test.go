@@ -572,11 +572,23 @@ func TestDeleteVariant_NotFound(t *testing.T) {
 var benchFlag *flipt.Flag
 
 func BenchmarkGetFlag(b *testing.B) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-		Key:         b.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+	var (
+		ctx       = context.Background()
+		flag, err = flagStore.CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Key:         b.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
+	)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = flagStore.CreateVariant(ctx, &flipt.CreateVariantRequest{
+		FlagKey: flag.Key,
+		Key:     "baz",
 	})
 
 	if err != nil {
@@ -601,13 +613,24 @@ func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 		logger, _      = test.NewNullLogger()
 		cacher         = cache.NewInMemoryCache(5 * time.Minute)
 		flagStoreCache = cache.NewFlagCache(logger, cacher, flagStore)
+
+		ctx = context.Background()
+
+		flag, err = flagStoreCache.CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Key:         b.Name(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		})
 	)
 
-	flag, err := flagStoreCache.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-		Key:         b.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = flagStoreCache.CreateVariant(ctx, &flipt.CreateVariantRequest{
+		FlagKey: flag.Key,
+		Key:     "baz",
 	})
 
 	if err != nil {
@@ -622,7 +645,6 @@ func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	b.ResetTimer()
 
 	b.Run("get-flag-cache", func(b *testing.B) {
-
 		for i := 0; i < b.N; i++ {
 			f, _ = flagStoreCache.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
 		}

@@ -3,8 +3,11 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage/cache"
+	"github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -435,4 +438,92 @@ func TestDeleteConstraint_NotFound(t *testing.T) {
 	})
 
 	require.NoError(t, err)
+}
+
+var benchSegment *flipt.Segment
+
+func BenchmarkGetSegment(b *testing.B) {
+	var (
+		ctx          = context.Background()
+		segment, err = segmentStore.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+			Key:         b.Name(),
+			Name:        "foo",
+			Description: "bar",
+		})
+	)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = segmentStore.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:   "foo",
+		Operator:   "EQ",
+		Value:      "bar",
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+
+	b.Run("get-segment", func(b *testing.B) {
+		var s *flipt.Segment
+
+		for i := 0; i < b.N; i++ {
+			s, _ = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+		}
+
+		benchSegment = s
+	})
+}
+
+func BenchmarkGetSegment_CacheMemory(b *testing.B) {
+	var (
+		logger, _         = test.NewNullLogger()
+		cacher            = cache.NewInMemoryCache(5 * time.Minute)
+		segmentStoreCache = cache.NewSegmentCache(logger, cacher, segmentStore)
+
+		ctx = context.Background()
+
+		segment, err = segmentStoreCache.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+			Key:         b.Name(),
+			Name:        "foo",
+			Description: "bar",
+		})
+	)
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	_, err = segmentStoreCache.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:   "foo",
+		Operator:   "EQ",
+		Value:      "bar",
+	})
+
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	var s *flipt.Segment
+
+	// warm the cache
+	s, _ = segmentStoreCache.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+
+	b.ResetTimer()
+
+	b.Run("get-segment-cache", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			s, _ = segmentStoreCache.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+		}
+
+		benchSegment = s
+	})
 }
