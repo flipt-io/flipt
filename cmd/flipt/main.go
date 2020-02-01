@@ -254,7 +254,7 @@ func run() error {
 			logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, dbMigrationVersion)
 
 			if forceMigrate {
-				logger.Infof("force-migrate set; running now")
+				logger.Info("force-migrate set; running now")
 				if err := runMigrations(); err != nil {
 					return fmt.Errorf("running migrations: %w", err)
 				}
