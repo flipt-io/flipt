@@ -41,7 +41,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Benchmark (SQLite)
-	    run: 'go test -bench=. ./... -run=XXX -v'
+      run: go test -bench=. ./... -run=XXX -v
 
     - name: Benchmark (Postgres)
-      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" 'go test -bench=. ./... -run=XXX -v'
+      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -bench=. ./... -run=XXX -v
