@@ -75,8 +75,9 @@ func TestLoad(t *testing.T) {
 				},
 				Cache: cacheConfig{
 					Memory: memoryCacheConfig{
-						Enabled:    true,
-						Expiration: 5 * time.Minute,
+						Enabled:          true,
+						Expiration:       5 * time.Minute,
+						EvictionInterval: 1 * time.Minute,
 					},
 				},
 				Server: serverConfig{

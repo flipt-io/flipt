@@ -24,13 +24,14 @@ type InMemoryCache struct {
 	c *gocache.Cache
 }
 
-// NewInMemoryCache creates a new InMemoryCache with the provided expirationDuration
-// and 10 minute cleanupDuration
-func NewInMemoryCache(expDuration time.Duration, logger logrus.FieldLogger) *InMemoryCache {
+// NewInMemoryCache creates a new InMemoryCache with the provided expiration and evictionInterval
+func NewInMemoryCache(expiration time.Duration, evictionInterval time.Duration, logger logrus.FieldLogger) *InMemoryCache {
 	logger = logger.WithField("cache", "memory")
 
-	c := gocache.New(expDuration, 10*time.Minute)
+	c := gocache.New(expiration, evictionInterval)
 	c.OnEvicted(func(s string, _ interface{}) {
+		cacheEvictionTotal.WithLabelValues("memory").Inc()
+		cacheItemCount.WithLabelValues("memory").Dec()
 		logger.Debugf("evicted key: %q", s)
 	})
 
@@ -43,12 +44,16 @@ func (i *InMemoryCache) Get(key string) (interface{}, bool) {
 
 func (i *InMemoryCache) Set(key string, value interface{}) {
 	i.c.SetDefault(key, value)
+	cacheItemCount.WithLabelValues("memory").Inc()
 }
 
 func (i *InMemoryCache) Delete(key string) {
 	i.c.Delete(key)
+	cacheItemCount.WithLabelValues("memory").Dec()
 }
 
 func (i *InMemoryCache) Flush() {
 	i.c.Flush()
+	cacheFlushTotal.WithLabelValues("memory").Inc()
+	cacheItemCount.WithLabelValues("memory").Set(0)
 }

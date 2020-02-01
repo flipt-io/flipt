@@ -36,8 +36,9 @@ type corsConfig struct {
 }
 
 type memoryCacheConfig struct {
-	Enabled    bool          `json:"enabled"`
-	Expiration time.Duration `json:"expirationDuration"`
+	Enabled          bool          `json:"enabled"`
+	Expiration       time.Duration `json:"expiration"`
+	EvictionInterval time.Duration `json:"evictionInterval"`
 }
 
 type cacheConfig struct {
@@ -99,8 +100,9 @@ func Default() *Config {
 
 		Cache: cacheConfig{
 			Memory: memoryCacheConfig{
-				Enabled:    false,
-				Expiration: -1,
+				Enabled:          false,
+				Expiration:       -1,
+				EvictionInterval: 10 * time.Minute,
 			},
 		},
 
@@ -132,8 +134,9 @@ const (
 	cfgCorsAllowedOrigins = "cors.allowed_origins"
 
 	// Cache
-	cfgCacheMemoryEnabled    = "cache.memory.enabled"
-	cfgCacheMemoryExpiration = "cache.memory.expiration"
+	cfgCacheMemoryEnabled          = "cache.memory.enabled"
+	cfgCacheMemoryExpiration       = "cache.memory.expiration"
+	cfgCacheMemoryEvictionInterval = "cache.memory.eviction_interval"
 
 	// Server
 	cfgServerHost      = "server.host"
@@ -191,6 +194,9 @@ func Load(path string) (*Config, error) {
 
 		if viper.IsSet(cfgCacheMemoryExpiration) {
 			cfg.Cache.Memory.Expiration = viper.GetDuration(cfgCacheMemoryExpiration)
+		}
+		if viper.IsSet(cfgCacheMemoryEvictionInterval) {
+			cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cfgCacheMemoryEvictionInterval)
 		}
 	}
 

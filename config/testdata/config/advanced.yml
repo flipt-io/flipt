@@ -13,6 +13,7 @@ cache:
   memory:
     enabled: true
     expiration: 5m
+    eviction_interval: 1m
 
 server:
   protocol: https
