@@ -678,7 +678,7 @@ func BenchmarkGetRule(b *testing.B) {
 func BenchmarkGetRule_CacheMemory(b *testing.B) {
 	var (
 		logger, _      = test.NewNullLogger()
-		cacher         = cache.NewInMemoryCache(5 * time.Minute)
+		cacher         = cache.NewInMemoryCache(5*time.Minute, logger)
 		ruleStoreCache = cache.NewRuleCache(logger, cacher, ruleStore)
 
 		ctx       = context.Background()

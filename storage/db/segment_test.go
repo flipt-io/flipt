@@ -484,7 +484,7 @@ func BenchmarkGetSegment(b *testing.B) {
 func BenchmarkGetSegment_CacheMemory(b *testing.B) {
 	var (
 		logger, _         = test.NewNullLogger()
-		cacher            = cache.NewInMemoryCache(5 * time.Minute)
+		cacher            = cache.NewInMemoryCache(5*time.Minute, logger)
 		segmentStoreCache = cache.NewSegmentCache(logger, cacher, segmentStore)
 
 		ctx = context.Background()

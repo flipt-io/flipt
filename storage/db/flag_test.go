@@ -611,7 +611,7 @@ func BenchmarkGetFlag(b *testing.B) {
 func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	var (
 		logger, _      = test.NewNullLogger()
-		cacher         = cache.NewInMemoryCache(5 * time.Minute)
+		cacher         = cache.NewInMemoryCache(5*time.Minute, logger)
 		flagStoreCache = cache.NewFlagCache(logger, cacher, flagStore)
 
 		ctx = context.Background()
