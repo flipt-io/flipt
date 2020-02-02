@@ -44,5 +44,5 @@ require (
 	golang.org/x/tools v0.0.0-20200102140908-9497f49d5709
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
-	google.golang.org/grpc v1.26.0
+	google.golang.org/grpc v1.27.0
 )
