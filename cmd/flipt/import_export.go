@@ -18,12 +18,25 @@ type Flag struct {
 	Description string     `yaml:"description,omitempty"`
 	Enabled     bool       `yaml:"enabled"`
 	Variants    []*Variant `yaml:"variants,omitempty"`
+	Rules       []*Rule    `yaml:"rules,omitempty"`
 }
 
 type Variant struct {
 	Key         string `yaml:"key,omitempty"`
 	Name        string `yaml:"name,omitempty"`
 	Description string `yaml:"description,omitempty"`
+}
+
+type Rule struct {
+	FlagKey       string          `yaml:"flag,omitempty"`
+	SegmentKey    string          `yaml:"segment,omitempty"`
+	Rank          uint            `yaml:"rank,omitempty"`
+	Distributions []*Distribution `yaml:"distributions,omitempty"`
+}
+
+type Distribution struct {
+	VariantKey string  `yaml:"variant,omitempty"`
+	Rollout    float32 `yaml:"rollout,omitempty"`
 }
 
 type Segment struct {
