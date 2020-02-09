@@ -9,42 +9,35 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-var _ storage.EvaluationStore = &evaluationStoreMock{}
-
-type evaluationStoreMock struct {
-	getEvaluationRulesFn         func(context.Context, string) ([]*storage.EvaluationRule, error)
-	getEvaluationDistributionsFn func(context.Context, string) ([]*storage.EvaluationDistribution, error)
-}
-
-func (m *evaluationStoreMock) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
-	if m.getEvaluationRulesFn == nil {
-		return []*storage.EvaluationRule{}, nil
+var (
+	enabledFlag = &flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
 	}
-	return m.getEvaluationRulesFn(ctx, flagKey)
-}
-
-func (m *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	if m.getEvaluationDistributionsFn == nil {
-		return []*storage.EvaluationDistribution{}, nil
+	disabledFlag = &flipt.Flag{
+		Key:     "foo",
+		Enabled: false,
 	}
-	return m.getEvaluationDistributionsFn(ctx, ruleID)
-}
+)
 
 func TestEvaluate_FlagNotFound(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return nil, errors.ErrNotFoundf("flag %q", r.Key)
-			},
-		},
-	}
+	var (
+		flagStore = &flagStoreMock{}
+		s         = &Server{
+			logger:    logger,
+			FlagStore: flagStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "foo"))
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
-		FlagKey: "foo",
+		EntityId: "1",
+		FlagKey:  "foo",
 		Context: map[string]string{
 			"bar": "boz",
 		},
@@ -56,17 +49,15 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 }
 
 func TestEvaluate_FlagDisabled(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: false,
-				}, nil
-			},
-		},
-	}
+	var (
+		flagStore = &flagStoreMock{}
+		s         = &Server{
+			logger:    logger,
+			FlagStore: flagStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(disabledFlag, nil)
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
@@ -82,18 +73,19 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 }
 
 func TestEvaluate_FlagNoRules(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{},
-	}
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
@@ -108,55 +100,53 @@ func TestEvaluate_FlagNoRules(t *testing.T) {
 }
 
 func TestEvaluate_RulesOutOfOrder(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
+				Constraints: []storage.EvaluationConstraint{
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             1,
-						Constraints: []storage.EvaluationConstraint{
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-					{
-						ID:               "2",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
-					},
-				}, nil
+				},
 			},
-		},
-	}
+			{
+				ID:               "2",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
@@ -173,39 +163,39 @@ func TestEvaluate_RulesOutOfOrder(t *testing.T) {
 
 // Match ALL constraints
 func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-				}, nil
+				},
 			},
-		},
-	}
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
@@ -262,58 +252,56 @@ func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 }
 
 func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: bar (string) == baz
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-							// constraint: admin (bool) == true
-							{
-								ID:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-								Property: "admin",
-								Operator: flipt.OpTrue,
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-				}, nil
-			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
+					// constraint: admin (bool) == true
 					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    100,
-						VariantKey: "boz",
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
 					},
-				}, nil
+				},
 			},
-		},
-	}
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    100,
+				VariantKey: "boz",
+			},
+		}, nil)
 
 	tests := []struct {
 		name      string
@@ -392,58 +380,56 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 }
 
 func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: bar (string) == baz
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-				}, nil
+				},
 			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    50,
-						VariantKey: "boz",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    50,
-						VariantKey: "booz",
-					},
-				}, nil
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
 			},
-		},
-	}
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "booz",
+			},
+		}, nil)
 
 	tests := []struct {
 		name              string
@@ -515,71 +501,62 @@ func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 }
 
 func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "subscribers",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: premium_user (bool) == true
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "premium_user",
+						Operator: flipt.OpTrue,
+					},
+				},
 			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
-					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "subscribers",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: premium_user (bool) == true
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-								Property: "premium_user",
-								Operator: flipt.OpTrue,
-							},
-						},
-					},
-					{
-						ID:               "2",
-						FlagKey:          "foo",
-						SegmentKey:       "all_users",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             1,
-					},
-				}, nil
+			{
+				ID:               "2",
+				FlagKey:          "foo",
+				SegmentKey:       "all_users",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
 			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    50,
-						VariantKey: "released",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    50,
-						VariantKey: "unreleased",
-					},
-					{
-						ID:         "9",
-						RuleID:     "2",
-						VariantID:  "10",
-						Rollout:    100,
-						VariantKey: "unreleased",
-					},
-				}, nil
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "released",
 			},
-		},
-	}
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "unreleased",
+			},
+		}, nil)
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		FlagKey:  "foo",
@@ -599,48 +576,46 @@ func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 }
 
 func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
 			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
-					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-					},
-				}, nil
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
 			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    50,
-						VariantKey: "boz",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    50,
-						VariantKey: "moz",
-					},
-				}, nil
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "moz",
 			},
-		},
-	}
+		}, nil)
 
 	tests := []struct {
 		name              string
@@ -712,39 +687,39 @@ func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
 // Match ANY constraints
 
 func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-				}, nil
+				},
 			},
-		},
-	}
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
 
 	tests := []struct {
 		name      string
@@ -801,58 +776,56 @@ func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 }
 
 func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: bar (string) == baz
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-							// constraint: admin (bool) == true
-							{
-								ID:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-								Property: "admin",
-								Operator: flipt.OpTrue,
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-				}, nil
-			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
+					// constraint: admin (bool) == true
 					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    100,
-						VariantKey: "boz",
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
 					},
-				}, nil
+				},
 			},
-		},
-	}
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    100,
+				VariantKey: "boz",
+			},
+		}, nil)
 
 	tests := []struct {
 		name      string
@@ -965,58 +938,56 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 }
 
 func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
 					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: bar (string) == baz
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
 					},
-				}, nil
+				},
 			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    50,
-						VariantKey: "boz",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    50,
-						VariantKey: "booz",
-					},
-				}, nil
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
 			},
-		},
-	}
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "booz",
+			},
+		}, nil)
 
 	tests := []struct {
 		name              string
@@ -1088,71 +1059,62 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 }
 
 func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "subscribers",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: premium_user (bool) == true
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "premium_user",
+						Operator: flipt.OpTrue,
+					},
+				},
 			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
-					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "subscribers",
-						SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: premium_user (bool) == true
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-								Property: "premium_user",
-								Operator: flipt.OpTrue,
-							},
-						},
-					},
-					{
-						ID:               "2",
-						FlagKey:          "foo",
-						SegmentKey:       "all_users",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             1,
-					},
-				}, nil
+			{
+				ID:               "2",
+				FlagKey:          "foo",
+				SegmentKey:       "all_users",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
 			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    50,
-						VariantKey: "released",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    50,
-						VariantKey: "unreleased",
-					},
-					{
-						ID:         "9",
-						RuleID:     "2",
-						VariantID:  "10",
-						Rollout:    100,
-						VariantKey: "unreleased",
-					},
-				}, nil
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "released",
 			},
-		},
-	}
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "unreleased",
+			},
+		}, nil)
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		FlagKey:  "foo",
@@ -1172,48 +1134,46 @@ func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 }
 
 func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
 			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
-					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-						Rank:             0,
-					},
-				}, nil
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
 			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    50,
-						VariantKey: "boz",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    50,
-						VariantKey: "moz",
-					},
-				}, nil
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "moz",
 			},
-		},
-	}
+		}, nil)
 
 	tests := []struct {
 		name              string
@@ -1251,6 +1211,235 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 				},
 			},
 			matchesVariantKey: "moz",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+		})
+	}
+}
+
+// Since we skip rollout buckets that have 0% distribution, ensure that things still work
+// when a 0% distribution is the first available one.
+func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    0,
+				VariantKey: "boz",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    100,
+				VariantKey: "booz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "booz",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			require.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+		})
+	}
+}
+
+// Ensure things work properly when many rollout distributions have a 0% value.
+func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	evaluationStore.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "1",
+				RuleID:     "1",
+				VariantID:  "1",
+				VariantKey: "1",
+				Rollout:    0,
+			},
+			{
+				ID:         "2",
+				RuleID:     "1",
+				VariantID:  "2",
+				VariantKey: "2",
+				Rollout:    0,
+			},
+			{
+				ID:         "3",
+				RuleID:     "1",
+				VariantID:  "3",
+				VariantKey: "3",
+				Rollout:    50,
+			},
+			{
+				ID:         "4",
+				RuleID:     "4",
+				VariantID:  "4",
+				VariantKey: "4",
+				Rollout:    0,
+			},
+			{
+				ID:         "5",
+				RuleID:     "1",
+				VariantID:  "5",
+				VariantKey: "5",
+				Rollout:    0,
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "6",
+				VariantKey: "6",
+				Rollout:    50,
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "3",
 			wantMatch:         true,
 		},
 	}
@@ -1764,241 +1953,6 @@ func Test_matchesBool(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
-		})
-	}
-}
-
-// Since we skip rollout buckets that have 0% distribution, ensure that things still work
-// when a 0% distribution is the first available one.
-// Fixes a previously existing bug in that specific situation
-func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
-					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: bar (string) == baz
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
-					},
-				}, nil
-			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "4",
-						RuleID:     "1",
-						VariantID:  "5",
-						Rollout:    0,
-						VariantKey: "boz",
-					},
-					{
-						ID:         "6",
-						RuleID:     "1",
-						VariantID:  "7",
-						Rollout:    100,
-						VariantKey: "booz",
-					},
-				}, nil
-			},
-		},
-	}
-
-	tests := []struct {
-		name              string
-		req               *flipt.EvaluationRequest
-		matchesVariantKey string
-		wantMatch         bool
-	}{
-		{
-			name: "match string value - variant 1",
-			req: &flipt.EvaluationRequest{
-				FlagKey:  "foo",
-				EntityId: "1",
-				Context: map[string]string{
-					"bar": "baz",
-				},
-			},
-			matchesVariantKey: "booz",
-			wantMatch:         true,
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			req               = tt.req
-			matchesVariantKey = tt.matchesVariantKey
-			wantMatch         = tt.wantMatch
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			resp, err := s.Evaluate(context.TODO(), req)
-			require.NoError(t, err)
-			assert.NotNil(t, resp)
-			assert.Equal(t, "foo", resp.FlagKey)
-			assert.Equal(t, req.Context, resp.RequestContext)
-
-			if !wantMatch {
-				assert.False(t, resp.Match)
-				assert.Empty(t, resp.SegmentKey)
-				return
-			}
-
-			assert.True(t, resp.Match)
-			assert.Equal(t, "bar", resp.SegmentKey)
-			assert.Equal(t, matchesVariantKey, resp.Value)
-		})
-	}
-}
-
-// Ensure things work properly when many rollout distributions have a 0% value.
-// Fixes a previously existing bug in that specific situation
-func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
-	s := &Server{
-		logger: logger,
-		FlagStore: &flagStoreMock{
-			getFlagFn: func(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				return &flipt.Flag{
-					Key:     "foo",
-					Enabled: true,
-				}, nil
-			},
-		},
-		EvaluationStore: &evaluationStoreMock{
-			getEvaluationRulesFn: func(context.Context, string) ([]*storage.EvaluationRule, error) {
-				return []*storage.EvaluationRule{
-					{
-						ID:               "1",
-						FlagKey:          "foo",
-						SegmentKey:       "bar",
-						SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-						Rank:             0,
-						Constraints: []storage.EvaluationConstraint{
-							// constraint: bar (string) == baz
-							{
-								ID:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-								Property: "bar",
-								Operator: flipt.OpEQ,
-								Value:    "baz",
-							},
-						},
-					},
-				}, nil
-			},
-			getEvaluationDistributionsFn: func(context.Context, string) ([]*storage.EvaluationDistribution, error) {
-				return []*storage.EvaluationDistribution{
-					{
-						ID:         "1",
-						RuleID:     "1",
-						VariantID:  "1",
-						VariantKey: "1",
-						Rollout:    0,
-					},
-					{
-						ID:         "2",
-						RuleID:     "2",
-						VariantID:  "2",
-						VariantKey: "2",
-						Rollout:    0,
-					},
-					{
-						ID:         "3",
-						RuleID:     "3",
-						VariantID:  "3",
-						VariantKey: "3",
-						Rollout:    50,
-					},
-					{
-						ID:         "4",
-						RuleID:     "4",
-						VariantID:  "4",
-						VariantKey: "4",
-						Rollout:    0,
-					},
-					{
-						ID:         "5",
-						RuleID:     "5",
-						VariantID:  "5",
-						VariantKey: "5",
-						Rollout:    0,
-					},
-					{
-						ID:         "6",
-						RuleID:     "6",
-						VariantID:  "6",
-						VariantKey: "6",
-						Rollout:    50,
-					},
-				}, nil
-			},
-		},
-	}
-
-	tests := []struct {
-		name              string
-		req               *flipt.EvaluationRequest
-		matchesVariantKey string
-		wantMatch         bool
-	}{
-		{
-			name: "match string value - variant 1",
-			req: &flipt.EvaluationRequest{
-				FlagKey:  "foo",
-				EntityId: "1",
-				Context: map[string]string{
-					"bar": "baz",
-				},
-			},
-			matchesVariantKey: "3",
-			wantMatch:         true,
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			req               = tt.req
-			matchesVariantKey = tt.matchesVariantKey
-			wantMatch         = tt.wantMatch
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			resp, err := s.Evaluate(context.TODO(), req)
-			require.NoError(t, err)
-			assert.NotNil(t, resp)
-			assert.Equal(t, "foo", resp.FlagKey)
-			assert.Equal(t, req.Context, resp.RequestContext)
-
-			if !wantMatch {
-				assert.False(t, resp.Match)
-				assert.Empty(t, resp.SegmentKey)
-				return
-			}
-
-			assert.True(t, resp.Match)
-			assert.Equal(t, "bar", resp.SegmentKey)
-			assert.Equal(t, matchesVariantKey, resp.Value)
 		})
 	}
 }

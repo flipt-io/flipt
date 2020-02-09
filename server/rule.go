@@ -10,16 +10,16 @@ import (
 // GetRule gets a rule
 func (s *Server) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("get rule")
-	rule, err := s.RuleStore.GetRule(ctx, r)
+	rule, err := s.RuleStore.GetRule(ctx, r.Id)
 	s.logger.WithField("response", rule).Debug("get rule")
 	return rule, err
 }
 
-// ListRules lists all rules
+// ListRules lists all rules for a flag
 func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flipt.RuleList, error) {
 	s.logger.WithField("request", r).Debug("list rules")
 
-	rules, err := s.RuleStore.ListRules(ctx, r)
+	rules, err := s.RuleStore.ListRules(ctx, r.FlagKey, uint64(r.Limit), uint64(r.Offset))
 	if err != nil {
 		return nil, err
 	}

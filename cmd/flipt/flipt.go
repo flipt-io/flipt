@@ -121,12 +121,14 @@ func main() {
 	banner = buf.String()
 
 	cobra.OnInitialize(func() {
-		cfg, err := config.Load(cfgPath)
+		var err error
+
+		cfg, err = config.Load(cfgPath)
 		if err != nil {
 			logger.Fatal(fmt.Errorf("loading configuration: %w", err))
 		}
 
-		if err := setupLogger(cfg); err != nil {
+		if err = setupLogger(cfg); err != nil {
 			logger.Fatal(fmt.Errorf("setting up logger: %w", err))
 		}
 	})

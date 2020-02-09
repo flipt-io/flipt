@@ -327,7 +327,7 @@ message GetRuleRequest {
   };
 
   string id = 1;
-  string flag_key = 2;
+  string flag_key = 2; // TODO: remove before 1.0
 }
 
 message CreateRuleRequest {
@@ -362,7 +362,7 @@ message DeleteRuleRequest {
   };
 
   string id = 1;
-  string flag_key = 2;
+  string flag_key = 2; // TODO: remove before 1.0
 }
 
 message OrderRulesRequest {
@@ -392,7 +392,7 @@ message CreateDistributionRequest {
     }
   };
 
-  string flag_key = 1;
+  string flag_key = 1; // TODO: remove before 1.0
   string rule_id = 2;
   string variant_id = 3;
   float rollout = 4;
@@ -406,7 +406,7 @@ message UpdateDistributionRequest {
   };
 
   string id = 1;
-  string flag_key = 2;
+  string flag_key = 2; // TODO: remove before 1.0
   string rule_id = 3;
   string variant_id = 4;
   float rollout = 5;
@@ -420,9 +420,9 @@ message DeleteDistributionRequest {
   };
 
   string id = 1;
-  string flag_key = 2;
-  string rule_id = 3;
-  string variant_id = 4;
+  string flag_key = 2; // TODO: remove before 1.0
+  string rule_id = 3; // TODO: remove before 1.0
+  string variant_id = 4; // TODO: remove before 1.0
 }
 
 service Flipt {

@@ -4,543 +4,205 @@ import (
 	"context"
 	"testing"
 
-	"github.com/markphelps/flipt/errors"
-
-	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
-	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-var _ storage.FlagStore = &flagStoreMock{}
-
-type flagStoreMock struct {
-	getFlagFn       func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
-	listFlagsFn     func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
-	createFlagFn    func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
-	updateFlagFn    func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
-	deleteFlagFn    func(context.Context, *flipt.DeleteFlagRequest) error
-	createVariantFn func(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
-	updateVariantFn func(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
-	deleteVariantFn func(context.Context, *flipt.DeleteVariantRequest) error
-}
-
-func (m *flagStoreMock) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	if m.getFlagFn == nil {
-		return &flipt.Flag{}, nil
-	}
-	return m.getFlagFn(ctx, r)
-}
-
-func (m *flagStoreMock) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-	if m.listFlagsFn == nil {
-		return []*flipt.Flag{}, nil
-	}
-	return m.listFlagsFn(ctx, r)
-}
-
-func (m *flagStoreMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	if m.createFlagFn == nil {
-		return &flipt.Flag{}, nil
-	}
-	return m.createFlagFn(ctx, r)
-}
-
-func (m *flagStoreMock) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-	if m.updateFlagFn == nil {
-		return &flipt.Flag{}, nil
-	}
-	return m.updateFlagFn(ctx, r)
-}
-
-func (m *flagStoreMock) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
-	if m.deleteFlagFn == nil {
-		return nil
-	}
-	return m.deleteFlagFn(ctx, r)
-}
-
-func (m *flagStoreMock) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	if m.createVariantFn == nil {
-		return &flipt.Variant{}, nil
-	}
-	return m.createVariantFn(ctx, r)
-}
-
-func (m *flagStoreMock) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	if m.updateVariantFn == nil {
-		return &flipt.Variant{}, nil
-	}
-	return m.updateVariantFn(ctx, r)
-}
-
-func (m *flagStoreMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
-	if m.deleteVariantFn == nil {
-		return nil
-	}
-	return m.deleteVariantFn(ctx, r)
-}
-
 func TestGetFlag(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.GetFlagRequest
-		f       func(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
-		flag    *flipt.Flag
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req:  &flipt.GetFlagRequest{Key: "key"},
-			f: func(_ context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.GetFlagRequest{Key: "foo"}
+	)
 
-				return &flipt.Flag{
-					Key: "key",
-				}, nil
-			},
-			flag: &flipt.Flag{
-				Key: "key",
-			},
-		},
-	}
+	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
+		Key: req.Key,
+	}, nil)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			flag    = tt.flag
-		)
+	got, err := s.GetFlag(context.TODO(), req)
+	require.NoError(t, err)
 
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					getFlagFn: f,
-				},
-			}
-
-			got, err := s.GetFlag(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, flag, got)
-		})
-	}
+	assert.NotNil(t, got)
 }
 
 func TestListFlags(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.ListFlagRequest
-		f       func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error)
-		flags   *flipt.FlagList
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req:  &flipt.ListFlagRequest{},
-			f: func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-				return []*flipt.Flag{
-					{Key: "flag"},
-				}, nil
-			},
-			flags: &flipt.FlagList{
-				Flags: []*flipt.Flag{
-					{
-						Key: "flag",
-					},
-				},
-			},
-		},
-		{
-			name: "error",
-			req:  &flipt.ListFlagRequest{},
-			f: func(context.Context, *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-				return nil, errors.New("test error")
-			},
-			flags:   nil,
-			wantErr: errors.New("test error"),
-		},
-	}
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+	)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			flags   = tt.flags
-		)
+	store.On("ListFlags", mock.Anything, uint64(0), uint64(0)).Return(
+		[]*flipt.Flag{
+			{
+				Key: "foo",
+			},
+		}, nil)
 
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					listFlagsFn: f,
-				},
-			}
+	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	require.NoError(t, err)
 
-			got, err := s.ListFlags(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, flags, got)
-		})
-	}
+	assert.NotEmpty(t, got.Flags)
 }
 
 func TestCreateFlag(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.CreateFlagRequest
-		f       func(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
-		flag    *flipt.Flag
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req: &flipt.CreateFlagRequest{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-			},
-			f: func(_ context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-				assert.True(t, r.Enabled)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.CreateFlagRequest{
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+			Enabled:     true,
+		}
+	)
 
-				return &flipt.Flag{
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-					Enabled:     r.Enabled,
-				}, nil
-			},
-			flag: &flipt.Flag{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-			},
-		},
-	}
+	store.On("CreateFlag", mock.Anything, req).Return(&flipt.Flag{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		Enabled:     req.Enabled,
+	}, nil)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			flag    = tt.flag
-		)
+	got, err := s.CreateFlag(context.TODO(), req)
+	require.NoError(t, err)
 
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					createFlagFn: f,
-				},
-			}
-
-			got, err := s.CreateFlag(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, flag, got)
-		})
-	}
+	assert.NotNil(t, got)
 }
 
 func TestUpdateFlag(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.UpdateFlagRequest
-		f       func(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
-		flag    *flipt.Flag
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req: &flipt.UpdateFlagRequest{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-			},
-			f: func(_ context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
-				assert.True(t, r.Enabled)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.UpdateFlagRequest{
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+			Enabled:     true,
+		}
+	)
 
-				return &flipt.Flag{
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-					Enabled:     r.Enabled,
-				}, nil
-			},
-			flag: &flipt.Flag{
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-				Enabled:     true,
-			},
-		},
-	}
+	store.On("UpdateFlag", mock.Anything, req).Return(&flipt.Flag{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		Enabled:     req.Enabled,
+	}, nil)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			flag    = tt.flag
-		)
+	got, err := s.UpdateFlag(context.TODO(), req)
+	require.NoError(t, err)
 
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					updateFlagFn: f,
-				},
-			}
-
-			got, err := s.UpdateFlag(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, flag, got)
-		})
-	}
+	assert.NotNil(t, got)
 }
 
 func TestDeleteFlag(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.DeleteFlagRequest
-		f       func(context.Context, *flipt.DeleteFlagRequest) error
-		empty   *empty.Empty
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req:  &flipt.DeleteFlagRequest{Key: "key"},
-			f: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.DeleteFlagRequest{
+			Key: "key",
+		}
+	)
 
-				return nil
-			},
-			empty: &empty.Empty{},
-		},
-		{
-			name: "error",
-			req:  &flipt.DeleteFlagRequest{Key: "key"},
-			f: func(_ context.Context, r *flipt.DeleteFlagRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "key", r.Key)
+	store.On("DeleteFlag", mock.Anything, req).Return(nil)
 
-				return errors.New("test error")
-			},
-			wantErr: errors.New("test error"),
-		},
-	}
+	got, err := s.DeleteFlag(context.TODO(), req)
+	require.NoError(t, err)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			empty   = tt.empty
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					deleteFlagFn: f,
-				},
-			}
-
-			got, err := s.DeleteFlag(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, empty, got)
-		})
-	}
+	assert.NotNil(t, got)
 }
 
 func TestCreateVariant(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.CreateVariantRequest
-		f       func(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
-		variant *flipt.Variant
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req: &flipt.CreateVariantRequest{
-				FlagKey:     "flagKey",
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-			},
-			f: func(_ context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.CreateVariantRequest{
+			FlagKey:     "flagKey",
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+		}
+	)
 
-				return &flipt.Variant{
-					FlagKey:     r.FlagKey,
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			variant: &flipt.Variant{
-				FlagKey:     "flagKey",
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-			},
-		},
-	}
+	store.On("CreateVariant", mock.Anything, req).Return(&flipt.Variant{
+		Id:          "1",
+		FlagKey:     req.FlagKey,
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+	}, nil)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			variant = tt.variant
-		)
+	got, err := s.CreateVariant(context.TODO(), req)
+	require.NoError(t, err)
 
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					createVariantFn: f,
-				},
-			}
-
-			got, err := s.CreateVariant(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, variant, got)
-		})
-	}
+	assert.NotNil(t, got)
 }
 
 func TestUpdateVariant(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.UpdateVariantRequest
-		f       func(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
-		variant *flipt.Variant
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req:  &flipt.UpdateVariantRequest{Id: "id", FlagKey: "flagKey", Key: "key", Name: "name", Description: "desc"},
-			f: func(_ context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-				assert.NotNil(t, r)
-				assert.Equal(t, "flagKey", r.FlagKey)
-				assert.Equal(t, "id", r.Id)
-				assert.Equal(t, "key", r.Key)
-				assert.Equal(t, "name", r.Name)
-				assert.Equal(t, "desc", r.Description)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.UpdateVariantRequest{
+			Id:          "1",
+			FlagKey:     "flagKey",
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+		}
+	)
 
-				return &flipt.Variant{
-					Id:          r.Id,
-					FlagKey:     r.FlagKey,
-					Key:         r.Key,
-					Name:        r.Name,
-					Description: r.Description,
-				}, nil
-			},
-			variant: &flipt.Variant{
-				Id:          "id",
-				FlagKey:     "flagKey",
-				Key:         "key",
-				Name:        "name",
-				Description: "desc",
-			},
-		},
-	}
+	store.On("UpdateVariant", mock.Anything, req).Return(&flipt.Variant{
+		Id:          req.Id,
+		FlagKey:     req.FlagKey,
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+	}, nil)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			variant = tt.variant
-		)
+	got, err := s.UpdateVariant(context.TODO(), req)
+	require.NoError(t, err)
 
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					updateVariantFn: f,
-				},
-			}
-
-			got, err := s.UpdateVariant(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, variant, got)
-		})
-	}
+	assert.NotNil(t, got)
 }
 
 func TestDeleteVariant(t *testing.T) {
-	tests := []struct {
-		name    string
-		req     *flipt.DeleteVariantRequest
-		f       func(context.Context, *flipt.DeleteVariantRequest) error
-		empty   *empty.Empty
-		wantErr error
-	}{
-		{
-			name: "ok",
-			req:  &flipt.DeleteVariantRequest{Id: "id", FlagKey: "flagKey"},
-			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "id", r.Id)
-				assert.Equal(t, "flagKey", r.FlagKey)
+	var (
+		store = &flagStoreMock{}
+		s     = &Server{
+			logger:    logger,
+			FlagStore: store,
+		}
+		req = &flipt.DeleteVariantRequest{
+			Id: "1",
+		}
+	)
 
-				return nil
-			},
-			empty: &empty.Empty{},
-		},
-		{
-			name: "error",
-			req:  &flipt.DeleteVariantRequest{Id: "id", FlagKey: "flagKey"},
-			f: func(_ context.Context, r *flipt.DeleteVariantRequest) error {
-				assert.NotNil(t, r)
-				assert.Equal(t, "id", r.Id)
-				assert.Equal(t, "flagKey", r.FlagKey)
+	store.On("DeleteVariant", mock.Anything, req).Return(nil)
 
-				return errors.New("error test")
-			},
-			wantErr: errors.New("error test"),
-		},
-	}
+	got, err := s.DeleteVariant(context.TODO(), req)
+	require.NoError(t, err)
 
-	for _, tt := range tests {
-		var (
-			f       = tt.f
-			req     = tt.req
-			wantErr = tt.wantErr
-			empty   = tt.empty
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
-				logger: logger,
-				FlagStore: &flagStoreMock{
-					deleteVariantFn: f,
-				},
-			}
-
-			got, err := s.DeleteVariant(context.TODO(), req)
-			assert.Equal(t, wantErr, err)
-			assert.Equal(t, empty, got)
-		})
-	}
+	assert.NotNil(t, got)
 }

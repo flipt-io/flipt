@@ -51,7 +51,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		}
 	)
 
-	flag, err := s.FlagStore.GetFlag(ctx, &flipt.GetFlagRequest{Key: r.FlagKey})
+	flag, err := s.FlagStore.GetFlag(ctx, r.FlagKey)
 	if err != nil {
 		return resp, err
 	}

@@ -53,10 +53,7 @@ func TestGetRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	got, err := ruleStore.GetRule(context.TODO(), &flipt.GetRuleRequest{
-		Id:      rule.Id,
-		FlagKey: flag.Key,
-	})
+	got, err := ruleStore.GetRule(context.TODO(), rule.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -67,13 +64,11 @@ func TestGetRule(t *testing.T) {
 	assert.Equal(t, rule.Rank, got.Rank)
 	assert.NotZero(t, got.CreatedAt)
 	assert.NotZero(t, got.UpdatedAt)
+}
 
-	_, err = ruleStore.GetRule(context.TODO(), &flipt.GetRuleRequest{
-		Id:      "0",
-		FlagKey: flag.Key,
-	})
-
-	require.Error(t, err)
+func TestGetRule_NotFound(t *testing.T) {
+	_, err := ruleStore.GetRule(context.TODO(), "0")
+	assert.EqualError(t, err, "rule \"0\" not found")
 }
 
 func TestListRules(t *testing.T) {
@@ -124,9 +119,7 @@ func TestListRules(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := ruleStore.ListRules(context.TODO(), &flipt.ListRuleRequest{
-		FlagKey: flag.Key,
-	})
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 0, 0)
 
 	require.NoError(t, err)
 	assert.NotZero(t, len(got))
@@ -180,11 +173,7 @@ func TestListRulesPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := ruleStore.ListRules(context.TODO(), &flipt.ListRuleRequest{
-		FlagKey: flag.Key,
-		Limit:   1,
-		Offset:  1,
-	})
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 1, 1)
 
 	require.NoError(t, err)
 	assert.Len(t, got, 1)
@@ -501,9 +490,7 @@ func TestDeleteRule(t *testing.T) {
 
 	require.NoError(t, err)
 
-	got, err := ruleStore.ListRules(context.TODO(), &flipt.ListRuleRequest{
-		FlagKey: flag.Key,
-	})
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 0, 0)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
@@ -595,9 +582,7 @@ func TestOrderRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	got, err := ruleStore.ListRules(context.TODO(), &flipt.ListRuleRequest{
-		FlagKey: flag.Key,
-	})
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 0, 0)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
@@ -665,10 +650,7 @@ func BenchmarkGetRule(b *testing.B) {
 		var r *flipt.Rule
 
 		for i := 0; i < b.N; i++ {
-			r, _ = ruleStore.GetRule(ctx, &flipt.GetRuleRequest{
-				Id:      rule.Id,
-				FlagKey: flag.Key,
-			})
+			r, _ = ruleStore.GetRule(ctx, rule.Id)
 		}
 
 		benchRule = r
@@ -728,19 +710,13 @@ func BenchmarkGetRule_CacheMemory(b *testing.B) {
 	var r *flipt.Rule
 
 	// warm the cache
-	r, _ = ruleStoreCache.GetRule(ctx, &flipt.GetRuleRequest{
-		Id:      rule.Id,
-		FlagKey: flag.Key,
-	})
+	r, _ = ruleStoreCache.GetRule(ctx, rule.Id)
 
 	b.ResetTimer()
 
 	b.Run("get-rule-cache", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			r, _ = ruleStoreCache.GetRule(ctx, &flipt.GetRuleRequest{
-				Id:      rule.Id,
-				FlagKey: flag.Key,
-			})
+			r, _ = ruleStoreCache.GetRule(ctx, rule.Id)
 		}
 
 		benchRule = r

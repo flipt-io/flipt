@@ -3,18 +3,33 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.12.0](https://github.com/markphelps/flipt/releases/tag/v0.12.0) - 2020-02-01
+## Unreleased
+
+### Added
+
+* `export` command to export current data [https://github.com/markphelps/flipt/issues/225](https://github.com/markphelps/flipt/issues/225)
 
 ### Changed
 
-* Fixed documentation link in app
-* Underlying caching library from golang-lru to go-cache
+* List calls are no longer cached because of pagination
+
+### Fixed
+
+* Issue where `GetRule` would not return proper error if rule did not exist
+
+## [v0.12.0](https://github.com/markphelps/flipt/releases/tag/v0.12.0) - 2020-02-01
 
 ### Added
 
 * Caching support for segments, rules AND evaluation! [https://github.com/markphelps/flipt/issues/100](https://github.com/markphelps/flipt/issues/100)
 * `cache.memory.expiration` configuration option
 * `cache.memory.eviction_interval` configuration option
+
+
+### Changed
+
+* Fixed documentation link in app
+* Underlying caching library from golang-lru to go-cache
 
 ### Removed
 

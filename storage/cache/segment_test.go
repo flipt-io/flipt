@@ -22,7 +22,7 @@ func TestGetSegment(t *testing.T) {
 	cacher.On("Get", mock.Anything).Return(&flipt.Segment{}, false).Once()
 	cacher.On("Set", mock.Anything, mock.Anything)
 
-	got, err := subject.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: "foo"})
+	got, err := subject.GetSegment(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
@@ -32,7 +32,7 @@ func TestGetSegment(t *testing.T) {
 
 	cacher.On("Get", mock.Anything).Return(&flipt.Segment{Key: "foo"}, true)
 
-	got, err = subject.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: "foo"})
+	got, err = subject.GetSegment(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
@@ -51,7 +51,7 @@ func TestGetSegmentNotFound(t *testing.T) {
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{}, errors.ErrNotFound("foo"))
 	cacher.On("Get", mock.Anything).Return(&flipt.Segment{}, false).Once()
 
-	_, err := subject.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: "foo"})
+	_, err := subject.GetSegment(context.TODO(), "foo")
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
@@ -71,57 +71,15 @@ func TestListSegments(t *testing.T) {
 		{Key: "bar"},
 	}
 
-	store.On("ListSegments", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*flipt.Segment{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	store.On("ListSegments", mock.Anything, uint64(0), uint64(0)).Return(ret, nil)
 
-	got, err := subject.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
+	got, err := subject.ListSegments(context.TODO(), 0, 0)
 	require.NoError(t, err)
 	assert.NotEmpty(t, got)
 	assert.Len(t, got, 2)
 
-	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "segments", mock.Anything)
-	cacher.AssertCalled(t, "Get", "segments")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
-
-	got, err = subject.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
-	require.NoError(t, err)
-	assert.NotEmpty(t, got)
-	assert.Len(t, got, 2)
-
-	// should already exist in the cache so it should NOT be added
-	cacher.AssertNumberOfCalls(t, "Set", 1)
-	cacher.AssertNumberOfCalls(t, "Get", 2)
-}
-
-func TestListSegments_NoResults(t *testing.T) {
-	var (
-		store   = &segmentStoreMock{}
-		cacher  = &cacherSpy{}
-		subject = NewSegmentCache(logger, cacher, store)
-	)
-
-	ret := []*flipt.Segment{}
-
-	store.On("ListSegments", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*flipt.Segment{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
-
-	got, err := subject.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
-	require.NoError(t, err)
-	assert.NotNil(t, got)
-
-	// should not be set in the cache
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "segments")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
-
-	got, err = subject.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
-	require.NoError(t, err)
-	assert.NotNil(t, got)
+	cacher.AssertNotCalled(t, "Get")
 }
 
 func TestCreateSegment(t *testing.T) {

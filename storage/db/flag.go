@@ -30,11 +30,7 @@ func NewFlagStore(builder sq.StatementBuilderType) *FlagStore {
 }
 
 // GetFlag gets a flag
-func (s *FlagStore) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	return s.flag(ctx, r.Key)
-}
-
-func (s *FlagStore) flag(ctx context.Context, key string) (*flipt.Flag, error) {
+func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
@@ -73,7 +69,7 @@ func (s *FlagStore) flag(ctx context.Context, key string) (*flipt.Flag, error) {
 }
 
 // ListFlags lists all flags
-func (s *FlagStore) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
+func (s *FlagStore) ListFlags(ctx context.Context, limit, offset uint64) ([]*flipt.Flag, error) {
 	var (
 		flags []*flipt.Flag
 
@@ -82,12 +78,12 @@ func (s *FlagStore) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]
 			OrderBy("created_at ASC")
 	)
 
-	if r.Limit > 0 {
-		query = query.Limit(uint64(r.Limit))
+	if limit > 0 {
+		query = query.Limit(limit)
 	}
 
-	if r.Offset > 0 {
-		query = query.Offset(uint64(r.Offset))
+	if offset > 0 {
+		query = query.Offset(offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
@@ -190,7 +186,7 @@ func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) 
 		return nil, errors.ErrNotFoundf("flag %q", r.Key)
 	}
 
-	return s.flag(ctx, r.Key)
+	return s.GetFlag(ctx, r.Key)
 }
 
 // DeleteFlag deletes a flag

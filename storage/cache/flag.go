@@ -8,10 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	flagCachePrefix = "flag:"
-	flagsCacheKey   = "flags"
-)
+const flagCachePrefix = "flag:"
 
 var _ storage.FlagStore = &FlagCache{}
 
@@ -33,8 +30,8 @@ func NewFlagCache(logger logrus.FieldLogger, cacher Cacher, store storage.FlagSt
 
 // GetFlag returns the flag from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
-func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
-	key := flagCachePrefix + r.Key
+func (f *FlagCache) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
+	key := flagCachePrefix + k
 
 	// check if flag exists in cache
 	if data, ok := f.cache.Get(key); ok {
@@ -51,7 +48,7 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 	}
 
 	// else, get it and add to cache
-	flag, err := f.store.GetFlag(ctx, r)
+	flag, err := f.store.GetFlag(ctx, k)
 	if err != nil {
 		return flag, err
 	}
@@ -63,36 +60,9 @@ func (f *FlagCache) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flip
 	return flag, nil
 }
 
-// ListFlags returns all flags from the cache if they exist; otherwise it delegates to the underlying store
-// caching the result if no error
-func (f *FlagCache) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error) {
-	// check if flags exists in cache
-	if data, ok := f.cache.Get(flagsCacheKey); ok {
-		f.logger.Debugf("cache hit: %q", flagsCacheKey)
-		cacheHitTotal.WithLabelValues("flags", "memory").Inc()
-
-		flags, ok := data.([]*flipt.Flag)
-		if !ok {
-			// not flags slice, bad cache
-			return nil, ErrCacheCorrupt
-		}
-
-		return flags, nil
-	}
-
-	// else, get them and add to cache
-	flags, err := f.store.ListFlags(ctx, r)
-	if err != nil {
-		return flags, err
-	}
-
-	if len(flags) > 0 {
-		f.cache.Set(flagsCacheKey, flags)
-		f.logger.Debugf("cache miss; added %q", flagsCacheKey)
-		cacheMissTotal.WithLabelValues("flags", "memory").Inc()
-	}
-
-	return flags, nil
+// ListFlags delegates to the underlying store
+func (f *FlagCache) ListFlags(ctx context.Context, limit, offset uint64) ([]*flipt.Flag, error) {
+	return f.store.ListFlags(ctx, limit, offset)
 }
 
 // CreateFlag delegates to the underlying store, flushing the cache in the process

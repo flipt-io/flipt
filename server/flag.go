@@ -10,7 +10,7 @@ import (
 // GetFlag gets a flag
 func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.WithField("request", r).Debug("get flag")
-	flag, err := s.FlagStore.GetFlag(ctx, r)
+	flag, err := s.FlagStore.GetFlag(ctx, r.Key)
 	s.logger.WithField("response", flag).Debug("get flag")
 	return flag, err
 }
@@ -19,7 +19,7 @@ func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.F
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.WithField("request", r).Debug("list flags")
 
-	flags, err := s.FlagStore.ListFlags(ctx, r)
+	flags, err := s.FlagStore.ListFlags(ctx, uint64(r.Limit), uint64(r.Offset))
 	if err != nil {
 		return nil, err
 	}

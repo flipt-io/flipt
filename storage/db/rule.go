@@ -30,24 +30,26 @@ func NewRuleStore(builder sq.StatementBuilderType, db *sql.DB) *RuleStore {
 	}
 }
 
-// GetRule gets a rule
-func (s *RuleStore) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
-	return s.rule(ctx, r.Id, r.FlagKey)
-}
-
-func (s *RuleStore) rule(ctx context.Context, id, flagKey string) (*flipt.Rule, error) {
+// GetRule gets an individual rule
+func (s *RuleStore) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
 
 		rule = &flipt.Rule{}
+
+		err = s.builder.Select("id, flag_key, segment_key, rank, created_at, updated_at").
+			From("rules").
+			Where(sq.And{sq.Eq{"id": id}}).
+			QueryRowContext(ctx).
+			Scan(&rule.Id, &rule.FlagKey, &rule.SegmentKey, &rule.Rank, &createdAt, &updatedAt)
 	)
 
-	if err := s.builder.Select("id, flag_key, segment_key, rank, created_at, updated_at").
-		From("rules").
-		Where(sq.And{sq.Eq{"id": id}, sq.Eq{"flag_key": flagKey}}).
-		QueryRowContext(ctx).
-		Scan(&rule.Id, &rule.FlagKey, &rule.SegmentKey, &rule.Rank, &createdAt, &updatedAt); err != nil {
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.ErrNotFoundf("rule %q", id)
+		}
+
 		return nil, err
 	}
 
@@ -61,27 +63,23 @@ func (s *RuleStore) rule(ctx context.Context, id, flagKey string) (*flipt.Rule, 
 	return rule, nil
 }
 
-// ListRules lists all rules
-func (s *RuleStore) ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
-	return s.rules(ctx, r)
-}
-
-func (s *RuleStore) rules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error) {
+// ListRules gets all rules for a flag
+func (s *RuleStore) ListRules(ctx context.Context, flagKey string, limit, offset uint64) ([]*flipt.Rule, error) {
 	var (
 		rules []*flipt.Rule
 
 		query = s.builder.Select("id, flag_key, segment_key, rank, created_at, updated_at").
 			From("rules").
-			Where(sq.Eq{"flag_key": r.FlagKey}).
+			Where(sq.Eq{"flag_key": flagKey}).
 			OrderBy("rank ASC")
 	)
 
-	if r.Limit > 0 {
-		query = query.Limit(uint64(r.Limit))
+	if limit > 0 {
+		query = query.Limit(limit)
 	}
 
-	if r.Offset > 0 {
-		query = query.Offset(uint64(r.Offset))
+	if offset > 0 {
+		query = query.Offset(offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
@@ -182,7 +180,7 @@ func (s *RuleStore) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) 
 		return nil, errors.ErrNotFoundf("rule %q", r.Id)
 	}
 
-	return s.rule(ctx, r.Id, r.FlagKey)
+	return s.GetRule(ctx, r.Id)
 }
 
 // DeleteRule deletes a rule
