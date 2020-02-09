@@ -74,10 +74,20 @@ func main() {
 	var (
 		rootCmd = &cobra.Command{
 			Use:     "flipt",
-			Short:   "Flipt is a self contained feature flag solution",
+			Short:   "Flipt is a modern feature flag solution",
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := run(); err != nil {
+					logger.Fatal(err)
+				}
+			},
+		}
+
+		exportCmd = &cobra.Command{
+			Use:   "export",
+			Short: "Export flags/segments/rules to file",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := runExport(); err != nil {
 					logger.Fatal(err)
 				}
 			},
@@ -110,7 +120,16 @@ func main() {
 
 	banner = buf.String()
 
-	cobra.OnInitialize(initialize)
+	cobra.OnInitialize(func() {
+		cfg, err := config.Load(cfgPath)
+		if err != nil {
+			logger.Fatal(fmt.Errorf("loading configuration: %w", err))
+		}
+
+		if err := setupLogger(cfg); err != nil {
+			logger.Fatal(fmt.Errorf("setting up logger: %w", err))
+		}
+	})
 
 	rootCmd.SetVersionTemplate(banner)
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
@@ -118,64 +137,13 @@ func main() {
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
+	rootCmd.AddCommand(exportCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)
 	}
 
 	logrus.Exit(0)
-}
-
-func initialize() {
-	var err error
-
-	cfg, err = config.Load(cfgPath)
-	if err != nil {
-		logger.Fatal(fmt.Errorf("loading configuration: %w", err))
-	}
-
-	if err = setupLogger(cfg); err != nil {
-		logger.Fatal(fmt.Errorf("setting up logger: %w", err))
-	}
-}
-
-func runMigrations() error {
-	sql, driver, err := db.Open(cfg.Database.URL)
-	if err != nil {
-		return fmt.Errorf("opening db: %w", err)
-	}
-
-	defer sql.Close()
-
-	var dr database.Driver
-
-	switch driver {
-	case db.SQLite:
-		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
-	case db.Postgres:
-		dr, err = postgres.WithInstance(sql, &postgres.Config{})
-	}
-
-	if err != nil {
-		return fmt.Errorf("getting db driver for: %s: %w", driver, err)
-	}
-
-	f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
-
-	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
-	if err != nil {
-		return fmt.Errorf("opening migrations: %w", err)
-	}
-
-	logger.Info("running migrations...")
-
-	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-
-	logger.Info("finished migrations")
-
-	return nil
 }
 
 func run() error {
