@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/markphelps/flipt/storage/db"
@@ -28,7 +29,6 @@ type Variant struct {
 }
 
 type Rule struct {
-	FlagKey       string          `yaml:"flag,omitempty"`
 	SegmentKey    string          `yaml:"segment,omitempty"`
 	Rank          uint            `yaml:"rank,omitempty"`
 	Distributions []*Distribution `yaml:"distributions,omitempty"`
@@ -52,6 +52,8 @@ type Constraint struct {
 	Operator string `yaml:"operator,omitempty"`
 	Value    string `yaml:"value,omitempty"`
 }
+
+var exportFilename = "flipt_export.yaml"
 
 func runExport() error {
 	ctx := context.Background()
@@ -90,12 +92,16 @@ func runExport() error {
 		return fmt.Errorf("getting db driver for: %s: %w", driver, err)
 	}
 
-	out, err := os.Create("export.yaml")
+	logger.Debugf("exporting to %q", exportFilename)
+
+	out, err := os.Create(exportFilename)
 	if err != nil {
 		return fmt.Errorf("creating output file: %w", err)
 	}
 
 	defer out.Close()
+
+	fmt.Fprintf(out, "# exported by Flipt on %s\n\n", time.Now().UTC().Format(time.RFC3339))
 
 	enc := yaml.NewEncoder(out)
 	defer enc.Close()
@@ -103,7 +109,7 @@ func runExport() error {
 	var (
 		flagStore    = db.NewFlagStore(builder)
 		segmentStore = db.NewSegmentStore(builder)
-		// ruleStore    = db.NewRuleStore(builder, sql)
+		ruleStore    = db.NewRuleStore(builder, sql)
 	)
 
 	// export flags/variants
@@ -124,12 +130,39 @@ func runExport() error {
 			Enabled:     f.Enabled,
 		}
 
+		// to map variant id => variant key
+		variantKeys := make(map[string]string)
+
 		for _, v := range f.Variants {
 			flag.Variants = append(flag.Variants, &Variant{
 				Key:         v.Key,
 				Name:        v.Name,
 				Description: v.Description,
 			})
+
+			variantKeys[v.Id] = v.Key
+		}
+
+		// export rules for flag
+		rules, err := ruleStore.ListRules(ctx, flag.Key, 0, 0)
+		if err != nil {
+			return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
+		}
+
+		for _, r := range rules {
+			rule := &Rule{
+				SegmentKey: r.SegmentKey,
+				Rank:       uint(r.Rank),
+			}
+
+			for _, d := range r.Distributions {
+				rule.Distributions = append(rule.Distributions, &Distribution{
+					VariantKey: variantKeys[d.VariantId],
+					Rollout:    d.Rollout,
+				})
+			}
+
+			flag.Rules = append(flag.Rules, rule)
 		}
 
 		flagList.Flags = append(flagList.Flags, flag)
