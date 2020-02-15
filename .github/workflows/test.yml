@@ -42,7 +42,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:11-alpine
+        image: postgres:@sha256:c132d7802dcc127486a403fb9e9a52d9df2e3ab84037c5de8395ed6ba2743e20
         ports:
         # will assign a random free host port
         - 5432/tcp
