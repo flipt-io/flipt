@@ -61,8 +61,8 @@ func (c *RuleCache) GetRule(ctx context.Context, id string) (*flipt.Rule, error)
 }
 
 // ListRules delegates to the underlying store
-func (c *RuleCache) ListRules(ctx context.Context, flagKey string, limit, offset uint64) ([]*flipt.Rule, error) {
-	return c.store.ListRules(ctx, flagKey, limit, offset)
+func (c *RuleCache) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error) {
+	return c.store.ListRules(ctx, flagKey, opts...)
 }
 
 // CreateRule delegates to the underlying store, flushing the cache in the process

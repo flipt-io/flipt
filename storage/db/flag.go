@@ -69,7 +69,7 @@ func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error
 }
 
 // ListFlags lists all flags
-func (s *FlagStore) ListFlags(ctx context.Context, limit, offset uint64) ([]*flipt.Flag, error) {
+func (s *FlagStore) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
 	var (
 		flags []*flipt.Flag
 
@@ -78,12 +78,18 @@ func (s *FlagStore) ListFlags(ctx context.Context, limit, offset uint64) ([]*fli
 			OrderBy("created_at ASC")
 	)
 
-	if limit > 0 {
-		query = query.Limit(limit)
+	params := &storage.QueryParams{}
+
+	for _, opt := range opts {
+		opt(params)
 	}
 
-	if offset > 0 {
-		query = query.Offset(offset)
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
+	}
+
+	if params.Offset > 0 {
+		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)

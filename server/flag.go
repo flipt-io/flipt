@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 )
 
 // GetFlag gets a flag
@@ -19,7 +20,7 @@ func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.F
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.WithField("request", r).Debug("list flags")
 
-	flags, err := s.FlagStore.ListFlags(ctx, uint64(r.Limit), uint64(r.Offset))
+	flags, err := s.FlagStore.ListFlags(ctx, storage.WithLimit(uint64(r.Limit)), storage.WithOffset(uint64(r.Offset)))
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +54,9 @@ func (s *Server) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*f
 // DeleteFlag deletes a flag
 func (s *Server) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) (*empty.Empty, error) {
 	s.logger.WithField("request", r).Debug("delete flag")
-
 	if err := s.FlagStore.DeleteFlag(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }
 
@@ -83,6 +82,5 @@ func (s *Server) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReques
 	if err := s.FlagStore.DeleteVariant(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }

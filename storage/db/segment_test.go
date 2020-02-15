@@ -6,6 +6,7 @@ import (
 	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus/hooks/test"
 
@@ -62,7 +63,7 @@ func TestListSegments(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := segmentStore.ListSegments(context.TODO(), 0, 0)
+	got, err := segmentStore.ListSegments(context.TODO())
 	require.NoError(t, err)
 	assert.NotZero(t, len(got))
 }
@@ -86,7 +87,7 @@ func TestListSegmentsPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := segmentStore.ListSegments(context.TODO(), 1, 1)
+	got, err := segmentStore.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 
 	require.NoError(t, err)
 	assert.Len(t, got, 1)

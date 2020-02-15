@@ -39,7 +39,7 @@ func TestListSegments(t *testing.T) {
 		}
 	)
 
-	store.On("ListSegments", mock.Anything, uint64(0), uint64(0)).Return(
+	store.On("ListSegments", mock.Anything, mock.Anything).Return(
 		[]*flipt.Segment{
 			{
 				Key: "foo",

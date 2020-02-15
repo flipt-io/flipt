@@ -117,7 +117,7 @@ func runExport() error {
 		Flags []*Flag `yaml:"flags,omitempty"`
 	}{}
 
-	flags, err := flagStore.ListFlags(ctx, 0, 0)
+	flags, err := flagStore.ListFlags(ctx)
 	if err != nil {
 		return fmt.Errorf("getting flags: %w", err)
 	}
@@ -144,7 +144,7 @@ func runExport() error {
 		}
 
 		// export rules for flag
-		rules, err := ruleStore.ListRules(ctx, flag.Key, 0, 0)
+		rules, err := ruleStore.ListRules(ctx, flag.Key)
 		if err != nil {
 			return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 		}
@@ -177,7 +177,7 @@ func runExport() error {
 		Segments []*Segment `yaml:"segments,omitempty"`
 	}{}
 
-	segments, err := segmentStore.ListSegments(ctx, 0, 0)
+	segments, err := segmentStore.ListSegments(ctx)
 	if err != nil {
 		return fmt.Errorf("getting segments: %w", err)
 	}

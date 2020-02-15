@@ -8,6 +8,7 @@ import (
 	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
@@ -119,7 +120,7 @@ func TestListRules(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 0, 0)
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotZero(t, len(got))
@@ -173,7 +174,7 @@ func TestListRulesPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 1, 1)
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key, storage.WithLimit(1), storage.WithOffset(1))
 
 	require.NoError(t, err)
 	assert.Len(t, got, 1)
@@ -490,7 +491,7 @@ func TestDeleteRule(t *testing.T) {
 
 	require.NoError(t, err)
 
-	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 0, 0)
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
@@ -582,7 +583,7 @@ func TestOrderRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	got, err := ruleStore.ListRules(context.TODO(), flag.Key, 0, 0)
+	got, err := ruleStore.ListRules(context.TODO(), flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)

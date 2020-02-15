@@ -69,7 +69,7 @@ func (s *SegmentStore) GetSegment(ctx context.Context, key string) (*flipt.Segme
 }
 
 // ListSegments lists all segments
-func (s *SegmentStore) ListSegments(ctx context.Context, limit, offset uint64) ([]*flipt.Segment, error) {
+func (s *SegmentStore) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
 	var (
 		segments []*flipt.Segment
 
@@ -78,12 +78,18 @@ func (s *SegmentStore) ListSegments(ctx context.Context, limit, offset uint64) (
 			OrderBy("created_at ASC")
 	)
 
-	if limit > 0 {
-		query = query.Limit(limit)
+	params := &storage.QueryParams{}
+
+	for _, opt := range opts {
+		opt(params)
 	}
 
-	if offset > 0 {
-		query = query.Offset(offset)
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
+	}
+
+	if params.Offset > 0 {
+		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)

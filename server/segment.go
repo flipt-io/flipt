@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 )
 
 // GetSegment gets a segment
@@ -18,7 +19,7 @@ func (s *Server) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*f
 // ListSegments lists all segments
 func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
 	s.logger.WithField("request", r).Debug("list segments")
-	segments, err := s.SegmentStore.ListSegments(ctx, uint64(r.Limit), uint64(r.Offset))
+	segments, err := s.SegmentStore.ListSegments(ctx, storage.WithLimit(uint64(r.Limit)), storage.WithOffset(uint64(r.Offset)))
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +53,9 @@ func (s *Server) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentReques
 // DeleteSegment deletes a segment
 func (s *Server) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) (*empty.Empty, error) {
 	s.logger.WithField("request", r).Debug("delete segment")
-
 	if err := s.SegmentStore.DeleteSegment(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }
 
@@ -79,10 +78,8 @@ func (s *Server) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraint
 // DeleteConstraint deletes a constraint
 func (s *Server) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) (*empty.Empty, error) {
 	s.logger.WithField("request", r).Debug("delete constraint")
-
 	if err := s.SegmentStore.DeleteConstraint(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }

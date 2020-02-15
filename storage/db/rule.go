@@ -64,7 +64,7 @@ func (s *RuleStore) GetRule(ctx context.Context, id string) (*flipt.Rule, error)
 }
 
 // ListRules gets all rules for a flag
-func (s *RuleStore) ListRules(ctx context.Context, flagKey string, limit, offset uint64) ([]*flipt.Rule, error) {
+func (s *RuleStore) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error) {
 	var (
 		rules []*flipt.Rule
 
@@ -74,12 +74,18 @@ func (s *RuleStore) ListRules(ctx context.Context, flagKey string, limit, offset
 			OrderBy("rank ASC")
 	)
 
-	if limit > 0 {
-		query = query.Limit(limit)
+	params := &storage.QueryParams{}
+
+	for _, opt := range opts {
+		opt(params)
 	}
 
-	if offset > 0 {
-		query = query.Offset(offset)
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
+	}
+
+	if params.Offset > 0 {
+		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)

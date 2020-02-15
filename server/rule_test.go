@@ -40,7 +40,7 @@ func TestListRules(t *testing.T) {
 		req = &flipt.ListRuleRequest{FlagKey: "flagKey"}
 	)
 
-	store.On("ListRules", mock.Anything, "flagKey", uint64(0), uint64(0)).Return(
+	store.On("ListRules", mock.Anything, "flagKey", mock.Anything).Return(
 		[]*flipt.Rule{
 			{
 				FlagKey: req.FlagKey,

@@ -39,7 +39,7 @@ func TestListFlags(t *testing.T) {
 		}
 	)
 
-	store.On("ListFlags", mock.Anything, uint64(0), uint64(0)).Return(
+	store.On("ListFlags", mock.Anything, mock.Anything).Return(
 		[]*flipt.Flag{
 			{
 				Key: "foo",

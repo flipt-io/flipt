@@ -71,9 +71,9 @@ func TestListFlags(t *testing.T) {
 		{Key: "bar"},
 	}
 
-	store.On("ListFlags", mock.Anything, uint64(0), uint64(0)).Return(ret, nil)
+	store.On("ListFlags", mock.Anything, mock.Anything).Return(ret, nil)
 
-	got, err := subject.ListFlags(context.TODO(), 0, 0)
+	got, err := subject.ListFlags(context.TODO())
 	require.NoError(t, err)
 	assert.NotEmpty(t, got)
 	assert.Len(t, got, 2)

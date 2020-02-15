@@ -23,8 +23,8 @@ func (m *flagStoreMock) GetFlag(ctx context.Context, key string) (*flipt.Flag, e
 	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
-func (m *flagStoreMock) ListFlags(ctx context.Context, limit, offset uint64) ([]*flipt.Flag, error) {
-	args := m.Called(ctx, limit, offset)
+func (m *flagStoreMock) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
+	args := m.Called(ctx, opts)
 	return args.Get(0).([]*flipt.Flag), args.Error(1)
 }
 
@@ -67,8 +67,8 @@ func (m *segmentStoreMock) GetSegment(ctx context.Context, key string) (*flipt.S
 	return args.Get(0).(*flipt.Segment), args.Error(1)
 }
 
-func (m *segmentStoreMock) ListSegments(ctx context.Context, limit, offset uint64) ([]*flipt.Segment, error) {
-	args := m.Called(ctx, limit, offset)
+func (m *segmentStoreMock) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
+	args := m.Called(ctx, opts)
 	return args.Get(0).([]*flipt.Segment), args.Error(1)
 }
 
@@ -111,8 +111,8 @@ func (m *ruleStoreMock) GetRule(ctx context.Context, id string) (*flipt.Rule, er
 	return args.Get(0).(*flipt.Rule), args.Error(1)
 }
 
-func (m *ruleStoreMock) ListRules(ctx context.Context, flagKey string, limit, offset uint64) ([]*flipt.Rule, error) {
-	args := m.Called(ctx, flagKey, limit, offset)
+func (m *ruleStoreMock) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error) {
+	args := m.Called(ctx, flagKey, opts)
 	return args.Get(0).([]*flipt.Rule), args.Error(1)
 }
 

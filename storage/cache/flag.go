@@ -61,8 +61,8 @@ func (f *FlagCache) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) 
 }
 
 // ListFlags delegates to the underlying store
-func (f *FlagCache) ListFlags(ctx context.Context, limit, offset uint64) ([]*flipt.Flag, error) {
-	return f.store.ListFlags(ctx, limit, offset)
+func (f *FlagCache) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
+	return f.store.ListFlags(ctx, opts...)
 }
 
 // CreateFlag delegates to the underlying store, flushing the cache in the process

@@ -61,8 +61,8 @@ func (s *SegmentCache) GetSegment(ctx context.Context, k string) (*flipt.Segment
 }
 
 // ListSegments delegates to the underlying store
-func (s *SegmentCache) ListSegments(ctx context.Context, limit, offset uint64) ([]*flipt.Segment, error) {
-	return s.store.ListSegments(ctx, limit, offset)
+func (s *SegmentCache) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
+	return s.store.ListSegments(ctx, opts...)
 }
 
 // CreateSegment delegates to the underlying store, flushing the cache in the process
