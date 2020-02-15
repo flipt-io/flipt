@@ -40,19 +40,6 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres@sha256:c132d7802dcc127486a403fb9e9a52d9df2e3ab84037c5de8395ed6ba2743e20
-        ports:
-        # will assign a random free host port
-        - 5432/tcp
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-        env:
-          POSTGRES_DB: flipt_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ''
-
     steps:
     - name: Setup Go
       uses: actions/setup-go@v1
@@ -79,6 +66,3 @@ jobs:
         CI_BRANCH: ${{ github.ref }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: bash <(curl -s https://codecov.io/bash)
-
-    - name: Unit Test (Postgres)
-      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
