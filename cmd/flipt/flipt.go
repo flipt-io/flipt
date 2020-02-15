@@ -125,11 +125,11 @@ func main() {
 
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
-			logger.Fatalf("loading configuration: %w", err)
+			logger.Fatalf("loading configuration: %v", err)
 		}
 
 		if err = setupLogger(cfg); err != nil {
-			logger.Fatalf("setting up logger: %w", err)
+			logger.Fatalf("setting up logger: %v", err)
 		}
 	})
 
