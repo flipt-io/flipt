@@ -25,17 +25,18 @@ load 'helpers/bats-assert/load'
 @test "help flag prints usage" {
     run ./bin/flipt --help
     assert_success
-    assert_equal "${lines[0]}" "Flipt is a self contained feature flag solution"
+    assert_equal "${lines[0]}" "Flipt is a modern feature flag solution"
     assert_equal "${lines[1]}" "Usage:"
     assert_equal "${lines[2]}" "  flipt [flags]"
     assert_equal "${lines[3]}" "  flipt [command]"
     assert_equal "${lines[4]}" "Available Commands:"
-    assert_equal "${lines[5]}" "  help        Help about any command"
-    assert_equal "${lines[6]}" "  migrate     Run pending database migrations"
-    assert_equal "${lines[7]}" "Flags:" ]
-    assert_equal "${lines[8]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
-    assert_equal "${lines[9]}" "  -h, --help            help for flipt"
-    assert_equal "${lines[10]}" "      --version         version for flipt"
+    assert_equal "${lines[5]}" "  export      Export flags/segments/rules to file"
+    assert_equal "${lines[6]}" "  help        Help about any command"
+    assert_equal "${lines[7]}" "  migrate     Run pending database migrations"
+    assert_equal "${lines[8]}" "Flags:" ]
+    assert_equal "${lines[9]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
+    assert_equal "${lines[10]}" "  -h, --help            help for flipt"
+    assert_equal "${lines[11]}" "      --version         version for flipt"
 }
 
 @test "version flag prints version info" {
@@ -45,4 +46,10 @@ load 'helpers/bats-assert/load'
     assert_output -p "Commit:"
     assert_output -e "Build Date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
     assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
+}
+
+@test "export outputs to file" {
+    run ./bin/flipt export
+    run test -f "flipt_export.yaml"
+    assert_success
 }
