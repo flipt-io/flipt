@@ -138,6 +138,7 @@ func main() {
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
+	exportCmd.Flags().BoolVar(&exportStdout, "stdout", false, "output to STDOUT")
 	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "flipt_export.yaml", "output filename")
 
 	rootCmd.AddCommand(migrateCmd)

@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -53,7 +55,10 @@ type Constraint struct {
 	Value    string `yaml:"value,omitempty"`
 }
 
-var exportFilename = "flipt_export.yaml"
+var (
+	exportFilename = "flipt_export.yaml"
+	exportStdout   = false
+)
 
 func runExport() error {
 	ctx := context.Background()
@@ -92,16 +97,28 @@ func runExport() error {
 		return fmt.Errorf("getting db driver for: %s: %w", driver, err)
 	}
 
-	logger.Debugf("exporting to %q", exportFilename)
+	var out io.WriteCloser
 
-	out, err := os.Create(exportFilename)
-	if err != nil {
-		return fmt.Errorf("creating output file: %w", err)
+	if exportStdout {
+		out = os.Stdout
+	} else {
+		// export to file
+
+		if exportFilename == "" {
+			return errors.New("output filename required")
+		}
+
+		logger.Debugf("exporting to %q", exportFilename)
+
+		out, err = os.Create(exportFilename)
+		if err != nil {
+			return fmt.Errorf("creating output file: %w", err)
+		}
+
+		fmt.Fprintf(out, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
 	}
 
 	defer out.Close()
-
-	fmt.Fprintf(out, "# exported by Flipt on %s\n\n", time.Now().UTC().Format(time.RFC3339))
 
 	enc := yaml.NewEncoder(out)
 	defer enc.Close()
