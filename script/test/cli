@@ -49,7 +49,7 @@ load 'helpers/bats-assert/load'
 }
 
 @test "export outputs to file" {
-    run ./bin/flipt export
-    run test -f "flipt_export.yaml"
+    run ./bin/flipt export -o flipt.yaml
+    run test -f "flipt.yaml"
     assert_success
 }

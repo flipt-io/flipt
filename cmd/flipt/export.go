@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,6 +13,11 @@ import (
 	"github.com/markphelps/flipt/storage/db"
 	"gopkg.in/yaml.v2"
 )
+
+type Document struct {
+	Flags    []*Flag    `yaml:"flags,omitempty"`
+	Segments []*Segment `yaml:"segments,omitempty"`
+}
 
 type Flag struct {
 	Key         string     `yaml:"key,omitempty"`
@@ -55,12 +59,9 @@ type Constraint struct {
 	Value    string `yaml:"value,omitempty"`
 }
 
-var (
-	exportFilename = "flipt_export.yaml"
-	exportStdout   = false
-)
+var exportFilename = ""
 
-func runExport() error {
+func runExport(_ []string) error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -93,21 +94,11 @@ func runExport() error {
 		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
 	}
 
-	if err != nil {
-		return fmt.Errorf("getting db driver for: %s: %w", driver, err)
-	}
+	// default to stdout
+	var out io.WriteCloser = os.Stdout
 
-	var out io.WriteCloser
-
-	if exportStdout {
-		out = os.Stdout
-	} else {
-		// export to file
-
-		if exportFilename == "" {
-			return errors.New("output filename required")
-		}
-
+	// export to file
+	if exportFilename != "" {
 		logger.Debugf("exporting to %q", exportFilename)
 
 		out, err = os.Create(exportFilename)
@@ -120,20 +111,18 @@ func runExport() error {
 
 	defer out.Close()
 
-	enc := yaml.NewEncoder(out)
-	defer enc.Close()
-
 	var (
 		flagStore    = db.NewFlagStore(builder)
 		segmentStore = db.NewSegmentStore(builder)
 		ruleStore    = db.NewRuleStore(builder, sql)
+
+		enc = yaml.NewEncoder(out)
+		doc = new(Document)
 	)
 
-	// export flags/variants
-	flagList := &struct {
-		Flags []*Flag `yaml:"flags,omitempty"`
-	}{}
+	defer enc.Close()
 
+	// export flags/variants
 	flags, err := flagStore.ListFlags(ctx)
 	if err != nil {
 		return fmt.Errorf("getting flags: %w", err)
@@ -147,7 +136,7 @@ func runExport() error {
 			Enabled:     f.Enabled,
 		}
 
-		// to map variant id => variant key
+		// map variant id => variant key
 		variantKeys := make(map[string]string)
 
 		for _, v := range f.Variants {
@@ -182,18 +171,10 @@ func runExport() error {
 			flag.Rules = append(flag.Rules, rule)
 		}
 
-		flagList.Flags = append(flagList.Flags, flag)
-	}
-
-	if err := enc.Encode(flagList); err != nil {
-		return fmt.Errorf("exporting flags: %w", err)
+		doc.Flags = append(doc.Flags, flag)
 	}
 
 	// export segments/constraints
-	segmentList := &struct {
-		Segments []*Segment `yaml:"segments,omitempty"`
-	}{}
-
 	segments, err := segmentStore.ListSegments(ctx)
 	if err != nil {
 		return fmt.Errorf("getting segments: %w", err)
@@ -215,11 +196,11 @@ func runExport() error {
 			})
 		}
 
-		segmentList.Segments = append(segmentList.Segments, segment)
+		doc.Segments = append(doc.Segments, segment)
 	}
 
-	if err := enc.Encode(segmentList); err != nil {
-		return fmt.Errorf("exporting segments: %w", err)
+	if err := enc.Encode(doc); err != nil {
+		return fmt.Errorf("exporting: %w", err)
 	}
 
 	return nil

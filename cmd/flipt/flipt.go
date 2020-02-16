@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"runtime"
 	"syscall"
 	"text/template"
@@ -23,10 +22,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/gobuffalo/packr"
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database"
-	"github.com/golang-migrate/migrate/database/postgres"
-	"github.com/golang-migrate/migrate/database/sqlite3"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
@@ -77,7 +72,7 @@ func main() {
 			Short:   "Flipt is a modern feature flag solution",
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := run(); err != nil {
+				if err := run(args); err != nil {
 					logger.Fatal(err)
 				}
 			},
@@ -85,19 +80,37 @@ func main() {
 
 		exportCmd = &cobra.Command{
 			Use:   "export",
-			Short: "Export flags/segments/rules to file",
+			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := runExport(); err != nil {
+				if err := runExport(args); err != nil {
 					logger.Fatal(err)
 				}
 			},
+		}
+
+		importCmd = &cobra.Command{
+			Use:   "import",
+			Short: "Import flags/segments/rules from file",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := runImport(args); err != nil {
+					logger.Fatal(err)
+				}
+			},
+			Args: cobra.MinimumNArgs(1),
 		}
 
 		migrateCmd = &cobra.Command{
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := runMigrations(); err != nil {
+				migrator, err := db.NewMigrator(cfg, logger)
+				if err != nil {
+					logger.Fatal(err)
+				}
+
+				defer migrator.Close()
+
+				if err := migrator.Run(); err != nil {
 					logger.Fatal(err)
 				}
 			},
@@ -138,11 +151,12 @@ func main() {
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
-	exportCmd.Flags().BoolVar(&exportStdout, "stdout", false, "output to STDOUT")
-	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "flipt_export.yaml", "output filename")
+	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "output to filename (default STDOUT)")
+	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
 
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(exportCmd)
+	rootCmd.AddCommand(importCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		logger.Fatal(err)
@@ -151,7 +165,7 @@ func main() {
 	logrus.Exit(0)
 }
 
-func run() error {
+func run(_ []string) error {
 	color.Cyan(banner)
 	fmt.Println()
 
@@ -176,63 +190,25 @@ func run() error {
 		logger := logger.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		sql, driver, err := db.Open(cfg.Database.URL)
+		migrator, err := db.NewMigrator(cfg, logger)
 		if err != nil {
-			return fmt.Errorf("opening db: %w", err)
+			return fmt.Errorf("migrating: %w", err)
 		}
 
-		defer sql.Close()
+		defer migrator.Close()
 
-		var (
-			builder    sq.StatementBuilderType
-			dr         database.Driver
-			stmtCacher = sq.NewStmtCacher(sql)
-		)
-
-		switch driver {
-		case db.SQLite:
-			builder = sq.StatementBuilder.RunWith(stmtCacher)
-			dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
-		case db.Postgres:
-			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
-			dr, err = postgres.WithInstance(sql, &postgres.Config{})
-		}
-
-		if err != nil {
-			return fmt.Errorf("getting db driver for: %s: %w", driver, err)
-		}
-
-		f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
-
-		mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
-		if err != nil {
-			return fmt.Errorf("opening migrations: %w", err)
-		}
-
-		v, _, err := mm.Version()
-		if err != nil && err != migrate.ErrNilVersion {
-			return fmt.Errorf("getting current migrations version: %w", err)
-		}
-
-		logger = logger.WithField("storage", driver.String())
-
-		// if first run, go ahead and run all migrations
-		// otherwise exit and inform user to run manually if migrations are pending
-		if err == migrate.ErrNilVersion {
-			logger.Debug("no previous migrations run; running now")
-			if err := runMigrations(); err != nil {
-				return fmt.Errorf("running migrations: %w", err)
-			}
-		} else if v < dbMigrationVersion {
-			logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, dbMigrationVersion)
-
-			if forceMigrate {
-				logger.Info("force-migrate set; running now")
-				if err := runMigrations(); err != nil {
-					return fmt.Errorf("running migrations: %w", err)
+		// check if any migrations are pending
+		if err := migrator.Check(dbMigrationVersion); err != nil {
+			if err == db.ErrMigrationsPending {
+				// force not specified
+				if !forceMigrate {
+					return errors.New("migrations pending, backup your database and run `flipt migrate`")
 				}
-			} else {
-				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+
+				// force specified, ok to run migrations
+				if merr := migrator.Run(); merr != nil {
+					return fmt.Errorf("running migrations: %w", merr)
+				}
 			}
 		}
 
@@ -259,6 +235,25 @@ func run() error {
 				logger.Info("in-memory cache enabled with no expiration")
 			}
 			serverOpts = append(serverOpts, server.WithCache(cacher))
+		}
+
+		sql, driver, err := db.Open(cfg.Database.URL)
+		if err != nil {
+			return fmt.Errorf("opening db: %w", err)
+		}
+
+		defer sql.Close()
+
+		var (
+			builder    sq.StatementBuilderType
+			stmtCacher = sq.NewStmtCacher(sql)
+		)
+
+		switch driver {
+		case db.SQLite:
+			builder = sq.StatementBuilder.RunWith(stmtCacher)
+		case db.Postgres:
+			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
 		}
 
 		srv = server.New(logger, builder, sql, serverOpts...)
