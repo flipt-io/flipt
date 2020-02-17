@@ -44,7 +44,7 @@ func TestParse(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "unknown driver ",
+			name:    "unknown driver",
 			input:   "mongo://127.0.0.1",
 			wantErr: true,
 		},
