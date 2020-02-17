@@ -64,29 +64,57 @@ func runImport(args []string) error {
 
 	defer in.Close()
 
-	migrator, err := db.NewMigrator(cfg, logger)
+	migrator, err := db.NewMigrator(cfg)
 	if err != nil {
 		return fmt.Errorf("migrating: %w", err)
 	}
 
-	defer migrator.Close()
+	defer func() {
+		_ = migrator.Close()
+	}()
+
+	// if dropBeforeImport provided we can autoMigrate
+	canAutoMigrate := dropBeforeImport
 
 	// check if any migrations are pending
-	if err := migrator.Check(dbMigrationVersion); err != nil {
-		if err == db.ErrMigrationsPending {
-			// dropBeforeImport not specified
-			if !dropBeforeImport {
-				return errors.New("migrations pending, backup your database and run `flipt migrate`")
-			}
-
-			// TODO: drop db before migrations
-
-			// dropBeforeImport specified, ok to run migrations
-			if merr := migrator.Run(); merr != nil {
-				return fmt.Errorf("running migrations: %w", merr)
-			}
+	currentVersion, err := migrator.CurrentVersion()
+	if err != nil {
+		// if first run then it's safe to migrate
+		if err == db.ErrMigrationsNilVersion {
+			canAutoMigrate = true
+		} else {
+			return fmt.Errorf("checking migration status: %w", err)
 		}
 	}
+
+	// drop tables if specified
+	if dropBeforeImport {
+		logger.Debug("dropping tables before import")
+
+		if err := migrator.Drop(); err != nil {
+			return fmt.Errorf("dropping tables before import: %w", err)
+		}
+	}
+
+	if currentVersion < expectedMigrationVersion {
+		logger.Debugf("migrations pending: [current version=%d, want version=%d]", currentVersion, expectedMigrationVersion)
+
+		if !canAutoMigrate {
+			return errors.New("migrations pending, backup your database and run `flipt migrate`")
+		}
+
+		logger.Debug("running migrations...")
+
+		if err := migrator.Run(); err != nil {
+			return err
+		}
+
+		logger.Debug("finished migrations")
+	} else {
+		logger.Debug("migrations up to date")
+	}
+
+	migrator.Close()
 
 	var (
 		flagStore    = db.NewFlagStore(builder)

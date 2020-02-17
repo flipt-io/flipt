@@ -11,21 +11,19 @@ import (
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/config"
 	"github.com/markphelps/flipt/errors"
-	"github.com/sirupsen/logrus"
 )
 
-var ErrMigrationsPending = errors.New("migrations pending")
+var ErrMigrationsNilVersion = errors.New("migrations nil version")
 
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
 	cfg      *config.Config
 	sql      *sql.DB
 	migrator *migrate.Migrate
-	logger   logrus.FieldLogger
 }
 
 // NewMigrator creates a new Migrator
-func NewMigrator(cfg *config.Config, logger logrus.FieldLogger) (*Migrator, error) {
+func NewMigrator(cfg *config.Config) (*Migrator, error) {
 	sql, driver, err := Open(cfg.Database.URL)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
@@ -55,7 +53,6 @@ func NewMigrator(cfg *config.Config, logger logrus.FieldLogger) (*Migrator, erro
 		cfg:      cfg,
 		sql:      sql,
 		migrator: mm,
-		logger:   logger,
 	}, nil
 }
 
@@ -64,36 +61,39 @@ func (m *Migrator) Close() error {
 	return m.sql.Close()
 }
 
-// Check checks for any pending migrations; if this
-// is the first run, it migrates the database
-func (m *Migrator) Check(wantVersion uint) error {
+// CurrentVersion returns the current migration version
+func (m *Migrator) CurrentVersion() (uint, error) {
 	v, _, err := m.migrator.Version()
 	if err != nil && err != migrate.ErrNilVersion {
-		return fmt.Errorf("getting current migrations version: %w", err)
+		return 0, fmt.Errorf("getting current migrations version: %w", err)
 	}
 
-	// if first run, go ahead and run all migrations
-	// otherwise exit and inform user to run manually if migrations are pending
+	// migrations never run
 	if err == migrate.ErrNilVersion {
-		m.logger.Debug("no previous migrations run; running now")
-		if err := m.Run(); err != nil {
-			return fmt.Errorf("running migrations: %w", err)
-		}
-	} else if v < wantVersion {
-		m.logger.Debugf("migrations pending: [current version=%d, want version=%d]", v, wantVersion)
-		return ErrMigrationsPending
+		return 0, ErrMigrationsNilVersion
 	}
-	return nil
+
+	return v, nil
 }
 
 // Run runs any pending migrations
 func (m *Migrator) Run() error {
-	m.logger.Info("running migrations...")
-
 	if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
-		return err
+		return fmt.Errorf("running migrations: %w", err)
 	}
 
-	m.logger.Info("finished migrations")
+	return nil
+}
+
+// Drop drops all tables if they exist
+func (m *Migrator) Drop() error {
+	tables := []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
+
+	for _, table := range tables {
+		if _, err := m.sql.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
+			return fmt.Errorf("dropping tables: %w", err)
+		}
+	}
+
 	return nil
 }

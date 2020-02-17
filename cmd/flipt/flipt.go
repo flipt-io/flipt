@@ -48,7 +48,7 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
-const dbMigrationVersion uint = 2
+const expectedMigrationVersion uint = 2
 
 var (
 	logger = logrus.New()
@@ -103,7 +103,7 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				migrator, err := db.NewMigrator(cfg, logger)
+				migrator, err := db.NewMigrator(cfg)
 				if err != nil {
 					logger.Fatal(err)
 				}
@@ -190,27 +190,48 @@ func run(_ []string) error {
 		logger := logger.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		migrator, err := db.NewMigrator(cfg, logger)
+		migrator, err := db.NewMigrator(cfg)
 		if err != nil {
 			return fmt.Errorf("migrating: %w", err)
 		}
 
-		defer migrator.Close()
+		defer func() {
+			_ = migrator.Close()
+		}()
+
+		// if forceMigrate provided we can autoMigrate
+		canAutoMigrate := forceMigrate
 
 		// check if any migrations are pending
-		if err := migrator.Check(dbMigrationVersion); err != nil {
-			if err == db.ErrMigrationsPending {
-				// force not specified
-				if !forceMigrate {
-					return errors.New("migrations pending, backup your database and run `flipt migrate`")
-				}
-
-				// force specified, ok to run migrations
-				if merr := migrator.Run(); merr != nil {
-					return fmt.Errorf("running migrations: %w", merr)
-				}
+		currentVersion, err := migrator.CurrentVersion()
+		if err != nil {
+			// if first run then it's safe to migrate
+			if err == db.ErrMigrationsNilVersion {
+				canAutoMigrate = true
+			} else {
+				return fmt.Errorf("checking migration status: %w", err)
 			}
 		}
+
+		if currentVersion < expectedMigrationVersion {
+			logger.Debugf("migrations pending: [current version=%d, want version=%d]", currentVersion, expectedMigrationVersion)
+
+			if !canAutoMigrate {
+				return errors.New("migrations pending, backup your database and run `flipt migrate`")
+			}
+
+			logger.Debug("running migrations...")
+
+			if err := migrator.Run(); err != nil {
+				return err
+			}
+
+			logger.Debug("finished migrations")
+		} else {
+			logger.Debug("migrations up to date")
+		}
+
+		migrator.Close()
 
 		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 		if err != nil {
