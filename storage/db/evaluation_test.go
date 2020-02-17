@@ -269,30 +269,30 @@ func TestGetEvaluationDistributions_MaintainVariantOrder(t *testing.T) {
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 
-	// update dist1 with same values
-	_, err = ruleStore.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
-		Id:        dist1.Id,
-		FlagKey:   flag.Key,
-		RuleId:    rule.Id,
-		VariantId: variant1.Id,
-		Rollout:   80.00,
-	})
-
-	require.NoError(t, err)
-
-	// update dist2 with same values
-	_, err = ruleStore.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
-		Id:        dist2.Id,
-		FlagKey:   flag.Key,
-		RuleId:    rule.Id,
-		VariantId: variant2.Id,
-		Rollout:   20.00,
-	})
-
-	require.NoError(t, err)
-
-	// re-evaluate 1000 times
+	// update and re-evaluate 1000 times
 	for i := 0; i < 1000; i++ {
+		// update dist1 with same values
+		_, err = ruleStore.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+			Id:        dist1.Id,
+			FlagKey:   flag.Key,
+			RuleId:    rule.Id,
+			VariantId: variant1.Id,
+			Rollout:   80.00,
+		})
+
+		require.NoError(t, err)
+
+		// update dist2 with same values
+		_, err = ruleStore.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+			Id:        dist2.Id,
+			FlagKey:   flag.Key,
+			RuleId:    rule.Id,
+			VariantId: variant2.Id,
+			Rollout:   20.00,
+		})
+
+		require.NoError(t, err)
+
 		evaluationDistributions, err = evaluationStore.GetEvaluationDistributions(context.TODO(), rule.Id)
 		require.NoError(t, err)
 
