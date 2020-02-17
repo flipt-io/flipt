@@ -10,6 +10,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
 	"gopkg.in/yaml.v2"
 )
@@ -58,6 +59,8 @@ type Constraint struct {
 	Operator string `yaml:"operator,omitempty"`
 	Value    string `yaml:"value,omitempty"`
 }
+
+const batchSize = 25
 
 var exportFilename = ""
 
@@ -122,56 +125,64 @@ func runExport(_ []string) error {
 
 	defer enc.Close()
 
-	// export flags/variants
-	flags, err := flagStore.ListFlags(ctx)
-	if err != nil {
-		return fmt.Errorf("getting flags: %w", err)
-	}
+	var remaining = true
 
-	for _, f := range flags {
-		flag := &Flag{
-			Key:         f.Key,
-			Name:        f.Name,
-			Description: f.Description,
-			Enabled:     f.Enabled,
-		}
-
-		// map variant id => variant key
-		variantKeys := make(map[string]string)
-
-		for _, v := range f.Variants {
-			flag.Variants = append(flag.Variants, &Variant{
-				Key:         v.Key,
-				Name:        v.Name,
-				Description: v.Description,
-			})
-
-			variantKeys[v.Id] = v.Key
-		}
-
-		// export rules for flag
-		rules, err := ruleStore.ListRules(ctx, flag.Key)
+	// export flags/variants in batches
+	for batch := uint64(0); remaining; batch++ {
+		flags, err := flagStore.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
-			return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
+			return fmt.Errorf("getting flags: %w", err)
 		}
 
-		for _, r := range rules {
-			rule := &Rule{
-				SegmentKey: r.SegmentKey,
-				Rank:       uint(r.Rank),
+		logger.Debugf("exporting flags: [batch: %d, len: %d]", batch, len(flags))
+
+		remaining = len(flags) == batchSize
+
+		for _, f := range flags {
+			flag := &Flag{
+				Key:         f.Key,
+				Name:        f.Name,
+				Description: f.Description,
+				Enabled:     f.Enabled,
 			}
 
-			for _, d := range r.Distributions {
-				rule.Distributions = append(rule.Distributions, &Distribution{
-					VariantKey: variantKeys[d.VariantId],
-					Rollout:    d.Rollout,
+			// map variant id => variant key
+			variantKeys := make(map[string]string)
+
+			for _, v := range f.Variants {
+				flag.Variants = append(flag.Variants, &Variant{
+					Key:         v.Key,
+					Name:        v.Name,
+					Description: v.Description,
 				})
+
+				variantKeys[v.Id] = v.Key
 			}
 
-			flag.Rules = append(flag.Rules, rule)
-		}
+			// export rules for flag
+			rules, err := ruleStore.ListRules(ctx, flag.Key)
+			if err != nil {
+				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
+			}
 
-		doc.Flags = append(doc.Flags, flag)
+			for _, r := range rules {
+				rule := &Rule{
+					SegmentKey: r.SegmentKey,
+					Rank:       uint(r.Rank),
+				}
+
+				for _, d := range r.Distributions {
+					rule.Distributions = append(rule.Distributions, &Distribution{
+						VariantKey: variantKeys[d.VariantId],
+						Rollout:    d.Rollout,
+					})
+				}
+
+				flag.Rules = append(flag.Rules, rule)
+			}
+
+			doc.Flags = append(doc.Flags, flag)
+		}
 	}
 
 	// export segments/constraints
