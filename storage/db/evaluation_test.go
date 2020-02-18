@@ -179,7 +179,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	assert.Equal(t, float32(50.00), evaluationDistributions[1].Rollout)
 }
 
-// test https://github.com/markphelps/flipt/issues/229
+// https://github.com/markphelps/flipt/issues/229
 func TestGetEvaluationDistributions_MaintainVariantOrder(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
@@ -269,8 +269,8 @@ func TestGetEvaluationDistributions_MaintainVariantOrder(t *testing.T) {
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 
-	// update and re-evaluate 1000 times
-	for i := 0; i < 1000; i++ {
+	// update and re-evaluate 100 times
+	for i := 0; i < 100; i++ {
 		// update dist1 with same values
 		_, err = ruleStore.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 			Id:        dist1.Id,
