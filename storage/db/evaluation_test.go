@@ -180,7 +180,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 }
 
 // https://github.com/markphelps/flipt/issues/229
-func TestGetEvaluationDistributions_MaintainVariantOrder(t *testing.T) {
+func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
