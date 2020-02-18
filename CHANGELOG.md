@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* `export` command to export current data [https://github.com/markphelps/flipt/issues/225](https://github.com/markphelps/flipt/issues/225)
+* `export` and `import` commands to export and import data [https://github.com/markphelps/flipt/issues/225](https://github.com/markphelps/flipt/issues/225)
 
 ### Changed
 
@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Issue where `GetRule` would not return proper error if rule did not exist
 
+## [v0.12.1](https://github.com/markphelps/flipt/releases/tag/v0.12.1) - 2020-02-18
+
+### Fixed
+
+* Issue where distributions did not always maintain order during evaluation when using Postgres [https://github.com/markphelps/flipt/issues/229](https://github.com/markphelps/flipt/issues/229)
+
 ## [v0.12.0](https://github.com/markphelps/flipt/releases/tag/v0.12.0) - 2020-02-01
 
 ### Added
@@ -24,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Caching support for segments, rules AND evaluation! [https://github.com/markphelps/flipt/issues/100](https://github.com/markphelps/flipt/issues/100)
 * `cache.memory.expiration` configuration option
 * `cache.memory.eviction_interval` configuration option
-
 
 ### Changed
 
