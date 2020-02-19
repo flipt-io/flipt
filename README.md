@@ -140,6 +140,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://christopherdiehl.github.io"><img src="https://avatars0.githubusercontent.com/u/10383665?v=4" width="100px;" alt=""/><br /><sub><b>Christopher Diehl</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=christopherdiehl" title="Code">💻</a></td>
     <td align="center"><a href="https://www.andrewzallen.com"><img src="https://avatars3.githubusercontent.com/u/37206?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Z Allen</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=achew22" title="Documentation">📖</a></td>
     <td align="center"><a href="http://sf.khepin.com"><img src="https://avatars3.githubusercontent.com/u/455656?v=4" width="100px;" alt=""/><br /><sub><b>Sebastien Armand</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=khepin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/badboyd"><img src="https://avatars0.githubusercontent.com/u/20040686?v=4" width="100px;" alt=""/><br /><sub><b>Dat Tran</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=badboyd" title="Code">💻</a></td>
   </tr>
 </table>
 
