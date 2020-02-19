@@ -310,6 +310,7 @@ func run() error {
 
 		grpcServer = grpc.NewServer(grpcOpts...)
 		pb.RegisterFliptServer(grpcServer, srv)
+		grpc_prometheus.EnableHandlingTimeHistogram()
 		grpc_prometheus.Register(grpcServer)
 
 		logger.Debug("starting grpc server")
