@@ -39,6 +39,7 @@
         <a href="#values">Values</a> |
         <a href="#usecases">Usecases</a> |
         <a href="#examples">Examples</a>
+	<a href="#enterprise">Enterprise</a>
     </h4>
 </div>
 
@@ -113,6 +114,18 @@ The client code is the code that you would integrate into your applications, whi
 The server code is licensed under the [GPL 3.0 License](https://spdx.org/licenses/GPL-3.0.html).
 
 See [LICENSE](LICENSE).
+
+## Enterprise
+
+Need more features or support using Flipt within your Enterprise?
+
+Please help me prioritize an Enterprise version of Flipt by filling out this [short survey](https://forms.gle/a4UBnv8LADYirA4c9)!
+
+### Potential Features
+
+* Business-friendly Licensing
+* User Management and Audit Trail
+* Multiple Environments (ex: dev/staging/prod)
 
 ## Author
 
