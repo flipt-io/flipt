@@ -4,6 +4,10 @@ on:
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - '.all-contributorsrc'
 
 jobs:
 
