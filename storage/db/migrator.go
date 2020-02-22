@@ -64,13 +64,14 @@ func (m *Migrator) Close() error {
 // CurrentVersion returns the current migration version
 func (m *Migrator) CurrentVersion() (uint, error) {
 	v, _, err := m.migrator.Version()
-	if err != nil && err != migrate.ErrNilVersion {
-		return 0, fmt.Errorf("getting current migrations version: %w", err)
-	}
 
 	// migrations never run
 	if err == migrate.ErrNilVersion {
 		return 0, ErrMigrationsNilVersion
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("getting current migrations version: %w", err)
 	}
 
 	return v, nil
@@ -80,19 +81,6 @@ func (m *Migrator) CurrentVersion() (uint, error) {
 func (m *Migrator) Run() error {
 	if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("running migrations: %w", err)
-	}
-
-	return nil
-}
-
-// Drop drops all tables if they exist
-func (m *Migrator) Drop() error {
-	tables := []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
-
-	for _, table := range tables {
-		if _, err := m.sql.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
-			return fmt.Errorf("dropping tables: %w", err)
-		}
 	}
 
 	return nil

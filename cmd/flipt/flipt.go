@@ -217,7 +217,7 @@ func run(_ []string) error {
 			logger.Debugf("migrations pending: [current version=%d, want version=%d]", currentVersion, expectedMigrationVersion)
 
 			if !canAutoMigrate {
-				return errors.New("migrations pending, backup your database and run `flipt migrate`")
+				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
 			}
 
 			logger.Debug("running migrations...")

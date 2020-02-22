@@ -134,8 +134,6 @@ func runExport(_ []string) error {
 			return fmt.Errorf("getting flags: %w", err)
 		}
 
-		logger.Debugf("exporting flags: [batch: %d, len: %d]", batch, len(flags))
-
 		remaining = len(flags) == batchSize
 
 		for _, f := range flags {
@@ -185,34 +183,41 @@ func runExport(_ []string) error {
 		}
 	}
 
-	// export segments/constraints
-	segments, err := segmentStore.ListSegments(ctx)
-	if err != nil {
-		return fmt.Errorf("getting segments: %w", err)
-	}
+	remaining = true
 
-	for _, s := range segments {
-		segment := &Segment{
-			Key:         s.Key,
-			Name:        s.Name,
-			Description: s.Description,
+	// export segments/constraints in batches
+	for batch := uint64(0); remaining; batch++ {
+		segments, err := segmentStore.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		if err != nil {
+			return fmt.Errorf("getting segments: %w", err)
 		}
 
-		for _, c := range s.Constraints {
-			segment.Constraints = append(segment.Constraints, &Constraint{
-				Type:     c.Type.String(),
-				Property: c.Property,
-				Operator: c.Operator,
-				Value:    c.Value,
-			})
-		}
+		remaining = len(segments) == batchSize
 
-		doc.Segments = append(doc.Segments, segment)
+		for _, s := range segments {
+			segment := &Segment{
+				Key:         s.Key,
+				Name:        s.Name,
+				Description: s.Description,
+			}
+
+			for _, c := range s.Constraints {
+				segment.Constraints = append(segment.Constraints, &Constraint{
+					Type:     c.Type.String(),
+					Property: c.Property,
+					Operator: c.Operator,
+					Value:    c.Value,
+				})
+			}
+
+			doc.Segments = append(doc.Segments, segment)
+		}
 	}
 
 	if err := enc.Encode(doc); err != nil {
 		return fmt.Errorf("exporting: %w", err)
 	}
 
+	logger.Info("export complete")
 	return nil
 }

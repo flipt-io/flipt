@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	sq "github.com/Masterminds/squirrel"
@@ -55,14 +56,29 @@ func runImport(args []string) error {
 		return errors.New("import filename required")
 	}
 
-	logger.Debugf("importing from %q", importFilename)
+	f := filepath.Clean(importFilename)
 
-	in, err := os.Open(importFilename)
+	logger.Debugf("importing from %q", f)
+
+	in, err := os.Open(f)
 	if err != nil {
 		return fmt.Errorf("opening import file: %w", err)
 	}
 
 	defer in.Close()
+
+	// drop tables if specified
+	if dropBeforeImport {
+		logger.Debug("dropping tables before import")
+
+		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
+
+		for _, table := range tables {
+			if _, err := sql.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
+				return fmt.Errorf("dropping tables: %w", err)
+			}
+		}
+	}
 
 	migrator, err := db.NewMigrator(cfg)
 	if err != nil {
@@ -73,8 +89,7 @@ func runImport(args []string) error {
 		_ = migrator.Close()
 	}()
 
-	// if dropBeforeImport provided we can autoMigrate
-	canAutoMigrate := dropBeforeImport
+	canAutoMigrate := false
 
 	// check if any migrations are pending
 	currentVersion, err := migrator.CurrentVersion()
@@ -87,20 +102,11 @@ func runImport(args []string) error {
 		}
 	}
 
-	// drop tables if specified
-	if dropBeforeImport {
-		logger.Debug("dropping tables before import")
-
-		if err := migrator.Drop(); err != nil {
-			return fmt.Errorf("dropping tables before import: %w", err)
-		}
-	}
-
 	if currentVersion < expectedMigrationVersion {
 		logger.Debugf("migrations pending: [current version=%d, want version=%d]", currentVersion, expectedMigrationVersion)
 
 		if !canAutoMigrate {
-			return errors.New("migrations pending, backup your database and run `flipt migrate`")
+			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
 		}
 
 		logger.Debug("running migrations...")
@@ -230,5 +236,6 @@ func runImport(args []string) error {
 		}
 	}
 
+	logger.Info("import complete")
 	return nil
 }
