@@ -67,8 +67,18 @@ load 'helpers/bats-assert/load'
     assert_success
 }
 
-@test "import fails when data not unique" {
+@test "import succeeds with empty database" {
+    run bash -c 'rm empty.db; FLIPT_DB_URL="file:./empty.db" ./bin/flipt --config ./script/test/test.yml import flipt.yaml'
+    assert_success
+}
+
+@test "import fails with existing data not unique" {
     run ./bin/flipt --config ./script/test/test.yml import flipt.yaml
     assert_output -e "is not unique"
     assert_failure
+}
+
+@test "import succeeds with existing data not unique but --drop flag is used" {
+    run ./bin/flipt --config ./script/test/test.yml import flipt.yaml --drop
+    assert_success
 }
