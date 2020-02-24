@@ -49,8 +49,24 @@ load 'helpers/bats-assert/load'
     assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
 }
 
+@test "import succeeds with empty database" {
+    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
+    assert_success
+}
+
+@test "import fails with existing data not unique" {
+    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
+    assert_output -e "is not unique"
+    assert_failure
+}
+
+@test "import succeeds with existing data not unique but --drop flag is used" {
+    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml --drop
+    assert_success
+}
+
 @test "export outputs to stdout" {
-    run ./bin/flipt --config script/test/test.yml export
+    run ./bin/flipt --config script/test/config/test.yml export
     assert_output -p "flags:"
     assert_output -p "- key: zUFtS7D0UyMeueYu"
     assert_output -p "  variants:"
@@ -62,23 +78,7 @@ load 'helpers/bats-assert/load'
 }
 
 @test "export outputs to file" {
-    run ./bin/flipt --config script/test/test.yml export -o flipt.yaml
-    run test -f "flipt.yaml"
-    assert_success
-}
-
-@test "import succeeds with empty database" {
-    run bash -c 'rm empty.db; FLIPT_DB_URL="file:./empty.db" ./bin/flipt --config ./script/test/test.yml import flipt.yaml'
-    assert_success
-}
-
-@test "import fails with existing data not unique" {
-    run ./bin/flipt --config ./script/test/test.yml import flipt.yaml
-    assert_output -e "is not unique"
-    assert_failure
-}
-
-@test "import succeeds with existing data not unique but --drop flag is used" {
-    run ./bin/flipt --config ./script/test/test.yml import flipt.yaml --drop
+    run ./bin/flipt --config script/test/config/test.yml export -o /tmp/flipt.yml
+    run test -f "/tmp/flipt.yml"
     assert_success
 }
