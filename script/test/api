@@ -236,9 +236,9 @@ step_8_test_metrics()
 run()
 {
     # run any pending db migrations
-    ./bin/flipt migrate --config ./config/local.yml &> /dev/null
+    ./bin/flipt migrate --config ./script/test/test.yml &> /dev/null
 
-    ./bin/flipt --config ./config/local.yml &> /dev/null &
+    ./bin/flipt --config ./script/test/test.yml &> /dev/null &
 
     sleep 5
 

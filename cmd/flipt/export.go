@@ -218,6 +218,5 @@ func runExport(_ []string) error {
 		return fmt.Errorf("exporting: %w", err)
 	}
 
-	logger.Info("export complete")
 	return nil
 }

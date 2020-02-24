@@ -3,6 +3,8 @@
 *.a
 *.so
 *.db
+!examples/**/*.db
+!script/test/*.db
 
 _obj
 _test

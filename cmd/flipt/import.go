@@ -236,6 +236,5 @@ func runImport(args []string) error {
 		}
 	}
 
-	logger.Info("import complete")
 	return nil
 }

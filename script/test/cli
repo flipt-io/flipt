@@ -30,13 +30,14 @@ load 'helpers/bats-assert/load'
     assert_equal "${lines[2]}" "  flipt [flags]"
     assert_equal "${lines[3]}" "  flipt [command]"
     assert_equal "${lines[4]}" "Available Commands:"
-    assert_equal "${lines[5]}" "  export      Export flags/segments/rules to file"
+    assert_equal "${lines[5]}" "  export      Export flags/segments/rules to file/stdout"
     assert_equal "${lines[6]}" "  help        Help about any command"
-    assert_equal "${lines[7]}" "  migrate     Run pending database migrations"
-    assert_equal "${lines[8]}" "Flags:" ]
-    assert_equal "${lines[9]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
-    assert_equal "${lines[10]}" "  -h, --help            help for flipt"
-    assert_equal "${lines[11]}" "      --version         version for flipt"
+    assert_equal "${lines[7]}" "  import      Import flags/segments/rules from file"
+    assert_equal "${lines[8]}" "  migrate     Run pending database migrations"
+    assert_equal "${lines[9]}" "Flags:" ]
+    assert_equal "${lines[10]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
+    assert_equal "${lines[11]}" "  -h, --help            help for flipt"
+    assert_equal "${lines[12]}" "      --version         version for flipt"
 }
 
 @test "version flag prints version info" {
@@ -48,8 +49,26 @@ load 'helpers/bats-assert/load'
     assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
 }
 
+@test "export outputs to stdout" {
+    run ./bin/flipt --config script/test/test.yml export
+    assert_output -p "flags:"
+    assert_output -p "- key: zUFtS7D0UyMeueYu"
+    assert_output -p "  variants:"
+    assert_output -p "  rules:"
+    assert_output -p "segments:"
+    assert_output -p "- key: 08UoVJ96LhZblPEx"
+    assert_output -p "  constraints:"
+    assert_success
+}
+
 @test "export outputs to file" {
-    run ./bin/flipt export -o flipt.yaml
+    run ./bin/flipt --config script/test/test.yml export -o flipt.yaml
     run test -f "flipt.yaml"
     assert_success
+}
+
+@test "import fails when data not unique" {
+    run ./bin/flipt --config ./script/test/test.yml import flipt.yaml
+    assert_output -e "is not unique"
+    assert_failure
 }
