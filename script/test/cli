@@ -50,7 +50,7 @@ load 'helpers/bats-assert/load'
 }
 
 @test "import succeeds with empty database" {
-    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
+    run bash -c "rm ./script/test/flipt.db; ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml"
     assert_success
 }
 
