@@ -148,6 +148,7 @@ func runImport(args []string) error {
 	for _, f := range doc.Flags {
 		flag, err := flagStore.CreateFlag(ctx, &flipt.CreateFlagRequest{
 			Key:         f.Key,
+			Name:        f.Name,
 			Description: f.Description,
 			Enabled:     f.Enabled,
 		})
@@ -178,7 +179,7 @@ func runImport(args []string) error {
 	for _, s := range doc.Segments {
 		segment, err := segmentStore.CreateSegment(ctx, &flipt.CreateSegmentRequest{
 			Key:         s.Key,
-			Name:        s.Key,
+			Name:        s.Name,
 			Description: s.Description,
 		})
 
@@ -227,6 +228,7 @@ func runImport(args []string) error {
 					FlagKey:   f.Key,
 					RuleId:    rule.Id,
 					VariantId: variant.Id,
+					Rollout:   d.Rollout,
 				})
 
 				if err != nil {
