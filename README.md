@@ -38,7 +38,8 @@
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
         <a href="#usecases">Usecases</a> |
-        <a href="#examples">Examples</a>
+        <a href="#examples">Examples</a> | 
+	<a href="#enterprise">Enterprise</a>
     </h4>
 </div>
 
@@ -114,6 +115,18 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
+## Enterprise
+
+Need more features or support using Flipt within your Enterprise?
+
+Please help me prioritize an Enterprise version of Flipt by filling out this [short survey](https://forms.gle/a4UBnv8LADYirA4c9)!
+
+### Potential Features
+
+* Business-friendly Licensing
+* User Management and Audit Trail
+* Multiple Environments (ex: dev/staging/prod)
+
 ## Author
 
 | [![twitter/mark_a_phelps](https://secure.gravatar.com/avatar/274e2d4b1bbb9f86b454aebabad2cba1)](https://twitter.com/intent/user?screen_name=mark_a_phelps "Follow @mark_a_phelps on Twitter") |
@@ -140,6 +153,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://christopherdiehl.github.io"><img src="https://avatars0.githubusercontent.com/u/10383665?v=4" width="100px;" alt=""/><br /><sub><b>Christopher Diehl</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=christopherdiehl" title="Code">💻</a></td>
     <td align="center"><a href="https://www.andrewzallen.com"><img src="https://avatars3.githubusercontent.com/u/37206?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Z Allen</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=achew22" title="Documentation">📖</a></td>
     <td align="center"><a href="http://sf.khepin.com"><img src="https://avatars3.githubusercontent.com/u/455656?v=4" width="100px;" alt=""/><br /><sub><b>Sebastien Armand</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=khepin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/badboyd"><img src="https://avatars0.githubusercontent.com/u/20040686?v=4" width="100px;" alt=""/><br /><sub><b>Dat Tran</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=badboyd" title="Code">💻</a></td>
   </tr>
 </table>
 
