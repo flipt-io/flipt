@@ -13,13 +13,13 @@ load 'helpers/bats-assert/load'
 @test "config file does not exists results in error" {
     run ./bin/flipt --config /foo/bar.yml
     assert_failure
-    assert_output -p "loading config: open /foo/bar.yml: no such file or directory"
+    assert_output -p "loading configuration: open /foo/bar.yml: no such file or directory"
 }
 
 @test "config file not yaml results in error" {
     run ./bin/flipt --config /tmp
     assert_failure
-    assert_output -p "loading config: Unsupported Config Type"
+    assert_output -p "loading configuration: Unsupported Config Type"
 }
 
 @test "help flag prints usage" {
@@ -49,18 +49,30 @@ load 'helpers/bats-assert/load'
     assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
 }
 
-@test "import succeeds with empty database" {
+@test "import with empty database" {
     run bash -c "rm ./script/test/flipt.db; ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml"
     assert_success
 }
 
-@test "import fails with existing data not unique" {
+@test "import existing data not unique results in error" {
     run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
-    assert_output -e "is not unique"
+    assert_output -p "is not unique"
     assert_failure
 }
 
-@test "import succeeds with existing data not unique but --drop flag is used" {
+@test "import with no file results in error" {
+    run ./bin/flipt --config ./script/test/config/test.yml import
+    assert_output -p "requires a file argument"
+    assert_failure
+}
+
+@test "import with file that doesnt exist results in error" {
+    run ./bin/flipt --config ./script/test/config/test.yml import foo
+    assert_output -p "opening import file: open foo: no such file or directory"
+    assert_failure
+}
+
+@test "import with existing data not unique and --drop flag is used" {
     run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml --drop
     assert_success
 }

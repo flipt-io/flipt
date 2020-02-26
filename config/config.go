@@ -160,7 +160,7 @@ func Load(path string) (*Config, error) {
 	viper.SetConfigFile(path)
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("loading config: %w", err)
+		return nil, fmt.Errorf("loading configuration: %w", err)
 	}
 
 	cfg := Default()

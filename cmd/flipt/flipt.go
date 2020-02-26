@@ -73,7 +73,8 @@ func main() {
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := run(args); err != nil {
-					logger.Fatal(err)
+					fmt.Printf("error: %v", err)
+					logrus.Exit(1)
 				}
 			},
 		}
@@ -83,7 +84,8 @@ func main() {
 			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runExport(args); err != nil {
-					logger.Fatal(err)
+					fmt.Printf("error: %v", err)
+					logrus.Exit(1)
 				}
 			},
 		}
@@ -93,10 +95,16 @@ func main() {
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runImport(args); err != nil {
-					logger.Fatal(err)
+					fmt.Printf("error: %v", err)
+					logrus.Exit(1)
 				}
 			},
-			Args: cobra.MinimumNArgs(1),
+			Args: func(cmd *cobra.Command, args []string) error {
+				if len(args) != 1 {
+					return errors.New("requires a file argument")
+				}
+				return nil
+			},
 		}
 
 		migrateCmd = &cobra.Command{
@@ -105,13 +113,15 @@ func main() {
 			Run: func(cmd *cobra.Command, args []string) {
 				migrator, err := db.NewMigrator(cfg)
 				if err != nil {
-					logger.Fatal(err)
+					fmt.Printf("error: %v", err)
+					logrus.Exit(1)
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Run(); err != nil {
-					logger.Fatal(err)
+					fmt.Printf("error: %v", err)
+					logrus.Exit(1)
 				}
 			},
 		}
@@ -128,7 +138,8 @@ func main() {
 		Date:      date,
 		GoVersion: goVersion,
 	}); err != nil {
-		logger.Fatal(fmt.Errorf("executing template: %w", err))
+		fmt.Printf("error: executing template: %v", err)
+		logrus.Exit(1)
 	}
 
 	banner = buf.String()
@@ -138,11 +149,13 @@ func main() {
 
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
-			logger.Fatalf("loading configuration: %v", err)
+			fmt.Printf("error: %v", err)
+			logrus.Exit(1)
 		}
 
 		if err = setupLogger(cfg); err != nil {
-			logger.Fatalf("setting up logger: %v", err)
+			fmt.Printf("error: %v", err)
+			logrus.Exit(1)
 		}
 	})
 
@@ -159,7 +172,8 @@ func main() {
 	rootCmd.AddCommand(importCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		logger.Fatal(err)
+		fmt.Println(err)
+		logrus.Exit(1)
 	}
 
 	logrus.Exit(0)
