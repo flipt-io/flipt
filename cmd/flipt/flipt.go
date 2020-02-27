@@ -233,7 +233,7 @@ func run(_ []string) error {
 		}
 
 		defer func() {
-			_ = migrator.Close()
+			_, _ = migrator.Close()
 		}()
 
 		// if forceMigrate provided we can autoMigrate

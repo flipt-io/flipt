@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"path/filepath"
 
@@ -17,8 +16,6 @@ var ErrMigrationsNilVersion = errors.New("migrations nil version")
 
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
-	cfg      *config.Config
-	sql      *sql.DB
 	migrator *migrate.Migrate
 }
 
@@ -50,15 +47,13 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 	}
 
 	return &Migrator{
-		cfg:      cfg,
-		sql:      sql,
 		migrator: mm,
 	}, nil
 }
 
-// Close closes the migrator
-func (m *Migrator) Close() error {
-	return m.sql.Close()
+// Close closes the source and db
+func (m *Migrator) Close() (source, db error) {
+	return m.migrator.Close()
 }
 
 // CurrentVersion returns the current migration version

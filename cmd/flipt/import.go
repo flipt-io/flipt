@@ -86,7 +86,7 @@ func runImport(args []string) error {
 	}
 
 	defer func() {
-		_ = migrator.Close()
+		_, _ = migrator.Close()
 	}()
 
 	canAutoMigrate := false
