@@ -73,7 +73,7 @@ func main() {
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := run(args); err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
 			},
@@ -84,7 +84,7 @@ func main() {
 			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runExport(args); err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
 			},
@@ -95,7 +95,7 @@ func main() {
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runImport(args); err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
 			},
@@ -113,14 +113,14 @@ func main() {
 			Run: func(cmd *cobra.Command, args []string) {
 				migrator, err := db.NewMigrator(cfg)
 				if err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Run(); err != nil {
-					fmt.Printf("error: %v", err)
+					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
 			},
@@ -147,16 +147,39 @@ func main() {
 	cobra.OnInitialize(func() {
 		var err error
 
+		// read in config
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
-			fmt.Printf("error: %v", err)
+			fmt.Println("error: ", err)
 			logrus.Exit(1)
 		}
 
-		if err = setupLogger(cfg); err != nil {
-			fmt.Printf("error: %v", err)
+		logger.SetOutput(os.Stdout)
+
+		// log to file if enabled
+		if cfg.Log.File != "" {
+			logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
+			if err != nil {
+				fmt.Printf("error: opening log file: %s %v\n", cfg.Log.File, err)
+				logrus.Exit(1)
+			}
+
+			logger.SetOutput(logFile)
+			logrus.RegisterExitHandler(func() {
+				if logFile != nil {
+					_ = logFile.Close()
+				}
+			})
+		}
+
+		// parse/set log level
+		lvl, err := logrus.ParseLevel(cfg.Log.Level)
+		if err != nil {
+			fmt.Printf("error: parsing log level: %s %v\n", cfg.Log.Level, err)
 			logrus.Exit(1)
 		}
+
+		logger.SetLevel(lvl)
 	})
 
 	rootCmd.SetVersionTemplate(banner)
@@ -466,32 +489,6 @@ func run(_ []string) error {
 	}
 
 	return g.Wait()
-}
-
-func setupLogger(cfg *config.Config) error {
-	logger.SetOutput(os.Stdout)
-
-	if cfg.Log.File != "" {
-		logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
-		if err != nil {
-			return fmt.Errorf("opening log file: %s %w", cfg.Log.File, err)
-		}
-
-		logger.SetOutput(logFile)
-		logrus.RegisterExitHandler(func() {
-			if logFile != nil {
-				_ = logFile.Close()
-			}
-		})
-	}
-
-	lvl, err := logrus.ParseLevel(cfg.Log.Level)
-	if err != nil {
-		return fmt.Errorf("parsing log level: %s %w", cfg.Log.Level, err)
-	}
-
-	logger.SetLevel(lvl)
-	return nil
 }
 
 type info struct {
