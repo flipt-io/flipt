@@ -5,6 +5,7 @@ daysUntilClose: 14
 # Issues with these labels will never be considered stale
 exemptLabels:
   - question
+  - planned
   - thinking
   - security
   - dependencies
