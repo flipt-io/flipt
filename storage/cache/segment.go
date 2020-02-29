@@ -8,10 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	segmentCachePrefix = "segment:"
-	segmentsCacheKey   = "segments"
-)
+const segmentCachePrefix = "segment:"
 
 var _ storage.SegmentStore = &SegmentCache{}
 
@@ -33,8 +30,8 @@ func NewSegmentCache(logger logrus.FieldLogger, cacher Cacher, store storage.Seg
 
 // GetSegment returns the segment from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
-func (s *SegmentCache) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
-	key := segmentCachePrefix + r.Key
+func (s *SegmentCache) GetSegment(ctx context.Context, k string) (*flipt.Segment, error) {
+	key := segmentCachePrefix + k
 
 	// check if segment exists in cache
 	if data, ok := s.cache.Get(key); ok {
@@ -51,7 +48,7 @@ func (s *SegmentCache) GetSegment(ctx context.Context, r *flipt.GetSegmentReques
 	}
 
 	// else, get it and add to cache
-	segment, err := s.store.GetSegment(ctx, r)
+	segment, err := s.store.GetSegment(ctx, k)
 	if err != nil {
 		return segment, err
 	}
@@ -63,36 +60,9 @@ func (s *SegmentCache) GetSegment(ctx context.Context, r *flipt.GetSegmentReques
 	return segment, nil
 }
 
-// ListSegments returns all segments from the cache if they exist; otherwise it delegates to the underlying store
-// caching the result if no error
-func (s *SegmentCache) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
-	// check if segments exists in cache
-	if data, ok := s.cache.Get(segmentsCacheKey); ok {
-		s.logger.Debugf("cache hit: %q", segmentsCacheKey)
-		cacheHitTotal.WithLabelValues("segments", "memory").Inc()
-
-		segments, ok := data.([]*flipt.Segment)
-		if !ok {
-			// not segments slice, bad cache
-			return nil, ErrCacheCorrupt
-		}
-
-		return segments, nil
-	}
-
-	// else, get them and add to cache
-	segments, err := s.store.ListSegments(ctx, r)
-	if err != nil {
-		return segments, err
-	}
-
-	if len(segments) > 0 {
-		s.cache.Set(segmentsCacheKey, segments)
-		s.logger.Debugf("cache miss; added %q", segmentsCacheKey)
-		cacheMissTotal.WithLabelValues("segments", "memory").Inc()
-	}
-
-	return segments, nil
+// ListSegments delegates to the underlying store
+func (s *SegmentCache) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
+	return s.store.ListSegments(ctx, opts...)
 }
 
 // CreateSegment delegates to the underlying store, flushing the cache in the process

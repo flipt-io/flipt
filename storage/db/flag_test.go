@@ -7,6 +7,7 @@ import (
 	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus/hooks/test"
 
@@ -26,7 +27,7 @@ func TestGetFlag(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	got, err := flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+	got, err := flagStore.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -40,7 +41,7 @@ func TestGetFlag(t *testing.T) {
 }
 
 func TestGetFlagNotFound(t *testing.T) {
-	_, err := flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
+	_, err := flagStore.GetFlag(context.TODO(), "foo")
 	assert.EqualError(t, err, "flag \"foo\" not found")
 }
 
@@ -64,7 +65,7 @@ func TestListFlags(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := flagStore.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	got, err := flagStore.ListFlags(context.TODO())
 	require.NoError(t, err)
 	assert.NotZero(t, len(got))
 }
@@ -89,10 +90,7 @@ func TestFlagsPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := flagStore.ListFlags(context.TODO(), &flipt.ListFlagRequest{
-		Limit:  1,
-		Offset: 1,
-	})
+	got, err := flagStore.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 	assert.Len(t, got, 1)
 }
@@ -230,7 +228,7 @@ func TestCreateVariant(t *testing.T) {
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	// get the flag again
-	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+	flag, err = flagStore.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -379,7 +377,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 
 	// get the flag again
-	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+	flag, err = flagStore.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -476,7 +474,7 @@ func TestDeleteVariant(t *testing.T) {
 	require.NoError(t, err)
 
 	// get the flag again
-	flag, err = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+	flag, err = flagStore.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -601,7 +599,7 @@ func BenchmarkGetFlag(b *testing.B) {
 		var f *flipt.Flag
 
 		for i := 0; i < b.N; i++ {
-			f, _ = flagStore.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+			f, _ = flagStore.GetFlag(context.TODO(), flag.Key)
 		}
 
 		benchFlag = f
@@ -640,13 +638,13 @@ func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	var f *flipt.Flag
 
 	// warm the cache
-	f, _ = flagStoreCache.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+	f, _ = flagStoreCache.GetFlag(context.TODO(), flag.Key)
 
 	b.ResetTimer()
 
 	b.Run("get-flag-cache", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			f, _ = flagStoreCache.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: flag.Key})
+			f, _ = flagStoreCache.GetFlag(context.TODO(), flag.Key)
 		}
 
 		benchFlag = f

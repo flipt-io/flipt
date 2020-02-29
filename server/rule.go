@@ -5,21 +5,21 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 )
 
 // GetRule gets a rule
 func (s *Server) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
 	s.logger.WithField("request", r).Debug("get rule")
-	rule, err := s.RuleStore.GetRule(ctx, r)
+	rule, err := s.RuleStore.GetRule(ctx, r.Id)
 	s.logger.WithField("response", rule).Debug("get rule")
 	return rule, err
 }
 
-// ListRules lists all rules
+// ListRules lists all rules for a flag
 func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flipt.RuleList, error) {
 	s.logger.WithField("request", r).Debug("list rules")
-
-	rules, err := s.RuleStore.ListRules(ctx, r)
+	rules, err := s.RuleStore.ListRules(ctx, r.FlagKey, storage.WithLimit(uint64(r.Limit)), storage.WithOffset(uint64(r.Offset)))
 	if err != nil {
 		return nil, err
 	}
@@ -53,22 +53,18 @@ func (s *Server) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*f
 // DeleteRule deletes a rule
 func (s *Server) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) (*empty.Empty, error) {
 	s.logger.WithField("request", r).Debug("delete rule")
-
 	if err := s.RuleStore.DeleteRule(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }
 
 // OrderRules orders rules
 func (s *Server) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) (*empty.Empty, error) {
 	s.logger.WithField("request", r).Debug("order rules")
-
 	if err := s.RuleStore.OrderRules(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }
 
@@ -91,10 +87,8 @@ func (s *Server) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribu
 // DeleteDistribution deletes a distribution
 func (s *Server) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) (*empty.Empty, error) {
 	s.logger.WithField("request", r).Debug("delete distribution")
-
 	if err := s.RuleStore.DeleteDistribution(ctx, r); err != nil {
 		return nil, err
 	}
-
 	return &empty.Empty{}, nil
 }

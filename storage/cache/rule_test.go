@@ -22,7 +22,7 @@ func TestGetRule(t *testing.T) {
 	cacher.On("Get", mock.Anything).Return(&flipt.Rule{}, false).Once()
 	cacher.On("Set", mock.Anything, mock.Anything)
 
-	got, err := subject.GetRule(context.TODO(), &flipt.GetRuleRequest{Id: "foo"})
+	got, err := subject.GetRule(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
@@ -32,7 +32,7 @@ func TestGetRule(t *testing.T) {
 
 	cacher.On("Get", mock.Anything).Return(&flipt.Rule{Id: "foo"}, true)
 
-	got, err = subject.GetRule(context.TODO(), &flipt.GetRuleRequest{Id: "foo"})
+	got, err = subject.GetRule(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
@@ -51,7 +51,7 @@ func TestGetRuleNotFound(t *testing.T) {
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{}, errors.ErrNotFound("foo"))
 	cacher.On("Get", mock.Anything).Return(&flipt.Rule{}, false).Once()
 
-	_, err := subject.GetRule(context.TODO(), &flipt.GetRuleRequest{Id: "foo"})
+	_, err := subject.GetRule(context.TODO(), "foo")
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
@@ -71,57 +71,15 @@ func TestListRules(t *testing.T) {
 		{Id: "bar"},
 	}
 
-	store.On("ListRules", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*flipt.Rule{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	store.On("ListRules", mock.Anything, "foo", mock.Anything).Return(ret, nil)
 
-	got, err := subject.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "foo"})
+	got, err := subject.ListRules(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotEmpty(t, got)
 	assert.Len(t, got, 2)
 
-	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "rules:flag:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "rules:flag:foo")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
-
-	got, err = subject.ListRules(context.TODO(), &flipt.ListRuleRequest{})
-	require.NoError(t, err)
-	assert.NotEmpty(t, got)
-	assert.Len(t, got, 2)
-
-	// should already exist in the cache so it should NOT be added
-	cacher.AssertNumberOfCalls(t, "Set", 1)
-	cacher.AssertNumberOfCalls(t, "Get", 2)
-}
-
-func TestListRules_NoResults(t *testing.T) {
-	var (
-		store   = &ruleStoreMock{}
-		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
-	)
-
-	ret := []*flipt.Rule{}
-
-	store.On("ListRules", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*flipt.Rule{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
-
-	got, err := subject.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "foo"})
-	require.NoError(t, err)
-	assert.NotNil(t, got)
-
-	// shouldnt be set in the cahe
+	cacher.AssertNotCalled(t, "Get")
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "rules:flag:foo")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
-
-	got, err = subject.ListRules(context.TODO(), &flipt.ListRuleRequest{})
-	require.NoError(t, err)
-	assert.NotNil(t, got)
 }
 
 func TestCreateRule(t *testing.T) {

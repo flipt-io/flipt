@@ -1,38 +1,12 @@
-package cache
+package server
 
 import (
 	"context"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/mock"
 )
-
-var logger, _ = test.NewNullLogger()
-
-// cacherSpy is a simple in memory map that acts as a cache
-// and records interactions for tests
-type cacherSpy struct {
-	mock.Mock
-}
-
-func (s *cacherSpy) Get(key string) (interface{}, bool) {
-	args := s.Called(key)
-	return args.Get(0), args.Bool(1)
-}
-
-func (s *cacherSpy) Set(key string, value interface{}) {
-	s.Called(key, value)
-}
-
-func (s *cacherSpy) Delete(key string) {
-	s.Called(key)
-}
-
-func (s *cacherSpy) Flush() {
-	s.Called()
-}
 
 var (
 	_ storage.FlagStore    = &flagStoreMock{}

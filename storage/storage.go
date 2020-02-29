@@ -43,10 +43,29 @@ type EvaluationStore interface {
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
 }
 
+type QueryParams struct {
+	Limit  uint64
+	Offset uint64
+}
+
+type QueryOption func(p *QueryParams)
+
+func WithLimit(limit uint64) QueryOption {
+	return func(p *QueryParams) {
+		p.Limit = limit
+	}
+}
+
+func WithOffset(offset uint64) QueryOption {
+	return func(p *QueryParams) {
+		p.Offset = offset
+	}
+}
+
 // FlagStore stores and retrieves flags and variants
 type FlagStore interface {
-	GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error)
-	ListFlags(ctx context.Context, r *flipt.ListFlagRequest) ([]*flipt.Flag, error)
+	GetFlag(ctx context.Context, key string) (*flipt.Flag, error)
+	ListFlags(ctx context.Context, opts ...QueryOption) ([]*flipt.Flag, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
@@ -57,8 +76,8 @@ type FlagStore interface {
 
 // RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
-	GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error)
-	ListRules(ctx context.Context, r *flipt.ListRuleRequest) ([]*flipt.Rule, error)
+	GetRule(ctx context.Context, id string) (*flipt.Rule, error)
+	ListRules(ctx context.Context, flagKey string, opts ...QueryOption) ([]*flipt.Rule, error)
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
@@ -70,8 +89,8 @@ type RuleStore interface {
 
 // SegmentStore stores and retrieves segments and constraints
 type SegmentStore interface {
-	GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error)
+	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error

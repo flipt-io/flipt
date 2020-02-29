@@ -22,7 +22,7 @@ func TestGetFlag(t *testing.T) {
 	cacher.On("Get", mock.Anything).Return(&flipt.Flag{}, false).Once()
 	cacher.On("Set", mock.Anything, mock.Anything)
 
-	got, err := subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
+	got, err := subject.GetFlag(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
@@ -32,7 +32,7 @@ func TestGetFlag(t *testing.T) {
 
 	cacher.On("Get", mock.Anything).Return(&flipt.Flag{Key: "foo"}, true)
 
-	got, err = subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
+	got, err = subject.GetFlag(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
@@ -51,7 +51,7 @@ func TestGetFlagNotFound(t *testing.T) {
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{}, errors.ErrNotFound("foo"))
 	cacher.On("Get", mock.Anything).Return(&flipt.Flag{}, false).Once()
 
-	_, err := subject.GetFlag(context.TODO(), &flipt.GetFlagRequest{Key: "foo"})
+	_, err := subject.GetFlag(context.TODO(), "foo")
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
@@ -72,56 +72,14 @@ func TestListFlags(t *testing.T) {
 	}
 
 	store.On("ListFlags", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*flipt.Flag{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
 
-	got, err := subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	got, err := subject.ListFlags(context.TODO())
 	require.NoError(t, err)
 	assert.NotEmpty(t, got)
 	assert.Len(t, got, 2)
 
-	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "flags", mock.Anything)
-	cacher.AssertCalled(t, "Get", "flags")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
-
-	got, err = subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
-	require.NoError(t, err)
-	assert.NotEmpty(t, got)
-	assert.Len(t, got, 2)
-
-	// should already exist in the cache so it should NOT be added
-	cacher.AssertNumberOfCalls(t, "Set", 1)
-	cacher.AssertNumberOfCalls(t, "Get", 2)
-}
-
-func TestListFlags_NoResults(t *testing.T) {
-	var (
-		store   = &flagStoreMock{}
-		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
-	)
-
-	ret := []*flipt.Flag{}
-
-	store.On("ListFlags", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*flipt.Flag{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
-
-	got, err := subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
-	require.NoError(t, err)
-	assert.NotNil(t, got)
-
-	// should not be set in the cache
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "flags")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
-
-	got, err = subject.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
-	require.NoError(t, err)
-	assert.NotNil(t, got)
+	cacher.AssertNotCalled(t, "Get")
 }
 
 func TestCreateFlag(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus/hooks/test"
 
@@ -25,7 +26,7 @@ func TestGetSegment(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	got, err := segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+	got, err := segmentStore.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -39,7 +40,7 @@ func TestGetSegment(t *testing.T) {
 }
 
 func TestGetSegmentNotFound(t *testing.T) {
-	_, err := segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: "foo"})
+	_, err := segmentStore.GetSegment(context.TODO(), "foo")
 	assert.EqualError(t, err, "segment \"foo\" not found")
 }
 
@@ -62,7 +63,7 @@ func TestListSegments(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := segmentStore.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
+	got, err := segmentStore.ListSegments(context.TODO())
 	require.NoError(t, err)
 	assert.NotZero(t, len(got))
 }
@@ -86,10 +87,8 @@ func TestListSegmentsPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := segmentStore.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
-		Limit:  1,
-		Offset: 1,
-	})
+	got, err := segmentStore.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+
 	require.NoError(t, err)
 	assert.Len(t, got, 1)
 }
@@ -288,7 +287,7 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	// get the segment again
-	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+	segment, err = segmentStore.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -359,7 +358,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
 
 	// get the segment again
-	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+	segment, err = segmentStore.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -414,7 +413,7 @@ func TestDeleteConstraint(t *testing.T) {
 	require.NoError(t, err)
 
 	// get the segment again
-	segment, err = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+	segment, err = segmentStore.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -474,7 +473,7 @@ func BenchmarkGetSegment(b *testing.B) {
 		var s *flipt.Segment
 
 		for i := 0; i < b.N; i++ {
-			s, _ = segmentStore.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+			s, _ = segmentStore.GetSegment(context.TODO(), segment.Key)
 		}
 
 		benchSegment = s
@@ -515,13 +514,13 @@ func BenchmarkGetSegment_CacheMemory(b *testing.B) {
 	var s *flipt.Segment
 
 	// warm the cache
-	s, _ = segmentStoreCache.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+	s, _ = segmentStoreCache.GetSegment(context.TODO(), segment.Key)
 
 	b.ResetTimer()
 
 	b.Run("get-segment-cache", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			s, _ = segmentStoreCache.GetSegment(context.TODO(), &flipt.GetSegmentRequest{Key: segment.Key})
+			s, _ = segmentStoreCache.GetSegment(context.TODO(), segment.Key)
 		}
 
 		benchSegment = s

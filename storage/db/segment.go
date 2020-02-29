@@ -31,11 +31,7 @@ func NewSegmentStore(builder sq.StatementBuilderType) *SegmentStore {
 }
 
 // GetSegment gets a segment
-func (s *SegmentStore) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
-	return s.segment(ctx, r.Key)
-}
-
-func (s *SegmentStore) segment(ctx context.Context, key string) (*flipt.Segment, error) {
+func (s *SegmentStore) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
@@ -73,7 +69,7 @@ func (s *SegmentStore) segment(ctx context.Context, key string) (*flipt.Segment,
 }
 
 // ListSegments lists all segments
-func (s *SegmentStore) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) ([]*flipt.Segment, error) {
+func (s *SegmentStore) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
 	var (
 		segments []*flipt.Segment
 
@@ -82,12 +78,18 @@ func (s *SegmentStore) ListSegments(ctx context.Context, r *flipt.ListSegmentReq
 			OrderBy("created_at ASC")
 	)
 
-	if r.Limit > 0 {
-		query = query.Limit(uint64(r.Limit))
+	params := &storage.QueryParams{}
+
+	for _, opt := range opts {
+		opt(params)
 	}
 
-	if r.Offset > 0 {
-		query = query.Offset(uint64(r.Offset))
+	if params.Limit > 0 {
+		query = query.Limit(params.Limit)
+	}
+
+	if params.Offset > 0 {
+		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
@@ -190,7 +192,7 @@ func (s *SegmentStore) UpdateSegment(ctx context.Context, r *flipt.UpdateSegment
 		return nil, errors.ErrNotFoundf("segment %q", r.Key)
 	}
 
-	return s.segment(ctx, r.Key)
+	return s.GetSegment(ctx, r.Key)
 }
 
 // DeleteSegment deletes a segment

@@ -9,9 +9,6 @@ on:
   pull_request:
     branches:
       - master
-    paths-ignore:
-      - '*.md'
-      - '.all-contributorsrc'
 
 jobs:
 
@@ -40,12 +37,12 @@ jobs:
     - name: Build binary
       run: go build -o ./bin/flipt ./cmd/flipt/.
 
-    - name: Test CLI
-      uses: ./.github/actions/api-test
-      with:
-        args: ./script/test/cli
-
     - name: Test API
       uses: ./.github/actions/api-test
       with:
         args: ./script/test/api
+
+    - name: Test CLI
+      uses: ./.github/actions/api-test
+      with:
+        args: ./script/test/cli
