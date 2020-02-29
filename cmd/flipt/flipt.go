@@ -229,12 +229,10 @@ func run(_ []string) error {
 
 		migrator, err := db.NewMigrator(cfg)
 		if err != nil {
-			return fmt.Errorf("migrating: %w", err)
+			return err
 		}
 
-		defer func() {
-			_, _ = migrator.Close()
-		}()
+		defer migrator.Close()
 
 		// if forceMigrate provided we can autoMigrate
 		canAutoMigrate := forceMigrate

@@ -82,12 +82,10 @@ func runImport(args []string) error {
 
 	migrator, err := db.NewMigrator(cfg)
 	if err != nil {
-		return fmt.Errorf("migrating: %w", err)
+		return err
 	}
 
-	defer func() {
-		_, _ = migrator.Close()
-	}()
+	defer migrator.Close()
 
 	canAutoMigrate := false
 
