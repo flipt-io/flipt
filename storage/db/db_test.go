@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -90,6 +91,7 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger := logrus.New()
+	logger.SetOutput(ioutil.Discard)
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
@@ -144,8 +146,6 @@ func run(m *testing.M) int {
 	if err != nil {
 		logger.Fatal(err)
 	}
-
-	logger.Info("running migrations...")
 
 	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Fatal(err)
