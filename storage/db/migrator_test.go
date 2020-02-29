@@ -17,7 +17,8 @@ func TestMigratorCurrentVersion(t *testing.T) {
 	d, err := s.Open("")
 	require.NoError(t, err)
 
-	d.SetVersion(2, false)
+	err = d.SetVersion(2, false)
+	require.NoError(t, err)
 
 	src := &stubSource.Stub{}
 	srcDrv, err := src.Open("")
@@ -93,7 +94,8 @@ func TestMigratorRun_NoChange(t *testing.T) {
 	d, err := s.Open("")
 	require.NoError(t, err)
 
-	d.SetVersion(1, false)
+	err = d.SetVersion(1, false)
+	require.NoError(t, err)
 
 	stubMigrations := source.NewMigrations()
 	stubMigrations.Append(&source.Migration{Version: 1, Direction: source.Up, Identifier: "CREATE 1"})
