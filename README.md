@@ -39,7 +39,7 @@
         <a href="#values">Values</a> |
         <a href="#usecases">Usecases</a> |
         <a href="#examples">Examples</a> |
-	<a href="#enterprise">Enterprise</a>
+        <a href="#enterprise">Enterprise</a>
     </h4>
 </div>
 
