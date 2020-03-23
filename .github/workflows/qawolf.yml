@@ -1,0 +1,65 @@
+name: qawolf
+on:
+  push:
+    # test every branch
+    # edit below if you only want certain branches tested
+    branches: "*"
+  # schedule:
+  #   # test on schedule using cron syntax
+  #   - cron: "0 * * * *" # every hour
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+
+    timeout-minutes: 20
+
+    env:
+      working-directory: ./ui
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          # chromium dependencies
+          sudo apt-get install libgbm1
+          # webkit dependencies
+          sudo apt-get install libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant1c2a libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 libegl1 libgles2 libevent-2.1-6 libnotify4 libvpx5 libxslt1.1
+          # ffmpeg
+          sudo apt-get install -y ffmpeg
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+
+      # - uses: actions/cache@v1
+      #   with:
+      #     path: ~/.npm
+      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-node-
+
+      - run: npm install
+        working-directory: ${{env.working-directory}}
+
+      - run: npx qawolf test --headless
+        env:
+          # configure tests with environment variables
+          FFMPEG_PATH: /usr/bin/ffmpeg # for recording video
+          QAW_ARTIFACT_PATH: ${{ github.workspace }}/artifacts
+          # you can also use GitHub secrets for environment variables
+          # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
+          # LOGIN_PASSWORD: ${{ secrets.PASSWORD }}
+        working-directory: ${{env.working-directory}}
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@master
+        with:
+          name: qawolf
+          path: ${{ github.workspace }}/artifacts
+
+    services:
+      flipt:
+        image: markphelps/flipt:latest
+        ports:
+          - 8080:80
