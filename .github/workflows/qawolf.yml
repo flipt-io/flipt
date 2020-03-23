@@ -31,6 +31,7 @@ jobs:
 
       - uses: actions/setup-node@v1
 
+      - run: npx wait-on http://localhost:8080
       # - uses: actions/cache@v1
       #   with:
       #     path: ~/.npm
