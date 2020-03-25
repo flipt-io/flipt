@@ -1,5 +1,4 @@
 const qawolf = require("qawolf");
-const selectors = require("./selectors/createFlag.json");
 
 let browser;
 let page;
@@ -17,16 +16,14 @@ afterAll(async () => {
 });
 
 test("createFlag", async () => {
-  await page.goto("http://0.0.0.0:8080/");
-  await page.click(selectors["0_a"]);
-  await page.click(selectors["1_flag_name_input"]);
-  await page.type(selectors["2_flag_name_input"], "Awesome feature");
-  await page.click(selectors["3_flag_descriptio_input"]);
+  await page.goto("localhost:8080");
+  await page.click("[data-testid='new-flag']");
+  await page.click("[placeholder='Flag name']");
+  await page.type("[placeholder='Flag name']", "Awesome new feature");
+  await page.click("[placeholder='Flag description']");
   await page.type(
-    selectors["4_flag_descriptio_input"],
-    "Our product manager cannot wait to ship this feature!"
+    "[placeholder='Flag description']",
+    "Our product manager cannot wait to ship this!"
   );
-  await page.click(selectors["8_button"]);
-  await page.click(selectors["9_button"]);
-  await page.click(selectors["10_a"]);
+  await page.click("[data-testid='create-flag']");
 });

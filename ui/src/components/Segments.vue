@@ -19,7 +19,10 @@
         </div>
         <div class="level-right">
           <div class="level-item">
-            <RouterLink class="button is-primary" :to="{ name: 'new-segment' }"
+            <RouterLink
+              data-testid="new-segment"
+              class="button is-primary"
+              :to="{ name: 'new-segment' }"
               >New Segment</RouterLink
             >
           </div>

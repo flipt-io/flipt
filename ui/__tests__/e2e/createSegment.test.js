@@ -1,5 +1,4 @@
 const qawolf = require("qawolf");
-const selectors = require("./selectors/createSegment.json");
 
 let browser;
 let page;
@@ -17,22 +16,15 @@ afterAll(async () => {
 });
 
 test("createSegment", async () => {
-  await page.goto("http://0.0.0.0:8080/");
-  // click segment nav bar
-  await page.click(selectors["0_a"]);
-  // new segment button
-  await page.click(selectors["1_a"]);
-  await page.click(selectors["2_segment_name_input"]);
-  await page.type(selectors["5_segment_name_input"], "Power users");
-  await page.press(selectors["6_segment_name_input"], "Tab");
-  await page.fill(selectors["7_segment_key_input"], "power-users");
-  await page.press(selectors["8_segment_key_input"], "Tab");
+  await page.goto("localhost:8080");
+  await page.click("[data-testid='segments']");
+  await page.click("[data-testid='new-segment']");
+  await page.click("[placeholder='Segment name']");
+  await page.type("[placeholder='Segment name']", "Power users");
+  await page.click("[placeholder='Segment description']");
   await page.type(
-    selectors["9_segment_descrip_input"],
+    "[placeholder='Segment description']",
     "Users that are willing to try out advanced functionality"
   );
-  // create segment button
-  await page.click(selectors["10_button"]);
-  // click segment nav bar
-  await page.click(selectors["11_a"]);
+  await page.click("[data-testid='create-segment']");
 });

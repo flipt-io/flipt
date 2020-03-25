@@ -49,6 +49,7 @@
               <div class="field is-grouped">
                 <div class="control">
                   <button
+                    data-testid="create-segment"
                     class="button is-primary"
                     :disabled="!canCreateSegment"
                     @click.prevent="createSegment()"
