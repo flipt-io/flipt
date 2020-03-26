@@ -58,6 +58,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jperl",
+      "name": "Jon Perl",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1136652?v=4",
+      "profile": "http://twitter.com/jon_perl",
+      "contributions": [
+        "test",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
