@@ -42,6 +42,7 @@
               <div class="field is-grouped">
                 <div class="control">
                   <button
+                    data-testid="create-flag"
                     class="button is-primary"
                     :disabled="!canCreateFlag"
                     @click.prevent="createFlag()"
