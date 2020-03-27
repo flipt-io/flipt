@@ -25,11 +25,13 @@
       <div class="navbar-start">
         <RouterLink
           class="navbar-item has-text-weight-semibold"
+          data-testid="flags"
           :to="{ name: 'flags' }"
           >Flags</RouterLink
         >
         <RouterLink
           class="navbar-item has-text-weight-semibold"
+          data-testid="segments"
           :to="{ name: 'segments' }"
           >Segments</RouterLink
         >

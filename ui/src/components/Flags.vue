@@ -19,7 +19,10 @@
         </div>
         <div class="level-right">
           <div class="level-item">
-            <RouterLink class="button is-primary" :to="{ name: 'new-flag' }"
+            <RouterLink
+              data-testid="new-flag"
+              class="button is-primary"
+              :to="{ name: 'new-flag' }"
               >New Flag</RouterLink
             >
           </div>
