@@ -3,11 +3,26 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v0.13.1](https://github.com/markphelps/flipt/releases/tag/v0.13.1) - 2020-04-05
+
+### Added
+
+* End to end UI tests [https://github.com/markphelps/flipt/issues/216](https://github.com/markphelps/flipt/issues/216)
+
+### Changed
+
+* Updated several dependencies
+
+### Fixed
+
+* Variant/Constraint columns always showing 'yes' in UI [https://github.com/markphelps/flipt/issues/258](https://github.com/markphelps/flipt/issues/258)
+
+## [v0.13.0](https://github.com/markphelps/flipt/releases/tag/v0.13.0) - 2020-03-01
 
 ### Added
 
 * `export` and `import` commands to export and import data [https://github.com/markphelps/flipt/issues/225](https://github.com/markphelps/flipt/issues/225)
+* Enable response time histogram metrics for Prometheus [https://github.com/markphelps/flipt/pull/234](https://github.com/markphelps/flipt/pull/234)
 
 ### Changed
 
