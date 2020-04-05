@@ -1,7 +1,11 @@
 name: qawolf
-on: 
-  release:
-    types: [published]
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '*.md'
+      - '.all-contributorsrc'
     
 jobs:
   test:
