@@ -53,7 +53,7 @@
             </RouterLink>
           </b-table-column>
           <b-table-column field="hasVariants" label="Variants">
-            {{ props.row.variants ? "yes" : "no" }}
+            {{ props.row.variants.length > 0 ? "yes" : "no" }}
           </b-table-column>
           <b-table-column field="description" label="Description">
             <small>{{ props.row.description | limit }}</small>

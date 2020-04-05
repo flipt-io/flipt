@@ -51,7 +51,7 @@
             </RouterLink>
           </b-table-column>
           <b-table-column field="hasConstraints" label="Constraints">
-            {{ props.row.constraints ? "yes" : "no" }}
+            {{ props.row.constraints.length > 0 ? "yes" : "no" }}
           </b-table-column>
           <b-table-column field="hasConstraints" label="Match">
             {{ props.row.matchType === "ANY_MATCH_TYPE" ? "any" : "all" }}
