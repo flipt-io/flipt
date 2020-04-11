@@ -6,7 +6,6 @@ import (
 
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
-	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
@@ -18,7 +17,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ pb.FliptServer = &Server{}
+var _ flipt.FliptServer = &Server{}
 
 // Server serves the Flipt backend
 type Server struct {

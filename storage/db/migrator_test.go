@@ -6,7 +6,6 @@ import (
 	"github.com/golang-migrate/migrate"
 	stubDB "github.com/golang-migrate/migrate/database/stub"
 	"github.com/golang-migrate/migrate/source"
-	"github.com/golang-migrate/migrate/source/stub"
 	stubSource "github.com/golang-migrate/migrate/source/stub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,7 +73,7 @@ func TestMigratorRun(t *testing.T) {
 	srcDrv, err := src.Open("")
 	require.NoError(t, err)
 
-	srcDrv.(*stub.Stub).Migrations = stubMigrations
+	srcDrv.(*stubSource.Stub).Migrations = stubMigrations
 
 	m, err := migrate.NewWithInstance("stub", srcDrv, "", d)
 	require.NoError(t, err)
@@ -105,7 +104,7 @@ func TestMigratorRun_NoChange(t *testing.T) {
 	srcDrv, err := src.Open("")
 	require.NoError(t, err)
 
-	srcDrv.(*stub.Stub).Migrations = stubMigrations
+	srcDrv.(*stubSource.Stub).Migrations = stubMigrations
 
 	m, err := migrate.NewWithInstance("stub", srcDrv, "", d)
 	require.NoError(t, err)
