@@ -28,7 +28,6 @@ import (
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"

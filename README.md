@@ -34,7 +34,7 @@
 
 <div align="center">
     <h4>
-        <a href="https://flipt.io/">Documentation</a> |
+        <a href="https://flipt.io/docs/getting_started/">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
         <a href="#usecases">Usecases</a> |
