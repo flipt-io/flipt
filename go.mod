@@ -35,7 +35,7 @@ require (
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.7
-	github.com/spf13/viper v1.6.2
+	github.com/spf13/viper v1.6.3
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933 // indirect
