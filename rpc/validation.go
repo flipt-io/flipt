@@ -1,6 +1,7 @@
 package flipt
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/markphelps/flipt/errors"
@@ -25,6 +26,8 @@ func (req *EvaluationRequest) Validate() error {
 	return nil
 }
 
+var keyRegex = regexp.MustCompile(`^[-_,A-Za-z0-9]+$`)
+
 // Flags
 
 func (req *GetFlagRequest) Validate() error {
@@ -38,6 +41,10 @@ func (req *GetFlagRequest) Validate() error {
 func (req *CreateFlagRequest) Validate() error {
 	if req.Key == "" {
 		return errors.EmptyFieldError("key")
+	}
+
+	if !keyRegex.MatchString(req.Key) {
+		return errors.InvalidFieldError("key", "contains invalid characters")
 	}
 
 	if req.Name == "" {
@@ -270,6 +277,10 @@ func (req *GetSegmentRequest) Validate() error {
 func (req *CreateSegmentRequest) Validate() error {
 	if req.Key == "" {
 		return errors.EmptyFieldError("key")
+	}
+
+	if !keyRegex.MatchString(req.Key) {
+		return errors.InvalidFieldError("key", "contains invalid characters")
 	}
 
 	if req.Name == "" {

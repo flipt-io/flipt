@@ -89,6 +89,16 @@ func TestValidate_CreateFlagRequest(t *testing.T) {
 			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
+			name: "invalidKey",
+			req: &CreateFlagRequest{
+				Key:         "foo:bar",
+				Name:        "name",
+				Description: "desc",
+				Enabled:     true,
+			},
+			wantErr: errors.InvalidFieldError("key", "contains invalid characters"),
+		},
+		{
 			name: "emptyName",
 			req: &CreateFlagRequest{
 				Key:         "key",
@@ -814,6 +824,15 @@ func TestValidate_CreateSegmentRequest(t *testing.T) {
 				Description: "desc",
 			},
 			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "invalidKey",
+			req: &CreateSegmentRequest{
+				Key:         "foo:bar",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.InvalidFieldError("key", "contains invalid characters"),
 		},
 		{
 			name: "emptyName",
