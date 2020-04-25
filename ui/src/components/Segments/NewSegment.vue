@@ -23,6 +23,8 @@
             v-model="segment.key"
             placeholder="Segment key"
             required
+            validation-message="No colons allowed"
+            pattern="[^:]">
             @input="formatKey"
           />
         </b-field>

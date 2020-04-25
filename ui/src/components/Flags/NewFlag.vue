@@ -28,6 +28,8 @@
             v-model="flag.key"
             placeholder="Flag key"
             required
+            validation-message="No colons allowed"
+            pattern="[^:]">
             @input="formatKey"
           />
         </b-field>
