@@ -37,15 +37,20 @@
         <a href="https://flipt.io/docs/getting_started/">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
-        <a href="#usecases">Usecases</a> |
         <a href="#examples">Examples</a> |
         <a href="#enterprise">Enterprise</a>
     </h4>
 </div>
 
-Flipt is an on-prem flag application that allows you to run experiments across services in **your** environment.
+Flipt is an open source, on-prem feature flag application that allows you to run experiments across services in **your** environment.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
+
+Flipt supports use cases such as:
+
+* Simple on/off feature flags to toggle functionality in your applications
+* Rolling out features to a percentage of your customers
+* Using advanced segmentation to target and serve users based on custom properties that you define
 
 ## Features
 
@@ -64,12 +69,6 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 * :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 * :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
-
-## Usecases
-
-* Use simple on/off feature flags to toggle functionality in your applications
-* Rollout features to a subset of your audience
-* Use advanced segmentation to target and serve users based on custom properties that you define
 
 ## Examples
 
