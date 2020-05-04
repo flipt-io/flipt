@@ -32,7 +32,7 @@ require (
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/prometheus/client_golang v1.5.1
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
-	github.com/sirupsen/logrus v1.5.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.6.3
