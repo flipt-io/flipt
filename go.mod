@@ -17,7 +17,7 @@ require (
 	github.com/gobuffalo/packr/v2 v2.7.1 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
-	github.com/golang/protobuf v1.3.5
+	github.com/golang/protobuf v1.4.0
 	github.com/golangci/golangci-lint v1.26.0
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -38,9 +38,8 @@ require (
 	github.com/spf13/viper v1.6.3
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/negroni v1.0.0 // indirect
-	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/tools v0.0.0-20200204192400-7124308813f3
+	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
 	google.golang.org/grpc v1.29.1
