@@ -23,7 +23,7 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway v1.14.4
+	github.com/grpc-ecosystem/grpc-gateway v1.14.5
 	github.com/lib/pq v1.5.1
 	github.com/markphelps/flipt-grpc-go v0.2.0
 	github.com/mattn/go-sqlite3 v1.13.0
