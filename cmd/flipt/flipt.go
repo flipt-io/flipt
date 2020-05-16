@@ -182,7 +182,7 @@ func main() {
 
 	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "export to filename (default STDOUT)")
 	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
-	importCmd.Flags().StringVarP(&importFilename, "input", "i", "", "import from filename (default STDIN)")
+	importCmd.Flags().BoolVar(&importStdin, "stdin", false, "import from STDIN")
 
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(exportCmd)

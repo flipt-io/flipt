@@ -18,10 +18,10 @@ import (
 
 var (
 	dropBeforeImport bool
-	importFilename   string
+	importStdin      bool
 )
 
-func runImport(_ []string) error {
+func runImport(args []string) error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -55,10 +55,14 @@ func runImport(_ []string) error {
 		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
 	}
 
-	// default to stdin
 	var in io.ReadCloser = os.Stdin
 
-	if importFilename != "" {
+	if !importStdin {
+		importFilename := args[0]
+		if importFilename == "" {
+			return errors.New("import filename required")
+		}
+
 		f := filepath.Clean(importFilename)
 
 		logger.Debugf("importing from %q", f)

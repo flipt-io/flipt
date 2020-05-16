@@ -50,29 +50,29 @@ load 'helpers/bats-assert/load'
 }
 
 @test "import with empty database from STDIN" {
-    run bash -c "rm ./script/test/flipt.db; cat ./script/test/flipt.yml | ./bin/flipt --config ./script/test/config/test.yml import"
+    run bash -c "rm ./script/test/flipt.db; cat ./script/test/flipt.yml | ./bin/flipt --config ./script/test/config/test.yml import --stdin"
     assert_success
 }
 
-@test "import existing data not unique results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import -i ./script/test/flipt.yml
+@test "import existing data from file not unique results in error" {
+    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
     assert_output -p "is not unique"
     assert_failure
 }
 
-@test "import from STDIN with invalid data results in error" {
-    run bash -c "echo FOOBAR | ./bin/flipt --config ./script/test/config/test.yml import"
+@test "import with invalid data from STDIN results in error" {
+    run bash -c "echo FOOBAR | ./bin/flipt --config ./script/test/config/test.yml import --stdin"
     assert_failure
 }
 
 @test "import with file that doesnt exist results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import -i foo
+    run ./bin/flipt --config ./script/test/config/test.yml import foo
     assert_output -p "opening import file: open foo: no such file or directory"
     assert_failure
 }
 
 @test "import with existing data not unique and --drop flag is used" {
-    run ./bin/flipt --config ./script/test/config/test.yml import -i ./script/test/flipt.yml --drop
+    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml --drop
     assert_success
 }
 
