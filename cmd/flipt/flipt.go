@@ -57,7 +57,7 @@ var (
 	forceMigrate bool
 
 	version   = "dev"
-	commit    = ""
+	commit    string
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
 

@@ -18,10 +18,10 @@ import (
 
 var (
 	dropBeforeImport bool
-	importFilename   = ""
+	importFilename   string
 )
 
-func runImport(args []string) error {
+func runImport(_ []string) error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
