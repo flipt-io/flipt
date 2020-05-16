@@ -3,7 +3,7 @@ module github.com/markphelps/flipt
 go 1.13
 
 require (
-	github.com/Masterminds/squirrel v1.3.0
+	github.com/Masterminds/squirrel v1.4.0
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/buchanae/github-release-notes v0.0.0-20180827045457-200e1dacadbb
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -35,12 +35,11 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.7
-	github.com/spf13/viper v1.6.3
+	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e
-	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.2.8
