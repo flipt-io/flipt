@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -15,7 +16,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var dropBeforeImport bool
+var (
+	dropBeforeImport bool
+	importStdin      bool
+)
 
 func runImport(args []string) error {
 	ctx := context.Background()
@@ -51,18 +55,22 @@ func runImport(args []string) error {
 		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
 	}
 
-	importFilename := args[0]
-	if importFilename == "" {
-		return errors.New("import filename required")
-	}
+	var in io.ReadCloser = os.Stdin
 
-	f := filepath.Clean(importFilename)
+	if !importStdin {
+		importFilename := args[0]
+		if importFilename == "" {
+			return errors.New("import filename required")
+		}
 
-	logger.Debugf("importing from %q", f)
+		f := filepath.Clean(importFilename)
 
-	in, err := os.Open(f)
-	if err != nil {
-		return fmt.Errorf("opening import file: %w", err)
+		logger.Debugf("importing from %q", f)
+
+		in, err = os.Open(f)
+		if err != nil {
+			return fmt.Errorf("opening import file: %w", err)
+		}
 	}
 
 	defer in.Close()

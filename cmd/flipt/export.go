@@ -62,7 +62,7 @@ type Constraint struct {
 
 const batchSize = 25
 
-var exportFilename = ""
+var exportFilename string
 
 func runExport(_ []string) error {
 	ctx := context.Background()
