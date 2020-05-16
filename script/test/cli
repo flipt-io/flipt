@@ -49,35 +49,29 @@ load 'helpers/bats-assert/load'
     assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
 }
 
-@test "import with empty database" {
-    run bash -c "rm ./script/test/flipt.db; ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml"
+@test "import with empty database from STDIN" {
+    run bash -c "rm ./script/test/flipt.db; cat ./script/test/flipt.yml | ./bin/flipt --config ./script/test/config/test.yml import"
     assert_success
 }
 
 @test "import existing data not unique results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
+    run ./bin/flipt --config ./script/test/config/test.yml import -i ./script/test/flipt.yml
     assert_output -p "is not unique"
     assert_failure
 }
 
-@test "import with no file results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import
-    assert_output -p "requires a file argument"
-    assert_failure
-}
-
 @test "import with file that doesnt exist results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import foo
+    run ./bin/flipt --config ./script/test/config/test.yml import -i foo
     assert_output -p "opening import file: open foo: no such file or directory"
     assert_failure
 }
 
 @test "import with existing data not unique and --drop flag is used" {
-    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml --drop
+    run ./bin/flipt --config ./script/test/config/test.yml import -i ./script/test/flipt.yml --drop
     assert_success
 }
 
-@test "export outputs to stdout" {
+@test "export outputs to STDOUT" {
     run ./bin/flipt --config script/test/config/test.yml export
     assert_output -p "flags:"
     assert_output -p "- key: zUFtS7D0UyMeueYu"

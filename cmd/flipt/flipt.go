@@ -98,12 +98,6 @@ func main() {
 					logrus.Exit(1)
 				}
 			},
-			Args: func(cmd *cobra.Command, args []string) error {
-				if len(args) != 1 {
-					return errors.New("requires a file argument")
-				}
-				return nil
-			},
 		}
 
 		migrateCmd = &cobra.Command{
@@ -186,8 +180,9 @@ func main() {
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
-	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "output to filename (default STDOUT)")
+	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "export to filename (default STDOUT)")
 	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
+	importCmd.Flags().StringVarP(&importFilename, "input", "i", "", "import from filename (default STDIN)")
 
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(exportCmd)
