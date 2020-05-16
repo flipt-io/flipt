@@ -60,6 +60,11 @@ load 'helpers/bats-assert/load'
     assert_failure
 }
 
+@test "import from STDIN with invalid data results in error" {
+    run bash -c "echo FOOBAR | ./bin/flipt --config ./script/test/config/test.yml import"
+    assert_failure
+}
+
 @test "import with file that doesnt exist results in error" {
     run ./bin/flipt --config ./script/test/config/test.yml import -i foo
     assert_output -p "opening import file: open foo: no such file or directory"
