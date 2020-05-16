@@ -15,7 +15,7 @@ require (
 	github.com/go-chi/cors v1.1.1
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gobuffalo/packr/v2 v2.7.1 // indirect
-	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.4.1
 	github.com/golangci/golangci-lint v1.26.0
