@@ -75,7 +75,7 @@
     "postcss-loader": "^3.0.0",
     "postcss-url": "^8.0.0",
     "prettier": "^1.15.3",
-    "qawolf": "~0.12.4",
+    "qawolf": "1.0.1",
     "rimraf": "^3.0.0",
     "semver": "^6.3.0",
     "shelljs": "^0.8.3",

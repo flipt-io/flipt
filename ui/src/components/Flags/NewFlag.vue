@@ -14,7 +14,7 @@
           <li class="is-active"><a>Details</a></li>
         </ul>
       </div>
-      <form>
+      <form ref="form">
         <b-field label="Name">
           <b-input
             v-model="flag.name"
@@ -79,17 +79,23 @@ export default {
   mixins: [notify, autoKeys, utils],
   data() {
     return {
+      isValid: false,
       flag: {}
     };
   },
   computed: {
     canCreateFlag() {
-      return this.isPresent(this.flag.name) && this.isPresent(this.flag.key);
+      return (
+        this.isPresent(this.flag.name) &&
+        this.isPresent(this.flag.key) &&
+        this.isValid
+      );
     }
   },
   methods: {
     formatKey() {
       this.flag.key = this.formatStringAsKey(this.flag.key);
+      this.isValid = this.flag.key.match("^[-_,A-Za-z0-9]+$");
     },
     setKeyIfSameAsName() {
       // Remove the character that was just added before comparing
