@@ -1,4 +1,5 @@
 const qawolf = require("qawolf");
+const expect = require("expect-playwright");
 
 let browser;
 let page;
@@ -29,6 +30,5 @@ test('createFlagDisallowSpecialChars', async () => {
   await page.type("[placeholder='Flag name']", "My flag with colons");
   await page.type("[placeholder='Flag key']", "colons:are:not:allowed");
   await page.type("[placeholder='Flag description']", "This should not be saved");
-  await expect(page).toHaveText('Only letters, numbers, hypens and underscores allowed');
-  await page.click("[data-testid='create-flag']");
+  await expect(page).toHaveText("Only letters, numbers, hypens and underscores allowed");
 });

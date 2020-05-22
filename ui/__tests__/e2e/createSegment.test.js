@@ -22,9 +22,6 @@ test("createSegment", async () => {
   await page.click("[placeholder='Segment name']");
   await page.type("[placeholder='Segment name']", "Power users");
   await page.click("[placeholder='Segment description']");
-  await page.type(
-    "[placeholder='Segment description']",
-    "Users that are willing to try out advanced functionality"
-  );
+  await page.type("[placeholder='Segment description']", "Users that are willing to try out advanced functionality");
   await page.click("[data-testid='create-segment']");
 });
