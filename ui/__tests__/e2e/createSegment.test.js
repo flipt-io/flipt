@@ -1,4 +1,5 @@
 const qawolf = require("qawolf");
+const expect = require("expect-playwright");
 
 let browser;
 let page;
@@ -24,4 +25,14 @@ test("createSegment", async () => {
   await page.click("[placeholder='Segment description']");
   await page.type("[placeholder='Segment description']", "Users that are willing to try out advanced functionality");
   await page.click("[data-testid='create-segment']");
+});
+
+test('createSegmentDisallowSpecialChars', async () => {
+  await page.goto("localhost:8080");
+  await page.click("[data-testid='segments']");
+  await page.click("[data-testid='new-segment']");
+  await page.type("[placeholder='Segment name']", "My segment with colons");
+  await page.type("[placeholder='Segment key']", "colons:are:not:allowed");
+  await page.type("[placeholder='Segment description']", "This should not be saved");
+  await expect(page).toHaveText("Only letters, numbers, hypens and underscores allowed");
 });
