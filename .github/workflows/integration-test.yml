@@ -38,11 +38,11 @@ jobs:
       run: go build -o ./bin/flipt ./cmd/flipt/.
 
     - name: Test API
-      uses: ./.github/actions/api-test
+      uses: ./.github/actions/integration-test
       with:
         args: ./script/test/api
 
     - name: Test CLI
-      uses: ./.github/actions/api-test
+      uses: ./.github/actions/integration-test
       with:
         args: ./script/test/cli
