@@ -23,7 +23,7 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway v1.14.5
+	github.com/grpc-ecosystem/grpc-gateway v1.14.6
 	github.com/lib/pq v1.5.2
 	github.com/markphelps/flipt-grpc-go v0.2.0
 	github.com/mattn/go-sqlite3 v1.13.0
@@ -40,7 +40,6 @@ require (
 	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e
-	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.3.0
 )
