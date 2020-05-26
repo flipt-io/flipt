@@ -7,7 +7,7 @@ run()
     # run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
-    ./bin/flipt --config ./config/local.yml &> /dev/null &
+    ./bin/flipt --config ./config/local.yml &> "${GITHUB_WORKSPACE}/artifacts/flipt.log" &
 
     flipt_host="0.0.0.0:8080"
 
@@ -19,8 +19,6 @@ run()
     echo -e "\e[32m===========================================\e[0m"
 
     ./script/test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
-
-    curl -v http://0.0.0.0:8080
 
     cd "ui" && yarn && yarn qawolf test --headless
 }

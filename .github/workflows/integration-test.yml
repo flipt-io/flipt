@@ -68,5 +68,4 @@ jobs:
       if: always()
       uses: actions/upload-artifact@master
       with:
-        name: qawolf
         path: ${{ github.workspace }}/artifacts
