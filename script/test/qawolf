@@ -9,6 +9,8 @@ run()
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
 
+    flipt_host="0.0.0.0:8080"
+
     sleep 5
 
     echo -e "\e[32m                \e[0m"

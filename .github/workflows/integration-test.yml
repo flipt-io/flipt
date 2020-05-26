@@ -27,8 +27,6 @@ jobs:
         go-version: 1.14.1
       id: go
 
-    - uses: actions/setup-node@v1
-
     - uses: actions/cache@v1
       id: go-cache
       with:
