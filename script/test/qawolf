@@ -4,8 +4,10 @@ cd "$(dirname "$0")/../.." || exit
 
 run()
 {
+    mkdir -p "${GITHUB_WORKSPACE}/artifacts"
+    
     # run any pending db migrations
-    ./bin/flipt migrate --config ./config/local.yml &> /dev/null
+    ./bin/flipt migrate --config ./config/local.yml &> "${GITHUB_WORKSPACE}/artifacts/flipt-migrate.log"
 
     ./bin/flipt --config ./config/local.yml &> "${GITHUB_WORKSPACE}/artifacts/flipt.log" &
 
