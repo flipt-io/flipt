@@ -20,6 +20,8 @@ run()
 
     ./script/test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
+    curl -v http://0.0.0.0:8080
+
     cd "ui" && yarn && yarn qawolf test --headless
 }
 
