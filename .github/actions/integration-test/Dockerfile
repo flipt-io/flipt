@@ -3,7 +3,7 @@ FROM debian:stable-slim
 RUN apt-get update && \
 	apt-get install -y bats curl jq gnupg \
 	# chromium dependencies
-	libgbm1 \
+	libgbm1 chromium chromium-l10n \
     # webkit dependencies
 	libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant1c2a \
 	libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 libegl1 libgles2 \
