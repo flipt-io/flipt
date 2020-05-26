@@ -17,7 +17,7 @@ afterAll(async () => {
 });
 
 test("createFlag", async () => {
-  await page.goto("0.0.0.0:8080");
+  await page.goto("http://0.0.0.0:8080");
   await page.click("[data-testid='new-flag']");
   await page.type("[placeholder='Flag name']", "Awesome new feature");
   await page.type("[placeholder='Flag description']", "Our product manager cannot wait to ship this!");
@@ -25,7 +25,7 @@ test("createFlag", async () => {
 });
 
 test('createFlagDisallowSpecialChars', async () => {
-  await page.goto("0.0.0.0:8080");
+  await page.goto("http://0.0.0.0:8080");
   await page.click("[data-testid='new-flag']");
   await page.type("[placeholder='Flag name']", "My flag with colons");
   await page.type("[placeholder='Flag key']", "colons:are:not:allowed");
