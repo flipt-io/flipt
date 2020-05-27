@@ -47,7 +47,9 @@ jobs:
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
     - name: Build the binary
-      run: make build
+      run: |
+        make setup
+        make build
 
     - name: Test API
       uses: ./.github/actions/integration-test
