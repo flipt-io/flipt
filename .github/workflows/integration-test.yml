@@ -28,7 +28,7 @@ jobs:
 
     - uses: actions/setup-node@v1
       with:
-      node-version: '12'
+        node-version: '12'
 
     - uses: actions/cache@v1
       id: go-cache
