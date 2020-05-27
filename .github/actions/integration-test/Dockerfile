@@ -1,3 +1,14 @@
+FROM golang:1.14-alpine AS build
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+	echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN apt-get update && \
+	apt-get install -y yarn npm && \
+	apt-get clean -y
+
+RUN make build
+
 FROM debian:stable-slim
 
 RUN apt-get update && \
