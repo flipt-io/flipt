@@ -43,6 +43,11 @@ jobs:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
         key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
+    - name: Build the binary
+      uses: ./.github/actions/integration-test
+      with:
+        args: make build
+
     - name: Test API
       uses: ./.github/actions/integration-test
       with:
