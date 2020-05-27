@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.14.1](https://github.com/markphelps/flipt/releases/tag/v0.14.1) - 2020-05-27
+
+### Changed
+
+* Colons are no longer allowed in flag or segment keys [https://github.com/markphelps/flipt/issues/262](https://github.com/markphelps/flipt/issues/262)
+
 ## [v0.14.0](https://github.com/markphelps/flipt/releases/tag/v0.14.0) - 2020-05-16
 
 ### Added
