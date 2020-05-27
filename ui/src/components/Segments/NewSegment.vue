@@ -23,6 +23,8 @@
             v-model="segment.key"
             placeholder="Segment key"
             required
+            validation-message="Only letters, numbers, hypens and underscores allowed"
+            pattern="^[-_,A-Za-z0-9]+$"
             @input="formatKey"
           />
         </b-field>
@@ -83,6 +85,7 @@ export default {
   mixins: [notify, autoKeys, utils],
   data() {
     return {
+      isValid: false,
       segment: {
         matchType: "ALL_MATCH_TYPE"
       }
@@ -91,7 +94,9 @@ export default {
   computed: {
     canCreateSegment() {
       return (
-        this.isPresent(this.segment.name) && this.isPresent(this.segment.key)
+        this.isPresent(this.segment.name) &&
+        this.isPresent(this.segment.key) &&
+        this.isValid
       );
     },
     matchTypeText() {
@@ -105,6 +110,7 @@ export default {
   methods: {
     formatKey() {
       this.segment.key = this.formatStringAsKey(this.segment.key);
+      this.isValid = this.segment.key.match("^[-_,A-Za-z0-9]+$");
     },
     setKeyIfSameAsName() {
       // Remove the character that was just added before comparing
