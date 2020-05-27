@@ -18,4 +18,8 @@ RUN apt-get update && \
 	apt-get install -y yarn npm && \
 	apt-get clean -y
 
+COPY . .
+
+RUN make build
+
 EXPOSE 8080
