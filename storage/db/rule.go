@@ -3,12 +3,13 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
 	proto "github.com/golang/protobuf/ptypes"
 	"github.com/lib/pq"
-	"github.com/markphelps/flipt/errors"
+	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	sqlite3 "github.com/mattn/go-sqlite3"
@@ -19,6 +20,7 @@ var _ storage.RuleStore = &RuleStore{}
 // RuleStore is a SQL RuleStore
 type RuleStore struct {
 	builder sq.StatementBuilderType
+	driver  Driver
 	db      *sql.DB
 }
 
@@ -47,7 +49,7 @@ func (s *RuleStore) GetRule(ctx context.Context, id string) (*flipt.Rule, error)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrNotFoundf("rule %q", id)
+			return nil, errs.ErrNotFoundf("rule %q", id)
 		}
 
 		return nil, err
@@ -143,20 +145,14 @@ func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) 
 		}
 	)
 
-	if _, err := s.builder.
+	query := s.builder.
 		Insert("rules").
 		Columns("id", "flag_key", "segment_key", "rank", "created_at", "updated_at").
-		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt}).
-		ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errors.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
-			}
+		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt})
+
+	if err := s.driver.Create(ctx, query); err != nil {
+		if errors.Is(err, errs.ErrForeignKeyViolation) {
+			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 		}
 
 		return nil, err
@@ -183,7 +179,7 @@ func (s *RuleStore) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) 
 	}
 
 	if count != 1 {
-		return nil, errors.ErrNotFoundf("rule %q", r.Id)
+		return nil, errs.ErrNotFoundf("rule %q", r.Id)
 	}
 
 	return s.GetRule(ctx, r.Id)
@@ -302,11 +298,11 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 		switch ierr := err.(type) {
 		case sqlite3.Error:
 			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrNotFoundf("rule %q", r.RuleId)
+				return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 			}
 		case *pq.Error:
 			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errors.ErrNotFoundf("rule %q", r.RuleId)
+				return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 			}
 		}
 
@@ -334,7 +330,7 @@ func (s *RuleStore) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistr
 	}
 
 	if count != 1 {
-		return nil, errors.ErrNotFoundf("distribution %q", r.Id)
+		return nil, errs.ErrNotFoundf("distribution %q", r.Id)
 	}
 
 	var (

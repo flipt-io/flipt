@@ -1,12 +1,14 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"net/url"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	proto "github.com/golang/protobuf/ptypes/timestamp"
 )
@@ -32,13 +34,8 @@ func (t *timestamp) Value() (driver.Value, error) {
 	return ptypes.Timestamp(t.Timestamp)
 }
 
-const (
-	pgConstraintForeignKey = "foreign_key_violation"
-	pgConstraintUnique     = "unique_violation"
-)
-
 // Open opens a connection to the db given a URL
-func Open(url string) (*sql.DB, Driver, error) {
+func Open(url string) (*sql.DB, DriverType, error) {
 	driver, u, err := parse(url)
 	if err != nil {
 		return nil, 0, err
@@ -53,33 +50,33 @@ func Open(url string) (*sql.DB, Driver, error) {
 }
 
 var (
-	driverToString = map[Driver]string{
+	driverToString = map[DriverType]string{
 		SQLite:   "sqlite3",
 		Postgres: "postgres",
 	}
 
-	schemeToDriver = map[string]Driver{
+	schemeToDriver = map[string]DriverType{
 		"file":     SQLite,
 		"postgres": Postgres,
 	}
 )
 
-// Driver represents a database driver type
-type Driver uint8
+// DriverType represents a database driver type
+type DriverType uint8
 
-func (d Driver) String() string {
+func (d DriverType) String() string {
 	return driverToString[d]
 }
 
 const (
-	_ Driver = iota
+	_ DriverType = iota
 	// SQLite ...
 	SQLite
 	// Postgres ...
 	Postgres
 )
 
-func parse(in string) (Driver, *url.URL, error) {
+func parse(in string) (DriverType, *url.URL, error) {
 	u, err := url.Parse(in)
 	if err != nil {
 		return 0, u, fmt.Errorf("parsing url: %q: %w", in, err)
@@ -98,4 +95,9 @@ func parse(in string) (Driver, *url.URL, error) {
 	}
 
 	return driver, u, nil
+}
+
+type Driver interface {
+	Create(ctx context.Context, query sq.InsertBuilder) error
+	Update(ctx context.Context, query sq.UpdateBuilder) (sql.Result, error)
 }

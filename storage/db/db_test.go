@@ -24,7 +24,7 @@ func TestParse(t *testing.T) {
 		name    string
 		input   string
 		url     string
-		driver  Driver
+		driver  DriverType
 		wantErr bool
 	}{
 		{

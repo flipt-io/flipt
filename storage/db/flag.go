@@ -3,16 +3,15 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
-	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
-	"github.com/markphelps/flipt/errors"
+	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
 var _ storage.FlagStore = &FlagStore{}
@@ -20,6 +19,7 @@ var _ storage.FlagStore = &FlagStore{}
 // FlagStore is a SQL FlagStore
 type FlagStore struct {
 	builder sq.StatementBuilderType
+	driver  Driver
 }
 
 // NewFlagStore creates a FlagStore
@@ -52,7 +52,7 @@ func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrNotFoundf("flag %q", key)
+			return nil, errs.ErrNotFoundf("flag %q", key)
 		}
 
 		return nil, err
@@ -151,16 +151,9 @@ func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 			Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt})
 	)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrInvalidf("flag %q is not unique", r.Key)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("flag %q is not unique", r.Key)
-			}
+	if err := s.driver.Create(ctx, query); err != nil {
+		if errors.Is(err, errs.ErrUniqueViolation) {
+			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -189,7 +182,7 @@ func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) 
 	}
 
 	if count != 1 {
-		return nil, errors.ErrNotFoundf("flag %q", r.Key)
+		return nil, errs.ErrNotFoundf("flag %q", r.Key)
 	}
 
 	return s.GetFlag(ctx, r.Key)
@@ -223,22 +216,11 @@ func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 			Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt})
 	)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				if ierr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
-					return nil, errors.ErrNotFoundf("flag %q", r.FlagKey)
-				} else if ierr.ExtendedCode == sqlite3.ErrConstraintUnique {
-					return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-				}
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errors.ErrNotFoundf("flag %q", r.FlagKey)
-			} else if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-			}
+	if err := s.driver.Create(ctx, query); err != nil {
+		if errors.Is(err, errs.ErrForeignKeyViolation) {
+			return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
+		} else if errors.Is(err, errs.ErrUniqueViolation) {
+			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -249,25 +231,17 @@ func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 
 // UpdateVariant updates an existing variant
 func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	res, err := s.builder.Update("variants").
+	query := s.builder.Update("variants").
 		Set("key", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
-		ExecContext(ctx)
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
+
+	res, err := s.driver.Update(ctx, query)
 	if err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				if ierr.ExtendedCode == sqlite3.ErrConstraintUnique {
-					return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-				}
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-			}
+		if errors.Is(err, errs.ErrUniqueViolation) {
+			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -279,7 +253,7 @@ func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 	}
 
 	if count != 1 {
-		return nil, errors.ErrNotFoundf("variant %q", r.Key)
+		return nil, errs.ErrNotFoundf("variant %q", r.Key)
 	}
 
 	var (
