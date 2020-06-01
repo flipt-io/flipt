@@ -6,7 +6,7 @@ import "protoc-gen-swagger/options/annotations.proto";
 
 package flipt;
 
-option go_package = "flipt";
+option go_package = ".;flipt";
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
@@ -40,6 +40,17 @@ message EvaluationRequest {
   map<string, string> context = 4;
 }
 
+message BatchEvaluationRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			required: ["flags"]
+    }
+  };
+
+  string request_id = 1;
+  repeated EvaluationRequest flags = 2;
+}
+
 message EvaluationResponse {
   string request_id = 1;
   string entity_id = 2;
@@ -50,6 +61,12 @@ message EvaluationResponse {
   google.protobuf.Timestamp timestamp = 7;
   string value = 8;
   double request_duration_millis = 9;
+}
+
+message BatchEvaluationResponse {
+  string request_id = 1;
+  repeated EvaluationResponse response = 2;
+  double request_duration_millis = 3;
 }
 
 message Flag {
@@ -429,6 +446,13 @@ service Flipt {
   rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
 			description: "Evaluate";
+			tags: "evaluate";
+    };
+  }
+
+  rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+			description: "Batch Evaluate";
 			tags: "evaluate";
     };
   }
