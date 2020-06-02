@@ -65,7 +65,7 @@ message EvaluationResponse {
 
 message BatchEvaluationResponse {
   string request_id = 1;
-  repeated EvaluationResponse response = 2;
+  repeated EvaluationResponse responses = 2;
   double request_duration_millis = 3;
 }
 
