@@ -41,7 +41,7 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 // BatchEvaluate evaluates a request for multiple flags and entities
 func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
-	s.logger.WithField("request", r).Debug("evaluate")
+	s.logger.WithField("request", r).Debug("batch-evaluate")
 	startTime := time.Now()
 
 	// set request ID if not present
