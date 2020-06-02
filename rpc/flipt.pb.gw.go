@@ -65,6 +65,40 @@ func local_request_Flipt_Evaluate_0(ctx context.Context, marshaler runtime.Marsh
 
 }
 
+func request_Flipt_BatchEvaluate_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq BatchEvaluationRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.BatchEvaluate(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Flipt_BatchEvaluate_0(ctx context.Context, marshaler runtime.Marshaler, server FliptServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq BatchEvaluationRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.BatchEvaluate(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_Flipt_GetFlag_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetFlagRequest
 	var metadata runtime.ServerMetadata
@@ -143,7 +177,10 @@ func local_request_Flipt_ListFlags_0(ctx context.Context, marshaler runtime.Mars
 	var protoReq ListFlagRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Flipt_ListFlags_0); err != nil {
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_ListFlags_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -684,7 +721,10 @@ func local_request_Flipt_ListRules_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Flipt_ListRules_0); err != nil {
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_ListRules_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -1311,7 +1351,10 @@ func local_request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler run
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Flipt_DeleteDistribution_0); err != nil {
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_DeleteDistribution_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -1398,7 +1441,10 @@ func local_request_Flipt_ListSegments_0(ctx context.Context, marshaler runtime.M
 	var protoReq ListSegmentRequest
 	var metadata runtime.ServerMetadata
 
-	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Flipt_ListSegments_0); err != nil {
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Flipt_ListSegments_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -1825,6 +1871,26 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		}
 
 		forward_Flipt_Evaluate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Flipt_BatchEvaluate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Flipt_BatchEvaluate_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Flipt_BatchEvaluate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -2389,6 +2455,26 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
+	mux.Handle("POST", pattern_Flipt_BatchEvaluate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Flipt_BatchEvaluate_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Flipt_BatchEvaluate_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_Flipt_GetFlag_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -2895,6 +2981,8 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Flipt_Evaluate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "evaluate"}, "", runtime.AssumeColonVerbOpt(true)))
 
+	pattern_Flipt_BatchEvaluate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "batch-evaluate"}, "", runtime.AssumeColonVerbOpt(true)))
+
 	pattern_Flipt_GetFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Flipt_ListFlags_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "flags"}, "", runtime.AssumeColonVerbOpt(true)))
@@ -2948,6 +3036,8 @@ var (
 
 var (
 	forward_Flipt_Evaluate_0 = runtime.ForwardResponseMessage
+
+	forward_Flipt_BatchEvaluate_0 = runtime.ForwardResponseMessage
 
 	forward_Flipt_GetFlag_0 = runtime.ForwardResponseMessage
 

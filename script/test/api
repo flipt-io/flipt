@@ -195,7 +195,24 @@ step_5_test_evaluation()
         matches "\"match\":false"
 }
 
-step_6_test_delete()
+step_6_test_batch_evaluation()
+{
+    # evaluate
+    shakedown POST "$flipt_api/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}]}"
+        status 200
+        contains "\"flagKey\":\"$flag_key\""
+        contains "\"segmentKey\":\"$segment_key\""
+        contains "\"match\":true"
+        contains "\"value\":\"$variant_key_1\""
+
+    # evaluate no match
+    shakedown POST "$flipt_api/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}]}"
+        status 200
+        contains "\"flagKey\":\"$flag_key\""
+        contains "\"match\":false"
+}
+
+step_7_test_delete()
 {
     # delete rule and distributions
     shakedown DELETE "$flipt_api/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
@@ -210,7 +227,7 @@ step_6_test_delete()
         status 200
 }
 
-step_7_test_meta()
+step_8_test_meta()
 {
     shakedown GET "$flipt_host/meta/info"
         status 200
@@ -227,7 +244,7 @@ step_7_test_meta()
         contains "\"database\""
 }
 
-step_8_test_metrics()
+step_9_test_metrics()
 {
     shakedown GET "$flipt_host/metrics"
         status 200
@@ -258,9 +275,10 @@ run()
     step_3_test_segments_and_constraints
     step_4_test_rules_and_distributions
     step_5_test_evaluation
-    step_6_test_delete
-    step_7_test_meta
-    step_8_test_metrics
+    step_6_test_batch_evaluation
+    step_7_test_delete
+    step_8_test_meta
+    step_9_test_metrics
 }
 
 run
