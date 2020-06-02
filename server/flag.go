@@ -31,7 +31,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 		resp.Flags = append(resp.Flags, flags[i])
 	}
 
-	s.logger.WithField("response", resp).Debug("list flags")
+	s.logger.WithField("response", &resp).Debug("list flags")
 	return &resp, nil
 }
 

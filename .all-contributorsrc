@@ -68,6 +68,15 @@
         "test",
         "code"
       ]
+    },
+    {
+      "login": "vic3lord",
+      "name": "Or Elimelech",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/2883824?v=4",
+      "profile": "https://or-e.net",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
