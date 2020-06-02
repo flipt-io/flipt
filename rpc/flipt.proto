@@ -48,7 +48,7 @@ message BatchEvaluationRequest {
   };
 
   string request_id = 1;
-  repeated EvaluationRequest flags = 2;
+  repeated EvaluationRequest requests = 2;
 }
 
 message EvaluationResponse {
