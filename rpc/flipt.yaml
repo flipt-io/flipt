@@ -6,6 +6,9 @@ http:
   - selector: flipt.Flipt.Evaluate
     post: /api/v1/evaluate
     body: "*"
+  - selector: flipt.Flipt.BatchEvaluate
+    post: /api/v1/batch-evaluate
+    body: "*"
   - selector: flipt.Flipt.GetFlag
     get: /api/v1/flags/{key}
   - selector: flipt.Flipt.ListFlags
