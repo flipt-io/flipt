@@ -30,7 +30,7 @@ func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) 
 		resp.Segments = append(resp.Segments, segments[i])
 	}
 
-	s.logger.WithField("response", resp).Debug("list segments")
+	s.logger.WithField("response", &resp).Debug("list segments")
 	return &resp, nil
 }
 
