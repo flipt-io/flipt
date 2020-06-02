@@ -58,7 +58,7 @@ func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		return resp, err
 	}
 
-	s.logger.WithField("response", resp).Debug("evaluate")
+	s.logger.WithField("response", resp).Debug("batch-evaluate")
 	return resp, nil
 }
 
