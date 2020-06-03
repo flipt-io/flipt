@@ -68,6 +68,7 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		RequestId: r.RequestId,
 		Responses: make([]*flipt.EvaluationResponse, 0, len(r.GetRequests())),
 	}
+
 	for _, flag := range r.GetRequests() {
 		f, err := s.evaluate(ctx, flag)
 		if err != nil {
@@ -77,6 +78,7 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		f.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 		res.Responses = append(res.Responses, f)
 	}
+
 	return &res, nil
 }
 
