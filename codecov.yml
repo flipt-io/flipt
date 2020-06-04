@@ -1,2 +1,3 @@
 ignore:
+  - "rpc/flipt_grpc.pb.*"
   - "rpc/flipt.pb.*"

@@ -9,7 +9,7 @@ TEST_FLAGS ?= -v
 
 TOOLS = \
 	"github.com/gobuffalo/packr/packr" \
-	"github.com/golang/protobuf/protoc-gen-go" \
+	"google.golang.org/grpc/cmd/protoc-gen-go-grpc" \
 	"github.com/golangci/golangci-lint/cmd/golangci-lint" \
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway" \
 	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger" \
@@ -32,6 +32,7 @@ $(UI_OUTPUT_PATH): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
 .PHONY: setup
 setup: ## Install dev tools
 	@echo ">> installing dev tools"
+	go get -u -v "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
 	go install -v $(TOOLS)
 
 .PHONY: bench
@@ -71,7 +72,8 @@ proto: ## Build protobufs
 	@echo ">> generating protobufs"
 	protoc -I/usr/local/include -I. \
 		-Irpc \
-		--go_out=plugins=grpc:./rpc \
+		--go_out=./rpc \
+		--go-grpc_out=./rpc \
 		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \
 		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger \
 		$(PROJECT).proto

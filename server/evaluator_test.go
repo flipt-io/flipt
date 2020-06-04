@@ -24,6 +24,42 @@ var (
 	}
 )
 
+func TestBatchEvaluate(t *testing.T) {
+	var (
+		flagStore       = &flagStoreMock{}
+		evaluationStore = &evaluationStoreMock{}
+		s               = &Server{
+			logger:          logger,
+			FlagStore:       flagStore,
+			EvaluationStore: evaluationStore,
+		}
+	)
+
+	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+
+	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+
+	resp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
+		RequestId: "12345",
+		Requests: []*flipt.EvaluationRequest{
+			{
+				EntityId: "1",
+				FlagKey:  "foo",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "12345", resp.RequestId)
+	assert.NotEmpty(t, resp.RequestDurationMillis)
+	assert.NotNil(t, resp.Responses)
+	assert.Equal(t, 1, len(resp.Responses))
+	assert.False(t, resp.Responses[0].Match)
+}
+
 func TestEvaluate_FlagNotFound(t *testing.T) {
 	var (
 		flagStore = &flagStoreMock{}
