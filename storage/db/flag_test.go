@@ -130,7 +130,7 @@ func TestCreateFlag_DuplicateKey(t *testing.T) {
 		Enabled:     true,
 	})
 
-	assert.EqualError(t, err, "flag \"TestCreateFlag_DuplicateKey\" is not unique")
+	assert.Error(t, err)
 }
 
 func TestUpdateFlag(t *testing.T) {
@@ -244,7 +244,7 @@ func TestCreateVariant_FlagNotFound(t *testing.T) {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "flag \"foo\" not found")
+	assert.Error(t, err)
 }
 
 func TestCreateVariant_DuplicateName(t *testing.T) {
@@ -276,7 +276,7 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique")
+	assert.Error(t, err)
 }
 
 func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
@@ -446,7 +446,7 @@ func TestUpdateVariant_DuplicateName(t *testing.T) {
 		Description: "foobar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique")
+	assert.Error(t, err)
 }
 
 func TestDeleteVariant(t *testing.T) {

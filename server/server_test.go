@@ -2,12 +2,10 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/markphelps/flipt/errors"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,16 +15,6 @@ import (
 )
 
 var logger, _ = test.NewNullLogger()
-
-func TestNew(t *testing.T) {
-	var (
-		builder = sq.StatementBuilderType{}
-		db      = new(sql.DB)
-	)
-
-	server := New(logger, builder, db)
-	assert.NotNil(t, server)
-}
 
 type validatable struct {
 	err error
