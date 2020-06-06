@@ -54,11 +54,11 @@ func WithOffset(offset uint64) QueryOption {
 	}
 }
 
-type Store interface {
-	FlagStore
-	RuleStore
-	SegmentStore
-	EvaluationStore
+type Provider interface {
+	FlagStore() FlagStore
+	RuleStore() RuleStore
+	SegmentStore() SegmentStore
+	EvaluationStore() EvaluationStore
 }
 
 // EvaluationStore returns data necessary for evaluation

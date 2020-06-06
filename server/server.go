@@ -2,15 +2,12 @@ package server
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
-	"github.com/markphelps/flipt/storage/db"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -31,19 +28,14 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB, opts ...Option) *Server {
+func New(logger logrus.FieldLogger, storeProvider storage.Provider, opts ...Option) *Server {
 	var (
-		flagStore       = db.NewFlagStore(builder)
-		segmentStore    = db.NewSegmentStore(builder)
-		ruleStore       = db.NewRuleStore(builder, sql)
-		evaluationStore = db.NewEvaluationStore(builder)
-
 		s = &Server{
 			logger:          logger,
-			FlagStore:       flagStore,
-			SegmentStore:    segmentStore,
-			RuleStore:       ruleStore,
-			EvaluationStore: evaluationStore,
+			FlagStore:       storeProvider.FlagStore(),
+			SegmentStore:    storeProvider.SegmentStore(),
+			RuleStore:       storeProvider.RuleStore(),
+			EvaluationStore: storeProvider.EvaluationStore(),
 		}
 	)
 
@@ -53,10 +45,10 @@ func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB
 
 	if s.cache != nil {
 		// wrap stores with caches
-		s.FlagStore = cache.NewFlagCache(logger, s.cache, flagStore)
-		s.SegmentStore = cache.NewSegmentCache(logger, s.cache, segmentStore)
-		s.RuleStore = cache.NewRuleCache(logger, s.cache, ruleStore)
-		s.EvaluationStore = cache.NewEvaluationCache(logger, s.cache, evaluationStore)
+		s.FlagStore = cache.NewFlagCache(logger, s.cache, s.FlagStore)
+		s.SegmentStore = cache.NewSegmentCache(logger, s.cache, s.SegmentStore)
+		s.RuleStore = cache.NewRuleCache(logger, s.cache, s.RuleStore)
+		s.EvaluationStore = cache.NewEvaluationCache(logger, s.cache, s.EvaluationStore)
 	}
 
 	return s
