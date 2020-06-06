@@ -1,14 +1,12 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"net/url"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/ptypes"
 	proto "github.com/golang/protobuf/ptypes/timestamp"
 )
@@ -35,7 +33,7 @@ func (t *timestamp) Value() (driver.Value, error) {
 }
 
 // Open opens a connection to the db given a URL
-func Open(url string) (*sql.DB, DriverType, error) {
+func Open(url string) (*sql.DB, Dialect, error) {
 	driver, u, err := parse(url)
 	if err != nil {
 		return nil, 0, err
@@ -50,54 +48,49 @@ func Open(url string) (*sql.DB, DriverType, error) {
 }
 
 var (
-	driverToString = map[DriverType]string{
+	dialectToString = map[Dialect]string{
 		SQLite:   "sqlite3",
 		Postgres: "postgres",
 	}
 
-	schemeToDriver = map[string]DriverType{
+	schemeToDialect = map[string]Dialect{
 		"file":     SQLite,
 		"postgres": Postgres,
 	}
 )
 
-// DriverType represents a database driver type
-type DriverType uint8
+// Dialect represents a database dialect
+type Dialect uint8
 
-func (d DriverType) String() string {
-	return driverToString[d]
+func (d Dialect) String() string {
+	return dialectToString[d]
 }
 
 const (
-	_ DriverType = iota
+	_ Dialect = iota
 	// SQLite ...
 	SQLite
 	// Postgres ...
 	Postgres
 )
 
-func parse(in string) (DriverType, *url.URL, error) {
+func parse(in string) (Dialect, *url.URL, error) {
 	u, err := url.Parse(in)
 	if err != nil {
 		return 0, u, fmt.Errorf("parsing url: %q: %w", in, err)
 	}
 
-	driver := schemeToDriver[u.Scheme]
-	if driver == 0 {
-		return 0, u, fmt.Errorf("unknown database driver for: %s", u.Scheme)
+	dialect := schemeToDialect[u.Scheme]
+	if dialect == 0 {
+		return 0, u, fmt.Errorf("unknown database dialect for: %s", u.Scheme)
 	}
 
-	if driver == SQLite {
+	if dialect == SQLite {
 		v := u.Query()
 		v.Set("cache", "shared")
 		v.Set("_fk", "true")
 		u.RawQuery = v.Encode()
 	}
 
-	return driver, u, nil
-}
-
-type Driver interface {
-	Create(ctx context.Context, query sq.InsertBuilder) error
-	Update(ctx context.Context, query sq.UpdateBuilder) (sql.Result, error)
+	return dialect, u, nil
 }

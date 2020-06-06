@@ -7,13 +7,11 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
-	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
 var _ storage.SegmentStore = &SegmentStore{}
@@ -145,24 +143,12 @@ func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegment
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
-
-		query = s.builder.Insert("segments").
-			Columns("key", "name", "description", "match_type", "created_at", "updated_at").
-			Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt})
 	)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrInvalidf("segment %q is not unique", r.Key)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("segment %q is not unique", r.Key)
-			}
-		}
-
+	if _, err := s.builder.Insert("segments").
+		Columns("key", "name", "description", "match_type", "created_at", "updated_at").
+		Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -226,22 +212,10 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 		c.Value = ""
 	}
 
-	query := s.builder.Insert("constraints").
+	if _, err := s.builder.Insert("constraints").
 		Columns("id", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
-		Values(c.Id, c.SegmentKey, c.Type, c.Property, c.Operator, c.Value, &timestamp{c.CreatedAt}, &timestamp{c.UpdatedAt})
-
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrNotFoundf("segment %q", r.SegmentKey)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errors.ErrNotFoundf("segment %q", r.SegmentKey)
-			}
-		}
-
+		Values(c.Id, c.SegmentKey, c.Type, c.Property, c.Operator, c.Value, &timestamp{c.CreatedAt}, &timestamp{c.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 

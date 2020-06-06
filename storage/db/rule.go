@@ -3,16 +3,13 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
 	proto "github.com/golang/protobuf/ptypes"
-	"github.com/lib/pq"
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
 var _ storage.RuleStore = &RuleStore{}
@@ -20,7 +17,6 @@ var _ storage.RuleStore = &RuleStore{}
 // RuleStore is a SQL RuleStore
 type RuleStore struct {
 	builder sq.StatementBuilderType
-	driver  Driver
 	db      *sql.DB
 }
 
@@ -145,16 +141,11 @@ func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) 
 		}
 	)
 
-	query := s.builder.
+	if _, err := s.builder.
 		Insert("rules").
 		Columns("id", "flag_key", "segment_key", "rank", "created_at", "updated_at").
-		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt})
-
-	if err := s.driver.Create(ctx, query); err != nil {
-		if errors.Is(err, errs.ErrForeignKeyViolation) {
-			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
-		}
-
+		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -295,17 +286,6 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 		Columns("id", "rule_id", "variant_id", "rollout", "created_at", "updated_at").
 		Values(d.Id, d.RuleId, d.VariantId, d.Rollout, &timestamp{d.CreatedAt}, &timestamp{d.UpdatedAt}).
 		ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
-			}
-		}
-
 		return nil, err
 	}
 

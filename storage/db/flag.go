@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
@@ -19,7 +18,6 @@ var _ storage.FlagStore = &FlagStore{}
 // FlagStore is a SQL FlagStore
 type FlagStore struct {
 	builder sq.StatementBuilderType
-	driver  Driver
 }
 
 // NewFlagStore creates a FlagStore
@@ -145,17 +143,12 @@ func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
-
-		query = s.builder.Insert("flags").
-			Columns("key", "name", "description", "enabled", "created_at", "updated_at").
-			Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt})
 	)
 
-	if err := s.driver.Create(ctx, query); err != nil {
-		if errors.Is(err, errs.ErrUniqueViolation) {
-			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
-		}
-
+	if _, err := s.builder.Insert("flags").
+		Columns("key", "name", "description", "enabled", "created_at", "updated_at").
+		Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -210,19 +203,12 @@ func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
-
-		query = s.builder.Insert("variants").
-			Columns("id", "flag_key", "key", "name", "description", "created_at", "updated_at").
-			Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt})
 	)
 
-	if err := s.driver.Create(ctx, query); err != nil {
-		if errors.Is(err, errs.ErrForeignKeyViolation) {
-			return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
-		} else if errors.Is(err, errs.ErrUniqueViolation) {
-			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
-		}
-
+	if _, err := s.builder.Insert("variants").
+		Columns("id", "flag_key", "key", "name", "description", "created_at", "updated_at").
+		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -238,12 +224,8 @@ func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
-	res, err := s.driver.Update(ctx, query)
+	res, err := query.ExecContext(ctx)
 	if err != nil {
-		if errors.Is(err, errs.ErrUniqueViolation) {
-			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
-		}
-
 		return nil, err
 	}
 
