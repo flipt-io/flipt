@@ -26,8 +26,11 @@ import (
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/postgres"
+	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -287,7 +290,7 @@ func run(_ []string) error {
 			serverOpts = append(serverOpts, server.WithCache(cacher))
 		}
 
-		sql, driver, err := db.Open(cfg.Database.URL)
+		sql, dialect, err := db.Open(cfg.Database.URL)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
@@ -295,18 +298,20 @@ func run(_ []string) error {
 		defer sql.Close()
 
 		var (
-			builder    sq.StatementBuilderType
-			stmtCacher = sq.NewStmtCacher(sql)
+			stmtCacher    = sq.NewStmtCacher(sql)
+			storeProvider storage.Provider
 		)
 
-		switch driver {
+		switch dialect {
 		case db.SQLite:
-			builder = sq.StatementBuilder.RunWith(stmtCacher)
+			builder := sq.StatementBuilder.RunWith(stmtCacher)
+			storeProvider = sqlite.NewProvider(builder, sql)
 		case db.Postgres:
-			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+			builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+			storeProvider = postgres.NewProvider(builder, sql)
 		}
 
-		srv = server.New(logger, builder, sql, serverOpts...)
+		srv = server.New(logger, storeProvider, serverOpts...)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),

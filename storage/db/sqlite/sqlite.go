@@ -1,4 +1,4 @@
-package postgres
+package sqlite
 
 import (
 	"context"
@@ -7,16 +7,11 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/lib/pq"
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
-)
-
-const (
-	pgConstraintForeignKey = "foreign_key_violation"
-	pgConstraintUnique     = "unique_violation"
+	"github.com/mattn/go-sqlite3"
 )
 
 func NewProvider(builder sq.StatementBuilderType, d *sql.DB) *Provider {
@@ -68,9 +63,9 @@ func (f *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 	flag, err := f.FlagStore.CreateFlag(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == pgConstraintUnique {
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
 			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
 		}
 
@@ -84,13 +79,13 @@ func (f *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 	variant, err := f.FlagStore.CreateVariant(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) {
-			switch perr.Code.Name() {
-			case pgConstraintForeignKey:
+		if errors.As(err, &serr) {
+			switch serr.ExtendedCode {
+			case sqlite3.ErrConstraintForeignKey:
 				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
-			case pgConstraintUnique:
+			case sqlite3.ErrConstraintUnique:
 				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 			}
 		}
@@ -105,9 +100,9 @@ func (f *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 	variant, err := f.FlagStore.UpdateVariant(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == pgConstraintUnique {
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
 			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
@@ -127,9 +122,9 @@ func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegment
 	segment, err := s.SegmentStore.CreateSegment(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == pgConstraintUnique {
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
 			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
 		}
 
@@ -143,9 +138,9 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 	constraint, err := s.SegmentStore.CreateConstraint(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == pgConstraintForeignKey {
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
 			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
 		}
 
@@ -165,9 +160,9 @@ func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) 
 	rule, err := s.RuleStore.CreateRule(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == pgConstraintForeignKey {
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
 			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 		}
 
@@ -181,9 +176,9 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 	dist, err := s.RuleStore.CreateDistribution(ctx, r)
 
 	if err != nil {
-		var perr pq.Error
+		var serr sqlite3.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == pgConstraintForeignKey {
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
 			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 		}
 
