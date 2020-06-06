@@ -33,7 +33,7 @@ func (t *timestamp) Value() (driver.Value, error) {
 }
 
 // Open opens a connection to the db given a URL
-func Open(url string) (*sql.DB, Dialect, error) {
+func Open(url string) (*sql.DB, Driver, error) {
 	driver, u, err := parse(url)
 	if err != nil {
 		return nil, 0, err
@@ -48,49 +48,49 @@ func Open(url string) (*sql.DB, Dialect, error) {
 }
 
 var (
-	dialectToString = map[Dialect]string{
+	driverToString = map[Driver]string{
 		SQLite:   "sqlite3",
 		Postgres: "postgres",
 	}
 
-	schemeToDialect = map[string]Dialect{
+	schemeToDriver = map[string]Driver{
 		"file":     SQLite,
 		"postgres": Postgres,
 	}
 )
 
-// Dialect represents a database dialect
-type Dialect uint8
+// Driver represents a database driver
+type Driver uint8
 
-func (d Dialect) String() string {
-	return dialectToString[d]
+func (d Driver) String() string {
+	return driverToString[d]
 }
 
 const (
-	_ Dialect = iota
+	_ Driver = iota
 	// SQLite ...
 	SQLite
 	// Postgres ...
 	Postgres
 )
 
-func parse(in string) (Dialect, *url.URL, error) {
+func parse(in string) (Driver, *url.URL, error) {
 	u, err := url.Parse(in)
 	if err != nil {
 		return 0, u, fmt.Errorf("parsing url: %q: %w", in, err)
 	}
 
-	dialect := schemeToDialect[u.Scheme]
-	if dialect == 0 {
-		return 0, u, fmt.Errorf("unknown database dialect for: %s", u.Scheme)
+	driver := schemeToDriver[u.Scheme]
+	if driver == 0 {
+		return 0, u, fmt.Errorf("unknown database driver for: %s", u.Scheme)
 	}
 
-	if dialect == SQLite {
+	if driver == SQLite {
 		v := u.Query()
 		v.Set("cache", "shared")
 		v.Set("_fk", "true")
 		u.RawQuery = v.Encode()
 	}
 
-	return dialect, u, nil
+	return driver, u, nil
 }

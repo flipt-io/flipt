@@ -290,7 +290,7 @@ func run(_ []string) error {
 			serverOpts = append(serverOpts, server.WithCache(cacher))
 		}
 
-		sql, dialect, err := db.Open(cfg.Database.URL)
+		sql, driver, err := db.Open(cfg.Database.URL)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
@@ -302,7 +302,7 @@ func run(_ []string) error {
 			storeProvider storage.Provider
 		)
 
-		switch dialect {
+		switch driver {
 		case db.SQLite:
 			builder := sq.StatementBuilder.RunWith(stmtCacher)
 			storeProvider = sqlite.NewProvider(builder, sql)

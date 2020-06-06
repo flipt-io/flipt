@@ -53,8 +53,3 @@ func InvalidFieldError(field, reason string) error {
 func EmptyFieldError(field string) error {
 	return InvalidFieldError(field, "must not be empty")
 }
-
-var (
-	ErrUniqueViolation     = errors.New("not unique")
-	ErrForeignKeyViolation = errors.New("foreign key violation")
-)
