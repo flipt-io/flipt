@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,6 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/sirupsen/logrus"
@@ -38,6 +38,12 @@ func TestParse(t *testing.T) {
 			input:  "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 			driver: Postgres,
 			url:    "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+		},
+		{
+			name:   "mysql",
+			input:  "mysql://mysql@tcp(localhost:3306)/flipt",
+			driver: MySQL,
+			url:    "//mysql@tcp(localhost:3306)/flipt?multiStatements=true",
 		},
 		{
 			name:    "invalid url",
@@ -69,7 +75,7 @@ func TestParse(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, driver, d)
-			assert.Equal(t, url, u.String())
+			assert.Equal(t, url, u)
 		})
 	}
 }
@@ -91,7 +97,7 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
+	//	logger.SetOutput(ioutil.Discard)
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
@@ -128,6 +134,11 @@ func run(m *testing.M) int {
 		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
 
 		stmt = "TRUNCATE TABLE %s CASCADE"
+	case MySQL:
+		dr, err = mysql.WithInstance(db, &mysql.Config{})
+		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+
+		stmt = "TRUNCATE TABLE %s"
 	default:
 		logger.Fatalf("unknown driver: %s", driver)
 	}
