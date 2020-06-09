@@ -10,9 +10,11 @@ import (
 	"path/filepath"
 	"syscall"
 
-	sq "github.com/Masterminds/squirrel"
 	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/postgres"
+	"github.com/markphelps/flipt/storage/db/sqlite"
 	"gopkg.in/yaml.v2"
 )
 
@@ -42,17 +44,13 @@ func runImport(args []string) error {
 
 	defer sql.Close()
 
-	var (
-		builder    sq.StatementBuilderType
-		stmtCacher = sq.NewStmtCacher(sql)
-	)
+	var storeProvider storage.Provider
 
 	switch driver {
-	case db.SQLite:
-		builder = sq.StatementBuilder.RunWith(stmtCacher)
-
+	case db.SQLite, db.MySQL:
+		storeProvider = sqlite.NewProvider(sql)
 	case db.Postgres:
-		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+		storeProvider = postgres.NewProvider(sql)
 	}
 
 	var in io.ReadCloser = os.Stdin
@@ -129,7 +127,7 @@ func runImport(args []string) error {
 	migrator.Close()
 
 	var (
-		flagStore    = db.NewFlagStore(builder)
+		flagStore    = storeProvider.FlagStore()
 		segmentStore = db.NewSegmentStore(builder)
 		ruleStore    = db.NewRuleStore(builder, sql)
 

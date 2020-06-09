@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
 	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
+	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,7 +43,7 @@ func TestParse(t *testing.T) {
 			name:   "mysql",
 			input:  "mysql://mysql@tcp(localhost:3306)/flipt",
 			driver: MySQL,
-			url:    "//mysql@tcp(localhost:3306)/flipt?multiStatements=true",
+			url:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true",
 		},
 		{
 			name:    "invalid url",
@@ -81,10 +81,10 @@ func TestParse(t *testing.T) {
 }
 
 var (
-	flagStore       *FlagStore
-	segmentStore    *SegmentStore
-	ruleStore       *RuleStore
-	evaluationStore *EvaluationStore
+	flagStore       storage.FlagStore
+	segmentStore    storage.SegmentStore
+	ruleStore       storage.RuleStore
+	evaluationStore storage.EvaluationStore
 )
 
 const defaultTestDBURL = "file:../../flipt_test.db"
@@ -116,9 +116,8 @@ func run(m *testing.M) int {
 	}()
 
 	var (
-		dr      database.Driver
-		builder sq.StatementBuilderType
-		stmt    string
+		dr   database.Driver
+		stmt string
 
 		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
 	)
@@ -126,17 +125,14 @@ func run(m *testing.M) int {
 	switch driver {
 	case SQLite:
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
 
 		stmt = "DELETE FROM %s"
 	case Postgres:
 		dr, err = postgres.WithInstance(db, &postgres.Config{})
-		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
 
 		stmt = "TRUNCATE TABLE %s CASCADE"
 	case MySQL:
 		dr, err = mysql.WithInstance(db, &mysql.Config{})
-		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
 
 		stmt = "TRUNCATE TABLE %s"
 	default:
@@ -162,10 +158,20 @@ func run(m *testing.M) int {
 		logger.Fatal(err)
 	}
 
-	flagStore = NewFlagStore(builder)
-	segmentStore = NewSegmentStore(builder)
-	ruleStore = NewRuleStore(builder, db)
-	evaluationStore = NewEvaluationStore(builder)
+	storeProviderFn := storeProviders[driver]
+	if storeProviderFn == nil {
+		logger.Fatalf("nil storageProviderFn for driver: %q", driver)
+	}
+
+	storeProvider := storeProviderFn(db)
+	if storeProvider == nil {
+		logger.Fatalf("nil storageProvider for driver: %q", driver)
+	}
+
+	flagStore = storeProvider.FlagStore()
+	segmentStore = storeProvider.SegmentStore()
+	ruleStore = storeProvider.RuleStore()
+	evaluationStore = storeProvider.EvaluationStore()
 
 	return m.Run()
 }

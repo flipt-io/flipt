@@ -10,57 +10,38 @@ import (
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/common"
 	"github.com/mattn/go-sqlite3"
 )
 
-func NewProvider(builder sq.StatementBuilderType, d *sql.DB) *Provider {
+func NewStore(sql *sql.DB) *Store {
 	var (
-		flagStore       = db.NewFlagStore(builder)
-		segmentStore    = db.NewSegmentStore(builder)
-		ruleStore       = db.NewRuleStore(builder, d)
-		evaluationStore = db.NewEvaluationStore(builder)
+		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(sql))
 	)
 
-	return &Provider{
-		flagStore:       &FlagStore{flagStore},
-		segmentStore:    &SegmentStore{segmentStore},
-		ruleStore:       &RuleStore{ruleStore},
-		evaluationStore: &EvaluationStore{evaluationStore},
+	return &Store{
+		flagStore:       &flagStore{flagStore},
+		segmentStore:    &segmentStore{segmentStore},
+		ruleStore:       &ruleStore{ruleStore},
+		evaluationStore: &evaluationStore{evaluationStore},
 	}
 }
 
-type Provider struct {
-	flagStore       *FlagStore
-	segmentStore    *SegmentStore
-	ruleStore       *RuleStore
-	evaluationStore *EvaluationStore
+type Store struct {
+	flagStore       *flagStore
+	segmentStore    *segmentStore
+	ruleStore       *ruleStore
+	evaluationStore *evaluationStore
 }
 
-func (p *Provider) FlagStore() storage.FlagStore {
-	return p.flagStore
+var _ storage.FlagStore = &flagStore{}
+
+type flagStore struct {
+	*common.FlagStore
 }
 
-func (p *Provider) SegmentStore() storage.SegmentStore {
-	return p.segmentStore
-}
-
-func (p *Provider) RuleStore() storage.RuleStore {
-	return p.ruleStore
-}
-
-func (p *Provider) EvaluationStore() storage.EvaluationStore {
-	return p.evaluationStore
-}
-
-var _ storage.FlagStore = &FlagStore{}
-
-type FlagStore struct {
-	*db.FlagStore
-}
-
-func (f *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	flag, err := f.FlagStore.CreateFlag(ctx, r)
+func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+	flag, err := s.flagStore.CreateFlag(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -75,8 +56,8 @@ func (f *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 	return flag, nil
 }
 
-func (f *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	variant, err := f.FlagStore.CreateVariant(ctx, r)
+func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+	variant, err := f.flagStore.CreateVariant(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -115,7 +96,7 @@ func (f *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 var _ storage.SegmentStore = &SegmentStore{}
 
 type SegmentStore struct {
-	*db.SegmentStore
+	*common.SegmentStore
 }
 
 func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
@@ -153,7 +134,7 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 var _ storage.RuleStore = &RuleStore{}
 
 type RuleStore struct {
-	*db.RuleStore
+	*common.RuleStore
 }
 
 func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
@@ -191,5 +172,5 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 var _ storage.EvaluationStore = &EvaluationStore{}
 
 type EvaluationStore struct {
-	*db.EvaluationStore
+	*common.EvaluationStore
 }

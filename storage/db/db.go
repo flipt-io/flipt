@@ -2,38 +2,13 @@ package db
 
 import (
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/golang/protobuf/ptypes"
-	proto "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/markphelps/flipt/errors"
 )
-
-type timestamp struct {
-	*proto.Timestamp
-}
-
-func (t *timestamp) Scan(value interface{}) error {
-	if v, ok := value.(time.Time); ok {
-		val, err := ptypes.TimestampProto(v)
-		if err != nil {
-			return err
-		}
-
-		t.Timestamp = val
-	}
-
-	return nil
-}
-
-func (t *timestamp) Value() (driver.Value, error) {
-	return ptypes.Timestamp(t.Timestamp)
-}
 
 // Open opens a connection to the db given a URL
 func Open(rawurl string) (*sql.DB, Driver, error) {

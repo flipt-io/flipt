@@ -16,7 +16,6 @@ import (
 	"text/template"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -27,7 +26,6 @@ import (
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
@@ -275,20 +273,18 @@ func run(_ []string) error {
 		}()
 
 		var (
-			grpcOpts   []grpc.ServerOption
-			serverOpts []server.Option
-			srv        *server.Server
+			grpcOpts []grpc.ServerOption
+			srv      *server.Server
 		)
 
-		if cfg.Cache.Memory.Enabled {
-			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
-			if cfg.Cache.Memory.Expiration > 0 {
-				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
-			} else {
-				logger.Info("in-memory cache enabled with no expiration")
-			}
-			serverOpts = append(serverOpts, server.WithCache(cacher))
-		}
+		//if cfg.Cache.Memory.Enabled {
+		//cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
+		//if cfg.Cache.Memory.Expiration > 0 {
+		//logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
+		//} else {
+		//logger.Info("in-memory cache enabled with no expiration")
+		//}
+		//}
 
 		sql, driver, err := db.Open(cfg.Database.URL)
 		if err != nil {
@@ -297,21 +293,16 @@ func run(_ []string) error {
 
 		defer sql.Close()
 
-		var (
-			stmtCacher    = sq.NewStmtCacher(sql)
-			storeProvider storage.Provider
-		)
+		var store storage.Store
 
 		switch driver {
 		case db.SQLite, db.MySQL:
-			builder := sq.StatementBuilder.RunWith(stmtCacher)
-			storeProvider = sqlite.NewProvider(builder, sql)
+			store = sqlite.NewStore(sql)
 		case db.Postgres:
-			builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
-			storeProvider = postgres.NewProvider(builder, sql)
+			store = postgres.NewStore(sql)
 		}
 
-		srv = server.New(logger, storeProvider, serverOpts...)
+		srv = server.New(logger, store)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),

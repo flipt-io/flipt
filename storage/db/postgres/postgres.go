@@ -11,7 +11,7 @@ import (
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/common"
 )
 
 const (
@@ -19,12 +19,14 @@ const (
 	pgConstraintUnique     = "unique_violation"
 )
 
-func NewProvider(builder sq.StatementBuilderType, d *sql.DB) *Provider {
+func NewProvider(sql *sql.DB) *Provider {
 	var (
-		flagStore       = db.NewFlagStore(builder)
-		segmentStore    = db.NewSegmentStore(builder)
-		ruleStore       = db.NewRuleStore(builder, d)
-		evaluationStore = db.NewEvaluationStore(builder)
+		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(sql))
+
+		flagStore       = common.NewFlagStore(builder)
+		segmentStore    = common.NewSegmentStore(builder)
+		ruleStore       = common.NewRuleStore(builder, sql)
+		evaluationStore = common.NewEvaluationStore(builder)
 	)
 
 	return &Provider{
@@ -61,7 +63,7 @@ func (p *Provider) EvaluationStore() storage.EvaluationStore {
 var _ storage.FlagStore = &FlagStore{}
 
 type FlagStore struct {
-	*db.FlagStore
+	*common.FlagStore
 }
 
 func (f *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
@@ -120,7 +122,7 @@ func (f *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 var _ storage.SegmentStore = &SegmentStore{}
 
 type SegmentStore struct {
-	*db.SegmentStore
+	*common.SegmentStore
 }
 
 func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
@@ -158,7 +160,7 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 var _ storage.RuleStore = &RuleStore{}
 
 type RuleStore struct {
-	*db.RuleStore
+	*common.RuleStore
 }
 
 func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
@@ -196,5 +198,5 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 var _ storage.EvaluationStore = &EvaluationStore{}
 
 type EvaluationStore struct {
-	*db.EvaluationStore
+	*common.EvaluationStore
 }

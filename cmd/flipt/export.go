@@ -9,9 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/postgres"
+	"github.com/markphelps/flipt/storage/db/sqlite"
 	"gopkg.in/yaml.v2"
 )
 
@@ -85,16 +86,13 @@ func runExport(_ []string) error {
 
 	defer sql.Close()
 
-	var (
-		builder    sq.StatementBuilderType
-		stmtCacher = sq.NewStmtCacher(sql)
-	)
+	var storeProvider storage.Provider
 
 	switch driver {
-	case db.SQLite:
-		builder = sq.StatementBuilder.RunWith(stmtCacher)
+	case db.SQLite, db.MySQL:
+		storeProvider = sqlite.NewProvider(sql)
 	case db.Postgres:
-		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+		storeProvider = postgres.NewProvider(sql)
 	}
 
 	// default to stdout
@@ -115,9 +113,9 @@ func runExport(_ []string) error {
 	defer out.Close()
 
 	var (
-		flagStore    = db.NewFlagStore(builder)
-		segmentStore = db.NewSegmentStore(builder)
-		ruleStore    = db.NewRuleStore(builder, sql)
+		flagStore    = storeProvider.FlagStore()
+		segmentStore = storeProvider.SegmentStore()
+		ruleStore    = storeProvider.RuleStore()
 
 		enc = yaml.NewEncoder(out)
 		doc = new(Document)
