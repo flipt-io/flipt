@@ -14,34 +14,24 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-func NewStore(sql *sql.DB) *Store {
-	var (
-		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(sql))
-	)
+var _ storage.Store = &Store{}
+
+// NewStore creates a new sqlite.Store
+func NewStore(db *sql.DB) *Store {
+	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
 
 	return &Store{
-		flagStore:       &flagStore{flagStore},
-		segmentStore:    &segmentStore{segmentStore},
-		ruleStore:       &ruleStore{ruleStore},
-		evaluationStore: &evaluationStore{evaluationStore},
+		Store: common.NewStore(db, builder),
 	}
 }
 
+// Store is a sqlite specific implementation of storage.Store
 type Store struct {
-	flagStore       *flagStore
-	segmentStore    *segmentStore
-	ruleStore       *ruleStore
-	evaluationStore *evaluationStore
-}
-
-var _ storage.FlagStore = &flagStore{}
-
-type flagStore struct {
-	*common.FlagStore
+	*common.Store
 }
 
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
-	flag, err := s.flagStore.CreateFlag(ctx, r)
+	flag, err := s.Store.CreateFlag(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -57,7 +47,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 }
 
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
-	variant, err := f.flagStore.CreateVariant(ctx, r)
+	variant, err := s.Store.CreateVariant(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -77,8 +67,8 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	return variant, nil
 }
 
-func (f *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	variant, err := f.FlagStore.UpdateVariant(ctx, r)
+func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+	variant, err := s.Store.UpdateVariant(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -93,14 +83,8 @@ func (f *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 	return variant, nil
 }
 
-var _ storage.SegmentStore = &SegmentStore{}
-
-type SegmentStore struct {
-	*common.SegmentStore
-}
-
-func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
-	segment, err := s.SegmentStore.CreateSegment(ctx, r)
+func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+	segment, err := s.Store.CreateSegment(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -115,8 +99,8 @@ func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegment
 	return segment, nil
 }
 
-func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
-	constraint, err := s.SegmentStore.CreateConstraint(ctx, r)
+func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+	constraint, err := s.Store.CreateConstraint(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -131,14 +115,8 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 	return constraint, nil
 }
 
-var _ storage.RuleStore = &RuleStore{}
-
-type RuleStore struct {
-	*common.RuleStore
-}
-
-func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	rule, err := s.RuleStore.CreateRule(ctx, r)
+func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+	rule, err := s.Store.CreateRule(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -153,8 +131,8 @@ func (s *RuleStore) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) 
 	return rule, nil
 }
 
-func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	dist, err := s.RuleStore.CreateDistribution(ctx, r)
+func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+	dist, err := s.Store.CreateDistribution(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
@@ -167,10 +145,4 @@ func (s *RuleStore) CreateDistribution(ctx context.Context, r *flipt.CreateDistr
 	}
 
 	return dist, nil
-}
-
-var _ storage.EvaluationStore = &EvaluationStore{}
-
-type EvaluationStore struct {
-	*common.EvaluationStore
 }

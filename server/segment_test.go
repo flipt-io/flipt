@@ -12,10 +12,10 @@ import (
 
 func TestGetSegment(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.GetSegmentRequest{Key: "foo"}
 	)
@@ -32,10 +32,10 @@ func TestGetSegment(t *testing.T) {
 
 func TestListSegments(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 	)
 
@@ -54,10 +54,10 @@ func TestListSegments(t *testing.T) {
 
 func TestCreateSegment(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.CreateSegmentRequest{
 			Key:         "key",
@@ -80,10 +80,10 @@ func TestCreateSegment(t *testing.T) {
 
 func TestUpdateSegment(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.UpdateSegmentRequest{
 			Key:         "key",
@@ -106,10 +106,10 @@ func TestUpdateSegment(t *testing.T) {
 
 func TestDeleteSegment(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.DeleteSegmentRequest{
 			Key: "key",
@@ -126,10 +126,10 @@ func TestDeleteSegment(t *testing.T) {
 
 func TestCreateConstraint(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.CreateConstraintRequest{
 			SegmentKey: "segmentKey",
@@ -157,10 +157,10 @@ func TestCreateConstraint(t *testing.T) {
 
 func TestUpdateConstraint(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.UpdateConstraintRequest{
 			Id:         "1",
@@ -189,10 +189,10 @@ func TestUpdateConstraint(t *testing.T) {
 
 func TestDeleteConstraint(t *testing.T) {
 	var (
-		store = &segmentStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:       logger,
-			SegmentStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.DeleteConstraintRequest{
 			Id: "1",

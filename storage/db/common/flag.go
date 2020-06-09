@@ -13,22 +13,8 @@ import (
 	"github.com/markphelps/flipt/storage"
 )
 
-var _ storage.FlagStore = &FlagStore{}
-
-// FlagStore is a SQL FlagStore
-type FlagStore struct {
-	builder sq.StatementBuilderType
-}
-
-// NewFlagStore creates a FlagStore
-func NewFlagStore(builder sq.StatementBuilderType) *FlagStore {
-	return &FlagStore{
-		builder: builder,
-	}
-}
-
 // GetFlag gets a flag
-func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
+func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
@@ -67,7 +53,7 @@ func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error
 }
 
 // ListFlags lists all flags
-func (s *FlagStore) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
+func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
 	var (
 		flags []*flipt.Flag
 
@@ -132,7 +118,7 @@ func (s *FlagStore) ListFlags(ctx context.Context, opts ...storage.QueryOption) 
 }
 
 // CreateFlag creates a flag
-func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	var (
 		now  = proto.TimestampNow()
 		flag = &flipt.Flag{
@@ -156,7 +142,7 @@ func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 }
 
 // UpdateFlag updates an existing flag
-func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	query := s.builder.Update("flags").
 		Set("name", r.Name).
 		Set("description", r.Description).
@@ -182,7 +168,7 @@ func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) 
 }
 
 // DeleteFlag deletes a flag
-func (s *FlagStore) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	_, err := s.builder.Delete("flags").
 		Where(sq.Eq{"key": r.Key}).
 		ExecContext(ctx)
@@ -191,7 +177,7 @@ func (s *FlagStore) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) 
 }
 
 // CreateVariant creates a variant
-func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	var (
 		now = proto.TimestampNow()
 		v   = &flipt.Variant{
@@ -216,7 +202,7 @@ func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 }
 
 // UpdateVariant updates an existing variant
-func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	query := s.builder.Update("variants").
 		Set("key", r.Key).
 		Set("name", r.Name).
@@ -260,7 +246,7 @@ func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 }
 
 // DeleteVariant deletes a variant
-func (s *FlagStore) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
 	_, err := s.builder.Delete("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
@@ -268,7 +254,7 @@ func (s *FlagStore) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	return err
 }
 
-func (s *FlagStore) variants(ctx context.Context, flag *flipt.Flag) (err error) {
+func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 	query := s.builder.Select("id, flag_key, key, name, description, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"flag_key": flag.Key}).

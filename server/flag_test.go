@@ -12,10 +12,10 @@ import (
 
 func TestGetFlag(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.GetFlagRequest{Key: "foo"}
 	)
@@ -32,10 +32,10 @@ func TestGetFlag(t *testing.T) {
 
 func TestListFlags(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 	)
 
@@ -54,10 +54,10 @@ func TestListFlags(t *testing.T) {
 
 func TestCreateFlag(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.CreateFlagRequest{
 			Key:         "key",
@@ -82,10 +82,10 @@ func TestCreateFlag(t *testing.T) {
 
 func TestUpdateFlag(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.UpdateFlagRequest{
 			Key:         "key",
@@ -110,10 +110,10 @@ func TestUpdateFlag(t *testing.T) {
 
 func TestDeleteFlag(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.DeleteFlagRequest{
 			Key: "key",
@@ -130,10 +130,10 @@ func TestDeleteFlag(t *testing.T) {
 
 func TestCreateVariant(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.CreateVariantRequest{
 			FlagKey:     "flagKey",
@@ -159,10 +159,10 @@ func TestCreateVariant(t *testing.T) {
 
 func TestUpdateVariant(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.UpdateVariantRequest{
 			Id:          "1",
@@ -189,10 +189,10 @@ func TestUpdateVariant(t *testing.T) {
 
 func TestDeleteVariant(t *testing.T) {
 	var (
-		store = &flagStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			FlagStore: store,
+			logger: logger,
+			Store:  store,
 		}
 		req = &flipt.DeleteVariantRequest{
 			Id: "1",

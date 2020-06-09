@@ -44,13 +44,13 @@ func runImport(args []string) error {
 
 	defer sql.Close()
 
-	var storeProvider storage.Provider
+	var store storage.Store
 
 	switch driver {
-	case db.SQLite, db.MySQL:
-		storeProvider = sqlite.NewProvider(sql)
+	case db.SQLite:
+		store = sqlite.NewStore(sql)
 	case db.Postgres:
-		storeProvider = postgres.NewProvider(sql)
+		store = postgres.NewStore(sql)
 	}
 
 	var in io.ReadCloser = os.Stdin
@@ -127,10 +127,6 @@ func runImport(args []string) error {
 	migrator.Close()
 
 	var (
-		flagStore    = storeProvider.FlagStore()
-		segmentStore = db.NewSegmentStore(builder)
-		ruleStore    = db.NewRuleStore(builder, sql)
-
 		dec = yaml.NewDecoder(in)
 		doc = new(Document)
 	)
@@ -150,7 +146,7 @@ func runImport(args []string) error {
 
 	// create flags/variants
 	for _, f := range doc.Flags {
-		flag, err := flagStore.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		flag, err := store.CreateFlag(ctx, &flipt.CreateFlagRequest{
 			Key:         f.Key,
 			Name:        f.Name,
 			Description: f.Description,
@@ -162,7 +158,7 @@ func runImport(args []string) error {
 		}
 
 		for _, v := range f.Variants {
-			variant, err := flagStore.CreateVariant(ctx, &flipt.CreateVariantRequest{
+			variant, err := store.CreateVariant(ctx, &flipt.CreateVariantRequest{
 				FlagKey:     f.Key,
 				Key:         v.Key,
 				Name:        v.Name,
@@ -181,7 +177,7 @@ func runImport(args []string) error {
 
 	// create segments/constraints
 	for _, s := range doc.Segments {
-		segment, err := segmentStore.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+		segment, err := store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
 			Key:         s.Key,
 			Name:        s.Name,
 			Description: s.Description,
@@ -192,7 +188,7 @@ func runImport(args []string) error {
 		}
 
 		for _, c := range s.Constraints {
-			_, err := segmentStore.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+			_, err := store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
 				SegmentKey: s.Key,
 				Type:       flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
 				Property:   c.Property,
@@ -212,7 +208,7 @@ func runImport(args []string) error {
 	for _, f := range doc.Flags {
 		// loop through rules
 		for _, r := range f.Rules {
-			rule, err := ruleStore.CreateRule(ctx, &flipt.CreateRuleRequest{
+			rule, err := store.CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:    f.Key,
 				SegmentKey: r.SegmentKey,
 				Rank:       int32(r.Rank),
@@ -228,7 +224,7 @@ func runImport(args []string) error {
 					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
 				}
 
-				_, err := ruleStore.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+				_, err := store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
 					FlagKey:   f.Key,
 					RuleId:    rule.Id,
 					VariantId: variant.Id,

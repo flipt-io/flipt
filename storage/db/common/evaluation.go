@@ -9,8 +9,6 @@ import (
 	"github.com/markphelps/flipt/storage"
 )
 
-var _ storage.EvaluationStore = &EvaluationStore{}
-
 type optionalConstraint struct {
 	ID       sql.NullString
 	Type     sql.NullInt64
@@ -19,19 +17,7 @@ type optionalConstraint struct {
 	Value    sql.NullString
 }
 
-// EvaluationStore is a SQL EvaluationStore
-type EvaluationStore struct {
-	builder sq.StatementBuilderType
-}
-
-// NewEvaluationStore creates an EvaluationStore
-func NewEvaluationStore(builder sq.StatementBuilderType) *EvaluationStore {
-	return &EvaluationStore{
-		builder: builder,
-	}
-}
-
-func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
+func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
 	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.rank, c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
@@ -111,7 +97,7 @@ func (s *EvaluationStore) GetEvaluationRules(ctx context.Context, flagKey string
 	return rules, nil
 }
 
-func (s *EvaluationStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	rows, err := s.builder.Select("d.id", "d.rule_id", "d.variant_id", "d.rollout", "v.key").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").

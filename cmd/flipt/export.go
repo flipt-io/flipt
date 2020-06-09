@@ -86,13 +86,13 @@ func runExport(_ []string) error {
 
 	defer sql.Close()
 
-	var storeProvider storage.Provider
+	var store storage.Store
 
 	switch driver {
-	case db.SQLite, db.MySQL:
-		storeProvider = sqlite.NewProvider(sql)
+	case db.SQLite:
+		store = sqlite.NewStore(sql)
 	case db.Postgres:
-		storeProvider = postgres.NewProvider(sql)
+		store = postgres.NewStore(sql)
 	}
 
 	// default to stdout
@@ -113,10 +113,6 @@ func runExport(_ []string) error {
 	defer out.Close()
 
 	var (
-		flagStore    = storeProvider.FlagStore()
-		segmentStore = storeProvider.SegmentStore()
-		ruleStore    = storeProvider.RuleStore()
-
 		enc = yaml.NewEncoder(out)
 		doc = new(Document)
 	)
@@ -127,7 +123,7 @@ func runExport(_ []string) error {
 
 	// export flags/variants in batches
 	for batch := uint64(0); remaining; batch++ {
-		flags, err := flagStore.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		flags, err := store.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting flags: %w", err)
 		}
@@ -156,7 +152,7 @@ func runExport(_ []string) error {
 			}
 
 			// export rules for flag
-			rules, err := ruleStore.ListRules(ctx, flag.Key)
+			rules, err := store.ListRules(ctx, flag.Key)
 			if err != nil {
 				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
@@ -185,7 +181,7 @@ func runExport(_ []string) error {
 
 	// export segments/constraints in batches
 	for batch := uint64(0); remaining; batch++ {
-		segments, err := segmentStore.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		segments, err := store.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting segments: %w", err)
 		}

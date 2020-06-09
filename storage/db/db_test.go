@@ -9,9 +9,11 @@ import (
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
 	"github.com/golang-migrate/migrate/database/mysql"
-	"github.com/golang-migrate/migrate/database/postgres"
+	pg "github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/db/postgres"
+	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -80,12 +82,7 @@ func TestParse(t *testing.T) {
 	}
 }
 
-var (
-	flagStore       storage.FlagStore
-	segmentStore    storage.SegmentStore
-	ruleStore       storage.RuleStore
-	evaluationStore storage.EvaluationStore
-)
+var store storage.Store
 
 const defaultTestDBURL = "file:../../flipt_test.db"
 
@@ -127,10 +124,12 @@ func run(m *testing.M) int {
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
 
 		stmt = "DELETE FROM %s"
+		store = sqlite.NewStore(db)
 	case Postgres:
-		dr, err = postgres.WithInstance(db, &postgres.Config{})
+		dr, err = pg.WithInstance(db, &pg.Config{})
 
 		stmt = "TRUNCATE TABLE %s CASCADE"
+		store = postgres.NewStore(db)
 	case MySQL:
 		dr, err = mysql.WithInstance(db, &mysql.Config{})
 
@@ -157,21 +156,6 @@ func run(m *testing.M) int {
 	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Fatal(err)
 	}
-
-	storeProviderFn := storeProviders[driver]
-	if storeProviderFn == nil {
-		logger.Fatalf("nil storageProviderFn for driver: %q", driver)
-	}
-
-	storeProvider := storeProviderFn(db)
-	if storeProvider == nil {
-		logger.Fatalf("nil storageProvider for driver: %q", driver)
-	}
-
-	flagStore = storeProvider.FlagStore()
-	segmentStore = storeProvider.SegmentStore()
-	ruleStore = storeProvider.RuleStore()
-	evaluationStore = storeProvider.EvaluationStore()
 
 	return m.Run()
 }
