@@ -303,7 +303,7 @@ func run(_ []string) error {
 		)
 
 		switch driver {
-		case db.SQLite:
+		case db.SQLite, db.MySQL:
 			builder := sq.StatementBuilder.RunWith(stmtCacher)
 			storeProvider = sqlite.NewProvider(builder, sql)
 		case db.Postgres:

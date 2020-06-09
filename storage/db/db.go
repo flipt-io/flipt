@@ -129,21 +129,6 @@ func parse(rawurl string) (Driver, string, error) {
 		}
 		cfg.MultiStatements = true
 
-		// Keep backwards compatibility from when we used net/url.Parse() to parse the DSN.
-		// net/url.Parse() would automatically unescape it for us.
-		// See: https://play.golang.org/p/q9j1io-YICQ
-		user, err := url.QueryUnescape(cfg.User)
-		if err != nil {
-			return 0, "", errURL(rawurl, err)
-		}
-		cfg.User = user
-
-		password, err := url.QueryUnescape(cfg.Passwd)
-		if err != nil {
-			return 0, "", errURL(rawurl, err)
-		}
-		cfg.Passwd = password
-
 		return driver, cfg.FormatDSN(), nil
 	default:
 		u, err := url.Parse(rawurl)

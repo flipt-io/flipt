@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/config"
@@ -33,6 +34,8 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
 	case Postgres:
 		dr, err = postgres.WithInstance(sql, &postgres.Config{})
+	case MySQL:
+		dr, err = mysql.WithInstance(sql, &mysql.Config{})
 	}
 
 	if err != nil {
