@@ -14,7 +14,7 @@ func Open(rawurl string) (*sql.DB, Driver, error) {
 		return nil, 0, err
 	}
 
-	db, err := sql.Open(driver.String(), url.String())
+	db, err := sql.Open(driver.String(), url.DSN)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -73,12 +73,18 @@ func parse(rawurl string) (Driver, *dburl.URL, error) {
 		v := url.Query()
 		v.Set("multiStatements", "true")
 		url.RawQuery = v.Encode()
+		// we need to re-parse since we modified the query params
+		url, err = dburl.Parse(url.URL.String())
+
 	case SQLite:
 		v := url.Query()
 		v.Set("cache", "shared")
 		v.Set("_fk", "true")
 		url.RawQuery = v.Encode()
+
+		// we need to re-parse since we modified the query params
+		url, err = dburl.Parse(url.URL.String())
 	}
 
-	return driver, url, nil
+	return driver, url, err
 }
