@@ -56,7 +56,7 @@ jobs:
         # will assign a random free host port
         - 3306/tcp
         # needed because the mysql container does not provide a healthcheck
-        options: --health-cmd "mysqladmin ping -h localhost:${{ job.services.mysql.port['3306'] }}" --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd mysqladmin ping -h localhost:3306 --health-interval 10s --health-timeout 5s --health-retries 5
         env:
           MYSQL_DATABASE: flipt_test
           MYSQL_USER: mysql
@@ -80,5 +80,5 @@ jobs:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
-    - name: Unit Test (Postgres)
+    - name: Unit Test (MySQL)
       run: DB_URL="mysql://mysql@tcp(localhost:${{ job.services.mysql.ports['3306'] }})/flipt_test" go test -count=1 -v ./...

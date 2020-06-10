@@ -43,9 +43,9 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:   "mysql",
-			input:  "mysql://mysql@tcp(localhost:3306)/flipt",
+			input:  "mysql://mysql@localhost:3306/flipt",
 			driver: MySQL,
-			url:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true",
+			url:    "mysql://mysql@localhost:3306/flipt?multiStatements=true",
 		},
 		{
 			name:    "invalid url",
@@ -77,7 +77,7 @@ func TestParse(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, driver, d)
-			assert.Equal(t, url, u)
+			assert.Equal(t, url, u.String())
 		})
 	}
 }

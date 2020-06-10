@@ -3,11 +3,8 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"net/url"
-	"strings"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/markphelps/flipt/errors"
+	"github.com/xo/dburl"
 )
 
 // Open opens a connection to the db given a URL
@@ -17,7 +14,7 @@ func Open(rawurl string) (*sql.DB, Driver, error) {
 		return nil, 0, err
 	}
 
-	db, err := sql.Open(driver.String(), url)
+	db, err := sql.Open(driver.String(), url.String())
 	if err != nil {
 		return nil, 0, err
 	}
@@ -32,8 +29,8 @@ var (
 		MySQL:    "mysql",
 	}
 
-	schemeToDriver = map[string]Driver{
-		"file":     SQLite,
+	stringToDriver = map[string]Driver{
+		"sqlite3":  SQLite,
 		"postgres": Postgres,
 		"mysql":    MySQL,
 	}
@@ -56,68 +53,32 @@ const (
 	MySQL
 )
 
-// copied from net/url
-func getScheme(rawurl string) (scheme, path string, err error) {
-	for i := 0; i < len(rawurl); i++ {
-		c := rawurl[i]
-		switch {
-		case 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z':
-		// do nothing
-		case '0' <= c && c <= '9' || c == '+' || c == '-' || c == '.':
-			if i == 0 {
-				return "", rawurl, nil
-			}
-		case c == ':':
-			if i == 0 {
-				return "", "", errors.New("missing protocol scheme")
-			}
-			return rawurl[:i], rawurl[i+1:], nil
-		default:
-			// we have encountered an invalid character,
-			// so there is no valid scheme
-			return "", rawurl, nil
-		}
-	}
-	return "", rawurl, nil
-}
-
-func parse(rawurl string) (Driver, string, error) {
-	scheme, _, err := getScheme(rawurl)
-	if err != nil {
-		return 0, "", fmt.Errorf("getting scheme from url: %q", rawurl)
-	}
-
-	driver := schemeToDriver[scheme]
-	if driver == 0 {
-		return 0, "", fmt.Errorf("unknown database driver for: %q", scheme)
-	}
-
+func parse(rawurl string) (Driver, *dburl.URL, error) {
 	errURL := func(rawurl string, err error) error {
 		return fmt.Errorf("error parsing url: %q, %v", rawurl, err)
 	}
 
+	url, err := dburl.Parse(rawurl)
+	if err != nil {
+		return 0, nil, errURL(rawurl, err)
+	}
+
+	driver := stringToDriver[url.Driver]
+	if driver == 0 {
+		return 0, nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
+	}
+
 	switch driver {
 	case MySQL:
-		cfg, err := mysql.ParseDSN(strings.TrimPrefix(rawurl, "mysql://"))
-		if err != nil {
-			return 0, "", errURL(rawurl, err)
-		}
-		cfg.MultiStatements = true
-
-		return driver, cfg.FormatDSN(), nil
-	default:
-		u, err := url.Parse(rawurl)
-		if err != nil {
-			return 0, "", errURL(rawurl, err)
-		}
-
-		if driver == SQLite {
-			v := u.Query()
-			v.Set("cache", "shared")
-			v.Set("_fk", "true")
-			u.RawQuery = v.Encode()
-		}
-
-		return driver, u.String(), nil
+		v := url.Query()
+		v.Set("multiStatements", "true")
+		url.RawQuery = v.Encode()
+	case SQLite:
+		v := url.Query()
+		v.Set("cache", "shared")
+		v.Set("_fk", "true")
+		url.RawQuery = v.Encode()
 	}
+
+	return driver, url, nil
 }
