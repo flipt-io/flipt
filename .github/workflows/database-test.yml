@@ -50,13 +50,11 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
+      mysql:
         image: mysql@sha256:a31a277d8d39450220c722c1302a345c84206e7fd4cdb619e7face046e89031d
         ports:
         # will assign a random free host port
         - 3306/tcp
-        # needed because the mysql container does not provide a healthcheck
-        options: --health-cmd mysqladmin ping -h localhost:3306 --health-interval 10s --health-timeout 5s --health-retries 5
         env:
           MYSQL_DATABASE: flipt_test
           MYSQL_USER: mysql
