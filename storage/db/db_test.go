@@ -77,7 +77,7 @@ func TestParse(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, driver, d)
-			assert.Equal(t, url, u.String())
+			assert.Equal(t, url, u.DSN)
 		})
 	}
 }

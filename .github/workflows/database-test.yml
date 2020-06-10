@@ -21,7 +21,6 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         env:
           POSTGRES_DB: flipt_test
-          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ''
 
     steps:
@@ -42,7 +41,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (Postgres)
-      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
+      run: DB_URL="postgres://root@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
   ## MySQL Tests
   mysql:
@@ -57,9 +56,7 @@ jobs:
         - 3306/tcp
         env:
           MYSQL_DATABASE: flipt_test
-          MYSQL_USER: mysql
           MYSQL_ALLOW_EMPTY_PASSWORD: true
-          MYSQL_PASSWORD: ''
 
     steps:
     - name: Setup Go
@@ -79,4 +76,4 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (MySQL)
-      run: DB_URL="mysql://mysql@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...
+      run: DB_URL="mysql://root@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...
