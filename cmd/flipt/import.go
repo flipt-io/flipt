@@ -13,6 +13,7 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
 	"gopkg.in/yaml.v2"
@@ -51,6 +52,8 @@ func runImport(args []string) error {
 		store = sqlite.NewStore(sql)
 	case db.Postgres:
 		store = postgres.NewStore(sql)
+	case db.MySQL:
+		store = mysql.NewStore(sql)
 	}
 
 	var in io.ReadCloser = os.Stdin

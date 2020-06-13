@@ -22,7 +22,7 @@ jobs:
         env:
           POSTGRES_DB: flipt_test
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ''
+          POSTGRES_PASSWORD: password
 
     steps:
     - name: Setup Go
@@ -42,7 +42,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (Postgres)
-      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
+      run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
   ## MySQL Tests
   mysql:
@@ -57,6 +57,8 @@ jobs:
         - 3306/tcp
         env:
           MYSQL_DATABASE: flipt_test
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: password
           MYSQL_ALLOW_EMPTY_PASSWORD: true
 
     steps:
@@ -77,4 +79,4 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (MySQL)
-      run: DB_URL="mysql://root@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...
+      run: DB_URL="mysql://mysql:password@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...

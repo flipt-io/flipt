@@ -27,6 +27,7 @@ import (
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/phyber/negroni-gzip/gzip"
@@ -296,10 +297,12 @@ func run(_ []string) error {
 		var store storage.Store
 
 		switch driver {
-		case db.SQLite, db.MySQL:
+		case db.SQLite:
 			store = sqlite.NewStore(sql)
 		case db.Postgres:
 			store = postgres.NewStore(sql)
+		case db.MySQL:
+			store = mysql.NewStore(sql)
 		}
 
 		srv = server.New(logger, store)

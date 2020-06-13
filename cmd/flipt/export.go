@@ -11,6 +11,7 @@ import (
 
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
 	"gopkg.in/yaml.v2"
@@ -93,6 +94,8 @@ func runExport(_ []string) error {
 		store = sqlite.NewStore(sql)
 	case db.Postgres:
 		store = postgres.NewStore(sql)
+	case db.MySQL:
+		store = mysql.NewStore(sql)
 	}
 
 	// default to stdout
