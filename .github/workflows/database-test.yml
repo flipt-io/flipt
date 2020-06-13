@@ -21,6 +21,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         env:
           POSTGRES_DB: flipt_test
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ''
 
     steps:
@@ -41,7 +42,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (Postgres)
-      run: DB_URL="postgres://root@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
+      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
   ## MySQL Tests
   mysql:
