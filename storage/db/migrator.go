@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -10,13 +11,17 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/config"
-	"github.com/markphelps/flipt/errors"
 )
 
-var ErrMigrationsNilVersion = errors.New("migrations nil version")
+var expectedVersions = map[Driver]uint{
+	SQLite:   2,
+	Postgres: 2,
+	MySQL:    0,
+}
 
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
+	driver   Driver
 	migrator *migrate.Migrate
 }
 
@@ -51,6 +56,7 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 
 	return &Migrator{
 		migrator: mm,
+		driver:   driver,
 	}, nil
 }
 
@@ -59,26 +65,32 @@ func (m *Migrator) Close() (source, db error) {
 	return m.migrator.Close()
 }
 
-// CurrentVersion returns the current migration version
-func (m *Migrator) CurrentVersion() (uint, error) {
-	v, _, err := m.migrator.Version()
+// Run runs any pending migrations
+func (m *Migrator) Run(force bool) error {
+	canAutoMigrate := force
 
-	// migrations never run
-	if err == migrate.ErrNilVersion {
-		return 0, ErrMigrationsNilVersion
-	}
+	// check if any migrations are pending
+	currentVersion, _, err := m.migrator.Version()
 
 	if err != nil {
-		return 0, fmt.Errorf("getting current migrations version: %w", err)
+		if !errors.Is(err, migrate.ErrNilVersion) {
+			return fmt.Errorf("getting current migrations version: %w", err)
+		}
+
+		// if first run then it's safe to migrate
+		canAutoMigrate = true
 	}
 
-	return v, nil
-}
+	expectedVersion := expectedVersions[m.driver]
 
-// Run runs any pending migrations
-func (m *Migrator) Run() error {
-	if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("running migrations: %w", err)
+	if currentVersion < expectedVersion {
+		if !canAutoMigrate {
+			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+		}
+
+		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+			return fmt.Errorf("running migrations: %w", err)
+		}
 	}
 
 	return nil

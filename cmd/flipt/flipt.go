@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -48,8 +47,6 @@ import (
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
-
-const expectedMigrationVersion uint = 2
 
 var (
 	logger = logrus.New()
@@ -114,7 +111,7 @@ func main() {
 
 				defer migrator.Close()
 
-				if err := migrator.Run(); err != nil {
+				if err := migrator.Run(true); err != nil {
 					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
@@ -230,36 +227,8 @@ func run(_ []string) error {
 
 		defer migrator.Close()
 
-		// if forceMigrate provided we can autoMigrate
-		canAutoMigrate := forceMigrate
-
-		// check if any migrations are pending
-		currentVersion, err := migrator.CurrentVersion()
-		if err != nil {
-			// if first run then it's safe to migrate
-			if err == db.ErrMigrationsNilVersion {
-				canAutoMigrate = true
-			} else {
-				return fmt.Errorf("checking migration status: %w", err)
-			}
-		}
-
-		if currentVersion < expectedMigrationVersion {
-			logger.Debugf("migrations pending: [current version=%d, want version=%d]", currentVersion, expectedMigrationVersion)
-
-			if !canAutoMigrate {
-				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
-			}
-
-			logger.Debug("running migrations...")
-
-			if err := migrator.Run(); err != nil {
-				return err
-			}
-
-			logger.Debug("finished migrations")
-		} else {
-			logger.Debug("migrations up to date")
+		if err := migrator.Run(forceMigrate); err != nil {
+			return err
 		}
 
 		migrator.Close()
