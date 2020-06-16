@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS variants (
   updated_at TIMESTAMP DEFAULT NOW() NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (flag_key) REFERENCES flags (`key`) ON DELETE CASCADE,
-  CONSTRAINT variants_flag_key_key UNIQUE (flag_key,key)
+  CONSTRAINT variants_flag_key_key UNIQUE (flag_key, `key`)
 );
 
 CREATE TABLE IF NOT EXISTS constraints (

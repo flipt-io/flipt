@@ -11,55 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMigratorCurrentVersion(t *testing.T) {
-	s := &stubDB.Stub{}
-	d, err := s.Open("")
-	require.NoError(t, err)
-
-	err = d.SetVersion(2, false)
-	require.NoError(t, err)
-
-	src := &stubSource.Stub{}
-	srcDrv, err := src.Open("")
-	require.NoError(t, err)
-
-	m, err := migrate.NewWithInstance("stub", srcDrv, "", d)
-	require.NoError(t, err)
-
-	migrator := Migrator{
-		migrator: m,
-	}
-
-	defer migrator.Close()
-
-	v, err := migrator.CurrentVersion()
-	assert.NoError(t, err)
-	assert.Equal(t, uint(2), v)
-}
-
-func TestMigratorCurrentVersion_NilVersion(t *testing.T) {
-	s := &stubDB.Stub{}
-	d, err := s.Open("")
-	require.NoError(t, err)
-
-	src := &stubSource.Stub{}
-	srcDrv, err := src.Open("")
-	require.NoError(t, err)
-
-	m, err := migrate.NewWithInstance("stub", srcDrv, "", d)
-	require.NoError(t, err)
-
-	migrator := Migrator{
-		migrator: m,
-	}
-
-	defer migrator.Close()
-
-	v, err := migrator.CurrentVersion()
-	assert.EqualError(t, err, ErrMigrationsNilVersion.Error())
-	assert.Equal(t, uint(0), v)
-}
-
 func TestMigratorRun(t *testing.T) {
 	s := &stubDB.Stub{}
 	d, err := s.Open("")
@@ -84,7 +35,7 @@ func TestMigratorRun(t *testing.T) {
 
 	defer migrator.Close()
 
-	err = migrator.Run()
+	err = migrator.Run(false)
 	assert.NoError(t, err)
 }
 
@@ -115,6 +66,6 @@ func TestMigratorRun_NoChange(t *testing.T) {
 
 	defer migrator.Close()
 
-	err = migrator.Run()
+	err = migrator.Run(false)
 	assert.NoError(t, err)
 }
