@@ -384,7 +384,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, segmentTwo.Key, updatedRule.SegmentKey)
 	assert.Equal(t, int32(1), updatedRule.Rank)
 	assert.Equal(t, rule.CreatedAt.Seconds, updatedRule.CreatedAt.Seconds)
-	assert.NotEqual(t, rule.CreatedAt, updatedRule.UpdatedAt)
+	assert.NotZero(t, rule.UpdatedAt)
 
 	updatedDistribution, err := store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		Id:        distribution.Id,
@@ -399,7 +399,7 @@ func TestUpdateRuleAndDistribution(t *testing.T) {
 	assert.Equal(t, variant.Id, updatedDistribution.VariantId)
 	assert.Equal(t, float32(10), updatedDistribution.Rollout)
 	assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
-	assert.NotEqual(t, distribution.CreatedAt, updatedDistribution.UpdatedAt)
+	assert.NotZero(t, rule.UpdatedAt)
 
 	err = store.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
 		Id:        distribution.Id,

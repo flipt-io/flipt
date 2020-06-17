@@ -72,6 +72,7 @@ func parse(rawurl string) (Driver, *dburl.URL, error) {
 	case MySQL:
 		v := url.Query()
 		v.Set("multiStatements", "true")
+		v.Set("parseTime", "true")
 		url.RawQuery = v.Encode()
 		// we need to re-parse since we modified the query params
 		url, err = dburl.Parse(url.URL.String())

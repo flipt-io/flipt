@@ -160,7 +160,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, updated.MatchType)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
 }
 
 func TestUpdateSegment_NotFound(t *testing.T) {
@@ -355,7 +355,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Equal(t, flipt.OpEmpty, updated.Operator)
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
 
 	// get the segment again
 	segment, err = store.GetSegment(context.TODO(), segment.Key)

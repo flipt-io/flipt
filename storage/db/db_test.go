@@ -46,7 +46,7 @@ func TestParse(t *testing.T) {
 			name:   "mysql",
 			input:  "mysql://mysql@localhost:3306/flipt",
 			driver: MySQL,
-			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true",
+			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true",
 		},
 		{
 			name:    "invalid url",
@@ -155,10 +155,7 @@ func run(m *testing.M) (code int, err error) {
 	}
 
 	for _, t := range tables {
-		_, err = db.Exec(fmt.Sprintf(stmt, t))
-		if err != nil {
-			return 1, err
-		}
+		_, _ = db.Exec(fmt.Sprintf(stmt, t))
 	}
 
 	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
