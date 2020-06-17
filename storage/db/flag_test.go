@@ -276,7 +276,7 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 		Description: "bar",
 	})
 
-	assert.Error(t, err)
+	assert.EqualError(t, err, "variant \"foo\" is not unique")
 }
 
 func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
