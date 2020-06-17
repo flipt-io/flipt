@@ -126,7 +126,7 @@ func TestCreateSegment_DuplicateKey(t *testing.T) {
 		Description: "bar",
 	})
 
-	assert.Error(t, err)
+	assert.EqualError(t, err, "segment \"TestCreateSegment_DuplicateKey\" is not unique")
 }
 
 func TestUpdateSegment(t *testing.T) {
@@ -304,7 +304,7 @@ func TestCreateConstraint_SegmentNotFound(t *testing.T) {
 		Value:      "baz",
 	})
 
-	assert.Error(t, err)
+	assert.EqualError(t, err, "segment \"foo\" not found")
 }
 
 func TestUpdateConstraint(t *testing.T) {

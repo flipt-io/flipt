@@ -268,7 +268,7 @@ func TestCreateDistribution_NoRule(t *testing.T) {
 		Rollout:   100,
 	})
 
-	assert.Error(t, err)
+	assert.EqualError(t, err, "rule \"foo\" not found")
 }
 
 func TestCreateRule_FlagNotFound(t *testing.T) {
@@ -278,7 +278,7 @@ func TestCreateRule_FlagNotFound(t *testing.T) {
 		Rank:       1,
 	})
 
-	assert.Error(t, err)
+	assert.EqualError(t, err, "flag \"foo\" or segment \"bar\" not found")
 }
 
 func TestCreateRule_SegmentNotFound(t *testing.T) {
@@ -298,7 +298,7 @@ func TestCreateRule_SegmentNotFound(t *testing.T) {
 		Rank:       1,
 	})
 
-	assert.Error(t, err)
+	assert.EqualError(t, err, "flag \"TestCreateRule_SegmentNotFound\" or segment \"foo\" not found")
 }
 
 func TestUpdateRuleAndDistribution(t *testing.T) {
