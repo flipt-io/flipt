@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/markphelps/flipt/storage"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -12,31 +11,13 @@ const (
 	evaluationDistributionsCachePrefix = "eval:dist:rule:"
 )
 
-var _ storage.EvaluationStore = &EvaluationCache{}
-
-// EvaluationCache wraps an EvaluationStore and provides caching
-type EvaluationCache struct {
-	logger logrus.FieldLogger
-	cache  Cacher
-	store  storage.EvaluationStore
-}
-
-// NewEvaluationCache creates an EvaluationCache by wrapping a storage.EvaluationStore
-func NewEvaluationCache(logger logrus.FieldLogger, cacher Cacher, store storage.EvaluationStore) *EvaluationCache {
-	return &EvaluationCache{
-		logger: logger.WithField("cache", "memory"),
-		cache:  cacher,
-		store:  store,
-	}
-}
-
 // GetEvaluationRules returns all rules applicable to the flagKey provided from the cache if they exist; delegating to the underlying store and caching the result if no error
-func (e *EvaluationCache) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
+func (c *CacheStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
 	key := evaluationRulesCachePrefix + flagKey
 
 	// check if rules exists in cache
-	if data, ok := e.cache.Get(key); ok {
-		e.logger.Debugf("cache hit: %q", key)
+	if data, ok := c.cache.Get(key); ok {
+		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues("eval_rules", "memory").Inc()
 
 		rules, ok := data.([]*storage.EvaluationRule)
@@ -49,14 +30,14 @@ func (e *EvaluationCache) GetEvaluationRules(ctx context.Context, flagKey string
 	}
 
 	// else, get them and add to cache
-	rules, err := e.store.GetEvaluationRules(ctx, flagKey)
+	rules, err := c.store.GetEvaluationRules(ctx, flagKey)
 	if err != nil {
 		return rules, err
 	}
 
 	if len(rules) > 0 {
-		e.cache.Set(key, rules)
-		e.logger.Debugf("cache miss; added: %q", key)
+		c.cache.Set(key, rules)
+		c.logger.Debugf("cache miss; added: %q", key)
 		cacheMissTotal.WithLabelValues("eval_rules", "memory").Inc()
 	}
 
@@ -64,12 +45,12 @@ func (e *EvaluationCache) GetEvaluationRules(ctx context.Context, flagKey string
 }
 
 // GetEvaluationDistributions returns all distributions applicable to the ruleID provided from the cache if they exist; delegating to the underlying store and caching the result if no error
-func (e *EvaluationCache) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (c *CacheStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	key := evaluationDistributionsCachePrefix + ruleID
 
 	// check if distributions exists in cache
-	if data, ok := e.cache.Get(key); ok {
-		e.logger.Debugf("cache hit: %q", key)
+	if data, ok := c.cache.Get(key); ok {
+		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues("eval_distributions", "memory").Inc()
 
 		distributions, ok := data.([]*storage.EvaluationDistribution)
@@ -82,14 +63,14 @@ func (e *EvaluationCache) GetEvaluationDistributions(ctx context.Context, ruleID
 	}
 
 	// else, get them and add to cache
-	distributions, err := e.store.GetEvaluationDistributions(ctx, ruleID)
+	distributions, err := c.store.GetEvaluationDistributions(ctx, ruleID)
 	if err != nil {
 		return distributions, err
 	}
 
 	if len(distributions) > 0 {
-		e.cache.Set(key, distributions)
-		e.logger.Debugf("cache miss; added %q", key)
+		c.cache.Set(key, distributions)
+		c.logger.Debugf("cache miss; added %q", key)
 		cacheMissTotal.WithLabelValues("eval_distributions", "memory").Inc()
 	}
 

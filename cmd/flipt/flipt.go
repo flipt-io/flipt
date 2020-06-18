@@ -25,6 +25,7 @@ import (
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
 	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
@@ -247,15 +248,6 @@ func run(_ []string) error {
 			srv      *server.Server
 		)
 
-		//if cfg.Cache.Memory.Enabled {
-		//cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
-		//if cfg.Cache.Memory.Expiration > 0 {
-		//logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
-		//} else {
-		//logger.Info("in-memory cache enabled with no expiration")
-		//}
-		//}
-
 		sql, driver, err := db.Open(cfg.Database.URL)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
@@ -272,6 +264,17 @@ func run(_ []string) error {
 			store = postgres.NewStore(sql)
 		case db.MySQL:
 			store = mysql.NewStore(sql)
+		}
+
+		if cfg.Cache.Memory.Enabled {
+			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
+			if cfg.Cache.Memory.Expiration > 0 {
+				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
+			} else {
+				logger.Info("in-memory cache enabled with no expiration")
+			}
+
+			store = cache.NewCacheStore(logger, cacher, store)
 		}
 
 		srv = server.New(logger, store)
