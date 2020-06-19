@@ -15,7 +15,6 @@ import (
 	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -139,7 +138,7 @@ func run(m *testing.M) (code int, err error) {
 
 		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
-			return 1, errors.Wrap(err, "disabling foreign key checks: mysql")
+			return 1, fmt.Errorf("disabling foreign key checks: mysql: %w", err)
 		}
 
 		defer func() {

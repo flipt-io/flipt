@@ -11,7 +11,7 @@ const flagCachePrefix = "flag:"
 
 // GetFlag returns the flag from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
-func (c *CacheStore) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
+func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 	key := flagCachePrefix + k
 
 	// check if flag exists in cache
@@ -42,47 +42,47 @@ func (c *CacheStore) GetFlag(ctx context.Context, k string) (*flipt.Flag, error)
 }
 
 // ListFlags delegates to the underlying store
-func (c *CacheStore) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
+func (c *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
 	return c.store.ListFlags(ctx, opts...)
 }
 
 // CreateFlag delegates to the underlying store, flushing the cache in the process
-func (c *CacheStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (c *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	c.cache.Flush()
 	c.logger.Debug("flushed cache")
 	return c.store.CreateFlag(ctx, r)
 }
 
 // UpdateFlag delegates to the underlying store, flushing the cache in the process
-func (c *CacheStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (c *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	c.cache.Flush()
 	c.logger.Debug("flushed cache")
 	return c.store.UpdateFlag(ctx, r)
 }
 
 // DeleteFlag delegates to the underlying store, flushing the cache in the process
-func (c *CacheStore) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+func (c *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	c.cache.Flush()
 	c.logger.Debug("flushed cache")
 	return c.store.DeleteFlag(ctx, r)
 }
 
 // CreateVariant delegates to the underlying store, flushing the cache in the process
-func (c *CacheStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+func (c *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	c.cache.Flush()
 	c.logger.Debug("flushed cache")
 	return c.store.CreateVariant(ctx, r)
 }
 
 // UpdateVariant delegates to the underlying store, flushing the cache in the process
-func (c *CacheStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+func (c *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	c.cache.Flush()
 	c.logger.Debug("flushed cache")
 	return c.store.UpdateVariant(ctx, r)
 }
 
 // DeleteVariant delegates to the underlying store, flushing the cache in the process
-func (c *CacheStore) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (c *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
 	c.cache.Flush()
 	c.logger.Debug("flushed cache")
 	return c.store.DeleteVariant(ctx, r)

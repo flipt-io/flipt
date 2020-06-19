@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/markphelps/flipt/storage"
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -13,10 +12,9 @@ import (
 
 func TestGetEvaluationRules(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &evaluationStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewEvaluationCache(logger, cacher, store)
+		store   = &storeMock{}
+		cacher  = &cacherSpy{}
+		subject = NewStore(logger, cacher, store)
 	)
 
 	ret := []*storage.EvaluationRule{
@@ -53,10 +51,9 @@ func TestGetEvaluationRules(t *testing.T) {
 
 func TestGetEvaluationRules_NoResults(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &evaluationStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewEvaluationCache(logger, cacher, store)
+		store   = &storeMock{}
+		cacher  = &cacherSpy{}
+		subject = NewStore(logger, cacher, store)
 	)
 
 	ret := []*storage.EvaluationRule{}
@@ -82,10 +79,9 @@ func TestGetEvaluationRules_NoResults(t *testing.T) {
 
 func TestGetEvaluationDistributions(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &evaluationStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewEvaluationCache(logger, cacher, store)
+		store   = &storeMock{}
+		cacher  = &cacherSpy{}
+		subject = NewStore(logger, cacher, store)
 	)
 
 	ret := []*storage.EvaluationDistribution{
@@ -122,10 +118,9 @@ func TestGetEvaluationDistributions(t *testing.T) {
 
 func TestGetEvaluationDistributions_NoResults(t *testing.T) {
 	var (
-		logger, _ = test.NewNullLogger()
-		store     = &evaluationStoreMock{}
-		cacher    = &cacherSpy{}
-		subject   = NewEvaluationCache(logger, cacher, store)
+		store   = &storeMock{}
+		cacher  = &cacherSpy{}
+		subject = NewStore(logger, cacher, store)
 	)
 
 	ret := []*storage.EvaluationDistribution{}

@@ -274,7 +274,7 @@ func run(_ []string) error {
 				logger.Info("in-memory cache enabled with no expiration")
 			}
 
-			store = cache.NewCacheStore(logger, cacher, store)
+			store = cache.NewStore(logger, cacher, store)
 		}
 
 		srv = server.New(logger, store)

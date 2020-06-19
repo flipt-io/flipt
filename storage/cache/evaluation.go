@@ -12,7 +12,7 @@ const (
 )
 
 // GetEvaluationRules returns all rules applicable to the flagKey provided from the cache if they exist; delegating to the underlying store and caching the result if no error
-func (c *CacheStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
+func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
 	key := evaluationRulesCachePrefix + flagKey
 
 	// check if rules exists in cache
@@ -45,7 +45,7 @@ func (c *CacheStore) GetEvaluationRules(ctx context.Context, flagKey string) ([]
 }
 
 // GetEvaluationDistributions returns all distributions applicable to the ruleID provided from the cache if they exist; delegating to the underlying store and caching the result if no error
-func (c *CacheStore) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	key := evaluationDistributionsCachePrefix + ruleID
 
 	// check if distributions exists in cache

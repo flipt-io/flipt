@@ -13,9 +13,9 @@ import (
 
 func TestGetFlag(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
@@ -43,9 +43,9 @@ func TestGetFlag(t *testing.T) {
 
 func TestGetFlagNotFound(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{}, errors.ErrNotFound("foo"))
@@ -61,9 +61,9 @@ func TestGetFlagNotFound(t *testing.T) {
 
 func TestListFlags(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	ret := []*flipt.Flag{
@@ -84,9 +84,9 @@ func TestListFlags(t *testing.T) {
 
 func TestCreateFlag(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("CreateFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
@@ -104,9 +104,9 @@ func TestCreateFlag(t *testing.T) {
 
 func TestUpdateFlag(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("UpdateFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
@@ -123,9 +123,9 @@ func TestUpdateFlag(t *testing.T) {
 
 func TestDeleteFlag(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("DeleteFlag", mock.Anything, mock.Anything).Return(nil)
@@ -142,9 +142,9 @@ func TestDeleteFlag(t *testing.T) {
 
 func TestCreateVariant(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("CreateVariant", mock.Anything, mock.Anything).Return(&flipt.Variant{FlagKey: "foo"}, nil)
@@ -161,9 +161,9 @@ func TestCreateVariant(t *testing.T) {
 
 func TestUpdateVariant(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("UpdateVariant", mock.Anything, mock.Anything).Return(&flipt.Variant{FlagKey: "foo"}, nil)
@@ -180,9 +180,9 @@ func TestUpdateVariant(t *testing.T) {
 
 func TestDeleteVariant(t *testing.T) {
 	var (
-		store   = &flagStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewFlagCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("DeleteVariant", mock.Anything, mock.Anything).Return(nil)

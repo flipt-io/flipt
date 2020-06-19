@@ -8,6 +8,7 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
+	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/gofrs/uuid"
@@ -482,9 +483,10 @@ func BenchmarkGetSegment(b *testing.B) {
 
 func BenchmarkGetSegment_CacheMemory(b *testing.B) {
 	var (
-		logger, _  = test.NewNullLogger()
+		l, _       = test.NewNullLogger()
+		logger     = logrus.NewEntry(l)
 		cacher     = cache.NewInMemoryCache(5*time.Minute, 10*time.Minute, logger)
-		storeCache = cache.NewSegmentCache(logger, cacher, store)
+		storeCache = cache.NewStore(logger, cacher, store)
 
 		ctx = context.Background()
 

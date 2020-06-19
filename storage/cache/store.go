@@ -5,18 +5,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var _ storage.Store = &CacheStore{}
+var _ storage.Store = &Store{}
 
-// CacheStore wraps an existing storage.Store and provides caching
-type CacheStore struct {
+// Store wraps an existing storage.Store and provides caching
+type Store struct {
 	logger *logrus.Entry
 	cache  Cacher
 	store  storage.Store
 }
 
 // NewCacheStore creates a new *CacheStore
-func NewCacheStore(logger *logrus.Entry, cache Cacher, store storage.Store) *CacheStore {
-	return &CacheStore{
+func NewStore(logger *logrus.Entry, cache Cacher, store storage.Store) *Store {
+	return &Store{
 		logger: logger,
 		cache:  cache,
 		store:  store,
