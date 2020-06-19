@@ -102,7 +102,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
 		Where(sq.Eq{"d.rule_id": ruleID}).
-		OrderBy("d.created_at").
+		OrderBy("d.created_at ASC").
 		QueryContext(ctx)
 	if err != nil {
 		return nil, err
