@@ -269,45 +269,42 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 
-	// update and re-evaluate 100 times
-	for i := 0; i < 100; i++ {
-		// update dist1 with same values
-		_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
-			Id:        dist1.Id,
-			FlagKey:   flag.Key,
-			RuleId:    rule.Id,
-			VariantId: variant1.Id,
-			Rollout:   80.00,
-		})
+	// update dist1 with same values
+	_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+		Id:        dist1.Id,
+		FlagKey:   flag.Key,
+		RuleId:    rule.Id,
+		VariantId: variant1.Id,
+		Rollout:   80.00,
+	})
 
-		require.NoError(t, err)
+	require.NoError(t, err)
 
-		// update dist2 with same values
-		_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
-			Id:        dist2.Id,
-			FlagKey:   flag.Key,
-			RuleId:    rule.Id,
-			VariantId: variant2.Id,
-			Rollout:   20.00,
-		})
+	// update dist2 with same values
+	_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+		Id:        dist2.Id,
+		FlagKey:   flag.Key,
+		RuleId:    rule.Id,
+		VariantId: variant2.Id,
+		Rollout:   20.00,
+	})
 
-		require.NoError(t, err)
+	require.NoError(t, err)
 
-		evaluationDistributions, err = store.GetEvaluationDistributions(context.TODO(), rule.Id)
-		require.NoError(t, err)
+	evaluationDistributions, err = store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	require.NoError(t, err)
 
-		assert.Equal(t, 2, len(evaluationDistributions))
+	assert.Equal(t, 2, len(evaluationDistributions))
 
-		assert.NotEmpty(t, evaluationDistributions[0].ID)
-		assert.Equal(t, rule.Id, evaluationDistributions[0].RuleID)
-		assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantID)
-		assert.Equal(t, variant1.Key, evaluationDistributions[0].VariantKey)
-		assert.Equal(t, float32(80.00), evaluationDistributions[0].Rollout)
+	assert.NotEmpty(t, evaluationDistributions[0].ID)
+	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleID)
+	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantID)
+	assert.Equal(t, variant1.Key, evaluationDistributions[0].VariantKey)
+	assert.Equal(t, float32(80.00), evaluationDistributions[0].Rollout)
 
-		assert.NotEmpty(t, evaluationDistributions[1].ID)
-		assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
-		assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
-		assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
-		assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
-	}
+	assert.NotEmpty(t, evaluationDistributions[1].ID)
+	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
+	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
+	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
+	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 }

@@ -141,10 +141,6 @@ func run(m *testing.M) (code int, err error) {
 			return 1, fmt.Errorf("disabling foreign key checks: mysql: %w", err)
 		}
 
-		defer func() {
-			_, _ = db.Exec("SET FOREIGN_KEY_CHECKS = 1;")
-		}()
-
 	default:
 		return 1, fmt.Errorf("unknown driver: %s", driver)
 	}
@@ -155,6 +151,13 @@ func run(m *testing.M) (code int, err error) {
 
 	for _, t := range tables {
 		_, _ = db.Exec(fmt.Sprintf(stmt, t))
+	}
+
+	switch driver {
+	case MySQL:
+		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
+			return 1, fmt.Errorf("enabling foreign key checks: mysql: %w", err)
+		}
 	}
 
 	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
