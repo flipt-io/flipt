@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	constraintForeignKeyErrCode = pq.ErrorCode("23503")
-	constraintUniqueErrCode     = pq.ErrorCode("23505")
+	constraintForeignKeyErr = "foreign_key_violation"
+	constraintUniqueErr     = "unique_violation"
 )
 
 var _ storage.Store = &Store{}
@@ -39,7 +39,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintUniqueErrCode {
+		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
 			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
 		}
 
@@ -56,10 +56,10 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		var perr pq.Error
 
 		if errors.As(err, &perr) {
-			switch perr.Code {
-			case constraintForeignKeyErrCode:
+			switch perr.Code.Name() {
+			case constraintForeignKeyErr:
 				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
-			case constraintUniqueErrCode:
+			case constraintUniqueErr:
 				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 			}
 		}
@@ -76,7 +76,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintUniqueErrCode {
+		if errors.As(err, &perr) && perr.Code == constraintUniqueErr {
 			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
@@ -92,7 +92,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintUniqueErrCode {
+		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
 			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
 		}
 
@@ -108,7 +108,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErrCode {
+		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
 		}
 
@@ -124,7 +124,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErrCode {
+		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 		}
 
@@ -140,7 +140,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintForeignKeyErrCode {
+		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
 			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 		}
 
