@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	constraintForeignKeyErrCode = "23503"
-	constraintUniqueErrCode     = "23505"
+	constraintForeignKeyErrCode = pq.ErrorCode("23503")
+	constraintUniqueErrCode     = pq.ErrorCode("23505")
 )
 
 var _ storage.Store = &Store{}
