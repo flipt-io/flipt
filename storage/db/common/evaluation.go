@@ -19,12 +19,12 @@ type optionalConstraint struct {
 
 func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
 	// get all rules for flag with their constraints if any
-	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.`rank`, c.id, c.type, c.property, c.operator, c.value").
+	rows, err := s.builder.Select(`r.id, r.flag_key, r.segment_key, s.match_type, r."rank", c.id, c.type, c.property, c.operator, c.value`).
 		From("rules r").
-		Join("segments s on (r.segment_key = s.`key`)").
-		LeftJoin("constraints c ON (s.`key` = c.segment_key)").
+		Join(`segments s on (r.segment_key = s."key")`).
+		LeftJoin(`constraints c ON (s."key" = c.segment_key)`).
 		Where(sq.Eq{"r.flag_key": flagKey}).
-		OrderBy("r.`rank` ASC").
+		OrderBy(`r."rank" ASC`).
 		GroupBy("r.id, c.id, s.match_type").
 		QueryContext(ctx)
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 }
 
 func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	rows, err := s.builder.Select("d.id", "d.rule_id", "d.variant_id", "d.rollout", "v.`key`").
+	rows, err := s.builder.Select(`d.id, d.rule_id, d.variant_id, d.rollout, v."key"`).
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
 		Where(sq.Eq{"d.rule_id": ruleID}).
