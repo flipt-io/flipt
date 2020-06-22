@@ -21,9 +21,9 @@ func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 
 		flag = &flipt.Flag{}
 
-		query = s.builder.Select(`"key", name, description, enabled, created_at, updated_at`).
+		query = s.builder.Select("`key`, name, description, enabled, created_at, updated_at").
 			From("flags").
-			Where(sq.Eq{`"key"`: key})
+			Where(sq.Eq{"`key`": key})
 
 		err = query.QueryRowContext(ctx).Scan(
 			&flag.Key,
@@ -57,7 +57,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*
 	var (
 		flags []*flipt.Flag
 
-		query = s.builder.Select(`"key", name, description, enabled, created_at, updated_at`).
+		query = s.builder.Select("`key`, name, description, enabled, created_at, updated_at").
 			From("flags").
 			OrderBy("created_at ASC")
 	)
@@ -132,7 +132,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	)
 
 	if _, err := s.builder.Insert("flags").
-		Columns(`"key", "name", "description", "enabled", "created_at", "updated_at"`).
+		Columns("`key`", "name", "description", "enabled", "created_at", "updated_at").
 		Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
-		Where(sq.Eq{`"key"`: r.Key})
+		Where(sq.Eq{"`key`": r.Key})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 // DeleteFlag deletes a flag
 func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	_, err := s.builder.Delete("flags").
-		Where(sq.Eq{`"key"`: r.Key}).
+		Where(sq.Eq{"`key`": r.Key}).
 		ExecContext(ctx)
 
 	return err
@@ -192,7 +192,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	)
 
 	if _, err := s.builder.Insert("variants").
-		Columns("id", "flag_key", `"key"`, "name", "description", "created_at", "updated_at").
+		Columns("id", "flag_key", "`key`", "name", "description", "created_at", "updated_at").
 		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 // UpdateVariant updates an existing variant
 func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	query := s.builder.Update("variants").
-		Set(`"key"`, r.Key).
+		Set("`key`", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
@@ -231,7 +231,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		v = &flipt.Variant{}
 	)
 
-	if err := s.builder.Select(`id, "key", flag_key, name, description, created_at, updated_at`).
+	if err := s.builder.Select("id, `key`, flag_key, name, description, created_at, updated_at").
 		From("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		QueryRowContext(ctx).
@@ -255,7 +255,7 @@ func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest
 }
 
 func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
-	query := s.builder.Select(`id, flag_key, "key", name, description, created_at, updated_at`).
+	query := s.builder.Select("id, flag_key, `key`, name, description, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"flag_key": flag.Key}).
 		OrderBy("created_at ASC")
