@@ -45,7 +45,7 @@ func TestParse(t *testing.T) {
 			name:   "mysql",
 			input:  "mysql://mysql@localhost:3306/flipt",
 			driver: MySQL,
-			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true",
+			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true&sql_mode=ANSI",
 		},
 		{
 			name:    "invalid url",
@@ -68,7 +68,7 @@ func TestParse(t *testing.T) {
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			d, u, err := parse(input)
+			d, u, err := parse(input, false)
 
 			if wantErr {
 				require.Error(t, err)
@@ -103,14 +103,10 @@ func run(m *testing.M) (code int, err error) {
 		dbURL = defaultTestDBURL
 	}
 
-	db, driver, err := Open(dbURL)
+	db, driver, err := open(dbURL, true)
 	if err != nil {
 		return 1, err
 	}
-
-	defer func() {
-		_ = db.Close()
-	}()
 
 	var (
 		dr   database.Driver
@@ -122,19 +118,13 @@ func run(m *testing.M) (code int, err error) {
 	switch driver {
 	case SQLite:
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-
 		stmt = "DELETE FROM %s"
-		store = sqlite.NewStore(db)
 	case Postgres:
 		dr, err = pg.WithInstance(db, &pg.Config{})
-
 		stmt = "TRUNCATE TABLE %s CASCADE"
-		store = postgres.NewStore(db)
 	case MySQL:
 		dr, err = ms.WithInstance(db, &ms.Config{})
-
 		stmt = "TRUNCATE TABLE %s"
-		store = mysql.NewStore(db)
 
 		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
@@ -153,13 +143,6 @@ func run(m *testing.M) (code int, err error) {
 		_, _ = db.Exec(fmt.Sprintf(stmt, t))
 	}
 
-	switch driver {
-	case MySQL:
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
-			return 1, fmt.Errorf("enabling foreign key checks: mysql: %w", err)
-		}
-	}
-
 	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
@@ -169,6 +152,26 @@ func run(m *testing.M) (code int, err error) {
 
 	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
 		return 1, err
+	}
+
+	db, driver, err = open(dbURL, false)
+	if err != nil {
+		return 1, err
+	}
+
+	defer db.Close()
+
+	switch driver {
+	case SQLite:
+		store = sqlite.NewStore(db)
+	case Postgres:
+		store = postgres.NewStore(db)
+	case MySQL:
+		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
+			return 1, fmt.Errorf("enabling foreign key checks: mysql: %w", err)
+		}
+
+		store = mysql.NewStore(db)
 	}
 
 	return m.Run(), nil

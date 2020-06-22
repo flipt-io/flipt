@@ -9,7 +9,11 @@ import (
 
 // Open opens a connection to the db given a URL
 func Open(rawurl string) (*sql.DB, Driver, error) {
-	driver, url, err := parse(rawurl)
+	return open(rawurl, false)
+}
+
+func open(rawurl string, migrate bool) (*sql.DB, Driver, error) {
+	driver, url, err := parse(rawurl, migrate)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -53,7 +57,7 @@ const (
 	MySQL
 )
 
-func parse(rawurl string) (Driver, *dburl.URL, error) {
+func parse(rawurl string, migrate bool) (Driver, *dburl.URL, error) {
 	errURL := func(rawurl string, err error) error {
 		return fmt.Errorf("error parsing url: %q, %v", rawurl, err)
 	}
@@ -73,6 +77,9 @@ func parse(rawurl string) (Driver, *dburl.URL, error) {
 		v := url.Query()
 		v.Set("multiStatements", "true")
 		v.Set("parseTime", "true")
+		if !migrate {
+			v.Set("sql_mode", "ANSI")
+		}
 		url.RawQuery = v.Encode()
 		// we need to re-parse since we modified the query params
 		url, err = dburl.Parse(url.URL.String())

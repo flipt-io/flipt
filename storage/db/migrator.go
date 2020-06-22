@@ -27,7 +27,7 @@ type Migrator struct {
 
 // NewMigrator creates a new Migrator
 func NewMigrator(cfg *config.Config) (*Migrator, error) {
-	sql, driver, err := Open(cfg.Database.URL)
+	sql, driver, err := open(cfg.Database.URL, true)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
