@@ -22,9 +22,9 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 
 		segment = &flipt.Segment{}
 
-		err = s.builder.Select("`key`, name, description, match_type, created_at, updated_at").
+		err = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			Where(sq.Eq{"`key`": key}).
+			Where(sq.Eq{"\"key\"": key}).
 			QueryRowContext(ctx).Scan(
 			&segment.Key,
 			&segment.Name,
@@ -57,7 +57,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 	var (
 		segments []*flipt.Segment
 
-		query = s.builder.Select("`key`, name, description, match_type, created_at, updated_at").
+		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
 			OrderBy("created_at ASC")
 	)
@@ -132,7 +132,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	)
 
 	if _, err := s.builder.Insert("segments").
-		Columns("`key`", "name", "description", "match_type", "created_at", "updated_at").
+		Columns("\"key\"", "name", "description", "match_type", "created_at", "updated_at").
 		Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 		Set("description", r.Description).
 		Set("match_type", r.MatchType).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
-		Where(sq.Eq{"`key`": r.Key})
+		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 // DeleteSegment deletes a segment
 func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
 	_, err := s.builder.Delete("segments").
-		Where(sq.Eq{"`key`": r.Key}).
+		Where(sq.Eq{"\"key\"": r.Key}).
 		ExecContext(ctx)
 
 	return err

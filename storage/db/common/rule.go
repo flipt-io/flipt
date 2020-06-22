@@ -20,7 +20,7 @@ func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 
 		rule = &flipt.Rule{}
 
-		err = s.builder.Select("id, flag_key, segment_key, `rank`, created_at, updated_at").
+		err = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
 			From("rules").
 			Where(sq.And{sq.Eq{"id": id}}).
 			QueryRowContext(ctx).
@@ -50,10 +50,10 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 	var (
 		rules []*flipt.Rule
 
-		query = s.builder.Select("id, flag_key, segment_key, `rank`, created_at, updated_at").
+		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
 			From("rules").
 			Where(sq.Eq{"flag_key": flagKey}).
-			OrderBy("`rank` ASC")
+			OrderBy("\"rank\" ASC")
 	)
 
 	params := &storage.QueryParams{}
@@ -127,7 +127,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 
 	if _, err := s.builder.
 		Insert("rules").
-		Columns("id", "flag_key", "segment_key", "`rank`", "created_at", "updated_at").
+		Columns("id", "flag_key", "segment_key", "\"rank\"", "created_at", "updated_at").
 		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
@@ -178,7 +178,7 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 		RunWith(tx).
 		From("rules").
 		Where(sq.Eq{"flag_key": r.FlagKey}).
-		OrderBy("`rank` ASC").
+		OrderBy("\"rank\" ASC").
 		QueryContext(ctx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -239,7 +239,7 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, flagKey st
 	for i, id := range ruleIDs {
 		_, err := s.builder.Update("rules").
 			RunWith(runner).
-			Set("`rank`", i+1).
+			Set("\"rank\"", i+1).
 			Set("updated_at", &timestamp{updatedAt}).
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"flag_key": flagKey}}).
 			ExecContext(ctx)
