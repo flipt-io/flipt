@@ -76,7 +76,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	if err != nil {
 		var perr pq.Error
 
-		if errors.As(err, &perr) && perr.Code == constraintUniqueErr {
+		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
 			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
