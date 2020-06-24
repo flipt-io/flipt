@@ -50,34 +50,34 @@ load 'helpers/bats-assert/load'
 }
 
 @test "import with empty database from STDIN" {
-    run bash -c "rm ./script/test/flipt.db; cat ./script/test/flipt.yml | ./bin/flipt --config ./script/test/config/test.yml import --stdin"
+    run bash -c "rm ./test/flipt.db; cat ./test/flipt.yml | ./bin/flipt --config ./test/config/test.yml import --stdin"
     assert_success
 }
 
 @test "import existing data from file not unique results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml
+    run ./bin/flipt --config ./test/config/test.yml import ./test/flipt.yml
     assert_output -p "is not unique"
     assert_failure
 }
 
 @test "import with invalid data from STDIN results in error" {
-    run bash -c "echo FOOBAR | ./bin/flipt --config ./script/test/config/test.yml import --stdin"
+    run bash -c "echo FOOBAR | ./bin/flipt --config ./test/config/test.yml import --stdin"
     assert_failure
 }
 
 @test "import with file that doesnt exist results in error" {
-    run ./bin/flipt --config ./script/test/config/test.yml import foo
+    run ./bin/flipt --config ./test/config/test.yml import foo
     assert_output -p "opening import file: open foo: no such file or directory"
     assert_failure
 }
 
 @test "import with existing data not unique and --drop flag is used" {
-    run ./bin/flipt --config ./script/test/config/test.yml import ./script/test/flipt.yml --drop
+    run ./bin/flipt --config ./test/config/test.yml import ./test/flipt.yml --drop
     assert_success
 }
 
 @test "export outputs to STDOUT" {
-    run ./bin/flipt --config script/test/config/test.yml export
+    run ./bin/flipt --config ./test/config/test.yml export
     assert_output -p "flags:"
     assert_output -p "- key: zUFtS7D0UyMeueYu"
     assert_output -p "  variants:"
@@ -89,7 +89,7 @@ load 'helpers/bats-assert/load'
 }
 
 @test "export outputs to file" {
-    run ./bin/flipt --config script/test/config/test.yml export -o /tmp/flipt.yml
+    run ./bin/flipt --config ./test/config/test.yml export -o /tmp/flipt.yml
     run test -f "/tmp/flipt.yml"
     assert_success
 }
