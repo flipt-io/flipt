@@ -25,23 +25,24 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
-	github.com/lib/pq v1.5.2
+	github.com/lib/pq v1.7.0
 	github.com/markphelps/flipt-grpc-go v0.2.0
-	github.com/mattn/go-sqlite3 v1.13.0
+	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
-	github.com/prometheus/client_golang v1.6.0
+	github.com/prometheus/client_golang v1.7.0
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.7.0
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e
 	google.golang.org/grpc v1.29.1
+	google.golang.org/protobuf v1.24.0
 	gopkg.in/yaml.v2 v2.3.0
 )

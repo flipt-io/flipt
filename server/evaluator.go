@@ -39,6 +39,49 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	return resp, nil
 }
 
+// BatchEvaluate evaluates a request for multiple flags and entities
+func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
+	s.logger.WithField("request", r).Debug("batch-evaluate")
+	startTime := time.Now()
+
+	// set request ID if not present
+	if r.RequestId == "" {
+		r.RequestId = uuid.Must(uuid.NewV4()).String()
+	}
+
+	resp, err := s.batchEvaluate(ctx, r)
+	if resp != nil {
+		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+	}
+
+	if err != nil {
+		return resp, err
+	}
+
+	s.logger.WithField("response", resp).Debug("batch-evaluate")
+	return resp, nil
+}
+
+func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
+	startTime := time.Now()
+	res := flipt.BatchEvaluationResponse{
+		RequestId: r.RequestId,
+		Responses: make([]*flipt.EvaluationResponse, 0, len(r.GetRequests())),
+	}
+
+	for _, flag := range r.GetRequests() {
+		f, err := s.evaluate(ctx, flag)
+		if err != nil {
+			return nil, err
+		}
+		f.RequestId = ""
+		f.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+		res.Responses = append(res.Responses, f)
+	}
+
+	return &res, nil
+}
+
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	var (
 		ts, _ = ptypes.TimestampProto(time.Now().UTC())

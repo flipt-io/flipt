@@ -30,7 +30,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 		resp.Rules = append(resp.Rules, rules[i])
 	}
 
-	s.logger.WithField("response", resp).Debug("list rules")
+	s.logger.WithField("response", &resp).Debug("list rules")
 	return &resp, nil
 }
 

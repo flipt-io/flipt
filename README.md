@@ -156,6 +156,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/badboyd"><img src="https://avatars0.githubusercontent.com/u/20040686?v=4" width="100px;" alt=""/><br /><sub><b>Dat Tran</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=badboyd" title="Code">💻</a></td>
     <td align="center"><a href="http://twitter.com/jon_perl"><img src="https://avatars2.githubusercontent.com/u/1136652?v=4" width="100px;" alt=""/><br /><sub><b>Jon Perl</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=jperl" title="Tests">⚠️</a> <a href="https://github.com/markphelps/flipt/commits?author=jperl" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://or-e.net"><img src="https://avatars1.githubusercontent.com/u/2883824?v=4" width="100px;" alt=""/><br /><sub><b>Or Elimelech</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=vic3lord" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-enable -->
