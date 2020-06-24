@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/stretchr/testify/assert"
@@ -150,6 +151,9 @@ func TestGetEvaluationDistributions(t *testing.T) {
 		Rollout:   50.00,
 	})
 
+	// required for MySQL since it only stores timestamps to the second and not millisecond granularity
+	time.Sleep(1 * time.Second)
+
 	require.NoError(t, err)
 
 	_, err = store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
@@ -243,6 +247,9 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
+	// required for MySQL since it only stores timestamps to the second and not millisecond granularity
+	time.Sleep(1 * time.Second)
+
 	dist2, err := store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
@@ -279,6 +286,9 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	})
 
 	require.NoError(t, err)
+
+	// required for MySQL since it only stores timestamps to the second and not millisecond granularity
+	time.Sleep(1 * time.Second)
 
 	// update dist2 with same values
 	_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
