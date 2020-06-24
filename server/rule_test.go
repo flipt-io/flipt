@@ -15,7 +15,7 @@ func TestGetRule(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.GetRuleRequest{Id: "id", FlagKey: "flagKey"}
 	)
@@ -35,7 +35,7 @@ func TestListRules(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.ListRuleRequest{FlagKey: "flagKey"}
 	)
@@ -58,7 +58,7 @@ func TestCreateRule(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.CreateRuleRequest{
 			FlagKey:    "flagKey",
@@ -85,7 +85,7 @@ func TestUpdateRule(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.UpdateRuleRequest{
 			Id:         "1",
@@ -111,7 +111,7 @@ func TestDeleteRule(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.DeleteRuleRequest{
 			Id: "id",
@@ -131,7 +131,7 @@ func TestOrderRules(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.OrderRulesRequest{FlagKey: "flagKey", RuleIds: []string{"1", "2"}}
 	)
@@ -149,7 +149,7 @@ func TestCreateDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"}
 	)
@@ -171,7 +171,7 @@ func TestUpdateDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.UpdateDistributionRequest{Id: "1", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"}
 	)
@@ -193,7 +193,7 @@ func TestDeleteDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 		req = &flipt.DeleteRuleRequest{
 			Id: "foo",

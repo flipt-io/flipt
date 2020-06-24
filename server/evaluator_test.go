@@ -26,18 +26,16 @@ var (
 
 func TestBatchEvaluate(t *testing.T) {
 	var (
-		flagStore       = &flagStoreMock{}
-		evaluationStore = &evaluationStoreMock{}
-		s               = &Server{
-			logger:          logger,
-			FlagStore:       flagStore,
-			EvaluationStore: evaluationStore,
+		store = &storeMock{}
+		s     = &Server{
+			logger: logger,
+			store:  store,
 		}
 	)
 
-	flagStore.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
 
-	evaluationStore.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
 	resp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
 		RequestId: "12345",
@@ -65,7 +63,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -89,7 +87,7 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -113,7 +111,7 @@ func TestEvaluate_FlagNoRules(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -138,7 +136,7 @@ func TestEvaluate_RulesOutOfOrder(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -199,7 +197,7 @@ func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -286,7 +284,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -412,7 +410,7 @@ func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -531,7 +529,7 @@ func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -604,7 +602,7 @@ func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -713,7 +711,7 @@ func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -800,7 +798,7 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -960,7 +958,7 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -1079,7 +1077,7 @@ func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -1152,7 +1150,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -1261,7 +1259,7 @@ func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
@@ -1359,7 +1357,7 @@ func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
 		store = &storeMock{}
 		s     = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 

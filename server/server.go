@@ -21,7 +21,7 @@ type Option func(s *Server)
 type Server struct {
 	logger logrus.FieldLogger
 
-	storage.Store
+	store storage.Store
 }
 
 // New creates a new Server
@@ -29,7 +29,7 @@ func New(logger logrus.FieldLogger, store storage.Store, opts ...Option) *Server
 	var (
 		s = &Server{
 			logger: logger,
-			Store:  store,
+			store:  store,
 		}
 	)
 
