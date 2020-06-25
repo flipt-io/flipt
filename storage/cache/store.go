@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"fmt"
+
 	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
 )
@@ -14,11 +16,15 @@ type Store struct {
 	store  storage.Store
 }
 
-// NewCacheStore creates a new *CacheStore
+// NewStore creates a new *CacheStore
 func NewStore(logger *logrus.Entry, cache Cacher, store storage.Store) *Store {
 	return &Store{
 		logger: logger,
 		cache:  cache,
 		store:  store,
 	}
+}
+
+func (c *Store) String() string {
+	return fmt.Sprintf("[cached] %s", c.store.String())
 }

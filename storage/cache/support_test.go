@@ -44,6 +44,10 @@ type storeMock struct {
 	mock.Mock
 }
 
+func (m *storeMock) String() string {
+	return "mock"
+}
+
 func (m *storeMock) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	args := m.Called(ctx, key)
 	return args.Get(0).(*flipt.Flag), args.Error(1)

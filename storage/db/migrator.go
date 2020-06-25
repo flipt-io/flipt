@@ -11,6 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/config"
+	"github.com/sirupsen/logrus"
 )
 
 var expectedVersions = map[Driver]uint{
@@ -22,11 +23,12 @@ var expectedVersions = map[Driver]uint{
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
 	driver   Driver
+	logger   *logrus.Entry
 	migrator *migrate.Migrate
 }
 
 // NewMigrator creates a new Migrator
-func NewMigrator(cfg *config.Config) (*Migrator, error) {
+func NewMigrator(cfg *config.Config, logger *logrus.Logger) (*Migrator, error) {
 	sql, driver, err := open(cfg.Database.URL, true)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
@@ -56,6 +58,7 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 
 	return &Migrator{
 		migrator: mm,
+		logger:   logger.WithField("migrator", driver.String()),
 		driver:   driver,
 	}, nil
 }
@@ -73,12 +76,20 @@ func (m *Migrator) Run(force bool) error {
 	currentVersion, _, err := m.migrator.Version()
 
 	if err != nil {
-		if !errors.Is(err, migrate.ErrNilVersion) {
+		if err != migrate.ErrNilVersion {
 			return fmt.Errorf("getting current migrations version: %w", err)
 		}
 
+		m.logger.Debug("first run, running migrations...")
+
 		// if first run then it's safe to migrate
-		canAutoMigrate = true
+		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+			return fmt.Errorf("running migrations: %w", err)
+		}
+
+		m.logger.Debug("migrations complete")
+
+		return nil
 	}
 
 	expectedVersion := expectedVersions[m.driver]
@@ -88,10 +99,16 @@ func (m *Migrator) Run(force bool) error {
 			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
 		}
 
+		m.logger.Debugf("current migration version: %d, expected version: %d\n running migrations...", currentVersion, expectedVersion)
+
 		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
 			return fmt.Errorf("running migrations: %w", err)
 		}
+
+		m.logger.Debug("migrations complete")
+		return nil
 	}
 
+	m.logger.Debug("migrations up to date")
 	return nil
 }

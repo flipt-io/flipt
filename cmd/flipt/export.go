@@ -103,7 +103,7 @@ func runExport(_ []string) error {
 
 	// export to file
 	if exportFilename != "" {
-		logger.Debugf("exporting to %q", exportFilename)
+		l.Debugf("exporting to %q", exportFilename)
 
 		out, err = os.Create(exportFilename)
 		if err != nil {

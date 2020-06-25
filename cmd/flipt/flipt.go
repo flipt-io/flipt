@@ -50,8 +50,8 @@ import (
 )
 
 var (
-	logger = logrus.New()
-	cfg    *config.Config
+	l   = logrus.New()
+	cfg *config.Config
 
 	cfgPath      string
 	forceMigrate bool
@@ -104,7 +104,7 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				migrator, err := db.NewMigrator(cfg)
+				migrator, err := db.NewMigrator(cfg, l)
 				if err != nil {
 					fmt.Println("error: ", err)
 					logrus.Exit(1)
@@ -147,7 +147,7 @@ func main() {
 			logrus.Exit(1)
 		}
 
-		logger.SetOutput(os.Stdout)
+		l.SetOutput(os.Stdout)
 
 		// log to file if enabled
 		if cfg.Log.File != "" {
@@ -157,7 +157,7 @@ func main() {
 				logrus.Exit(1)
 			}
 
-			logger.SetOutput(logFile)
+			l.SetOutput(logFile)
 			logrus.RegisterExitHandler(func() {
 				if logFile != nil {
 					_ = logFile.Close()
@@ -172,7 +172,7 @@ func main() {
 			logrus.Exit(1)
 		}
 
-		logger.SetLevel(lvl)
+		l.SetLevel(lvl)
 	})
 
 	rootCmd.SetVersionTemplate(banner)
@@ -218,10 +218,10 @@ func run(_ []string) error {
 	)
 
 	g.Go(func() error {
-		logger := logger.WithField("server", "grpc")
+		logger := l.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		migrator, err := db.NewMigrator(cfg)
+		migrator, err := db.NewMigrator(cfg, l)
 		if err != nil {
 			return err
 		}
@@ -277,6 +277,8 @@ func run(_ []string) error {
 			store = cache.NewStore(logger, cacher, store)
 		}
 
+		logger = logger.WithField("store", store.String())
+
 		srv = server.New(logger, store)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
@@ -307,7 +309,7 @@ func run(_ []string) error {
 	})
 
 	g.Go(func() error {
-		logger := logger.WithField("server", cfg.Server.Protocol.String())
+		logger := l.WithField("server", cfg.Server.Protocol.String())
 
 		var (
 			r        = chi.NewRouter()
@@ -436,7 +438,7 @@ func run(_ []string) error {
 		break
 	}
 
-	logger.Info("shutting down...")
+	l.Info("shutting down...")
 
 	cancel()
 

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	flipt "github.com/markphelps/flipt/rpc"
 )
@@ -59,6 +60,7 @@ type Store interface {
 	RuleStore
 	SegmentStore
 	EvaluationStore
+	fmt.Stringer
 }
 
 // EvaluationStore returns data necessary for evaluation

@@ -7,6 +7,8 @@ import (
 	stubDB "github.com/golang-migrate/migrate/database/stub"
 	"github.com/golang-migrate/migrate/source"
 	stubSource "github.com/golang-migrate/migrate/source/stub"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,9 +31,14 @@ func TestMigratorRun(t *testing.T) {
 	m, err := migrate.NewWithInstance("stub", srcDrv, "", d)
 	require.NoError(t, err)
 
-	migrator := Migrator{
-		migrator: m,
-	}
+	var (
+		l, _     = test.NewNullLogger()
+		logger   = logrus.NewEntry(l)
+		migrator = Migrator{
+			migrator: m,
+			logger:   logger,
+		}
+	)
 
 	defer migrator.Close()
 
@@ -60,9 +67,14 @@ func TestMigratorRun_NoChange(t *testing.T) {
 	m, err := migrate.NewWithInstance("stub", srcDrv, "", d)
 	require.NoError(t, err)
 
-	migrator := Migrator{
-		migrator: m,
-	}
+	var (
+		l, _     = test.NewNullLogger()
+		logger   = logrus.NewEntry(l)
+		migrator = Migrator{
+			migrator: m,
+			logger:   logger,
+		}
+	)
 
 	defer migrator.Close()
 

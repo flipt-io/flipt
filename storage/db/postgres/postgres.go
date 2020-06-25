@@ -33,6 +33,10 @@ type Store struct {
 	*common.Store
 }
 
+func (s *Store) String() string {
+	return "postgres"
+}
+
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
 

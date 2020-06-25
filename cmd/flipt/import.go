@@ -66,7 +66,7 @@ func runImport(args []string) error {
 
 		f := filepath.Clean(importFilename)
 
-		logger.Debugf("importing from %q", f)
+		l.Debugf("importing from %q", f)
 
 		in, err = os.Open(f)
 		if err != nil {
@@ -78,7 +78,7 @@ func runImport(args []string) error {
 
 	// drop tables if specified
 	if dropBeforeImport {
-		logger.Debug("dropping tables before import")
+		l.Debug("dropping tables before import")
 
 		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
 
@@ -89,7 +89,7 @@ func runImport(args []string) error {
 		}
 	}
 
-	migrator, err := db.NewMigrator(cfg)
+	migrator, err := db.NewMigrator(cfg, l)
 	if err != nil {
 		return err
 	}
