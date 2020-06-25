@@ -93,3 +93,8 @@ load 'helpers/bats-assert/load'
     run test -f "/tmp/flipt.yml"
     assert_success
 }
+
+@test "migrate with empty db" {
+    run bash -c "rm ./test/flipt.db; ./bin/flipt --config ./test/config/test.yml migrate"
+    assert_success
+}
