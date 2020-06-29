@@ -3,8 +3,6 @@ version: "3"
 services:
   mysql:
     image: mysql:latest
-    ports:
-      - "3307:3306"
     networks:
       - flipt_network
     environment:
@@ -18,7 +16,7 @@ services:
     depends_on:
       - mysql
     ports:
-      - "8081:8080"
+      - "8080:8080"
     networks:
       - flipt_network
     environment:
