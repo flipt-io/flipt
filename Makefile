@@ -99,17 +99,17 @@ dev: clean assets ## Build and run in development mode
 .PHONY: snapshot
 snapshot: clean assets pack ## Build a snapshot version
 	@echo ">> building a snapshot version"
-	@./script/build/snapshot
+	@./build/build snapshot
 
 .PHONY: release
 release: clean assets pack ## Build and publish a release
 	@echo ">> building and publishing a release"
-	@./script/build/release
+	@./build/build release
 
 .PHONY: clients
 clients: ## Generate GRPC clients
-	@echo ">> generating clients"
-	@./script/build/clients
+	@echo ">> generating GRPC clients"
+	@./build/build clients
 
 .PHONY: help
 help:

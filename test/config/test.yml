@@ -2,6 +2,6 @@ log:
   level: DEBUG
 
 db:
-  url: file:./script/test/flipt.db
+  url: file:./test/flipt.db
   migrations:
     path: ./config/migrations

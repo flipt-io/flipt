@@ -13,9 +13,9 @@ import (
 
 func TestGetRule(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
@@ -43,9 +43,9 @@ func TestGetRule(t *testing.T) {
 
 func TestGetRuleNotFound(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{}, errors.ErrNotFound("foo"))
@@ -61,9 +61,9 @@ func TestGetRuleNotFound(t *testing.T) {
 
 func TestListRules(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	ret := []*flipt.Rule{
@@ -84,9 +84,9 @@ func TestListRules(t *testing.T) {
 
 func TestCreateRule(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("CreateRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
@@ -104,9 +104,9 @@ func TestCreateRule(t *testing.T) {
 
 func TestUpdateRule(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("UpdateRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
@@ -123,9 +123,9 @@ func TestUpdateRule(t *testing.T) {
 
 func TestDeleteRule(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("DeleteRule", mock.Anything, mock.Anything).Return(nil)
@@ -142,9 +142,9 @@ func TestDeleteRule(t *testing.T) {
 
 func TestCreateDistribution(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("CreateDistribution", mock.Anything, mock.Anything).Return(&flipt.Distribution{RuleId: "foo"}, nil)
@@ -161,9 +161,9 @@ func TestCreateDistribution(t *testing.T) {
 
 func TestUpdateDistribution(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("UpdateDistribution", mock.Anything, mock.Anything).Return(&flipt.Distribution{RuleId: "foo"}, nil)
@@ -180,9 +180,9 @@ func TestUpdateDistribution(t *testing.T) {
 
 func TestDeleteDistribution(t *testing.T) {
 	var (
-		store   = &ruleStoreMock{}
+		store   = &storeMock{}
 		cacher  = &cacherSpy{}
-		subject = NewRuleCache(logger, cacher, store)
+		subject = NewStore(logger, cacher, store)
 	)
 
 	store.On("DeleteDistribution", mock.Anything, mock.Anything).Return(nil)

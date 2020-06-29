@@ -1,4 +1,4 @@
-package db
+package common
 
 import (
 	"context"
@@ -7,40 +7,24 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
-	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
-var _ storage.SegmentStore = &SegmentStore{}
-
-// SegmentStore is a SQL SegmentStore
-type SegmentStore struct {
-	builder sq.StatementBuilderType
-}
-
-// NewSegmentStore creates a SegmentStore
-func NewSegmentStore(builder sq.StatementBuilderType) *SegmentStore {
-	return &SegmentStore{
-		builder: builder,
-	}
-}
-
 // GetSegment gets a segment
-func (s *SegmentStore) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
+func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
 
 		segment = &flipt.Segment{}
 
-		err = s.builder.Select("key, name, description, match_type, created_at, updated_at").
+		err = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			Where(sq.Eq{"key": key}).
+			Where(sq.Eq{"\"key\"": key}).
 			QueryRowContext(ctx).Scan(
 			&segment.Key,
 			&segment.Name,
@@ -69,11 +53,11 @@ func (s *SegmentStore) GetSegment(ctx context.Context, key string) (*flipt.Segme
 }
 
 // ListSegments lists all segments
-func (s *SegmentStore) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
+func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
 	var (
 		segments []*flipt.Segment
 
-		query = s.builder.Select("key, name, description, match_type, created_at, updated_at").
+		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
 			OrderBy("created_at ASC")
 	)
@@ -134,7 +118,7 @@ func (s *SegmentStore) ListSegments(ctx context.Context, opts ...storage.QueryOp
 }
 
 // CreateSegment creates a segment
-func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	var (
 		now     = proto.TimestampNow()
 		segment = &flipt.Segment{
@@ -145,24 +129,12 @@ func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegment
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
-
-		query = s.builder.Insert("segments").
-			Columns("key", "name", "description", "match_type", "created_at", "updated_at").
-			Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt})
 	)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrInvalidf("segment %q is not unique", r.Key)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("segment %q is not unique", r.Key)
-			}
-		}
-
+	if _, err := s.builder.Insert("segments").
+		Columns("\"key\"", "name", "description", "match_type", "created_at", "updated_at").
+		Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &timestamp{segment.CreatedAt}, &timestamp{segment.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -170,13 +142,13 @@ func (s *SegmentStore) CreateSegment(ctx context.Context, r *flipt.CreateSegment
 }
 
 // UpdateSegment updates an existing segment
-func (s *SegmentStore) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
 	query := s.builder.Update("segments").
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("match_type", r.MatchType).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
-		Where(sq.Eq{"key": r.Key})
+		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -196,16 +168,16 @@ func (s *SegmentStore) UpdateSegment(ctx context.Context, r *flipt.UpdateSegment
 }
 
 // DeleteSegment deletes a segment
-func (s *SegmentStore) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
 	_, err := s.builder.Delete("segments").
-		Where(sq.Eq{"key": r.Key}).
+		Where(sq.Eq{"\"key\"": r.Key}).
 		ExecContext(ctx)
 
 	return err
 }
 
 // CreateConstraint creates a constraint
-func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	var (
 		operator = strings.ToLower(r.Operator)
 		now      = proto.TimestampNow()
@@ -226,22 +198,10 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 		c.Value = ""
 	}
 
-	query := s.builder.Insert("constraints").
+	if _, err := s.builder.Insert("constraints").
 		Columns("id", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
-		Values(c.Id, c.SegmentKey, c.Type, c.Property, c.Operator, c.Value, &timestamp{c.CreatedAt}, &timestamp{c.UpdatedAt})
-
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrNotFoundf("segment %q", r.SegmentKey)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errors.ErrNotFoundf("segment %q", r.SegmentKey)
-			}
-		}
-
+		Values(c.Id, c.SegmentKey, c.Type, c.Property, c.Operator, c.Value, &timestamp{c.CreatedAt}, &timestamp{c.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -249,7 +209,7 @@ func (s *SegmentStore) CreateConstraint(ctx context.Context, r *flipt.CreateCons
 }
 
 // UpdateConstraint updates an existing constraint
-func (s *SegmentStore) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
 	operator := strings.ToLower(r.Operator)
 
 	// unset value if operator does not require it
@@ -300,7 +260,7 @@ func (s *SegmentStore) UpdateConstraint(ctx context.Context, r *flipt.UpdateCons
 }
 
 // DeleteConstraint deletes a constraint
-func (s *SegmentStore) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
 	_, err := s.builder.Delete("constraints").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}}).
 		ExecContext(ctx)
@@ -308,7 +268,7 @@ func (s *SegmentStore) DeleteConstraint(ctx context.Context, r *flipt.DeleteCons
 	return err
 }
 
-func (s *SegmentStore) constraints(ctx context.Context, segment *flipt.Segment) error {
+func (s *Store) constraints(ctx context.Context, segment *flipt.Segment) error {
 	query := s.builder.Select("id, segment_key, type, property, operator, value, created_at, updated_at").
 		From("constraints").
 		Where(sq.Eq{"segment_key": segment.Key}).

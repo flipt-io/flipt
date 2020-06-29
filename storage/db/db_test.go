@@ -2,17 +2,19 @@ package db
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
-	"github.com/golang-migrate/migrate/database/postgres"
+	ms "github.com/golang-migrate/migrate/database/mysql"
+	pg "github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
-	"github.com/sirupsen/logrus"
+	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/db/mysql"
+	"github.com/markphelps/flipt/storage/db/postgres"
+	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -23,7 +25,7 @@ func TestParse(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		url     string
+		dsn     string
 		driver  Driver
 		wantErr bool
 	}{
@@ -31,13 +33,19 @@ func TestParse(t *testing.T) {
 			name:   "sqlite",
 			input:  "file:flipt.db",
 			driver: SQLite,
-			url:    "file:flipt.db?_fk=true&cache=shared",
+			dsn:    "flipt.db?_fk=true&cache=shared",
 		},
 		{
 			name:   "postres",
 			input:  "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 			driver: Postgres,
-			url:    "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+		},
+		{
+			name:   "mysql",
+			input:  "mysql://mysql@localhost:3306/flipt",
+			driver: MySQL,
+			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true&sql_mode=ANSI",
 		},
 		{
 			name:    "invalid url",
@@ -55,12 +63,12 @@ func TestParse(t *testing.T) {
 		var (
 			input   = tt.input
 			driver  = tt.driver
-			url     = tt.url
+			url     = tt.dsn
 			wantErr = tt.wantErr
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
-			d, u, err := parse(input)
+			d, u, err := parse(input, false)
 
 			if wantErr {
 				require.Error(t, err)
@@ -69,50 +77,40 @@ func TestParse(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, driver, d)
-			assert.Equal(t, url, u.String())
+			assert.Equal(t, url, u.DSN)
 		})
 	}
 }
 
-var (
-	flagStore       *FlagStore
-	segmentStore    *SegmentStore
-	ruleStore       *RuleStore
-	evaluationStore *EvaluationStore
-)
+var store storage.Store
 
 const defaultTestDBURL = "file:../../flipt_test.db"
 
 func TestMain(m *testing.M) {
 	// os.Exit skips defer calls
 	// so we need to use another fn
-	os.Exit(run(m))
+	code, err := run(m)
+	if err != nil {
+		fmt.Println(err)
+	}
+	os.Exit(code)
 }
 
-func run(m *testing.M) int {
-	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
+func run(m *testing.M) (code int, err error) {
 
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
 		dbURL = defaultTestDBURL
 	}
 
-	db, driver, err := Open(dbURL)
+	db, driver, err := open(dbURL, true)
 	if err != nil {
-		logger.Fatal(err)
+		return 1, err
 	}
 
-	defer func() {
-		if err := db.Close(); err != nil {
-			logger.Fatal(err)
-		}
-	}()
-
 	var (
-		dr      database.Driver
-		builder sq.StatementBuilderType
-		stmt    string
+		dr   database.Driver
+		stmt string
 
 		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
 	)
@@ -120,20 +118,25 @@ func run(m *testing.M) int {
 	switch driver {
 	case SQLite:
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		builder = sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
-
 		stmt = "DELETE FROM %s"
 	case Postgres:
-		dr, err = postgres.WithInstance(db, &postgres.Config{})
-		builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
-
+		dr, err = pg.WithInstance(db, &pg.Config{})
 		stmt = "TRUNCATE TABLE %s CASCADE"
+	case MySQL:
+		dr, err = ms.WithInstance(db, &ms.Config{})
+		stmt = "TRUNCATE TABLE %s"
+
+		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
+		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
+			return 1, fmt.Errorf("disabling foreign key checks: mysql: %w", err)
+		}
+
 	default:
-		logger.Fatalf("unknown driver: %s", driver)
+		return 1, fmt.Errorf("unknown driver: %s", driver)
 	}
 
 	if err != nil {
-		logger.Fatal(err)
+		return 1, err
 	}
 
 	for _, t := range tables {
@@ -144,17 +147,32 @@ func run(m *testing.M) int {
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
 	if err != nil {
-		logger.Fatal(err)
+		return 1, err
 	}
 
 	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
-		logger.Fatal(err)
+		return 1, err
 	}
 
-	flagStore = NewFlagStore(builder)
-	segmentStore = NewSegmentStore(builder)
-	ruleStore = NewRuleStore(builder, db)
-	evaluationStore = NewEvaluationStore(builder)
+	db, driver, err = open(dbURL, false)
+	if err != nil {
+		return 1, err
+	}
 
-	return m.Run()
+	defer db.Close()
+
+	switch driver {
+	case SQLite:
+		store = sqlite.NewStore(db)
+	case Postgres:
+		store = postgres.NewStore(db)
+	case MySQL:
+		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
+			return 1, fmt.Errorf("enabling foreign key checks: mysql: %w", err)
+		}
+
+		store = mysql.NewStore(db)
+	}
+
+	return m.Run(), nil
 }

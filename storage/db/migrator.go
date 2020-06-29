@@ -1,27 +1,35 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/config"
-	"github.com/markphelps/flipt/errors"
+	"github.com/sirupsen/logrus"
 )
 
-var ErrMigrationsNilVersion = errors.New("migrations nil version")
+var expectedVersions = map[Driver]uint{
+	SQLite:   2,
+	Postgres: 2,
+	MySQL:    0,
+}
 
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
+	driver   Driver
+	logger   *logrus.Entry
 	migrator *migrate.Migrate
 }
 
 // NewMigrator creates a new Migrator
-func NewMigrator(cfg *config.Config) (*Migrator, error) {
-	sql, driver, err := Open(cfg.Database.URL)
+func NewMigrator(cfg *config.Config, logger *logrus.Logger) (*Migrator, error) {
+	sql, driver, err := open(cfg.Database.URL, true)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
@@ -33,6 +41,8 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
 	case Postgres:
 		dr, err = postgres.WithInstance(sql, &postgres.Config{})
+	case MySQL:
+		dr, err = mysql.WithInstance(sql, &mysql.Config{})
 	}
 
 	if err != nil {
@@ -48,6 +58,8 @@ func NewMigrator(cfg *config.Config) (*Migrator, error) {
 
 	return &Migrator{
 		migrator: mm,
+		logger:   logger.WithField("migrator", driver.String()),
+		driver:   driver,
 	}, nil
 }
 
@@ -56,27 +68,47 @@ func (m *Migrator) Close() (source, db error) {
 	return m.migrator.Close()
 }
 
-// CurrentVersion returns the current migration version
-func (m *Migrator) CurrentVersion() (uint, error) {
-	v, _, err := m.migrator.Version()
+// Run runs any pending migrations
+func (m *Migrator) Run(force bool) error {
+	canAutoMigrate := force
 
-	// migrations never run
-	if err == migrate.ErrNilVersion {
-		return 0, ErrMigrationsNilVersion
-	}
+	// check if any migrations are pending
+	currentVersion, _, err := m.migrator.Version()
 
 	if err != nil {
-		return 0, fmt.Errorf("getting current migrations version: %w", err)
+		if err != migrate.ErrNilVersion {
+			return fmt.Errorf("getting current migrations version: %w", err)
+		}
+
+		m.logger.Debug("first run, running migrations...")
+
+		// if first run then it's safe to migrate
+		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+			return fmt.Errorf("running migrations: %w", err)
+		}
+
+		m.logger.Debug("migrations complete")
+
+		return nil
 	}
 
-	return v, nil
-}
+	expectedVersion := expectedVersions[m.driver]
 
-// Run runs any pending migrations
-func (m *Migrator) Run() error {
-	if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("running migrations: %w", err)
+	if currentVersion < expectedVersion {
+		if !canAutoMigrate {
+			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
+		}
+
+		m.logger.Debugf("current migration version: %d, expected version: %d\n running migrations...", currentVersion, expectedVersion)
+
+		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+			return fmt.Errorf("running migrations: %w", err)
+		}
+
+		m.logger.Debug("migrations complete")
+		return nil
 	}
 
+	m.logger.Debug("migrations up to date")
 	return nil
 }

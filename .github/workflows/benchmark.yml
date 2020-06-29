@@ -24,13 +24,24 @@ jobs:
         env:
           POSTGRES_DB: flipt_test
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ''
+          POSTGRES_PASSWORD: password
+
+      mysql:
+        image: mysql@sha256:a31a277d8d39450220c722c1302a345c84206e7fd4cdb619e7face046e89031d
+        ports:
+        # will assign a random free host port
+        - 3306/tcp
+        env:
+          MYSQL_DATABASE: flipt_test
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: password
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
 
     steps:
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.14.1
+        go-version: '1.14.x'
       id: go
 
     - name: Checkout
@@ -47,4 +58,8 @@ jobs:
       run: go test -bench=. ./... -run=XXX -v
 
     - name: Benchmark (Postgres)
-      run: DB_URL="postgres://postgres@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -bench=. ./... -run=XXX -v
+      run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -bench=. ./... -run=XXX -v
+
+    - name: Benchmark (MySQL)
+      run: DB_URL="mysql://mysql:password@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -bench=. ./... -run=XXX -v
+

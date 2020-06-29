@@ -9,6 +9,7 @@ import (
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
+	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 
 	"github.com/gofrs/uuid"
@@ -17,7 +18,7 @@ import (
 )
 
 func TestGetFlag(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -27,7 +28,7 @@ func TestGetFlag(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	got, err := flagStore.GetFlag(context.TODO(), flag.Key)
+	got, err := store.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -41,7 +42,7 @@ func TestGetFlag(t *testing.T) {
 }
 
 func TestGetFlagNotFound(t *testing.T) {
-	_, err := flagStore.GetFlag(context.TODO(), "foo")
+	_, err := store.GetFlag(context.TODO(), "foo")
 	assert.EqualError(t, err, "flag \"foo\" not found")
 }
 
@@ -61,11 +62,11 @@ func TestListFlags(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := flagStore.CreateFlag(context.TODO(), req)
+		_, err := store.CreateFlag(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	got, err := flagStore.ListFlags(context.TODO())
+	got, err := store.ListFlags(context.TODO())
 	require.NoError(t, err)
 	assert.NotZero(t, len(got))
 }
@@ -86,17 +87,17 @@ func TestFlagsPagination(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := flagStore.CreateFlag(context.TODO(), req)
+		_, err := store.CreateFlag(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	got, err := flagStore.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+	got, err := store.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 	assert.Len(t, got, 1)
 }
 
 func TestCreateFlag(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -114,7 +115,7 @@ func TestCreateFlag(t *testing.T) {
 }
 
 func TestCreateFlag_DuplicateKey(t *testing.T) {
-	_, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	_, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -123,7 +124,7 @@ func TestCreateFlag_DuplicateKey(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	_, err = store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -134,7 +135,7 @@ func TestCreateFlag_DuplicateKey(t *testing.T) {
 }
 
 func TestUpdateFlag(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -150,7 +151,7 @@ func TestUpdateFlag(t *testing.T) {
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
-	updated, err := flagStore.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+	updated, err := store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
 		Key:         flag.Key,
 		Name:        flag.Name,
 		Description: "foobar",
@@ -164,11 +165,11 @@ func TestUpdateFlag(t *testing.T) {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
 }
 
 func TestUpdateFlag_NotFound(t *testing.T) {
-	_, err := flagStore.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+	_, err := store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
@@ -179,7 +180,7 @@ func TestUpdateFlag_NotFound(t *testing.T) {
 }
 
 func TestDeleteFlag(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -189,17 +190,17 @@ func TestDeleteFlag(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	err = flagStore.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: flag.Key})
+	err = store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: flag.Key})
 	require.NoError(t, err)
 }
 
 func TestDeleteFlag_NotFound(t *testing.T) {
-	err := flagStore.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: "foo"})
+	err := store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: "foo"})
 	require.NoError(t, err)
 }
 
 func TestCreateVariant(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -209,7 +210,7 @@ func TestCreateVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -228,7 +229,7 @@ func TestCreateVariant(t *testing.T) {
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	// get the flag again
-	flag, err = flagStore.GetFlag(context.TODO(), flag.Key)
+	flag, err = store.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -237,7 +238,7 @@ func TestCreateVariant(t *testing.T) {
 }
 
 func TestCreateVariant_FlagNotFound(t *testing.T) {
-	_, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	_, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     "foo",
 		Key:         t.Name(),
 		Name:        "foo",
@@ -248,7 +249,7 @@ func TestCreateVariant_FlagNotFound(t *testing.T) {
 }
 
 func TestCreateVariant_DuplicateName(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -258,7 +259,7 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -269,7 +270,7 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 	assert.NotNil(t, variant)
 
 	// try to create another variant with the same name for this flag
-	_, err = flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	_, err = store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -280,7 +281,7 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 }
 
 func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
-	flag1, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag1, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         fmt.Sprintf("%s_1", t.Name()),
 		Name:        "foo_1",
 		Description: "bar",
@@ -290,7 +291,7 @@ func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag1)
 
-	variant1, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant1, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag1.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -304,7 +305,7 @@ func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
 	assert.Equal(t, flag1.Key, variant1.FlagKey)
 	assert.Equal(t, "foo", variant1.Key)
 
-	flag2, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag2, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         fmt.Sprintf("%s_2", t.Name()),
 		Name:        "foo_2",
 		Description: "bar",
@@ -314,7 +315,7 @@ func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag2)
 
-	variant2, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant2, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag2.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -330,7 +331,7 @@ func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
 }
 
 func TestUpdateVariant(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -340,7 +341,7 @@ func TestUpdateVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -358,7 +359,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.NotZero(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
-	updated, err := flagStore.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
+	updated, err := store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
 		Id:          variant.Id,
 		FlagKey:     variant.FlagKey,
 		Key:         variant.Key,
@@ -374,10 +375,10 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.NotZero(t, updated.CreatedAt)
-	assert.NotEqual(t, updated.CreatedAt, updated.UpdatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
 
 	// get the flag again
-	flag, err = flagStore.GetFlag(context.TODO(), flag.Key)
+	flag, err = store.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -386,7 +387,7 @@ func TestUpdateVariant(t *testing.T) {
 }
 
 func TestUpdateVariant_NotFound(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -396,7 +397,7 @@ func TestUpdateVariant_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	_, err = flagStore.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
+	_, err = store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
 		Id:          "foo",
 		FlagKey:     flag.Key,
 		Key:         "foo",
@@ -408,7 +409,7 @@ func TestUpdateVariant_NotFound(t *testing.T) {
 }
 
 func TestUpdateVariant_DuplicateName(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -418,7 +419,7 @@ func TestUpdateVariant_DuplicateName(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant1, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant1, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -428,7 +429,7 @@ func TestUpdateVariant_DuplicateName(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant1)
 
-	variant2, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant2, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "bar",
 		Name:        "bar",
@@ -438,7 +439,7 @@ func TestUpdateVariant_DuplicateName(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant2)
 
-	_, err = flagStore.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
+	_, err = store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
 		Id:          variant2.Id,
 		FlagKey:     variant2.FlagKey,
 		Key:         variant1.Key,
@@ -450,7 +451,7 @@ func TestUpdateVariant_DuplicateName(t *testing.T) {
 }
 
 func TestDeleteVariant(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -460,7 +461,7 @@ func TestDeleteVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -470,11 +471,11 @@ func TestDeleteVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	err = flagStore.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{FlagKey: variant.FlagKey, Id: variant.Id})
+	err = store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{FlagKey: variant.FlagKey, Id: variant.Id})
 	require.NoError(t, err)
 
 	// get the flag again
-	flag, err = flagStore.GetFlag(context.TODO(), flag.Key)
+	flag, err = store.GetFlag(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -486,7 +487,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 	// TODO
 	t.SkipNow()
 
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -496,7 +497,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := flagStore.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
@@ -506,7 +507,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := segmentStore.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -515,7 +516,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	rule, err := ruleStore.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -525,7 +526,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 	assert.NotNil(t, rule)
 
 	// try to delete variant with attached rule
-	err = flagStore.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
+	err = store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
 		Id:      variant.Id,
 		FlagKey: flag.Key,
 	})
@@ -533,14 +534,14 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 	assert.EqualError(t, err, "atleast one rule exists that includes this variant")
 
 	// delete the rule, then try to delete the variant again
-	err = ruleStore.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
+	err = store.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
 		Id:      rule.Id,
 		FlagKey: flag.Key,
 	})
 
 	require.NoError(t, err)
 
-	err = flagStore.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
+	err = store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
 		Id:      variant.Id,
 		FlagKey: flag.Key,
 	})
@@ -549,7 +550,7 @@ func TestDeleteVariant_ExistingRule(t *testing.T) {
 }
 
 func TestDeleteVariant_NotFound(t *testing.T) {
-	flag, err := flagStore.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -559,7 +560,7 @@ func TestDeleteVariant_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	err = flagStore.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
+	err = store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
 		Id:      "foo",
 		FlagKey: flag.Key,
 	})
@@ -572,7 +573,7 @@ var benchFlag *flipt.Flag
 func BenchmarkGetFlag(b *testing.B) {
 	var (
 		ctx       = context.Background()
-		flag, err = flagStore.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		flag, err = store.CreateFlag(ctx, &flipt.CreateFlagRequest{
 			Key:         b.Name(),
 			Name:        "foo",
 			Description: "bar",
@@ -584,7 +585,7 @@ func BenchmarkGetFlag(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	_, err = flagStore.CreateVariant(ctx, &flipt.CreateVariantRequest{
+	_, err = store.CreateVariant(ctx, &flipt.CreateVariantRequest{
 		FlagKey: flag.Key,
 		Key:     "baz",
 	})
@@ -599,7 +600,7 @@ func BenchmarkGetFlag(b *testing.B) {
 		var f *flipt.Flag
 
 		for i := 0; i < b.N; i++ {
-			f, _ = flagStore.GetFlag(context.TODO(), flag.Key)
+			f, _ = store.GetFlag(context.TODO(), flag.Key)
 		}
 
 		benchFlag = f
@@ -608,13 +609,14 @@ func BenchmarkGetFlag(b *testing.B) {
 
 func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	var (
-		logger, _      = test.NewNullLogger()
-		cacher         = cache.NewInMemoryCache(5*time.Minute, 10*time.Minute, logger)
-		flagStoreCache = cache.NewFlagCache(logger, cacher, flagStore)
+		l, _       = test.NewNullLogger()
+		logger     = logrus.NewEntry(l)
+		cacher     = cache.NewInMemoryCache(5*time.Minute, 10*time.Minute, logger)
+		storeCache = cache.NewStore(logger, cacher, store)
 
 		ctx = context.Background()
 
-		flag, err = flagStoreCache.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		flag, err = storeCache.CreateFlag(ctx, &flipt.CreateFlagRequest{
 			Key:         b.Name(),
 			Name:        "foo",
 			Description: "bar",
@@ -626,7 +628,7 @@ func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	_, err = flagStoreCache.CreateVariant(ctx, &flipt.CreateVariantRequest{
+	_, err = storeCache.CreateVariant(ctx, &flipt.CreateVariantRequest{
 		FlagKey: flag.Key,
 		Key:     "baz",
 	})
@@ -638,13 +640,13 @@ func BenchmarkGetFlag_CacheMemory(b *testing.B) {
 	var f *flipt.Flag
 
 	// warm the cache
-	f, _ = flagStoreCache.GetFlag(context.TODO(), flag.Key)
+	f, _ = storeCache.GetFlag(context.TODO(), flag.Key)
 
 	b.ResetTimer()
 
 	b.Run("get-flag-cache", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			f, _ = flagStoreCache.GetFlag(context.TODO(), flag.Key)
+			f, _ = storeCache.GetFlag(context.TODO(), flag.Key)
 		}
 
 		benchFlag = f

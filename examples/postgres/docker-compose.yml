@@ -7,6 +7,8 @@ services:
       - flipt_network
     environment:
       - POSTGRES_DB=flipt
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
 
   flipt:
     build: .
@@ -17,7 +19,8 @@ services:
     networks:
       - flipt_network
     environment:
-      - FLIPT_DB_URL=postgres://postgres@postgres:5432/flipt?sslmode=disable
+      - FLIPT_DB_URL=postgres://postgres:password@postgres:5432/flipt?sslmode=disable
+      - FLIPT_LOG_LEVEL=debug
     command: ["./tmp/wait-for-it.sh", "postgres:5432", "--", "./flipt"]
 networks:
   flipt_network:

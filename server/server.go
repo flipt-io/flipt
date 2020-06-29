@@ -2,15 +2,11 @@ package server
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/cache"
-	"github.com/markphelps/flipt/storage/db"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,44 +15,26 @@ import (
 
 var _ flipt.FliptServer = &Server{}
 
+type Option func(s *Server)
+
 // Server serves the Flipt backend
 type Server struct {
 	logger logrus.FieldLogger
-	cache  cache.Cacher
 
-	storage.FlagStore
-	storage.SegmentStore
-	storage.RuleStore
-	storage.EvaluationStore
+	store storage.Store
 }
 
 // New creates a new Server
-func New(logger logrus.FieldLogger, builder sq.StatementBuilderType, sql *sql.DB, opts ...Option) *Server {
+func New(logger logrus.FieldLogger, store storage.Store, opts ...Option) *Server {
 	var (
-		flagStore       = db.NewFlagStore(builder)
-		segmentStore    = db.NewSegmentStore(builder)
-		ruleStore       = db.NewRuleStore(builder, sql)
-		evaluationStore = db.NewEvaluationStore(builder)
-
 		s = &Server{
-			logger:          logger,
-			FlagStore:       flagStore,
-			SegmentStore:    segmentStore,
-			RuleStore:       ruleStore,
-			EvaluationStore: evaluationStore,
+			logger: logger,
+			store:  store,
 		}
 	)
 
-	for _, opt := range opts {
-		opt(s)
-	}
-
-	if s.cache != nil {
-		// wrap stores with caches
-		s.FlagStore = cache.NewFlagCache(logger, s.cache, flagStore)
-		s.SegmentStore = cache.NewSegmentCache(logger, s.cache, segmentStore)
-		s.RuleStore = cache.NewRuleCache(logger, s.cache, ruleStore)
-		s.EvaluationStore = cache.NewEvaluationCache(logger, s.cache, evaluationStore)
+	for _, fn := range opts {
+		fn(s)
 	}
 
 	return s

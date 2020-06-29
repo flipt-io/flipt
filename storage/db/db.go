@@ -2,49 +2,23 @@ package db
 
 import (
 	"database/sql"
-	"database/sql/driver"
 	"fmt"
-	"net/url"
-	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	proto "github.com/golang/protobuf/ptypes/timestamp"
-)
-
-type timestamp struct {
-	*proto.Timestamp
-}
-
-func (t *timestamp) Scan(value interface{}) error {
-	if v, ok := value.(time.Time); ok {
-		val, err := ptypes.TimestampProto(v)
-		if err != nil {
-			return err
-		}
-
-		t.Timestamp = val
-	}
-
-	return nil
-}
-
-func (t *timestamp) Value() (driver.Value, error) {
-	return ptypes.Timestamp(t.Timestamp)
-}
-
-const (
-	pgConstraintForeignKey = "foreign_key_violation"
-	pgConstraintUnique     = "unique_violation"
+	"github.com/xo/dburl"
 )
 
 // Open opens a connection to the db given a URL
-func Open(url string) (*sql.DB, Driver, error) {
-	driver, u, err := parse(url)
+func Open(rawurl string) (*sql.DB, Driver, error) {
+	return open(rawurl, false)
+}
+
+func open(rawurl string, migrate bool) (*sql.DB, Driver, error) {
+	driver, url, err := parse(rawurl, migrate)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	db, err := sql.Open(driver.String(), u.String())
+	db, err := sql.Open(driver.String(), url.DSN)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -56,15 +30,17 @@ var (
 	driverToString = map[Driver]string{
 		SQLite:   "sqlite3",
 		Postgres: "postgres",
+		MySQL:    "mysql",
 	}
 
-	schemeToDriver = map[string]Driver{
-		"file":     SQLite,
+	stringToDriver = map[string]Driver{
+		"sqlite3":  SQLite,
 		"postgres": Postgres,
+		"mysql":    MySQL,
 	}
 )
 
-// Driver represents a database driver type
+// Driver represents a database driver
 type Driver uint8
 
 func (d Driver) String() string {
@@ -77,25 +53,46 @@ const (
 	SQLite
 	// Postgres ...
 	Postgres
+	// MySQL ...
+	MySQL
 )
 
-func parse(in string) (Driver, *url.URL, error) {
-	u, err := url.Parse(in)
+func parse(rawurl string, migrate bool) (Driver, *dburl.URL, error) {
+	errURL := func(rawurl string, err error) error {
+		return fmt.Errorf("error parsing url: %q, %v", rawurl, err)
+	}
+
+	url, err := dburl.Parse(rawurl)
 	if err != nil {
-		return 0, u, fmt.Errorf("parsing url: %q: %w", in, err)
+		return 0, nil, errURL(rawurl, err)
 	}
 
-	driver := schemeToDriver[u.Scheme]
+	driver := stringToDriver[url.Driver]
 	if driver == 0 {
-		return 0, u, fmt.Errorf("unknown database driver for: %s", u.Scheme)
+		return 0, nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
 	}
 
-	if driver == SQLite {
-		v := u.Query()
+	switch driver {
+	case MySQL:
+		v := url.Query()
+		v.Set("multiStatements", "true")
+		v.Set("parseTime", "true")
+		if !migrate {
+			v.Set("sql_mode", "ANSI")
+		}
+		url.RawQuery = v.Encode()
+		// we need to re-parse since we modified the query params
+		url, err = dburl.Parse(url.URL.String())
+
+	case SQLite:
+		v := url.Query()
 		v.Set("cache", "shared")
 		v.Set("_fk", "true")
-		u.RawQuery = v.Encode()
+		url.RawQuery = v.Encode()
+
+		// we need to re-parse since we modified the query params
+		url, err = dburl.Parse(url.URL.String())
 	}
 
-	return driver, u, nil
+	return driver, url, err
 }

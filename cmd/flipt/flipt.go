@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 	"text/template"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -26,8 +24,12 @@ import (
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/server"
+	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/markphelps/flipt/storage/db"
+	"github.com/markphelps/flipt/storage/db/mysql"
+	"github.com/markphelps/flipt/storage/db/postgres"
+	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -47,11 +49,9 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
-const expectedMigrationVersion uint = 2
-
 var (
-	logger = logrus.New()
-	cfg    *config.Config
+	l   = logrus.New()
+	cfg *config.Config
 
 	cfgPath      string
 	forceMigrate bool
@@ -104,7 +104,7 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				migrator, err := db.NewMigrator(cfg)
+				migrator, err := db.NewMigrator(cfg, l)
 				if err != nil {
 					fmt.Println("error: ", err)
 					logrus.Exit(1)
@@ -112,7 +112,7 @@ func main() {
 
 				defer migrator.Close()
 
-				if err := migrator.Run(); err != nil {
+				if err := migrator.Run(true); err != nil {
 					fmt.Println("error: ", err)
 					logrus.Exit(1)
 				}
@@ -147,7 +147,7 @@ func main() {
 			logrus.Exit(1)
 		}
 
-		logger.SetOutput(os.Stdout)
+		l.SetOutput(os.Stdout)
 
 		// log to file if enabled
 		if cfg.Log.File != "" {
@@ -157,7 +157,7 @@ func main() {
 				logrus.Exit(1)
 			}
 
-			logger.SetOutput(logFile)
+			l.SetOutput(logFile)
 			logrus.RegisterExitHandler(func() {
 				if logFile != nil {
 					_ = logFile.Close()
@@ -172,7 +172,7 @@ func main() {
 			logrus.Exit(1)
 		}
 
-		logger.SetLevel(lvl)
+		l.SetLevel(lvl)
 	})
 
 	rootCmd.SetVersionTemplate(banner)
@@ -218,46 +218,18 @@ func run(_ []string) error {
 	)
 
 	g.Go(func() error {
-		logger := logger.WithField("server", "grpc")
+		logger := l.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		migrator, err := db.NewMigrator(cfg)
+		migrator, err := db.NewMigrator(cfg, l)
 		if err != nil {
 			return err
 		}
 
 		defer migrator.Close()
 
-		// if forceMigrate provided we can autoMigrate
-		canAutoMigrate := forceMigrate
-
-		// check if any migrations are pending
-		currentVersion, err := migrator.CurrentVersion()
-		if err != nil {
-			// if first run then it's safe to migrate
-			if err == db.ErrMigrationsNilVersion {
-				canAutoMigrate = true
-			} else {
-				return fmt.Errorf("checking migration status: %w", err)
-			}
-		}
-
-		if currentVersion < expectedMigrationVersion {
-			logger.Debugf("migrations pending: [current version=%d, want version=%d]", currentVersion, expectedMigrationVersion)
-
-			if !canAutoMigrate {
-				return errors.New("migrations pending, please backup your database and run `flipt migrate`")
-			}
-
-			logger.Debug("running migrations...")
-
-			if err := migrator.Run(); err != nil {
-				return err
-			}
-
-			logger.Debug("finished migrations")
-		} else {
-			logger.Debug("migrations up to date")
+		if err := migrator.Run(forceMigrate); err != nil {
+			return err
 		}
 
 		migrator.Close()
@@ -272,20 +244,9 @@ func run(_ []string) error {
 		}()
 
 		var (
-			grpcOpts   []grpc.ServerOption
-			serverOpts []server.Option
-			srv        *server.Server
+			grpcOpts []grpc.ServerOption
+			srv      *server.Server
 		)
-
-		if cfg.Cache.Memory.Enabled {
-			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
-			if cfg.Cache.Memory.Expiration > 0 {
-				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
-			} else {
-				logger.Info("in-memory cache enabled with no expiration")
-			}
-			serverOpts = append(serverOpts, server.WithCache(cacher))
-		}
 
 		sql, driver, err := db.Open(cfg.Database.URL)
 		if err != nil {
@@ -294,19 +255,31 @@ func run(_ []string) error {
 
 		defer sql.Close()
 
-		var (
-			builder    sq.StatementBuilderType
-			stmtCacher = sq.NewStmtCacher(sql)
-		)
+		var store storage.Store
 
 		switch driver {
 		case db.SQLite:
-			builder = sq.StatementBuilder.RunWith(stmtCacher)
+			store = sqlite.NewStore(sql)
 		case db.Postgres:
-			builder = sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(stmtCacher)
+			store = postgres.NewStore(sql)
+		case db.MySQL:
+			store = mysql.NewStore(sql)
 		}
 
-		srv = server.New(logger, builder, sql, serverOpts...)
+		if cfg.Cache.Memory.Enabled {
+			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
+			if cfg.Cache.Memory.Expiration > 0 {
+				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
+			} else {
+				logger.Info("in-memory cache enabled with no expiration")
+			}
+
+			store = cache.NewStore(logger, cacher, store)
+		}
+
+		logger = logger.WithField("store", store.String())
+
+		srv = server.New(logger, store)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
@@ -336,7 +309,7 @@ func run(_ []string) error {
 	})
 
 	g.Go(func() error {
-		logger := logger.WithField("server", cfg.Server.Protocol.String())
+		logger := l.WithField("server", cfg.Server.Protocol.String())
 
 		var (
 			r        = chi.NewRouter()
@@ -465,7 +438,7 @@ func run(_ []string) error {
 		break
 	}
 
-	logger.Info("shutting down...")
+	l.Info("shutting down...")
 
 	cancel()
 

@@ -1,11 +1,11 @@
-# Postgres Example
+# MySQL Example
 
-This example shows how you can run Flipt with a Postgres database over the default SQLite.
+This example shows how you can run Flipt with a MySQL database over the default SQLite.
 
-This works by setting the environment variable `FLIPT_DB_URL` to point to the Postgres database running in a container:
+This works by setting the environment variable `FLIPT_DB_URL` to point to the MySQL database running in a container:
 
 ```bash
-FLIPT_DB_URL=postgres://postgres:password@postgres:5432/flipt?sslmode=disable
+FLIPT_DB_URL=mysql://mysql:password@mysql:3306/flipt
 ```
 
 ## Requirements

@@ -24,7 +24,7 @@ jobs:
 
     - uses: actions/setup-go@v2
       with:
-        go-version: 1.14.1
+        go-version: '1.14.x'
 
     - uses: actions/setup-node@v1
       with:
@@ -54,12 +54,12 @@ jobs:
     - name: Test API
       uses: ./.github/actions/integration-test
       with:
-        args: ./script/test/api
+        args: ./test/api
 
     - name: Test CLI
       uses: ./.github/actions/integration-test
       with:
-        args: ./script/test/cli
+        args: ./test/cli
 
     - name: Test UI
       uses: ./.github/actions/integration-test
@@ -67,7 +67,7 @@ jobs:
         FFMPEG_PATH: /usr/bin/ffmpeg # for recording video
         QAW_ARTIFACT_PATH: ${{ github.workspace }}/artifacts
       with:
-        args: ./script/test/qawolf
+        args: ./test/qawolf
 
     - name: Upload Artifacts
       if: always()

@@ -94,7 +94,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		}
 	)
 
-	flag, err := s.FlagStore.GetFlag(ctx, r.FlagKey)
+	flag, err := s.store.GetFlag(ctx, r.FlagKey)
 	if err != nil {
 		return resp, err
 	}
@@ -103,7 +103,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		return resp, errors.ErrInvalidf("flag %q is disabled", r.FlagKey)
 	}
 
-	rules, err := s.EvaluationStore.GetEvaluationRules(ctx, r.FlagKey)
+	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
 	if err != nil {
 		return resp, err
 	}
@@ -201,7 +201,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		// based on the distributions
 		resp.SegmentKey = rule.SegmentKey
 
-		distributions, err := s.EvaluationStore.GetEvaluationDistributions(ctx, rule.ID)
+		distributions, err := s.store.GetEvaluationDistributions(ctx, rule.ID)
 		if err != nil {
 			return resp, err
 		}

@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:latest
+    networks:
+      - flipt_network
+    environment:
+      - MYSQL_DATABASE=flipt
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=password
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+
+  flipt:
+    build: .
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    networks:
+      - flipt_network
+    environment:
+      - FLIPT_DB_URL=mysql://mysql:password@mysql:3306/flipt
+      - FLIPT_LOG_LEVEL=debug
+    command: ["./tmp/wait-for-it.sh", "mysql:3306", "--", "./flipt"]
+networks:
+  flipt_network:

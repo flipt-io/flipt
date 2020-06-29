@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd "$(dirname "$0")/../.." || exit
+cd "$(dirname "$0")/.." || exit
 
-source ./script/test/helpers/shakedown/shakedown.sh
+source ./test/helpers/shakedown/shakedown.sh
 
 uuid_str()
 {
@@ -266,7 +266,7 @@ run()
     echo -e "\e[32mStart testing $flipt_host\e[0m"
     echo -e "\e[32m===========================================\e[0m"
 
-    ./script/test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
+    ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
     flipt_api=$flipt_host/api/v1
 

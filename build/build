@@ -1,0 +1,52 @@
+#!/bin/bash
+
+set -euo pipefail
+
+GORELEASER_VERSION=v0.125.0
+
+cd "$(dirname "$0")/.." || exit
+
+case "$1" in
+"release")
+            github-release-notes -org markphelps -repo flipt --since-latest-release | tee release.out
+
+            docker run --rm --privileged \
+              -v "$PWD":/flipt \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -w /flipt \
+              -e GITHUB_TOKEN \
+              -e DOCKER_USERNAME \
+              -e DOCKER_PASSWORD \
+              goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --release-notes release.out
+
+            rm release.out
+            ;;
+
+"snapshot")
+            docker run --rm --privileged \
+              -v "$PWD":/flipt \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -w /flipt \
+              goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish
+            ;;
+
+"client")   
+            GO_OUTPUT_DIR=$(realpath "../flipt-grpc-go")
+            RUBY_OUTPUT_DIR=$(realpath "../flipt-grpc-ruby/lib")
+
+            if [[ -f "grpc_tools_ruby_protoc" ]]; then
+                echo "--> installing ruby dependencies..."
+                gem install grpc-tools
+            fi
+
+            echo "--> generating Go client to $GO_OUTPUT_DIR ..."
+
+            protoc -I rpc/ rpc/flipt.proto --go_out=plugins=grpc:"$GO_OUTPUT_DIR"
+
+            echo "--> generating Ruby client to $RUBY_OUTPUT_DIR ..."
+
+            grpc_tools_ruby_protoc -I rpc/ --ruby_out="$RUBY_OUTPUT_DIR" --grpc_out="$RUBY_OUTPUT_DIR" rpc/flipt.proto
+            ;;
+*)  echo "unknown comand"
+    ;;
+esac

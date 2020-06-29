@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	flipt "github.com/markphelps/flipt/rpc"
 )
@@ -35,14 +36,6 @@ type EvaluationDistribution struct {
 	VariantKey string
 }
 
-// EvaluationStore returns data necessary for evaluation
-type EvaluationStore interface {
-	// GetEvaluationRules returns rules applicable to flagKey provided
-	// Note: Rules MUST be returned in order by Rank
-	GetEvaluationRules(ctx context.Context, flagKey string) ([]*EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
-}
-
 type QueryParams struct {
 	Limit  uint64
 	Offset uint64
@@ -60,6 +53,22 @@ func WithOffset(offset uint64) QueryOption {
 	return func(p *QueryParams) {
 		p.Offset = offset
 	}
+}
+
+type Store interface {
+	FlagStore
+	RuleStore
+	SegmentStore
+	EvaluationStore
+	fmt.Stringer
+}
+
+// EvaluationStore returns data necessary for evaluation
+type EvaluationStore interface {
+	// GetEvaluationRules returns rules applicable to flagKey provided
+	// Note: Rules MUST be returned in order by Rank
+	GetEvaluationRules(ctx context.Context, flagKey string) ([]*EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
 }
 
 // FlagStore stores and retrieves flags and variants

@@ -12,10 +12,10 @@ import (
 
 func TestGetRule(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.GetRuleRequest{Id: "id", FlagKey: "flagKey"}
 	)
@@ -32,10 +32,10 @@ func TestGetRule(t *testing.T) {
 
 func TestListRules(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.ListRuleRequest{FlagKey: "flagKey"}
 	)
@@ -55,10 +55,10 @@ func TestListRules(t *testing.T) {
 
 func TestCreateRule(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.CreateRuleRequest{
 			FlagKey:    "flagKey",
@@ -82,10 +82,10 @@ func TestCreateRule(t *testing.T) {
 
 func TestUpdateRule(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.UpdateRuleRequest{
 			Id:         "1",
@@ -108,10 +108,10 @@ func TestUpdateRule(t *testing.T) {
 
 func TestDeleteRule(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.DeleteRuleRequest{
 			Id: "id",
@@ -128,10 +128,10 @@ func TestDeleteRule(t *testing.T) {
 
 func TestOrderRules(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.OrderRulesRequest{FlagKey: "flagKey", RuleIds: []string{"1", "2"}}
 	)
@@ -146,10 +146,10 @@ func TestOrderRules(t *testing.T) {
 
 func TestCreateDistribution(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.CreateDistributionRequest{FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"}
 	)
@@ -168,10 +168,10 @@ func TestCreateDistribution(t *testing.T) {
 
 func TestUpdateDistribution(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.UpdateDistributionRequest{Id: "1", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"}
 	)
@@ -190,10 +190,10 @@ func TestUpdateDistribution(t *testing.T) {
 
 func TestDeleteDistribution(t *testing.T) {
 	var (
-		store = &ruleStoreMock{}
+		store = &storeMock{}
 		s     = &Server{
-			logger:    logger,
-			RuleStore: store,
+			logger: logger,
+			store:  store,
 		}
 		req = &flipt.DeleteRuleRequest{
 			Id: "foo",

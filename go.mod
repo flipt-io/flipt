@@ -13,6 +13,7 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/go-chi/chi v4.0.3-0.20191031103402-221acf29d02b+incompatible
 	github.com/go-chi/cors v1.1.1
+	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gobuffalo/packr/v2 v2.7.1 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible
@@ -38,6 +39,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/urfave/negroni v1.0.0 // indirect
+	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e
 	google.golang.org/grpc v1.29.1

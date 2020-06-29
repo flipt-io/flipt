@@ -1,4 +1,4 @@
-package db
+package common
 
 import (
 	"context"
@@ -6,40 +6,24 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
-	"github.com/lib/pq"
 
 	proto "github.com/golang/protobuf/ptypes"
-	"github.com/markphelps/flipt/errors"
+	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
-	sqlite3 "github.com/mattn/go-sqlite3"
 )
 
-var _ storage.FlagStore = &FlagStore{}
-
-// FlagStore is a SQL FlagStore
-type FlagStore struct {
-	builder sq.StatementBuilderType
-}
-
-// NewFlagStore creates a FlagStore
-func NewFlagStore(builder sq.StatementBuilderType) *FlagStore {
-	return &FlagStore{
-		builder: builder,
-	}
-}
-
 // GetFlag gets a flag
-func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
+func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
 		createdAt timestamp
 		updatedAt timestamp
 
 		flag = &flipt.Flag{}
 
-		query = s.builder.Select("key, name, description, enabled, created_at, updated_at").
+		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			Where(sq.Eq{"key": key})
+			Where(sq.Eq{"\"key\"": key})
 
 		err = query.QueryRowContext(ctx).Scan(
 			&flag.Key,
@@ -52,7 +36,7 @@ func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrNotFoundf("flag %q", key)
+			return nil, errs.ErrNotFoundf("flag %q", key)
 		}
 
 		return nil, err
@@ -69,11 +53,11 @@ func (s *FlagStore) GetFlag(ctx context.Context, key string) (*flipt.Flag, error
 }
 
 // ListFlags lists all flags
-func (s *FlagStore) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
+func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
 	var (
 		flags []*flipt.Flag
 
-		query = s.builder.Select("key, name, description, enabled, created_at, updated_at").
+		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
 			OrderBy("created_at ASC")
 	)
@@ -134,7 +118,7 @@ func (s *FlagStore) ListFlags(ctx context.Context, opts ...storage.QueryOption) 
 }
 
 // CreateFlag creates a flag
-func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	var (
 		now  = proto.TimestampNow()
 		flag = &flipt.Flag{
@@ -145,24 +129,12 @@ func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
-
-		query = s.builder.Insert("flags").
-			Columns("key", "name", "description", "enabled", "created_at", "updated_at").
-			Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt})
 	)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				return nil, errors.ErrInvalidf("flag %q is not unique", r.Key)
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("flag %q is not unique", r.Key)
-			}
-		}
-
+	if _, err := s.builder.Insert("flags").
+		Columns("\"key\"", "name", "description", "enabled", "created_at", "updated_at").
+		Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -170,13 +142,13 @@ func (s *FlagStore) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) 
 }
 
 // UpdateFlag updates an existing flag
-func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	query := s.builder.Update("flags").
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
-		Where(sq.Eq{"key": r.Key})
+		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -189,23 +161,23 @@ func (s *FlagStore) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) 
 	}
 
 	if count != 1 {
-		return nil, errors.ErrNotFoundf("flag %q", r.Key)
+		return nil, errs.ErrNotFoundf("flag %q", r.Key)
 	}
 
 	return s.GetFlag(ctx, r.Key)
 }
 
 // DeleteFlag deletes a flag
-func (s *FlagStore) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	_, err := s.builder.Delete("flags").
-		Where(sq.Eq{"key": r.Key}).
+		Where(sq.Eq{"\"key\"": r.Key}).
 		ExecContext(ctx)
 
 	return err
 }
 
 // CreateVariant creates a variant
-func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	var (
 		now = proto.TimestampNow()
 		v   = &flipt.Variant{
@@ -217,30 +189,12 @@ func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
-
-		query = s.builder.Insert("variants").
-			Columns("id", "flag_key", "key", "name", "description", "created_at", "updated_at").
-			Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt})
 	)
 
-	if _, err := query.ExecContext(ctx); err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				if ierr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
-					return nil, errors.ErrNotFoundf("flag %q", r.FlagKey)
-				} else if ierr.ExtendedCode == sqlite3.ErrConstraintUnique {
-					return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-				}
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintForeignKey {
-				return nil, errors.ErrNotFoundf("flag %q", r.FlagKey)
-			} else if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-			}
-		}
-
+	if _, err := s.builder.Insert("variants").
+		Columns("id", "flag_key", "\"key\"", "name", "description", "created_at", "updated_at").
+		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
@@ -248,28 +202,16 @@ func (s *FlagStore) CreateVariant(ctx context.Context, r *flipt.CreateVariantReq
 }
 
 // UpdateVariant updates an existing variant
-func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
-	res, err := s.builder.Update("variants").
-		Set("key", r.Key).
+func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+	query := s.builder.Update("variants").
+		Set("\"key\"", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("updated_at", &timestamp{proto.TimestampNow()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
-		ExecContext(ctx)
-	if err != nil {
-		switch ierr := err.(type) {
-		case sqlite3.Error:
-			if ierr.Code == sqlite3.ErrConstraint {
-				if ierr.ExtendedCode == sqlite3.ErrConstraintUnique {
-					return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-				}
-			}
-		case *pq.Error:
-			if ierr.Code.Name() == pgConstraintUnique {
-				return nil, errors.ErrInvalidf("variant %q is not unique", r.Key)
-			}
-		}
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
+	res, err := query.ExecContext(ctx)
+	if err != nil {
 		return nil, err
 	}
 
@@ -279,7 +221,7 @@ func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 	}
 
 	if count != 1 {
-		return nil, errors.ErrNotFoundf("variant %q", r.Key)
+		return nil, errs.ErrNotFoundf("variant %q", r.Key)
 	}
 
 	var (
@@ -289,7 +231,7 @@ func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 		v = &flipt.Variant{}
 	)
 
-	if err := s.builder.Select("id, key, flag_key, name, description, created_at, updated_at").
+	if err := s.builder.Select("id, \"key\", flag_key, name, description, created_at, updated_at").
 		From("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		QueryRowContext(ctx).
@@ -304,7 +246,7 @@ func (s *FlagStore) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantReq
 }
 
 // DeleteVariant deletes a variant
-func (s *FlagStore) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
 	_, err := s.builder.Delete("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
@@ -312,8 +254,8 @@ func (s *FlagStore) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	return err
 }
 
-func (s *FlagStore) variants(ctx context.Context, flag *flipt.Flag) (err error) {
-	query := s.builder.Select("id, flag_key, key, name, description, created_at, updated_at").
+func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
+	query := s.builder.Select("id, flag_key, \"key\", name, description, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"flag_key": flag.Key}).
 		OrderBy("created_at ASC")
