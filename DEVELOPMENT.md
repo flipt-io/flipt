@@ -8,7 +8,7 @@ Before starting, make sure you have the following installed:
 
 * GCC Compiler
 * [SQLite](https://sqlite.org/index.html)
-* [Go 1.13+](https://golang.org/doc/install)
+* [Go 1.14+](https://golang.org/doc/install)
 * [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
@@ -20,7 +20,7 @@ Before starting, make sure you have the following installed:
 
 ## Go
 
-Flipt is built with Go 1.13+. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH` or set the environment variable `GO111MODULE=on`. For more info see: [https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support](https://github.com/golang/go/wiki/Modules#how-to-install-and-activate-module-support).
+Flipt is built with Go 1.14+. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH`.
 
 ## Configuration
 
