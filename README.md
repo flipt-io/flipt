@@ -60,7 +60,7 @@ Flipt supports use cases such as:
 * Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
 * Simple REST API
 * Modern UI and debug console
-* Support for multiple databases
+* Support for multiple databases (Postgres, MySQL, SQLite)
 * Data import and export to allow storing your flags as code
 
 ## Values
