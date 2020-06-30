@@ -14,7 +14,7 @@ jobs:
       - name: Build Snapshot
         uses: goreleaser/goreleaser-action@v2
         with:
-          version: v0.138.0-cgo
+          version: v0.138.0
           args: --rm-dist --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
