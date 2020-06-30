@@ -15,11 +15,13 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/gobuffalo/packr"
+	"github.com/google/go-github/v32/github"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
@@ -49,6 +51,8 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
+const defaultVersion = "dev"
+
 var (
 	l   = logrus.New()
 	cfg *config.Config
@@ -56,7 +60,7 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   = "dev"
+	version   = defaultVersion
 	commit    string
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
@@ -209,6 +213,33 @@ func run(_ []string) error {
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
 	defer signal.Stop(interrupt)
+
+	if cfg.Meta.CheckForUpdates && version != defaultVersion {
+		l.Debug("checking for new releases...")
+
+		client := github.NewClient(nil)
+		release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
+
+		if err != nil {
+			releaseTag := release.GetTagName()
+			latestVersion, err := semver.ParseTolerant(releaseTag)
+			if err != nil {
+				return fmt.Errorf("parsing latest version: %w", err)
+			}
+
+			currentVersion, err := semver.ParseTolerant(version)
+			if err != nil {
+				return fmt.Errorf("parsing current version: %w", err)
+			}
+
+			switch currentVersion.Compare(latestVersion) {
+			case 0:
+				l.Info("currently running the latest version of Flipt")
+			case -1:
+				l.Warnf("a newer version of Flipt exists at %q, please consider updating to the latest version", release.GetHTMLURL())
+			}
+		}
+	}
 
 	g, ctx := errgroup.WithContext(ctx)
 

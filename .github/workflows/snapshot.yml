@@ -1,0 +1,25 @@
+name: Snapshot Build
+on:
+  push:
+    paths:
+      - '.github/workflows/snapshot.yml'
+    branches:
+      - master
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.x'
+
+      - name: Build Snapshot
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: v0.138.0-cgo
+          args: --rm-dist --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

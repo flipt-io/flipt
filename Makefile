@@ -66,6 +66,7 @@ clean: ## Cleanup generated files
 	go clean -i $(SOURCE_FILES)
 	packr clean
 	rm -rf dist/*
+	go mod tidy
 
 .PHONY: proto
 proto: ## Build protobufs

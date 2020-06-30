@@ -19,6 +19,7 @@ type Config struct {
 	Cache    cacheConfig    `json:"cache,omitempty"`
 	Server   serverConfig   `json:"server,omitempty"`
 	Database databaseConfig `json:"database,omitempty"`
+	Meta     metaConfig     `json:"meta,omitempty"`
 }
 
 type logConfig struct {
@@ -43,6 +44,10 @@ type memoryCacheConfig struct {
 
 type cacheConfig struct {
 	Memory memoryCacheConfig `json:"memory,omitempty"`
+}
+
+type metaConfig struct {
+	CheckForUpdates bool `json:"checkForUpdates"`
 }
 
 type Scheme uint
@@ -117,6 +122,10 @@ func Default() *Config {
 		Database: databaseConfig{
 			URL:            "file:/var/opt/flipt/flipt.db",
 			MigrationsPath: "/etc/flipt/config/migrations",
+		},
+
+		Meta: metaConfig{
+			CheckForUpdates: true,
 		},
 	}
 }
