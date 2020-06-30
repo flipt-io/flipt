@@ -221,22 +221,35 @@ func run(_ []string) error {
 		release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
 
 		if err != nil {
-			releaseTag := release.GetTagName()
-			latestVersion, err := semver.ParseTolerant(releaseTag)
+			l.Warnf("error: checking for latest version: %v", err)
+		} else {
+			var (
+				releaseTag                    = release.GetTagName()
+				latestVersion, currentVersion semver.Version
+				canCompare                    = true
+			)
+
+			latestVersion, err = semver.ParseTolerant(releaseTag)
 			if err != nil {
-				return fmt.Errorf("parsing latest version: %w", err)
+				l.Warnf("error: parsing latest version: %v", err)
+				canCompare = false
 			}
 
-			currentVersion, err := semver.ParseTolerant(version)
+			currentVersion, err = semver.ParseTolerant(version)
 			if err != nil {
-				return fmt.Errorf("parsing current version: %w", err)
+				l.Warnf("error: parsing current version: %v", err)
+				canCompare = false
 			}
 
-			switch currentVersion.Compare(latestVersion) {
-			case 0:
-				l.Info("currently running the latest version of Flipt")
-			case -1:
-				l.Warnf("a newer version of Flipt exists at %q, please consider updating to the latest version", release.GetHTMLURL())
+			if canCompare {
+				switch currentVersion.Compare(latestVersion) {
+				case 0:
+					l.Info("currently running the latest version of Flipt")
+				case -1:
+					l.Warnf("a newer version of Flipt exists at %q, please consider updating to the latest version", release.GetHTMLURL())
+				default:
+					l.Infof("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
+				}
 			}
 		}
 	}
