@@ -1,10 +1,5 @@
 name: Snapshot Build
-on:
-  push:
-    paths:
-      - '.github/workflows/snapshot.yml'
-    branches:
-      - master
+on: [push]
 
 jobs:
   goreleaser:
