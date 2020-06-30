@@ -246,7 +246,7 @@ func run(_ []string) error {
 				case 0:
 					l.Info("currently running the latest version of Flipt")
 				case -1:
-					l.Warnf("a newer version of Flipt exists at %q, please consider updating to the latest version", release.GetHTMLURL())
+					l.Warnf("a newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
 				default:
 					l.Infof("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
 				}
