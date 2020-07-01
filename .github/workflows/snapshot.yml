@@ -1,5 +1,11 @@
 name: Snapshot Build
-on: [push]
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '*.md'
+      - '.all-contributorsrc'
 
 jobs:
   goreleaser:
@@ -15,7 +21,7 @@ jobs:
         run: |
           make setup
           make snapshot
-      
+
       - name: Docker Tag and Push
         if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
         run: |

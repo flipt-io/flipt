@@ -38,14 +38,11 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
 
     steps:
-    - name: Setup Go
-      uses: actions/setup-go@v2
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
       with:
         go-version: '1.14.x'
-      id: go
-
-    - name: Checkout
-      uses: actions/checkout@v2
 
     - name: Restore Cache
       uses: actions/cache@v1
