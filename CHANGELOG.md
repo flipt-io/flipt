@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+* Check for newer versions of Flipt on startup. Can be disabled by setting `meta.check_for_updates=false` in config. [https://github.com/markphelps/flipt/pull/311](https://github.com/markphelps/flipt/pull/311)
+
 ## [v0.16.0](https://github.com/markphelps/flipt/releases/tag/v0.16.0) - 2020-06-29
 
 ### Added
