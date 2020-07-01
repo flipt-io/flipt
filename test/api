@@ -4,6 +4,14 @@ cd "$(dirname "$0")/.." || exit
 
 source ./test/helpers/shakedown/shakedown.sh
 
+FLIPT_PID="/tmp/flipt.api.pid"
+
+finish() {
+  [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
+}
+
+trap finish EXIT
+
 uuid_str()
 {
     LC_ALL=C; cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1
@@ -256,6 +264,7 @@ run()
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
+    echo $! > "$FLIPT_PID"
 
     sleep 5
 
