@@ -2,6 +2,8 @@
 
 FROM alpine:3.10
 LABEL maintainer="mark.aaron.phelps@gmail.com"
+LABEL org.opencontainers.image.name="flipt"
+LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
 
 RUN apk add --no-cache postgresql-client \
     openssl \
