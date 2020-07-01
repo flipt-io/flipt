@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-GORELEASER_VERSION=v0.125.0
+GORELEASER_VERSION=v0.138.0
 
 cd "$(dirname "$0")/.." || exit
 
@@ -27,10 +27,10 @@ case "$1" in
               -v "$PWD":/flipt \
               -v /var/run/docker.sock:/var/run/docker.sock \
               -w /flipt \
-              goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot --skip-publish
+              goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot
             ;;
 
-"client")   
+"client")
             GO_OUTPUT_DIR=$(realpath "../flipt-grpc-go")
             RUBY_OUTPUT_DIR=$(realpath "../flipt-grpc-ruby/lib")
 

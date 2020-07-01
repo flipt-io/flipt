@@ -13,14 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Setup Go
-      uses: actions/setup-go@v2
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
       with:
         go-version: '1.14.x'
-      id: go
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
 
     - name: Restore Cache
       uses: actions/cache@v1
@@ -61,7 +58,7 @@ jobs:
       run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
 
     - name: Coverage
-      if: github.repository == 'markphelps/flipt' # don't run coverage on forks since secrets are not copied to forked repos
+      if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
       env:
         CI_BRANCH: ${{ github.ref }}
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

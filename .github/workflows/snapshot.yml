@@ -1,0 +1,30 @@
+name: Snapshot Build
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '*.md'
+      - '.all-contributorsrc'
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.x'
+
+      - name: Build Snapshot
+        run: |
+          make setup
+          make snapshot
+
+      - name: Docker Tag and Push
+        if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
+        run: |
+          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u markphelps --password-stdin
+          docker tag markphelps/flipt:latest markphelps/flipt:snapshot
+          docker push markphelps/flipt:snapshot

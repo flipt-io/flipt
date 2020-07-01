@@ -40,7 +40,6 @@ linters:
     - govet
     - ineffassign
     - interfacer
-    - maligned
     - megacheck
     - misspell
     - staticcheck

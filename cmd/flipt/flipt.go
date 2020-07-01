@@ -15,11 +15,13 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/gobuffalo/packr"
+	"github.com/google/go-github/v32/github"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc"
@@ -49,6 +51,8 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 )
 
+const defaultVersion = "dev"
+
 var (
 	l   = logrus.New()
 	cfg *config.Config
@@ -56,7 +60,7 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   = "dev"
+	version   = defaultVersion
 	commit    string
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
@@ -209,6 +213,10 @@ func run(_ []string) error {
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
 	defer signal.Stop(interrupt)
+
+	if cfg.Meta.CheckForUpdates && version != defaultVersion {
+		checkForUpdates(ctx)
+	}
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -454,6 +462,43 @@ func run(_ []string) error {
 	}
 
 	return g.Wait()
+}
+
+func checkForUpdates(ctx context.Context) {
+	l.Debug("checking for updates...")
+
+	client := github.NewClient(nil)
+	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
+	if err != nil {
+		l.Warnf("error: checking for latest version: %v", err)
+		return
+	}
+
+	var (
+		releaseTag                    = release.GetTagName()
+		latestVersion, currentVersion semver.Version
+	)
+
+	latestVersion, err = semver.ParseTolerant(releaseTag)
+	if err != nil {
+		l.Warnf("error: parsing latest version: %v", err)
+		return
+	}
+
+	currentVersion, err = semver.ParseTolerant(version)
+	if err != nil {
+		l.Warnf("error: parsing current version: %v", err)
+		return
+	}
+
+	l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
+
+	switch currentVersion.Compare(latestVersion) {
+	case 0:
+		l.Info("currently running the latest version of Flipt")
+	case -1:
+		l.Warnf("a newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
+	}
 }
 
 type info struct {

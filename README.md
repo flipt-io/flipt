@@ -90,6 +90,16 @@ Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
 
+### Unreleased Versions
+
+Like to live dangerously? Want to try out the latest **unreleased** changes in Flipt? Now you can!
+
+Run the latest **snapshot** version of Flipt, which is built directly from the `master` branch:
+
+```bash
+❯ docker run --rm -p 8080:8080 -p 9000:9000 markphelps/flipt:snapshot
+```
+
 ### :warning: Beta Software :warning:
 
 Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
