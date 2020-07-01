@@ -215,43 +215,7 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	if cfg.Meta.CheckForUpdates && version != defaultVersion {
-		l.Debug("checking for new releases...")
-
-		client := github.NewClient(nil)
-		release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
-
-		if err != nil {
-			l.Warnf("error: checking for latest version: %v", err)
-		} else {
-			var (
-				releaseTag                    = release.GetTagName()
-				latestVersion, currentVersion semver.Version
-				canCompare                    = true
-			)
-
-			latestVersion, err = semver.ParseTolerant(releaseTag)
-			if err != nil {
-				l.Warnf("error: parsing latest version: %v", err)
-				canCompare = false
-			}
-
-			currentVersion, err = semver.ParseTolerant(version)
-			if err != nil {
-				l.Warnf("error: parsing current version: %v", err)
-				canCompare = false
-			}
-
-			if canCompare {
-				switch currentVersion.Compare(latestVersion) {
-				case 0:
-					l.Info("currently running the latest version of Flipt")
-				case -1:
-					l.Warnf("a newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
-				default:
-					l.Infof("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
-				}
-			}
-		}
+		checkForUpdates(ctx)
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -498,6 +462,43 @@ func run(_ []string) error {
 	}
 
 	return g.Wait()
+}
+
+func checkForUpdates(ctx context.Context) {
+	l.Debug("checking for updates...")
+
+	client := github.NewClient(nil)
+	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
+	if err != nil {
+		l.Warnf("error: checking for latest version: %v", err)
+		return
+	}
+
+	var (
+		releaseTag                    = release.GetTagName()
+		latestVersion, currentVersion semver.Version
+	)
+
+	latestVersion, err = semver.ParseTolerant(releaseTag)
+	if err != nil {
+		l.Warnf("error: parsing latest version: %v", err)
+		return
+	}
+
+	currentVersion, err = semver.ParseTolerant(version)
+	if err != nil {
+		l.Warnf("error: parsing current version: %v", err)
+		return
+	}
+
+	l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
+
+	switch currentVersion.Compare(latestVersion) {
+	case 0:
+		l.Info("currently running the latest version of Flipt")
+	case -1:
+		l.Warnf("a newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
+	}
 }
 
 type info struct {
