@@ -26,5 +26,5 @@ jobs:
         if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
         run: |
           echo ${{ secrets.DOCKER_TOKEN }} | docker login -u markphelps --password-stdin
-          docker tag markphelps/flipt:latest markphelps/flipt:dev
-          docker push markphelps/flipt:dev
+          docker tag markphelps/flipt:latest markphelps/flipt:snapshot
+          docker push markphelps/flipt:snapshot
