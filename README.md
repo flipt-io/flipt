@@ -69,6 +69,7 @@ Flipt supports use cases such as:
 * :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 * :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
+* :thumbsup: **Compatability** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
 
 ## Examples
 
@@ -90,7 +91,7 @@ Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
 
-### Unreleased Versions
+### Snapshot Versions
 
 Like to live dangerously? Want to try out the latest **unreleased** changes in Flipt? Now you can!
 
