@@ -23,7 +23,7 @@ type Config struct {
 }
 
 type logConfig struct {
-	Level string `json:"level"`
+	Level string `json:"level,omitempty"`
 	File  string `json:"file,omitempty"`
 }
 
@@ -38,8 +38,8 @@ type corsConfig struct {
 
 type memoryCacheConfig struct {
 	Enabled          bool          `json:"enabled"`
-	Expiration       time.Duration `json:"expiration"`
-	EvictionInterval time.Duration `json:"evictionInterval"`
+	Expiration       time.Duration `json:"expiration,omitempty"`
+	EvictionInterval time.Duration `json:"evictionInterval,omitempty"`
 }
 
 type cacheConfig struct {
@@ -86,9 +86,9 @@ type serverConfig struct {
 type databaseConfig struct {
 	MigrationsPath  string        `json:"migrationsPath,omitempty"`
 	URL             string        `json:"url,omitempty"`
-	MaxIdleConn     int           `json:"maxIdleConn"`
-	MaxOpenConn     int           `json:"maxOpenConn"`
-	ConnMaxLifetime time.Duration `json:"connMaxLifetime"`
+	MaxIdleConn     int           `json:"maxIdleConn,omitempty"`
+	MaxOpenConn     int           `json:"maxOpenConn,omitempty"`
+	ConnMaxLifetime time.Duration `json:"connMaxLifetime,omitempty"`
 }
 
 func Default() *Config {
