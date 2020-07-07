@@ -33,6 +33,7 @@ import (
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/phyber/negroni-gzip/gzip"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -269,6 +270,9 @@ func run(_ []string) error {
 		if cfg.Database.ConnMaxLifetime > 0 {
 			sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 		}
+
+		collector := db.NewMetricsCollector(driver, sql)
+		prometheus.MustRegister(collector)
 
 		defer sql.Close()
 
