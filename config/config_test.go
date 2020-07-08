@@ -62,25 +62,25 @@ func TestLoad(t *testing.T) {
 			name: "configured",
 			path: "./testdata/config/advanced.yml",
 			expected: &Config{
-				Log: logConfig{
+				Log: LogConfig{
 					Level: "WARN",
 					File:  "testLogFile.txt",
 				},
-				UI: uiConfig{
+				UI: UIConfig{
 					Enabled: false,
 				},
-				Cors: corsConfig{
+				Cors: CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com"},
 				},
-				Cache: cacheConfig{
-					Memory: memoryCacheConfig{
+				Cache: CacheConfig{
+					Memory: MemoryCacheConfig{
 						Enabled:          true,
 						Expiration:       5 * time.Minute,
 						EvictionInterval: 1 * time.Minute,
 					},
 				},
-				Server: serverConfig{
+				Server: ServerConfig{
 					Host:      "127.0.0.1",
 					Protocol:  HTTPS,
 					HTTPPort:  8081,
@@ -89,14 +89,14 @@ func TestLoad(t *testing.T) {
 					CertFile:  "./testdata/config/ssl_cert.pem",
 					CertKey:   "./testdata/config/ssl_key.pem",
 				},
-				Database: databaseConfig{
+				Database: DatabaseConfig{
 					MigrationsPath:  "./config/migrations",
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 					MaxIdleConn:     10,
 					MaxOpenConn:     50,
 					ConnMaxLifetime: 30 * time.Minute,
 				},
-				Meta: metaConfig{
+				Meta: MetaConfig{
 					CheckForUpdates: false,
 				},
 			},
@@ -136,7 +136,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "https: valid",
 			cfg: &Config{
-				Server: serverConfig{
+				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "./testdata/config/ssl_cert.pem",
 					CertKey:  "./testdata/config/ssl_key.pem",
@@ -146,7 +146,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "http: valid",
 			cfg: &Config{
-				Server: serverConfig{
+				Server: ServerConfig{
 					Protocol: HTTP,
 					CertFile: "foo.pem",
 					CertKey:  "bar.pem",
@@ -156,7 +156,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "https: empty cert_file path",
 			cfg: &Config{
-				Server: serverConfig{
+				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "",
 					CertKey:  "./testdata/config/ssl_key.pem",
@@ -168,7 +168,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "https: empty key_file path",
 			cfg: &Config{
-				Server: serverConfig{
+				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "./testdata/config/ssl_cert.pem",
 					CertKey:  "",
@@ -180,7 +180,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "https: missing cert_file",
 			cfg: &Config{
-				Server: serverConfig{
+				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "foo.pem",
 					CertKey:  "./testdata/config/ssl_key.pem",
@@ -192,7 +192,7 @@ func TestValidate(t *testing.T) {
 		{
 			name: "https: missing key_file",
 			cfg: &Config{
-				Server: serverConfig{
+				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "./testdata/config/ssl_cert.pem",
 					CertKey:  "bar.pem",

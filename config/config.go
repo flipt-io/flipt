@@ -13,40 +13,58 @@ import (
 )
 
 type Config struct {
-	Log      logConfig      `json:"log,omitempty"`
-	UI       uiConfig       `json:"ui,omitempty"`
-	Cors     corsConfig     `json:"cors,omitempty"`
-	Cache    cacheConfig    `json:"cache,omitempty"`
-	Server   serverConfig   `json:"server,omitempty"`
-	Database databaseConfig `json:"database,omitempty"`
-	Meta     metaConfig     `json:"meta,omitempty"`
+	Log      LogConfig      `json:"log,omitempty"`
+	UI       UIConfig       `json:"ui,omitempty"`
+	Cors     CorsConfig     `json:"cors,omitempty"`
+	Cache    CacheConfig    `json:"cache,omitempty"`
+	Server   ServerConfig   `json:"server,omitempty"`
+	Database DatabaseConfig `json:"database,omitempty"`
+	Meta     MetaConfig     `json:"meta,omitempty"`
 }
 
-type logConfig struct {
+type LogConfig struct {
 	Level string `json:"level,omitempty"`
 	File  string `json:"file,omitempty"`
 }
 
-type uiConfig struct {
+type UIConfig struct {
 	Enabled bool `json:"enabled"`
 }
 
-type corsConfig struct {
+type CorsConfig struct {
 	Enabled        bool     `json:"enabled"`
 	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
 }
 
-type memoryCacheConfig struct {
+type MemoryCacheConfig struct {
 	Enabled          bool          `json:"enabled"`
 	Expiration       time.Duration `json:"expiration,omitempty"`
 	EvictionInterval time.Duration `json:"evictionInterval,omitempty"`
 }
 
-type cacheConfig struct {
-	Memory memoryCacheConfig `json:"memory,omitempty"`
+type CacheConfig struct {
+	Memory MemoryCacheConfig `json:"memory,omitempty"`
 }
 
-type metaConfig struct {
+type ServerConfig struct {
+	Host      string `json:"host,omitempty"`
+	Protocol  Scheme `json:"protocol,omitempty"`
+	HTTPPort  int    `json:"httpPort,omitempty"`
+	HTTPSPort int    `json:"httpsPort,omitempty"`
+	GRPCPort  int    `json:"grpcPort,omitempty"`
+	CertFile  string `json:"certFile,omitempty"`
+	CertKey   string `json:"certKey,omitempty"`
+}
+
+type DatabaseConfig struct {
+	MigrationsPath  string        `json:"migrationsPath,omitempty"`
+	URL             string        `json:"url,omitempty"`
+	MaxIdleConn     int           `json:"maxIdleConn,omitempty"`
+	MaxOpenConn     int           `json:"maxOpenConn,omitempty"`
+	ConnMaxLifetime time.Duration `json:"connMaxLifetime,omitempty"`
+}
+
+type MetaConfig struct {
 	CheckForUpdates bool `json:"checkForUpdates"`
 }
 
@@ -73,48 +91,30 @@ var (
 	}
 )
 
-type serverConfig struct {
-	Host      string `json:"host,omitempty"`
-	Protocol  Scheme `json:"protocol,omitempty"`
-	HTTPPort  int    `json:"httpPort,omitempty"`
-	HTTPSPort int    `json:"httpsPort,omitempty"`
-	GRPCPort  int    `json:"grpcPort,omitempty"`
-	CertFile  string `json:"certFile,omitempty"`
-	CertKey   string `json:"certKey,omitempty"`
-}
-
-type databaseConfig struct {
-	MigrationsPath  string        `json:"migrationsPath,omitempty"`
-	URL             string        `json:"url,omitempty"`
-	MaxIdleConn     int           `json:"maxIdleConn,omitempty"`
-	MaxOpenConn     int           `json:"maxOpenConn,omitempty"`
-	ConnMaxLifetime time.Duration `json:"connMaxLifetime,omitempty"`
-}
-
 func Default() *Config {
 	return &Config{
-		Log: logConfig{
+		Log: LogConfig{
 			Level: "INFO",
 		},
 
-		UI: uiConfig{
+		UI: UIConfig{
 			Enabled: true,
 		},
 
-		Cors: corsConfig{
+		Cors: CorsConfig{
 			Enabled:        false,
 			AllowedOrigins: []string{"*"},
 		},
 
-		Cache: cacheConfig{
-			Memory: memoryCacheConfig{
+		Cache: CacheConfig{
+			Memory: MemoryCacheConfig{
 				Enabled:          false,
 				Expiration:       -1,
 				EvictionInterval: 10 * time.Minute,
 			},
 		},
 
-		Server: serverConfig{
+		Server: ServerConfig{
 			Host:      "0.0.0.0",
 			Protocol:  HTTP,
 			HTTPPort:  8080,
@@ -122,13 +122,13 @@ func Default() *Config {
 			GRPCPort:  9000,
 		},
 
-		Database: databaseConfig{
+		Database: DatabaseConfig{
 			URL:            "file:/var/opt/flipt/flipt.db",
 			MigrationsPath: "/etc/flipt/config/migrations",
 			MaxIdleConn:    2,
 		},
 
-		Meta: metaConfig{
+		Meta: MetaConfig{
 			CheckForUpdates: true,
 		},
 	}

@@ -5,12 +5,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
 	ms "github.com/golang-migrate/migrate/database/mysql"
 	pg "github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
+	"github.com/markphelps/flipt/config"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
@@ -20,6 +22,87 @@ import (
 
 	_ "github.com/golang-migrate/migrate/source/file"
 )
+
+func TestOpen(t *testing.T) {
+	tests := []struct {
+		name    string
+		cfg     config.Config
+		driver  Driver
+		wantErr bool
+	}{
+		{
+			name: "sqlite",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL:             "file:flipt.db",
+					MaxOpenConn:     5,
+					ConnMaxLifetime: 30 * time.Minute,
+				},
+			},
+			driver: SQLite,
+		},
+		{
+			name: "postres",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL: "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+				},
+			},
+			driver: Postgres,
+		},
+		{
+			name: "mysql",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL: "mysql://mysql@localhost:3306/flipt",
+				},
+			},
+			driver: MySQL,
+		},
+		{
+			name: "invalid url",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL: "http://a b",
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "unknown driver",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL: "mongo://127.0.0.1",
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			cfg     = tt.cfg
+			driver  = tt.driver
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			db, d, err := Open(cfg)
+
+			if wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, db)
+
+			defer db.Close()
+
+			assert.Equal(t, driver, d)
+		})
+	}
+}
 
 func TestParse(t *testing.T) {
 	tests := []struct {
