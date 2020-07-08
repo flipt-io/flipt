@@ -31,8 +31,10 @@
 #   conn_max_lifetime: 0 # unlimited
 
 # tracing:
-#   jaegar:
+#   jaeger:
 #     enabled: false
+#     host: localhost
+#     port: 6831
 
 # meta:
 #   check_for_updates: true

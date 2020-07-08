@@ -22,7 +22,7 @@ log:
 #   grpc_port: 9000
 
 tracing:
-  jaegar:
+  jaeger:
     enabled: true
 
 db:

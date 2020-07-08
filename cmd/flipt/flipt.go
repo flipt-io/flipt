@@ -294,14 +294,16 @@ func run(_ []string) error {
 
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
-		if cfg.Tracing.Jaegar.Enabled {
+		if cfg.Tracing.Jaeger.Enabled {
 
 			jaegerCfg := jaeger_config.Configuration{
+				ServiceName: "flipt",
 				Sampler: &jaeger_config.SamplerConfig{
 					Type:  "const",
 					Param: 1,
 				},
 				Reporter: &jaeger_config.ReporterConfig{
+					LocalAgentHostPort:  fmt.Sprintf("%s:%d", cfg.Tracing.Jaeger.Host, cfg.Tracing.Jaeger.Port),
 					LogSpans:            true,
 					BufferFlushInterval: 1 * time.Second,
 				},
@@ -309,10 +311,7 @@ func run(_ []string) error {
 
 			var closer io.Closer
 
-			tracer, closer, err = jaegerCfg.New(
-				"flipt",
-				jaeger_config.Logger(&jaegarLogAdapter{logger}),
-			)
+			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegarLogAdapter{logger}))
 			if err != nil {
 				return fmt.Errorf("configuring jaegar tracing: %w", err)
 			}
