@@ -21,10 +21,6 @@ log:
 #   http_port: 8080
 #   grpc_port: 9000
 
-tracing:
-  jaeger:
-    enabled: true
-
 db:
   url: file:flipt.db
   migrations:
