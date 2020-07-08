@@ -261,6 +261,15 @@ func run(_ []string) error {
 			return fmt.Errorf("opening db: %w", err)
 		}
 
+		sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
+
+		if cfg.Database.MaxOpenConn > 0 {
+			sql.SetMaxOpenConns(cfg.Database.MaxOpenConn)
+		}
+		if cfg.Database.ConnMaxLifetime > 0 {
+			sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
+		}
+
 		defer sql.Close()
 
 		var store storage.Store

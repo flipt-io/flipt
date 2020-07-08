@@ -28,3 +28,9 @@ db:
   url: postgres://postgres@localhost:5432/flipt?sslmode=disable
   migrations:
     path: ./config/migrations
+  max_idle_conn: 10
+  max_open_conn: 50
+  conn_max_lifetime: 30m
+
+meta:
+  check_for_updates: false

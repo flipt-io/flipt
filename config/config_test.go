@@ -90,11 +90,14 @@ func TestLoad(t *testing.T) {
 					CertKey:   "./testdata/config/ssl_key.pem",
 				},
 				Database: databaseConfig{
-					MigrationsPath: "./config/migrations",
-					URL:            "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+					MigrationsPath:  "./config/migrations",
+					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+					MaxIdleConn:     10,
+					MaxOpenConn:     50,
+					ConnMaxLifetime: 30 * time.Minute,
 				},
 				Meta: metaConfig{
-					CheckForUpdates: true,
+					CheckForUpdates: false,
 				},
 			},
 		},
