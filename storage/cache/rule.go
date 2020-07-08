@@ -17,7 +17,7 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	// check if rule exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("rule", "memory").Inc()
+		cacheHitTotal.WithLabelValues("memory").Inc()
 
 		rule, ok := data.(*flipt.Rule)
 		if !ok {
@@ -36,7 +36,7 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 
 	c.cache.Set(key, rule)
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("rule", "memory").Inc()
+	cacheMissTotal.WithLabelValues("memory").Inc()
 
 	return rule, nil
 }

@@ -18,7 +18,7 @@ func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 	// check if rules exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("eval_rules", "memory").Inc()
+		cacheHitTotal.WithLabelValues("memory").Inc()
 
 		rules, ok := data.([]*storage.EvaluationRule)
 		if !ok {
@@ -38,7 +38,7 @@ func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 	if len(rules) > 0 {
 		c.cache.Set(key, rules)
 		c.logger.Debugf("cache miss; added: %q", key)
-		cacheMissTotal.WithLabelValues("eval_rules", "memory").Inc()
+		cacheMissTotal.WithLabelValues("memory").Inc()
 	}
 
 	return rules, nil
@@ -51,7 +51,7 @@ func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	// check if distributions exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("eval_distributions", "memory").Inc()
+		cacheHitTotal.WithLabelValues("memory").Inc()
 
 		distributions, ok := data.([]*storage.EvaluationDistribution)
 		if !ok {
@@ -71,7 +71,7 @@ func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	if len(distributions) > 0 {
 		c.cache.Set(key, distributions)
 		c.logger.Debugf("cache miss; added %q", key)
-		cacheMissTotal.WithLabelValues("eval_distributions", "memory").Inc()
+		cacheMissTotal.WithLabelValues("memory").Inc()
 	}
 
 	return distributions, nil

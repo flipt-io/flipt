@@ -17,7 +17,7 @@ func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error
 	// check if segment exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("segment", "memory").Inc()
+		cacheHitTotal.WithLabelValues("memory").Inc()
 
 		segment, ok := data.(*flipt.Segment)
 		if !ok {
@@ -36,7 +36,7 @@ func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error
 
 	c.cache.Set(key, segment)
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("segment", "memory").Inc()
+	cacheMissTotal.WithLabelValues("memory").Inc()
 
 	return segment, nil
 }

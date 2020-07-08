@@ -58,7 +58,7 @@ func NewMigrator(cfg *config.Config, logger *logrus.Logger) (*Migrator, error) {
 
 	return &Migrator{
 		migrator: mm,
-		logger:   logger.WithField("migrator", driver.String()),
+		logger:   logrus.NewEntry(logger),
 		driver:   driver,
 	}, nil
 }
