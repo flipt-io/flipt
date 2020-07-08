@@ -17,7 +17,7 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 	// check if flag exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("flag", "memory").Inc()
+		cacheHitTotal.WithLabelValues("memory").Inc()
 
 		flag, ok := data.(*flipt.Flag)
 		if !ok {
@@ -36,7 +36,7 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 
 	c.cache.Set(key, flag)
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("flag", "memory").Inc()
+	cacheMissTotal.WithLabelValues("memory").Inc()
 
 	return flag, nil
 }

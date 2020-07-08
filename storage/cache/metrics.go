@@ -17,33 +17,33 @@ var (
 		Subsystem: subsystem,
 		Name:      "item_count",
 		Help:      "The number of items currently in the cache",
-	}, []string{"type", "cache"})
+	}, []string{"cache"})
 
 	cacheHitTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
 		Name:      "hit_total",
 		Help:      "The number of cache hits",
-	}, []string{"type", "cache"})
+	}, []string{"cache"})
 
 	cacheMissTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
 		Name:      "miss_total",
 		Help:      "The number of cache misses",
-	}, []string{"type", "cache"})
+	}, []string{"cache"})
 
 	cacheFlushTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
 		Name:      "flush_total",
 		Help:      "The number of times the cache is flushed",
-	}, []string{"type", "cache"})
+	}, []string{"cache"})
 
 	cacheEvictionTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
 		Name:      "eviction_total",
 		Help:      "The number of times an item is evicted from the cache",
-	}, []string{"type", "cache"})
+	}, []string{"cache"})
 )
