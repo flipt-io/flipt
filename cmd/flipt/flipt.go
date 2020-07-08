@@ -33,7 +33,6 @@ import (
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
 	"github.com/phyber/negroni-gzip/gzip"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -257,22 +256,10 @@ func run(_ []string) error {
 			srv      *server.Server
 		)
 
-		sql, driver, err := db.Open(cfg.Database.URL)
+		sql, driver, err := db.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
-
-		sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
-
-		if cfg.Database.MaxOpenConn > 0 {
-			sql.SetMaxOpenConns(cfg.Database.MaxOpenConn)
-		}
-		if cfg.Database.ConnMaxLifetime > 0 {
-			sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
-		}
-
-		collector := db.NewMetricsCollector(driver, sql)
-		prometheus.MustRegister(collector)
 
 		defer sql.Close()
 

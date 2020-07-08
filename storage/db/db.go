@@ -4,12 +4,29 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/markphelps/flipt/config"
 	"github.com/xo/dburl"
 )
 
 // Open opens a connection to the db given a URL
-func Open(rawurl string) (*sql.DB, Driver, error) {
-	return open(rawurl, false)
+func Open(cfg config.Config) (*sql.DB, Driver, error) {
+	sql, driver, err := open(cfg.Database.URL, false)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
+
+	if cfg.Database.MaxOpenConn > 0 {
+		sql.SetMaxOpenConns(cfg.Database.MaxOpenConn)
+	}
+	if cfg.Database.ConnMaxLifetime > 0 {
+		sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
+	}
+
+	registerMetrics(driver, sql)
+
+	return sql, driver, nil
 }
 
 func open(rawurl string, migrate bool) (*sql.DB, Driver, error) {

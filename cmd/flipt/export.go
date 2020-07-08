@@ -80,7 +80,7 @@ func runExport(_ []string) error {
 		cancel()
 	}()
 
-	sql, driver, err := db.Open(cfg.Database.URL)
+	sql, driver, err := db.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}

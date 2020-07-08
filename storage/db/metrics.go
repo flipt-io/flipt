@@ -11,16 +11,16 @@ const (
 	subsystem = "db"
 )
 
-// StatsGetter is an interface that gets sql.DBStats.
-type StatsGetter interface {
+// statsGetter is an interface that gets sql.DBStats.
+type statsGetter interface {
 	Stats() sql.DBStats
 }
 
 //nolint
-func NewMetricsCollector(d Driver, s StatsGetter) *MetricsCollector {
+func registerMetrics(d Driver, s statsGetter) {
 	labels := prometheus.Labels{"driver": d.String()}
 
-	return &MetricsCollector{
+	collector := &metricsCollector{
 		sg: s,
 		maxOpenDesc: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "max_open_conn"),
@@ -71,10 +71,12 @@ func NewMetricsCollector(d Driver, s StatsGetter) *MetricsCollector {
 			labels,
 		),
 	}
+
+	prometheus.MustRegister(collector)
 }
 
-type MetricsCollector struct {
-	sg StatsGetter
+type metricsCollector struct {
+	sg statsGetter
 
 	maxOpenDesc           *prometheus.Desc
 	openDesc              *prometheus.Desc
@@ -86,7 +88,7 @@ type MetricsCollector struct {
 	closedMaxLifetimeDesc *prometheus.Desc
 }
 
-func (c *MetricsCollector) Describe(ch chan<- *prometheus.Desc) {
+func (c *metricsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.maxOpenDesc
 	ch <- c.openDesc
 	ch <- c.inUseDesc
@@ -97,7 +99,7 @@ func (c *MetricsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.closedMaxLifetimeDesc
 }
 
-func (c *MetricsCollector) Collect(ch chan<- prometheus.Metric) {
+func (c *metricsCollector) Collect(ch chan<- prometheus.Metric) {
 	stats := c.sg.Stats()
 
 	ch <- prometheus.MustNewConstMetric(
