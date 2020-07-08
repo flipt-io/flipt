@@ -2,9 +2,15 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
+	"github.com/luna-duclos/instrumentedsql"
+	"github.com/luna-duclos/instrumentedsql/opentracing"
 	"github.com/markphelps/flipt/config"
+	"github.com/mattn/go-sqlite3"
 	"github.com/xo/dburl"
 )
 
@@ -30,17 +36,43 @@ func Open(cfg config.Config) (*sql.DB, Driver, error) {
 }
 
 func open(rawurl string, migrate bool) (*sql.DB, Driver, error) {
-	driver, url, err := parse(rawurl, migrate)
+	d, url, err := parse(rawurl, migrate)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	db, err := sql.Open(driver.String(), url.DSN)
-	if err != nil {
-		return nil, 0, err
+	driverName := fmt.Sprintf("instrumented-%s", d)
+
+	var dr driver.Driver
+
+	switch d {
+	case SQLite:
+		dr = &sqlite3.SQLiteDriver{}
+	case Postgres:
+		dr = &pq.Driver{}
+	case MySQL:
+		dr = &mysql.MySQLDriver{}
 	}
 
-	return db, driver, nil
+	registered := false
+
+	for _, dd := range sql.Drivers() {
+		if dd == driverName {
+			registered = true
+			break
+		}
+	}
+
+	if !registered {
+		sql.Register(driverName, instrumentedsql.WrapDriver(dr, instrumentedsql.WithTracer(opentracing.NewTracer(false))))
+	}
+
+	db, err := sql.Open(driverName, url.DSN)
+	if err != nil {
+		return nil, 0, fmt.Errorf("opening db for driver: %s %w", d, err)
+	}
+
+	return db, d, nil
 }
 
 var (

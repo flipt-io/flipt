@@ -18,6 +18,7 @@ type Config struct {
 	Cors     CorsConfig     `json:"cors,omitempty"`
 	Cache    CacheConfig    `json:"cache,omitempty"`
 	Server   ServerConfig   `json:"server,omitempty"`
+	Tracing  TracingConfig  `json:"tracing,omitempty"`
 	Database DatabaseConfig `json:"database,omitempty"`
 	Meta     MetaConfig     `json:"meta,omitempty"`
 }
@@ -54,6 +55,14 @@ type ServerConfig struct {
 	GRPCPort  int    `json:"grpcPort,omitempty"`
 	CertFile  string `json:"certFile,omitempty"`
 	CertKey   string `json:"certKey,omitempty"`
+}
+
+type JaegarTracingConfig struct {
+	Enabled bool `json:"enabled,omitempty"`
+}
+
+type TracingConfig struct {
+	Jaegar JaegarTracingConfig `json:"jaegar,omitempty"`
 }
 
 type DatabaseConfig struct {
@@ -160,6 +169,9 @@ const (
 	cfgServerCertFile  = "server.cert_file"
 	cfgServerCertKey   = "server.cert_key"
 
+	// Tracing
+	cfgTracingJaegarEnabled = "tracing.jaegar.enabled"
+
 	// DB
 	cfgDBURL             = "db.url"
 	cfgDBMigrationsPath  = "db.migrations.path"
@@ -246,6 +258,11 @@ func Load(path string) (*Config, error) {
 
 	if viper.IsSet(cfgServerCertKey) {
 		cfg.Server.CertKey = viper.GetString(cfgServerCertKey)
+	}
+
+	// Tracing
+	if viper.IsSet(cfgTracingJaegarEnabled) {
+		cfg.Tracing.Jaegar.Enabled = viper.GetBool(cfgTracingJaegarEnabled)
 	}
 
 	// DB
