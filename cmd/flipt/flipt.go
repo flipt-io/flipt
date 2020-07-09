@@ -312,7 +312,7 @@ func run(_ []string) error {
 
 			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegerLogAdapter{logger}))
 			if err != nil {
-				return fmt.Errorf("configuring jaegar tracing: %w", err)
+				return fmt.Errorf("configuring tracing: %w", err)
 			}
 
 			defer closer.Close()
