@@ -295,7 +295,6 @@ func run(_ []string) error {
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
 		if cfg.Tracing.Jaeger.Enabled {
-
 			jaegerCfg := jaeger_config.Configuration{
 				ServiceName: "flipt",
 				Sampler: &jaeger_config.SamplerConfig{
@@ -311,7 +310,7 @@ func run(_ []string) error {
 
 			var closer io.Closer
 
-			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegarLogAdapter{logger}))
+			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegerLogAdapter{logger}))
 			if err != nil {
 				return fmt.Errorf("configuring jaegar tracing: %w", err)
 			}
@@ -554,12 +553,12 @@ func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jaegarLogAdapter adapts logrus to fullfil jager's Logger interface
-type jaegarLogAdapter struct {
+// jaegerLogAdapter adapts logrus to fulfill Jager's Logger interface
+type jaegerLogAdapter struct {
 	*logrus.Entry
 }
 
 // Error logs a message at error priority
-func (l *jaegarLogAdapter) Error(msg string) {
+func (l *jaegerLogAdapter) Error(msg string) {
 	l.Entry.Error(msg)
 }

@@ -15,14 +15,13 @@ services:
     depends_on:
       - jaeger
     ports:
-      - "8081:8081"
+      - "8080:8080"
     networks:
       - flipt_network
     environment:
       - "FLIPT_LOG_LEVEL=debug"
       - "FLIPT_TRACING_JAEGER_ENABLED=true"
       - "FLIPT_TRACING_JAEGER_HOST=jaeger"
-      - "FLIPT_SERVER_HTTP_PORT=8081"
 
 networks:
   flipt_network:
