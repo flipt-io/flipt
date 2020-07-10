@@ -1,17 +1,11 @@
 name: Integration Tests
 on:
-  push:
-    branches:
-      - master
+  pull_request:
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
-  pull_request:
-    branches:
-      - master
 
 jobs:
-
   ## Integration Tests
   test:
     name: Test

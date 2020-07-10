@@ -1,15 +1,12 @@
 name: Benchmark
 on:
   pull_request:
-    branches:
-      - master
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
-jobs:
 
-  ## Benchmarks
-  test:
+jobs:
+  benchmark:
     name: Benchmark
     runs-on: ubuntu-latest
 

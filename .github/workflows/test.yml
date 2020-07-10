@@ -6,7 +6,6 @@ on:
       - '.all-contributorsrc'
 
 jobs:
-
   ## Lint
   lint:
     name: Lint
