@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+
+	jaeger "github.com/uber/jaeger-client-go"
 )
 
 type Config struct {
@@ -18,6 +20,7 @@ type Config struct {
 	Cors     CorsConfig     `json:"cors,omitempty"`
 	Cache    CacheConfig    `json:"cache,omitempty"`
 	Server   ServerConfig   `json:"server,omitempty"`
+	Tracing  TracingConfig  `json:"tracing,omitempty"`
 	Database DatabaseConfig `json:"database,omitempty"`
 	Meta     MetaConfig     `json:"meta,omitempty"`
 }
@@ -54,6 +57,16 @@ type ServerConfig struct {
 	GRPCPort  int    `json:"grpcPort,omitempty"`
 	CertFile  string `json:"certFile,omitempty"`
 	CertKey   string `json:"certKey,omitempty"`
+}
+
+type JaegerTracingConfig struct {
+	Enabled bool   `json:"enabled,omitempty"`
+	Host    string `json:"host,omitempty"`
+	Port    int    `json:"port,omitempty"`
+}
+
+type TracingConfig struct {
+	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
 }
 
 type DatabaseConfig struct {
@@ -122,6 +135,14 @@ func Default() *Config {
 			GRPCPort:  9000,
 		},
 
+		Tracing: TracingConfig{
+			Jaeger: JaegerTracingConfig{
+				Enabled: false,
+				Host:    jaeger.DefaultUDPSpanServerHost,
+				Port:    jaeger.DefaultUDPSpanServerPort,
+			},
+		},
+
 		Database: DatabaseConfig{
 			URL:            "file:/var/opt/flipt/flipt.db",
 			MigrationsPath: "/etc/flipt/config/migrations",
@@ -136,39 +157,44 @@ func Default() *Config {
 
 const (
 	// Logging
-	cfgLogLevel = "log.level"
-	cfgLogFile  = "log.file"
+	logLevel = "log.level"
+	logFile  = "log.file"
 
 	// UI
-	cfgUIEnabled = "ui.enabled"
+	uiEnabled = "ui.enabled"
 
 	// CORS
-	cfgCorsEnabled        = "cors.enabled"
-	cfgCorsAllowedOrigins = "cors.allowed_origins"
+	corsEnabled        = "cors.enabled"
+	corsAllowedOrigins = "cors.allowed_origins"
 
 	// Cache
-	cfgCacheMemoryEnabled          = "cache.memory.enabled"
-	cfgCacheMemoryExpiration       = "cache.memory.expiration"
-	cfgCacheMemoryEvictionInterval = "cache.memory.eviction_interval"
+	cacheMemoryEnabled          = "cache.memory.enabled"
+	cacheMemoryExpiration       = "cache.memory.expiration"
+	cacheMemoryEvictionInterval = "cache.memory.eviction_interval"
 
 	// Server
-	cfgServerHost      = "server.host"
-	cfgServerProtocol  = "server.protocol"
-	cfgServerHTTPPort  = "server.http_port"
-	cfgServerHTTPSPort = "server.https_port"
-	cfgServerGRPCPort  = "server.grpc_port"
-	cfgServerCertFile  = "server.cert_file"
-	cfgServerCertKey   = "server.cert_key"
+	serverHost      = "server.host"
+	serverProtocol  = "server.protocol"
+	serverHTTPPort  = "server.http_port"
+	serverHTTPSPort = "server.https_port"
+	serverGRPCPort  = "server.grpc_port"
+	serverCertFile  = "server.cert_file"
+	serverCertKey   = "server.cert_key"
+
+	// Tracing
+	tracingJaegerEnabled = "tracing.jaeger.enabled"
+	tracingJaegerHost    = "tracing.jaeger.host"
+	tracingJaegerPort    = "tracing.jaeger.port"
 
 	// DB
-	cfgDBURL             = "db.url"
-	cfgDBMigrationsPath  = "db.migrations.path"
-	cfgDBMaxIdleConn     = "db.max_idle_conn"
-	cfgDBMaxOpenConn     = "db.max_open_conn"
-	cfgDBConnMaxLifetime = "db.conn_max_lifetime"
+	dbURL             = "db.url"
+	dbMigrationsPath  = "db.migrations.path"
+	dbMaxIdleConn     = "db.max_idle_conn"
+	dbMaxOpenConn     = "db.max_open_conn"
+	dbConnMaxLifetime = "db.conn_max_lifetime"
 
 	// Meta
-	cfgMetaCheckForUpdates = "meta.check_for_updates"
+	metaCheckForUpdates = "meta.check_for_updates"
 )
 
 func Load(path string) (*Config, error) {
@@ -185,93 +211,106 @@ func Load(path string) (*Config, error) {
 	cfg := Default()
 
 	// Logging
-	if viper.IsSet(cfgLogLevel) {
-		cfg.Log.Level = viper.GetString(cfgLogLevel)
+	if viper.IsSet(logLevel) {
+		cfg.Log.Level = viper.GetString(logLevel)
 	}
 
-	if viper.IsSet(cfgLogFile) {
-		cfg.Log.File = viper.GetString(cfgLogFile)
+	if viper.IsSet(logFile) {
+		cfg.Log.File = viper.GetString(logFile)
 	}
 
 	// UI
-	if viper.IsSet(cfgUIEnabled) {
-		cfg.UI.Enabled = viper.GetBool(cfgUIEnabled)
+	if viper.IsSet(uiEnabled) {
+		cfg.UI.Enabled = viper.GetBool(uiEnabled)
 	}
 
 	// CORS
-	if viper.IsSet(cfgCorsEnabled) {
-		cfg.Cors.Enabled = viper.GetBool(cfgCorsEnabled)
+	if viper.IsSet(corsEnabled) {
+		cfg.Cors.Enabled = viper.GetBool(corsEnabled)
 
-		if viper.IsSet(cfgCorsAllowedOrigins) {
-			cfg.Cors.AllowedOrigins = viper.GetStringSlice(cfgCorsAllowedOrigins)
+		if viper.IsSet(corsAllowedOrigins) {
+			cfg.Cors.AllowedOrigins = viper.GetStringSlice(corsAllowedOrigins)
 		}
 	}
 
 	// Cache
-	if viper.IsSet(cfgCacheMemoryEnabled) {
-		cfg.Cache.Memory.Enabled = viper.GetBool(cfgCacheMemoryEnabled)
+	if viper.IsSet(cacheMemoryEnabled) {
+		cfg.Cache.Memory.Enabled = viper.GetBool(cacheMemoryEnabled)
 
-		if viper.IsSet(cfgCacheMemoryExpiration) {
-			cfg.Cache.Memory.Expiration = viper.GetDuration(cfgCacheMemoryExpiration)
+		if viper.IsSet(cacheMemoryExpiration) {
+			cfg.Cache.Memory.Expiration = viper.GetDuration(cacheMemoryExpiration)
 		}
-		if viper.IsSet(cfgCacheMemoryEvictionInterval) {
-			cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cfgCacheMemoryEvictionInterval)
+		if viper.IsSet(cacheMemoryEvictionInterval) {
+			cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cacheMemoryEvictionInterval)
 		}
 	}
 
 	// Server
-	if viper.IsSet(cfgServerHost) {
-		cfg.Server.Host = viper.GetString(cfgServerHost)
+	if viper.IsSet(serverHost) {
+		cfg.Server.Host = viper.GetString(serverHost)
 	}
 
-	if viper.IsSet(cfgServerProtocol) {
-		cfg.Server.Protocol = stringToScheme[viper.GetString(cfgServerProtocol)]
+	if viper.IsSet(serverProtocol) {
+		cfg.Server.Protocol = stringToScheme[viper.GetString(serverProtocol)]
 	}
 
-	if viper.IsSet(cfgServerHTTPPort) {
-		cfg.Server.HTTPPort = viper.GetInt(cfgServerHTTPPort)
+	if viper.IsSet(serverHTTPPort) {
+		cfg.Server.HTTPPort = viper.GetInt(serverHTTPPort)
 	}
 
-	if viper.IsSet(cfgServerHTTPSPort) {
-		cfg.Server.HTTPSPort = viper.GetInt(cfgServerHTTPSPort)
+	if viper.IsSet(serverHTTPSPort) {
+		cfg.Server.HTTPSPort = viper.GetInt(serverHTTPSPort)
 	}
 
-	if viper.IsSet(cfgServerGRPCPort) {
-		cfg.Server.GRPCPort = viper.GetInt(cfgServerGRPCPort)
+	if viper.IsSet(serverGRPCPort) {
+		cfg.Server.GRPCPort = viper.GetInt(serverGRPCPort)
 	}
 
-	if viper.IsSet(cfgServerCertFile) {
-		cfg.Server.CertFile = viper.GetString(cfgServerCertFile)
+	if viper.IsSet(serverCertFile) {
+		cfg.Server.CertFile = viper.GetString(serverCertFile)
 	}
 
-	if viper.IsSet(cfgServerCertKey) {
-		cfg.Server.CertKey = viper.GetString(cfgServerCertKey)
+	if viper.IsSet(serverCertKey) {
+		cfg.Server.CertKey = viper.GetString(serverCertKey)
+	}
+
+	// Tracing
+	if viper.IsSet(tracingJaegerEnabled) {
+		cfg.Tracing.Jaeger.Enabled = viper.GetBool(tracingJaegerEnabled)
+
+		if viper.IsSet(tracingJaegerHost) {
+			cfg.Tracing.Jaeger.Host = viper.GetString(tracingJaegerHost)
+		}
+
+		if viper.IsSet(tracingJaegerPort) {
+			cfg.Tracing.Jaeger.Port = viper.GetInt(tracingJaegerPort)
+		}
 	}
 
 	// DB
-	if viper.IsSet(cfgDBURL) {
-		cfg.Database.URL = viper.GetString(cfgDBURL)
+	if viper.IsSet(dbURL) {
+		cfg.Database.URL = viper.GetString(dbURL)
 	}
 
-	if viper.IsSet(cfgDBMigrationsPath) {
-		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
+	if viper.IsSet(dbMigrationsPath) {
+		cfg.Database.MigrationsPath = viper.GetString(dbMigrationsPath)
 	}
 
-	if viper.IsSet(cfgDBMaxIdleConn) {
-		cfg.Database.MaxIdleConn = viper.GetInt(cfgDBMaxIdleConn)
+	if viper.IsSet(dbMaxIdleConn) {
+		cfg.Database.MaxIdleConn = viper.GetInt(dbMaxIdleConn)
 	}
 
-	if viper.IsSet(cfgDBMaxOpenConn) {
-		cfg.Database.MaxOpenConn = viper.GetInt(cfgDBMaxOpenConn)
+	if viper.IsSet(dbMaxOpenConn) {
+		cfg.Database.MaxOpenConn = viper.GetInt(dbMaxOpenConn)
 	}
 
-	if viper.IsSet(cfgDBConnMaxLifetime) {
-		cfg.Database.ConnMaxLifetime = viper.GetDuration(cfgDBConnMaxLifetime)
+	if viper.IsSet(dbConnMaxLifetime) {
+		cfg.Database.ConnMaxLifetime = viper.GetDuration(dbConnMaxLifetime)
 	}
 
 	// Meta
-	if viper.IsSet(cfgMetaCheckForUpdates) {
-		cfg.Meta.CheckForUpdates = viper.GetBool(cfgMetaCheckForUpdates)
+	if viper.IsSet(metaCheckForUpdates) {
+		cfg.Meta.CheckForUpdates = viper.GetBool(metaCheckForUpdates)
 	}
 
 	if err := cfg.validate(); err != nil {

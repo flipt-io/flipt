@@ -89,6 +89,13 @@ func TestLoad(t *testing.T) {
 					CertFile:  "./testdata/config/ssl_cert.pem",
 					CertKey:   "./testdata/config/ssl_key.pem",
 				},
+				Tracing: TracingConfig{
+					Jaeger: JaegerTracingConfig{
+						Enabled: true,
+						Host:    "localhost",
+						Port:    6831,
+					},
+				},
 				Database: DatabaseConfig{
 					MigrationsPath:  "./config/migrations",
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",

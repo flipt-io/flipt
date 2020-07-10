@@ -1,14 +1,15 @@
 name: "Code Scanning"
-
 on:
   pull_request:
+    paths-ignore:
+        - '*.md'
+        - '.all-contributorsrc'
   schedule:
     - cron: '0 17 * * *'
 
 jobs:
-  CodeQL-Build:
-
-    # CodeQL runs on ubuntu-latest and windows-latest
+  codeql:
+    name: CodeQL
     runs-on: ubuntu-latest
 
     steps:

@@ -23,5 +23,6 @@ services:
       - "FLIPT_CACHE_MEMORY_ENABLED=true"
       - "FLIPT_CACHE_MEMORY_EXPIRATION=1m"
       - "FLIPT_CACHE_MEMORY_EVICTION_INTERVAL=2m"
+
 networks:
   flipt_network:

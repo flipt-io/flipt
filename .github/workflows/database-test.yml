@@ -1,6 +1,6 @@
 name: Database Tests
 on:
-  push:
+  pull_request:
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'

@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -41,14 +42,16 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	_ "github.com/golang-migrate/migrate/source/file"
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+
+	otgrpc "github.com/opentracing-contrib/go-grpc"
+	"github.com/opentracing/opentracing-go"
+	jaeger_config "github.com/uber/jaeger-client-go/config"
 )
 
 const defaultVersion = "dev"
@@ -289,11 +292,40 @@ func run(_ []string) error {
 
 		srv = server.New(logger, store)
 
+		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
+
+		if cfg.Tracing.Jaeger.Enabled {
+			jaegerCfg := jaeger_config.Configuration{
+				ServiceName: "flipt",
+				Sampler: &jaeger_config.SamplerConfig{
+					Type:  "const",
+					Param: 1,
+				},
+				Reporter: &jaeger_config.ReporterConfig{
+					LocalAgentHostPort:  fmt.Sprintf("%s:%d", cfg.Tracing.Jaeger.Host, cfg.Tracing.Jaeger.Port),
+					LogSpans:            true,
+					BufferFlushInterval: 1 * time.Second,
+				},
+			}
+
+			var closer io.Closer
+
+			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegerLogAdapter{logger}))
+			if err != nil {
+				return fmt.Errorf("configuring tracing: %w", err)
+			}
+
+			defer closer.Close()
+		}
+
+		opentracing.SetGlobalTracer(tracer)
+
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_logrus.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
+			otgrpc.OpenTracingServerInterceptor(tracer),
 			srv.ErrorUnaryInterceptor,
 			srv.ValidationUnaryInterceptor,
 		))
@@ -519,4 +551,14 @@ func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// jaegerLogAdapter adapts logrus to fulfill Jager's Logger interface
+type jaegerLogAdapter struct {
+	*logrus.Entry
+}
+
+// Error logs a message at error priority
+func (l *jaegerLogAdapter) Error(msg string) {
+	l.Entry.Error(msg)
 }
