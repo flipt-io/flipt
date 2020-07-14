@@ -69,12 +69,50 @@ type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
 }
 
+// DatabaseProtocol represents a database protocol
+type DatabaseProtocol uint8
+
+func (d DatabaseProtocol) String() string {
+	return databaseProtocolToString[d]
+}
+
+const (
+	_ DatabaseProtocol = iota
+	// SQLite ...
+	SQLite
+	// Postgres ...
+	Postgres
+	// MySQL ...
+	MySQL
+)
+
+var (
+	databaseProtocolToString = map[DatabaseProtocol]string{
+		SQLite:   "file",
+		Postgres: "postgres",
+		MySQL:    "mysql",
+	}
+
+	stringToDatabaseProtocol = map[string]DatabaseProtocol{
+		"file":     SQLite,
+		"sqlite":   SQLite,
+		"postgres": Postgres,
+		"mysql":    MySQL,
+	}
+)
+
 type DatabaseConfig struct {
-	MigrationsPath  string        `json:"migrationsPath,omitempty"`
-	URL             string        `json:"url,omitempty"`
-	MaxIdleConn     int           `json:"maxIdleConn,omitempty"`
-	MaxOpenConn     int           `json:"maxOpenConn,omitempty"`
-	ConnMaxLifetime time.Duration `json:"connMaxLifetime,omitempty"`
+	MigrationsPath  string           `json:"migrationsPath,omitempty"`
+	URL             string           `json:"url,omitempty"`
+	MaxIdleConn     int              `json:"maxIdleConn,omitempty"`
+	MaxOpenConn     int              `json:"maxOpenConn,omitempty"`
+	ConnMaxLifetime time.Duration    `json:"connMaxLifetime,omitempty"`
+	Name            string           `json:"name,omitempty"`
+	User            string           `json:"user,omitempty"`
+	Password        string           `json:"password,omitempty"`
+	Host            string           `json:"host,omitempty"`
+	Port            int              `json:"port,omitempty"`
+	Protocol        DatabaseProtocol `json:"protocol,omitempty"`
 }
 
 type MetaConfig struct {
@@ -192,6 +230,12 @@ const (
 	dbMaxIdleConn     = "db.max_idle_conn"
 	dbMaxOpenConn     = "db.max_open_conn"
 	dbConnMaxLifetime = "db.conn_max_lifetime"
+	dbName            = "db.name"
+	dbUser            = "db.user"
+	dbPassword        = "db.password"
+	dbHost            = "db.host"
+	dbPort            = "db.port"
+	dbProtocol        = "db.protocol"
 
 	// Meta
 	metaCheckForUpdates = "meta.check_for_updates"
@@ -290,6 +334,32 @@ func Load(path string) (*Config, error) {
 	// DB
 	if viper.IsSet(dbURL) {
 		cfg.Database.URL = viper.GetString(dbURL)
+
+	} else if viper.IsSet(dbName) || viper.IsSet(dbUser) || viper.IsSet(dbPassword) || viper.IsSet(dbHost) || viper.IsSet(dbPort) || viper.IsSet(dbProtocol) {
+
+		if viper.IsSet(dbName) {
+			cfg.Database.Name = viper.GetString(dbName)
+		}
+
+		if viper.IsSet(dbUser) {
+			cfg.Database.User = viper.GetString(dbUser)
+		}
+
+		if viper.IsSet(dbPassword) {
+			cfg.Database.Password = viper.GetString(dbPassword)
+		}
+
+		if viper.IsSet(dbHost) {
+			cfg.Database.Host = viper.GetString(dbHost)
+		}
+
+		if viper.IsSet(dbPort) {
+			cfg.Database.Port = viper.GetInt(dbPort)
+		}
+
+		if viper.IsSet(dbProtocol) {
+			cfg.Database.Protocol = stringToDatabaseProtocol[viper.GetString(dbProtocol)]
+		}
 	}
 
 	if viper.IsSet(dbMigrationsPath) {

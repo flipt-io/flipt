@@ -111,7 +111,7 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				migrator, err := db.NewMigrator(cfg, l)
+				migrator, err := db.NewMigrator(*cfg, l)
 				if err != nil {
 					fmt.Println("error: ", err)
 					logrus.Exit(1)
@@ -232,7 +232,7 @@ func run(_ []string) error {
 		logger := l.WithField("server", "grpc")
 		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
-		migrator, err := db.NewMigrator(cfg, l)
+		migrator, err := db.NewMigrator(*cfg, l)
 		if err != nil {
 			return err
 		}
