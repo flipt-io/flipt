@@ -130,6 +130,17 @@ func TestParse(t *testing.T) {
 			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
 		},
 		{
+			name: "postgres no port",
+			cfg: config.DatabaseConfig{
+				Protocol: config.Postgres,
+				Name:     "flipt",
+				Host:     "localhost",
+				User:     "postgres",
+			},
+			driver: Postgres,
+			dsn:    "dbname=flipt host=localhost user=postgres",
+		},
+		{
 			name: "postgres no password",
 			cfg: config.DatabaseConfig{
 				Protocol: config.Postgres,
@@ -161,6 +172,18 @@ func TestParse(t *testing.T) {
 			},
 			driver: MySQL,
 			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true&sql_mode=ANSI",
+		},
+		{
+			name: "mysql no port",
+			cfg: config.DatabaseConfig{
+				Protocol: config.MySQL,
+				Name:     "flipt",
+				Host:     "localhost",
+				User:     "mysql",
+				Password: "foo",
+			},
+			driver: MySQL,
+			dsn:    "mysql:foo@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true&sql_mode=ANSI",
 		},
 		{
 			name: "mysql no password",

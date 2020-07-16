@@ -110,7 +110,7 @@ const (
 func parse(cfg config.Config, migrate bool) (Driver, *dburl.URL, error) {
 	u := cfg.Database.URL
 
-	if cfg.Database.Protocol > 0 || cfg.Database.Name != "" || cfg.Database.Host != "" || cfg.Database.Port > 0 || cfg.Database.User != "" || cfg.Database.Password != "" {
+	if u == "" {
 		host := cfg.Database.Host
 
 		if cfg.Database.Port > 0 {

@@ -335,7 +335,12 @@ func Load(path string) (*Config, error) {
 	if viper.IsSet(dbURL) {
 		cfg.Database.URL = viper.GetString(dbURL)
 
-	} else if viper.IsSet(dbName) || viper.IsSet(dbUser) || viper.IsSet(dbPassword) || viper.IsSet(dbHost) || viper.IsSet(dbPort) || viper.IsSet(dbProtocol) {
+	} else if viper.IsSet(dbProtocol) || viper.IsSet(dbName) || viper.IsSet(dbUser) || viper.IsSet(dbPassword) || viper.IsSet(dbHost) || viper.IsSet(dbPort) {
+		cfg.Database.URL = ""
+
+		if viper.IsSet(dbProtocol) {
+			cfg.Database.Protocol = stringToDatabaseProtocol[viper.GetString(dbProtocol)]
+		}
 
 		if viper.IsSet(dbName) {
 			cfg.Database.Name = viper.GetString(dbName)
@@ -357,9 +362,6 @@ func Load(path string) (*Config, error) {
 			cfg.Database.Port = viper.GetInt(dbPort)
 		}
 
-		if viper.IsSet(dbProtocol) {
-			cfg.Database.Protocol = stringToDatabaseProtocol[viper.GetString(dbProtocol)]
-		}
 	}
 
 	if viper.IsSet(dbMigrationsPath) {
@@ -393,19 +395,33 @@ func Load(path string) (*Config, error) {
 func (c *Config) validate() error {
 	if c.Server.Protocol == HTTPS {
 		if c.Server.CertFile == "" {
-			return errors.New("cert_file cannot be empty when using HTTPS")
+			return errors.New("server.cert_file cannot be empty when using HTTPS")
 		}
 
 		if c.Server.CertKey == "" {
-			return errors.New("cert_key cannot be empty when using HTTPS")
+			return errors.New("server.cert_key cannot be empty when using HTTPS")
 		}
 
 		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find TLS cert_file at %q", c.Server.CertFile)
+			return fmt.Errorf("cannot find TLS server.cert_file at %q", c.Server.CertFile)
 		}
 
 		if _, err := os.Stat(c.Server.CertKey); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find TLS cert_key at %q", c.Server.CertKey)
+			return fmt.Errorf("cannot find TLS server.cert_key at %q", c.Server.CertKey)
+		}
+	}
+
+	if c.Database.URL == "" {
+		if c.Database.Protocol == 0 {
+			return fmt.Errorf("database.protocol cannot be empty")
+		}
+
+		if c.Database.Host == "" {
+			return fmt.Errorf("database.host cannot be empty")
+		}
+
+		if c.Database.Name == "" {
+			return fmt.Errorf("database.name cannot be empty")
 		}
 	}
 

@@ -148,6 +148,9 @@ func TestValidate(t *testing.T) {
 					CertFile: "./testdata/config/ssl_cert.pem",
 					CertKey:  "./testdata/config/ssl_key.pem",
 				},
+				Database: DatabaseConfig{
+					URL: "localhost",
+				},
 			},
 		},
 		{
@@ -157,6 +160,9 @@ func TestValidate(t *testing.T) {
 					Protocol: HTTP,
 					CertFile: "foo.pem",
 					CertKey:  "bar.pem",
+				},
+				Database: DatabaseConfig{
+					URL: "localhost",
 				},
 			},
 		},
@@ -170,7 +176,7 @@ func TestValidate(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			wantErrMsg: "cert_file cannot be empty when using HTTPS",
+			wantErrMsg: "server.cert_file cannot be empty when using HTTPS",
 		},
 		{
 			name: "https: empty key_file path",
@@ -182,7 +188,7 @@ func TestValidate(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			wantErrMsg: "cert_key cannot be empty when using HTTPS",
+			wantErrMsg: "server.cert_key cannot be empty when using HTTPS",
 		},
 		{
 			name: "https: missing cert_file",
@@ -194,7 +200,7 @@ func TestValidate(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			wantErrMsg: "cannot find TLS cert_file at \"foo.pem\"",
+			wantErrMsg: "cannot find TLS server.cert_file at \"foo.pem\"",
 		},
 		{
 			name: "https: missing key_file",
@@ -206,7 +212,7 @@ func TestValidate(t *testing.T) {
 				},
 			},
 			wantErr:    true,
-			wantErrMsg: "cannot find TLS cert_key at \"bar.pem\"",
+			wantErrMsg: "cannot find TLS server.cert_key at \"bar.pem\"",
 		},
 	}
 
