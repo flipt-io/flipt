@@ -89,7 +89,7 @@ func runImport(args []string) error {
 		}
 	}
 
-	migrator, err := db.NewMigrator(cfg, l)
+	migrator, err := db.NewMigrator(*cfg, l)
 	if err != nil {
 		return err
 	}

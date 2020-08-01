@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"net/url"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -14,9 +15,9 @@ import (
 	"github.com/xo/dburl"
 )
 
-// Open opens a connection to the db given a URL
+// Open opens a connection to the db
 func Open(cfg config.Config) (*sql.DB, Driver, error) {
-	sql, driver, err := open(cfg.Database.URL, false)
+	sql, driver, err := open(cfg, false)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -35,8 +36,8 @@ func Open(cfg config.Config) (*sql.DB, Driver, error) {
 	return sql, driver, nil
 }
 
-func open(rawurl string, migrate bool) (*sql.DB, Driver, error) {
-	d, url, err := parse(rawurl, migrate)
+func open(cfg config.Config, migrate bool) (*sql.DB, Driver, error) {
+	d, url, err := parse(cfg, migrate)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -106,14 +107,40 @@ const (
 	MySQL
 )
 
-func parse(rawurl string, migrate bool) (Driver, *dburl.URL, error) {
+func parse(cfg config.Config, migrate bool) (Driver, *dburl.URL, error) {
+	u := cfg.Database.URL
+
+	if u == "" {
+		host := cfg.Database.Host
+
+		if cfg.Database.Port > 0 {
+			host = fmt.Sprintf("%s:%d", host, cfg.Database.Port)
+		}
+
+		uu := url.URL{
+			Scheme: cfg.Database.Protocol.String(),
+			Host:   host,
+			Path:   cfg.Database.Name,
+		}
+
+		if cfg.Database.User != "" {
+			if cfg.Database.Password != "" {
+				uu.User = url.UserPassword(cfg.Database.User, cfg.Database.Password)
+			} else {
+				uu.User = url.User(cfg.Database.User)
+			}
+		}
+
+		u = uu.String()
+	}
+
 	errURL := func(rawurl string, err error) error {
 		return fmt.Errorf("error parsing url: %q, %v", rawurl, err)
 	}
 
-	url, err := dburl.Parse(rawurl)
+	url, err := dburl.Parse(u)
 	if err != nil {
-		return 0, nil, errURL(rawurl, err)
+		return 0, nil, errURL(u, err)
 	}
 
 	driver := stringToDriver[url.Driver]

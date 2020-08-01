@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
-	github.com/Microsoft/go-winio v0.4.12 // indirect
+	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/blang/semver/v4 v4.0.0
 	github.com/buchanae/github-release-notes v0.0.0-20180827045457-200e1dacadbb
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
@@ -19,6 +19,7 @@ require (
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gobuffalo/packr/v2 v2.7.1 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible
+	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.4.2
 	github.com/golangci/golangci-lint v1.26.0

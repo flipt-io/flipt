@@ -69,12 +69,50 @@ type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
 }
 
+// DatabaseProtocol represents a database protocol
+type DatabaseProtocol uint8
+
+func (d DatabaseProtocol) String() string {
+	return databaseProtocolToString[d]
+}
+
+const (
+	_ DatabaseProtocol = iota
+	// DatabaseSQLite ...
+	DatabaseSQLite
+	// DatabasePostgres ...
+	DatabasePostgres
+	// DatabaseMySQL ...
+	DatabaseMySQL
+)
+
+var (
+	databaseProtocolToString = map[DatabaseProtocol]string{
+		DatabaseSQLite:   "file",
+		DatabasePostgres: "postgres",
+		DatabaseMySQL:    "mysql",
+	}
+
+	stringToDatabaseProtocol = map[string]DatabaseProtocol{
+		"file":     DatabaseSQLite,
+		"sqlite":   DatabaseSQLite,
+		"postgres": DatabasePostgres,
+		"mysql":    DatabaseMySQL,
+	}
+)
+
 type DatabaseConfig struct {
-	MigrationsPath  string        `json:"migrationsPath,omitempty"`
-	URL             string        `json:"url,omitempty"`
-	MaxIdleConn     int           `json:"maxIdleConn,omitempty"`
-	MaxOpenConn     int           `json:"maxOpenConn,omitempty"`
-	ConnMaxLifetime time.Duration `json:"connMaxLifetime,omitempty"`
+	MigrationsPath  string           `json:"migrationsPath,omitempty"`
+	URL             string           `json:"url,omitempty"`
+	MaxIdleConn     int              `json:"maxIdleConn,omitempty"`
+	MaxOpenConn     int              `json:"maxOpenConn,omitempty"`
+	ConnMaxLifetime time.Duration    `json:"connMaxLifetime,omitempty"`
+	Name            string           `json:"name,omitempty"`
+	User            string           `json:"user,omitempty"`
+	Password        string           `json:"password,omitempty"`
+	Host            string           `json:"host,omitempty"`
+	Port            int              `json:"port,omitempty"`
+	Protocol        DatabaseProtocol `json:"protocol,omitempty"`
 }
 
 type MetaConfig struct {
@@ -192,6 +230,12 @@ const (
 	dbMaxIdleConn     = "db.max_idle_conn"
 	dbMaxOpenConn     = "db.max_open_conn"
 	dbConnMaxLifetime = "db.conn_max_lifetime"
+	dbName            = "db.name"
+	dbUser            = "db.user"
+	dbPassword        = "db.password"
+	dbHost            = "db.host"
+	dbPort            = "db.port"
+	dbProtocol        = "db.protocol"
 
 	// Meta
 	metaCheckForUpdates = "meta.check_for_updates"
@@ -290,6 +334,34 @@ func Load(path string) (*Config, error) {
 	// DB
 	if viper.IsSet(dbURL) {
 		cfg.Database.URL = viper.GetString(dbURL)
+
+	} else if viper.IsSet(dbProtocol) || viper.IsSet(dbName) || viper.IsSet(dbUser) || viper.IsSet(dbPassword) || viper.IsSet(dbHost) || viper.IsSet(dbPort) {
+		cfg.Database.URL = ""
+
+		if viper.IsSet(dbProtocol) {
+			cfg.Database.Protocol = stringToDatabaseProtocol[viper.GetString(dbProtocol)]
+		}
+
+		if viper.IsSet(dbName) {
+			cfg.Database.Name = viper.GetString(dbName)
+		}
+
+		if viper.IsSet(dbUser) {
+			cfg.Database.User = viper.GetString(dbUser)
+		}
+
+		if viper.IsSet(dbPassword) {
+			cfg.Database.Password = viper.GetString(dbPassword)
+		}
+
+		if viper.IsSet(dbHost) {
+			cfg.Database.Host = viper.GetString(dbHost)
+		}
+
+		if viper.IsSet(dbPort) {
+			cfg.Database.Port = viper.GetInt(dbPort)
+		}
+
 	}
 
 	if viper.IsSet(dbMigrationsPath) {
@@ -323,19 +395,33 @@ func Load(path string) (*Config, error) {
 func (c *Config) validate() error {
 	if c.Server.Protocol == HTTPS {
 		if c.Server.CertFile == "" {
-			return errors.New("cert_file cannot be empty when using HTTPS")
+			return errors.New("server.cert_file cannot be empty when using HTTPS")
 		}
 
 		if c.Server.CertKey == "" {
-			return errors.New("cert_key cannot be empty when using HTTPS")
+			return errors.New("server.cert_key cannot be empty when using HTTPS")
 		}
 
 		if _, err := os.Stat(c.Server.CertFile); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find TLS cert_file at %q", c.Server.CertFile)
+			return fmt.Errorf("cannot find TLS server.cert_file at %q", c.Server.CertFile)
 		}
 
 		if _, err := os.Stat(c.Server.CertKey); os.IsNotExist(err) {
-			return fmt.Errorf("cannot find TLS cert_key at %q", c.Server.CertKey)
+			return fmt.Errorf("cannot find TLS server.cert_key at %q", c.Server.CertKey)
+		}
+	}
+
+	if c.Database.URL == "" {
+		if c.Database.Protocol == 0 {
+			return fmt.Errorf("database.protocol cannot be empty")
+		}
+
+		if c.Database.Host == "" {
+			return fmt.Errorf("database.host cannot be empty")
+		}
+
+		if c.Database.Name == "" {
+			return fmt.Errorf("database.name cannot be empty")
 		}
 	}
 

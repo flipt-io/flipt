@@ -1,0 +1,30 @@
+# log:
+#   level: INFO
+
+# ui:
+#   enabled: true
+
+# cors:
+#   enabled: false
+#   allowed_origins: "*"
+
+# cache:
+#   memory:
+#     enabled: false
+#     expiration: -1 # Items Do Not Expire
+#     eviction_interval: 10m # Evict Expired Items Every 10m
+
+# server:
+#   protocol: http
+#   host: 0.0.0.0
+#   https_port: 443
+#   http_port: 8080
+#   grpc_port: 9000
+
+db:
+  protocol: mysql
+  host: localhost
+  port: 3306
+  name: flipt
+  user: flipt
+  password: s3cr3t!
