@@ -115,7 +115,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "sqlite",
 			cfg: config.DatabaseConfig{
-				Protocol: config.SQLite,
+				Protocol: config.DatabaseSQLite,
 				Host:     "flipt.db",
 			},
 			driver: SQLite,
@@ -132,7 +132,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "postgres no port",
 			cfg: config.DatabaseConfig{
-				Protocol: config.Postgres,
+				Protocol: config.DatabasePostgres,
 				Name:     "flipt",
 				Host:     "localhost",
 				User:     "postgres",
@@ -143,7 +143,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "postgres no password",
 			cfg: config.DatabaseConfig{
-				Protocol: config.Postgres,
+				Protocol: config.DatabasePostgres,
 				Name:     "flipt",
 				Host:     "localhost",
 				Port:     5432,
@@ -155,7 +155,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "postgres with password",
 			cfg: config.DatabaseConfig{
-				Protocol: config.Postgres,
+				Protocol: config.DatabasePostgres,
 				Name:     "flipt",
 				Host:     "localhost",
 				Port:     5432,
@@ -176,7 +176,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "mysql no port",
 			cfg: config.DatabaseConfig{
-				Protocol: config.MySQL,
+				Protocol: config.DatabaseMySQL,
 				Name:     "flipt",
 				Host:     "localhost",
 				User:     "mysql",
@@ -188,7 +188,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "mysql no password",
 			cfg: config.DatabaseConfig{
-				Protocol: config.MySQL,
+				Protocol: config.DatabaseMySQL,
 				Name:     "flipt",
 				Host:     "localhost",
 				Port:     3306,
@@ -200,7 +200,7 @@ func TestParse(t *testing.T) {
 		{
 			name: "mysql with password",
 			cfg: config.DatabaseConfig{
-				Protocol: config.MySQL,
+				Protocol: config.DatabaseMySQL,
 				Name:     "flipt",
 				Host:     "localhost",
 				Port:     3306,

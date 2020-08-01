@@ -101,7 +101,7 @@ func TestLoad(t *testing.T) {
 				},
 
 				Database: DatabaseConfig{
-					Protocol:       MySQL,
+					Protocol:       DatabaseMySQL,
 					Host:           "localhost",
 					Port:           3306,
 					User:           "flipt",
@@ -195,7 +195,6 @@ func TestValidate(t *testing.T) {
 	tests := []struct {
 		name       string
 		cfg        *Config
-		wantErr    bool
 		wantErrMsg string
 	}{
 		{
@@ -216,8 +215,6 @@ func TestValidate(t *testing.T) {
 			cfg: &Config{
 				Server: ServerConfig{
 					Protocol: HTTP,
-					CertFile: "foo.pem",
-					CertKey:  "bar.pem",
 				},
 				Database: DatabaseConfig{
 					URL: "localhost",
@@ -233,7 +230,6 @@ func TestValidate(t *testing.T) {
 					CertKey:  "./testdata/config/ssl_key.pem",
 				},
 			},
-			wantErr:    true,
 			wantErrMsg: "server.cert_file cannot be empty when using HTTPS",
 		},
 		{
@@ -245,7 +241,6 @@ func TestValidate(t *testing.T) {
 					CertKey:  "",
 				},
 			},
-			wantErr:    true,
 			wantErrMsg: "server.cert_key cannot be empty when using HTTPS",
 		},
 		{
@@ -257,7 +252,6 @@ func TestValidate(t *testing.T) {
 					CertKey:  "./testdata/config/ssl_key.pem",
 				},
 			},
-			wantErr:    true,
 			wantErrMsg: "cannot find TLS server.cert_file at \"foo.pem\"",
 		},
 		{
@@ -269,22 +263,55 @@ func TestValidate(t *testing.T) {
 					CertKey:  "bar.pem",
 				},
 			},
-			wantErr:    true,
 			wantErrMsg: "cannot find TLS server.cert_key at \"bar.pem\"",
+		},
+		{
+			name: "db: missing protocol",
+			cfg: &Config{
+				Server: ServerConfig{
+					Protocol: HTTP,
+				},
+				Database: DatabaseConfig{},
+			},
+			wantErrMsg: "database.protocol cannot be empty",
+		},
+		{
+			name: "db: missing host",
+			cfg: &Config{
+				Server: ServerConfig{
+					Protocol: HTTP,
+				},
+				Database: DatabaseConfig{
+					Protocol: DatabaseSQLite,
+				},
+			},
+			wantErrMsg: "database.host cannot be empty",
+		},
+		{
+			name: "db: missing name",
+			cfg: &Config{
+				Server: ServerConfig{
+					Protocol: HTTP,
+				},
+				Database: DatabaseConfig{
+					Protocol: DatabaseSQLite,
+					Host:     "localhost",
+				},
+			},
+			wantErrMsg: "database.name cannot be empty",
 		},
 	}
 
 	for _, tt := range tests {
 		var (
 			cfg        = tt.cfg
-			wantErr    = tt.wantErr
 			wantErrMsg = tt.wantErrMsg
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
 			err := cfg.validate()
 
-			if wantErr {
+			if wantErrMsg != "" {
 				require.Error(t, err)
 				assert.EqualError(t, err, wantErrMsg)
 				return

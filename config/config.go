@@ -78,26 +78,26 @@ func (d DatabaseProtocol) String() string {
 
 const (
 	_ DatabaseProtocol = iota
-	// SQLite ...
-	SQLite
-	// Postgres ...
-	Postgres
-	// MySQL ...
-	MySQL
+	// DatabaseSQLite ...
+	DatabaseSQLite
+	// DatabasePostgres ...
+	DatabasePostgres
+	// DatabaseMySQL ...
+	DatabaseMySQL
 )
 
 var (
 	databaseProtocolToString = map[DatabaseProtocol]string{
-		SQLite:   "file",
-		Postgres: "postgres",
-		MySQL:    "mysql",
+		DatabaseSQLite:   "file",
+		DatabasePostgres: "postgres",
+		DatabaseMySQL:    "mysql",
 	}
 
 	stringToDatabaseProtocol = map[string]DatabaseProtocol{
-		"file":     SQLite,
-		"sqlite":   SQLite,
-		"postgres": Postgres,
-		"mysql":    MySQL,
+		"file":     DatabaseSQLite,
+		"sqlite":   DatabaseSQLite,
+		"postgres": DatabasePostgres,
+		"mysql":    DatabaseMySQL,
 	}
 )
 
