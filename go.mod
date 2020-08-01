@@ -24,11 +24,11 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/golangci/golangci-lint v1.26.0
 	github.com/google/go-github v17.0.0+incompatible // indirect
-	github.com/google/go-github/v32 v32.0.0
+	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
-	github.com/lib/pq v1.7.0
+	github.com/lib/pq v1.7.1
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/luna-duclos/instrumentedsql/opentracing v0.0.0-20200611091901-487c5ec83473
 	github.com/markphelps/flipt-grpc-go v0.2.0
@@ -46,7 +46,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
-	github.com/uber/jaeger-client-go v2.24.0+incompatible
+	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3

@@ -230,7 +230,6 @@ func run(_ []string) error {
 
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
-		logger.Debugf("connecting to database: %s", cfg.Database.URL)
 
 		migrator, err := db.NewMigrator(*cfg, l)
 		if err != nil {
