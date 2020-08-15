@@ -7,7 +7,8 @@ TEST_PATTERN ?= .
 TEST_OPTS ?=
 TEST_FLAGS ?= -v
 
-GOBIN="$(PWD)/_tools/bin"
+GOBIN = _tools/bin
+export PATH := "$(GOBIN):$(PATH)"
 
 UI_PATH = ui
 UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
