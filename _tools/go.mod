@@ -7,7 +7,9 @@ require (
 	github.com/buchanae/github-release-notes v0.0.0-20180827045457-200e1dacadbb
 	github.com/daixiang0/gci v0.2.1 // indirect
 	github.com/go-critic/go-critic v0.5.2 // indirect
+	github.com/gobuffalo/envy v1.9.0 // indirect
 	github.com/gobuffalo/packr v1.30.1
+	github.com/gobuffalo/packr/v2 v2.8.0 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/golangci/golangci-lint v1.29.0
@@ -18,6 +20,7 @@ require (
 	github.com/gostaticanalysis/analysisutil v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.7
 	github.com/jirfag/go-printf-func-name v0.0.0-20200119135958-7558a9eaa5af // indirect
+	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/matoous/godox v0.0.0-20200801072554-4fb83dc2941e // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/nishanths/exhaustive v0.0.0-20200811152831-6cf413ae40e0 // indirect
@@ -33,6 +36,7 @@ require (
 	github.com/tdakkota/asciicheck v0.0.0-20200416200610-e657995f937b // indirect
 	github.com/tetafro/godot v0.4.8 // indirect
 	github.com/timakin/bodyclose v0.0.0-20200424151742-cb6215831a94 // indirect
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/sys v0.0.0-20200814200057-3d37ad5750ed // indirect
 	golang.org/x/tools v0.0.0-20200815165600-90abf76919f3
 	google.golang.org/grpc v1.31.0
