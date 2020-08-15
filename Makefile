@@ -50,6 +50,7 @@ fmt: ## Run gofmt and goimports on all go files
 .PHONY: lint
 lint: ## Run all the linters
 	@echo ">> running golangci-lint"
+	@golangci-lint version
 	golangci-lint run
 
 .PHONY: clean
