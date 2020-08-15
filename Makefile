@@ -82,7 +82,6 @@ pack: ## Pack the assets in the binary
 .PHONY: build
 build: clean assets pack ## Build a local copy
 	@echo ">> building a local copy"
-	@echo $(PATH)
 	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
 .PHONY: dev
