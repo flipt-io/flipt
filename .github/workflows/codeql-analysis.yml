@@ -36,7 +36,7 @@ jobs:
 
     - name: Build
       run: |
-        make setup
+        make bootstrap
         make build
 
     - name: Perform CodeQL Analysis
