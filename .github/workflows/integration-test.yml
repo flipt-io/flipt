@@ -42,7 +42,6 @@ jobs:
 
     - name: Build the binary
       run: |
-        make setup
         make build
 
     - name: Test API

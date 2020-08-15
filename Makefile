@@ -7,16 +7,7 @@ TEST_PATTERN ?= .
 TEST_OPTS ?=
 TEST_FLAGS ?= -v
 
-TOOLS = \
-	"github.com/gobuffalo/packr/packr" \
-	"google.golang.org/grpc/cmd/protoc-gen-go-grpc" \
-	"github.com/golangci/golangci-lint/cmd/golangci-lint" \
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway" \
-	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger" \
-	"golang.org/x/tools/cmd/cover" \
-	"golang.org/x/tools/cmd/goimports" \
-	"google.golang.org/grpc" \
-	"github.com/buchanae/github-release-notes" \
+GOBIN="$(PWD)/_tools/bin"
 
 UI_PATH = ui
 UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
@@ -28,12 +19,6 @@ $(UI_NODE_MODULES_PATH): $(UI_PATH)/package.json $(UI_PATH)/yarn.lock
 
 $(UI_OUTPUT_PATH): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
 	@cd $(UI_PATH) && yarn build
-
-.PHONY: setup
-setup: ## Install dev tools
-	@echo ">> installing dev tools"
-	go get -u -v "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
-	go install -v $(TOOLS)
 
 .PHONY: bench
 bench: ## Run all the benchmarks
