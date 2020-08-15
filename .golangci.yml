@@ -49,6 +49,7 @@ linters:
     - unparam
     - varcheck
   disable:
+    - exhaustive
     - rowserrcheck
   enable-all: false
   presets:
