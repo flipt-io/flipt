@@ -30,7 +30,7 @@ case "$1" in
               goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --snapshot
             ;;
 
-"client")
+"clients")
             GO_OUTPUT_DIR=$(realpath "../flipt-grpc-go")
             RUBY_OUTPUT_DIR=$(realpath "../flipt-grpc-ruby/lib")
 
@@ -47,6 +47,6 @@ case "$1" in
 
             grpc_tools_ruby_protoc -I rpc/ --ruby_out="$RUBY_OUTPUT_DIR" --grpc_out="$RUBY_OUTPUT_DIR" rpc/flipt.proto
             ;;
-*)  echo "unknown comand"
+*)  echo "unknown command"
     ;;
 esac
