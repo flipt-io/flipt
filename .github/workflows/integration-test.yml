@@ -42,6 +42,7 @@ jobs:
 
     - name: Build the binary
       run: |
+        make bootstrap
         make build
 
     - name: Test API

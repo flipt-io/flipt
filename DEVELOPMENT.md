@@ -14,6 +14,7 @@ Before starting, make sure you have the following installed:
 ## Setup
 
 1. Clone this repo: `git clone https://github.com/markphelps/flipt`
+1. Run `make bootstrap` to install required development tools
 1. Run `make test` to execute the test suite
 1. Run `make dev` to build and run in development mode
 1. Run `make help` to see a full list of possible make commands

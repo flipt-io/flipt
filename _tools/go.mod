@@ -40,6 +40,7 @@ require (
 	golang.org/x/sys v0.0.0-20200814200057-3d37ad5750ed // indirect
 	golang.org/x/tools v0.0.0-20200815165600-90abf76919f3
 	google.golang.org/grpc v1.31.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v0.0.0-20200814200710-a3740e5ed326 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/ini.v1 v1.58.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect

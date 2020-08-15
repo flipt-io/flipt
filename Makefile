@@ -20,6 +20,12 @@ $(UI_NODE_MODULES_PATH): $(UI_PATH)/package.json $(UI_PATH)/yarn.lock
 $(UI_OUTPUT_PATH): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
 	@cd $(UI_PATH) && yarn build
 
+.PHONY: bootstrap
+bootstrap: ## Install dev tools
+	@echo ">> installing dev tools"
+	go get -u -v "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
+	@./script/bootstrap
+
 .PHONY: bench
 bench: ## Run all the benchmarks
 	@echo ">> running benchmarks"

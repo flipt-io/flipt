@@ -1,0 +1,24 @@
+#!/bin/sh
+
+TOOLS=$(pwd)/_tools
+export GOBIN=$TOOLS/bin
+
+mkdir -p _tools/bin
+cd $TOOLS
+
+if [ ! -f go.mod ]; then
+    go mod init tools
+fi
+
+go get -u -v github.com/golang/protobuf/protoc-gen-go@v1.4.2
+
+go install -v  \
+    "github.com/gobuffalo/packr/packr" \
+	"google.golang.org/grpc/cmd/protoc-gen-go-grpc" \
+	"github.com/golangci/golangci-lint/cmd/golangci-lint" \
+	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway" \
+	"github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger" \
+	"golang.org/x/tools/cmd/cover" \
+	"golang.org/x/tools/cmd/goimports" \
+	"google.golang.org/grpc" \
+	"github.com/buchanae/github-release-notes"

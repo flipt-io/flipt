@@ -20,6 +20,7 @@ jobs:
 
       - name: Build Snapshot
         run: |
+          make bootstrap
           make snapshot
 
       - name: Docker Tag and Push
