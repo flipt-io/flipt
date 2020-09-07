@@ -241,6 +241,8 @@ github.com/magiconair/properties v1.8.1 h1:ZC2Vc7/ZFkGmsVC9KvOjumD+G5lXy2RtTKyzR
 github.com/magiconair/properties v1.8.1/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/markphelps/flipt-grpc-go v0.2.0 h1:LHJRT3FfjpCrkAqx7u8FnALpzN3PJtBbK7S8hBZ1R9E=
 github.com/markphelps/flipt-grpc-go v0.2.0/go.mod h1:2Dlw1pI4OyMf0UM/Q8Ebm+Fr6Vj9bfiOPZTOp6KmKcQ=
+github.com/markphelps/flipt-grpc-go v0.3.0 h1:i4f2dE8Hs42FkSwFsuS1HM18Jc7HU2Syis4df9w0y+k=
+github.com/markphelps/flipt-grpc-go v0.3.0/go.mod h1:l7KtVKcH7xin21CZpwUaBDvoiNUwRZLjrQyaLkaQXj0=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.4 h1:snbPLB8fVfU9iwbbo30TPtbLRzwWu6aJS6Xh4eaaviA=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=
