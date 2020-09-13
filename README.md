@@ -79,8 +79,6 @@ Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/ba
 
 ## Try It
 
-[![Try in PWD](https://raw.githubusercontent.com/play-with-docker/stacks/master/assets/images/button.png)](https://labs.play-with-docker.com/?stack=https://raw.githubusercontent.com/markphelps/flipt/master/docker-compose.yml)
-
 Try Flipt out yourself with Docker:
 
 ```bash
@@ -104,6 +102,11 @@ Run the latest **snapshot** version of Flipt, which is built directly from the `
 ### :warning: Beta Software :warning:
 
 Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
+
+## GRPC Clients
+
+* [Go](https://github.com/markphelps/flipt-grpc-go)
+* [Ruby](https://github.com/markphelps/flipt-grpc-ruby)
 
 ## Licensing
 
