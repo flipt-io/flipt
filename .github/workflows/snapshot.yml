@@ -23,9 +23,25 @@ jobs:
           make bootstrap
           make snapshot
 
+      - name: Login to DockerHub
+        if: github.repository == 'markphelps/flipt'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - name: Login to GitHub Container Registry
+
+        uses: docker/login-action@v1
+        if: github.repository == 'markphelps/flipt'
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
       - name: Docker Tag and Push
-        if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
+        if: github.repository == 'markphelps/flipt'
         run: |
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u markphelps --password-stdin
           docker tag markphelps/flipt:latest markphelps/flipt:snapshot
+          docker tag markphelps/flipt:latest ghcr.io/markphelps/flipt:snapshot
           docker push markphelps/flipt:snapshot
+          docker push ghcr.io/markphelps/flipt:snapshot

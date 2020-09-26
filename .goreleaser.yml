@@ -31,6 +31,8 @@ dockers:
     image_templates:
       - "markphelps/flipt:latest"
       - "markphelps/flipt:{{ .Tag }}"
+      - "ghcr.io/markphelps/flipt:latest"
+      - "ghcr.io/markphelps/flipt:{{ .Tag }}"
     build_flag_templates:
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
