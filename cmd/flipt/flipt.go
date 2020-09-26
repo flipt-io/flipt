@@ -79,7 +79,7 @@ func main() {
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := run(args); err != nil {
-					fmt.Println("error: ", err)
+					l.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -90,7 +90,7 @@ func main() {
 			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runExport(args); err != nil {
-					fmt.Println("error: ", err)
+					l.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -101,7 +101,7 @@ func main() {
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runImport(args); err != nil {
-					fmt.Println("error: ", err)
+					l.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -113,14 +113,14 @@ func main() {
 			Run: func(cmd *cobra.Command, args []string) {
 				migrator, err := db.NewMigrator(*cfg, l)
 				if err != nil {
-					fmt.Println("error: ", err)
+					l.Error(err)
 					logrus.Exit(1)
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Run(true); err != nil {
-					fmt.Println("error: ", err)
+					l.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -138,7 +138,7 @@ func main() {
 		Date:      date,
 		GoVersion: goVersion,
 	}); err != nil {
-		fmt.Printf("error: executing template: %v", err)
+		l.Errorf("executing template: %v", err)
 		logrus.Exit(1)
 	}
 
@@ -150,7 +150,7 @@ func main() {
 		// read in config
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
-			fmt.Println("error: ", err)
+			l.Error(err)
 			logrus.Exit(1)
 		}
 
@@ -160,7 +160,7 @@ func main() {
 		if cfg.Log.File != "" {
 			logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
 			if err != nil {
-				fmt.Printf("error: opening log file: %s %v\n", cfg.Log.File, err)
+				l.Errorf("opening log file: %s %v", cfg.Log.File, err)
 				logrus.Exit(1)
 			}
 
@@ -175,7 +175,7 @@ func main() {
 		// parse/set log level
 		lvl, err := logrus.ParseLevel(cfg.Log.Level)
 		if err != nil {
-			fmt.Printf("error: parsing log level: %s %v\n", cfg.Log.Level, err)
+			l.Errorf("parsing log level: %s %v", cfg.Log.Level, err)
 			logrus.Exit(1)
 		}
 
@@ -196,7 +196,7 @@ func main() {
 	rootCmd.AddCommand(importCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		l.Error(err)
 		logrus.Exit(1)
 	}
 
@@ -501,7 +501,7 @@ func checkForUpdates(ctx context.Context) {
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
 	if err != nil {
-		l.Warnf("error: checking for latest version: %v", err)
+		l.Warnf("checking for latest version: %v", err)
 		return
 	}
 
@@ -512,13 +512,13 @@ func checkForUpdates(ctx context.Context) {
 
 	latestVersion, err = semver.ParseTolerant(releaseTag)
 	if err != nil {
-		l.Warnf("error: parsing latest version: %v", err)
+		l.Warnf("parsing latest version: %v", err)
 		return
 	}
 
 	currentVersion, err = semver.ParseTolerant(version)
 	if err != nil {
-		l.Warnf("error: parsing current version: %v", err)
+		l.Warnf("parsing current version: %v", err)
 		return
 	}
 
@@ -526,9 +526,9 @@ func checkForUpdates(ctx context.Context) {
 
 	switch currentVersion.Compare(latestVersion) {
 	case 0:
-		l.Info("currently running the latest version of Flipt")
+		color.Green("You are currently running the latest version of Flipt")
 	case -1:
-		l.Warnf("a newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
+		color.Yellow("A newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
 	}
 }
 

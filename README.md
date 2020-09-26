@@ -82,7 +82,7 @@ Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/ba
 Try Flipt out yourself with Docker:
 
 ```bash
-❯ docker run --rm -p 8080:8080 -p 9000:9000 markphelps/flipt:latest
+❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:latest
 ```
 
 Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
@@ -96,7 +96,7 @@ Like to live dangerously? Want to try out the latest **unreleased** changes in F
 Run the latest **snapshot** version of Flipt, which is built directly from the `master` branch:
 
 ```bash
-❯ docker run --rm -p 8080:8080 -p 9000:9000 markphelps/flipt:snapshot
+❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:snapshot
 ```
 
 ### :warning: Beta Software :warning:
