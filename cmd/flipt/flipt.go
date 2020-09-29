@@ -40,6 +40,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 
@@ -342,6 +343,7 @@ func run(_ []string) error {
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.EnableHandlingTimeHistogram()
 		grpc_prometheus.Register(grpcServer)
+		reflection.Register(grpcServer)
 
 		logger.Debug("starting grpc server")
 		return grpcServer.Serve(lis)
