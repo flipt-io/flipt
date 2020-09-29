@@ -149,7 +149,7 @@ Please help me prioritize an Enterprise version of Flipt by filling out this [sh
 
 ## Contributing
 
-I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing) guide.
+I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing.md) guide.
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
