@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.18.1](https://github.com/markphelps/flipt/releases/tag/v0.18.1) - 2020-09-30
+
+### Added
+
+* Reflection to grpc server for usage with generic clients [https://github.com/markphelps/flipt/pull/345](https://github.com/markphelps/flipt/pull/345)
+
+### Changed
+
+* Bumped dependencies
+* Added colorful output for new version available instead of normal log message
+* Publishing Docker images to [ghcr.io](https://docs.github.com/en/free-pro-team@latest/packages/getting-started-with-github-container-registry/about-github-container-registry)
+
 ## [v0.18.0](https://github.com/markphelps/flipt/releases/tag/v0.18.0) - 2020-08-02
 
 ### Added
