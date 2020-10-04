@@ -1,12 +1,12 @@
 ---
 name: google.golang.org/genproto/protobuf/field_mask
-version: v0.0.0-20200526211855-cb27e3aa2013
+version: v0.0.0-20201002142447-3860012362da
 type: go
 summary: Package field_mask aliases all exported identifiers in package "google.golang.org/protobuf/types/known/fieldmaskpb".
 homepage: https://godoc.org/google.golang.org/genproto/protobuf/field_mask
 license: apache-2.0
 licenses:
-- sources: genproto@v0.0.0-20200526211855-cb27e3aa2013/LICENSE
+- sources: genproto@v0.0.0-20201002142447-3860012362da/LICENSE
   text: |2
 
                                      Apache License

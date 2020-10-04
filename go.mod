@@ -33,7 +33,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.3
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/opentracing-contrib/go-grpc v0.0.0-20191001143057-db30781987df
+	github.com/opentracing-contrib/go-grpc v0.0.0-20200813121455-4a6760c71486
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
@@ -53,8 +53,11 @@ require (
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	go.uber.org/atomic v1.6.0 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
+	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e // indirect
+	google.golang.org/genproto v0.0.0-20201002142447-3860012362da // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect

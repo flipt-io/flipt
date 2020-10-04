@@ -1,13 +1,13 @@
 ---
 name: golang.org/x/net/context
-version: v0.0.0-20200421231249-e086a090c8fd
+version: v0.0.0-20201002202402-0a1ea396d57c
 type: go
 summary: Package context defines the Context type, which carries deadlines, cancelation
   signals, and other request-scoped values across API boundaries and between processes.
 homepage: https://godoc.org/golang.org/x/net/context
 license: bsd-3-clause
 licenses:
-- sources: net@v0.0.0-20200421231249-e086a090c8fd/LICENSE
+- sources: net@v0.0.0-20201002202402-0a1ea396d57c/LICENSE
   text: |
     Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -36,7 +36,7 @@ licenses:
     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- sources: net@v0.0.0-20200421231249-e086a090c8fd/PATENTS
+- sources: net@v0.0.0-20201002202402-0a1ea396d57c/PATENTS
   text: |
     Additional IP Rights Grant (Patents)
 

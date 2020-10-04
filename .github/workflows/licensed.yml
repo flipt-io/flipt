@@ -1,0 +1,24 @@
+name: "Licensed"
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '*.md'
+      - '.all-contributorsrc'
+
+jobs:
+  licensed:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v1
+      with:
+        go-version: 1.14
+    - uses: jonabc/setup-licensed@v1
+      with:
+        version: 2.x
+    - uses: jonabc/licensed-ci@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
