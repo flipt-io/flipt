@@ -1,5 +1,15 @@
 sources:
   go: true
 
-# treat all directories under `cmd` as separate apps
 source_path: ./cmd/flipt
+
+allowed:
+  - mit
+  - apache-2.0
+  - bsd-2-clause
+  - bsd-3-clause
+  - mpl-2.0
+
+ignored:
+  go:
+    - github.com/markphelps/flipt/**/*
