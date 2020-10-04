@@ -1,0 +1,9 @@
+---
+name: github.com/opentracing-contrib/go-grpc
+version: v0.0.0-20191001143057-db30781987df
+type: go
+summary: Package otgrpc provides OpenTracing support for any gRPC client or server.
+homepage: https://godoc.org/github.com/opentracing-contrib/go-grpc
+license: none
+licenses: []
+notices: []

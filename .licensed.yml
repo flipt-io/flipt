@@ -1,0 +1,5 @@
+sources:
+  go: true
+
+# treat all directories under `cmd` as separate apps
+source_path: ./cmd/flipt

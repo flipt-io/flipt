@@ -1,0 +1,39 @@
+---
+name: github.com/joho/godotenv
+version: v1.3.0
+type: go
+summary: Package godotenv is a go port of the ruby dotenv library (https://github.com/bkeepers/dotenv)
+  Examples/readme can be found on the github page at https://github.com/joho/godotenv
+  The TL;DR is that you make a .env file that looks something like SOME_ENV_VAR=somevalue
+  and then in your go code you can call godotenv.Load() and all the env vars declared
+  in .env will be available through os.Getenv("SOME_ENV_VAR")
+homepage: https://godoc.org/github.com/joho/godotenv
+license: mit
+licenses:
+- sources: LICENCE
+  text: |+
+    Copyright (c) 2013 John Barton
+
+    MIT License
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+    OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+notices: []
+...
