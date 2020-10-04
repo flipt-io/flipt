@@ -4,7 +4,7 @@ version: v3.5.4+incompatible
 type: go
 summary: Package source provides the Source interface.
 homepage: https://godoc.org/github.com/golang-migrate/migrate/source
-license: other
+license: mit
 licenses:
 - sources: migrate@v3.5.4+incompatible/LICENSE
   text: |

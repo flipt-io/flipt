@@ -4,7 +4,7 @@ version: v1.4.0
 type: go
 summary: Package squirrel provides a fluent SQL generator.
 homepage: https://godoc.org/github.com/Masterminds/squirrel
-license: other
+license: mit
 licenses:
 - sources: LICENSE.txt
   text: |
