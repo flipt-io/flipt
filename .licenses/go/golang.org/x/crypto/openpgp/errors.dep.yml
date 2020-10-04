@@ -4,7 +4,7 @@ version: v0.0.0-20191011191535-87dc89f01550
 type: go
 summary: Package errors contains common error types for the OpenPGP packages.
 homepage: https://godoc.org/golang.org/x/crypto/openpgp/errors
-license: other
+license: bsd-3-clause
 licenses:
 - sources: crypto@v0.0.0-20191011191535-87dc89f01550/LICENSE
   text: |

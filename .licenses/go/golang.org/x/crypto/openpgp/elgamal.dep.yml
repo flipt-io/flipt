@@ -6,7 +6,7 @@ summary: Package elgamal implements ElGamal encryption, suitable for OpenPGP, as
   in "A Public-Key Cryptosystem and a Signature Scheme Based on Discrete Logarithms,"
   IEEE Transactions on Information Theory, v.
 homepage: https://godoc.org/golang.org/x/crypto/openpgp/elgamal
-license: other
+license: bsd-3-clause
 licenses:
 - sources: crypto@v0.0.0-20191011191535-87dc89f01550/LICENSE
   text: |

@@ -5,7 +5,7 @@ type: go
 summary: Package errgroup provides synchronization, error propagation, and Context
   cancelation for groups of goroutines working on subtasks of a common task.
 homepage: https://godoc.org/golang.org/x/sync/errgroup
-license: other
+license: bsd-3-clause
 licenses:
 - sources: sync@v0.0.0-20200625203802-6e8e738ad208/LICENSE
   text: |

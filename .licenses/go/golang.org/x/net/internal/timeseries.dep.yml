@@ -4,7 +4,7 @@ version: v0.0.0-20200421231249-e086a090c8fd
 type: go
 summary: Package timeseries implements a time series structure for stats collection.
 homepage: https://godoc.org/golang.org/x/net/internal/timeseries
-license: other
+license: bsd-3-clause
 licenses:
 - sources: net@v0.0.0-20200421231249-e086a090c8fd/LICENSE
   text: |
