@@ -2,8 +2,6 @@ name: "Licensed"
 
 on:
   push:
-    branches:
-      - master
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
