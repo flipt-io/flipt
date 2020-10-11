@@ -2,7 +2,7 @@
 	<img src="logo.svg" alt="Flipt" width=200 height=200 />
 </p>
 
-<p align="center">A modern feature flag solution</p>
+<p align="center">An open-source feature flag solution</p>
 
 <hr />
 
