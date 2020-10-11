@@ -12,7 +12,6 @@ Version: {{.Version}}
 Commit: {{.Commit}}
 Build Date: {{.Date}}
 Go Version: {{.GoVersion}}
-
 `
 
 type bannerOpts struct {

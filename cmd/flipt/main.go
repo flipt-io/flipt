@@ -528,7 +528,7 @@ func checkForUpdates(ctx context.Context) {
 
 	switch currentVersion.Compare(latestVersion) {
 	case 0:
-		color.Green("You are currently running the latest version of Flipt")
+		color.Green("You are currently running the latest version of Flipt [%s]!", currentVersion.String())
 	case -1:
 		color.Yellow("A newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
 	}
