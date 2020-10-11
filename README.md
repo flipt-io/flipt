@@ -99,10 +99,6 @@ Run the latest **snapshot** version of Flipt, which is built directly from the `
 ❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:snapshot
 ```
 
-### :warning: Beta Software :warning:
-
-Flipt is still considered beta software until the 1.0.0 release. This means that there are likely bugs and features/configuration may change between releases. Attempts will be made to maintain backwards compatibility whenever possible.
-
 ## GRPC Clients
 
 * [Go](https://github.com/markphelps/flipt-grpc-go)
