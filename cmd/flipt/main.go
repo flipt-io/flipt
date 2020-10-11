@@ -219,7 +219,9 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	if cfg.Meta.CheckForUpdates && version != defaultVersion {
-		checkForUpdates(ctx)
+		if err := checkForUpdates(ctx); err != nil {
+			l.Warn(err)
+		}
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -497,14 +499,13 @@ func run(_ []string) error {
 	return g.Wait()
 }
 
-func checkForUpdates(ctx context.Context) {
+func checkForUpdates(ctx context.Context) error {
 	l.Debug("checking for updates...")
 
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
 	if err != nil {
-		l.Warnf("checking for latest version: %v", err)
-		return
+		return fmt.Errorf("checking for latest version: %w", err)
 	}
 
 	var (
@@ -514,14 +515,12 @@ func checkForUpdates(ctx context.Context) {
 
 	latestVersion, err = semver.ParseTolerant(releaseTag)
 	if err != nil {
-		l.Warnf("parsing latest version: %v", err)
-		return
+		return fmt.Errorf("parsing latest version: %w", err)
 	}
 
 	currentVersion, err = semver.ParseTolerant(version)
 	if err != nil {
-		l.Warnf("parsing current version: %v", err)
-		return
+		return fmt.Errorf("parsing current version: %w", err)
 	}
 
 	l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
@@ -530,8 +529,10 @@ func checkForUpdates(ctx context.Context) {
 	case 0:
 		color.Green("You are currently running the latest version of Flipt [%s]!", currentVersion.String())
 	case -1:
-		color.Yellow("A newer version of Flipt exists at %s, please consider updating to the latest version", release.GetHTMLURL())
+		color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
 	}
+
+	return nil
 }
 
 type info struct {
