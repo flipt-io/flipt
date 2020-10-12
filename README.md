@@ -79,6 +79,8 @@ Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/ba
 
 ## Try It
 
+![Flipt Docker](cli.gif)
+
 Try Flipt out yourself with Docker:
 
 ```bash
