@@ -1,12 +1,12 @@
 ---
 name: github.com/golang/protobuf/ptypes/empty
-version: v1.4.2
+version: v1.4.3
 type: go
-summary:
+summary: 
 homepage: https://godoc.org/github.com/golang/protobuf/ptypes/empty
 license: bsd-3-clause
 licenses:
-- sources: protobuf@v1.4.2/LICENSE
+- sources: protobuf@v1.4.3/LICENSE
   text: |+
     Copyright 2010 The Go Authors.  All rights reserved.
 
@@ -37,4 +37,3 @@ licenses:
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 notices: []
-...
