@@ -20,7 +20,7 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/golang-migrate/migrate v3.5.4+incompatible
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.3
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -38,7 +38,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/client_golang v1.8.0
 	github.com/rogpeppe/go-internal v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.2.0 // indirect
