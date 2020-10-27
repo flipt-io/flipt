@@ -1,6 +1,6 @@
 ---
 name: google.golang.org/grpc
-version: v1.32.0
+version: v1.33.1
 type: go
 summary: Package grpc implements an RPC system called gRPC.
 homepage: https://godoc.org/google.golang.org/grpc
