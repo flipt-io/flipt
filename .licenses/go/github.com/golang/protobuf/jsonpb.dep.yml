@@ -1,13 +1,13 @@
 ---
 name: github.com/golang/protobuf/jsonpb
-version: v1.4.2
+version: v1.4.3
 type: go
 summary: Package jsonpb provides functionality to marshal and unmarshal between a
   protocol buffer message and JSON.
 homepage: https://godoc.org/github.com/golang/protobuf/jsonpb
 license: bsd-3-clause
 licenses:
-- sources: protobuf@v1.4.2/LICENSE
+- sources: protobuf@v1.4.3/LICENSE
   text: |+
     Copyright 2010 The Go Authors.  All rights reserved.
 
@@ -38,4 +38,3 @@ licenses:
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 notices: []
-...
