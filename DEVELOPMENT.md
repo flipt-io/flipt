@@ -8,7 +8,7 @@ Before starting, make sure you have the following installed:
 
 * GCC Compiler
 * [SQLite](https://sqlite.org/index.html)
-* [Go 1.14+](https://golang.org/doc/install)
+* [Go 1.15+](https://golang.org/doc/install)
 * [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
@@ -21,7 +21,7 @@ Before starting, make sure you have the following installed:
 
 ## Go
 
-Flipt is built with Go 1.14+. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH`.
+Flipt is built with Go 1.15+. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH`.
 
 ## Configuration
 
