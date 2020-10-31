@@ -3,6 +3,15 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.0](https://github.com/markphelps/flipt/releases/tag/v1.0.0) - 2020-10-31
+
+Happy Halloween! Flipt goes 1.0.0 today! :jack_o_lantern:
+
+### Changed
+
+* Bumped dependencies
+* Upgrade to Go 1.15
+
 ## [v0.18.1](https://github.com/markphelps/flipt/releases/tag/v0.18.1) - 2020-09-30
 
 ### Added
