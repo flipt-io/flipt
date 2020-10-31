@@ -4168,6 +4168,11 @@ expand-tilde@^2.0.0, expand-tilde@^2.0.2:
   dependencies:
     homedir-polyfill "^1.0.1"
 
+expect-playwright@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/expect-playwright/-/expect-playwright-0.2.6.tgz#fb690763ea386c6b88494512119817beb2c61cf1"
+  integrity sha512-zb+0L9ayNPhFm89F0BOQP8yTckETbA33wmWoxcnUY/A0pFsd7e4Tn8YrDsLiMQ7gZX2dD3LQHH9TWSnvEJi8rw==
+
 expect@^25.5.0:
   version "25.5.0"
   resolved "https://registry.yarnpkg.com/expect/-/expect-25.5.0.tgz#f07f848712a2813bb59167da3fb828ca21f58bba"
@@ -7791,7 +7796,7 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-playwright-core@^1.4.1:
+playwright-core@^1.4.1, playwright-core@^1.5.2:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.5.2.tgz#e1c4af49ef2629b004c447ecce9e6087b42f42d8"
   integrity sha512-koIAvADS6VB4KcjRQ8EicW4lozOnob+g+FjJKu1RY6IcgYUaaTFNaUOyLccrI9M4RAFo2zWMy4hRPXNRvm9zaA==
