@@ -1,14 +1,22 @@
 sources:
   go: true
+  yarn: true
 
-source_path: ./cmd/flipt
+apps:
+  - source_path: ./cmd/flipt
+    cache_path: ./.licenses
+  - source_path: ./ui
+    cache_path: ./.licenses/ui
 
 allowed:
-  - mit
   - apache-2.0
   - bsd-2-clause
   - bsd-3-clause
+  - isc
+  - mit
   - mpl-2.0
+  - none
+  - unlicense
 
 ignored:
   go:
