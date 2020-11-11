@@ -32,3 +32,5 @@ flipt.swagger.json
 
 # generated assets by packr
 *-packr.go
+
+*.lock.*
