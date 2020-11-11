@@ -4,7 +4,7 @@ version: 0.4.2
 type: npm
 summary: A pure javascript JPEG encoder and decoder
 homepage:
-license: other
+license: bsd-3-clause
 licenses:
 - sources: LICENSE
   text: "Copyright (c) 2014, Eugene Ware\nAll rights reserved.\n  \nRedistribution
