@@ -15,7 +15,6 @@ allowed:
   - isc
   - mit
   - mpl-2.0
-  - none
   - unlicense
 
 ignored:
