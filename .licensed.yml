@@ -1,12 +1,12 @@
-sources:
-  go: true
-  yarn: true
-
 apps:
   - source_path: ./cmd/flipt
     cache_path: ./.licenses
+    sources:
+      go: true
   - source_path: ./ui
     cache_path: ./.licenses/ui
+    sources:
+      npm: true
 
 allowed:
   - apache-2.0
