@@ -1,0 +1,5 @@
+brew "go"
+brew "cmake"
+brew "pkg-config"
+brew "sqlite"
+brew "protobuf"

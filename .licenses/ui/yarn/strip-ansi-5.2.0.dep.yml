@@ -1,0 +1,8 @@
+---
+name: strip-ansi
+version: 5.2.0
+type: yarn
+homepage: https://github.com/chalk/strip-ansi.git
+license: none
+licenses: []
+notices: []

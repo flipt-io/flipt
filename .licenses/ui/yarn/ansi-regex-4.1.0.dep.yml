@@ -1,0 +1,8 @@
+---
+name: ansi-regex
+version: 4.1.0
+type: yarn
+homepage: https://github.com/chalk/ansi-regex.git
+license: none
+licenses: []
+notices: []
