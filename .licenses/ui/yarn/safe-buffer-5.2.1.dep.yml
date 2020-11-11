@@ -1,8 +1,0 @@
----
-name: safe-buffer
-version: 5.2.1
-type: yarn
-homepage: git://github.com/feross/safe-buffer.git
-license: none
-licenses: []
-notices: []

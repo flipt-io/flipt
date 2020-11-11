@@ -1,8 +1,0 @@
----
-name: spdx-exceptions
-version: 2.3.0
-type: yarn
-homepage: https://github.com/kemitchell/spdx-exceptions.json.git
-license: none
-licenses: []
-notices: []
