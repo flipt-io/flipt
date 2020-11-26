@@ -135,7 +135,7 @@ func parse(cfg config.Config, migrate bool) (Driver, *dburl.URL, error) {
 	}
 
 	errURL := func(rawurl string, err error) error {
-		return fmt.Errorf("error parsing url: %q, %v", rawurl, err)
+		return fmt.Errorf("error parsing url: %q, %w", rawurl, err)
 	}
 
 	url, err := dburl.Parse(u)

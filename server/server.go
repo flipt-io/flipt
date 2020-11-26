@@ -2,8 +2,9 @@ package server
 
 import (
 	"context"
+	"errors"
 
-	"github.com/markphelps/flipt/errors"
+	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 
@@ -60,16 +61,24 @@ func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *
 
 	errorsTotal.Inc()
 
-	switch err.(type) {
-	case errors.ErrNotFound:
+	var errnf errs.ErrNotFound
+	if errors.As(err, &errnf) {
 		err = status.Error(codes.NotFound, err.Error())
-	case errors.ErrInvalid:
-		err = status.Error(codes.InvalidArgument, err.Error())
-	case errors.ErrValidation:
-		err = status.Error(codes.InvalidArgument, err.Error())
-	default:
-		err = status.Error(codes.Internal, err.Error())
+		return
 	}
 
+	var errin errs.ErrInvalid
+	if errors.As(err, &errin) {
+		err = status.Error(codes.InvalidArgument, err.Error())
+		return
+	}
+
+	var errv errs.ErrValidation
+	if errors.As(err, &errv) {
+		err = status.Error(codes.InvalidArgument, err.Error())
+		return
+	}
+
+	err = status.Error(codes.Internal, err.Error())
 	return
 }

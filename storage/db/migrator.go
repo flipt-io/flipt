@@ -76,14 +76,14 @@ func (m *Migrator) Run(force bool) error {
 	currentVersion, _, err := m.migrator.Version()
 
 	if err != nil {
-		if err != migrate.ErrNilVersion {
+		if !errors.Is(err, migrate.ErrNilVersion) {
 			return fmt.Errorf("getting current migrations version: %w", err)
 		}
 
 		m.logger.Debug("first run, running migrations...")
 
 		// if first run then it's safe to migrate
-		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+		if err := m.migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			return fmt.Errorf("running migrations: %w", err)
 		}
 
@@ -101,7 +101,7 @@ func (m *Migrator) Run(force bool) error {
 
 		m.logger.Debugf("current migration version: %d, expected version: %d\n running migrations...", currentVersion, expectedVersion)
 
-		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+		if err := m.migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			return fmt.Errorf("running migrations: %w", err)
 		}
 
