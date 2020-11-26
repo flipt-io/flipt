@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -325,7 +326,7 @@ func run(m *testing.M) (code int, err error) {
 		return 1, err
 	}
 
-	if err := mm.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return 1, err
 	}
 

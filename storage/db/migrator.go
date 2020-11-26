@@ -101,7 +101,7 @@ func (m *Migrator) Run(force bool) error {
 
 		m.logger.Debugf("current migration version: %d, expected version: %d\n running migrations...", currentVersion, expectedVersion)
 
-		if err := m.migrator.Up(); err != nil && err != migrate.ErrNoChange {
+		if err := m.migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			return fmt.Errorf("running migrations: %w", err)
 		}
 
