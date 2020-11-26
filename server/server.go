@@ -61,19 +61,19 @@ func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *
 
 	errorsTotal.Inc()
 
-	var errnf *errs.ErrNotFound
+	var errnf errs.ErrNotFound
 	if errors.As(err, &errnf) {
 		err = status.Error(codes.NotFound, err.Error())
 		return
 	}
 
-	var errin *errs.ErrInvalid
+	var errin errs.ErrInvalid
 	if errors.As(err, &errin) {
 		err = status.Error(codes.InvalidArgument, err.Error())
 		return
 	}
 
-	var errv *errs.ErrValidation
+	var errv errs.ErrValidation
 	if errors.As(err, &errv) {
 		err = status.Error(codes.InvalidArgument, err.Error())
 		return
