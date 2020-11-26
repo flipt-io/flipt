@@ -2,7 +2,7 @@
 name: github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 version: v0.14.0
 type: go
-summary: 
+summary:
 homepage: https://godoc.org/github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 license: apache-2.0
 licenses:

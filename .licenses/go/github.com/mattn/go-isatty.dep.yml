@@ -1,6 +1,6 @@
 ---
 name: github.com/mattn/go-isatty
-version: v0.0.11
+version: v0.0.12
 type: go
 summary: Package isatty implements interface to isatty
 homepage: https://godoc.org/github.com/mattn/go-isatty

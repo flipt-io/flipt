@@ -1,16 +1,14 @@
 ---
-name: github.com/mattn/go-colorable
-version: v0.1.8
-type: go
-summary:
-homepage: https://godoc.org/github.com/mattn/go-colorable
+name: uuid
+version: 3.4.0
+type: npm
+summary: RFC4122 (v1, v4, and v5) UUIDs
+homepage:
 license: mit
 licenses:
-- sources: LICENSE
+- sources: Auto-generated MIT license text
   text: |
-    The MIT License (MIT)
-
-    Copyright (c) 2016 Yasuhiro Matsumoto
+    MIT License
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +27,11 @@ licenses:
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-- sources: README.md
-  text: MIT
-notices: []
+notices:
+- sources: AUTHORS
+  text: |-
+    Robert Kieffer <robert@broofa.com>
+    Christoph Tavan <dev@tavan.de>
+    AJ ONeal <coolaj86@gmail.com>
+    Vincent Voyer <vincent@zeroload.net>
+    Roman Shtylman <shtylman@gmail.com>

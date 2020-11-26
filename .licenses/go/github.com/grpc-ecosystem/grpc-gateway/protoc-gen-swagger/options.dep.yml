@@ -2,7 +2,7 @@
 name: github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/options
 version: v1.16.0
 type: go
-summary: 
+summary:
 homepage: https://godoc.org/github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/options
 license: bsd-3-clause
 licenses:
