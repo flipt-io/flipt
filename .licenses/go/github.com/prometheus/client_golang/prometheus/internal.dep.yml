@@ -2,7 +2,7 @@
 name: github.com/prometheus/client_golang/prometheus/internal
 version: v1.8.0
 type: go
-summary: 
+summary:
 homepage: https://godoc.org/github.com/prometheus/client_golang/prometheus/internal
 license: apache-2.0
 licenses:
