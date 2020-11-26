@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
@@ -35,7 +36,7 @@ func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFoundf("flag %q", key)
 		}
 
