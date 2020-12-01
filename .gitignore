@@ -8,6 +8,7 @@ _obj
 _test
 .DS_Store
 .envrc
+.ruby-version
 .vagrant
 .vscode
 *.cov
@@ -18,6 +19,7 @@ _test
 *.test
 *.pem
 !**/**/testdata/**/*.pem
+
 bin
 benchmark
 coverage.txt
