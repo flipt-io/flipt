@@ -15,8 +15,6 @@ case "$1" in
               -v /var/run/docker.sock:/var/run/docker.sock \
               -w /flipt \
               -e GITHUB_TOKEN \
-              -e DOCKER_USERNAME \
-              -e DOCKER_PASSWORD \
               goreleaser/goreleaser:"$GORELEASER_VERSION"-cgo --rm-dist --release-notes release.out
 
             rm release.out
