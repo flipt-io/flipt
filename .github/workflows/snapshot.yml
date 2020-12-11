@@ -51,8 +51,8 @@ jobs:
         with:
           push: true
           context: .
-          cache-from: type=registry,ref=gchr.io/markphelps/flipt:cache
-          cache-to: type=registry,ref=gchr.io/markphelps/flipt:cache
+          cache-from: type=registry,ref=ghcr.io/markphelps/flipt:cache
+          cache-to: type=registry,ref=ghcr.io/markphelps/flipt:cache
           file: ./build/Dockerfile
           tags: |
             markphelps/flipt:snapshot
