@@ -1,12 +1,12 @@
 ---
 name: github.com/prometheus/common/expfmt
-version: v0.14.0
+version: v0.15.0
 type: go
 summary: Package expfmt contains tools for reading and writing Prometheus metrics.
 homepage: https://godoc.org/github.com/prometheus/common/expfmt
 license: apache-2.0
 licenses:
-- sources: common@v0.14.0/LICENSE
+- sources: common@v0.15.0/LICENSE
   text: |2
                                      Apache License
                                Version 2.0, January 2004
