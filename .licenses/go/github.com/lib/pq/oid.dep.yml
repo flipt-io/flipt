@@ -1,12 +1,12 @@
 ---
 name: github.com/lib/pq/oid
-version: v1.8.0
+version: v1.9.0
 type: go
 summary: Package oid contains OID constants as defined by the Postgres server.
 homepage: https://godoc.org/github.com/lib/pq/oid
 license: mit
 licenses:
-- sources: pq@v1.8.0/LICENSE.md
+- sources: pq@v1.9.0/LICENSE.md
   text: |
     Copyright (c) 2011-2013, 'pq' Contributors
     Portions Copyright (C) 2011 Blake Mizerany

@@ -1,6 +1,6 @@
 ---
 name: github.com/lib/pq
-version: v1.8.0
+version: v1.9.0
 type: go
 summary: Package pq is a pure Go Postgres driver for the database/sql package.
 homepage: https://godoc.org/github.com/lib/pq
