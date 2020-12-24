@@ -9,10 +9,11 @@
 
 .github/
 .vscode/
+.licenses/
 Dockerfile
 LICENSE
 bin/
-dist/
 examples/
 script/
 site/
+_tools/

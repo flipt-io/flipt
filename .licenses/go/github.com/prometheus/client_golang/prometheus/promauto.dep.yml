@@ -1,13 +1,13 @@
 ---
 name: github.com/prometheus/client_golang/prometheus/promauto
-version: v1.8.0
+version: v1.9.0
 type: go
 summary: Package promauto provides alternative constructors for the fundamental Prometheus
   metric types and their …Vec and …Func variants.
 homepage: https://godoc.org/github.com/prometheus/client_golang/prometheus/promauto
 license: apache-2.0
 licenses:
-- sources: client_golang@v1.8.0/LICENSE
+- sources: client_golang@v1.9.0/LICENSE
   text: |2
                                      Apache License
                                Version 2.0, January 2004
