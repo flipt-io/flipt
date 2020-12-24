@@ -1,0 +1,9 @@
+---
+name: json-schema
+version: 0.2.3
+type: npm
+summary: JSON Schema validation and specifications
+homepage: https://github.com/kriszyp/json-schema#readme
+license: none
+licenses: []
+notices: []
