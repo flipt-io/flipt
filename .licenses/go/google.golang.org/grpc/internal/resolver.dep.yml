@@ -1,14 +1,14 @@
 ---
-name: true-case-path
-version: 1.0.3
-type: npm
-summary: Given a possibly case-variant version of an existing filesystem path, returns
-  the case-exact, normalized version as stored in the filesystem.
-homepage: https://github.com/barsh/true-case-path#readme
+name: google.golang.org/grpc/internal/resolver
+version: v1.34.0
+type: go
+summary: Package resolver provides internal resolver-related functionality.
+homepage: https://godoc.org/google.golang.org/grpc/internal/resolver
 license: apache-2.0
 licenses:
-- sources: LICENSE
+- sources: grpc@v1.34.0/LICENSE
   text: |2
+
                                      Apache License
                                Version 2.0, January 2004
                             http://www.apache.org/licenses/
@@ -189,7 +189,7 @@ licenses:
        APPENDIX: How to apply the Apache License to your work.
 
           To apply the Apache License to your work, attach the following
-          boilerplate notice, with the fields enclosed by brackets "{}"
+          boilerplate notice, with the fields enclosed by brackets "[]"
           replaced with your own identifying information. (Don't include
           the brackets!)  The text should be enclosed in the appropriate
           comment syntax for the file format. We also recommend that a
@@ -197,7 +197,7 @@ licenses:
           same "printed page" as the copyright notice for easier
           identification within third-party archives.
 
-       Copyright {yyyy} {name of copyright owner}
+       Copyright [yyyy] [name of copyright owner]
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.

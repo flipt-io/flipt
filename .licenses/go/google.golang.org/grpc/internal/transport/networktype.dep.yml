@@ -1,12 +1,12 @@
 ---
-name: validate-npm-package-license
-version: 3.0.4
-type: npm
-summary: Give me a string and I'll tell you if it's a valid npm package license string
-homepage: https://github.com/kemitchell/validate-npm-package-license.js#readme
+name: google.golang.org/grpc/internal/transport/networktype
+version: v1.34.0
+type: go
+summary: Package networktype declares the network type to be used in the default dailer.
+homepage: https://godoc.org/google.golang.org/grpc/internal/transport/networktype
 license: apache-2.0
 licenses:
-- sources: LICENSE
+- sources: grpc@v1.34.0/LICENSE
   text: |2
 
                                      Apache License
