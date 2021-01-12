@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/markphelps/flipt/errors"
+	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc"
 	"github.com/markphelps/flipt/storage"
 )
@@ -50,12 +51,12 @@ func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	}
 
 	resp, err := s.batchEvaluate(ctx, r)
-	if resp != nil {
-		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+	if err != nil {
+		return nil, err
 	}
 
-	if err != nil {
-		return resp, err
+	if resp != nil {
+		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 	}
 
 	s.logger.WithField("response", resp).Debug("batch-evaluate")
@@ -69,10 +70,11 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		Responses: make([]*flipt.EvaluationResponse, 0, len(r.GetRequests())),
 	}
 
+	var errdis errs.ErrDisabled
 	for _, flag := range r.GetRequests() {
 		f, err := s.evaluate(ctx, flag)
-		if err != nil {
-			return nil, err
+		if err != nil && !errors.Is(err, &errdis) {
+			return &res, err
 		}
 		f.RequestId = ""
 		f.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
@@ -100,7 +102,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	}
 
 	if !flag.Enabled {
-		return resp, errors.ErrInvalidf("flag %q is disabled", r.FlagKey)
+		return resp, errs.ErrDisabledf("flag %q is disabled", r.FlagKey)
 	}
 
 	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
@@ -118,7 +120,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	// rule loop
 	for _, rule := range rules {
 		if rule.Rank < lastRank {
-			return resp, errors.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
+			return resp, errs.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
 		}
 
 		lastRank = rule.Rank
@@ -142,7 +144,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
 			default:
-				return resp, errors.ErrInvalid("unknown constraint type")
+				return resp, errs.ErrInvalid("unknown constraint type")
 			}
 
 			if err != nil {
