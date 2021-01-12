@@ -70,10 +70,10 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		Responses: make([]*flipt.EvaluationResponse, 0, len(r.GetRequests())),
 	}
 
-	var errdis errs.ErrDisabled
+	var errd errs.ErrDisabled
 	for _, flag := range r.GetRequests() {
 		f, err := s.evaluate(ctx, flag)
-		if err != nil && !errors.Is(err, &errdis) {
+		if err != nil && !errors.As(err, &errd) {
 			return &res, err
 		}
 		f.RequestId = ""
