@@ -1,9 +1,9 @@
 ---
-name: google.golang.org/grpc/keepalive
+name: google.golang.org/grpc/internal/transport/networktype
 version: v1.34.0
 type: go
-summary: Package keepalive defines configurable parameters for point-to-point healthcheck.
-homepage: https://godoc.org/google.golang.org/grpc/keepalive
+summary: Package networktype declares the network type to be used in the default dailer.
+homepage: https://godoc.org/google.golang.org/grpc/internal/transport/networktype
 license: apache-2.0
 licenses:
 - sources: grpc@v1.34.0/LICENSE

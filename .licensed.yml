@@ -4,7 +4,7 @@ apps:
     sources:
       go: true
   - source_path: ./ui
-    cache_path: ./.licenses/ui
+    cache_path: ./.licenses
     sources:
       npm: true
 
