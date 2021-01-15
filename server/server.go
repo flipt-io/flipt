@@ -21,8 +21,8 @@ type Option func(s *Server)
 // Server serves the Flipt backend
 type Server struct {
 	logger logrus.FieldLogger
-
-	store storage.Store
+	store  storage.Store
+	flipt.UnimplementedFliptServer
 }
 
 // New creates a new Server
