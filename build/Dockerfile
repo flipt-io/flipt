@@ -12,7 +12,7 @@ RUN apk add --no-cache postgresql-client \
 RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
-COPY dist/flipt_linux_amd64/flipt /
+COPY flipt /
 COPY config/migrations/ /etc/flipt/config/migrations/
 COPY config/*.yml /etc/flipt/config/
 
