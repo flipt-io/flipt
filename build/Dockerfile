@@ -1,5 +1,7 @@
 # https://goreleaser.com/docker/
 
+ARG BINARY=flipt
+
 FROM alpine:3.10
 LABEL maintainer="mark.aaron.phelps@gmail.com"
 LABEL org.opencontainers.image.name="flipt"
@@ -12,7 +14,7 @@ RUN apk add --no-cache postgresql-client \
 RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
-COPY dist/flipt_linux_amd64/flipt /
+COPY $BINARY /
 COPY config/migrations/ /etc/flipt/config/migrations/
 COPY config/*.yml /etc/flipt/config/
 
