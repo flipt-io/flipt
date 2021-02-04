@@ -31,12 +31,17 @@ jobs:
       with:
         go-version: '1.15.x'
 
-    - name: Restore Cache
-      uses: actions/cache@v1
-      id: cache
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: /github/home/.cache/go-build
+        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+    - name: Go Mod Cache
+      uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (Postgres)
       run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...

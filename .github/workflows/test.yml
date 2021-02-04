@@ -42,12 +42,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Restore Cache
-      uses: actions/cache@preview
-      id: cache
+    - name: Go Build Cache
+      uses: actions/cache@v2
+      with:
+        path: /github/home/.cache/go-build
+        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+    - name: Go Mod Cache
+      uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
     - name: Unit Test (SQLite)
       run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
