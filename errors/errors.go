@@ -34,6 +34,18 @@ func (e ErrInvalid) Error() string {
 	return string(e)
 }
 
+// ErrDisabled represents a disabled flag
+type ErrDisabled string
+
+// ErrDisabledf creates an ErrDisabled using a custom format
+func ErrDisabledf(format string, args ...interface{}) error {
+	return ErrDisabled(fmt.Sprintf(format, args...))
+}
+
+func (e ErrDisabled) Error() string {
+	return string(e)
+}
+
 // ErrValidation is a validation error for a specific field and reason
 type ErrValidation struct {
 	field  string

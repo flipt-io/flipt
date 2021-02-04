@@ -25,6 +25,7 @@ jobs:
         run: |
           make bootstrap
           make snapshot
+          chmod 755 dist/goreleaserdocker*
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -54,6 +55,8 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/markphelps/flipt:cache
           cache-to: type=registry,ref=ghcr.io/markphelps/flipt:cache
           file: ./build/Dockerfile
+          build-args: |
+            BINARY=dist/flipt_linux_amd64/flipt
           tags: |
             markphelps/flipt:snapshot
             ghcr.io/markphelps/flipt:snapshot

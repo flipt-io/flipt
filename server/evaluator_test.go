@@ -33,7 +33,12 @@ func TestBatchEvaluate(t *testing.T) {
 		}
 	)
 
+	disabled := &flipt.Flag{
+		Key:     "bar",
+		Enabled: false,
+	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -47,6 +52,10 @@ func TestBatchEvaluate(t *testing.T) {
 					"bar": "boz",
 				},
 			},
+			{
+				EntityId: "1",
+				FlagKey:  "bar",
+			},
 		},
 	})
 
@@ -54,7 +63,7 @@ func TestBatchEvaluate(t *testing.T) {
 	assert.Equal(t, "12345", resp.RequestId)
 	assert.NotEmpty(t, resp.RequestDurationMillis)
 	assert.NotNil(t, resp.Responses)
-	assert.Equal(t, 1, len(resp.Responses))
+	assert.Equal(t, 2, len(resp.Responses))
 	assert.False(t, resp.Responses[0].Match)
 }
 
