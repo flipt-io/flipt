@@ -1,13 +1,13 @@
 ---
 name: google.golang.org/grpc/internal/grpcrand
-version: v1.34.0
+version: v1.35.0
 type: go
 summary: Package grpcrand implements math/rand functions in a concurrent-safe way
   with a global random source, independent of math/rand's global source.
 homepage: https://godoc.org/google.golang.org/grpc/internal/grpcrand
 license: apache-2.0
 licenses:
-- sources: grpc@v1.34.0/LICENSE
+- sources: grpc@v1.35.0/LICENSE
   text: |2
 
                                      Apache License

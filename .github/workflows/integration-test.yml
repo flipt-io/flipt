@@ -24,17 +24,31 @@ jobs:
       with:
         node-version: '12'
 
-    - uses: actions/cache@v1
-      id: go-cache
+    - id: go-cache-paths
+      run: |
+        echo "::set-output name=go-build::$(go env GOCACHE)"
+        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Go Build Cache
+      uses: actions/cache@v2
       with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+        path: ${{ steps.go-cache-paths.outputs.go-build }}
+        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+    - name: Go Mod Cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.go-cache-paths.outputs.go-mod }}
+        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
       run: echo "::set-output name=dir::$(yarn cache dir)"
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v2
       id: yarn-cache
       with:
         path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
