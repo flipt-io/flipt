@@ -3,6 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.0](https://github.com/markphelps/flipt/releases/tag/v1.1.0) - 2021-01-15
+
+### Changed
+
+* Bumped dependencies
+* Ignore disabled flags on batch evaluate instead of erroring [https://github.com/markphelps/flipt/pull/376](https://github.com/markphelps/flipt/pull/376)
+
 ## [v1.0.0](https://github.com/markphelps/flipt/releases/tag/v1.0.0) - 2020-10-31
 
 Happy Halloween! Flipt goes 1.0.0 today! :jack_o_lantern:

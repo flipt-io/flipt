@@ -91,16 +91,6 @@ Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
 
-### Snapshot Versions
-
-Like to live dangerously? Want to try out the latest **unreleased** changes in Flipt? Now you can!
-
-Run the latest **snapshot** version of Flipt, which is built directly from the `master` branch:
-
-```bash
-❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:snapshot
-```
-
 ## GRPC Clients
 
 * [Go](https://github.com/markphelps/flipt-grpc-go)

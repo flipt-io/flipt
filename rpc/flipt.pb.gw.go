@@ -1852,6 +1852,7 @@ func local_request_Flipt_DeleteConstraint_0(ctx context.Context, marshaler runti
 // RegisterFliptHandlerServer registers the http handlers for service Flipt to "mux".
 // UnaryRPC     :call FliptServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features (such as grpc.SendHeader, etc) to stop working. Consider using RegisterFliptHandlerFromEndpoint instead.
 func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, server FliptServer) error {
 
 	mux.Handle("POST", pattern_Flipt_Evaluate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {

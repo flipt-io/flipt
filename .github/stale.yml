@@ -4,8 +4,8 @@ daysUntilStale: 30
 daysUntilClose: 14
 # Issues with these labels will never be considered stale
 exemptLabels:
+  - keep
   - question
-  - planned
   - thinking
   - security
   - dependencies
