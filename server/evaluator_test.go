@@ -110,8 +110,7 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 		},
 	})
 
-	require.Error(t, err)
-	assert.EqualError(t, err, "flag \"foo\" is disabled")
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 }
 
