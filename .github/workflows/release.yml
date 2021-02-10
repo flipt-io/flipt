@@ -1,0 +1,23 @@
+name: Check Release
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    
+    - uses: rez0n/actions-github-release@main
+      id: release
+      env:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: "markphelps/flipt"
+        type: "stable"
+        
+    - name: Verify Dockerhub
+      run: docker pull markphelps/flipt:${{ steps.release.outputs.release }}
+
+    - name: Verify GHCR
+      run: docker pull ghcr.io/markphelps/flipt:${{ steps.release.outputs.release }}
