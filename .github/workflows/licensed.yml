@@ -1,5 +1,4 @@
-name: "Licensed"
-
+name: Licensed
 on:
   push:
     paths-ignore:
