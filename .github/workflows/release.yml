@@ -6,12 +6,10 @@ on:
 
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
     steps:
     
-    - name: Get latest release of NodeJS
-      uses: rez0n/actions-github-release@main
+    - uses: rez0n/actions-github-release@main
       id: release
       env:
         token: ${{ secrets.GITHUB_TOKEN }}
