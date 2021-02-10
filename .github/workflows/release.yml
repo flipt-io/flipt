@@ -17,7 +17,7 @@ jobs:
         type: "stable"
         
     - name: Verify Dockerhub
-      run: docker pull markphelps/flipt:{{ steps.release.outputs.release }}
+      run: docker pull markphelps/flipt:${{ steps.release.outputs.release }}
 
     - name: Verify GHCR
-      run: docker pull ghcr.io/markphelps/flipt:{{ steps.release.outputs.release }}
+      run: docker pull ghcr.io/markphelps/flipt:${{ steps.release.outputs.release }}
