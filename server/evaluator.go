@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -70,10 +69,9 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		Responses: make([]*flipt.EvaluationResponse, 0, len(r.GetRequests())),
 	}
 
-	var errd errs.ErrDisabled
 	for _, flag := range r.GetRequests() {
 		f, err := s.evaluate(ctx, flag)
-		if err != nil && !errors.As(err, &errd) {
+		if err != nil {
 			return &res, err
 		}
 		f.RequestId = ""
@@ -102,7 +100,8 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	}
 
 	if !flag.Enabled {
-		return resp, errs.ErrDisabledf("flag %q is disabled", r.FlagKey)
+		resp.Match = false
+		return resp, nil
 	}
 
 	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
