@@ -28,6 +28,7 @@ dockers:
   - dockerfile: ./build/Dockerfile
     binaries:
       - flipt
+    skip_push: true
     image_templates:
       - "markphelps/flipt:latest"
       - "markphelps/flipt:{{ .Tag }}"
