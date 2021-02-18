@@ -86,6 +86,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "edumucelli",
+      "name": "Eduardo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/959623?v=4",
+      "profile": "http://eduar.do",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
