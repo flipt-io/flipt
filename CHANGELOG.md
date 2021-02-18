@@ -393,7 +393,7 @@ Happy Halloween! Flipt goes 1.0.0 today! :jack_o_lantern:
 
     ```yaml
     server:
-      host: 0.0.0.0
+      host: 127.0.0.1
       http_port: 8080
       grpc_port: 9000
     ```
