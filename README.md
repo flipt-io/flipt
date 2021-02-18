@@ -87,7 +87,7 @@ Try Flipt out yourself with Docker:
 ❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:latest
 ```
 
-Flipt UI will now be reachable at [http://localhost:8080/](http://localhost:8080).
+Flipt UI will now be reachable at [http://0.0.0.0:8080/](http://0.0.0.0:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
 
