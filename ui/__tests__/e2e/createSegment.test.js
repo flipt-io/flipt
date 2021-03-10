@@ -17,7 +17,7 @@ afterAll(async () => {
 });
 
 test("createSegment", async () => {
-  await page.goto("http://0.0.0.0:8080");
+  await page.goto("http://127.0.0.1:8080");
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
   await page.click("[placeholder='Segment name']");
@@ -28,7 +28,7 @@ test("createSegment", async () => {
 });
 
 test('createSegmentDisallowSpecialChars', async () => {
-  await page.goto("http://0.0.0.0:8080");
+  await page.goto("http://127.0.0.1:8080");
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
   await page.type("[placeholder='Segment name']", "My segment with colons");

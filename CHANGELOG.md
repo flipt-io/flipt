@@ -3,7 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v1.2.0](https://github.com/markphelps/flipt/releases/tag/v1.20) - 2021-02-14 :heart:
+## [v1.2.1](https://github.com/markphelps/flipt/releases/tag/v1.2.1) - 2021-03-09
+
+### Fixed
+
+* Downgrade Buefy dependency to fix [https://github.com/markphelps/flipt/issues/394](https://github.com/markphelps/flipt/issues/394) and [https://github.com/markphelps/flipt/issues/391](https://github.com/markphelps/flipt/issues/391)
+
+## [v1.2.0](https://github.com/markphelps/flipt/releases/tag/v1.2.0) - 2021-02-14 :heart:
 
 ### Changed
 
@@ -393,7 +399,7 @@ Happy Halloween! Flipt goes 1.0.0 today! :jack_o_lantern:
 
     ```yaml
     server:
-      host: 0.0.0.0
+      host: 127.0.0.1
       http_port: 8080
       grpc_port: 9000
     ```
