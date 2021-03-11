@@ -166,7 +166,7 @@ func Default() *Config {
 		},
 
 		Server: ServerConfig{
-			Host:      "0.0.0.0",
+			Host:      "127.0.0.1",
 			Protocol:  HTTP,
 			HTTPPort:  8080,
 			HTTPSPort: 443,
