@@ -1,12 +1,12 @@
 ---
 name: github.com/prometheus/procfs/internal/util
-version: v0.2.0
+version: v0.6.0
 type: go
-summary:
+summary: 
 homepage: https://godoc.org/github.com/prometheus/procfs/internal/util
 license: apache-2.0
 licenses:
-- sources: procfs@v0.2.0/LICENSE
+- sources: procfs@v0.6.0/LICENSE
   text: |2
                                      Apache License
                                Version 2.0, January 2004
