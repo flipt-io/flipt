@@ -1,6 +1,6 @@
 ---
 name: github.com/go-chi/cors
-version: v1.1.1
+version: v1.2.0
 type: go
 summary: 'cors package is net/http handler to handle CORS related requests as defined
   by http://www.w3.org/TR/cors/ You can configure it by passing an option struct to
