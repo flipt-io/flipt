@@ -13,7 +13,7 @@ require (
 	github.com/fatih/color v1.10.0
 	github.com/go-chi/chi v4.0.3-0.20191031103402-221acf29d02b+incompatible
 	github.com/go-chi/cors v1.1.1
-	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gobuffalo/envy v1.7.1 // indirect
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gofrs/uuid v3.4.0+incompatible
