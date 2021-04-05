@@ -1,6 +1,6 @@
 ---
 name: github.com/go-sql-driver/mysql
-version: v1.5.0
+version: v1.6.0
 type: go
 summary: Package mysql provides a MySQL driver for Go's database/sql package.
 homepage: https://godoc.org/github.com/go-sql-driver/mysql
@@ -234,14 +234,16 @@ notices:
     be added to this file as\n#\tName <email address>\n# The email address is not
     required for organizations.\n# Please keep the list sorted.\n\n\n# Individual
     Persons\n\nAaron Hopkins <go-sql-driver at die.net>\nAchille Roussel <achille.roussel
-    at gmail.com>\nAlexey Palazhchenko <alexey.palazhchenko at gmail.com>\nAndrew
-    Reid <andrew.reid at tixtrack.com>\nArne Hormann <arnehormann at gmail.com>\nAsta
-    Xie <xiemengjun at gmail.com>\nBulat Gaifullin <gaifullinbf at gmail.com>\nCarlos
-    Nieto <jose.carlos at menteslibres.net>\nChris Moos <chris at tech9computers.com>\nCraig
-    Wilson <craiggwilson at gmail.com>\nDaniel Montoya <dsmontoyam at gmail.com>\nDaniel
-    Nichter <nil at codenode.com>\nDaniël van Eeden <git at myname.nl>\nDave Protasowski
-    <dprotaso at gmail.com>\nDisposaBoy <disposaboy at dby.me>\nEgor Smolyakov <egorsmkv
-    at gmail.com>\nErwan Martin <hello at erwan.io>\nEvan Shaw <evan at vendhq.com>\nFrederick
+    at gmail.com>\nAlex Snast <alexsn at fb.com>\nAlexey Palazhchenko <alexey.palazhchenko
+    at gmail.com>\nAndrew Reid <andrew.reid at tixtrack.com>\nAnimesh Ray <mail.rayanimesh
+    at gmail.com>\nArne Hormann <arnehormann at gmail.com>\nAriel Mashraki <ariel
+    at mashraki.co.il>\nAsta Xie <xiemengjun at gmail.com>\nBulat Gaifullin <gaifullinbf
+    at gmail.com>\nCaine Jette <jette at alum.mit.edu>\nCarlos Nieto <jose.carlos
+    at menteslibres.net>\nChris Moos <chris at tech9computers.com>\nCraig Wilson <craiggwilson
+    at gmail.com>\nDaniel Montoya <dsmontoyam at gmail.com>\nDaniel Nichter <nil at
+    codenode.com>\nDaniël van Eeden <git at myname.nl>\nDave Protasowski <dprotaso
+    at gmail.com>\nDisposaBoy <disposaboy at dby.me>\nEgor Smolyakov <egorsmkv at
+    gmail.com>\nErwan Martin <hello at erwan.io>\nEvan Shaw <evan at vendhq.com>\nFrederick
     Mayle <frederickmayle at gmail.com>\nGustavo Kristic <gkristic at gmail.com>\nHajime
     Nakagami <nakagami at gmail.com>\nHanno Braun <mail at hannobraun.com>\nHenri
     Yandell <flamefew at gmail.com>\nHirotaka Yamamoto <ymmt2005 at gmail.com>\nHuyiguang
@@ -253,24 +255,27 @@ notices:
     <zhenjl at gmail.com>\nJoshua Prunier <joshua.prunier at gmail.com>\nJulien Lefevre
     <julien.lefevr at gmail.com>\nJulien Schmidt <go-sql-driver at julienschmidt.com>\nJustin
     Li <jli at j-li.net>\nJustin Nuß <nuss.justin at gmail.com>\nKamil Dziedzic <kamil
-    at klecza.pl>\nKevin Malachowski <kevin at chowski.com>\nKieron Woodhouse <kieron.woodhouse
-    at infosum.com>\nLennart Rudolph <lrudolph at hmc.edu>\nLeonardo YongUk Kim <dalinaum
-    at gmail.com>\nLinh Tran Tuan <linhduonggnu at gmail.com>\nLion Yang <lion at
-    aosc.xyz>\nLuca Looz <luca.looz92 at gmail.com>\nLucas Liu <extrafliu at gmail.com>\nLuke
-    Scott <luke at webconnex.com>\nMaciej Zimnoch <maciej.zimnoch at codilime.com>\nMichael
-    Woolnough <michael.woolnough at gmail.com>\nNathanial Murphy <nathanial.murphy
-    at gmail.com>\nNicola Peduzzi <thenikso at gmail.com>\nOlivier Mengué <dolmen
-    at cpan.org>\noscarzhao <oscarzhaosl at gmail.com>\nPaul Bonser <misterpib at
-    gmail.com>\nPeter Schultz <peter.schultz at classmarkets.com>\nRebecca Chin <rchin
-    at pivotal.io>\nReed Allman <rdallman10 at gmail.com>\nRichard Wilkes <wilkes
-    at me.com>\nRobert Russell <robert at rrbrussell.com>\nRunrioter Wung <runrioter
+    at klecza.pl>\nKei Kamikawa <x00.x7f.x86 at gmail.com>\nKevin Malachowski <kevin
+    at chowski.com>\nKieron Woodhouse <kieron.woodhouse at infosum.com>\nLennart Rudolph
+    <lrudolph at hmc.edu>\nLeonardo YongUk Kim <dalinaum at gmail.com>\nLinh Tran
+    Tuan <linhduonggnu at gmail.com>\nLion Yang <lion at aosc.xyz>\nLuca Looz <luca.looz92
+    at gmail.com>\nLucas Liu <extrafliu at gmail.com>\nLuke Scott <luke at webconnex.com>\nMaciej
+    Zimnoch <maciej.zimnoch at codilime.com>\nMichael Woolnough <michael.woolnough
+    at gmail.com>\nNathanial Murphy <nathanial.murphy at gmail.com>\nNicola Peduzzi
+    <thenikso at gmail.com>\nOlivier Mengué <dolmen at cpan.org>\noscarzhao <oscarzhaosl
+    at gmail.com>\nPaul Bonser <misterpib at gmail.com>\nPeter Schultz <peter.schultz
+    at classmarkets.com>\nRebecca Chin <rchin at pivotal.io>\nReed Allman <rdallman10
+    at gmail.com>\nRichard Wilkes <wilkes at me.com>\nRobert Russell <robert at rrbrussell.com>\nRunrioter
+    Wung <runrioter at gmail.com>\nSho Iizuka <sho.i518 at gmail.com>\nSho Ikeda <suicaicoca
     at gmail.com>\nShuode Li <elemount at qq.com>\nSimon J Mudd <sjmudd at pobox.com>\nSoroush
     Pour <me at soroushjp.com>\nStan Putrya <root.vagner at gmail.com>\nStanley Gunawan
-    <gunawan.stanley at gmail.com>\nSteven Hartland <steven.hartland at multiplay.co.uk>\nThomas
-    Wodarek <wodarekwebpage at gmail.com>\nTim Ruffles <timruffles at gmail.com>\nTom
-    Jenkinson <tom at tjenkinson.me>\nVladimir Kovpak <cn007b at gmail.com>\nXiangyu
+    <gunawan.stanley at gmail.com>\nSteven Hartland <steven.hartland at multiplay.co.uk>\nTan
+    Jinhua <312841925 at qq.com>\nThomas Wodarek <wodarekwebpage at gmail.com>\nTim
+    Ruffles <timruffles at gmail.com>\nTom Jenkinson <tom at tjenkinson.me>\nVladimir
+    Kovpak <cn007b at gmail.com>\nVladyslav Zhelezniak <zhvladi at gmail.com>\nXiangyu
     Hu <xiangyu.hu at outlook.com>\nXiaobing Jiang <s7v7nislands at gmail.com>\nXiuming
-    Chen <cc at cxm.cc>\nZhenye Xie <xiezhenye at gmail.com>\n\n# Organizations\n\nBarracuda
+    Chen <cc at cxm.cc>\nXuehong Chan <chanxuehong at gmail.com>\nZhenye Xie <xiezhenye
+    at gmail.com>\nZhixin Wen <john.wenzhixin at gmail.com>\n\n# Organizations\n\nBarracuda
     Networks, Inc.\nCounting Ltd.\nDigitalOcean Inc.\nFacebook Inc.\nGitHub Inc.\nGoogle
     Inc.\nInfoSum Ltd.\nKeybase Inc.\nMultiplay Ltd.\nPercona LLC\nPivotal Inc.\nStripe
-    Inc."
+    Inc.\nZendesk Inc."
