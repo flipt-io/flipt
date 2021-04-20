@@ -60,8 +60,4 @@ jobs:
       run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
 
     - name: Coverage
-      if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
-      env:
-        CI_BRANCH: ${{ github.ref }}
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      run: bash <(curl -s https://codecov.io/bash)
+      uses: codecov/codecov-action@v1
