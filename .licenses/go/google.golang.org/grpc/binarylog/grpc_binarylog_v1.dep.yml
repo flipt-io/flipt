@@ -2,7 +2,7 @@
 name: google.golang.org/grpc/binarylog/grpc_binarylog_v1
 version: v1.35.0
 type: go
-summary: 
+summary:
 homepage: https://godoc.org/google.golang.org/grpc/binarylog/grpc_binarylog_v1
 license: apache-2.0
 licenses:

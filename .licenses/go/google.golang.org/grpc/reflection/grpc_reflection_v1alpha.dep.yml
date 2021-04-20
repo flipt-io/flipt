@@ -2,7 +2,7 @@
 name: google.golang.org/grpc/reflection/grpc_reflection_v1alpha
 version: v1.35.0
 type: go
-summary: 
+summary:
 homepage: https://godoc.org/google.golang.org/grpc/reflection/grpc_reflection_v1alpha
 license: apache-2.0
 licenses:
