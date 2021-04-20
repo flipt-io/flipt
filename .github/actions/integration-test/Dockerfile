@@ -8,7 +8,6 @@ RUN apt-get update && \
     libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant1c2a \
     libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 libegl1 libgles2 \
     libevent-2.1-6 libnotify4 libvpx5 libxslt1.1 \
-    # ffmpeg
     ffmpeg
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
