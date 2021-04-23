@@ -17,11 +17,10 @@ require (
 	github.com/gobuffalo/envy v1.7.1 // indirect
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gofrs/uuid v3.4.0+incompatible
-	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.5.0
 	github.com/google/go-github/v32 v32.1.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
+	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/kr/text v0.2.0 // indirect
@@ -50,10 +49,7 @@ require (
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	go.uber.org/atomic v1.6.0 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/text v0.3.3 // indirect
-	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e // indirect
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	google.golang.org/genproto v0.0.0-20201002142447-3860012362da // indirect
 	google.golang.org/grpc v1.36.0
 	google.golang.org/protobuf v1.26.0
