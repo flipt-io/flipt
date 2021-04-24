@@ -2,7 +2,7 @@
 name: github.com/uber/jaeger-client-go/internal/baggage/remote
 version: v2.27.0+incompatible
 type: go
-summary:
+summary: 
 homepage: https://godoc.org/github.com/uber/jaeger-client-go/internal/baggage/remote
 license: apache-2.0
 licenses:
