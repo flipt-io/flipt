@@ -3,9 +3,8 @@ updates:
 - package-ecosystem: gomod
   directory: "/"
   schedule:
-    interval: weekly
-    time: "10:00"
-  open-pull-requests-limit: 10
+    interval: daily
+  open-pull-requests-limit: 5
   reviewers:
   - markphelps
   assignees:
@@ -14,3 +13,25 @@ updates:
   - dependency-name: github.com/golangci/golangci-lint
     versions:
     - "> 1.26.0"
+
+- package-ecosystem: npm
+  directory: "/ui"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 5
+  reviewers:
+  - markphelps
+  assignees:
+  - markphelps
+
+- package-ecosystem: "github-actions"
+  # Workflow files stored in the
+  # default location of `.github/workflows`
+  directory: "/"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 5
+  reviewers:
+  - markphelps
+  assignees:
+  - markphelps
