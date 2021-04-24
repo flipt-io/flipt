@@ -1,12 +1,12 @@
 ---
 name: github.com/grpc-ecosystem/go-grpc-middleware/recovery
-version: v1.2.2
+version: v1.3.0
 type: go
 summary: "`grpc_recovery` are interceptors that recover from gRPC handler panics."
 homepage: https://godoc.org/github.com/grpc-ecosystem/go-grpc-middleware/recovery
 license: apache-2.0
 licenses:
-- sources: go-grpc-middleware@v1.2.2/LICENSE
+- sources: go-grpc-middleware@v1.3.0/LICENSE
   text: |2-
                      Apache License
                                Version 2.0, January 2004
@@ -209,7 +209,7 @@ licenses:
        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
        See the License for the specific language governing permissions and
        limitations under the License.
-- sources: go-grpc-middleware@v1.2.2/README.md
+- sources: go-grpc-middleware@v1.3.0/README.md
   text: "`go-grpc-middleware` is released under the Apache 2.0 license. See the [LICENSE](LICENSE)
     file for details."
 notices: []

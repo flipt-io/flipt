@@ -1,6 +1,6 @@
 ---
 name: github.com/grpc-ecosystem/go-grpc-middleware
-version: v1.2.2
+version: v1.3.0
 type: go
 summary: "`grpc_middleware` is a collection of gRPC middleware packages: interceptors,
   helpers and tools."
