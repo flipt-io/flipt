@@ -1,12 +1,12 @@
 ---
 name: github.com/uber/jaeger-client-go/rpcmetrics
-version: v2.25.0+incompatible
+version: v2.27.0+incompatible
 type: go
 summary: Package rpcmetrics implements an Observer that can be used to emit RPC metrics.
 homepage: https://godoc.org/github.com/uber/jaeger-client-go/rpcmetrics
 license: apache-2.0
 licenses:
-- sources: jaeger-client-go@v2.25.0+incompatible/LICENSE
+- sources: jaeger-client-go@v2.27.0+incompatible/LICENSE
   text: |2
                                      Apache License
                                Version 2.0, January 2004
