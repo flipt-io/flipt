@@ -1,8 +1,7 @@
 name: Licensed
 on:
-  workflow_dispatch:
   pull_request_target:
-    types: [labeled]
+    types: [assigned, opened, edited, synchronize, reopened]
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
@@ -10,7 +9,6 @@ on:
 jobs:
   licensed:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'dependencies')
     steps:
     - uses: actions/checkout@v2
 
