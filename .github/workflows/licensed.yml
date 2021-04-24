@@ -1,6 +1,5 @@
 name: Licensed
 on:
-  workflow_dispatch:
   pull_request_target:
     types: [labeled]
     paths-ignore:
