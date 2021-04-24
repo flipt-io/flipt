@@ -1,6 +1,7 @@
 name: Licensed
 on:
   pull_request_target:
+    types: [assigned, opened, edited, synchronize, reopened]
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
