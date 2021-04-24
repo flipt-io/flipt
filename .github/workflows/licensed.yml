@@ -1,7 +1,6 @@
 name: Licensed
 on:
-  pull_request_target:
-    types: [assigned, opened, edited, synchronize, reopened]
+  pull_request:
     paths-ignore:
       - '*.md'
       - '.all-contributorsrc'
@@ -9,6 +8,7 @@ on:
 jobs:
   licensed:
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'dependencies')
     steps:
     - uses: actions/checkout@v2
 
@@ -22,4 +22,4 @@ jobs:
         
     - uses: jonabc/licensed-ci@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.DEPENDABOT_TOKEN }}
