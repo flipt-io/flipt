@@ -1,6 +1,6 @@
 ---
 name: github.com/uber/jaeger-client-go
-version: v2.25.0+incompatible
+version: v2.27.0+incompatible
 type: go
 summary: Package jaeger implements an OpenTracing (http://opentracing.io) Tracer.
 homepage: https://godoc.org/github.com/uber/jaeger-client-go
