@@ -1,13 +1,13 @@
 ---
 name: github.com/uber/jaeger-client-go/transport
-version: v2.25.0+incompatible
+version: v2.27.0+incompatible
 type: go
 summary: Package transport defines various transports that can be used with RemoteReporter
   to send spans out of process.
 homepage: https://godoc.org/github.com/uber/jaeger-client-go/transport
 license: apache-2.0
 licenses:
-- sources: jaeger-client-go@v2.25.0+incompatible/LICENSE
+- sources: jaeger-client-go@v2.27.0+incompatible/LICENSE
   text: |2
                                      Apache License
                                Version 2.0, January 2004
@@ -210,7 +210,7 @@ licenses:
        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
        See the License for the specific language governing permissions and
        limitations under the License.
-- sources: jaeger-client-go@v2.25.0+incompatible/README.md
+- sources: jaeger-client-go@v2.27.0+incompatible/README.md
   text: |-
     [Apache 2.0 License](LICENSE).
 
