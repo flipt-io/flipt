@@ -1,12 +1,15 @@
-import { launch, register, stopVideos } from "qawolf";
+import { launch, register, stopVideos, waitForPage } from "qawolf";
 import expect from "expect-playwright";
 
 let browser;
 let page;
+let context;
+
+const addr = "http://127.0.0.1:8080";
 
 beforeAll(async () => {
   browser = await launch();
-  const context = await browser.newContext();
+  context = await browser.newContext();
   await register(context);
   page = await context.newPage();
 });
@@ -17,7 +20,7 @@ afterAll(async () => {
 });
 
 test("createSegment", async () => {
-  await page.goto("http://127.0.0.1:8080");
+  await page.goto(addr);
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
   await page.click("[placeholder='Segment name']");
@@ -25,10 +28,13 @@ test("createSegment", async () => {
   await page.click("[placeholder='Segment description']");
   await page.type("[placeholder='Segment description']", "Users that are willing to try out advanced functionality");
   await page.click("[data-testid='create-segment']");
+  page = await waitForPage(context, 0, { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveText("power-users");
+  await page.click('[href="#/segments/power-users]');
 });
 
 test('createSegmentDisallowSpecialChars', async () => {
-  await page.goto("http://127.0.0.1:8080");
+  await page.goto(addr);
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
   await page.type("[placeholder='Segment name']", "My segment with colons");
