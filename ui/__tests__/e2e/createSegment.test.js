@@ -28,9 +28,10 @@ test("createSegment", async () => {
   await page.click("[placeholder='Segment description']");
   await page.type("[placeholder='Segment description']", "Users that are willing to try out advanced functionality");
   await page.click("[data-testid='create-segment']");
+  await page.click('[aria-label="breadcrumbs"] .router-link-active');
   page = await waitForPage(context, 0, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveText("power-users");
-  await page.click('[href="#/segments/power-users]');
+  await page.click('[href="#/segments/power-users"]');
 });
 
 test('createSegmentDisallowSpecialChars', async () => {

@@ -25,6 +25,7 @@ test("createFlag", async () => {
   await page.type("[placeholder='Flag name']", "Awesome new feature");
   await page.type("[placeholder='Flag description']", "Our product manager cannot wait to ship this!");
   await page.click("[data-testid='create-flag']");
+  await page.click('[aria-label="breadcrumbs"] .router-link-active');
   page = await waitForPage(context, 0, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveText("awesome-new-feature");
   await page.click('[href="#/flags/awesome-new-feature"]');
