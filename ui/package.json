@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "buefy": "^0.8.6",
+    "buefy": "^0.9.7",
     "bulma": "^0.8.0",
     "jpeg-js": "0.4.2",
     "lodash": "^4.17.19",
