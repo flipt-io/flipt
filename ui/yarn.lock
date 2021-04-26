@@ -2722,12 +2722,7 @@ caniuse-api@^3.0.0:
     lodash.memoize "^4.1.2"
     lodash.uniq "^4.5.0"
 
-caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001157:
-  version "1.0.30001214"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001214.tgz"
-  integrity sha512-O2/SCpuaU3eASWVaesQirZv1MSjUNOvmugaD8zNSJqw6Vv5SGwoOpA9LJs3pNPfM745nxqPvfZY3MQKY4AKHYg==
-
-caniuse-lite@^1.0.30001214:
+caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001157, caniuse-lite@^1.0.30001214:
   version "1.0.30001214"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001214.tgz#70f153c78223515c6d37a9fde6cd69250da9d872"
   integrity sha512-O2/SCpuaU3eASWVaesQirZv1MSjUNOvmugaD8zNSJqw6Vv5SGwoOpA9LJs3pNPfM745nxqPvfZY3MQKY4AKHYg==
@@ -10763,10 +10758,10 @@ vue-router@^3.0.1:
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.4.9.tgz"
   integrity sha512-CGAKWN44RqXW06oC+u4mPgHLQQi2t6vLD/JbGRDAXm0YpMv0bgpKuU5bBd7AvMgfTz9kXVRIWKHqRwGEb8xFkA==
 
-vue-style-loader@^4.1.0, vue-style-loader@^4.1.2:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/vue-style-loader/-/vue-style-loader-4.1.2.tgz"
-  integrity sha512-0ip8ge6Gzz/Bk0iHovU9XAUQaFt/G2B61bnWa2tCcqqdgfHs1lF9xXorFbE55Gmy92okFT+8bfmySuUOu13vxQ==
+vue-style-loader@^4.1.0, vue-style-loader@^4.1.3:
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/vue-style-loader/-/vue-style-loader-4.1.3.tgz#6d55863a51fa757ab24e89d9371465072aa7bc35"
+  integrity sha512-sFuh0xfbtpRlKfm39ss/ikqs9AbKCoXZBpHeVZ8Tx650o0k0q/YCM7FRvigtxpACezfq6af+a7JeqVTWvncqDg==
   dependencies:
     hash-sum "^1.0.2"
     loader-utils "^1.0.2"
