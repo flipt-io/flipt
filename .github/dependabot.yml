@@ -17,7 +17,7 @@ updates:
 - package-ecosystem: npm
   directory: "/ui"
   schedule:
-    interval: daily
+    interval: weekly
   open-pull-requests-limit: 5
   reviewers:
   - markphelps
@@ -29,7 +29,7 @@ updates:
   # default location of `.github/workflows`
   directory: "/"
   schedule:
-    interval: "daily"
+    interval: weekly
   open-pull-requests-limit: 5
   reviewers:
   - markphelps
