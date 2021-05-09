@@ -117,6 +117,10 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
+## Sponsors
+
+If you use Flipt at your company, please consider [becoming a sponsor](https://github.com/sponsors/markphelps) today.
+
 ## Enterprise
 
 Need more features or support using Flipt within your Enterprise?
