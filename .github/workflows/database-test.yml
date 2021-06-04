@@ -30,7 +30,7 @@ jobs:
 
     - uses: actions/setup-go@v2
       with:
-        go-version: '1.15.x'
+        go-version: '1.16.x'
 
     - id: go-cache-paths
       run: |
@@ -76,7 +76,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
-        go-version: '1.15.x'
+        go-version: '1.16.x'
       id: go
 
     - name: Checkout
