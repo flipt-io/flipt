@@ -69,7 +69,7 @@ Flipt supports use cases such as:
 * :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 * :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 * :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
-* :thumbsup: **Compatability** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
+* :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
 
 ## Examples
 

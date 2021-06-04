@@ -21,4 +21,7 @@ COPY config/*.yml /etc/flipt/config/
 EXPOSE 8080
 EXPOSE 9000
 
+# Docker exposes container ports to the IP address 0.0.0.0
+ENV FLIPT_SERVER_HOST 0.0.0.0
+
 CMD ["./flipt"]
