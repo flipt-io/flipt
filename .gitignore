@@ -10,7 +10,8 @@ _test
 .envrc
 .ruby-version
 .vagrant
-.vscode
+.vscode/*
+!.vscode/launch.json
 *.cov
 *.log
 *.out

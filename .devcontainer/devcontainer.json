@@ -11,7 +11,6 @@
 
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
-    "terminal.integrated.shell.linux": "/bin/bash",
 		"go.toolsManagement.checkForUpdates": "local",
 		"go.gopath": "/go",
 		"go.useLanguageServer": true
@@ -26,9 +25,20 @@
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [8080, 9000],
+	// "forwardPorts": [8080, 9000],
 
-	"appPort": [8080, 9000],
+  "portsAttributes": {
+		"8080": {
+			"label": "HTTP Port",
+			"onAutoForward": "notify"
+		},
+    "9000": {
+			"label": "GRPC Port",
+			"onAutoForward": "notify"
+		}
+	},
+
+
 	// Uncomment the next line to run commands after the container is created - for example installing curl.
 	// "postCreateCommand": "apt-get update && apt-get install -y curl",
 
