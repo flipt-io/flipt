@@ -15,7 +15,8 @@
                 "--config",
                 "./config/local.yml",
                 "--force-migrate"
-            ]
+            ],
+            "preLaunchTask": "${defaultBuildTask}",
         }
     ]
 }

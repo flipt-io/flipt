@@ -2,13 +2,9 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Build UI",
+			"label": "build ui",
 			"type": "shell",
-			"command": "make",
-			"args": [
-				"clean",
-				"assets"
-			],
+			"command": "make clean assets",
 			"options": {
 				"cwd": "${workspaceFolder}"
 			},
@@ -17,6 +13,16 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"label": "build ui (dev)",
+			"type": "shell",
+			"command": "yarn run dev",
+			"options": {
+				"cwd": "${workspaceFolder}/ui"
+			},
+			"problemMatcher": [],
+			"group": "build",
 		}
 	]
 }
