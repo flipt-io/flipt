@@ -12,6 +12,7 @@ _test
 .vagrant
 .vscode/*
 !.vscode/launch.json
+!.vscode/tasks.json
 *.cov
 *.log
 *.out
