@@ -85,7 +85,7 @@ func TestLoad(t *testing.T) {
 				},
 
 				Server: ServerConfig{
-					Host:      "127.0.0.1",
+					Host:      "0.0.0.0",
 					Protocol:  HTTP,
 					HTTPPort:  8080,
 					HTTPSPort: 443,

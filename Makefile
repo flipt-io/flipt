@@ -56,7 +56,6 @@ lint: ## Run all the linters
 clean: ## Cleanup generated files
 	@echo ">> cleaning up"
 	go clean -i $(SOURCE_FILES)
-	packr clean
 	rm -rf dist/*
 	go mod tidy
 
