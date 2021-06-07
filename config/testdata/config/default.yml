@@ -16,7 +16,7 @@
 
 # server:
 #   protocol: http
-#   host: 127.0.0.1
+#   host: 0.0.0.0
 #   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
