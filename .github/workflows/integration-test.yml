@@ -23,7 +23,7 @@ jobs:
 
     - uses: actions/setup-node@v2.1.5
       with:
-        node-version: '12'
+        node-version: '14'
 
     - id: go-cache-paths
       run: |
@@ -72,14 +72,5 @@ jobs:
 
     - name: Test UI
       uses: ./.github/actions/integration-test
-      env:
-        FFMPEG_PATH: /usr/bin/ffmpeg # for recording video
-        QAW_ARTIFACT_PATH: ${{ github.workspace }}/artifacts
       with:
-        args: ./test/qawolf
-
-    - name: Upload Artifacts
-      if: always()
-      uses: actions/upload-artifact@master
-      with:
-        path: ${{ github.workspace }}/artifacts
+        args: ./test/ui
