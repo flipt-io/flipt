@@ -1,8 +1,10 @@
 ARG GO_VERSION=1.16
 
-FROM golang:$GO_VERSION-alpine AS build
+FROM golang:${GO_VERSION}-alpine AS build
 
 RUN apk add --no-cache \
+    bash \
+    curl \
     gcc \
     git \
     make \
