@@ -1,21 +1,16 @@
-import { launch, register, stopVideos, waitForPage } from "qawolf";
-import expect from "expect-playwright";
+const { chromium } = require('playwright');
 
 let browser;
 let page;
-let context;
 
 const addr = "http://127.0.0.1:8080";
 
 beforeAll(async () => {
-  browser = await launch();
-  context = await browser.newContext();
-  await register(context);
-  page = await context.newPage();
+  browser = await chromium.launch();
+  page = await browser.newPage();
 });
 
 afterAll(async () => {
-  await stopVideos();
   await browser.close();
 });
 
@@ -26,7 +21,6 @@ test("createFlag", async () => {
   await page.type("[placeholder='Flag description']", "Our product manager cannot wait to ship this!");
   await page.click("[data-testid='create-flag']");
   await page.click('[aria-label="breadcrumbs"] .router-link-active');
-  page = await waitForPage(context, 0, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveText("awesome-new-feature");
   await page.click('[href="#/flags/awesome-new-feature"]');
 });
