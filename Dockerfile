@@ -2,9 +2,6 @@ ARG GO_VERSION=1.16
 
 FROM golang:${GO_VERSION}-alpine AS build
 
-ENV NVM_VERSION=v0.38.0
-ENV NODE_VERSION 12
-
 RUN apk add --no-cache \
     bash \
     curl \
@@ -12,25 +9,22 @@ RUN apk add --no-cache \
     git \
     make \
     musl-dev \
+    nodejs \
     openssl \
-    postgresql-client
+    postgresql-client \
+    yarn
 
+WORKDIR /flipt
 
-RUN curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | /bin/bash && \
-    . ~/.nvm/nvm.sh && \
-    nvm install $NODE_VERSION
+COPY go.mod go.mod
+COPY go.sum go.sum
+RUN go mod download
 
-# WORKDIR /flipt
+COPY . .
 
-# COPY go.mod go.mod
-# COPY go.sum go.sum
-# RUN go mod download
+RUN make bootstrap
 
-# COPY . .
+EXPOSE 8080
+EXPOSE 9000
 
-# RUN make bootstrap
-
-# EXPOSE 8080
-# EXPOSE 9000
-
-# CMD ["make", "dev"]
+CMD ["make", "dev"]
