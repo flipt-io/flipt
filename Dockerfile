@@ -26,5 +26,3 @@ RUN make bootstrap
 
 EXPOSE 8080
 EXPOSE 9000
-
-CMD ["make", "dev"]
