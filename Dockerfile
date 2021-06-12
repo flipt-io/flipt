@@ -1,18 +1,19 @@
 ARG GO_VERSION=1.16
 
-FROM golang:${GO_VERSION}-alpine AS build
+FROM golang:${GO_VERSION}
 
-RUN apk add --no-cache \
-    bash \
-    curl \
-    gcc \
-    git \
-    make \
-    musl-dev \
-    nodejs \
-    openssl \
-    postgresql-client \
-    yarn
+RUN apt-get update && \
+    apt-get install -y curl gnupg \
+    postgresql-client
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash
+
+RUN apt-get update && \
+    apt-get install -y nodejs yarn && \
+    apt-get clean -y
 
 WORKDIR /flipt
 
@@ -25,4 +26,5 @@ COPY . .
 RUN make bootstrap
 
 EXPOSE 8080
+EXPOSE 8081
 EXPOSE 9000

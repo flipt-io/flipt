@@ -86,7 +86,7 @@ build: clean assets pack ## Build a local copy
 .PHONY: server
 server: clean  ## Build and run in server mode
 	@echo ">> building and running in server mode"
-	@echo "  ⚠️ ui must be run in another process) ⚠️"
+	@echo "  ⚠️ ui must be run in another process ⚠️"
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot

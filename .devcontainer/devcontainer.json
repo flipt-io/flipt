@@ -28,6 +28,10 @@
       "label": "HTTP Port",
       "onAutoForward": "notify"
     },
+    "8081": {
+      "label": "UI Dev Port",
+      "onAutoForward": "notify"
+    },
     "9000": {
       "label": "GRPC Port",
       "onAutoForward": "notify"
