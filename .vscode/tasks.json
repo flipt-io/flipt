@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"command": "yarn",
+			"problemMatcher": [],
+			"label": "yarn: install - ui",
+			"detail": "install ui dependencies",
+			"options": {
+				"cwd": "ui/",
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

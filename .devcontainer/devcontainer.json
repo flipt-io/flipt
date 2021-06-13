@@ -19,7 +19,8 @@
     "dbaeumer.vscode-eslint",
     "octref.vetur",
     "zxh404.vscode-proto3",
-    "vsls-contrib.codetour"
+    "vsls-contrib.codetour",
+    "esbenp.prettier-vscode"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [8080, 9000],
