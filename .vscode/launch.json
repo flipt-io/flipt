@@ -5,18 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Flipt",
             "type": "go",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/flipt/",
+            "name": "Server",
             "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/cmd/flipt/",
             "args": [
                 "--config",
                 "./config/local.yml",
                 "--force-migrate"
             ],
-            "preLaunchTask": "${defaultBuildTask}",
-        }
+        },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Client",
+          "cwd": "${workspaceFolder}/ui",
+          "runtimeExecutable": "yarn",
+          "runtimeArgs": [
+            "run",
+            "dev"
+          ],
+        },
+    ],
+    "compounds": [
+      {
+        "name": "Server/Client",
+        "configurations": ["Server", "Client"],
+        "preLaunchTask": "${defaultBuildTask}"
+      }
     ]
 }
