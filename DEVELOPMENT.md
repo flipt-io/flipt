@@ -6,10 +6,10 @@ The following are instructions for setting up your local machine for Flipt devel
 
 Before starting, make sure you have the following installed:
 
-* GCC Compiler
-* [SQLite](https://sqlite.org/index.html)
-* [Go 1.16+](https://golang.org/doc/install)
-* [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
+- GCC Compiler
+- [SQLite](https://sqlite.org/index.html)
+- [Go 1.16+](https://golang.org/doc/install)
+- [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
 
@@ -40,8 +40,8 @@ Changing certain types of files such as the protobuf, ui or documentation files 
 
 After changing `flipt.proto`, you'll need to run `make proto`. This will regenerate the following files:
 
-* `rpc/flipt.pb.go`
-* `rpc/flipt.pb.gw.go`
+- `rpc/flipt.pb.go`
+- `rpc/flipt.pb.gw.go`
 
 ### Updating assets
 
@@ -67,8 +67,6 @@ If you have access to [GitHub Codespaces](https://github.com/features/codespaces
 
 Regardless of wether you are using Remote Containers or GitHub Codespaces, you'll need to run a couple tasks to successfully build/run Flipt in these environments.
 
-After opening the project, run [Build UI](.vscode/tasks.json) task to build the UI.
+Then run the [Server/Client](.vscode/launch.json) run command to start the server and client.
 
-Then run the [Launch Flipt](.vscode/launch.json) run command to start the server.
-
-This should publish two ports `8080` and `9000`, that you can then open in your browser (`8080` is the Flipt UI, `9000` is the GRPC port that shouldn't be opened in the browser.)
+This should publish three ports `8080`, `8081`, `9000`. `8081` is the UI dev port that runs the `yarn dev server` that you can open in your browser.
