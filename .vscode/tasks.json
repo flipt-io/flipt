@@ -8,7 +8,7 @@
 			"label": "yarn: install - ui",
 			"detail": "install ui dependencies",
 			"options": {
-				"cwd": "ui/",
+				"cwd": "${workspaceFolder}/ui/",
 			},
 			"group": {
 				"kind": "build",
