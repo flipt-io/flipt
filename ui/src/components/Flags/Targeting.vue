@@ -82,11 +82,11 @@
                   <div class="field">
                     <b-autocomplete
                       v-model="newRule.segmentName"
-                      :data="segments"
+                      :data="autocompleteSegmentData"
                       field="name"
                       :open-on-focus="true"
                       placeholder="e.g. All Users"
-                      @select="selectSegment"
+                      @select="option => selectSegment(option)"
                     >
                       <template slot="empty"
                         >No segments found. Create a
@@ -310,6 +310,16 @@ export default {
     };
   },
   computed: {
+    autocompleteSegmentData() {
+      return this.segments.filter(option => {
+        return (
+          option.name
+            .toString()
+            .toLowerCase()
+            .indexOf(this.newRule.segmentName.toLowerCase()) >= 0
+        );
+      });
+    },
     hasVariants() {
       return this.flag.variants && this.flag.variants.length > 0;
     },
