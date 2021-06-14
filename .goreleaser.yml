@@ -2,6 +2,11 @@ builds:
   - main: ./cmd/flipt/.
     env:
       - CGO_ENABLED=1
+      - CC=x86_64-linux-musl-gcc
+      - CXX=x86_64-linux-musl-g++
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+      - -linkmode external -extldflags -static
     goos:
       - linux
     goarch:
@@ -15,7 +20,7 @@ archives:
       - LICENSE
       - README.md
       - CHANGELOG.md
-      - ./config/migrations/*/**
+      - ./config/migrations/
       - ./config/default.yml
 
 checksum:
@@ -26,8 +31,6 @@ changelog:
 
 dockers:
   - dockerfile: ./build/Dockerfile
-    binaries:
-      - flipt
     skip_push: true
     image_templates:
       - "markphelps/flipt:latest"
@@ -39,4 +42,5 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
-      - config
+      - config/migrations/
+      - config/default.yml
