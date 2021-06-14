@@ -83,9 +83,10 @@ build: clean assets pack ## Build a local copy
 	@echo ">> building a local copy"
 	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
-.PHONY: dev
-dev: clean assets ## Build and run in development mode
-	@echo ">> building and running in development mode"
+.PHONY: server
+server: clean  ## Build and run in server mode
+	@echo ">> building and running in server mode"
+	@echo "  ⚠️ ui must be run in another process ⚠️"
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
