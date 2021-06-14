@@ -25,7 +25,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@0.0.18
       with:
-        image-ref: 'docker.io/markphelps/flipt:${{ steps.release.outputs.release }}}}'
+        image-ref: 'docker.io/markphelps/flipt:${{ steps.release.outputs.release }}'
         format: 'template'
         template: '@/contrib/sarif.tpl'
         output: 'trivy-results.sarif'
