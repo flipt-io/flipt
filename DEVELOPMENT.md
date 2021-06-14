@@ -29,7 +29,7 @@ Flipt is built with Go 1.16+. To reliably build Flipt, make sure you clone it to
 Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
 ```shell
-make dev
+make server
 ```
 
 ## Changes
