@@ -31,7 +31,7 @@ changelog:
 
 dockers:
   - dockerfile: ./build/Dockerfile
-    skip_push: true
+    use_buildx: true
     image_templates:
       - "markphelps/flipt:latest"
       - "markphelps/flipt:{{ .Tag }}"
