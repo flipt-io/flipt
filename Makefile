@@ -73,13 +73,8 @@ proto: ## Build protobufs
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui
 
-.PHONY: pack
-pack: ## Pack the assets in the binary
-	@echo ">> packing assets"
-	packr -i cmd/flipt
-
 .PHONY: build
-build: clean assets pack ## Build a local copy
+build: clean assets ## Build a local copy
 	@echo ">> building a local copy"
 	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
@@ -90,12 +85,12 @@ server: clean  ## Build and run in server mode
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
-snapshot: clean assets pack ## Build a snapshot version
+snapshot: clean assets ## Build a snapshot version
 	@echo ">> building a snapshot version"
 	@./script/build snapshot
 
 .PHONY: release
-release: clean assets pack ## Build and publish a release
+release: clean assets ## Build and publish a release
 	@echo ">> building and publishing a release"
 	@./script/build release
 
