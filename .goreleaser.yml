@@ -42,5 +42,5 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
-      - ./config/migrations/
-      - ./config/default.yml
+      - config/migrations/
+      - config/default.yml
