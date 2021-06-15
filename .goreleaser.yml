@@ -21,7 +21,7 @@ archives:
       - README.md
       - CHANGELOG.md
       - ./config/migrations/
-      - ./config/*.yml
+      - ./config/default.yml
 
 checksum:
   name_template: 'checksums.txt'
@@ -42,5 +42,5 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
-      - config/migrations/
-      - config/*.yml
+      - ./config/migrations/
+      - ./config/default.yml
