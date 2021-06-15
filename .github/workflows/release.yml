@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  pull:
     runs-on: ubuntu-latest
     steps:
     
@@ -21,3 +21,16 @@ jobs:
 
     - name: Verify GHCR
       run: docker pull ghcr.io/markphelps/flipt:${{ steps.release.outputs.release }}
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@0.0.18
+      with:
+        image-ref: 'docker.io/markphelps/flipt:${{ steps.release.outputs.release }}'
+        format: 'template'
+        template: '@/contrib/sarif.tpl'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: 'trivy-results.sarif'
