@@ -1,8 +1,9 @@
 # https://goreleaser.com/docker/
 
 ARG BINARY=flipt
+ARG ALPINE_VERSION=3.10.9
 
-FROM alpine:3.10
+FROM alpine:${ALPINE_VERSION}
 LABEL maintainer="mark.aaron.phelps@gmail.com"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
@@ -20,8 +21,5 @@ COPY config/*.yml /etc/flipt/config/
 
 EXPOSE 8080
 EXPOSE 9000
-
-# Docker exposes container ports to the IP address 0.0.0.0
-ENV FLIPT_SERVER_HOST 0.0.0.0
 
 CMD ["./flipt"]
