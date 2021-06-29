@@ -1,3 +1,5 @@
+// +build assets
+
 package ui
 
 import "embed"
