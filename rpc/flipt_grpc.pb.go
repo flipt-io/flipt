@@ -4,7 +4,6 @@ package flipt
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -13,7 +12,8 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+// Requires gRPC-Go v1.32.0 or later.
+const _ = grpc.SupportPackageIsVersion7
 
 // FliptClient is the client API for Flipt service.
 //
@@ -337,91 +337,98 @@ type FliptServer interface {
 type UnimplementedFliptServer struct {
 }
 
-func (*UnimplementedFliptServer) Evaluate(context.Context, *EvaluationRequest) (*EvaluationResponse, error) {
+func (UnimplementedFliptServer) Evaluate(context.Context, *EvaluationRequest) (*EvaluationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Evaluate not implemented")
 }
-func (*UnimplementedFliptServer) BatchEvaluate(context.Context, *BatchEvaluationRequest) (*BatchEvaluationResponse, error) {
+func (UnimplementedFliptServer) BatchEvaluate(context.Context, *BatchEvaluationRequest) (*BatchEvaluationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BatchEvaluate not implemented")
 }
-func (*UnimplementedFliptServer) GetFlag(context.Context, *GetFlagRequest) (*Flag, error) {
+func (UnimplementedFliptServer) GetFlag(context.Context, *GetFlagRequest) (*Flag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFlag not implemented")
 }
-func (*UnimplementedFliptServer) ListFlags(context.Context, *ListFlagRequest) (*FlagList, error) {
+func (UnimplementedFliptServer) ListFlags(context.Context, *ListFlagRequest) (*FlagList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFlags not implemented")
 }
-func (*UnimplementedFliptServer) CreateFlag(context.Context, *CreateFlagRequest) (*Flag, error) {
+func (UnimplementedFliptServer) CreateFlag(context.Context, *CreateFlagRequest) (*Flag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateFlag not implemented")
 }
-func (*UnimplementedFliptServer) UpdateFlag(context.Context, *UpdateFlagRequest) (*Flag, error) {
+func (UnimplementedFliptServer) UpdateFlag(context.Context, *UpdateFlagRequest) (*Flag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateFlag not implemented")
 }
-func (*UnimplementedFliptServer) DeleteFlag(context.Context, *DeleteFlagRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteFlag(context.Context, *DeleteFlagRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteFlag not implemented")
 }
-func (*UnimplementedFliptServer) CreateVariant(context.Context, *CreateVariantRequest) (*Variant, error) {
+func (UnimplementedFliptServer) CreateVariant(context.Context, *CreateVariantRequest) (*Variant, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateVariant not implemented")
 }
-func (*UnimplementedFliptServer) UpdateVariant(context.Context, *UpdateVariantRequest) (*Variant, error) {
+func (UnimplementedFliptServer) UpdateVariant(context.Context, *UpdateVariantRequest) (*Variant, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateVariant not implemented")
 }
-func (*UnimplementedFliptServer) DeleteVariant(context.Context, *DeleteVariantRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteVariant(context.Context, *DeleteVariantRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteVariant not implemented")
 }
-func (*UnimplementedFliptServer) GetRule(context.Context, *GetRuleRequest) (*Rule, error) {
+func (UnimplementedFliptServer) GetRule(context.Context, *GetRuleRequest) (*Rule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRule not implemented")
 }
-func (*UnimplementedFliptServer) ListRules(context.Context, *ListRuleRequest) (*RuleList, error) {
+func (UnimplementedFliptServer) ListRules(context.Context, *ListRuleRequest) (*RuleList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRules not implemented")
 }
-func (*UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrderRules not implemented")
 }
-func (*UnimplementedFliptServer) CreateRule(context.Context, *CreateRuleRequest) (*Rule, error) {
+func (UnimplementedFliptServer) CreateRule(context.Context, *CreateRuleRequest) (*Rule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRule not implemented")
 }
-func (*UnimplementedFliptServer) UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error) {
+func (UnimplementedFliptServer) UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRule not implemented")
 }
-func (*UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
 }
-func (*UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error) {
+func (UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDistribution not implemented")
 }
-func (*UnimplementedFliptServer) UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error) {
+func (UnimplementedFliptServer) UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDistribution not implemented")
 }
-func (*UnimplementedFliptServer) DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDistribution not implemented")
 }
-func (*UnimplementedFliptServer) GetSegment(context.Context, *GetSegmentRequest) (*Segment, error) {
+func (UnimplementedFliptServer) GetSegment(context.Context, *GetSegmentRequest) (*Segment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSegment not implemented")
 }
-func (*UnimplementedFliptServer) ListSegments(context.Context, *ListSegmentRequest) (*SegmentList, error) {
+func (UnimplementedFliptServer) ListSegments(context.Context, *ListSegmentRequest) (*SegmentList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSegments not implemented")
 }
-func (*UnimplementedFliptServer) CreateSegment(context.Context, *CreateSegmentRequest) (*Segment, error) {
+func (UnimplementedFliptServer) CreateSegment(context.Context, *CreateSegmentRequest) (*Segment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSegment not implemented")
 }
-func (*UnimplementedFliptServer) UpdateSegment(context.Context, *UpdateSegmentRequest) (*Segment, error) {
+func (UnimplementedFliptServer) UpdateSegment(context.Context, *UpdateSegmentRequest) (*Segment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSegment not implemented")
 }
-func (*UnimplementedFliptServer) DeleteSegment(context.Context, *DeleteSegmentRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteSegment(context.Context, *DeleteSegmentRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSegment not implemented")
 }
-func (*UnimplementedFliptServer) CreateConstraint(context.Context, *CreateConstraintRequest) (*Constraint, error) {
+func (UnimplementedFliptServer) CreateConstraint(context.Context, *CreateConstraintRequest) (*Constraint, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateConstraint not implemented")
 }
-func (*UnimplementedFliptServer) UpdateConstraint(context.Context, *UpdateConstraintRequest) (*Constraint, error) {
+func (UnimplementedFliptServer) UpdateConstraint(context.Context, *UpdateConstraintRequest) (*Constraint, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateConstraint not implemented")
 }
-func (*UnimplementedFliptServer) DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteConstraint not implemented")
 }
-func (*UnimplementedFliptServer) mustEmbedUnimplementedFliptServer() {}
+func (UnimplementedFliptServer) mustEmbedUnimplementedFliptServer() {}
 
-func RegisterFliptServer(s *grpc.Server, srv FliptServer) {
-	s.RegisterService(&_Flipt_serviceDesc, srv)
+// UnsafeFliptServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FliptServer will
+// result in compilation errors.
+type UnsafeFliptServer interface {
+	mustEmbedUnimplementedFliptServer()
+}
+
+func RegisterFliptServer(s grpc.ServiceRegistrar, srv FliptServer) {
+	s.RegisterService(&Flipt_ServiceDesc, srv)
 }
 
 func _Flipt_Evaluate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -910,7 +917,10 @@ func _Flipt_DeleteConstraint_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Flipt_serviceDesc = grpc.ServiceDesc{
+// Flipt_ServiceDesc is the grpc.ServiceDesc for Flipt service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Flipt_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "flipt.Flipt",
 	HandlerType: (*FliptServer)(nil),
 	Methods: []grpc.MethodDesc{

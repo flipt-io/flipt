@@ -6,7 +6,7 @@ import "protoc-gen-swagger/options/annotations.proto";
 
 package flipt;
 
-option go_package = ".;flipt";
+option go_package = "github.com/markphelps/flipt/rpc/flipt";
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
   info: {
