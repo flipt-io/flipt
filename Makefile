@@ -64,24 +64,22 @@ proto: ## Build protobufs
 	@echo ">> generating protobufs"
 	protoc -I/usr/local/include -I. \
 		-Irpc \
+		--go_opt=paths=source_relative \
 		--go_out=./rpc \
 		--go-grpc_out=./rpc \
+		--go-grpc_opt=paths=source_relative \
 		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \
+		--grpc-gateway_opt=paths=source_relative \
 		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger \
 		$(PROJECT).proto
 
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui
 
-.PHONY: pack
-pack: ## Pack the assets in the binary
-	@echo ">> packing assets"
-	packr -i cmd/flipt
-
 .PHONY: build
-build: clean assets pack ## Build a local copy
+build: clean assets ## Build a local copy
 	@echo ">> building a local copy"
-	go build -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
+	go build -tags assets -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
 .PHONY: server
 server: clean  ## Build and run in server mode
@@ -90,12 +88,12 @@ server: clean  ## Build and run in server mode
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
-snapshot: clean assets pack ## Build a snapshot version
+snapshot: clean assets ## Build a snapshot version
 	@echo ">> building a snapshot version"
 	@./script/build snapshot
 
 .PHONY: release
-release: clean assets pack ## Build and publish a release
+release: clean assets ## Build and publish a release
 	@echo ">> building and publishing a release"
 	@./script/build release
 

@@ -1,0 +1,1703 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Flipt API",
+    "version": "latest",
+    "contact": {
+      "name": "Mark Phelps",
+      "url": "https://github.com/markphelps/flipt"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/batch-evaluate": {
+      "post": {
+        "description": "Batch Evaluate",
+        "operationId": "batchEvaluate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptBatchEvaluationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptBatchEvaluationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "evaluate"
+        ]
+      }
+    },
+    "/api/v1/evaluate": {
+      "post": {
+        "description": "Evaluate",
+        "operationId": "evaluate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptEvaluationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptEvaluationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "evaluate"
+        ]
+      }
+    },
+    "/api/v1/flags": {
+      "get": {
+        "description": "List Flags",
+        "operationId": "listFlags",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptFlagList"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "flags"
+        ]
+      },
+      "post": {
+        "description": "Create Flag",
+        "operationId": "createFlag",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptFlag"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptCreateFlagRequest"
+            }
+          }
+        ],
+        "tags": [
+          "flags"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/rules": {
+      "get": {
+        "description": "List Rules",
+        "operationId": "listRules",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptRuleList"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "rules"
+        ]
+      },
+      "post": {
+        "description": "Create Rule",
+        "operationId": "createRule",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptRule"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptCreateRuleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/rules/order": {
+      "put": {
+        "description": "Order Rules",
+        "operationId": "orderRules",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptOrderRulesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/rules/{id}": {
+      "get": {
+        "description": "Get Rule",
+        "operationId": "getRule",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptRule"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "rules"
+        ]
+      },
+      "delete": {
+        "description": "Delete Rule",
+        "operationId": "deleteRule",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "rules"
+        ]
+      },
+      "put": {
+        "description": "Update Rule",
+        "operationId": "updateRule",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptRule"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptUpdateRuleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions": {
+      "post": {
+        "description": "Create Distribution",
+        "operationId": "createDistribution",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptDistribution"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptCreateDistributionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "distributions"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}": {
+      "delete": {
+        "description": "Delete Distribution",
+        "operationId": "deleteDistribution",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "variant_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "distributions"
+        ]
+      },
+      "put": {
+        "description": "Update Distribution",
+        "operationId": "updateDistribution",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptDistribution"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptUpdateDistributionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "distributions"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/variants": {
+      "post": {
+        "description": "Create Variant",
+        "operationId": "createVariant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptVariant"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptCreateVariantRequest"
+            }
+          }
+        ],
+        "tags": [
+          "variants"
+        ]
+      }
+    },
+    "/api/v1/flags/{flag_key}/variants/{id}": {
+      "delete": {
+        "description": "Delete Variant",
+        "operationId": "deleteVariant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "variants"
+        ]
+      },
+      "put": {
+        "description": "Update Variant",
+        "operationId": "updateVariant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptVariant"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "flag_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptUpdateVariantRequest"
+            }
+          }
+        ],
+        "tags": [
+          "variants"
+        ]
+      }
+    },
+    "/api/v1/flags/{key}": {
+      "get": {
+        "description": "Get Flag",
+        "operationId": "getFlag",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptFlag"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "flags"
+        ]
+      },
+      "delete": {
+        "description": "Delete Flag",
+        "operationId": "deleteFlag",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "flags"
+        ]
+      },
+      "put": {
+        "description": "Update Flag",
+        "operationId": "updateFlag",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptFlag"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptUpdateFlagRequest"
+            }
+          }
+        ],
+        "tags": [
+          "flags"
+        ]
+      }
+    },
+    "/api/v1/segments": {
+      "get": {
+        "description": "List Segments",
+        "operationId": "listSegments",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptSegmentList"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "segments"
+        ]
+      },
+      "post": {
+        "description": "Create Segment",
+        "operationId": "createSegment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptSegment"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptCreateSegmentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "segments"
+        ]
+      }
+    },
+    "/api/v1/segments/{key}": {
+      "get": {
+        "description": "Get Segment",
+        "operationId": "getSegment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptSegment"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "segments"
+        ]
+      },
+      "delete": {
+        "description": "Delete Segment",
+        "operationId": "deleteSegment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "segments"
+        ]
+      },
+      "put": {
+        "description": "Update Segment",
+        "operationId": "updateSegment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptSegment"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptUpdateSegmentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "segments"
+        ]
+      }
+    },
+    "/api/v1/segments/{segment_key}/constraints": {
+      "post": {
+        "description": "Create Constraint",
+        "operationId": "createConstraint",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptConstraint"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "segment_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptCreateConstraintRequest"
+            }
+          }
+        ],
+        "tags": [
+          "constraints"
+        ]
+      }
+    },
+    "/api/v1/segments/{segment_key}/constraints/{id}": {
+      "delete": {
+        "description": "Delete Constraint",
+        "operationId": "deleteConstraint",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "segment_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "constraints"
+        ]
+      },
+      "put": {
+        "description": "Update Constraint",
+        "operationId": "updateConstraint",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/fliptConstraint"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "segment_key",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/fliptUpdateConstraintRequest"
+            }
+          }
+        ],
+        "tags": [
+          "constraints"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "fliptBatchEvaluationRequest": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "requests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptEvaluationRequest"
+          }
+        }
+      },
+      "required": [
+        "requests"
+      ]
+    },
+    "fliptBatchEvaluationResponse": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptEvaluationResponse"
+          }
+        },
+        "request_duration_millis": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "fliptComparisonType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN_COMPARISON_TYPE",
+        "STRING_COMPARISON_TYPE",
+        "NUMBER_COMPARISON_TYPE",
+        "BOOLEAN_COMPARISON_TYPE"
+      ],
+      "default": "UNKNOWN_COMPARISON_TYPE"
+    },
+    "fliptConstraint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "segment_key": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/fliptComparisonType"
+        },
+        "property": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fliptCreateConstraintRequest": {
+      "type": "object",
+      "properties": {
+        "segment_key": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/fliptComparisonType"
+        },
+        "property": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "segment_key",
+        "type",
+        "property",
+        "operator"
+      ]
+    },
+    "fliptCreateDistributionRequest": {
+      "type": "object",
+      "properties": {
+        "flag_key": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "variant_id": {
+          "type": "string"
+        },
+        "rollout": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "required": [
+        "flag_key",
+        "rule_id",
+        "variant_id",
+        "rollout"
+      ]
+    },
+    "fliptCreateFlagRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ]
+    },
+    "fliptCreateRuleRequest": {
+      "type": "object",
+      "properties": {
+        "flag_key": {
+          "type": "string"
+        },
+        "segment_key": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "flag_key",
+        "segment_key",
+        "rank"
+      ]
+    },
+    "fliptCreateSegmentRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "match_type": {
+          "$ref": "#/definitions/fliptMatchType"
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ]
+    },
+    "fliptCreateVariantRequest": {
+      "type": "object",
+      "properties": {
+        "flag_key": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "flag_key",
+        "key"
+      ]
+    },
+    "fliptDistribution": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "variant_id": {
+          "type": "string"
+        },
+        "rollout": {
+          "type": "number",
+          "format": "float"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fliptEvaluationRequest": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "flag_key",
+        "entity_id"
+      ]
+    },
+    "fliptEvaluationResponse": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "entity_id": {
+          "type": "string"
+        },
+        "request_context": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "match": {
+          "type": "boolean"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "segment_key": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "value": {
+          "type": "string"
+        },
+        "request_duration_millis": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "fliptFlag": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptVariant"
+          }
+        }
+      }
+    },
+    "fliptFlagList": {
+      "type": "object",
+      "properties": {
+        "flags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptFlag"
+          }
+        }
+      }
+    },
+    "fliptMatchType": {
+      "type": "string",
+      "enum": [
+        "ALL_MATCH_TYPE",
+        "ANY_MATCH_TYPE"
+      ],
+      "default": "ALL_MATCH_TYPE"
+    },
+    "fliptOrderRulesRequest": {
+      "type": "object",
+      "properties": {
+        "flag_key": {
+          "type": "string"
+        },
+        "rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "flag_key",
+        "rule_ids"
+      ]
+    },
+    "fliptRule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "segment_key": {
+          "type": "string"
+        },
+        "distributions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptDistribution"
+          }
+        },
+        "rank": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "fliptRuleList": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptRule"
+          }
+        }
+      }
+    },
+    "fliptSegment": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptConstraint"
+          }
+        },
+        "match_type": {
+          "$ref": "#/definitions/fliptMatchType"
+        }
+      }
+    },
+    "fliptSegmentList": {
+      "type": "object",
+      "properties": {
+        "segments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fliptSegment"
+          }
+        }
+      }
+    },
+    "fliptUpdateConstraintRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "segment_key": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/fliptComparisonType"
+        },
+        "property": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "segment_key",
+        "type",
+        "property",
+        "operator"
+      ]
+    },
+    "fliptUpdateDistributionRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "variant_id": {
+          "type": "string"
+        },
+        "rollout": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "required": [
+        "id",
+        "flag_key",
+        "rule_id",
+        "variant_id",
+        "rollout"
+      ]
+    },
+    "fliptUpdateFlagRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ]
+    },
+    "fliptUpdateRuleRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "segment_key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "flag_key",
+        "segment_key"
+      ]
+    },
+    "fliptUpdateSegmentRequest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "match_type": {
+          "$ref": "#/definitions/fliptMatchType"
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ]
+    },
+    "fliptUpdateVariantRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "flag_key",
+        "key"
+      ]
+    },
+    "fliptVariant": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "flag_key": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string",
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+        },
+        "value": {
+          "type": "string",
+          "format": "byte",
+          "description": "Must be a valid serialized protocol buffer of the above specified type."
+        }
+      },
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Flipt Docs",
+    "url": "https://flipt.io"
+  }
+}

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
@@ -22,7 +23,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/gobuffalo/packr"
 	"github.com/google/go-github/v32/github"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/markphelps/flipt/config"
@@ -34,6 +34,8 @@ import (
 	"github.com/markphelps/flipt/storage/db/mysql"
 	"github.com/markphelps/flipt/storage/db/postgres"
 	"github.com/markphelps/flipt/storage/db/sqlite"
+	"github.com/markphelps/flipt/swagger"
+	"github.com/markphelps/flipt/ui"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -423,11 +425,15 @@ func run(_ []string) error {
 		})
 
 		if cfg.UI.Enabled {
-			swagger := packr.NewBox("../../swagger")
-			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger)))
+			s := http.FS(swagger.Docs)
+			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(s)))
 
-			ui := packr.NewBox("../../ui/dist")
-			r.Mount("/", http.FileServer(ui))
+			u, err := fs.Sub(ui.UI, "dist")
+			if err != nil {
+				return fmt.Errorf("mounting UI: %w", err)
+			}
+
+			r.Mount("/", http.FileServer(http.FS(u)))
 		}
 
 		httpServer = &http.Server{

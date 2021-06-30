@@ -11,6 +11,8 @@ builds:
       - linux
     goarch:
       - amd64
+    flags:
+      - -tags=assets
 
 archives:
   - id: main
@@ -24,7 +26,7 @@ archives:
       - ./config/default.yml
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 changelog:
   skip: true

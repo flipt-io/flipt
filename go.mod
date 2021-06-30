@@ -1,6 +1,6 @@
 module github.com/markphelps/flipt
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Masterminds/squirrel v1.5.0
@@ -15,8 +15,6 @@ require (
 	github.com/go-chi/chi v4.0.3-0.20191031103402-221acf29d02b+incompatible
 	github.com/go-chi/cors v1.2.0
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/gobuffalo/envy v1.7.1 // indirect
-	github.com/gobuffalo/packr v1.30.1
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/golang-migrate/migrate v3.5.4+incompatible
 	github.com/golang/protobuf v1.5.2
@@ -36,8 +34,9 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
-	github.com/prometheus/client_golang v1.11.0
-	github.com/rogpeppe/go-internal v1.5.0 // indirect
+	github.com/prometheus/client_golang v1.7.1
+	github.com/prometheus/common v0.26.0 // indirect
+	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.8.1
