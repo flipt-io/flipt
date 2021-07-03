@@ -1,5 +1,7 @@
 FROM debian:stable-slim
 
+LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
+
 RUN apt-get update && \
     apt-get install -y bats curl jq gnupg \
     # chromium dependencies

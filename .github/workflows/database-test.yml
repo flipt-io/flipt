@@ -2,9 +2,9 @@ name: Database Tests
 on:
   pull_request:
     paths-ignore:
-      - '*.md'
-      - '*.yml'
-      - '.all-contributorsrc'
+      - "*.md"
+      - "*.yml"
+      - ".all-contributorsrc"
 
 jobs:
   ## Postgres Tests
@@ -16,8 +16,8 @@ jobs:
       postgres:
         image: postgres@sha256:c132d7802dcc127486a403fb9e9a52d9df2e3ab84037c5de8395ed6ba2743e20
         ports:
-        # will assign a random free host port
-        - 5432/tcp
+          # will assign a random free host port
+          - 5432/tcp
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         env:
@@ -26,34 +26,34 @@ jobs:
           POSTGRES_PASSWORD: password
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.x'
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.x"
 
-    - id: go-cache-paths
-      run: |
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Go Build Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.go-cache-paths.outputs.go-build }}
-        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
 
-    - name: Go Mod Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+      - name: Go Mod Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
-    - name: Unit Test (Postgres)
-      run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
+      - name: Unit Test (Postgres)
+        run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
   ## MySQL Tests
   mysql:
@@ -64,8 +64,8 @@ jobs:
       mysql:
         image: mysql@sha256:a31a277d8d39450220c722c1302a345c84206e7fd4cdb619e7face046e89031d
         ports:
-        # will assign a random free host port
-        - 3306/tcp
+          # will assign a random free host port
+          - 3306/tcp
         env:
           MYSQL_DATABASE: flipt_test
           MYSQL_USER: mysql
@@ -73,21 +73,21 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: true
 
     steps:
-    - name: Setup Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.x'
-      id: go
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.x"
+        id: go
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Restore Cache
-      uses: actions/cache@v1
-      id: cache
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - name: Restore Cache
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
-    - name: Unit Test (MySQL)
-      run: DB_URL="mysql://mysql:password@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...
+      - name: Unit Test (MySQL)
+        run: DB_URL="mysql://mysql:password@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...

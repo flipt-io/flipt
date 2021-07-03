@@ -2,9 +2,9 @@ name: Integration Tests
 on:
   pull_request:
     paths-ignore:
-      - '*.md'
-      - '*.yml'
-      - '.all-contributorsrc'
+      - "*.md"
+      - "*.yml"
+      - ".all-contributorsrc"
 
 jobs:
   ## Integration Tests
@@ -15,62 +15,62 @@ jobs:
     timeout-minutes: 20
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.16.x'
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.x"
 
-    - uses: actions/setup-node@v2.1.5
-      with:
-        node-version: '14'
+      - uses: actions/setup-node@v2.1.5
+        with:
+          node-version: "14"
 
-    - id: go-cache-paths
-      run: |
-        echo "::set-output name=go-build::$(go env GOCACHE)"
-        echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Go Build Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.go-cache-paths.outputs.go-build }}
-        key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
 
-    - name: Go Mod Cache
-      uses: actions/cache@v2
-      with:
-        path: ${{ steps.go-cache-paths.outputs.go-mod }}
-        key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+      - name: Go Mod Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
-    - uses: actions/cache@v2
-      id: yarn-cache
-      with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
 
-    - name: Build the binary
-      run: |
-        make bootstrap
-        make build
+      - name: Build the binary
+        run: |
+          make bootstrap
+          make build
 
-    - name: Test API
-      uses: ./.github/actions/integration-test
-      with:
-        args: ./test/api
+      - name: Test API
+        uses: ./.github/actions/integration-test
+        with:
+          args: ./test/api.sh
 
-    - name: Test CLI
-      uses: ./.github/actions/integration-test
-      with:
-        args: ./test/cli
+      - name: Test CLI
+        uses: ./.github/actions/integration-test
+        with:
+          args: ./test/cli.bats
 
-    - name: Test UI
-      uses: ./.github/actions/integration-test
-      with:
-        args: ./test/ui
+      - name: Test UI
+        uses: ./.github/actions/integration-test
+        with:
+          args: ./test/ui.sh
