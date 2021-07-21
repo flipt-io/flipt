@@ -70,7 +70,7 @@
     "jest": "~26.6.3",
     "mini-css-extract-plugin": "^0.8.0",
     "node-notifier": "^8.0.1",
-    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "optimize-css-assets-webpack-plugin": "^6.0.1",
     "ora": "^4.0.3",
     "playwright-core": "^1.5.2",
     "portfinder": "^1.0.13",
