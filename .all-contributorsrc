@@ -96,6 +96,15 @@
         "doc",
         "code"
       ]
+    },
+    {
+      "login": "itaischwartz",
+      "name": "Itai Schwartz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60180089?v=4",
+      "profile": "https://github.com/itaischwartz",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
