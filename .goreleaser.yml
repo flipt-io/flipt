@@ -33,7 +33,7 @@ changelog:
 
 dockers:
   - dockerfile: ./build/Dockerfile
-    use_buildx: true
+    use: buildx
     image_templates:
       - "markphelps/flipt:latest"
       - "markphelps/flipt:{{ .Tag }}"
