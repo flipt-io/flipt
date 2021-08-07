@@ -4,10 +4,11 @@ package flipt
 
 import (
 	context "context"
+
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -25,27 +26,27 @@ type FliptClient interface {
 	ListFlags(ctx context.Context, in *ListFlagRequest, opts ...grpc.CallOption) (*FlagList, error)
 	CreateFlag(ctx context.Context, in *CreateFlagRequest, opts ...grpc.CallOption) (*Flag, error)
 	UpdateFlag(ctx context.Context, in *UpdateFlagRequest, opts ...grpc.CallOption) (*Flag, error)
-	DeleteFlag(ctx context.Context, in *DeleteFlagRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteFlag(ctx context.Context, in *DeleteFlagRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	CreateVariant(ctx context.Context, in *CreateVariantRequest, opts ...grpc.CallOption) (*Variant, error)
 	UpdateVariant(ctx context.Context, in *UpdateVariantRequest, opts ...grpc.CallOption) (*Variant, error)
-	DeleteVariant(ctx context.Context, in *DeleteVariantRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteVariant(ctx context.Context, in *DeleteVariantRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	GetRule(ctx context.Context, in *GetRuleRequest, opts ...grpc.CallOption) (*Rule, error)
 	ListRules(ctx context.Context, in *ListRuleRequest, opts ...grpc.CallOption) (*RuleList, error)
-	OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*Rule, error)
 	UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*Rule, error)
-	DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	UpdateDistribution(ctx context.Context, in *UpdateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
-	DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	GetSegment(ctx context.Context, in *GetSegmentRequest, opts ...grpc.CallOption) (*Segment, error)
 	ListSegments(ctx context.Context, in *ListSegmentRequest, opts ...grpc.CallOption) (*SegmentList, error)
 	CreateSegment(ctx context.Context, in *CreateSegmentRequest, opts ...grpc.CallOption) (*Segment, error)
 	UpdateSegment(ctx context.Context, in *UpdateSegmentRequest, opts ...grpc.CallOption) (*Segment, error)
-	DeleteSegment(ctx context.Context, in *DeleteSegmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteSegment(ctx context.Context, in *DeleteSegmentRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	CreateConstraint(ctx context.Context, in *CreateConstraintRequest, opts ...grpc.CallOption) (*Constraint, error)
 	UpdateConstraint(ctx context.Context, in *UpdateConstraintRequest, opts ...grpc.CallOption) (*Constraint, error)
-	DeleteConstraint(ctx context.Context, in *DeleteConstraintRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteConstraint(ctx context.Context, in *DeleteConstraintRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type fliptClient struct {
@@ -110,8 +111,8 @@ func (c *fliptClient) UpdateFlag(ctx context.Context, in *UpdateFlagRequest, opt
 	return out, nil
 }
 
-func (c *fliptClient) DeleteFlag(ctx context.Context, in *DeleteFlagRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) DeleteFlag(ctx context.Context, in *DeleteFlagRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/DeleteFlag", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -137,8 +138,8 @@ func (c *fliptClient) UpdateVariant(ctx context.Context, in *UpdateVariantReques
 	return out, nil
 }
 
-func (c *fliptClient) DeleteVariant(ctx context.Context, in *DeleteVariantRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) DeleteVariant(ctx context.Context, in *DeleteVariantRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/DeleteVariant", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -164,8 +165,8 @@ func (c *fliptClient) ListRules(ctx context.Context, in *ListRuleRequest, opts .
 	return out, nil
 }
 
-func (c *fliptClient) OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/OrderRules", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -191,8 +192,8 @@ func (c *fliptClient) UpdateRule(ctx context.Context, in *UpdateRuleRequest, opt
 	return out, nil
 }
 
-func (c *fliptClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/DeleteRule", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -218,8 +219,8 @@ func (c *fliptClient) UpdateDistribution(ctx context.Context, in *UpdateDistribu
 	return out, nil
 }
 
-func (c *fliptClient) DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/DeleteDistribution", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -263,8 +264,8 @@ func (c *fliptClient) UpdateSegment(ctx context.Context, in *UpdateSegmentReques
 	return out, nil
 }
 
-func (c *fliptClient) DeleteSegment(ctx context.Context, in *DeleteSegmentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) DeleteSegment(ctx context.Context, in *DeleteSegmentRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/DeleteSegment", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -290,8 +291,8 @@ func (c *fliptClient) UpdateConstraint(ctx context.Context, in *UpdateConstraint
 	return out, nil
 }
 
-func (c *fliptClient) DeleteConstraint(ctx context.Context, in *DeleteConstraintRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *fliptClient) DeleteConstraint(ctx context.Context, in *DeleteConstraintRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/DeleteConstraint", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -309,27 +310,27 @@ type FliptServer interface {
 	ListFlags(context.Context, *ListFlagRequest) (*FlagList, error)
 	CreateFlag(context.Context, *CreateFlagRequest) (*Flag, error)
 	UpdateFlag(context.Context, *UpdateFlagRequest) (*Flag, error)
-	DeleteFlag(context.Context, *DeleteFlagRequest) (*emptypb.Empty, error)
+	DeleteFlag(context.Context, *DeleteFlagRequest) (*empty.Empty, error)
 	CreateVariant(context.Context, *CreateVariantRequest) (*Variant, error)
 	UpdateVariant(context.Context, *UpdateVariantRequest) (*Variant, error)
-	DeleteVariant(context.Context, *DeleteVariantRequest) (*emptypb.Empty, error)
+	DeleteVariant(context.Context, *DeleteVariantRequest) (*empty.Empty, error)
 	GetRule(context.Context, *GetRuleRequest) (*Rule, error)
 	ListRules(context.Context, *ListRuleRequest) (*RuleList, error)
-	OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error)
+	OrderRules(context.Context, *OrderRulesRequest) (*empty.Empty, error)
 	CreateRule(context.Context, *CreateRuleRequest) (*Rule, error)
 	UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error)
-	DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error)
+	DeleteRule(context.Context, *DeleteRuleRequest) (*empty.Empty, error)
 	CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error)
 	UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error)
-	DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error)
+	DeleteDistribution(context.Context, *DeleteDistributionRequest) (*empty.Empty, error)
 	GetSegment(context.Context, *GetSegmentRequest) (*Segment, error)
 	ListSegments(context.Context, *ListSegmentRequest) (*SegmentList, error)
 	CreateSegment(context.Context, *CreateSegmentRequest) (*Segment, error)
 	UpdateSegment(context.Context, *UpdateSegmentRequest) (*Segment, error)
-	DeleteSegment(context.Context, *DeleteSegmentRequest) (*emptypb.Empty, error)
+	DeleteSegment(context.Context, *DeleteSegmentRequest) (*empty.Empty, error)
 	CreateConstraint(context.Context, *CreateConstraintRequest) (*Constraint, error)
 	UpdateConstraint(context.Context, *UpdateConstraintRequest) (*Constraint, error)
-	DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error)
+	DeleteConstraint(context.Context, *DeleteConstraintRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedFliptServer()
 }
 
@@ -355,7 +356,7 @@ func (UnimplementedFliptServer) CreateFlag(context.Context, *CreateFlagRequest) 
 func (UnimplementedFliptServer) UpdateFlag(context.Context, *UpdateFlagRequest) (*Flag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateFlag not implemented")
 }
-func (UnimplementedFliptServer) DeleteFlag(context.Context, *DeleteFlagRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteFlag(context.Context, *DeleteFlagRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteFlag not implemented")
 }
 func (UnimplementedFliptServer) CreateVariant(context.Context, *CreateVariantRequest) (*Variant, error) {
@@ -364,7 +365,7 @@ func (UnimplementedFliptServer) CreateVariant(context.Context, *CreateVariantReq
 func (UnimplementedFliptServer) UpdateVariant(context.Context, *UpdateVariantRequest) (*Variant, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateVariant not implemented")
 }
-func (UnimplementedFliptServer) DeleteVariant(context.Context, *DeleteVariantRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteVariant(context.Context, *DeleteVariantRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteVariant not implemented")
 }
 func (UnimplementedFliptServer) GetRule(context.Context, *GetRuleRequest) (*Rule, error) {
@@ -373,7 +374,7 @@ func (UnimplementedFliptServer) GetRule(context.Context, *GetRuleRequest) (*Rule
 func (UnimplementedFliptServer) ListRules(context.Context, *ListRuleRequest) (*RuleList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRules not implemented")
 }
-func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OrderRules not implemented")
 }
 func (UnimplementedFliptServer) CreateRule(context.Context, *CreateRuleRequest) (*Rule, error) {
@@ -382,7 +383,7 @@ func (UnimplementedFliptServer) CreateRule(context.Context, *CreateRuleRequest) 
 func (UnimplementedFliptServer) UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRule not implemented")
 }
-func (UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
 }
 func (UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error) {
@@ -391,7 +392,7 @@ func (UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistr
 func (UnimplementedFliptServer) UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDistribution not implemented")
 }
-func (UnimplementedFliptServer) DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteDistribution(context.Context, *DeleteDistributionRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDistribution not implemented")
 }
 func (UnimplementedFliptServer) GetSegment(context.Context, *GetSegmentRequest) (*Segment, error) {
@@ -406,7 +407,7 @@ func (UnimplementedFliptServer) CreateSegment(context.Context, *CreateSegmentReq
 func (UnimplementedFliptServer) UpdateSegment(context.Context, *UpdateSegmentRequest) (*Segment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSegment not implemented")
 }
-func (UnimplementedFliptServer) DeleteSegment(context.Context, *DeleteSegmentRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteSegment(context.Context, *DeleteSegmentRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSegment not implemented")
 }
 func (UnimplementedFliptServer) CreateConstraint(context.Context, *CreateConstraintRequest) (*Constraint, error) {
@@ -415,7 +416,7 @@ func (UnimplementedFliptServer) CreateConstraint(context.Context, *CreateConstra
 func (UnimplementedFliptServer) UpdateConstraint(context.Context, *UpdateConstraintRequest) (*Constraint, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateConstraint not implemented")
 }
-func (UnimplementedFliptServer) DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error) {
+func (UnimplementedFliptServer) DeleteConstraint(context.Context, *DeleteConstraintRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteConstraint not implemented")
 }
 func (UnimplementedFliptServer) mustEmbedUnimplementedFliptServer() {}
