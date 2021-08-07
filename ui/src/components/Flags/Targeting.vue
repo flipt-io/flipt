@@ -41,7 +41,7 @@
         />
       </draggable>
       <br />
-      <div class="field is-grouped ">
+      <div class="field is-grouped">
         <div class="control">
           <button
             class="button is-primary"
@@ -86,7 +86,7 @@
                       field="name"
                       :open-on-focus="true"
                       placeholder="e.g. All Users"
-                      @select="option => selectSegment(option)"
+                      @select="(option) => selectSegment(option)"
                     >
                       <template slot="empty"
                         >No segments found. Create a
@@ -285,7 +285,7 @@ const DEFAULT_RULE = {
   segmentKey: "",
   segmentName: "",
   distributions: [],
-  rank: 0
+  rank: 0,
 };
 
 export default {
@@ -293,7 +293,7 @@ export default {
   components: {
     draggable,
     Rule,
-    DebugConsole
+    DebugConsole,
   },
   mixins: [notify, targeting, utils],
   data() {
@@ -301,19 +301,19 @@ export default {
       dialogAddRuleVisible: false,
       dialogEditRuleVisible: false,
       flag: {
-        variants: []
+        variants: [],
       },
       rules: [],
       reordered: false,
       segments: [],
       newRule: clone(DEFAULT_RULE),
       selectedRule: clone(DEFAULT_RULE),
-      selectedVariant: ""
+      selectedVariant: "",
     };
   },
   computed: {
     autocompleteSegmentData() {
-      return this.segments.filter(option => {
+      return this.segments.filter((option) => {
         return (
           option.name
             .toString()
@@ -327,7 +327,7 @@ export default {
     },
     canAddRule() {
       return this.isPresent(this.newRule.segmentKey);
-    }
+    },
   },
   mounted() {
     this.fetchData();
@@ -335,16 +335,16 @@ export default {
   methods: {
     fetchData() {
       Api.get("/segments")
-        .then(response => {
+        .then((response) => {
           this.segments = response.data.segments;
 
           let key = this.$route.params.key;
           Api.get("/flags/" + key)
-            .then(response => {
+            .then((response) => {
               this.flag = response.data;
 
-              Api.get("/flags/" + key + "/rules").then(response => {
-                this.rules = map(response.data.rules, r => {
+              Api.get("/flags/" + key + "/rules").then((response) => {
+                this.rules = map(response.data.rules, (r) => {
                   return this.processRule(r);
                 });
               });
@@ -354,7 +354,7 @@ export default {
               this.$router.push("/flags");
             });
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error loading data.");
           console.error(error);
         });
@@ -375,14 +375,14 @@ export default {
 
       // create the rule
       Api.post("/flags/" + this.flag.key + "/rules", this.newRule)
-        .then(response => {
+        .then((response) => {
           let rule = response.data;
           let segment = find(this.segments, { key: rule.segmentKey });
           rule.segmentName = segment.name;
           rule.distributions = [];
 
           // create the distributions
-          forEach(this.newRule.distributions, d => {
+          forEach(this.newRule.distributions, (d) => {
             Api.post(
               "/flags/" +
                 this.flag.key +
@@ -390,10 +390,10 @@ export default {
                 rule.id +
                 "/distributions",
               d
-            ).then(response => {
+            ).then((response) => {
               let distribution = response.data;
               let variant = find(this.flag.variants, {
-                id: distribution.variantId
+                id: distribution.variantId,
               });
               distribution.variantKey = variant.key;
               rule.distributions.push(distribution);
@@ -406,7 +406,7 @@ export default {
           this.dialogAddRuleVisible = false;
           this.selectedVariant = "";
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -427,7 +427,7 @@ export default {
       }
 
       try {
-        forEach(this.selectedRule.distributions, d => {
+        forEach(this.selectedRule.distributions, (d) => {
           Api.put(
             "/flags/" +
               this.flag.key +
@@ -439,7 +439,7 @@ export default {
           );
         });
 
-        let index = this.rules.findIndex(r => r.id === this.selectedRule.id);
+        let index = this.rules.findIndex((r) => r.id === this.selectedRule.id);
         this.rules[index] = clone(this.selectedRule);
         this.selectedRule = clone(DEFAULT_RULE);
         this.notifySuccess("Rule updated!");
@@ -464,7 +464,7 @@ export default {
         .then(() => {
           this.rules.splice(index, 1);
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error deleting rule.");
           console.error(error);
         });
@@ -481,12 +481,12 @@ export default {
       this.reordered = false;
 
       Api.put("/flags/" + this.flag.key + "/rules/order", {
-        ruleIds: map(this.rules, "id")
+        ruleIds: map(this.rules, "id"),
       })
         .then(() => {
           this.notifySuccess("Rules reordered!");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -499,7 +499,7 @@ export default {
       let segment = find(this.segments, { key: rule.segmentKey });
 
       rule.segmentName = segment.name;
-      rule.distributions = map(rule.distributions, d => {
+      rule.distributions = map(rule.distributions, (d) => {
         let variant = find(this.flag.variants, { id: d.variantId });
         d.variantKey = variant.key;
         return d;
@@ -519,7 +519,7 @@ export default {
           distributions.push({
             variantId: v.id,
             variantKey: v.key,
-            rollout: percentages[i]
+            rollout: percentages[i],
           });
         }
 
@@ -530,11 +530,11 @@ export default {
           {
             variantId: variant.id,
             variantKey: variant.key,
-            rollout: 100
-          }
+            rollout: 100,
+          },
         ];
       }
-    }
+    },
   },
   beforeRouteLeave(to, from, next) {
     if (this.reordered === false) {
@@ -550,6 +550,6 @@ export default {
     } else {
       next(false);
     }
-  }
+  },
 };
 </script>

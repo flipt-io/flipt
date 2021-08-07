@@ -45,20 +45,20 @@ const DEFAULT_REQUEST = {
   flagKey: "",
   entityId: uuidv4(),
   context: {
-    foo: "bar"
-  }
+    foo: "bar",
+  },
 };
 
 export default {
   name: "FlagDebugConsole",
   props: {
-    flag: Object
+    flag: Object,
   },
   data() {
     return {
       invalidRequest: false,
       request: clone(DEFAULT_REQUEST),
-      response: {}
+      response: {},
     };
   },
   computed: {
@@ -70,12 +70,12 @@ export default {
       } else {
         return "is-success";
       }
-    }
+    },
   },
   watch: {
-    flag: function() {
+    flag: function () {
       this.$set(this.request, "flagKey", this.flag.key);
-    }
+    },
   },
   methods: {
     updateRequest(e) {
@@ -94,13 +94,13 @@ export default {
     },
     evaluate() {
       Api.post("/evaluate", this.request)
-        .then(response => {
+        .then((response) => {
           this.response = response.data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.response = { error: error.response.data.error };
         });
-    }
-  }
+    },
+  },
 };
 </script>

@@ -87,8 +87,8 @@ export default {
     return {
       isValid: false,
       segment: {
-        matchType: "ALL_MATCH_TYPE"
-      }
+        matchType: "ALL_MATCH_TYPE",
+      },
     };
   },
   computed: {
@@ -105,7 +105,7 @@ export default {
       } else {
         return "At least one constraint must match.";
       }
-    }
+    },
   },
   methods: {
     formatKey() {
@@ -128,11 +128,11 @@ export default {
     },
     createSegment() {
       Api.post("/segments", this.segment)
-        .then(response => {
+        .then((response) => {
           this.notifySuccess("Segment created!");
           this.$router.push("/segments/" + response.data.key);
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -140,7 +140,7 @@ export default {
             console.error(error);
           }
         });
-    }
-  }
+    },
+  },
 };
 </script>

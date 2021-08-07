@@ -91,17 +91,17 @@ export default {
   data() {
     return {
       search: "",
-      flags: []
+      flags: [],
     };
   },
   computed: {
     filteredFlags() {
-      return this.flags.filter(flag => {
+      return this.flags.filter((flag) => {
         return (
           flag.name && flag.name.toLowerCase().match(this.search.toLowerCase())
         );
       });
-    }
+    },
   },
   mounted() {
     this.getFlags();
@@ -109,14 +109,14 @@ export default {
   methods: {
     getFlags() {
       Api.get("/flags")
-        .then(response => {
+        .then((response) => {
           this.flags = response.data.flags ? response.data.flags : [];
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error loading flags.");
           console.error(error);
         });
-    }
-  }
+    },
+  },
 };
 </script>

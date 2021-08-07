@@ -54,8 +54,8 @@ export default {
   Name: "nav",
   data() {
     return {
-      isActive: false
+      isActive: false,
     };
-  }
+  },
 };
 </script>

@@ -15,42 +15,42 @@ export default new Router({
   routes: [
     {
       path: "/",
-      redirect: "/flags"
+      redirect: "/flags",
     },
     {
       path: "/flags",
       name: "flags",
-      component: Flags
+      component: Flags,
     },
     {
       path: "/flags/new",
       name: "new-flag",
-      component: NewFlag
+      component: NewFlag,
     },
     {
       path: "/flags/:key",
       name: "flag",
-      component: Flag
+      component: Flag,
     },
     {
       path: "/flags/:key/targeting",
       name: "targeting",
-      component: Targeting
+      component: Targeting,
     },
     {
       path: "/segments",
       name: "segments",
-      component: Segments
+      component: Segments,
     },
     {
       path: "/segments/new",
       name: "new-segment",
-      component: NewSegment
+      component: NewSegment,
     },
     {
       path: "/segments/:key",
       name: "segment",
-      component: Segment
-    }
-  ]
+      component: Segment,
+    },
+  ],
 });
