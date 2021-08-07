@@ -76,10 +76,13 @@ proto: ## Build protobufs
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui
 
+
+commit-hash=$(shell set -e && git rev-parse --verify HEAD || "")
+
 .PHONY: build
 build: clean assets ## Build a local copy
 	@echo ">> building a local copy"
-	go build -tags assets -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
+	go build -tags assets -ldflags "-X main.commit=$(commit-hash)" -o ./bin/$(PROJECT) ./cmd/$(PROJECT)/.
 
 .PHONY: server
 server: clean  ## Build and run in server mode
