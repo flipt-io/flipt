@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Ability to exclude `NotFound` errors in `BatchEvaluate` calls [https://github.com/markphelps/flipt/pull/518](https://github.com/markphelps/flipt/pull/518)
+
+### Changed
+
+- Dependency updates
+- Add commit hash to dev build [https://github.com/markphelps/flipt/pull/517](https://github.com/markphelps/flipt/pull/517)
+- Remove `packr` in favor of using Go 1.16 `go embed` for embedding assets [https://github.com/markphelps/flipt/pull/492](https://github.com/markphelps/flipt/pull/492)
+- Updated process to create new releases [https://github.com/markphelps/flipt/pull/482](https://github.com/markphelps/flipt/pull/482)
+
+### Fixed
+
+- Bug when trying to add two variants of a flag to the same rule in the UI [https://github.com/markphelps/flipt/issues/515](https://github.com/markphelps/flipt/issues/515)
+
 ## [v1.3.0](https://github.com/markphelps/flipt/releases/tag/v1.3.0) - 2021-06-14
 
 ### Changed
