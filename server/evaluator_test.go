@@ -67,31 +67,7 @@ func TestBatchEvaluate(t *testing.T) {
 	assert.False(t, resp.Responses[0].Match)
 }
 
-func TestEvaluate_FlagNotFound(t *testing.T) {
-	var (
-		store = &storeMock{}
-		s     = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "foo"))
-
-	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
-		EntityId: "1",
-		FlagKey:  "foo",
-		Context: map[string]string{
-			"bar": "boz",
-		},
-	})
-
-	require.Error(t, err)
-	assert.EqualError(t, err, "flag \"foo\" not found")
-	assert.False(t, resp.Match)
-}
-
-func TestEvaluate_FlagNotFoundExcluded(t *testing.T) {
+func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	var (
 		store = &storeMock{}
 		s     = &Server{
@@ -106,7 +82,7 @@ func TestEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
 	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf(""))
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -138,6 +114,75 @@ func TestEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	assert.NotNil(t, resp.Responses)
 	assert.Equal(t, 2, len(resp.Responses))
 	assert.False(t, resp.Responses[0].Match)
+}
+
+func TestBatchEvaluate_FlagNotFound(t *testing.T) {
+	var (
+		store = &storeMock{}
+		s     = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	disabled := &flipt.Flag{
+		Key:     "bar",
+		Enabled: false,
+	}
+	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "NotFoundFlag"))
+
+	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+
+	_, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
+		RequestId:       "12345",
+		ExcludeNotFound: false,
+		Requests: []*flipt.EvaluationRequest{
+			{
+				EntityId: "1",
+				FlagKey:  "foo",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+			{
+				EntityId: "1",
+				FlagKey:  "bar",
+			},
+			{
+				EntityId: "1",
+				FlagKey:  "NotFoundFlag",
+			},
+		},
+	})
+
+	require.Error(t, err)
+	assert.EqualError(t, err, "flag \"NotFoundFlag\" not found")
+}
+
+func TestEvaluate_FlagNotFound(t *testing.T) {
+	var (
+		store = &storeMock{}
+		s     = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "foo"))
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	require.Error(t, err)
+	assert.EqualError(t, err, "flag \"foo\" not found")
+	assert.False(t, resp.Match)
 }
 
 func TestEvaluate_FlagDisabled(t *testing.T) {
