@@ -5,7 +5,7 @@
 			"type": "shell",
 			"command": "yarn",
 			"problemMatcher": [],
-			"label": "yarn: install - ui",
+			"label": "yarn: install",
 			"detail": "install ui dependencies",
 			"options": {
 				"cwd": "${workspaceFolder}/ui/",

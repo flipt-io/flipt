@@ -32,7 +32,7 @@
       {
         "name": "Server/Client",
         "configurations": ["Server", "Client"],
-        "preLaunchTask": "${defaultBuildTask}"
+        "preLaunchTask": "yarn: install"
       }
     ]
 }
