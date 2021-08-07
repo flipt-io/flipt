@@ -35,7 +35,7 @@
                     <option v-if="distributions.length === 1">
                       {{ distributions[0].variantKey }}
                     </option>
-                    <option v-else> A Percentage Rollout </option>
+                    <option v-else>A Percentage Rollout</option>
                   </select>
                 </div>
               </div>
@@ -92,7 +92,7 @@ export default {
     segmentKey: String,
     segmentName: String,
     index: Number,
-    distributions: Array
+    distributions: Array,
   },
   methods: {
     editRule() {
@@ -100,7 +100,7 @@ export default {
     },
     deleteRule() {
       this.$emit("deleteRule", this.index);
-    }
-  }
+    },
+  },
 };
 </script>

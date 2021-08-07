@@ -5,7 +5,7 @@ export default {
     validRollout(distributions) {
       let sum = reduce(
         distributions,
-        function(acc, d) {
+        function (acc, d) {
           return acc + Number(d.rollout);
         },
         0
@@ -27,6 +27,6 @@ export default {
       }
 
       return result;
-    }
-  }
+    },
+  },
 };

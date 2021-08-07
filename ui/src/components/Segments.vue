@@ -94,15 +94,15 @@ export default {
   data() {
     return {
       search: "",
-      segments: []
+      segments: [],
     };
   },
   computed: {
     filteredSegments() {
-      return this.segments.filter(segment => {
+      return this.segments.filter((segment) => {
         return segment.name.toLowerCase().match(this.search.toLowerCase());
       });
-    }
+    },
   },
   mounted() {
     this.getSegments();
@@ -110,14 +110,14 @@ export default {
   methods: {
     getSegments() {
       Api.get("/segments")
-        .then(response => {
+        .then((response) => {
           this.segments = response.data.segments ? response.data.segments : [];
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error loading segments.");
           console.error(error);
         });
-    }
-  }
+    },
+  },
 };
 </script>

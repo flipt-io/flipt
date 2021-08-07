@@ -10,7 +10,7 @@ Vue.config.productionTip = false;
 Vue.use(require("vue-moment"));
 Vue.use(Buefy);
 
-Vue.filter("limit", function(value) {
+Vue.filter("limit", function (value) {
   if (!value) return "";
   value = value.toString();
   if (value.length > 30) {
@@ -25,5 +25,5 @@ new Vue({
   el: "#app",
   router,
   components: { App },
-  template: "<App/>"
+  template: "<App/>",
 });

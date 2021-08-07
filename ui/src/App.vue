@@ -11,8 +11,8 @@ import Nav from "./components/Nav";
 export default {
   name: "App",
   components: {
-    Nav
-  }
+    Nav,
+  },
 };
 </script>
 

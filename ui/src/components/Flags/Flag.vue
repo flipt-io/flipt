@@ -291,7 +291,7 @@ import utils from "@/mixins/utils";
 const DEFAULT_VARIANT = {
   key: "",
   name: "",
-  description: ""
+  description: "",
 };
 
 export default {
@@ -303,10 +303,10 @@ export default {
       dialogAddVariantVisible: false,
       dialogEditVariantVisible: false,
       flag: {
-        variants: []
+        variants: [],
       },
       newVariant: clone(DEFAULT_VARIANT),
-      selectedVariant: clone(DEFAULT_VARIANT)
+      selectedVariant: clone(DEFAULT_VARIANT),
     };
   },
   computed: {
@@ -318,23 +318,20 @@ export default {
     },
     canUpdateVariant() {
       return this.isPresent(this.selectedVariant.key);
-    }
+    },
   },
   mounted() {
     this.getFlag();
   },
   methods: {
     formatVariantKey(variant) {
-      variant.key = variant.key
-        .toLowerCase()
-        .split(" ")
-        .join("-");
+      variant.key = variant.key.toLowerCase().split(" ").join("-");
     },
     getFlag() {
       let key = this.$route.params.key;
 
       Api.get("/flags/" + key)
-        .then(response => {
+        .then((response) => {
           this.flag = response.data;
           this.flag.variants = response.data.variants
             ? response.data.variants
@@ -351,7 +348,7 @@ export default {
           this.notifySuccess("Flag deleted!");
           this.$router.push("/flags");
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error deleting flag.");
           console.error(error);
         });
@@ -361,7 +358,7 @@ export default {
         .then(() => {
           this.notifySuccess("Flag updated!");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -372,13 +369,13 @@ export default {
     },
     addVariant() {
       Api.post("/flags/" + this.flag.key + "/variants", this.newVariant)
-        .then(response => {
+        .then((response) => {
           this.flag.variants.push(response.data);
           this.newVariant = clone(DEFAULT_VARIANT);
           this.notifySuccess("Variant added!");
           this.dialogAddVariantVisible = false;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -396,15 +393,15 @@ export default {
         "/flags/" + this.flag.key + "/variants/" + this.selectedVariant.id,
         this.selectedVariant
       )
-        .then(response => {
+        .then((response) => {
           let variant = response.data;
-          let index = this.flag.variants.findIndex(v => v.id === variant.id);
+          let index = this.flag.variants.findIndex((v) => v.id === variant.id);
           this.$set(this.flag.variants, index, variant);
           this.selectedVariant = clone(DEFAULT_VARIANT);
           this.notifySuccess("Variant updated!");
           this.dialogEditVariantVisible = false;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -425,7 +422,7 @@ export default {
           this.flag.variants.splice(index, 1);
           this.notifySuccess("Variant deleted!");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -441,7 +438,7 @@ export default {
     cancelEditVariant() {
       this.dialogEditVariantVisible = false;
       this.selectedVariant = clone(DEFAULT_VARIANT);
-    }
-  }
+    },
+  },
 };
 </script>

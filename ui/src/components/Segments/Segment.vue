@@ -90,9 +90,7 @@
     <section class="section">
       <div class="container">
         <h5 class="title is-5">Constraints</h5>
-        <p class="subtitle is-7">
-          Determine if an entity matches your segment
-        </p>
+        <p class="subtitle is-7">Determine if an entity matches your segment</p>
         <b-table :data="segment.constraints">
           <template slot-scope="props">
             <b-table-column field="property" label="Property" sortable>
@@ -363,7 +361,7 @@ const STRING_OPERATORS = {
   empty: "IS EMPTY",
   notempty: "IS NOT EMPTY",
   prefix: "HAS PREFIX",
-  suffix: "HAS SUFFIX"
+  suffix: "HAS SUFFIX",
 };
 
 const NUMBER_OPERATORS = {
@@ -374,27 +372,27 @@ const NUMBER_OPERATORS = {
   gt: ">",
   gte: ">=",
   present: "IS PRESENT",
-  notpresent: "IS NOT PRESENT"
+  notpresent: "IS NOT PRESENT",
 };
 
 const BOOLEAN_OPERATORS = {
   true: "IS TRUE",
   false: "IS FALSE",
   present: "IS PRESENT",
-  notpresent: "IS NOT PRESENT"
+  notpresent: "IS NOT PRESENT",
 };
 
 const COMPARISONS = {
   STRING_COMPARISON_TYPE: "string",
   NUMBER_COMPARISON_TYPE: "number",
-  BOOLEAN_COMPARISON_TYPE: "boolean"
+  BOOLEAN_COMPARISON_TYPE: "boolean",
 };
 
 const DEFAULT_CONSTRAINT = {
   type: "STRING_COMPARISON_TYPE",
   property: "",
   operator: "eq",
-  value: ""
+  value: "",
 };
 
 export default {
@@ -407,7 +405,7 @@ export default {
       dialogEditConstraintVisible: false,
       segment: {
         matchType: "ALL_MATCH_TYPE",
-        constraints: []
+        constraints: [],
       },
       newConstraint: clone(DEFAULT_CONSTRAINT),
       selectedConstraint: clone(DEFAULT_CONSTRAINT),
@@ -417,7 +415,7 @@ export default {
         STRING_OPERATORS,
         NUMBER_OPERATORS,
         BOOLEAN_OPERATORS
-      )
+      ),
     };
   },
   computed: {
@@ -456,17 +454,14 @@ export default {
       } else {
         return "At least one constraint must match.";
       }
-    }
+    },
   },
   mounted() {
     this.getSegment();
   },
   methods: {
     formatKey() {
-      this.segment.key = this.segment.key
-        .toLowerCase()
-        .split(" ")
-        .join("-");
+      this.segment.key = this.segment.key.toLowerCase().split(" ").join("-");
     },
     operators(type) {
       switch (type) {
@@ -496,7 +491,7 @@ export default {
       let key = this.$route.params.key;
 
       Api.get("/segments/" + key)
-        .then(response => {
+        .then((response) => {
           this.segment = response.data;
           this.segment.constraints = response.data.constraints
             ? response.data.constraints
@@ -513,7 +508,7 @@ export default {
           this.notifySuccess("Segment deleted!");
           this.$router.push("/segments");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -527,7 +522,7 @@ export default {
         .then(() => {
           this.notifySuccess("Segment updated!");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -541,13 +536,13 @@ export default {
         "/segments/" + this.segment.key + "/constraints",
         this.newConstraint
       )
-        .then(response => {
+        .then((response) => {
           this.segment.constraints.push(response.data);
           this.newConstraint = clone(DEFAULT_CONSTRAINT);
           this.notifySuccess("Constraint added!");
           this.dialogAddConstraintVisible = false;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -568,17 +563,17 @@ export default {
           this.selectedConstraint.id,
         this.selectedConstraint
       )
-        .then(response => {
+        .then((response) => {
           let constraint = response.data;
           let index = this.segment.constraints.findIndex(
-            c => c.id === constraint.id
+            (c) => c.id === constraint.id
           );
           this.$set(this.segment.constraints, index, constraint);
           this.selectedConstraint = clone(DEFAULT_CONSTRAINT);
           this.notifySuccess("Constraint updated!");
           this.dialogEditConstraintVisible = false;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -600,7 +595,7 @@ export default {
         .then(() => {
           this.segment.constraints.splice(index, 1);
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error deleting constraint.");
           console.error(error);
         });
@@ -612,7 +607,7 @@ export default {
     cancelEditConstraint() {
       this.dialogEditConstraintVisible = false;
       this.selectedConstraint = clone(DEFAULT_CONSTRAINT);
-    }
-  }
+    },
+  },
 };
 </script>
