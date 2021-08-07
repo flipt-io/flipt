@@ -55,7 +55,7 @@ The [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md)
 
 ## Remote Containers
 
-Flipt now supports [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces) as of #464/#465 respectively.
+Flipt now supports [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces).
 
 These technologies allow you to quickly get setup with a Flipt development environment either locally or 'in the cloud'.
 
@@ -69,4 +69,6 @@ Regardless of wether you are using Remote Containers or GitHub Codespaces, you'l
 
 Then run the [Server/Client](.vscode/launch.json) run command to start the server and client.
 
-This should publish three ports `8080`, `8081`, `9000`. `8081` is the UI dev port that runs the `yarn dev server` that you can open in your browser.
+This should publish three ports `8080`, `8081`, `9000`. 
+
+`8081` is the UI dev port that runs the `yarn dev server` that you can open in your browser.
