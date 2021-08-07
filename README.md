@@ -166,6 +166,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://or-e.net"><img src="https://avatars1.githubusercontent.com/u/2883824?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Or Elimelech</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=vic3lord" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/giddel"><img src="https://avatars0.githubusercontent.com/u/10463018?v=4?s=100" width="100px;" alt=""/><br /><sub><b>giddel</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=giddel" title="Code">💻</a></td>
     <td align="center"><a href="http://eduar.do"><img src="https://avatars.githubusercontent.com/u/959623?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Eduardo</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=edumucelli" title="Documentation">📖</a> <a href="https://github.com/markphelps/flipt/commits?author=edumucelli" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/itaischwartz"><img src="https://avatars.githubusercontent.com/u/60180089?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itai Schwartz</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=itaischwartz" title="Code">💻</a></td>
   </tr>
 </table>
 
