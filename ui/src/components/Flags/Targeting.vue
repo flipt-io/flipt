@@ -109,6 +109,7 @@
                         <select
                           :disabled="!newRule.segmentKey"
                           @change="ruleTypeChanged"
+                          v-model="selectedVariant"
                         >
                           <option value="">Choose Value</option>
                           <option disabled>──────────</option>
@@ -306,7 +307,8 @@ export default {
       reordered: false,
       segments: [],
       newRule: clone(DEFAULT_RULE),
-      selectedRule: clone(DEFAULT_RULE)
+      selectedRule: clone(DEFAULT_RULE),
+      selectedVariant: ""
     };
   },
   computed: {
@@ -402,6 +404,7 @@ export default {
           this.newRule = clone(DEFAULT_RULE);
           this.notifySuccess("Rule added!");
           this.dialogAddRuleVisible = false;
+          this.selectedVariant = "";
         })
         .catch(error => {
           if (error.response && error.response.data) {
@@ -414,6 +417,7 @@ export default {
     },
     cancelAddRule() {
       this.dialogAddRuleVisible = false;
+      this.selectedVariant = "";
       this.newRule = clone(DEFAULT_RULE);
     },
     updateRule() {
