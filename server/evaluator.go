@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -72,6 +73,10 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	for _, flag := range r.GetRequests() {
 		f, err := s.evaluate(ctx, flag)
 		if err != nil {
+			var errnf errs.ErrNotFound
+			if r.GetExcludeNotFound() && errors.As(err, &errnf) {
+				continue
+			}
 			return &res, err
 		}
 		f.RequestId = ""
