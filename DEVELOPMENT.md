@@ -65,7 +65,7 @@ If you have access to [GitHub Codespaces](https://github.com/features/codespaces
 
 ### Building/Running
 
-Regardless of wether you are using Remote Containers or GitHub Codespaces, you'll need to run a couple tasks to successfully build/run Flipt in these environments.
+Regardless of whether you are using Remote Containers or GitHub Codespaces, you'll need to run a couple tasks to successfully build/run Flipt in these environments.
 
 Then run the [Server/Client](.vscode/launch.json) run command to start the server and client.
 
