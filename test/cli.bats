@@ -37,6 +37,7 @@ load 'helpers/bats-assert/load'
     assert_equal "${lines[9]}" "Flags:" ]
     assert_equal "${lines[10]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
     assert_equal "${lines[11]}" "  -h, --help            help for flipt"
+    echo "output = ${output}"
     assert_equal "${lines[12]}" "  -v, --version         version for flipt"
 }
 
