@@ -36,8 +36,6 @@ load 'helpers/bats-assert/load'
     assert_equal "${lines[8]}" "  migrate     Run pending database migrations"
     assert_equal "${lines[9]}" "Flags:" ]
     assert_equal "${lines[10]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
-    assert_equal "${lines[11]}" "  -h, --help            help for flipt"
-    assert_equal "${lines[12]}" "  -v, --version         version for flipt"
 }
 
 @test "version flag prints version info" {
