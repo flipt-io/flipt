@@ -380,16 +380,6 @@
   resolved "https://registry.yarnpkg.com/@babel/helper-validator-option/-/helper-validator-option-7.14.5.tgz#6e72a1fff18d5dfcb878e1e62f1a021c4b72d5a3"
   integrity sha512-OX8D5eeX4XwcroVW45NMvoYaIuFI+GQpA2a8Gi+X/U/cDUIRsV37qQfF905F0htTRCREQIB4KqPeaveRJUl3Ow==
 
-"@babel/helper-wrap-function@^7.12.13":
-  version "7.13.0"
-  resolved "https://registry.yarnpkg.com/@babel/helper-wrap-function/-/helper-wrap-function-7.13.0.tgz#bdb5c66fda8526ec235ab894ad53a1235c79fcc4"
-  integrity sha512-1UX9F7K3BS42fI6qd2A4BjKzgGjToscyZTdp1DjknHLCIvpgne6918io+aL5LXFcER/8QWiwpoY902pVEqgTXA==
-  dependencies:
-    "@babel/helper-function-name" "^7.12.13"
-    "@babel/template" "^7.12.13"
-    "@babel/traverse" "^7.13.0"
-    "@babel/types" "^7.13.0"
-
 "@babel/helper-wrap-function@^7.14.5":
   version "7.14.5"
   resolved "https://registry.yarnpkg.com/@babel/helper-wrap-function/-/helper-wrap-function-7.14.5.tgz#5919d115bf0fe328b8a5d63bcb610f51601f2bff"
@@ -516,14 +506,14 @@
     "@babel/helper-plugin-utils" "^7.14.5"
     "@babel/plugin-syntax-export-namespace-from" "^7.8.3"
 
-"@babel/plugin-proposal-function-sent@^7.12.13":
-  version "7.12.13"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-function-sent/-/plugin-proposal-function-sent-7.12.13.tgz#553f47e4b7f7e9becb6b5013ed5c4dd72b72400e"
-  integrity sha512-nw5dSsy0+o+WBE372ooERkkZmFv2KJcujzTB5SdhQPKIElVA1pa7hclD23Vzl4VlcoJsC7KCCXpww2qAkbrrKA==
+"@babel/plugin-proposal-function-sent@^7.14.5":
+  version "7.14.5"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-function-sent/-/plugin-proposal-function-sent-7.14.5.tgz#7394b307b13ce2c608fe5ab24b3867aa59069b6a"
+  integrity sha512-3Hvb9m1dvFK1cor9kObPCPK8q0xlcakm+haBwHQy7V5BN1As6iys9oOKyWpHVbop+tW8JYs0v9Ahcp1BOxC3Ng==
   dependencies:
-    "@babel/helper-plugin-utils" "^7.12.13"
-    "@babel/helper-wrap-function" "^7.12.13"
-    "@babel/plugin-syntax-function-sent" "^7.12.13"
+    "@babel/helper-plugin-utils" "^7.14.5"
+    "@babel/helper-wrap-function" "^7.14.5"
+    "@babel/plugin-syntax-function-sent" "^7.14.5"
 
 "@babel/plugin-proposal-json-strings@^7.13.8", "@babel/plugin-proposal-json-strings@^7.14.5":
   version "7.14.5"
@@ -668,12 +658,12 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.8.3"
 
-"@babel/plugin-syntax-function-sent@^7.12.13":
-  version "7.12.13"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-function-sent/-/plugin-syntax-function-sent-7.12.13.tgz#60cb34f7395b0325ffbb5b0794cd5b88e23e1928"
-  integrity sha512-Uv9lAv+/vX8hmvC2rTUvywJacR517eRqTKfLZrtLAoMGUjfQSZ0nPEFJWmfJs1H54zBaIj15ATfUnkheZnSK9w==
+"@babel/plugin-syntax-function-sent@^7.14.5":
+  version "7.14.5"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-function-sent/-/plugin-syntax-function-sent-7.14.5.tgz#17bb55e9e53857af93a57000644c020962f07b32"
+  integrity sha512-FNN0Ve2/6yxCa0xMG7wUlM81t+HOPu8HNWk683Xav1B+vjHKQQujX82NEKYdDYNUX7/ky8pUCHfRUYVmigs69Q==
   dependencies:
-    "@babel/helper-plugin-utils" "^7.12.13"
+    "@babel/helper-plugin-utils" "^7.14.5"
 
 "@babel/plugin-syntax-import-meta@^7.0.0", "@babel/plugin-syntax-import-meta@^7.8.3":
   version "7.10.4"
@@ -1209,7 +1199,7 @@
     debug "^4.1.0"
     globals "^11.1.0"
 
-"@babel/types@^7.0.0", "@babel/types@^7.10.4", "@babel/types@^7.11.0", "@babel/types@^7.12.1", "@babel/types@^7.12.13", "@babel/types@^7.12.5", "@babel/types@^7.13.0", "@babel/types@^7.13.12", "@babel/types@^7.13.16", "@babel/types@^7.13.17", "@babel/types@^7.14.2", "@babel/types@^7.14.5", "@babel/types@^7.3.0", "@babel/types@^7.3.3", "@babel/types@^7.4.4", "@babel/types@^7.7.0":
+"@babel/types@^7.0.0", "@babel/types@^7.10.4", "@babel/types@^7.11.0", "@babel/types@^7.12.1", "@babel/types@^7.12.13", "@babel/types@^7.12.5", "@babel/types@^7.13.12", "@babel/types@^7.13.16", "@babel/types@^7.13.17", "@babel/types@^7.14.2", "@babel/types@^7.14.5", "@babel/types@^7.3.0", "@babel/types@^7.3.3", "@babel/types@^7.4.4", "@babel/types@^7.7.0":
   version "7.14.5"
   resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.14.5.tgz#3bb997ba829a2104cedb20689c4a5b8121d383ff"
   integrity sha512-M/NzBpEL95I5Hh4dwhin5JlE7EzO5PHMAuzjxss3tiOBD46KfQvVedN/3jEPZvdRvtsK2222XfdHogNIttFgcg==
