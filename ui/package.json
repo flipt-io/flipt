@@ -14,7 +14,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "buefy": "^0.8.6",
-    "bulma": "^0.8.0",
+    "bulma": "^0.9.3",
     "jpeg-js": "0.4.2",
     "lodash": "^4.17.21",
     "node-sass": "^4.14.1",
