@@ -4257,10 +4257,10 @@ expand-tilde@^2.0.0, expand-tilde@^2.0.2:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-expect-playwright@^0.2.6:
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/expect-playwright/-/expect-playwright-0.2.6.tgz"
-  integrity sha512-zb+0L9ayNPhFm89F0BOQP8yTckETbA33wmWoxcnUY/A0pFsd7e4Tn8YrDsLiMQ7gZX2dD3LQHH9TWSnvEJi8rw==
+expect-playwright@^0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/expect-playwright/-/expect-playwright-0.7.2.tgz#e1f2c31cd0d13d04e1ba4136019613ad01f6ea43"
+  integrity sha512-5o9si+8SUi68QVI0CRVv8tvTjZinpJWRSfQ3GP6v0DvlK55lDgFvD79r6A/NU+EUawrBc62qP30MxzOUnXNJZQ==
 
 expect@^26.6.2:
   version "26.6.2"
