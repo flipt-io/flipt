@@ -28,7 +28,7 @@ case "$1" in
 
             echo "--> generating Go client to $GO_OUTPUT_DIR ..."
 
-            protoc -I rpc/ rpc/flipt.proto --go_out=plugins=grpc:"$GO_OUTPUT_DIR"
+            protoc -I rpc/ rpc/flipt.proto --go_out=plugins=grpc:"$GO_OUTPUT_DIR" --go_opt=paths=source_relative
 
             echo "--> generating Ruby client to $RUBY_OUTPUT_DIR ..."
 
