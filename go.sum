@@ -266,8 +266,8 @@ github.com/luna-duclos/instrumentedsql/opentracing v0.0.0-20200611091901-487c5ec
 github.com/luna-duclos/instrumentedsql/opentracing v0.0.0-20200611091901-487c5ec83473/go.mod h1:YnZVBK+MxEr2sn1rbf4UMqsBd0uKaCOq52UtmbfDKNM=
 github.com/magiconair/properties v1.8.5 h1:b6kJs+EmPFMYGkow9GiUyCyOvIwYetYJ3fSaWak/Gls=
 github.com/magiconair/properties v1.8.5/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPKd5NZ3oSwXrF60=
-github.com/markphelps/flipt-grpc-go v0.3.0 h1:i4f2dE8Hs42FkSwFsuS1HM18Jc7HU2Syis4df9w0y+k=
-github.com/markphelps/flipt-grpc-go v0.3.0/go.mod h1:l7KtVKcH7xin21CZpwUaBDvoiNUwRZLjrQyaLkaQXj0=
+github.com/markphelps/flipt-grpc-go v0.4.0 h1:V0AgN92JjwAWwBTqtF0Ea+InQ0UtVgQH357jmoH6gOY=
+github.com/markphelps/flipt-grpc-go v0.4.0/go.mod h1:l7KtVKcH7xin21CZpwUaBDvoiNUwRZLjrQyaLkaQXj0=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.8 h1:c1ghPdyEDarC70ftn0y+A/Ee++9zz8ljHG1b13eJ0s8=
 github.com/mattn/go-colorable v0.1.8/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
