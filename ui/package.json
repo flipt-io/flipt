@@ -57,7 +57,7 @@
     "eslint-config-standard": "^14.1.0",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-loader": "^4.0.2",
-    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-promise": "^4.3.1",
