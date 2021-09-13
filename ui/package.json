@@ -12,7 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "buefy": "^0.8.6",
     "bulma": "^0.8.0",
     "jpeg-js": "0.4.3",
