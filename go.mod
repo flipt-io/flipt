@@ -37,7 +37,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
-	github.com/spf13/viper v1.8.1
+	github.com/spf13/viper v1.9.0
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.29.1+incompatible
