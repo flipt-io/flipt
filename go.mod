@@ -45,7 +45,7 @@ require (
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	google.golang.org/grpc v1.40.0
+	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.4.0
