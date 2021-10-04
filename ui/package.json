@@ -46,7 +46,7 @@
     "autoprefixer": "^9.6.1",
     "babel-eslint": "^10.0.1",
     "babel-helper-vue-jsx-merge-props": "^2.0.3",
-    "babel-jest": "^27.1.0",
+    "babel-jest": "^27.2.4",
     "babel-loader": "^8.2.2",
     "babel-plugin-transform-vue-jsx": "^4.0.1",
     "chalk": "^4.1.2",
