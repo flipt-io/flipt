@@ -57,7 +57,7 @@ jobs:
           key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
 
       - name: Unit Test (SQLite)
-        run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
+        run: go test -covermode=count -coverpkg=./... -coverprofile=coverage.txt -count=1 ./...
 
       - name: Coverage
         uses: codecov/codecov-action@v2.1.0
