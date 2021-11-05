@@ -35,3 +35,13 @@ updates:
   - markphelps
   assignees:
   - markphelps
+
+- package-ecosystem: "docker"
+  directory: "/build"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 5
+  reviewers:
+  - markphelps
+  assignees:
+  - markphelps
