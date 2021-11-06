@@ -114,6 +114,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "sagikazarmark",
+      "name": "Márk Sági-Kazár",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1226384?v=4",
+      "profile": "https://sagikazarmark.hu",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
