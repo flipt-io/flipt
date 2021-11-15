@@ -35,7 +35,7 @@ bench: ## Run all the benchmarks
 .PHONY: test
 test: ## Run all the tests
 	@echo ">> running tests"
-	go test $(TEST_OPTS) -covermode=atomic -count=1 -coverpkg=$(SOURCE_FILES) -coverprofile=coverage.txt $(SOURCE_FILES) -run=$(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
+	go test $(TEST_OPTS) -covermode=atomic -count=1 -coverprofile=coverage.txt $(SOURCE_FILES) -run=$(TEST_PATTERN) -timeout=30s $(TEST_FLAGS)
 
 .PHONY: cover
 cover: test ## Run all the tests and opens the coverage report
