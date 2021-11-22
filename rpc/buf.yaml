@@ -2,6 +2,10 @@ version: v1
 lint:
   use:
     - DEFAULT
+  ignore_only:
+    PACKAGE_VERSION_SUFFIX:
+      - protoc-gen-swagger/options/annotations.proto
+      - protoc-gen-swagger/options/openapiv2.proto
   except:
     - ENUM_VALUE_PREFIX
     - ENUM_ZERO_VALUE_SUFFIX
