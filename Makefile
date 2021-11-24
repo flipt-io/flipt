@@ -61,7 +61,7 @@ clean: ## Cleanup generated files
 .PHONY: proto
 proto: ## Build protobufs
 	@echo ">> generating protobufs"
-	cd rpc && buf generate
+	buf generate
 
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui
