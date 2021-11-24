@@ -24,7 +24,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
-	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/server"
@@ -359,7 +359,7 @@ func run(_ []string) error {
 
 		var (
 			r        = chi.NewRouter()
-			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false, EmitDefaults: true}))
+			api      = grpc_gateway.NewServeMux()
 			opts     = []grpc.DialOption{grpc.WithBlock()}
 			httpPort int
 		)
