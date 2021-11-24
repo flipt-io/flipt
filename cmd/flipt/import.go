@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	flipt "github.com/markphelps/flipt/rpc/gen/proto/go/flipt"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db"
 	"github.com/markphelps/flipt/storage/db/mysql"

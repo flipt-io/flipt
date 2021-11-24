@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	flipt "github.com/markphelps/flipt/rpc/gen/proto/go/flipt"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

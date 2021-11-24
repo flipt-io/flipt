@@ -2,13 +2,13 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 package flipt;
 
-option go_package = "github.com/markphelps/flipt/rpc/flipt";
+option go_package = "github.com/markphelps/flipt/rpc/flipt/flipt";
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Flipt API";
     version: "latest";
@@ -28,7 +28,7 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 };
 
 message EvaluationRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["flag_key", "entity_id"]
     }
@@ -41,7 +41,7 @@ message EvaluationRequest {
 }
 
 message BatchEvaluationRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["requests"]
     }
@@ -85,7 +85,7 @@ message FlagList {
 }
 
 message GetFlagRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key"]
     }
@@ -100,7 +100,7 @@ message ListFlagRequest {
 }
 
 message CreateFlagRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key", "name"]
     }
@@ -113,7 +113,7 @@ message CreateFlagRequest {
 }
 
 message UpdateFlagRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key", "name"]
     }
@@ -126,7 +126,7 @@ message UpdateFlagRequest {
 }
 
 message DeleteFlagRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key"]
     }
@@ -146,7 +146,7 @@ message Variant {
 }
 
 message CreateVariantRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["flag_key", "key"]
     }
@@ -159,7 +159,7 @@ message CreateVariantRequest {
 }
 
 message UpdateVariantRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key", "key"]
     }
@@ -173,7 +173,7 @@ message UpdateVariantRequest {
 }
 
 message DeleteVariantRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key"]
     }
@@ -203,7 +203,7 @@ message SegmentList {
 }
 
 message GetSegmentRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key"]
     }
@@ -218,7 +218,7 @@ message ListSegmentRequest {
 }
 
 message CreateSegmentRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key", "name"]
     }
@@ -231,7 +231,7 @@ message CreateSegmentRequest {
 }
 
 message UpdateSegmentRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key", "name"]
     }
@@ -244,7 +244,7 @@ message UpdateSegmentRequest {
 }
 
 message DeleteSegmentRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["key"]
     }
@@ -272,7 +272,7 @@ message Constraint {
 }
 
 message CreateConstraintRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["segment_key", "type", "property", "operator"]
     }
@@ -286,7 +286,7 @@ message CreateConstraintRequest {
 }
 
 message UpdateConstraintRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "segment_key", "type", "property", "operator"]
     }
@@ -301,7 +301,7 @@ message UpdateConstraintRequest {
 }
 
 message DeleteConstraintRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "segment_key"]
     }
@@ -326,7 +326,7 @@ message RuleList {
 }
 
 message ListRuleRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["flag_key"]
     }
@@ -338,7 +338,7 @@ message ListRuleRequest {
 }
 
 message GetRuleRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key"]
     }
@@ -349,7 +349,7 @@ message GetRuleRequest {
 }
 
 message CreateRuleRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["flag_key", "segment_key", "rank"]
     }
@@ -361,7 +361,7 @@ message CreateRuleRequest {
 }
 
 message UpdateRuleRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key", "segment_key"]
     }
@@ -373,7 +373,7 @@ message UpdateRuleRequest {
 }
 
 message DeleteRuleRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key"]
     }
@@ -384,7 +384,7 @@ message DeleteRuleRequest {
 }
 
 message OrderRulesRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["flag_key", "rule_ids"]
     }
@@ -404,7 +404,7 @@ message Distribution {
 }
 
 message CreateDistributionRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["flag_key", "rule_id", "variant_id", "rollout"]
     }
@@ -417,7 +417,7 @@ message CreateDistributionRequest {
 }
 
 message UpdateDistributionRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key", "rule_id", "variant_id", "rollout"]
     }
@@ -431,7 +431,7 @@ message UpdateDistributionRequest {
 }
 
 message DeleteDistributionRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
       required: ["id", "flag_key", "rule_id", "variant_id"]
     }
@@ -445,7 +445,7 @@ message DeleteDistributionRequest {
 
 service Flipt {
   rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "evaluate";
       description: "Evaluate";
       tags: "evaluate";
@@ -453,7 +453,7 @@ service Flipt {
   }
 
   rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "batchEvaluate";
       description: "Batch Evaluate";
       tags: "evaluate";
@@ -461,7 +461,7 @@ service Flipt {
   }
 
   rpc GetFlag(GetFlagRequest) returns (Flag) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "getFlag";
       description: "Get Flag";
       tags: "flags";
@@ -469,7 +469,7 @@ service Flipt {
   }
 
   rpc ListFlags(ListFlagRequest) returns (FlagList) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "listFlags";
       description: "List Flags";
       tags: "flags";
@@ -477,7 +477,7 @@ service Flipt {
   }
 
   rpc CreateFlag(CreateFlagRequest) returns (Flag) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createFlag";
       description: "Create Flag";
       tags: "flags";
@@ -485,7 +485,7 @@ service Flipt {
   }
 
   rpc UpdateFlag(UpdateFlagRequest) returns (Flag) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateFlag";
       description: "Update Flag";
       tags: "flags";
@@ -493,7 +493,7 @@ service Flipt {
   }
 
   rpc DeleteFlag(DeleteFlagRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "deleteFlag";
       description: "Delete Flag";
       tags: "flags";
@@ -501,7 +501,7 @@ service Flipt {
   }
 
   rpc CreateVariant(CreateVariantRequest) returns (Variant) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createVariant";
       description: "Create Variant";
       tags: "variants";
@@ -509,7 +509,7 @@ service Flipt {
   }
 
   rpc UpdateVariant(UpdateVariantRequest) returns (Variant) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateVariant";
       description: "Update Variant";
       tags: "variants";
@@ -517,7 +517,7 @@ service Flipt {
   }
 
   rpc DeleteVariant(DeleteVariantRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "deleteVariant";
       description: "Delete Variant";
       tags: "variants";
@@ -525,7 +525,7 @@ service Flipt {
   }
 
   rpc GetRule(GetRuleRequest) returns (Rule) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "getRule";
       description: "Get Rule";
       tags: "rules";
@@ -533,7 +533,7 @@ service Flipt {
   }
 
   rpc ListRules(ListRuleRequest) returns (RuleList) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "listRules";
       description: "List Rules";
       tags: "rules";
@@ -541,7 +541,7 @@ service Flipt {
   }
 
   rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "orderRules";
       description: "Order Rules";
       tags: "rules";
@@ -549,7 +549,7 @@ service Flipt {
   }
 
   rpc CreateRule(CreateRuleRequest) returns (Rule) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createRule";
       description: "Create Rule";
       tags: "rules";
@@ -557,7 +557,7 @@ service Flipt {
   }
 
   rpc UpdateRule(UpdateRuleRequest) returns (Rule) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateRule";
       description: "Update Rule";
       tags: "rules";
@@ -565,7 +565,7 @@ service Flipt {
   }
 
   rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "deleteRule";
       description: "Delete Rule";
       tags: "rules";
@@ -573,7 +573,7 @@ service Flipt {
   }
 
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createDistribution";
       description: "Create Distribution";
       tags: "distributions";
@@ -581,7 +581,7 @@ service Flipt {
   }
 
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateDistribution";
       description: "Update Distribution";
       tags: "distributions";
@@ -589,7 +589,7 @@ service Flipt {
   }
 
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "deleteDistribution";
       description: "Delete Distribution";
       tags: "distributions";
@@ -597,7 +597,7 @@ service Flipt {
   }
 
   rpc GetSegment(GetSegmentRequest) returns (Segment) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "getSegment";
       description: "Get Segment";
       tags: "segments";
@@ -605,7 +605,7 @@ service Flipt {
   }
 
   rpc ListSegments(ListSegmentRequest) returns (SegmentList) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "listSegments";
       description: "List Segments";
       tags: "segments";
@@ -613,7 +613,7 @@ service Flipt {
   }
 
   rpc CreateSegment(CreateSegmentRequest) returns (Segment) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createSegment";
       description: "Create Segment";
       tags: "segments";
@@ -621,7 +621,7 @@ service Flipt {
   }
 
   rpc UpdateSegment(UpdateSegmentRequest) returns (Segment) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateSegment";
       description: "Update Segment";
       tags: "segments";
@@ -629,7 +629,7 @@ service Flipt {
   }
 
   rpc DeleteSegment(DeleteSegmentRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "deleteSegment";
       description: "Delete Segment";
       tags: "segments";
@@ -637,7 +637,7 @@ service Flipt {
   }
 
   rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createConstraint";
       description: "Create Constraint";
       tags: "constraints";
@@ -645,7 +645,7 @@ service Flipt {
   }
 
   rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateConstraint";
       description: "Update Constraint";
       tags: "constraints";
@@ -653,7 +653,7 @@ service Flipt {
   }
 
   rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "deleteConstraint";
       description: "Delete Constraint";
       tags: "constraints";
