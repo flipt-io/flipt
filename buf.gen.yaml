@@ -1,15 +1,15 @@
 version: v1
 plugins:
   - name: go
-    out: .
+    out: rpc
     opt:
       - paths=source_relative
   - name: go-grpc
-    out: .
+    out: rpc
     opt:
       - paths=source_relative
   - name: grpc-gateway
-    out: .
+    out: rpc
     opt:
       - paths=source_relative
-      - grpc_api_configuration=flipt/flipt.yaml
+      - grpc_api_configuration=rpc/flipt/flipt.yaml
