@@ -92,7 +92,7 @@ release: clean assets ## Build and publish a release
 .PHONY: clients
 clients: ## Generate GRPC clients
 	@echo ">> generating GRPC clients"
-	@./script/build clients
+	@buf generate --template=buf.public.gen.yaml
 
 .PHONY: help
 help:

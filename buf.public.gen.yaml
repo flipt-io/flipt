@@ -8,5 +8,7 @@ plugins:
     out: ../flipt-grpc-go
     opt:
       - paths=source_relative
-  - name: ruby
+  - remote: buf.build/protocolbuffers/plugins/ruby:v3.19.1-1
+    out: ../flipt-grpc-ruby/lib
+  - remote: buf.build/grpc/plugins/ruby:v1.41.1-1
     out: ../flipt-grpc-ruby/lib

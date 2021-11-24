@@ -24,7 +24,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
-	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/markphelps/flipt/config"
 	pb "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/server"
@@ -52,6 +51,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
