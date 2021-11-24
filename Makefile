@@ -24,7 +24,6 @@ $(UI_OUTPUT_PATH): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
 .PHONY: bootstrap
 bootstrap: ## Install dev tools
 	@echo ">> installing dev tools"
-	go get -u -v "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
 	@./script/bootstrap
 
 .PHONY: bench
@@ -59,23 +58,13 @@ clean: ## Cleanup generated files
 	rm -rf dist/*
 	go mod tidy
 
-.PHONY: proto
-proto: ## Build protobufs
-	@echo ">> generating protobufs"
-	protoc -I/usr/local/include -I. \
-		-Irpc \
-		--go_opt=paths=source_relative \
-		--go_out=./rpc \
-		--go-grpc_out=./rpc \
-		--go-grpc_opt=paths=source_relative \
-		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \
-		--grpc-gateway_opt=paths=source_relative \
-		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger \
-		$(PROJECT).proto
+.PHONY: generate
+generate: ## Generate proto/grpc/grpc-gateway stubs and docs
+	@echo ">> generating"
+	buf generate
 
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui
-
 
 commit-hash=$(shell set -e && git rev-parse --verify HEAD || "")
 
@@ -87,7 +76,7 @@ build: clean assets ## Build a local copy
 .PHONY: server
 server: clean  ## Build and run in server mode
 	@echo ">> building and running in server mode"
-	@echo "  ⚠️ ui must be run in another process ⚠️"
+	@echo "  ⚠️  ui must be run in another process  ⚠️"
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
@@ -103,7 +92,7 @@ release: clean assets ## Build and publish a release
 .PHONY: clients
 clients: ## Generate GRPC clients
 	@echo ">> generating GRPC clients"
-	@./script/build clients
+	@buf generate --template=buf.public.gen.yaml
 
 .PHONY: help
 help:

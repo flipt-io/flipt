@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

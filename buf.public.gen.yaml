@@ -1,0 +1,14 @@
+version: v1
+plugins:
+  - name: go
+    out: ../flipt-grpc-go
+    opt:
+      - paths=source_relative
+  - name: go-grpc
+    out: ../flipt-grpc-go
+    opt:
+      - paths=source_relative
+  - remote: buf.build/protocolbuffers/plugins/ruby:v3.19.1-1
+    out: ../flipt-grpc-ruby/lib
+  - remote: buf.build/grpc/plugins/ruby:v1.41.1-1
+    out: ../flipt-grpc-ruby/lib

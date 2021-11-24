@@ -1,0 +1,26 @@
+version: v1
+name: buf.build/markphelps/flipt
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/grpc-ecosystem/grpc-gateway
+lint:
+  use:
+    - DEFAULT
+  ignore_only:
+    PACKAGE_VERSION_SUFFIX:
+      - protoc-gen-openapiv2/options/annotations.proto
+      - protoc-gen-openapiv2/options/openapiv2.proto
+    PACKAGE_DIRECTORY_MATCH:
+      - protoc-gen-openapiv2/options/annotations.proto
+      - protoc-gen-openapiv2/options/openapiv2.proto
+  except:
+    - ENUM_VALUE_PREFIX
+    - ENUM_ZERO_VALUE_SUFFIX
+    - PACKAGE_VERSION_SUFFIX
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    - RPC_REQUEST_STANDARD_NAME
+    - RPC_RESPONSE_STANDARD_NAME
+    - SERVICE_SUFFIX
+breaking:
+  use:
+    - FILE

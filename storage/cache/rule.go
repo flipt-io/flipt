@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 )
 

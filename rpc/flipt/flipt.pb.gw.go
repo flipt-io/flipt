@@ -13,15 +13,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/golang/protobuf/descriptor"
-	"github.com/golang/protobuf/proto"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/grpc-ecosystem/grpc-gateway/utilities"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 // Suppress "imported and not used" errors
@@ -30,7 +29,6 @@ var _ io.Reader
 var _ status.Status
 var _ = runtime.String
 var _ = utilities.NewDoubleArray
-var _ = descriptor.ForMessage
 var _ = metadata.Join
 
 func request_Flipt_Evaluate_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -118,7 +116,6 @@ func request_Flipt_GetFlag_0(ctx context.Context, marshaler runtime.Marshaler, c
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -145,7 +142,6 @@ func local_request_Flipt_GetFlag_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -250,7 +246,6 @@ func request_Flipt_UpdateFlag_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -285,7 +280,6 @@ func local_request_Flipt_UpdateFlag_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -312,7 +306,6 @@ func request_Flipt_DeleteFlag_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -339,7 +332,6 @@ func local_request_Flipt_DeleteFlag_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -374,7 +366,6 @@ func request_Flipt_CreateVariant_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -409,7 +400,6 @@ func local_request_Flipt_CreateVariant_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -444,7 +434,6 @@ func request_Flipt_UpdateVariant_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -455,7 +444,6 @@ func request_Flipt_UpdateVariant_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -490,7 +478,6 @@ func local_request_Flipt_UpdateVariant_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -501,7 +488,6 @@ func local_request_Flipt_UpdateVariant_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -528,7 +514,6 @@ func request_Flipt_DeleteVariant_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -539,7 +524,6 @@ func request_Flipt_DeleteVariant_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -566,7 +550,6 @@ func local_request_Flipt_DeleteVariant_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -577,7 +560,6 @@ func local_request_Flipt_DeleteVariant_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -604,7 +586,6 @@ func request_Flipt_GetRule_0(ctx context.Context, marshaler runtime.Marshaler, c
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -615,7 +596,6 @@ func request_Flipt_GetRule_0(ctx context.Context, marshaler runtime.Marshaler, c
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -642,7 +622,6 @@ func local_request_Flipt_GetRule_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -653,7 +632,6 @@ func local_request_Flipt_GetRule_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -684,7 +662,6 @@ func request_Flipt_ListRules_0(ctx context.Context, marshaler runtime.Marshaler,
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -718,7 +695,6 @@ func local_request_Flipt_ListRules_0(ctx context.Context, marshaler runtime.Mars
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -760,7 +736,6 @@ func request_Flipt_OrderRules_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -795,7 +770,6 @@ func local_request_Flipt_OrderRules_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -830,7 +804,6 @@ func request_Flipt_CreateRule_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -865,7 +838,6 @@ func local_request_Flipt_CreateRule_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -900,7 +872,6 @@ func request_Flipt_UpdateRule_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -911,7 +882,6 @@ func request_Flipt_UpdateRule_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -946,7 +916,6 @@ func local_request_Flipt_UpdateRule_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -957,7 +926,6 @@ func local_request_Flipt_UpdateRule_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -984,7 +952,6 @@ func request_Flipt_DeleteRule_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -995,7 +962,6 @@ func request_Flipt_DeleteRule_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1022,7 +988,6 @@ func local_request_Flipt_DeleteRule_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1033,7 +998,6 @@ func local_request_Flipt_DeleteRule_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1068,7 +1032,6 @@ func request_Flipt_CreateDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1079,7 +1042,6 @@ func request_Flipt_CreateDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.RuleId, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rule_id", err)
 	}
@@ -1114,7 +1076,6 @@ func local_request_Flipt_CreateDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1125,7 +1086,6 @@ func local_request_Flipt_CreateDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.RuleId, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rule_id", err)
 	}
@@ -1160,7 +1120,6 @@ func request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1171,7 +1130,6 @@ func request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.RuleId, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rule_id", err)
 	}
@@ -1182,7 +1140,6 @@ func request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1217,7 +1174,6 @@ func local_request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1228,7 +1184,6 @@ func local_request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.RuleId, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rule_id", err)
 	}
@@ -1239,7 +1194,6 @@ func local_request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1270,7 +1224,6 @@ func request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1281,7 +1234,6 @@ func request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.RuleId, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rule_id", err)
 	}
@@ -1292,7 +1244,6 @@ func request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler runtime.M
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1326,7 +1277,6 @@ func local_request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.FlagKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "flag_key", err)
 	}
@@ -1337,7 +1287,6 @@ func local_request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.RuleId, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rule_id", err)
 	}
@@ -1348,7 +1297,6 @@ func local_request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler run
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1382,7 +1330,6 @@ func request_Flipt_GetSegment_0(ctx context.Context, marshaler runtime.Marshaler
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -1409,7 +1356,6 @@ func local_request_Flipt_GetSegment_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -1514,7 +1460,6 @@ func request_Flipt_UpdateSegment_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -1549,7 +1494,6 @@ func local_request_Flipt_UpdateSegment_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -1576,7 +1520,6 @@ func request_Flipt_DeleteSegment_0(ctx context.Context, marshaler runtime.Marsha
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -1603,7 +1546,6 @@ func local_request_Flipt_DeleteSegment_0(ctx context.Context, marshaler runtime.
 	}
 
 	protoReq.Key, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
@@ -1638,7 +1580,6 @@ func request_Flipt_CreateConstraint_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.SegmentKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "segment_key", err)
 	}
@@ -1673,7 +1614,6 @@ func local_request_Flipt_CreateConstraint_0(ctx context.Context, marshaler runti
 	}
 
 	protoReq.SegmentKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "segment_key", err)
 	}
@@ -1708,7 +1648,6 @@ func request_Flipt_UpdateConstraint_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.SegmentKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "segment_key", err)
 	}
@@ -1719,7 +1658,6 @@ func request_Flipt_UpdateConstraint_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1754,7 +1692,6 @@ func local_request_Flipt_UpdateConstraint_0(ctx context.Context, marshaler runti
 	}
 
 	protoReq.SegmentKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "segment_key", err)
 	}
@@ -1765,7 +1702,6 @@ func local_request_Flipt_UpdateConstraint_0(ctx context.Context, marshaler runti
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1792,7 +1728,6 @@ func request_Flipt_DeleteConstraint_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.SegmentKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "segment_key", err)
 	}
@@ -1803,7 +1738,6 @@ func request_Flipt_DeleteConstraint_0(ctx context.Context, marshaler runtime.Mar
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1830,7 +1764,6 @@ func local_request_Flipt_DeleteConstraint_0(ctx context.Context, marshaler runti
 	}
 
 	protoReq.SegmentKey, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "segment_key", err)
 	}
@@ -1841,7 +1774,6 @@ func local_request_Flipt_DeleteConstraint_0(ctx context.Context, marshaler runti
 	}
 
 	protoReq.Id, err = runtime.String(val)
-
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
@@ -1863,7 +1795,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/Evaluate", runtime.WithHTTPPathPattern("/api/v1/evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1886,7 +1818,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/BatchEvaluate", runtime.WithHTTPPathPattern("/api/v1/batch-evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1909,7 +1841,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1932,7 +1864,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListFlags", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1955,7 +1887,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateFlag", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1978,7 +1910,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2001,7 +1933,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2024,7 +1956,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2047,7 +1979,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2070,7 +2002,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2093,7 +2025,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2116,7 +2048,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2139,7 +2071,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/OrderRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/order"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2162,7 +2094,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2185,7 +2117,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2208,7 +2140,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2231,7 +2163,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2254,7 +2186,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2277,7 +2209,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2300,7 +2232,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2323,7 +2255,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2346,7 +2278,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2369,7 +2301,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2392,7 +2324,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2415,7 +2347,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2438,7 +2370,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2461,7 +2393,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2508,7 +2440,7 @@ func RegisterFliptHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux
 
 // RegisterFliptHandler registers the http handlers for service Flipt to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterFliptHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+func RegisterFliptHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
 	return RegisterFliptHandlerClient(ctx, mux, NewFliptClient(conn))
 }
 
@@ -2523,7 +2455,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/Evaluate", runtime.WithHTTPPathPattern("/api/v1/evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2543,7 +2475,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/BatchEvaluate", runtime.WithHTTPPathPattern("/api/v1/batch-evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2563,7 +2495,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2583,7 +2515,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListFlags", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2603,7 +2535,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateFlag", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2623,7 +2555,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2643,7 +2575,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2663,7 +2595,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2683,7 +2615,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2703,7 +2635,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2723,7 +2655,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2743,7 +2675,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2763,7 +2695,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/OrderRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/order"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2783,7 +2715,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2803,7 +2735,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2823,7 +2755,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2843,7 +2775,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2863,7 +2795,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2883,7 +2815,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2903,7 +2835,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2923,7 +2855,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2943,7 +2875,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2963,7 +2895,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2983,7 +2915,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3003,7 +2935,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3023,7 +2955,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3043,7 +2975,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3063,59 +2995,59 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Flipt_Evaluate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "evaluate"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_Evaluate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "evaluate"}, ""))
 
-	pattern_Flipt_BatchEvaluate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "batch-evaluate"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_BatchEvaluate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "batch-evaluate"}, ""))
 
-	pattern_Flipt_GetFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_GetFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, ""))
 
-	pattern_Flipt_ListFlags_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "flags"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_ListFlags_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "flags"}, ""))
 
-	pattern_Flipt_CreateFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "flags"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_CreateFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "flags"}, ""))
 
-	pattern_Flipt_UpdateFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_UpdateFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, ""))
 
-	pattern_Flipt_DeleteFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_DeleteFlag_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "flags", "key"}, ""))
 
-	pattern_Flipt_CreateVariant_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "flags", "flag_key", "variants"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_CreateVariant_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "flags", "flag_key", "variants"}, ""))
 
-	pattern_Flipt_UpdateVariant_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "variants", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_UpdateVariant_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "variants", "id"}, ""))
 
-	pattern_Flipt_DeleteVariant_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "variants", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_DeleteVariant_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "variants", "id"}, ""))
 
-	pattern_Flipt_GetRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_GetRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "id"}, ""))
 
-	pattern_Flipt_ListRules_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "flags", "flag_key", "rules"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_ListRules_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "flags", "flag_key", "rules"}, ""))
 
-	pattern_Flipt_OrderRules_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "order"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_OrderRules_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "order"}, ""))
 
-	pattern_Flipt_CreateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "flags", "flag_key", "rules"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_CreateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "flags", "flag_key", "rules"}, ""))
 
-	pattern_Flipt_UpdateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_UpdateRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "id"}, ""))
 
-	pattern_Flipt_DeleteRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_DeleteRule_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "flags", "flag_key", "rules", "id"}, ""))
 
-	pattern_Flipt_CreateDistribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v1", "flags", "flag_key", "rules", "rule_id", "distributions"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_CreateDistribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"api", "v1", "flags", "flag_key", "rules", "rule_id", "distributions"}, ""))
 
-	pattern_Flipt_UpdateDistribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"api", "v1", "flags", "flag_key", "rules", "rule_id", "distributions", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_UpdateDistribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"api", "v1", "flags", "flag_key", "rules", "rule_id", "distributions", "id"}, ""))
 
-	pattern_Flipt_DeleteDistribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"api", "v1", "flags", "flag_key", "rules", "rule_id", "distributions", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_DeleteDistribution_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"api", "v1", "flags", "flag_key", "rules", "rule_id", "distributions", "id"}, ""))
 
-	pattern_Flipt_GetSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_GetSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, ""))
 
-	pattern_Flipt_ListSegments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "segments"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_ListSegments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "segments"}, ""))
 
-	pattern_Flipt_CreateSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "segments"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_CreateSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "segments"}, ""))
 
-	pattern_Flipt_UpdateSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_UpdateSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, ""))
 
-	pattern_Flipt_DeleteSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_DeleteSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, ""))
 
-	pattern_Flipt_CreateConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "segments", "segment_key", "constraints"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_CreateConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "segments", "segment_key", "constraints"}, ""))
 
-	pattern_Flipt_UpdateConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "segments", "segment_key", "constraints", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_UpdateConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "segments", "segment_key", "constraints", "id"}, ""))
 
-	pattern_Flipt_DeleteConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "segments", "segment_key", "constraints", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Flipt_DeleteConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "segments", "segment_key", "constraints", "id"}, ""))
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
 	"github.com/sirupsen/logrus"
