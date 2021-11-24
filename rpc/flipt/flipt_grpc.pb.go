@@ -1034,5 +1034,5 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "flipt/flipt.proto",
+	Metadata: "flipt.proto",
 }

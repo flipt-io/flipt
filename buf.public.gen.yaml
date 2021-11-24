@@ -1,0 +1,12 @@
+version: v1
+plugins:
+  - name: go
+    out: ../flipt-grpc-go
+    opt:
+      - paths=source_relative
+  - name: go-grpc
+    out: ../flipt-grpc-go
+    opt:
+      - paths=source_relative
+  - name: ruby
+    out: ../flipt-grpc-ruby/lib
