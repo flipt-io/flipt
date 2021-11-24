@@ -9,6 +9,7 @@ Before starting, make sure you have the following installed:
 - GCC Compiler
 - [SQLite](https://sqlite.org/index.html)
 - [Go 1.16+](https://golang.org/doc/install)
+- [Buf](https://docs.buf.build/introduction)
 - [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 
 ## Setup
@@ -40,8 +41,9 @@ Changing certain types of files such as the protobuf, ui or documentation files 
 
 After changing `flipt.proto`, you'll need to run `make proto`. This will regenerate the following files:
 
-- `rpc/flipt.pb.go`
-- `rpc/flipt.pb.gw.go`
+- `rpc/flipt/flipt.pb.go`
+- `rpc/flipt/flipt_grpc.pb.go`
+- `rpc/flipt/flipt.pb.gw.go`
 
 ### Updating assets
 
@@ -69,6 +71,6 @@ Regardless of whether you are using Remote Containers or GitHub Codespaces, you'
 
 Then run the [Server/Client](.vscode/launch.json) run command to start the server and client.
 
-This should publish three ports `8080`, `8081`, `9000`. 
+This should publish three ports `8080`, `8081`, `9000`.
 
 `8081` is the UI dev port that runs the `yarn dev server` that you can open in your browser.
