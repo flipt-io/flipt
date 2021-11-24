@@ -1,3 +1,7 @@
 ignore:
   - "rpc/flipt/flipt_grpc.pb.*"
   - "rpc/flipt/flipt.pb.*"
+  - "examples"
+  - "ui"
+  - "swagger"
+  - "_tools"
