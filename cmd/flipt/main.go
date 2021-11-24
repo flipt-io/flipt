@@ -26,7 +26,7 @@ import (
 	"github.com/google/go-github/v32/github"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/markphelps/flipt/config"
-	pb "github.com/markphelps/flipt/rpc"
+	pb "github.com/markphelps/flipt/rpc/gen/proto/go/flipt"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"

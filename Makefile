@@ -76,7 +76,6 @@ proto: ## Build protobufs
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui
 
-
 commit-hash=$(shell set -e && git rev-parse --verify HEAD || "")
 
 .PHONY: build

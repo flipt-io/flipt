@@ -8,7 +8,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/gen/proto/go/flipt"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/db/common"
 	"github.com/mattn/go-sqlite3"

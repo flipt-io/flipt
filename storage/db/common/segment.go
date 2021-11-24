@@ -11,7 +11,7 @@ import (
 
 	proto "github.com/golang/protobuf/ptypes"
 	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/gen/proto/go/flipt"
 	"github.com/markphelps/flipt/storage"
 )
 
