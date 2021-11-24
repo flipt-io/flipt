@@ -23,7 +23,7 @@ Before starting, make sure you have the following installed:
 
 ## Go
 
-Flipt is built with Go 1.16+. To reliably build Flipt, make sure you clone it to a location outside of your `$GOPATH`.
+Flipt is built with Go 1.16+.
 
 ## Configuration
 
@@ -39,7 +39,7 @@ Changing certain types of files such as the protobuf, ui or documentation files 
 
 ### Updating .proto Files
 
-After changing `flipt.proto`, you'll need to run `make proto`. This will regenerate the following files:
+After changing `flipt.proto`, you'll need to run `make generate`. This will regenerate the following files:
 
 - `rpc/flipt/flipt.pb.go`
 - `rpc/flipt/flipt_grpc.pb.go`
