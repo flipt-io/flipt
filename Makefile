@@ -58,9 +58,9 @@ clean: ## Cleanup generated files
 	rm -rf dist/*
 	go mod tidy
 
-.PHONY: proto
-proto: ## Build protobufs
-	@echo ">> generating protobufs"
+.PHONY: generate
+generate: ## Generate proto/grpc/grpc-gateway stubs and docs
+	@echo ">> generating"
 	buf generate
 
 .PHONY: assets
@@ -76,7 +76,7 @@ build: clean assets ## Build a local copy
 .PHONY: server
 server: clean  ## Build and run in server mode
 	@echo ">> building and running in server mode"
-	@echo "  ⚠️ ui must be run in another process ⚠️"
+	@echo "  ⚠️  ui must be run in another process  ⚠️"
 	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
