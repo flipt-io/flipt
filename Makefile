@@ -24,7 +24,6 @@ $(UI_OUTPUT_PATH): $(UI_NODE_MODULES_PATH) $(UI_SOURCE_FILES)
 .PHONY: bootstrap
 bootstrap: ## Install dev tools
 	@echo ">> installing dev tools"
-	go get -u -v "github.com/golang/protobuf/protoc-gen-go@v1.4.2"
 	@./script/bootstrap
 
 .PHONY: bench
@@ -62,16 +61,7 @@ clean: ## Cleanup generated files
 .PHONY: proto
 proto: ## Build protobufs
 	@echo ">> generating protobufs"
-	protoc -I/usr/local/include -I. \
-		-Irpc \
-		--go_opt=paths=source_relative \
-		--go_out=./rpc \
-		--go-grpc_out=./rpc \
-		--go-grpc_opt=paths=source_relative \
-		--grpc-gateway_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./rpc \
-		--grpc-gateway_opt=paths=source_relative \
-		--swagger_out=logtostderr=true,grpc_api_configuration=./rpc/flipt.yaml:./swagger \
-		$(PROJECT).proto
+	cd rpc && buf generate
 
 .PHONY: assets
 assets: $(UI_OUTPUT_PATH) ## Build the ui

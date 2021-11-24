@@ -300,7 +300,7 @@ func (c *fliptClient) DeleteConstraint(ctx context.Context, in *DeleteConstraint
 }
 
 // FliptServer is the server API for Flipt service.
-// All implementations should embed UnimplementedFliptServer
+// All implementations must embed UnimplementedFliptServer
 // for forward compatibility
 type FliptServer interface {
 	Evaluate(context.Context, *EvaluationRequest) (*EvaluationResponse, error)
@@ -330,9 +330,10 @@ type FliptServer interface {
 	CreateConstraint(context.Context, *CreateConstraintRequest) (*Constraint, error)
 	UpdateConstraint(context.Context, *UpdateConstraintRequest) (*Constraint, error)
 	DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error)
+	mustEmbedUnimplementedFliptServer()
 }
 
-// UnimplementedFliptServer should be embedded to have forward compatible implementations.
+// UnimplementedFliptServer must be embedded to have forward compatible implementations.
 type UnimplementedFliptServer struct {
 }
 
@@ -417,6 +418,7 @@ func (UnimplementedFliptServer) UpdateConstraint(context.Context, *UpdateConstra
 func (UnimplementedFliptServer) DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteConstraint not implemented")
 }
+func (UnimplementedFliptServer) mustEmbedUnimplementedFliptServer() {}
 
 // UnsafeFliptServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to FliptServer will
