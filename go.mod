@@ -28,7 +28,7 @@ require (
 	github.com/luna-duclos/instrumentedsql v1.1.3
 	github.com/luna-duclos/instrumentedsql/opentracing v0.0.0-20200611091901-487c5ec83473
 	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/markphelps/flipt-grpc-go v0.4.0
+	github.com/markphelps/flipt-grpc-go v0.5.0
 	github.com/mattn/go-sqlite3 v1.14.9
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
