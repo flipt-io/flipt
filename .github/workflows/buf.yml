@@ -10,8 +10,8 @@ jobs:
           version: 'latest'
       - uses: bufbuild/buf-lint-action@v1
         with:
-          input: 'rpc'
+          input: 'rpc/flipt'
       - uses: bufbuild/buf-breaking-action@v1
         with:
-          input: 'rpc'
+          input: 'rpc/flipt'
           against: 'https://github.com/${GITHUB_REPOSITORY}.git#branch=master'
