@@ -1,4 +1,4 @@
-name: buf-lint
+name: Buf
 on: pull_request
 jobs:
   build:
@@ -9,6 +9,9 @@ jobs:
         with:
           version: 'latest'
       - uses: bufbuild/buf-lint-action@v1
+        with:
+          input: 'rpc'
       - uses: bufbuild/buf-breaking-action@v1
         with:
+          input: 'rpc'
           against: 'https://github.com/${GITHUB_REPOSITORY}.git#branch=master'
