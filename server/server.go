@@ -56,7 +56,7 @@ func (s *Server) ValidationUnaryInterceptor(ctx context.Context, req interface{}
 func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	resp, err = handler(ctx, req)
 	if err == nil {
-		return
+		return resp, nil
 	}
 
 	errorsTotal.Inc()
