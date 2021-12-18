@@ -12,6 +12,7 @@ run:
   #   	vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
   skip-dirs:
     - "bin"
+    - "_tools"
     - "dist"
     - "docs"
     - "rpc"
@@ -32,14 +33,11 @@ linters:
     - errcheck
     - goconst
     - gocritic
-    #- godox
     - goimports
-    - golint
     - gosec
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - megacheck
     - misspell
     - staticcheck

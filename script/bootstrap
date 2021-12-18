@@ -1,7 +1,5 @@
 #!/bin/sh
 
-go get github.com/grpc-ecosystem/grpc-gateway/v2@v2.7.0
-
 TOOLS=$(pwd)/_tools
 export GOBIN=$TOOLS/bin
 

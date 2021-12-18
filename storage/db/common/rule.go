@@ -169,6 +169,7 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 	}
 
 	// delete rule
+	//nolint
 	_, err = s.builder.Delete("rules").
 		RunWith(tx).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
