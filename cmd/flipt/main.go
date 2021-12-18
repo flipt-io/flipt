@@ -42,6 +42,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -374,7 +375,7 @@ func run(_ []string) error {
 			opts = append(opts, grpc.WithTransportCredentials(creds))
 			httpPort = cfg.Server.HTTPSPort
 		case config.HTTP:
-			opts = append(opts, grpc.WithInsecure())
+			opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			httpPort = cfg.Server.HTTPPort
 		}
 
