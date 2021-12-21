@@ -53,9 +53,9 @@
                     </button>
                   </div>
                   <div class="control">
-                    <RouterLink class="button is-text" :to="{ name: 'flags' }"
-                      >Cancel</RouterLink
-                    >
+                    <RouterLink class="button is-text" :to="{ name: 'flags' }">
+                      Cancel
+                    </RouterLink>
                   </div>
                 </div>
               </div>
@@ -85,33 +85,36 @@
           Return different values based on rules you define
         </p>
         <b-table :data="flag.variants">
-          <template slot-scope="props">
-            <b-table-column field="key" label="Key" sortable>
-              {{ props.row.key }}
-            </b-table-column>
-            <b-table-column field="name" label="Name" sortable>
-              {{ props.row.name }}
-            </b-table-column>
-            <b-table-column field="description" label="Description" sortable>
-              {{ props.row.description }}
-            </b-table-column>
-            <b-table-column field="" label="" width="110" centered>
-              <a
-                class="button is-white"
-                @click.prevent="editVariant(props.index)"
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-pencil-alt" />
-                </span>
-              </a>
-              <a
-                class="button is-white"
-                @click.prevent="deleteVariant(props.index)"
-              >
-                <span class="icon is-small"> <i class="fas fa-times" /> </span>
-              </a>
-            </b-table-column>
-          </template>
+          <b-table-column v-slot="props" field="key" label="Key" sortable>
+            {{ props.row.key }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="name" label="Name" sortable>
+            {{ props.row.name }}
+          </b-table-column>
+          <b-table-column
+            v-slot="props"
+            field="description"
+            label="Description"
+            sortable
+          >
+            {{ props.row.description }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="" label="" width="110" centered>
+            <a
+              class="button is-white"
+              @click.prevent="editVariant(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="fas fa-pencil-alt" />
+              </span>
+            </a>
+            <a
+              class="button is-white"
+              @click.prevent="deleteVariant(props.index)"
+            >
+              <span class="icon is-small"> <i class="fas fa-times" /> </span>
+            </a>
+          </b-table-column>
         </b-table>
         <br />
         <div class="field">

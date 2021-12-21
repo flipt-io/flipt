@@ -54,7 +54,7 @@
               <div class="field-body">
                 <div class="field">
                   <b-input
-                    v-model="distributions[i].rollout"
+                    v-model="distribution.rollout"
                     placeholder="Percentage"
                     disabled
                     type="number"
