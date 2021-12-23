@@ -6,5 +6,5 @@ The ui directory contains these `.vue` files, along with others used in the web 
 
 ## Build Requirements
 
-- [NodeJS](https://nodejs.org/en/)
+- [NodeJS >= 16](https://nodejs.org/en/)
 - [Yarn](https://yarnpkg.com/en/)

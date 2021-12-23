@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-node@v2.5.0
         with:
-          node-version: "14"
+          node-version: "16"
 
       - id: go-cache-paths
         run: |
