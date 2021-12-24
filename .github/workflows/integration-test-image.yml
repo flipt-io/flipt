@@ -1,6 +1,8 @@
 name: Build/Push Integration Test Image
 on:
   push:
+    branches:
+      - "master"
     paths:
       - "test/**"
       - "Dockerfile.it"
