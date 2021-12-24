@@ -10,7 +10,7 @@ jobs:
   ## Integration Tests
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     timeout-minutes: 20
 
