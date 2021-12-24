@@ -20,7 +20,8 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && yarn && yarn test
+    cd "ui" && yarn
+    npx playwright install && yarn test
 }
 
 run
