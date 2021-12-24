@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:latest
 
 LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
 
