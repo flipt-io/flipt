@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.." || exit
 
 run()
 {
-    # run any pending db migrations
+    run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
@@ -20,7 +20,8 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && yarn && npx playwright install chromium chrome --with-deps
+    cd "ui" && yarn install --frozen-lockfile
+    npx playwright install chromium chrome --with-deps
     yarn test
 }
 
