@@ -17,7 +17,7 @@ RUN apt-get update && \
     apt-get install -y nodejs
 
 RUN npm install -g yarn
-RUN npx playwright install chromium --with-deps
+RUN npx playwright install --with-deps
 
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
