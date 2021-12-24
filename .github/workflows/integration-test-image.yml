@@ -3,9 +3,6 @@ on:
   push:
     branches:
       - "master"
-    paths:
-      - "test/**"
-      - "Dockerfile.it"
   workflow_dispatch:
 
 jobs:
