@@ -1,9 +1,8 @@
 name: Build/Push Integration Test Image
 on:
   push:
-    paths:
-      - "test/**"
-      - "Dockerfile.it"
+    branches:
+      - "master"
   workflow_dispatch:
 
 jobs:
