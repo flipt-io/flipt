@@ -1,5 +1,4 @@
 FROM ubuntu:latest
-USER 0
 
 LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
 
