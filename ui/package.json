@@ -35,7 +35,7 @@
     "@babel/plugin-proposal-function-sent": "^7.16.5",
     "@babel/plugin-proposal-json-strings": "^7.13.8",
     "@babel/plugin-proposal-numeric-separator": "^7.16.5",
-    "@babel/plugin-proposal-throw-expressions": "^7.16.0",
+    "@babel/plugin-proposal-throw-expressions": "^7.16.5",
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/plugin-syntax-import-meta": "^7.0.0",
     "@babel/plugin-syntax-jsx": "^7.14.5",
