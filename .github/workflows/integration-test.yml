@@ -5,6 +5,7 @@ on:
       - "*.md"
       - "*.yml"
       - ".all-contributorsrc"
+  workflow_dispatch:
 
 jobs:
   ## Integration Tests
