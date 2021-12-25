@@ -1,5 +1,4 @@
 const { chromium } = require("playwright");
-import expect from "expect-playwright";
 
 let browser;
 let page;
