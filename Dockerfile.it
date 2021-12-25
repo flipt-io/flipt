@@ -10,7 +10,7 @@ RUN echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
     echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
     apt-get update && \
     apt-get install -y \
-    sudo tzdata bats curl jq gnupg
+    sudo tzdata bats curl wget jq gnupg
 
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 
