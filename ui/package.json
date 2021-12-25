@@ -70,6 +70,7 @@
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^4.5.2",
     "jest": "~27.0.6",
+    "jest-playwright-preset": "^1.7.0",
     "mini-css-extract-plugin": "^0.8.0",
     "node-notifier": "^8.0.1",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
@@ -103,6 +104,11 @@
     "not ie <= 8"
   ],
   "jest": {
+    "preset": "jest-playwright-preset",
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     }
