@@ -107,9 +107,9 @@
                     <div class="field">
                       <div class="select">
                         <select
+                          v-model="selectedVariant"
                           :disabled="!newRule.segmentKey"
                           @change="ruleTypeChanged"
-                          v-model="selectedVariant"
                         >
                           <option value="">Choose Value</option>
                           <option disabled>──────────</option>
@@ -296,6 +296,21 @@ export default {
     DebugConsole,
   },
   mixins: [notify, targeting, utils],
+  beforeRouteLeave(to, from, next) {
+    if (this.reordered === false) {
+      next();
+      return;
+    }
+    if (
+      confirm(
+        "Are you sure want to leave? Rules have been reordered but not saved."
+      )
+    ) {
+      next();
+    } else {
+      next(false);
+    }
+  },
   data() {
     return {
       dialogAddRuleVisible: false,
@@ -535,21 +550,6 @@ export default {
         ];
       }
     },
-  },
-  beforeRouteLeave(to, from, next) {
-    if (this.reordered === false) {
-      next();
-      return;
-    }
-    if (
-      confirm(
-        "Are you sure want to leave? Rules have been reordered but not saved."
-      )
-    ) {
-      next();
-    } else {
-      next(false);
-    }
   },
 };
 </script>
