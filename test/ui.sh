@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.." || exit
 
 run()
 {
-    run any pending db migrations
+    # run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
