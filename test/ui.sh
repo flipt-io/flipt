@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euxo pipefail
 
 cd "$(dirname "$0")/.." || exit
 
@@ -19,6 +20,9 @@ run()
     echo -e "\e[32m===========================================\e[0m"
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
+
+    echo "running as: $(whoami)"
+    echo "UID: $UID"
 
     cd "ui" && yarn install --frozen-lockfile
     npx playwright install chromium chrome --with-deps
