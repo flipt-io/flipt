@@ -22,13 +22,6 @@ run()
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
     cd "ui" && yarn install --frozen-lockfile
-
-    if [ -n "$CI" ]; then
-        id -u 1001
-        # need to install browser and deps for playwright
-        npx playwright install chromium chrome --with-deps
-    fi
-
     yarn test
 }
 
