@@ -21,11 +21,14 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    echo "running as: $(whoami)"
-    echo "UID: $UID"
-
     cd "ui" && yarn install --frozen-lockfile
-    npx playwright install chromium chrome --with-deps
+
+    if [ -n "$CI"]; then
+        id -u 1001
+        # need to install browser and deps for playwright
+        npx playwright install chromium chrome --with-deps
+    fi
+
     yarn test
 }
 
