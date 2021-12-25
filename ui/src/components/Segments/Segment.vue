@@ -92,36 +92,44 @@
         <h5 class="title is-5">Constraints</h5>
         <p class="subtitle is-7">Determine if an entity matches your segment</p>
         <b-table :data="segment.constraints">
-          <template slot-scope="props">
-            <b-table-column field="property" label="Property" sortable>
-              {{ props.row.property }}
-            </b-table-column>
-            <b-table-column field="type" label="Type" sortable>
-              {{ comparisons[props.row.type] }}
-            </b-table-column>
-            <b-table-column field="operator" label="Operator" centered>
-              {{ allOperators[props.row.operator] }}
-            </b-table-column>
-            <b-table-column field="value" label="Value">
-              {{ props.row.value }}
-            </b-table-column>
-            <b-table-column field="" label="" width="110" centered>
-              <a
-                class="button is-white"
-                @click.prevent="editConstraint(props.index)"
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-pencil-alt" />
-                </span>
-              </a>
-              <a
-                class="button is-white"
-                @click.prevent="deleteConstraint(props.index)"
-              >
-                <span class="icon is-small"> <i class="fas fa-times" /> </span>
-              </a>
-            </b-table-column>
-          </template>
+          <b-table-column
+            v-slot="props"
+            field="property"
+            label="Property"
+            sortable
+          >
+            {{ props.row.property }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="type" label="Type" sortable>
+            {{ comparisons[props.row.type] }}
+          </b-table-column>
+          <b-table-column
+            v-slot="props"
+            field="operator"
+            label="Operator"
+            centered
+          >
+            {{ allOperators[props.row.operator] }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="value" label="Value">
+            {{ props.row.value }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="" label="" width="110" centered>
+            <a
+              class="button is-white"
+              @click.prevent="editConstraint(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="fas fa-pencil-alt" />
+              </span>
+            </a>
+            <a
+              class="button is-white"
+              @click.prevent="deleteConstraint(props.index)"
+            >
+              <span class="icon is-small"> <i class="fas fa-times" /> </span>
+            </a>
+          </b-table-column>
         </b-table>
         <br />
         <div class="field">

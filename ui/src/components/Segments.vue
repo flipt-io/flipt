@@ -23,8 +23,9 @@
               data-testid="new-segment"
               class="button is-primary"
               :to="{ name: 'new-segment' }"
-              >New Segment</RouterLink
             >
+              New Segment
+            </RouterLink>
           </div>
         </div>
       </div>
@@ -35,45 +36,53 @@
         icon-pack="fas"
         hoverable="true"
       >
-        <template slot-scope="props">
-          <b-table-column field="key" label="Key" sortable>
-            <RouterLink
-              :to="{ name: 'segment', params: { key: props.row.key } }"
-            >
-              {{ props.row.key }}
-            </RouterLink>
-          </b-table-column>
-          <b-table-column field="name" label="Name" sortable>
-            <RouterLink
-              :to="{ name: 'segment', params: { key: props.row.key } }"
-            >
-              {{ props.row.name }}
-            </RouterLink>
-          </b-table-column>
-          <b-table-column field="hasConstraints" label="Constraints">
-            {{ props.row.constraints.length > 0 ? "yes" : "no" }}
-          </b-table-column>
-          <b-table-column field="hasConstraints" label="Match">
-            {{ props.row.matchType === "ANY_MATCH_TYPE" ? "any" : "all" }}
-          </b-table-column>
-          <b-table-column field="description" label="Description">
-            <small>{{ props.row.description | limit }}</small>
-          </b-table-column>
-          <b-table-column field="createdAt" label="Created" sortable>
-            <small>{{ props.row.createdAt | moment("from", "now") }}</small>
-          </b-table-column>
-          <b-table-column field="updatedAt" label="Updated" sortable>
-            <small>{{ props.row.updatedAt | moment("from", "now") }}</small>
-          </b-table-column>
-        </template>
+        <b-table-column v-slot="props" field="key" label="Key" sortable>
+          <RouterLink :to="{ name: 'segment', params: { key: props.row.key } }">
+            {{ props.row.key }}
+          </RouterLink>
+        </b-table-column>
+        <b-table-column v-slot="props" field="name" label="Name" sortable>
+          <RouterLink :to="{ name: 'segment', params: { key: props.row.key } }">
+            {{ props.row.name }}
+          </RouterLink>
+        </b-table-column>
+        <b-table-column
+          v-slot="props"
+          field="hasConstraints"
+          label="Constraints"
+        >
+          {{ props.row.constraints.length > 0 ? "yes" : "no" }}
+        </b-table-column>
+        <b-table-column v-slot="props" field="hasConstraints" label="Match">
+          {{ props.row.matchType === "ANY_MATCH_TYPE" ? "any" : "all" }}
+        </b-table-column>
+        <b-table-column v-slot="props" field="description" label="Description">
+          <small>{{ props.row.description | limit }}</small>
+        </b-table-column>
+        <b-table-column
+          v-slot="props"
+          field="createdAt"
+          label="Created"
+          sortable
+        >
+          <small>{{ props.row.createdAt | moment("from", "now") }}</small>
+        </b-table-column>
+        <b-table-column
+          v-slot="props"
+          field="updatedAt"
+          label="Updated"
+          sortable
+        >
+          <small>{{ props.row.updatedAt | moment("from", "now") }}</small>
+        </b-table-column>
 
-        <template slot="empty">
+        <template #empty>
           <section class="section">
             <div class="content has-text-grey has-text-centered">
               <p>
                 No segments found. Create a
-                <RouterLink :to="{ name: 'new-segment' }"
-                  >New Segment</RouterLink
+                <RouterLink :to="{ name: 'new-segment' }">
+                  New Segment</RouterLink
                 >.
               </p>
             </div>
