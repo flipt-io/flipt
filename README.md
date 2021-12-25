@@ -169,6 +169,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/itaischwartz"><img src="https://avatars.githubusercontent.com/u/60180089?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itai Schwartz</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=itaischwartz" title="Code">💻</a></td>
     <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=eltociear" title="Documentation">📖</a></td>
     <td align="center"><a href="https://sagikazarmark.hu"><img src="https://avatars.githubusercontent.com/u/1226384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Márk Sági-Kazár</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=sagikazarmark" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/pietdaniel"><img src="https://avatars.githubusercontent.com/u/1924983?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Piet</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=pietdaniel" title="Code">💻</a></td>
   </tr>
 </table>
 
