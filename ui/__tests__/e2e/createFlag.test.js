@@ -1,5 +1,5 @@
 const { chromium } = require("playwright");
-import expect from "expect-playwright";
+import { expect } from "@playwright/test";
 
 let browser;
 let page;
