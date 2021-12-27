@@ -5,8 +5,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  pull:
+  check:
+    name: Check
     runs-on: ubuntu-latest
+
     steps:
       - uses: rez0n/actions-github-release@main
         id: release
