@@ -80,7 +80,7 @@
     "postcss-import": "^12.0.1",
     "postcss-loader": "^3.0.0",
     "postcss-url": "^9.0.0",
-    "prettier": "^2.3.2",
+    "prettier": "^2.5.1",
     "rimraf": "^3.0.0",
     "semver": "^7.3.5",
     "shelljs": "^0.8.3",
