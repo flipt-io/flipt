@@ -6,12 +6,12 @@ on:
       - ".all-contributorsrc"
 
 jobs:
-  ## Lint
   golangci:
     name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2.5.2
         with:
@@ -27,7 +27,6 @@ jobs:
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true
 
-  ## Unit Tests
   test:
     name: Test
     runs-on: ubuntu-latest

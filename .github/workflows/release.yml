@@ -6,7 +6,9 @@ on:
 
 jobs:
   pull:
+    name: Check
     runs-on: ubuntu-latest
+
     steps:
       - uses: rez0n/actions-github-release@main
         id: release
