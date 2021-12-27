@@ -1,9 +1,13 @@
 name: Go Nancy
-
-on: [push]
+on:
+  pull_request:
+    paths-ignore:
+      - "*.md"
+      - "*.yml"
+      - ".all-contributorsrc"
 
 jobs:
-  build:
+  sleuth:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
