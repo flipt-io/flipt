@@ -6,7 +6,7 @@ on:
       - ".all-contributorsrc"
 
 jobs:
-  golangci:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:

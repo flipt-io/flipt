@@ -3,8 +3,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker:
+  build:
+    name: Build
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
 
@@ -33,6 +35,7 @@ jobs:
           tags: ghcr.io/markphelps/flipt-integration-test:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
+
         # This ugly bit is necessary if you don't want your cache to grow forever
         # till it hits GitHub's limit of 5GB.
         # Temp fix

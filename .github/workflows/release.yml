@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  pull:
+  check:
     name: Check
     runs-on: ubuntu-latest
 
