@@ -88,6 +88,9 @@ func main() {
 					logrus.Exit(1)
 				}
 			},
+			CompletionOptions: cobra.CompletionOptions{
+				DisableDefaultCmd: true,
+			},
 		}
 
 		exportCmd = &cobra.Command{
