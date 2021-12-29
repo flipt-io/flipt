@@ -12,10 +12,10 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db"
-	"github.com/markphelps/flipt/storage/db/mysql"
-	"github.com/markphelps/flipt/storage/db/postgres"
-	"github.com/markphelps/flipt/storage/db/sqlite"
+	"github.com/markphelps/flipt/storage/sql"
+	"github.com/markphelps/flipt/storage/sql/mysql"
+	"github.com/markphelps/flipt/storage/sql/postgres"
+	"github.com/markphelps/flipt/storage/sql/sqlite"
 	"gopkg.in/yaml.v2"
 )
 
@@ -38,7 +38,7 @@ func runImport(args []string) error {
 		cancel()
 	}()
 
-	sql, driver, err := db.Open(*cfg)
+	sql, driver, err := sql.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
@@ -48,11 +48,11 @@ func runImport(args []string) error {
 	var store storage.Store
 
 	switch driver {
-	case db.SQLite:
+	case sql.SQLite:
 		store = sqlite.NewStore(sql)
-	case db.Postgres:
+	case sql.Postgres:
 		store = postgres.NewStore(sql)
-	case db.MySQL:
+	case sql.MySQL:
 		store = mysql.NewStore(sql)
 	}
 
@@ -89,7 +89,7 @@ func runImport(args []string) error {
 		}
 	}
 
-	migrator, err := db.NewMigrator(*cfg, l)
+	migrator, err := sql.NewMigrator(*cfg, l)
 	if err != nil {
 		return err
 	}
