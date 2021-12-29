@@ -268,22 +268,22 @@ func run(_ []string) error {
 			srv      *server.Server
 		)
 
-		sql, driver, err := sql.Open(*cfg)
+		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
 
-		defer sql.Close()
+		defer db.Close()
 
 		var store storage.Store
 
 		switch driver {
 		case sql.SQLite:
-			store = sqlite.NewStore(sql)
+			store = sqlite.NewStore(db)
 		case sql.Postgres:
-			store = postgres.NewStore(sql)
+			store = postgres.NewStore(db)
 		case sql.MySQL:
-			store = mysql.NewStore(sql)
+			store = mysql.NewStore(db)
 		}
 
 		if cfg.Cache.Memory.Enabled {

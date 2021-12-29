@@ -38,22 +38,22 @@ func runImport(args []string) error {
 		cancel()
 	}()
 
-	sql, driver, err := sql.Open(*cfg)
+	db, driver, err := sql.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
 
-	defer sql.Close()
+	defer db.Close()
 
 	var store storage.Store
 
 	switch driver {
 	case sql.SQLite:
-		store = sqlite.NewStore(sql)
+		store = sqlite.NewStore(db)
 	case sql.Postgres:
-		store = postgres.NewStore(sql)
+		store = postgres.NewStore(db)
 	case sql.MySQL:
-		store = mysql.NewStore(sql)
+		store = mysql.NewStore(db)
 	}
 
 	var in io.ReadCloser = os.Stdin
@@ -83,7 +83,7 @@ func runImport(args []string) error {
 		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
 
 		for _, table := range tables {
-			if _, err := sql.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
+			if _, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
 				return fmt.Errorf("dropping tables: %w", err)
 			}
 		}
