@@ -29,10 +29,10 @@ import (
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
-	"github.com/markphelps/flipt/storage/db"
-	"github.com/markphelps/flipt/storage/db/mysql"
-	"github.com/markphelps/flipt/storage/db/postgres"
-	"github.com/markphelps/flipt/storage/db/sqlite"
+	"github.com/markphelps/flipt/storage/sql"
+	"github.com/markphelps/flipt/storage/sql/mysql"
+	"github.com/markphelps/flipt/storage/sql/postgres"
+	"github.com/markphelps/flipt/storage/sql/sqlite"
 	"github.com/markphelps/flipt/swagger"
 	"github.com/markphelps/flipt/ui"
 	"github.com/phyber/negroni-gzip/gzip"
@@ -119,7 +119,7 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				migrator, err := db.NewMigrator(*cfg, l)
+				migrator, err := sql.NewMigrator(*cfg, l)
 				if err != nil {
 					l.Error(err)
 					logrus.Exit(1)
@@ -241,7 +241,7 @@ func run(_ []string) error {
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
 
-		migrator, err := db.NewMigrator(*cfg, l)
+		migrator, err := sql.NewMigrator(*cfg, l)
 		if err != nil {
 			return err
 		}
@@ -268,22 +268,22 @@ func run(_ []string) error {
 			srv      *server.Server
 		)
 
-		sql, driver, err := db.Open(*cfg)
+		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
 
-		defer sql.Close()
+		defer db.Close()
 
 		var store storage.Store
 
 		switch driver {
-		case db.SQLite:
-			store = sqlite.NewStore(sql)
-		case db.Postgres:
-			store = postgres.NewStore(sql)
-		case db.MySQL:
-			store = mysql.NewStore(sql)
+		case sql.SQLite:
+			store = sqlite.NewStore(db)
+		case sql.Postgres:
+			store = postgres.NewStore(db)
+		case sql.MySQL:
+			store = mysql.NewStore(db)
 		}
 
 		if cfg.Cache.Memory.Enabled {

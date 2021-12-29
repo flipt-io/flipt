@@ -1,4 +1,4 @@
-package db
+package sql
 
 import (
 	"errors"
@@ -15,9 +15,9 @@ import (
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/markphelps/flipt/config"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db/mysql"
-	"github.com/markphelps/flipt/storage/db/postgres"
-	"github.com/markphelps/flipt/storage/db/sqlite"
+	"github.com/markphelps/flipt/storage/sql/mysql"
+	"github.com/markphelps/flipt/storage/sql/postgres"
+	"github.com/markphelps/flipt/storage/sql/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

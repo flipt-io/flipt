@@ -11,7 +11,7 @@ import (
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db/common"
+	"github.com/markphelps/flipt/storage/sql/common"
 )
 
 const (

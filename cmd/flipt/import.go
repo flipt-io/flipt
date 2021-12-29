@@ -12,10 +12,10 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db"
-	"github.com/markphelps/flipt/storage/db/mysql"
-	"github.com/markphelps/flipt/storage/db/postgres"
-	"github.com/markphelps/flipt/storage/db/sqlite"
+	"github.com/markphelps/flipt/storage/sql"
+	"github.com/markphelps/flipt/storage/sql/mysql"
+	"github.com/markphelps/flipt/storage/sql/postgres"
+	"github.com/markphelps/flipt/storage/sql/sqlite"
 	"gopkg.in/yaml.v2"
 )
 
@@ -38,22 +38,22 @@ func runImport(args []string) error {
 		cancel()
 	}()
 
-	sql, driver, err := db.Open(*cfg)
+	db, driver, err := sql.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
 
-	defer sql.Close()
+	defer db.Close()
 
 	var store storage.Store
 
 	switch driver {
-	case db.SQLite:
-		store = sqlite.NewStore(sql)
-	case db.Postgres:
-		store = postgres.NewStore(sql)
-	case db.MySQL:
-		store = mysql.NewStore(sql)
+	case sql.SQLite:
+		store = sqlite.NewStore(db)
+	case sql.Postgres:
+		store = postgres.NewStore(db)
+	case sql.MySQL:
+		store = mysql.NewStore(db)
 	}
 
 	var in io.ReadCloser = os.Stdin
@@ -83,13 +83,13 @@ func runImport(args []string) error {
 		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
 
 		for _, table := range tables {
-			if _, err := sql.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
+			if _, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
 				return fmt.Errorf("dropping tables: %w", err)
 			}
 		}
 	}
 
-	migrator, err := db.NewMigrator(*cfg, l)
+	migrator, err := sql.NewMigrator(*cfg, l)
 	if err != nil {
 		return err
 	}
