@@ -14,14 +14,15 @@
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
-    "golang.Go",
-    "gamunu.vscode-yarn",
-    "dbaeumer.vscode-eslint",
-    "octref.vetur",
-    "zxh404.vscode-proto3",
-    "vsls-contrib.codetour",
-    "esbenp.prettier-vscode"
-  ],
+	"golang.Go",
+	"gamunu.vscode-yarn",
+	"dbaeumer.vscode-eslint",
+	"octref.vetur",
+	"zxh404.vscode-proto3",
+	"vsls-contrib.codetour",
+	"esbenp.prettier-vscode",
+	"redhat.vscode-yaml"
+],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [8080, 9000],
   "portsAttributes": {

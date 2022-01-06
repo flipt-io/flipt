@@ -10,6 +10,13 @@
 			"options": {
 				"cwd": "${workspaceFolder}/ui/",
 			},
+		},
+		{
+			"type": "shell",
+			"command": "make",
+			"problemMatcher": [],
+			"label": "make: build",
+			"detail": "build dev version",
 			"group": {
 				"kind": "build",
 				"isDefault": true

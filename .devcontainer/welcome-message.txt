@@ -1,0 +1,7 @@
+👋 Welcome to developing Flipt in codespaces!
+
+👢 Your environment is all set up and bootstrapped.
+
+🚀 To get started, build a local version with the VS code task (⇧⌘B) or run
+   the Server/Client run command to start the server and UI.
+   After a minute or two the UI should be accessible at http://127.0.0.1:8081/
