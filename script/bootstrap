@@ -10,8 +10,6 @@ if [ ! -f go.mod ]; then
     go mod init tools
 fi
 
-go mod tidy
-
 go install \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
