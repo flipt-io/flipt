@@ -18,6 +18,6 @@ LICENSE
 bin/
 examples/
 site/
-_tools/
+_tools/bin/
 ui/dist/
 ui/node_modules/
