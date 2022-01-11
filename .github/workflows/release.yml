@@ -24,7 +24,7 @@ jobs:
         run: docker pull ghcr.io/markphelps/flipt:${{ steps.release.outputs.release }}
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.2.0
+        uses: aquasecurity/trivy-action@0.2.1
         with:
           image-ref: "docker.io/markphelps/flipt:${{ steps.release.outputs.release }}"
           format: "template"
