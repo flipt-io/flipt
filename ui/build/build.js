@@ -6,11 +6,12 @@ process.env.NODE_ENV = "production";
 import ora from "ora";
 import rm from "rimraf";
 import { join } from "path";
-import { red, cyan, yellow } from "chalk";
+import pkg from "chalk";
 import webpack from "webpack";
-import { build } from "../config";
-import webpackConfig from "./webpack.prod.conf";
+import { build } from "../config/index.js";
+import webpackConfig from "./webpack.prod.conf.js";
 
+const { red, cyan, yellow } = pkg;
 const spinner = ora("building for production...");
 spinner.start();
 

@@ -1,48 +1,47 @@
-'use strict'
-const path = require('path')
-const utils = require('./utils')
-const webpack = require('webpack')
-const config = require('../config')
-const merge = require('webpack-merge')
-const baseWebpackConfig = require('./webpack.base.conf')
-const CopyWebpackPlugin = require('copy-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
-
-const env = require('../config/prod.env')
+"use strict";
+import path from "path";
+import { assetsPath } from "./utils.js";
+import webpack from "webpack";
+import { build } from "../config/index.js";
+import merge from "webpack-merge";
+import baseWebpackConfig from "./webpack.base.conf.js";
+import CopyWebpackPlugin from "copy-webpack-plugin";
+import HtmlWebpackPlugin from "html-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import OptimizeCSSPlugin from "optimize-css-assets-webpack-plugin";
+import env from "../config/prod.env.js";
 
 const webpackConfig = merge(baseWebpackConfig, {
-  mode: 'production',
+  mode: "production",
   optimization: {
     splitChunks: {
-      chunks: 'async',
+      chunks: "async",
       minSize: 30000,
       maxSize: 100000,
       minChunks: 1,
       maxAsyncRequests: 5,
       maxInitialRequests: 3,
-      automaticNameDelimiter: '~',
+      automaticNameDelimiter: "~",
       automaticNameMaxLength: 30,
       name: true,
       cacheGroups: {
         vendors: {
           test: /[\\/]node_modules[\\/]/,
-          priority: -10
+          priority: -10,
         },
         styles: {
-          name: 'styles',
+          name: "styles",
           test: /\.css$/,
-          chunks: 'all',
+          chunks: "all",
           enforce: true,
         },
         default: {
           minChunks: 2,
           priority: -20,
-          reuseExistingChunk: true
-        }
-      }
-    }
+          reuseExistingChunk: true,
+        },
+      },
+    },
   },
   module: {
     rules: [
@@ -52,51 +51,51 @@ const webpackConfig = merge(baseWebpackConfig, {
           {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              hmr: process.env.NODE_ENV === 'development',
+              hmr: process.env.NODE_ENV === "development",
             },
           },
-          'css-loader',
-          'postcss-loader',
-          'sass-loader',
+          "css-loader",
+          "postcss-loader",
+          "sass-loader",
         ],
       },
-    ]
+    ],
   },
-  devtool: config.build.productionSourceMap ? config.build.devtool : false,
+  devtool: build.productionSourceMap ? build.devtool : false,
   output: {
-    path: config.build.assetsRoot,
-    filename: utils.assetsPath('js/[name].[chunkhash].js'),
-    chunkFilename: utils.assetsPath('js/[id].[chunkhash].js')
+    path: build.assetsRoot,
+    filename: assetsPath("js/[name].[chunkhash].js"),
+    chunkFilename: assetsPath("js/[id].[chunkhash].js"),
   },
   plugins: [
     // http://vuejs.github.io/vue-loader/en/workflow/production.html
     new webpack.DefinePlugin({
-      'process.env': env
+      "process.env": env,
     }),
     // extract css into its own file
     new MiniCssExtractPlugin({
-      filename: '[name].css',
-      chunkFilename: '[id].css',
+      filename: "[name].css",
+      chunkFilename: "[id].css",
       ignoreOrder: false, // Enable to remove warnings about conflicting order
     }),
     // Compress extracted CSS. We are using this plugin so that possible
     // duplicated CSS from different components can be deduped.
     new OptimizeCSSPlugin({
-      cssProcessorOptions: config.build.productionSourceMap
+      cssProcessorOptions: build.productionSourceMap
         ? { safe: true, map: { inline: false } }
-        : { safe: true }
+        : { safe: true },
     }),
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
-      filename: config.build.index,
-      template: 'index.html',
+      filename: build.index,
+      template: "index.html",
       inject: true,
       minify: {
         removeComments: true,
         collapseWhitespace: true,
-        removeAttributeQuotes: true
+        removeAttributeQuotes: true,
         // more options:
         // https://github.com/kangax/html-minifier#options-quick-reference
       },
@@ -109,41 +108,40 @@ const webpackConfig = merge(baseWebpackConfig, {
     // copy custom static assets
     new CopyWebpackPlugin([
       {
-        from: path.resolve(__dirname, '../static'),
-        to: config.build.assetsSubDirectory,
-        ignore: ['favicon.ico', '.*']
-      }
+        from: path.resolve(__dirname, "../static"),
+        to: build.assetsSubDirectory,
+        ignore: ["favicon.ico", ".*"],
+      },
     ]),
 
     // copy favicon.ico to rooot
     new CopyWebpackPlugin([
       {
-        from: path.resolve(__dirname, '../static/favicon.ico')
-      }
-    ])
-  ]
-})
+        from: path.resolve(__dirname, "../static/favicon.ico"),
+      },
+    ]),
+  ],
+});
 
-if (config.build.productionGzip) {
-  const CompressionWebpackPlugin = require('compression-webpack-plugin')
+if (build.productionGzip) {
+  const CompressionWebpackPlugin = require("compression-webpack-plugin");
 
   webpackConfig.plugins.push(
     new CompressionWebpackPlugin({
-      asset: '[path].gz[query]',
-      algorithm: 'gzip',
+      asset: "[path].gz[query]",
+      algorithm: "gzip",
       test: new RegExp(
-        '\\.(' +
-        config.build.productionGzipExtensions.join('|') +
-        ')$'
+        "\\.(" + build.productionGzipExtensions.join("|") + ")$"
       ),
       threshold: 10240,
-      minRatio: 0.8
+      minRatio: 0.8,
     })
-  )
+  );
 }
 
-if (config.build.bundleAnalyzerReport) {
-  const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
-  webpackConfig.plugins.push(new BundleAnalyzerPlugin())
+if (build.bundleAnalyzerReport) {
+  const BundleAnalyzerPlugin =
+    require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+  webpackConfig.plugins.push(new BundleAnalyzerPlugin());
 }
-module.exports = webpackConfig
+export default webpackConfig;

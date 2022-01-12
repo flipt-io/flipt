@@ -4,7 +4,7 @@ import Buefy from "buefy";
 
 import router from "./router";
 
-require("./assets/sass/main.scss");
+import './assets/sass/main.scss';
 
 Vue.config.productionTip = false;
 Vue.use(require("vue-moment"));

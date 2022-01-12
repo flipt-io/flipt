@@ -4,11 +4,12 @@
   "description": "Flipt UI",
   "author": "Mark Phelps <mark.aaron.phelps@gmail.com>",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "webpack-dev-server --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src __tests__",
-    "build": "node build/build.js",
+    "build": "node --experimental-json-modules build/build.js",
     "test": "jest"
   },
   "dependencies": {

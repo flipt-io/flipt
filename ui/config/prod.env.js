@@ -1,4 +1,5 @@
 'use strict'
-module.exports = {
+
+export default {
   NODE_ENV: '"production"'
-}
+};
