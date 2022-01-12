@@ -1,5 +1,6 @@
 "use strict";
 import path from "path";
+import { fileURLToPath } from "url";
 import { assetsPath } from "./utils.js";
 import webpack from "webpack";
 import { build } from "../config/index.js";
@@ -10,6 +11,9 @@ import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import OptimizeCSSPlugin from "optimize-css-assets-webpack-plugin";
 import env from "../config/prod.env.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const webpackConfig = merge(baseWebpackConfig, {
   mode: "production",

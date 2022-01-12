@@ -58,6 +58,7 @@
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-config-standard": "^14.1.0",
+    "eslint-formatter-friendly": "^7.0.0",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-import": "^2.24.2",

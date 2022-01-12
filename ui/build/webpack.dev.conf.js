@@ -1,7 +1,7 @@
 "use strict";
 import utils from "./utils";
 import webpack from "webpack";
-import config from "../config";
+import config from "../config/index.js";
 import merge from "webpack-merge";
 import path from "path";
 import baseWebpackConfig from "./webpack.base.conf";

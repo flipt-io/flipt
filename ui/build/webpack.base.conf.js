@@ -1,9 +1,16 @@
 "use strict";
 import path from "path";
+import { fileURLToPath } from "url";
 import { assetsPath } from "./utils.js";
 import { dev, build } from "../config/index.js";
 import vueLoaderConfig from "./vue-loader.conf.js";
 import { VueLoaderPlugin } from "vue-loader";
+import pkg from "eslint-friendly-formatter";
+
+const { esLintFriendlyFormatter } = pkg;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function resolve(dir) {
   return path.join(__dirname, "..", dir);
@@ -15,7 +22,7 @@ const createLintingRule = () => ({
   enforce: "pre",
   include: [resolve("src"), resolve("test")],
   options: {
-    formatter: require("eslint-friendly-formatter"),
+    formatter: esLintFriendlyFormatter,
     emitWarning: !dev.showEslintErrorsInOverlay,
   },
 });
@@ -42,7 +49,7 @@ export default {
   },
   module: {
     rules: [
-      ...(config.dev.useEslint ? [createLintingRule()] : []),
+      ...(dev.useEslint ? [createLintingRule()] : []),
       {
         test: /\.vue$/,
         loader: "vue-loader",
