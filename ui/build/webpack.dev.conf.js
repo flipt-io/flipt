@@ -1,28 +1,33 @@
 "use strict";
-import utils from "./utils";
+import { createNotifierCallback, styleLoaders } from "./utils.js";
 import webpack from "webpack";
-import config from "../config/index.js";
+import { dev } from "../config/index.js";
 import merge from "webpack-merge";
 import path from "path";
-import baseWebpackConfig from "./webpack.base.conf";
+import { fileURLToPath } from "url";
+import baseWebpackConfig from "./webpack.base.conf.js";
 import CopyWebpackPlugin from "copy-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import FriendlyErrorsPlugin from "friendly-errors-webpack-plugin";
 import portfinder from "portfinder";
+import env from "../config/dev.env.js";
 
 const HOST = process.env.HOST;
 const PORT = process.env.PORT && Number(process.env.PORT);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const devWebpackConfig = merge(baseWebpackConfig, {
   mode: "development",
   module: {
-    rules: utils.styleLoaders({
-      sourceMap: config.dev.cssSourceMap,
+    rules: styleLoaders({
+      sourceMap: dev.cssSourceMap,
       usePostCSS: true,
     }),
   },
   // cheap-module-eval-source-map is faster for development
-  devtool: config.dev.devtool,
+  devtool: dev.devtool,
 
   // these devServer options should be customized in /config/index.js
   devServer: {
@@ -30,15 +35,15 @@ const devWebpackConfig = merge(baseWebpackConfig, {
       rewrites: [
         {
           from: /.*/,
-          to: path.posix.join(config.dev.assetsPublicPath, "index.html"),
+          to: path.posix.join(dev.assetsPublicPath, "index.html"),
         },
       ],
     },
     hot: true,
     compress: true,
-    host: HOST || config.dev.host,
-    port: PORT || config.dev.port,
-    open: config.dev.autoOpenBrowser,
+    host: HOST || dev.host,
+    port: PORT || dev.port,
+    open: dev.autoOpenBrowser,
     proxy: {
       "/api": {
         target: "http://localhost:8080",
@@ -47,7 +52,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   },
   plugins: [
     new webpack.DefinePlugin({
-      "process.env": require("../config/dev.env"),
+      "process.env": env,
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NamedModulesPlugin(), // HMR shows correct file names in console on update.
@@ -62,7 +67,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     new CopyWebpackPlugin([
       {
         from: path.resolve(__dirname, "../static"),
-        to: config.dev.assetsSubDirectory,
+        to: dev.assetsSubDirectory,
         ignore: [".*"],
       },
     ]),
@@ -70,7 +75,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 });
 
 export default new Promise((resolve, reject) => {
-  portfinder.basePort = process.env.PORT || config.dev.port;
+  portfinder.basePort = process.env.PORT || dev.port;
   portfinder.getPort((err, port) => {
     if (err) {
       reject(err);
@@ -88,9 +93,7 @@ export default new Promise((resolve, reject) => {
               `Your application is running here: http://${devWebpackConfig.devServer.host}:${port}`,
             ],
           },
-          onErrors: config.dev.notifyOnErrors
-            ? utils.createNotifierCallback()
-            : undefined,
+          onErrors: dev.notifyOnErrors ? createNotifierCallback() : undefined,
         })
       );
 

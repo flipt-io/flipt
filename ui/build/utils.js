@@ -2,6 +2,7 @@
 import path from "path";
 import { dev, build } from "../config/index.js";
 import packageConfig from "../package.json";
+import notifier from "node-notifier";
 
 export const assetsPath = function (_path) {
   const assetsSubDirectory =
@@ -79,8 +80,6 @@ export const styleLoaders = function (options) {
 };
 
 export const createNotifierCallback = () => {
-  const notifier = require("node-notifier");
-
   return (severity, errors) => {
     if (severity !== "error") return;
 
