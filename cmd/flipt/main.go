@@ -225,9 +225,39 @@ func run(_ []string) error {
 
 	defer signal.Stop(interrupt)
 
+	var (
+		latestVersion   semver.Version
+		updateAvailable bool
+	)
+
 	if cfg.Meta.CheckForUpdates && version != defaultVersion {
-		if err := checkForUpdates(ctx); err != nil {
+		l.Debug("checking for updates...")
+
+		release, err := getLatestRelease(ctx)
+		if err != nil {
 			l.Warn(err)
+		}
+
+		if release != nil {
+			latestVersion, err := semver.ParseTolerant(release.GetTagName())
+			if err != nil {
+				return fmt.Errorf("parsing latest version: %w", err)
+			}
+
+			currentVersion, err := semver.ParseTolerant(version)
+			if err != nil {
+				return fmt.Errorf("parsing current version: %w", err)
+			}
+
+			l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
+
+			switch currentVersion.Compare(latestVersion) {
+			case 0:
+				color.Green("You are currently running the latest version of Flipt [%s]!", currentVersion.String())
+			case -1:
+				updateAvailable = true
+				color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
+			}
 		}
 	}
 
@@ -420,10 +450,12 @@ func run(_ []string) error {
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
 			r.Handle("/info", info{
-				Version:   version,
-				Commit:    commit,
-				BuildDate: date,
-				GoVersion: goVersion,
+				Version:         version,
+				LatestVersion:   latestVersion.String(),
+				UpdateAvailable: updateAvailable,
+				Commit:          commit,
+				BuildDate:       date,
+				GoVersion:       goVersion,
 			})
 			r.Handle("/config", cfg)
 		})
@@ -510,47 +542,23 @@ func run(_ []string) error {
 	return g.Wait()
 }
 
-func checkForUpdates(ctx context.Context) error {
-	l.Debug("checking for updates...")
-
+func getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
 	if err != nil {
-		return fmt.Errorf("checking for latest version: %w", err)
+		return nil, fmt.Errorf("checking for latest version: %w", err)
 	}
 
-	var (
-		releaseTag                    = release.GetTagName()
-		latestVersion, currentVersion semver.Version
-	)
-
-	latestVersion, err = semver.ParseTolerant(releaseTag)
-	if err != nil {
-		return fmt.Errorf("parsing latest version: %w", err)
-	}
-
-	currentVersion, err = semver.ParseTolerant(version)
-	if err != nil {
-		return fmt.Errorf("parsing current version: %w", err)
-	}
-
-	l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
-
-	switch currentVersion.Compare(latestVersion) {
-	case 0:
-		color.Green("You are currently running the latest version of Flipt [%s]!", currentVersion.String())
-	case -1:
-		color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
-	}
-
-	return nil
+	return release, nil
 }
 
 type info struct {
-	Version   string `json:"version,omitempty"`
-	Commit    string `json:"commit,omitempty"`
-	BuildDate string `json:"buildDate,omitempty"`
-	GoVersion string `json:"goVersion,omitempty"`
+	Version         string `json:"version,omitempty"`
+	LatestVersion   string `json:"latestVersion,omitempty"`
+	UpdateAvailable bool   `json:"updateAvailable,omitempty"`
+	Commit          string `json:"commit,omitempty"`
+	BuildDate       string `json:"buildDate,omitempty"`
+	GoVersion       string `json:"goVersion,omitempty"`
 }
 
 func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
