@@ -3,7 +3,7 @@ ARG GO_VERSION=1.16
 FROM golang:${GO_VERSION}
 
 RUN apt-get update && \
-    apt-get install -y curl gnupg \
+    apt-get install -y curl gnupg sudo \
     postgresql-client
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
