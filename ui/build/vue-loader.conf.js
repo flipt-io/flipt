@@ -1,22 +1,22 @@
-'use strict'
-const utils = require('./utils')
-const config = require('../config')
-const isProduction = process.env.NODE_ENV === 'production'
+"use strict";
+import { cssLoaders } from "./utils.js";
+import { dev, build } from "../config/index.js";
+const isProduction = process.env.NODE_ENV === "production";
 const sourceMapEnabled = isProduction
-  ? config.build.productionSourceMap
-  : config.dev.cssSourceMap
+  ? build.productionSourceMap
+  : dev.cssSourceMap;
 
-module.exports = {
-  loaders: utils.cssLoaders({
+export default {
+  loaders: cssLoaders({
     sourceMap: sourceMapEnabled,
-    extract: isProduction
+    extract: isProduction,
   }),
   cssSourceMap: sourceMapEnabled,
-  cacheBusting: config.dev.cacheBusting,
+  cacheBusting: dev.cacheBusting,
   transformToRequire: {
-    video: ['src', 'poster'],
-    source: 'src',
-    img: 'src',
-    image: 'xlink:href'
-  }
-}
+    video: ["src", "poster"],
+    source: "src",
+    img: "src",
+    image: "xlink:href",
+  },
+};

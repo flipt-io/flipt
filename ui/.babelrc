@@ -5,18 +5,14 @@
       {
         "modules": false,
         "targets": {
-          "browsers": [
-            "> 1%",
-            "last 2 versions",
-            "not ie <= 8"
-          ]
+          "browsers": ["> 1%", "last 2 versions", "not ie <= 8"]
         }
       }
     ]
   ],
   "plugins": [
     "transform-vue-jsx",
-	"@babel/plugin-transform-modules-commonjs",
+    "@babel/plugin-transform-modules-commonjs",
     [
       "@babel/plugin-transform-runtime",
       {

@@ -1,3 +1,8 @@
+before:
+  hooks:
+    - echo $DOCKER_TOKEN | docker login -u markphelps --password-stdin
+    - echo $GITHUB_TOKEN | docker login ghcr.io -u markphelps --password-stdin
+
 builds:
   - main: ./cmd/flipt/.
     env:
@@ -13,6 +18,9 @@ builds:
       - amd64
     flags:
       - -tags=assets
+
+release:
+  mode: replace # opts: keep-existing, append, prepend, replace
 
 archives:
   - id: main

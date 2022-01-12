@@ -6,11 +6,7 @@ cd "$(dirname "$0")/.." || exit
 
 case "$1" in
 "release")
-            github-release-notes -org markphelps -repo flipt --since-latest-release | tee release.out
-
-            goreleaser --rm-dist --release-notes release.out
-
-            rm release.out
+            goreleaser --rm-dist --release-notes <(github-release-notes -org markphelps -repo flipt --since-latest-release)
             ;;
 
 "snapshot")
