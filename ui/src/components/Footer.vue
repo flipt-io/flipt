@@ -1,20 +1,15 @@
 <template>
   <footer class="footer">
-    <div class="content has-text-centered">
-      <p>
-        <strong>Flipt</strong> version
-        <a>{{ version }}</a>
-      </p>
-    </div>
+    <div class="content has-text-centered">I am down here.</div>
   </footer>
 </template>
 
 <script>
 export default {
-  Name: "nav",
+  Name: "footer",
   data() {
     return {
-      hasUpdate: false,
+      updateAvailable: false,
       version: "dev",
       latestVersion: "",
     };
