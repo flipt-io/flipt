@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_OPTIONS='--experimental-json-modules' webpack-dev-server --progress --config build/webpack.dev.conf.js",
+    "dev": "NODE_OPTIONS='--experimental-json-modules' npx webpack serve --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src __tests__",
     "build": "node --experimental-json-modules build/build.js",
