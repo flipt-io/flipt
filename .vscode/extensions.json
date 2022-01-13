@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "mutantdino.resourcemonitor",
+        "eamodio.gitlens",
+        "vsls-contrib.codetour",
+        "github.vscode-pull-request-github"
+    ]
+}
