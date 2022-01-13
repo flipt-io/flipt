@@ -3,8 +3,7 @@ ARG GO_VERSION=1.16
 FROM golang:${GO_VERSION}
 
 RUN apt-get update && \
-    export DEBIAN_FRONTEND=noninteractive \
-    apt-get -y --install --no-install-recommends \
+    apt-get -y install --no-install-recommends \
     curl \
     gnupg \ 
     sudo \
