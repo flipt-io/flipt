@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div id="wrapper">
+  <div id="wrapper">
+    <div id="main">
       <Nav />
       <RouterView />
     </div>
@@ -9,7 +9,6 @@
 </template>
 
 <script>
-import Footer from "./components/Footer.vue";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 
@@ -22,4 +21,18 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+#wrapper {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+#main {
+  flex: 1;
+}
+
+footer {
+  padding: 1rem;
+}
+</style>

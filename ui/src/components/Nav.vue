@@ -55,6 +55,9 @@ export default {
   data() {
     return {
       isActive: false,
+      updateAvailable: false,
+      version: "dev",
+      latestVersion: "",
     };
   },
 };
