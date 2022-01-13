@@ -10,7 +10,10 @@
   "settings": {
     "go.toolsManagement.checkForUpdates": "local",
     "go.gopath": "/go",
-    "go.useLanguageServer": true
+    "go.useLanguageServer": true,
+    "go.formatTool": "goimports",
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": ["--fast"]
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
@@ -36,7 +39,7 @@
       "label": "GRPC Port",
       "onAutoForward": "notify"
     }
-  },
+  }
   // Uncomment the next line to run commands after the container is created - for example installing curl.
   // "postCreateCommand": "apt-get update && apt-get install -y curl",
   // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
