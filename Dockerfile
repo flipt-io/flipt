@@ -3,7 +3,12 @@ ARG GO_VERSION=1.16
 FROM golang:${GO_VERSION}
 
 RUN apt-get update && \
-    apt-get install -y curl gnupg sudo \
+    export DEBIAN_FRONTEND=noninteractive \
+    apt-get -y --install --no-install-recommends \
+    curl \
+    gnupg \ 
+    sudo \
+    openssh-server \
     postgresql-client
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
