@@ -44,6 +44,16 @@
           Documentation
         </a>
         <a class="navbar-item has-text-weight-semibold" href="/docs/">API</a>
+        <a
+          v-if="linkToRelease"
+          class="navbar-item has-text-weight-semibold"
+          href="https://github.com/markphelps/flipt/releases/tag/{{ version }}"
+        >
+          {{ version }}
+        </a>
+        <div v-else class="navbar-item has-text-weight-light">
+          {{ version }}
+        </div>
       </div>
     </div>
   </nav>
@@ -56,9 +66,14 @@ export default {
     return {
       isActive: false,
       updateAvailable: false,
-      version: "dev",
+      version: "v1.5.0",
       latestVersion: "",
     };
+  },
+  computed: {
+    linkToRelease() {
+      return this.version !== "dev";
+    },
   },
 };
 </script>
