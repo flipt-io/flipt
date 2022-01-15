@@ -39,20 +39,21 @@
       <div class="navbar-end">
         <a
           class="navbar-item has-text-weight-semibold"
+          target="_blank"
           href="https://flipt.io/docs/getting_started/?utm_source=app"
         >
           Documentation
         </a>
-        <a class="navbar-item has-text-weight-semibold" href="/docs/">API</a>
         <a
-          v-if="linkToRelease"
           class="navbar-item has-text-weight-semibold"
-          href="https://github.com/markphelps/flipt/releases/tag/{{ version }}"
+          target="_blank"
+          href="/docs/"
+          >API</a
         >
-          {{ version }}
-        </a>
-        <div v-else class="navbar-item has-text-weight-light">
-          {{ version }}
+        <div class="navbar-item control">
+          <a class="button is-primary is-small" target="_blank" :href="refURL">
+            {{ ref }}
+          </a>
         </div>
       </div>
     </div>
@@ -65,14 +66,23 @@ export default {
   data() {
     return {
       isActive: false,
-      updateAvailable: false,
       version: "v1.5.0",
-      latestVersion: "",
+      isRelease: true,
+      commit: "12345",
+      updateAvailable: true,
     };
   },
   computed: {
-    linkToRelease() {
-      return this.version !== "dev";
+    refURL() {
+      if (this.isRelease) {
+        return (
+          "https://github.com/markphelps/flipt/releases/tag/" + this.version
+        );
+      }
+      return "https://github.com/markphelps/flipt/commit/" + this.commit;
+    },
+    ref() {
+      return this.isRelease ? this.version : this.commit;
     },
   },
 };
