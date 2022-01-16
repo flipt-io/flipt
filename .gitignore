@@ -13,6 +13,7 @@ _test
 .vscode/*
 !.vscode/launch.json
 !.vscode/tasks.json
+!.vscode/extensions.json
 *.cov
 *.log
 *.out

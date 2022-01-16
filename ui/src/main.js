@@ -3,6 +3,7 @@ import App from "./App";
 import Buefy from "buefy";
 
 import router from "./router";
+import store from "./store";
 
 import "./assets/sass/main.scss";
 
@@ -24,6 +25,7 @@ Vue.filter("limit", function (value) {
 new Vue({
   el: "#app",
   router,
+  store,
   components: { App },
   template: "<App/>",
 });

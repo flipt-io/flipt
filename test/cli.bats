@@ -41,7 +41,6 @@ load 'helpers/bats-assert/load'
 @test "version flag prints version info" {
     run ./bin/flipt --version
     assert_success
-    assert_output -p "Version:"
     assert_output -p "Commit:"
     assert_output -e "Build Date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"
     assert_output -e "Go Version: go[0-9]+\.[0-9]+\.[0-9]"
