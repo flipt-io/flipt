@@ -18,4 +18,5 @@ go install \
     github.com/golangci/golangci-lint/cmd/golangci-lint \
     golang.org/x/tools/cmd/cover \
     golang.org/x/tools/cmd/goimports \
-    github.com/buchanae/github-release-notes
+    github.com/buchanae/github-release-notes \
+    github.com/cortesi/modd/cmd/modd
