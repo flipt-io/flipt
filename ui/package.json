@@ -26,7 +26,8 @@
     "vue-moment": "^4.1.0",
     "vue-notification": "^1.3.13",
     "vue-router": "^3.0.1",
-    "vuedraggable": "^2.16.0"
+    "vuedraggable": "^2.16.0",
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.16.5",

@@ -50,39 +50,43 @@
           href="/docs/"
           >API</a
         >
-        <div class="navbar-item control">
-          <a class="button is-primary is-small" target="_blank" :href="refURL">
-            {{ ref }}
-          </a>
-        </div>
+        <a
+          class="navbar-item is-size-7 has-text-weight-semibold"
+          target="_blank"
+          :href="refURL"
+        >
+          {{ ref }}
+        </a>
       </div>
     </div>
   </nav>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   Name: "nav",
   data() {
     return {
       isActive: false,
-      version: "v1.5.0",
-      isRelease: true,
-      commit: "12345",
-      updateAvailable: true,
     };
   },
   computed: {
+    ...mapGetters(["info"]),
     refURL() {
-      if (this.isRelease) {
+      if (this.info.version) {
         return (
-          "https://github.com/markphelps/flipt/releases/tag/" + this.version
+          "https://github.com/markphelps/flipt/releases/tag/" +
+          this.info.version
         );
       }
-      return "https://github.com/markphelps/flipt/commit/" + this.commit;
+      return "https://github.com/markphelps/flipt/commit/" + this.info.commit;
     },
     ref() {
-      return this.isRelease ? this.version : this.commit;
+      return this.info.version
+        ? this.info.version
+        : this.info.commit.substring(0, 7);
     },
   },
 };

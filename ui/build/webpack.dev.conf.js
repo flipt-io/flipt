@@ -44,11 +44,12 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     host: HOST || dev.host,
     port: PORT || dev.port,
     open: dev.autoOpenBrowser,
-    proxy: {
-      "/api": {
+    proxy: [
+      {
+        context: ["/api", "/meta"],
         target: "http://localhost:8080",
       },
-    },
+    ],
   },
   plugins: [
     new webpack.DefinePlugin({

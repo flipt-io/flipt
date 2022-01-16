@@ -8,7 +8,7 @@ const bannerTmpl = `
 |_|   |_|_| .__/ \__|
           |_|
 
-Version: {{.Version}}
+{{if .Version}}Version: {{.Version}}{{end}}
 Commit: {{.Commit}}
 Build Date: {{.Date}}
 Go Version: {{.GoVersion}}

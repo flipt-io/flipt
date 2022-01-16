@@ -4,6 +4,7 @@
       <Nav />
       <RouterView />
     </div>
+    <UpdateNotification />
     <Footer />
   </div>
 </template>
@@ -11,12 +12,14 @@
 <script>
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
+import UpdateNotification from "./components/UpdateNotification";
 
 export default {
   name: "App",
   components: {
     Nav,
     Footer,
+    UpdateNotification,
   },
 };
 </script>

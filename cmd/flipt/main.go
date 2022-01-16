@@ -59,8 +59,6 @@ import (
 	jaeger_config "github.com/uber/jaeger-client-go/config"
 )
 
-const defaultVersion = "dev"
-
 var (
 	l   = logrus.New()
 	cfg *config.Config
@@ -68,7 +66,7 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   = defaultVersion
+	version   string
 	commit    string
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
@@ -226,11 +224,11 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	var (
-		latestVersion   semver.Version
+		latestVersion   string
 		updateAvailable bool
 	)
 
-	if cfg.Meta.CheckForUpdates && version != defaultVersion {
+	if cfg.Meta.CheckForUpdates && version != "" {
 		l.Debug("checking for updates...")
 
 		release, err := getLatestRelease(ctx)
@@ -239,21 +237,25 @@ func run(_ []string) error {
 		}
 
 		if release != nil {
-			latestVersion, err := semver.ParseTolerant(release.GetTagName())
+			lv, err := semver.ParseTolerant(release.GetTagName())
 			if err != nil {
 				return fmt.Errorf("parsing latest version: %w", err)
 			}
 
-			currentVersion, err := semver.ParseTolerant(version)
+			if lv.GT(semver.Version{}) {
+				latestVersion = lv.String()
+			}
+
+			cv, err := semver.ParseTolerant(version)
 			if err != nil {
 				return fmt.Errorf("parsing current version: %w", err)
 			}
 
-			l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
+			l.Debugf("current version: %s; latest version: %s", cv.String(), lv.String())
 
-			switch currentVersion.Compare(latestVersion) {
+			switch cv.Compare(lv) {
 			case 0:
-				color.Green("You are currently running the latest version of Flipt [%s]!", currentVersion.String())
+				color.Green("You are currently running the latest version of Flipt [%s]!", version)
 			case -1:
 				updateAvailable = true
 				color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
@@ -451,7 +453,7 @@ func run(_ []string) error {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
 			r.Handle("/info", info{
 				Version:         version,
-				LatestVersion:   latestVersion.String(),
+				LatestVersion:   latestVersion,
 				UpdateAvailable: updateAvailable,
 				Commit:          commit,
 				BuildDate:       date,
