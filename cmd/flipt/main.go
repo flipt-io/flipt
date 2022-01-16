@@ -224,11 +224,20 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	var (
+		validVersion    = true
 		latestVersion   string
 		updateAvailable bool
 	)
 
-	if cfg.Meta.CheckForUpdates && version != "" {
+	cv, err := semver.ParseTolerant(version)
+	if err != nil {
+		validVersion = false
+		cv = semver.Version{}
+	} else {
+		version = cv.String()
+	}
+
+	if cfg.Meta.CheckForUpdates && validVersion {
 		l.Debug("checking for updates...")
 
 		release, err := getLatestRelease(ctx)
@@ -246,12 +255,7 @@ func run(_ []string) error {
 				latestVersion = lv.String()
 			}
 
-			cv, err := semver.ParseTolerant(version)
-			if err != nil {
-				return fmt.Errorf("parsing current version: %w", err)
-			}
-
-			l.Debugf("current version: %s; latest version: %s", cv.String(), lv.String())
+			l.Debugf("current version: %s; latest version: %s", version, latestVersion)
 
 			switch cv.Compare(lv) {
 			case 0:

@@ -33,6 +33,12 @@ const actions = {
 const mutations = {
   SET_INFO(state, info) {
     state.info = info;
+    if (info.version) {
+      state.info.version = "v" + info.version;
+    }
+    if (info.latestVersion) {
+      state.info.latestVersion = "v" + info.latestVersion;
+    }
   },
 };
 
