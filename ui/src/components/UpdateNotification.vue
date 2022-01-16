@@ -1,9 +1,5 @@
 <template>
-  <div
-    v-if="info.updateAvailable && !isHidden"
-    id="update"
-    class="notification is-success"
-  >
+  <div v-if="show" id="update" class="notification is-success">
     <button id="update-close" class="delete" @click="close"></button>
     <p class="content">
       <a target="_blank" :href="releaseURL">Flipt {{ info.latestVersion }}</a>
@@ -29,9 +25,9 @@ export default {
         this.info.latestVersion
       );
     },
-  },
-  mounted() {
-    this.$store.dispatch("getInfo");
+    show() {
+      return this.info.updateAvailable && !this.isHidden;
+    },
   },
   methods: {
     close() {

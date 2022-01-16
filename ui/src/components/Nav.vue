@@ -51,6 +51,7 @@
           >API</a
         >
         <a
+          v-if="ref"
           class="navbar-item is-size-7 has-text-weight-semibold"
           target="_blank"
           :href="refURL"
@@ -84,10 +85,16 @@ export default {
       return "https://github.com/markphelps/flipt/commit/" + this.info.commit;
     },
     ref() {
-      return this.info.version
-        ? this.info.version
-        : this.info.commit.substring(0, 7);
+      if (this.info.version) {
+        return this.info.version;
+      } else if (this.info.commit) {
+        return this.info.commit.substring(0, 7);
+      }
+      return "";
     },
+  },
+  mounted() {
+    this.$store.dispatch("getInfo");
   },
 };
 </script>
