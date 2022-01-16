@@ -59,6 +59,8 @@ import (
 	jaeger_config "github.com/uber/jaeger-client-go/config"
 )
 
+const devVersion = "dev"
+
 var (
 	l   = logrus.New()
 	cfg *config.Config
@@ -66,7 +68,7 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   string
+	version   = devVersion
 	commit    string
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
@@ -224,20 +226,22 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	var (
-		validVersion    = true
-		latestVersion   string
+		isRelease       = false
 		updateAvailable bool
+		cv, lv          semver.Version
 	)
 
-	cv, err := semver.ParseTolerant(version)
-	if err != nil {
-		validVersion = false
-		cv = semver.Version{}
-	} else {
-		version = cv.String()
+	if version != "" && version != devVersion {
+		var err error
+		cv, err = semver.ParseTolerant(version)
+		if err != nil {
+			return fmt.Errorf("parsing version: %w", err)
+		}
+
+		isRelease = true
 	}
 
-	if cfg.Meta.CheckForUpdates && validVersion {
+	if cfg.Meta.CheckForUpdates && isRelease {
 		l.Debug("checking for updates...")
 
 		release, err := getLatestRelease(ctx)
@@ -246,20 +250,17 @@ func run(_ []string) error {
 		}
 
 		if release != nil {
-			lv, err := semver.ParseTolerant(release.GetTagName())
+			var err error
+			lv, err = semver.ParseTolerant(release.GetTagName())
 			if err != nil {
 				return fmt.Errorf("parsing latest version: %w", err)
 			}
 
-			if lv.GT(semver.Version{}) {
-				latestVersion = lv.String()
-			}
-
-			l.Debugf("current version: %s; latest version: %s", version, latestVersion)
+			l.Debugf("current version: %s; latest version: %s", cv, lv)
 
 			switch cv.Compare(lv) {
 			case 0:
-				color.Green("You are currently running the latest version of Flipt [%s]!", version)
+				color.Green("You are currently running the latest version of Flipt [%s]!", cv)
 			case -1:
 				updateAvailable = true
 				color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
@@ -456,8 +457,8 @@ func run(_ []string) error {
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
 			r.Handle("/info", info{
-				Version:         version,
-				LatestVersion:   latestVersion,
+				Version:         cv.FinalizeVersion(),
+				LatestVersion:   lv.FinalizeVersion(),
 				UpdateAvailable: updateAvailable,
 				Commit:          commit,
 				BuildDate:       date,
