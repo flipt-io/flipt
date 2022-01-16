@@ -110,20 +110,26 @@ const webpackConfig = merge(baseWebpackConfig, {
     new webpack.optimize.ModuleConcatenationPlugin(),
 
     // copy custom static assets
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, "../static"),
-        to: build.assetsSubDirectory,
-        ignore: ["favicon.ico", ".*"],
-      },
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "../static"),
+          to: build.assetsSubDirectory,
+          globOptions: {
+            ignore: ["favicon.ico", ".*"],
+          },
+        },
+      ],
+    }),
 
     // copy favicon.ico to rooot
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, "../static/favicon.ico"),
-      },
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "../static/favicon.ico"),
+        },
+      ],
+    }),
   ],
 });
 
