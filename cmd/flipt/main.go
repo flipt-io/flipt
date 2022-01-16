@@ -454,16 +454,27 @@ func run(_ []string) error {
 		r.Mount("/api/v1", api)
 		r.Mount("/debug", middleware.Profiler())
 
+		info := info{
+			Commit:    commit,
+			BuildDate: date,
+			GoVersion: goVersion,
+		}
+
+		emptyVersion := semver.Version{}
+
+		if cv.Validate() != nil && cv.GE(emptyVersion) {
+			info.Version = cv.FinalizeVersion()
+		}
+		if lv.Validate() != nil && cv.GE(emptyVersion) {
+			info.LatestVersion = lv.FinalizeVersion()
+		}
+		if updateAvailable {
+			info.UpdateAvailable = true
+		}
+
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
-			r.Handle("/info", info{
-				Version:         cv.FinalizeVersion(),
-				LatestVersion:   lv.FinalizeVersion(),
-				UpdateAvailable: updateAvailable,
-				Commit:          commit,
-				BuildDate:       date,
-				GoVersion:       goVersion,
-			})
+			r.Handle("/info", info)
 			r.Handle("/config", cfg)
 		})
 
