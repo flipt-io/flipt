@@ -22,6 +22,9 @@ builds:
 release:
   mode: replace # opts: keep-existing, append, prepend, replace
 
+sboms:
+  - artifacts: archive
+
 archives:
   - id: main
     replacements:
