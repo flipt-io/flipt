@@ -4,6 +4,7 @@ tap 'goreleaser/tap'
 
 brew 'buf'
 brew 'cmake'
+brew 'cosign'
 brew 'go'
 brew 'goreleaser'
 brew 'hadolint'
