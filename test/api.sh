@@ -4,14 +4,14 @@ set -o pipefail
 
 cd "$(dirname "$0")/.." || exit
 
-FLIPT_PID="/tmp/flipt.api.pid"
-
 export SHAKEDOWN_URL="http://127.0.0.1:8080"
 
 source ./test/helpers/shakedown/shakedown.sh
 
+FLIPT_PID="/tmp/flipt.api.pid"
+
 finish() {
-  _finish # shakedown trap
+  _finish # shakedown trap that sets exit code correctly
   [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
 }
 
@@ -211,6 +211,7 @@ step_5_test_evaluation()
     # re: #664
     shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"cohort\":null}}"
         status 200
+        print_body
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
 }
