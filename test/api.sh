@@ -72,7 +72,7 @@ step_2_test_flags_and_variants()
         status 200
         matches "\"key\":\"$variant_key_2\""
 
-    variant_id=$(curl -sS "/api/v1/flags/$flag_key" | jq '.variants | .[0].id')
+    variant_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key" | jq '.variants | .[0].id')
     variant_id=$(eval echo "$variant_id")
 
     # update variant
@@ -138,7 +138,7 @@ step_3_test_segments_and_constraints()
         matches "\"operator\":\"neq\""
         matches "\"value\":\"buzz\""
 
-    constraint_id=$(curl -sS "/api/v1/segments/$segment_key" | jq '.constraints | .[0].id')
+    constraint_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/segments/$segment_key" | jq '.constraints | .[0].id')
     constraint_id=$(eval echo "$constraint_id")
 
     # update constraint
@@ -172,7 +172,7 @@ step_4_test_rules_and_distributions()
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
-    rule_id=$(curl -sS "/api/v1/flags/$flag_key/rules" | jq '.rules | .[0].id')
+    rule_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key/rules" | jq '.rules | .[0].id')
     rule_id=$(eval echo "$rule_id")
 
     # get rule
