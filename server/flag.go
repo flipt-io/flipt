@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // GetFlag gets a flag
