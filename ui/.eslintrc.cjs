@@ -31,7 +31,6 @@ module.exports = {
         singleline: 5,
         multiline: {
           max: 5,
-          allowFirstLine: true,
         },
       },
     ],
@@ -43,6 +42,7 @@ module.exports = {
         ignores: ["draggable"],
       },
     ],
+    "vue/multi-word-component-names": "off",
     "no-async-promise-executor": "off",
     "no-misleading-character-class": "off",
     "no-prototype-builtins": "off",
