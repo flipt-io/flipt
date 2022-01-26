@@ -201,6 +201,13 @@ step_5_test_evaluation()
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
+
+    # evaluate handles null value
+    # re: #664
+    shakedown POST "$flipt_api/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"cohort\":null}}"
+        status 200
+        matches "\"flagKey\":\"$flag_key\""
+        matches "\"match\":false"
 }
 
 step_6_test_batch_evaluation()

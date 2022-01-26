@@ -263,11 +263,6 @@ func run(_ []string) error {
 			_ = lis.Close()
 		}()
 
-		var (
-			grpcOpts []grpc.ServerOption
-			srv      *server.Server
-		)
-
 		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
@@ -299,8 +294,6 @@ func run(_ []string) error {
 
 		logger = logger.WithField("store", store.String())
 
-		srv = server.New(logger, store)
-
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
 		if cfg.Tracing.Jaeger.Enabled {
@@ -328,6 +321,11 @@ func run(_ []string) error {
 		}
 
 		opentracing.SetGlobalTracer(tracer)
+
+		var (
+			grpcOpts []grpc.ServerOption
+			srv      = server.New(logger, store)
+		)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
