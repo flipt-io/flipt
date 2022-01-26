@@ -174,6 +174,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://sagikazarmark.hu"><img src="https://avatars.githubusercontent.com/u/1226384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Márk Sági-Kazár</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=sagikazarmark" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/pietdaniel"><img src="https://avatars.githubusercontent.com/u/1924983?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Piet</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=pietdaniel" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/amayvs"><img src="https://avatars.githubusercontent.com/u/842194?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amay Shah</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=amayvs" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
