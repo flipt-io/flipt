@@ -34,3 +34,4 @@ tmp
 __debug_bin
 
 Brewfile.lock.json
+*.key
