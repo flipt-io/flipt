@@ -63,9 +63,9 @@ _start_test() {
 
 _finish_test() {
   if [ "$STATE" =  "pass" ]; then
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
   elif [ "$STATE" =  "fail" ]; then
-    ((FAIL_COUNT++))
+    FAIL_COUNT=$((FAIL_COUNT + 1))
   fi
 }
 
@@ -149,4 +149,3 @@ print_headers() {
 print_body() {
   cat "${RESPONSE_BODY}"
 }
-

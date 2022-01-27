@@ -1,12 +1,17 @@
 #!/bin/bash
 
+set -o pipefail
+
 cd "$(dirname "$0")/.." || exit
+
+export SHAKEDOWN_URL="http://127.0.0.1:8080"
 
 source ./test/helpers/shakedown/shakedown.sh
 
 FLIPT_PID="/tmp/flipt.api.pid"
 
 finish() {
+  _finish # shakedown trap that sets exit code correctly
   [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
 }
 
@@ -19,7 +24,7 @@ uuid_str()
 
 step_1_test_health()
 {
-    shakedown GET "$flipt_host/health"
+    shakedown GET "/health"
         status 200
 }
 
@@ -29,14 +34,14 @@ step_2_test_flags_and_variants()
     flag_key=$(uuid_str)
     flag_name_1=$(uuid_str)
 
-    shakedown POST "$flipt_api/flags" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_1\",\"description\":\"description\",\"enabled\":true}"
+    shakedown POST "/api/v1/flags" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_1\",\"description\":\"description\",\"enabled\":true}"
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_1\""
         matches '"enabled":true'
 
     # get flag
-    shakedown GET "$flipt_api/flags/$flag_key" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_1\""
@@ -44,13 +49,13 @@ step_2_test_flags_and_variants()
     # update flag
     flag_name_2=$(uuid_str)
 
-    shakedown PUT "$flipt_api/flags/$flag_key" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_2\",\"description\":\"description\",\"enabled\":true}"
+    shakedown PUT "/api/v1/flags/$flag_key" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_2\",\"description\":\"description\",\"enabled\":true}"
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_2\""
 
     # list flags
-    shakedown GET "$flipt_api/flags" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/flags" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_2\""
@@ -59,27 +64,27 @@ step_2_test_flags_and_variants()
     variant_key_1=$(uuid_str)
     variant_key_2=$(uuid_str)
 
-    shakedown POST "$flipt_api/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\"}"
+    shakedown POST "/api/v1/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\"}"
         status 200
         matches "\"key\":\"$variant_key_1\""
 
-    shakedown POST "$flipt_api/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_2\"}"
+    shakedown POST "/api/v1/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_2\"}"
         status 200
         matches "\"key\":\"$variant_key_2\""
 
-    variant_id=$(curl -sS "$flipt_api/flags/$flag_key" | jq '.variants | .[0].id')
+    variant_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key" | jq '.variants | .[0].id')
     variant_id=$(eval echo "$variant_id")
 
     # update variant
     variant_name_1=$(uuid_str)
 
-    shakedown PUT "$flipt_api/flags/$flag_key/variants/$variant_id" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\",\"name\":\"$variant_name_1\"}"
+    shakedown PUT "/api/v1/flags/$flag_key/variants/$variant_id" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\",\"name\":\"$variant_name_1\"}"
         status 200
         matches "\"key\":\"$variant_key_1\""
         matches "\"name\":\"$variant_name_1\""
 
     # get flag w/ variants
-    shakedown GET "$flipt_api/flags/$flag_key" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$flag_key\""
         contains "$variant_key_1"
@@ -92,14 +97,14 @@ step_3_test_segments_and_constraints()
     segment_key=$(uuid_str)
     segment_name_1=$(uuid_str)
 
-    shakedown POST "$flipt_api/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_1\",\"description\":\"description\"}"
+    shakedown POST "/api/v1/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_1\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_1\""
         matches "\"matchType\":\"ALL_MATCH_TYPE\""
 
     # get segment
-    shakedown GET "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_1\""
@@ -108,43 +113,43 @@ step_3_test_segments_and_constraints()
     # update segment
     segment_name_2=$(uuid_str)
 
-    shakedown PUT "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"matchType\":\"ANY_MATCH_TYPE\",\"description\":\"description\"}"
+    shakedown PUT "/api/v1/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"matchType\":\"ANY_MATCH_TYPE\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_2\""
         matches "\"matchType\":\"ANY_MATCH_TYPE\""
 
     # list segments
-    shakedown GET "$flipt_api/segments" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/segments" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_2\""
 
     # create constraints
-    shakedown POST "$flipt_api/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"bar\"}"
+    shakedown POST "/api/v1/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"bar\"}"
         status 200
         matches "\"property\":\"foo\""
         matches "\"operator\":\"eq\""
         matches "\"value\":\"bar\""
 
-    shakedown POST "$flipt_api/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"fizz\",\"operator\":\"neq\",\"value\":\"buzz\"}"
+    shakedown POST "/api/v1/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"fizz\",\"operator\":\"neq\",\"value\":\"buzz\"}"
         status 200
         matches "\"property\":\"fizz\""
         matches "\"operator\":\"neq\""
         matches "\"value\":\"buzz\""
 
-    constraint_id=$(curl -sS "$flipt_api/segments/$segment_key" | jq '.constraints | .[0].id')
+    constraint_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/segments/$segment_key" | jq '.constraints | .[0].id')
     constraint_id=$(eval echo "$constraint_id")
 
     # update constraint
-    shakedown PUT "$flipt_api/segments/$segment_key/constraints/$constraint_id" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"baz\"}"
+    shakedown PUT "/api/v1/segments/$segment_key/constraints/$constraint_id" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"baz\"}"
         status 200
         matches "\"property\":\"foo\""
         matches "\"operator\":\"eq\""
         matches "\"value\":\"baz\""
 
     # get segment w/ constraints
-    shakedown GET "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$segment_key\""
         contains "baz"
@@ -154,24 +159,24 @@ step_3_test_segments_and_constraints()
 step_4_test_rules_and_distributions()
 {
     # create rule
-    shakedown POST "$flipt_api/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":1}"
+    shakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":1}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
     # list rules
-    shakedown GET "$flipt_api/flags/$flag_key/rules" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json'
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
-    rule_id=$(curl -sS "$flipt_api/flags/$flag_key/rules" | jq '.rules | .[0].id')
+    rule_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key/rules" | jq '.rules | .[0].id')
     rule_id=$(eval echo "$rule_id")
 
     # get rule
-    shakedown GET "$flipt_api/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
         status 200
         matches "\"id\":\"$rule_id\""
         matches "\"flagKey\":\"$flag_key\""
@@ -179,7 +184,7 @@ step_4_test_rules_and_distributions()
         matches "\"rank\":1"
 
     # create distribution
-    shakedown POST "$flipt_api/flags/$flag_key/rules/$rule_id/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
+    shakedown POST "/api/v1/flags/$flag_key/rules/$rule_id/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
         status 200
         matches "\"ruleId\":\"$rule_id\""
         matches "\"variantId\":\"$variant_id\""
@@ -189,7 +194,7 @@ step_4_test_rules_and_distributions()
 step_5_test_evaluation()
 {
     # evaluate
-    shakedown POST "$flipt_api/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}"
+    shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
@@ -197,8 +202,16 @@ step_5_test_evaluation()
         matches "\"value\":\"$variant_key_1\""
 
     # evaluate no match
-    shakedown POST "$flipt_api/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}"
+    shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}"
         status 200
+        matches "\"flagKey\":\"$flag_key\""
+        matches "\"match\":false"
+
+    # evaluate handles null value
+    # re: #664
+    shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"cohort\":null}}"
+        status 200
+        print_body
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
 }
@@ -206,7 +219,7 @@ step_5_test_evaluation()
 step_6_test_batch_evaluation()
 {
     # evaluate
-    shakedown POST "$flipt_api/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}]}"
+    shakedown POST "/api/v1/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}]}"
         status 200
         contains "\"flagKey\":\"$flag_key\""
         contains "\"segmentKey\":\"$segment_key\""
@@ -214,7 +227,7 @@ step_6_test_batch_evaluation()
         contains "\"value\":\"$variant_key_1\""
 
     # evaluate no match
-    shakedown POST "$flipt_api/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}]}"
+    shakedown POST "/api/v1/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}]}"
         status 200
         contains "\"flagKey\":\"$flag_key\""
         contains "\"match\":false"
@@ -223,27 +236,27 @@ step_6_test_batch_evaluation()
 step_7_test_delete()
 {
     # delete rule and distributions
-    shakedown DELETE "$flipt_api/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
+    shakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
         status 200
 
     # delete flag and variants
-    shakedown DELETE "$flipt_api/flags/$flag_key" -H 'Content-Type:application/json'
+    shakedown DELETE "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
 
     # delete segment and constraints
-    shakedown DELETE "$flipt_api/segments/$segment_key" -H 'Content-Type:application/json'
+    shakedown DELETE "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
 }
 
 step_8_test_meta()
 {
-    shakedown GET "$flipt_host/meta/info"
+    shakedown GET "/meta/info"
         status 200
         contains "\"version\""
         contains "\"buildDate\""
         contains "\"goVersion\""
 
-    shakedown GET "$flipt_host/meta/config"
+    shakedown GET "/meta/config"
         status 200
         contains "\"log\""
         contains "\"ui\""
@@ -254,7 +267,7 @@ step_8_test_meta()
 
 step_9_test_metrics()
 {
-    shakedown GET "$flipt_host/metrics"
+    shakedown GET "/metrics"
         status 200
 }
 
@@ -268,16 +281,12 @@ run()
 
     sleep 5
 
-    flipt_host="127.0.0.1:8080"
-
     echo -e "\e[32m                \e[0m"
     echo -e "\e[32m===========================================\e[0m"
-    echo -e "\e[32mStart testing $flipt_host\e[0m"
+    echo -e "\e[32mStart testing $SHAKEDOWN_URL\e[0m"
     echo -e "\e[32m===========================================\e[0m"
 
-    ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
-
-    flipt_api=$flipt_host/api/v1
+    ./test/helpers/wait-for-it/wait-for-it.sh "127.0.0.1:8080" -t 30
 
     step_1_test_health
     step_2_test_flags_and_variants

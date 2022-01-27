@@ -4,19 +4,17 @@ import (
 	"database/sql/driver"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-
-	proto "github.com/golang/protobuf/ptypes/timestamp"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type timestamp struct {
-	*proto.Timestamp
+	*timestamppb.Timestamp
 }
 
 func (t *timestamp) Scan(value interface{}) error {
 	if v, ok := value.(time.Time); ok {
-		val, err := ptypes.TimestampProto(v)
-		if err != nil {
+		val := timestamppb.New(v)
+		if err := val.CheckValid(); err != nil {
 			return err
 		}
 
@@ -27,5 +25,5 @@ func (t *timestamp) Scan(value interface{}) error {
 }
 
 func (t *timestamp) Value() (driver.Value, error) {
-	return ptypes.Timestamp(t.Timestamp)
+	return t.Timestamp.AsTime(), t.Timestamp.CheckValid()
 }
