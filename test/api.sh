@@ -251,7 +251,6 @@ step_8_test_meta()
 {
     shakedown GET "/meta/info"
         status 200
-        contains "\"version\""
         contains "\"buildDate\""
         contains "\"goVersion\""
 
