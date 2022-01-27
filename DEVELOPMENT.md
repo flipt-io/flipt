@@ -11,14 +11,15 @@ Before starting, make sure you have the following installed:
 - [Go 1.16+](https://golang.org/doc/install)
 - [Buf](https://docs.buf.build/introduction)
 - [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
+- [NodeJS >= 16](https://nodejs.org/en/)
+- [Yarn](https://yarnpkg.com/en/)
 
 ## Setup
 
 1. Clone this repo: `git clone https://github.com/markphelps/flipt`
 1. Run `make bootstrap` to install required development tools
 1. Run `make test` to execute the test suite
-1. Run `make server` to build and run the server locally
-1. Run `cd ui && yarn run dev` to build and run the ui dev server
+1. Run `modd` to run the server and ui in development mode.
 1. Run `make help` to see a full list of possible make commands
 
 ## Go
@@ -55,7 +56,7 @@ The UI is built using [Yarn](https://yarnpkg.com/en/) and [webpack](https://webp
 
 The [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
 
-## Remote Containers
+## Remote Containers/GitHub Codespaces
 
 Flipt now supports [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces).
 
@@ -67,10 +68,14 @@ If you have access to [GitHub Codespaces](https://github.com/features/codespaces
 
 ### Building/Running
 
-Regardless of whether you are using Remote Containers or GitHub Codespaces, you'll need to run a couple tasks to successfully build/run Flipt in these environments.
+Flipt uses [modd](https://github.com/cortesi/modd) for managing processes during development.
 
-Then run the [Server/Client](.vscode/launch.json) run command to start the server and client.
+Run `modd` from the project root. This will intelligently rebuild/restart the backend server if any `*.go` files change which is helpful while developing. See [modd.conf](modd.conf) for configuration.
 
-This should publish three ports `8080`, `8081`, `9000`.
+The `webpack-dev-server` that is used when running the UI in development mode will also rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) for more info.
+
+### Ports
+
+The three ports `8080`, `8081`, `9000` will be forwarded to your local machine automatically.
 
 `8081` is the UI dev port that runs the `yarn dev server` that you can open in your browser.

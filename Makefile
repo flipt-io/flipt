@@ -11,7 +11,7 @@ GOBIN = _tools/bin
 export PATH := $(GOBIN):$(PATH)
 
 UI_PATH = ui
-UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html)
+UI_SOURCE_FILES = $(wildcard $(UI_PATH)/static/* $(UI_PATH)/src/**/* $(UI_PATH)/src/**/**/* $(UI_PATH)/index.html $(UI_PATH)/package.json )
 UI_NODE_MODULES_PATH = $(UI_PATH)/node_modules
 UI_OUTPUT_PATH = $(UI_PATH)/dist
 
@@ -77,7 +77,7 @@ build: clean assets ## Build a local copy
 server: clean  ## Build and run in server mode
 	@echo ">> building and running in server mode"
 	@echo "  ⚠️  ui must be run in another process  ⚠️"
-	go run ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
+	go run -ldflags "-X main.commit=$(commit-hash)" ./cmd/$(PROJECT)/. --config ./config/local.yml --force-migrate
 
 .PHONY: snapshot
 snapshot: clean assets ## Build a snapshot version

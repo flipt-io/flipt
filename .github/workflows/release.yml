@@ -10,23 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: rez0n/actions-github-release@main
-        id: release
-        env:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: "markphelps/flipt"
-          type: "stable"
+      - uses: actions/checkout@v2
+
+      - name: Fetch latest release version
+        id: fetch-latest-release
+        uses: reloc8/action-latest-release-version@1.0.0
 
       - name: Verify Dockerhub
-        run: docker pull markphelps/flipt:${{ steps.release.outputs.release }}
+        run: docker pull markphelps/flipt:${{ steps.fetch-latest-release.outputs.latest-release }}
 
       - name: Verify GHCR
-        run: docker pull ghcr.io/markphelps/flipt:${{ steps.release.outputs.release }}
+        run: docker pull ghcr.io/markphelps/flipt:${{ steps.fetch-latest-release.outputs.latest-release }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.2.1
         with:
-          image-ref: "docker.io/markphelps/flipt:${{ steps.release.outputs.release }}"
+          image-ref: "docker.io/markphelps/flipt:${{ steps.fetch-latest-release.outputs.latest-release }}"
           format: "template"
           template: "@/contrib/sarif.tpl"
           output: "trivy-results.sarif"

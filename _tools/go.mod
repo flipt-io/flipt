@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/buchanae/github-release-notes v0.0.0-20180827045457-200e1dacadbb
+	github.com/cortesi/modd v0.0.0-20211215124449-6083f9d1c171
 	github.com/golangci/golangci-lint v1.43.0
 	github.com/google/go-github v17.0.0+incompatible // indirect
 	github.com/google/go-querystring v1.1.0 // indirect

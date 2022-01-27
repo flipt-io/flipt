@@ -30,6 +30,9 @@
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
+    <a href="https://twitter.com/mark_a_phelps">
+        <img src="https://img.shields.io/twitter/url?label=Follow%20Me&url=https%3A%2F%2Ftwitter.com%2Fmark_a_phelps" />
+    </a>
 </div>
 
 <div align="center">
@@ -48,28 +51,28 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 
 Flipt supports use cases such as:
 
-* Simple on/off feature flags to toggle functionality in your applications
-* Rolling out features to a percentage of your customers
-* Using advanced segmentation to target and serve users based on custom properties that you define
+- Simple on/off feature flags to toggle functionality in your applications
+- Rolling out features to a percentage of your customers
+- Using advanced segmentation to target and serve users based on custom properties that you define
 
 ## Features
 
-* Fast. Written in Go. Optimized for performance
-* Stand alone, easy to run and configure
-* Ability to create advanced distribution rules to target segments of users
-* Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
-* Simple REST API
-* Modern UI and debug console
-* Support for multiple databases (Postgres, MySQL, SQLite)
-* Data import and export to allow storing your flags as code
+- Fast. Written in Go. Optimized for performance
+- Stand alone, easy to run and configure
+- Ability to create advanced distribution rules to target segments of users
+- Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
+- Simple REST API
+- Modern UI and debug console
+- Support for multiple databases (Postgres, MySQL, SQLite)
+- Data import and export to allow storing your flags as code
 
 ## Values
 
-* :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
-* :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
-* :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-* :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
-* :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
+- :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+- :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
+- :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
+- :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
+- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
 
 ## Examples
 
@@ -93,8 +96,8 @@ For more permanent methods of running Flipt, see the [Installation](https://flip
 
 ## GRPC Clients
 
-* [Go](https://github.com/markphelps/flipt-grpc-go)
-* [Ruby](https://github.com/markphelps/flipt-grpc-ruby)
+- [Go](https://github.com/markphelps/flipt-grpc-go)
+- [Ruby](https://github.com/markphelps/flipt-grpc-ruby)
 
 ## Licensing
 
@@ -129,15 +132,15 @@ Please help me prioritize an Enterprise version of Flipt by filling out this [sh
 
 ### Potential Features
 
-* Business-friendly Licensing
-* User Management and Audit Trail
-* Multiple Environments (ex: dev/staging/prod)
+- Business-friendly Licensing
+- User Management and Audit Trail
+- Multiple Environments (ex: dev/staging/prod)
 
 ## Author
 
 | [![twitter/mark_a_phelps](https://secure.gravatar.com/avatar/274e2d4b1bbb9f86b454aebabad2cba1)](https://twitter.com/intent/user?screen_name=mark_a_phelps "Follow @mark_a_phelps on Twitter") |
-|---|
-| [Mark Phelps](https://markphelps.me/) |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Mark Phelps](https://markphelps.me/)                                                                                                                                                         |
 
 ## Contributing
 
@@ -170,6 +173,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=eltociear" title="Documentation">📖</a></td>
     <td align="center"><a href="https://sagikazarmark.hu"><img src="https://avatars.githubusercontent.com/u/1226384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Márk Sági-Kazár</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=sagikazarmark" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/pietdaniel"><img src="https://avatars.githubusercontent.com/u/1924983?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Piet</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=pietdaniel" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/amayvs"><img src="https://avatars.githubusercontent.com/u/842194?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amay Shah</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=amayvs" title="Code">💻</a></td>
   </tr>
 </table>
 

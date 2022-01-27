@@ -3,8 +3,14 @@ ARG GO_VERSION=1.16
 FROM golang:${GO_VERSION}
 
 RUN apt-get update && \
-    apt-get install -y curl gnupg \
-    postgresql-client
+    apt-get -y install --no-install-recommends \
+    curl \
+    gnupg \ 
+    sudo \
+    openssh-server \
+    postgresql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
@@ -12,8 +18,11 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 
 RUN apt-get update && \
-    apt-get install -y nodejs yarn && \
-    apt-get clean -y
+    apt-get install -y --no-install-recommends \
+    nodejs \
+    yarn && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /flipt
 
