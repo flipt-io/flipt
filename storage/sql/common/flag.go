@@ -8,10 +8,10 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
 
-	proto "github.com/golang/protobuf/ptypes"
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetFlag gets a flag
@@ -121,7 +121,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*
 // CreateFlag creates a flag
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	var (
-		now  = proto.TimestampNow()
+		now  = timestamppb.Now()
 		flag = &flipt.Flag{
 			Key:         r.Key,
 			Name:        r.Name,
@@ -148,7 +148,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("updated_at", &timestamp{proto.TimestampNow()}).
+		Set("updated_at", &timestamp{timestamppb.Now()}).
 		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
@@ -180,7 +180,7 @@ func (s *Store) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) erro
 // CreateVariant creates a variant
 func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	var (
-		now = proto.TimestampNow()
+		now = timestamppb.Now()
 		v   = &flipt.Variant{
 			Id:          uuid.Must(uuid.NewV4()).String(),
 			FlagKey:     r.FlagKey,
@@ -208,7 +208,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("\"key\"", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
-		Set("updated_at", &timestamp{proto.TimestampNow()}).
+		Set("updated_at", &timestamp{timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)

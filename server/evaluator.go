@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/golang/protobuf/ptypes"
 	errs "github.com/markphelps/flipt/errors"
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Evaluate evaluates a request for a given flag and entity
@@ -89,8 +89,8 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	var (
-		ts, _ = ptypes.TimestampProto(time.Now().UTC())
-		resp  = &flipt.EvaluationResponse{
+		ts   = timestamp.New(time.Now().UTC())
+		resp = &flipt.EvaluationResponse{
 			RequestId:      r.RequestId,
 			EntityId:       r.EntityId,
 			RequestContext: r.Context,

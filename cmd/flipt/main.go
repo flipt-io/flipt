@@ -300,11 +300,6 @@ func run(_ []string) error {
 			_ = lis.Close()
 		}()
 
-		var (
-			grpcOpts []grpc.ServerOption
-			srv      *server.Server
-		)
-
 		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
@@ -336,8 +331,6 @@ func run(_ []string) error {
 
 		logger = logger.WithField("store", store.String())
 
-		srv = server.New(logger, store)
-
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
 		if cfg.Tracing.Jaeger.Enabled {
@@ -365,6 +358,11 @@ func run(_ []string) error {
 		}
 
 		opentracing.SetGlobalTracer(tracer)
+
+		var (
+			grpcOpts []grpc.ServerOption
+			srv      = server.New(logger, store)
+		)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
@@ -399,8 +397,18 @@ func run(_ []string) error {
 		logger := l.WithField("server", cfg.Server.Protocol.String())
 
 		var (
+			// This is required to fix a backwards compatibility issue with the v2 marshaller where `null` map values
+			// cause an error because they are not allowed by the proto spec, but they were handled by the v1 marshaller.
+			//
+			// See: rpc/flipt/marshal.go
+			//
+			// See: https://github.com/markphelps/flipt/issues/664
+			muxOpts = []grpc_gateway.ServeMuxOption{
+				grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
+			}
+
 			r        = chi.NewRouter()
-			api      = grpc_gateway.NewServeMux()
+			api      = grpc_gateway.NewServeMux(muxOpts...)
 			opts     = []grpc.DialOption{grpc.WithBlock()}
 			httpPort int
 		)
