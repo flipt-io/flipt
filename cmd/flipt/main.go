@@ -52,7 +52,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	grpc_gateway_v2 "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
@@ -366,12 +366,12 @@ func run(_ []string) error {
 			// See: rpc/flipt/marshal.go
 			//
 			// See: https://github.com/markphelps/flipt/issues/664
-			muxOpts = []grpc_gateway_v2.ServeMuxOption{
-				grpc_gateway_v2.WithMarshalerOption(grpc_gateway_v2.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
+			muxOpts = []grpc_gateway.ServeMuxOption{
+				grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
 			}
 
 			r        = chi.NewRouter()
-			api      = grpc_gateway_v2.NewServeMux(muxOpts...)
+			api      = grpc_gateway.NewServeMux(muxOpts...)
 			opts     = []grpc.DialOption{grpc.WithBlock()}
 			httpPort int
 		)
