@@ -211,7 +211,6 @@ step_5_test_evaluation()
     # re: #664
     shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"cohort\":null}}"
         status 200
-        print_body
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
 }
