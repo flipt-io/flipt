@@ -644,6 +644,10 @@
                 },
                 "description": {
                   "type": "string"
+                },
+                "attachment": {
+                  "type": "string",
+                  "format": "byte"
                 }
               },
               "required": [
@@ -739,6 +743,10 @@
                 },
                 "description": {
                   "type": "string"
+                },
+                "attachment": {
+                  "type": "string",
+                  "format": "byte"
                 }
               },
               "required": [
@@ -1574,6 +1582,10 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "attachment": {
+          "type": "string",
+          "format": "byte"
         }
       }
     },

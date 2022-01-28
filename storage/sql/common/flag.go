@@ -187,14 +187,15 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			Key:         r.Key,
 			Name:        r.Name,
 			Description: r.Description,
+			Attachment:  r.Attachment,
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
 	)
 
 	if _, err := s.builder.Insert("variants").
-		Columns("id", "flag_key", "\"key\"", "name", "description", "created_at", "updated_at").
-		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
+		Columns("id", "flag_key", "\"key\"", "name", "description", "attachment", "created_at", "updated_at").
+		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, v.Attachment, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -208,6 +209,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("\"key\"", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
+		Set("attachment", r.Attachment).
 		Set("updated_at", &timestamp{timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
@@ -232,11 +234,11 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		v = &flipt.Variant{}
 	)
 
-	if err := s.builder.Select("id, \"key\", flag_key, name, description, created_at, updated_at").
+	if err := s.builder.Select("id, \"key\", flag_key, name, description, attachment, created_at, updated_at").
 		From("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		QueryRowContext(ctx).
-		Scan(&v.Id, &v.Key, &v.FlagKey, &v.Name, &v.Description, &createdAt, &updatedAt); err != nil {
+		Scan(&v.Id, &v.Key, &v.FlagKey, &v.Name, &v.Description, &v.Attachment, &createdAt, &updatedAt); err != nil {
 		return nil, err
 	}
 
@@ -256,7 +258,7 @@ func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest
 }
 
 func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
-	query := s.builder.Select("id, flag_key, \"key\", name, description, created_at, updated_at").
+	query := s.builder.Select("id, flag_key, \"key\", name, description, attachment, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"flag_key": flag.Key}).
 		OrderBy("created_at ASC")
@@ -284,6 +286,7 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 			&variant.Key,
 			&variant.Name,
 			&variant.Description,
+			&variant.Attachment,
 			&createdAt,
 			&updatedAt); err != nil {
 			return err

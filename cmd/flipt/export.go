@@ -35,6 +35,7 @@ type Variant struct {
 	Key         string `yaml:"key,omitempty"`
 	Name        string `yaml:"name,omitempty"`
 	Description string `yaml:"description,omitempty"`
+	Attachment  []byte `yaml:"attachment,omitempty"`
 }
 
 type Rule struct {
@@ -149,6 +150,7 @@ func runExport(_ []string) error {
 					Key:         v.Key,
 					Name:        v.Name,
 					Description: v.Description,
+					Attachment:  v.Attachment,
 				})
 
 				variantKeys[v.Id] = v.Key

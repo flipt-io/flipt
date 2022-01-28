@@ -159,6 +159,12 @@
                   placeholder="Description"
                 />
               </b-field>
+              <b-field label="Attachment (optional)">
+                <b-input
+                  v-model="newVariant.attachment"
+                  placeholder="Attachment"
+                />
+              </b-field>
               <div class="field is-grouped">
                 <div class="control">
                   <button
@@ -214,6 +220,12 @@
                 <b-input
                   v-model="selectedVariant.description"
                   placeholder="Description"
+                />
+              </b-field>
+              <b-field label="Attachment (optional)">
+                <b-input
+                  v-model="selectedVariant.attachment"
+                  placeholder="Attachment"
                 />
               </b-field>
               <div class="field is-grouped">

@@ -143,6 +143,7 @@ message Variant {
   string description = 5;
   google.protobuf.Timestamp created_at = 6;
   google.protobuf.Timestamp updated_at = 7;
+  bytes attachment = 8;
 }
 
 message CreateVariantRequest {
@@ -156,6 +157,7 @@ message CreateVariantRequest {
   string key = 2;
   string name = 3;
   string description = 4;
+  bytes attachment = 5;
 }
 
 message UpdateVariantRequest {
@@ -170,6 +172,7 @@ message UpdateVariantRequest {
   string key = 3;
   string name = 4;
   string description = 5;
+  bytes attachment = 6;
 }
 
 message DeleteVariantRequest {
