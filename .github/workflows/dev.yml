@@ -37,4 +37,6 @@ jobs:
           export BUILDKIT_PROGRESS=plain
 
           npm install -g "@vscode/dev-container-cli"
+
+          devcontainer build --no-cache --image-name "${IMAGE}" .
           docker push "${IMAGE}"
