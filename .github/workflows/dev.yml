@@ -1,22 +1,40 @@
-name: Build Dev
+name: Build Dev Container
 
 on:
   workflow_dispatch:
   schedule:
-    # weekly on Sun
-    - cron: "0 0 * * 0"
+    # monthly
+    - cron: "0 0 1 * *"
+  push:
+    branches:
+      - "master"
+    paths:
+      - ".devcontainer/**/*"
+      - "Dockerfile"
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  buildx:
+  devcontainer:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - uses: docker/setup-buildx-action@v1
-        id: buildx
+      - name: Login to GHCR
+        uses: docker/login-action@v1
         with:
-          install: true
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Dev Image
-        run: |
-          docker build .
+      - run: |
+          set -e
+
+          IMAGE="ghcr.io/markphelps/flipt-dev"
+          export DOCKER_BUILDKIT=1
+          export BUILDKIT_PROGRESS=plain
+
+          npm install -g "@vscode/dev-container-cli"
+          docker push "${IMAGE}"
