@@ -2,10 +2,7 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.177.0/containers/docker-existing-dockerfile
 {
   "name": "Flipt",
-  // Sets the run context to one level up instead of the .devcontainer folder.
-  "context": "..",
-  // Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-  "dockerFile": "../Dockerfile",
+  "image": "ghcr.io/markphelps/flipt-dev",
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "go.toolsManagement.checkForUpdates": "local",
