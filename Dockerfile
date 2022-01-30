@@ -2,6 +2,8 @@ ARG GO_VERSION=1.16
 
 FROM golang:${GO_VERSION}
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN apt-get update && \
     apt-get -y install --no-install-recommends \
     curl \
