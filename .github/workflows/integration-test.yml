@@ -25,6 +25,8 @@ jobs:
         with:
           node-version: "16"
 
+      - uses: arduino/setup-task@v1
+
       - id: go-cache-paths
         run: |
           echo "::set-output name=go-build::$(go env GOCACHE)"
@@ -56,8 +58,8 @@ jobs:
 
       - name: Build the binary
         run: |
-          make bootstrap
-          make build
+          task bootstrap
+          task build
 
       - name: Test API
         uses: ./.github/actions/integration-test

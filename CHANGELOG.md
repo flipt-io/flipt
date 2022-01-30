@@ -3,6 +3,20 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Flipt now shows if there is an update available in the UI [https://github.com/markphelps/flipt/pull/650](https://github.com/markphelps/flipt/pull/650). Can be disabled via config.
+
+### Changed
+
+- Dependency updates
+- Update JS to ES6 syntax
+- Flipt now runs without root user in Docker [https://github.com/markphelps/flipt/pull/659](https://github.com/markphelps/flipt/pull/659)
+- Changed development task runner to [Task](https://taskfile.dev/#/) from `make`
+- Re-configured how Flipt is built in a [devcontainer](https://code.visualstudio.com/docs/remote/devcontainer-cli#_building-a-dev-container-image)
+
 ## [v1.5.1](https://github.com/markphelps/flipt/releases/tag/v1.5.1) - 2022-01-26
 
 ### Fixed

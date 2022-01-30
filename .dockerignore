@@ -13,11 +13,11 @@
 .github/
 .vscode/
 .licenses/
+.task/
 Dockerfile
 LICENSE
 bin/
 examples/
 site/
-_tools/bin/
 ui/dist/
 ui/node_modules/

@@ -1,4 +1,4 @@
-name: Build Dev Container
+name: Build Dev Image
 
 on:
   workflow_dispatch:
@@ -9,7 +9,6 @@ on:
     branches:
       - "master"
     paths:
-      - ".devcontainer/**/*"
       - "Dockerfile"
 
 permissions:
@@ -22,6 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Login to GHCR
         uses: docker/login-action@v1
         with:
@@ -29,14 +34,9 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
-          set -e
-
-          IMAGE="ghcr.io/markphelps/flipt-dev"
-          export DOCKER_BUILDKIT=1
-          export BUILDKIT_PROGRESS=plain
-
-          npm install -g "@vscode/dev-container-cli"
-
-          devcontainer build --no-cache --image-name "${IMAGE}" .
-          docker push "${IMAGE}"
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/markphelps/flipt-dev:latest
