@@ -40,13 +40,17 @@
       "label": "GRPC Port",
       "onAutoForward": "notify"
     }
-  }
+  },
   // Uncomment the next line to run commands after the container is created - for example installing curl.
-  // "postCreateCommand": "apt-get update && apt-get install -y curl",
+  "postCreateCommand": "task bootstrap assets:deps",
   // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
   // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
   // Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
   // "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
   // Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
   // "remoteUser": "vscode"
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/workspaces/flipt/_tools/bin",
+    "GOBIN": "/workspaces/flipt/_tools/bin"
+  }
 }

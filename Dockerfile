@@ -28,6 +28,9 @@ RUN apt-get update && \
 
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
+# TODO: install buff
+# https://docs.buf.build/installation
+
 WORKDIR /flipt
 
 COPY go.mod go.mod
@@ -35,8 +38,6 @@ COPY go.sum go.sum
 RUN go mod download
 
 COPY . .
-
-RUN task bootstrap assets:deps
 
 EXPOSE 8080
 EXPOSE 8081
