@@ -34,7 +34,7 @@ RUN go mod download
 
 COPY . .
 
-RUN task bootstrap assets
+RUN task bootstrap assets:deps
 
 EXPOSE 8080
 EXPOSE 8081
