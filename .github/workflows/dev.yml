@@ -1,4 +1,4 @@
-name: Build Dev Container
+name: Build Dev Image
 
 on:
   workflow_dispatch:
@@ -29,7 +29,8 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: |
+      - name: Build and Push Dev Image
+        run: |
           set -e
 
           IMAGE="ghcr.io/markphelps/flipt-dev"
