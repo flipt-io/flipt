@@ -9,8 +9,6 @@ tasks:
   bootstrap:
     cmds:
       - ./script/bootstrap
-    status:
-      - test -d ./_tools/bin
 
   build:
     deps: [clean, assets]

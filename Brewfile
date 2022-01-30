@@ -1,8 +1,6 @@
-tap 'bufbuild/buf'
 tap 'filosottile/musl-cross'
 tap 'goreleaser/tap'
 
-brew 'buf'
 brew 'cmake'
 brew 'cosign'
 brew 'go'

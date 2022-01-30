@@ -11,12 +11,15 @@ if [ ! -f go.mod ]; then
 fi
 
 go install \
+    github.com/buchanae/github-release-notes \
+    github.com/bufbuild/buf/cmd/buf \
+    github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking \
+    github.com/bufbuild/buf/cmd/protoc-gen-buf-lint \
+    github.com/cortesi/modd/cmd/modd \
+    github.com/golangci/golangci-lint/cmd/golangci-lint \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-    google.golang.org/protobuf/cmd/protoc-gen-go \
-    google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-    github.com/golangci/golangci-lint/cmd/golangci-lint \
     golang.org/x/tools/cmd/cover \
     golang.org/x/tools/cmd/goimports \
-    github.com/buchanae/github-release-notes \
-    github.com/cortesi/modd/cmd/modd
+    google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+    google.golang.org/protobuf/cmd/protoc-gen-go \
