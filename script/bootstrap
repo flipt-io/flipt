@@ -1,10 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
-TOOLS=$(pwd)/_tools
-export GOBIN=$TOOLS/bin
+GREEN='\033[1;32m'
+NC='\033[0m' # No Color
 
-mkdir -p _tools/bin
-cd $TOOLS
+cd $(pwd)/_tools
 
 if [ ! -f go.mod ]; then
     go mod init tools
@@ -23,3 +22,5 @@ go install \
     golang.org/x/tools/cmd/goimports \
     google.golang.org/grpc/cmd/protoc-gen-go-grpc \
     google.golang.org/protobuf/cmd/protoc-gen-go \
+
+echo -e "\n${GREEN}Tools installed!${NC}"

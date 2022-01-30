@@ -9,38 +9,41 @@ Before starting, make sure you have the following installed:
 - GCC Compiler
 - [SQLite](https://sqlite.org/index.html)
 - [Go 1.16+](https://golang.org/doc/install)
-- [Buf](https://docs.buf.build/introduction)
-- [Protoc Compiler](https://github.com/protocolbuffers/protobuf)
 - [NodeJS >= 16](https://nodejs.org/en/)
 - [Yarn](https://yarnpkg.com/en/)
+- [Task](https://taskfile.dev/#/)
 
 ## Setup
 
 1. Clone this repo: `git clone https://github.com/markphelps/flipt`
-1. Run `make bootstrap` to install required development tools
-1. Run `make test` to execute the test suite
-1. Run `modd` to run the server and ui in development mode.
-1. Run `make help` to see a full list of possible make commands
+1. Run `task bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
+1. Run `task test` to execute the test suite
+1. Run `task dev` to run the server and ui in development mode.
+1. Run `task --list-all` to see a full list of possible commands
 
 ## Go
 
 Flipt is built with Go 1.16+.
+
+## Bootstrap
+
+The `bootstrap` task will install all of the necessary tools used for development and testing. It does this using a seperate tools modules as described here: https://marcofranssen.nl/manage-go-tools-via-go-modules
 
 ## Configuration
 
 Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
 ```shell
-make server
+task dev
 ```
 
 ## Changes
 
-Changing certain types of files such as the protobuf, ui or documentation files require re-building before they will be picked up in new versions of the binary.
+Changing certain types of files such as the proto, ui or documentation files require re-building before they will be picked up in new versions of the binary.
 
 ### Updating .proto Files
 
-After changing `flipt.proto`, you'll need to run `make generate`. This will regenerate the following files:
+After changing `flipt.proto`, you'll need to run `task build:proto`. This will regenerate the following files:
 
 - `rpc/flipt/flipt.pb.go`
 - `rpc/flipt/flipt_grpc.pb.go`
@@ -48,7 +51,7 @@ After changing `flipt.proto`, you'll need to run `make generate`. This will rege
 
 ### Updating assets
 
-Running `make assets` will regenerate the embedded assets (ui, api documentation).
+Running `task assets` will regenerate the embedded assets (ui, api documentation).
 
 #### UI components
 
@@ -70,9 +73,9 @@ If you have access to [GitHub Codespaces](https://github.com/features/codespaces
 
 Flipt uses [modd](https://github.com/cortesi/modd) for managing processes during development.
 
-Run `modd` from the project root. This will intelligently rebuild/restart the backend server if any `*.go` files change which is helpful while developing. See [modd.conf](modd.conf) for configuration.
+Run `task dev` from the project root. See [modd.conf](modd.conf) for configuration.
 
-The `webpack-dev-server` that is used when running the UI in development mode will also rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) for more info.
+The `webpack-dev-server` that is used when running the UI in development mode will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) for more info.
 
 ### Ports
 
