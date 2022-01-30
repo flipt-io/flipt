@@ -1,0 +1,99 @@
+version: 3
+
+vars:
+  PROJECT: flipt
+  SOURCE_FILES: ./...
+
+tasks:
+  bootstrap:
+    cmds:
+      - ./script/bootstrap
+    status:
+      - test -d ./_tools/bin
+
+  build:
+    deps: [clean, assets]
+    cmds:
+      - go build -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
+    vars:
+      GIT_COMMIT:
+        sh: set -e && git rev-parse --verify HEAD || ""
+
+  build:snapshot:
+    deps: [clean, assets]
+    cmds:
+      - ./script/build snapshot
+
+  build:release:
+    deps: [clean, assets]
+    cmds:
+      - ./script/build release
+
+  build:proto:
+    cmds:
+      - buf generate
+
+  build:clients:
+    cmds:
+      - buf generate --template=buf.public.gen.yaml
+
+  bench:
+    cmds:
+      - go test -bench={{.BENCH_PATTERN}} {{.SOURCE_FILES}} -run=XXX {{.TEST_FLAGS}}
+    vars:
+      BENCH_PATTERN: .
+      TEST_FLAGS: -v
+
+  dev:
+    cmds:
+      - modd
+    preconditions:
+      - sh: "! [ -x '$(command -v modd)' ]"
+        msg: "modd not found. run bootstrap."
+
+  cover:
+    deps: [test]
+    cmds:
+      - go tool cover -html={{.COVERAGE_FILE}}
+    vars:
+      COVERAGE_FILE: coverage.txt
+
+  fmt:
+    cmds:
+      - goimports -w .
+
+  lint:
+    cmds:
+      - golangci-lint run 2>&1
+      - buf lint
+
+  clean:
+    cmds:
+      - go clean -i {{.SOURCE_FILES}}
+      - rm -rf dist/*
+      - go mod tidy
+
+  assets:deps:
+    cmds:
+      - cd ui && yarn --frozen-lockfile
+
+  assets:
+    deps: [assets:deps]
+    cmds:
+      - cd ui && yarn build
+    sources:
+      - ./ui/static/*
+      - ./ui/src/**/*
+      - ./ui/src/**/**/*
+      - ./ui/index.html
+      - ./ui/package.json
+    method: checksum
+
+  test:
+    cmds:
+      - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s {{.TEST_FLAGS}}
+    vars:
+      COVERAGE_FILE: coverage.txt
+      TEST_PATTERN: .
+      TEST_FLAGS: -v
+      TEST_OPTS:

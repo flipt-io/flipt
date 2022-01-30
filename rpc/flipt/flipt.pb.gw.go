@@ -2440,7 +2440,7 @@ func RegisterFliptHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux
 
 // RegisterFliptHandler registers the http handlers for service Flipt to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterFliptHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+func RegisterFliptHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 	return RegisterFliptHandlerClient(ctx, mux, NewFliptClient(conn))
 }
 
