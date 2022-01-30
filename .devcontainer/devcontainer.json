@@ -5,7 +5,7 @@
   // "image": "ghcr.io/markphelps/flipt-dev",
   "build": {
     "context": "..",
-    "dockerfile": "Dockerfile"
+    "dockerfile": "../Dockerfile"
   },
   // Set *default* container specific settings.json values on container create.
   "settings": {
