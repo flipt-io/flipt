@@ -94,10 +94,35 @@ Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
 
-## GRPC Clients
+## Integration
+
+Checkout the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing application.
+
+### REST API
+
+Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
+
+The [Flipt REST API](https://flipt.io/docs/api/) can also be used with any language that can make HTTP requests.
+
+### Official GRPC Client Libraries
 
 - [Go](https://github.com/markphelps/flipt-grpc-go)
 - [Ruby](https://github.com/markphelps/flipt-grpc-ruby)
+
+### Third-Party Client Libraries
+
+Client libraries built by awesome people from the Open Source community:
+
+| Library | Language | Author | Desc |
+| --- | --- | --- | --- |
+| [flipt-grpc-python](https://github.com/getsentry/flipt-grpc-python) | Python | [@getsentry](https://github.com/getsentry) | Python GRPC bindings for Flipt |
+| [rflipt](https://github.com/christopherdiehl/rflipt) | React | [@christopherdiehl](https://github.com/christopherdiehl) | Components/example project to control React features backed by Flipt |
+| [flipt-php](https://github.com/fetzi/flipt-php) | PHP | [@fetzi](https://github.com/fetzi) | Package for evaluating feature flags via the Flipt REST API using [HTTPlug](http://httplug.io/) |
+| [flipt-js](https://github.com/betrybe/flipt-js) | Javascript | [@betrybe](https://github.com/betrybe) | Flipt library for JS that allows rendering components based on Feature Flags 🎉 |
+
+### Generate Your Own
+
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
 
 ## Licensing
 
@@ -120,6 +145,10 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
+## Logos
+
+Using Flipt at your company? Open a PR and add your logo here!
+
 ## Sponsors
 
 If you use Flipt at your company, please consider [becoming a sponsor](https://github.com/sponsors/markphelps) today.
@@ -129,12 +158,6 @@ If you use Flipt at your company, please consider [becoming a sponsor](https://g
 Need more features or support using Flipt within your Enterprise?
 
 Please help me prioritize an Enterprise version of Flipt by filling out this [short survey](https://forms.gle/a4UBnv8LADYirA4c9)!
-
-### Potential Features
-
-- Business-friendly Licensing
-- User Management and Audit Trail
-- Multiple Environments (ex: dev/staging/prod)
 
 ## Author
 
