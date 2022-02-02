@@ -59,7 +59,7 @@ jobs:
       - name: Build the binary
         run: |
           task bootstrap
-          task build
+          task
 
       - name: Test API
         uses: ./.github/actions/integration-test

@@ -19,6 +19,7 @@ Before starting, make sure you have the following installed:
 1. Run `task bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
 1. Run `task test` to execute the test suite
 1. Run `task dev` to run the server and ui in development mode.
+1. Run `task build` to build the binary with embedded assets.
 1. Run `task --list-all` to see a full list of possible commands
 
 ## Go
