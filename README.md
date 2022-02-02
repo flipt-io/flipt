@@ -1,5 +1,5 @@
 <p align=center>
-	<img src="logo.svg" alt="Flipt" width=200 height=200 />
+    <img src="logo.svg" alt="Flipt" width=200 height=200 />
 </p>
 
 <p align="center">An open-source, on-prem feature flag solution</p>
@@ -9,23 +9,23 @@
 ![Flipt](demo.gif)
 
 <div align="center">
+    <a href="https://github.com/markphelps/flipt/releases">
+        <img src="https://img.shields.io/github/release/markphelps/flipt.svg?style=flat" alt="Releases" />
+    </a>
     <a href="https://github.com/markphelps/flipt/actions">
         <img src="https://github.com/markphelps/flipt/workflows/Tests/badge.svg" alt="Build Status" />
     </a>
-    <a href="https://bestpractices.coreinfrastructure.org/projects/3498">
-	<img src="https://bestpractices.coreinfrastructure.org/projects/3498/badge">
+    <a href="https://github.com/markphelps/flipt/blob/master/LICENSE">
+        <img src="https://img.shields.io/github/license/markphelps/flipt.svg" alt="GPL 3.0" />
+    </a>
+    <a href="https://hub.docker.com/r/markphelps/flipt">
+        <img src="https://img.shields.io/docker/pulls/markphelps/flipt.svg" alt="Docker Pulls" />
     </a>
     <a href="https://codecov.io/gh/markphelps/flipt">
         <img src="https://codecov.io/gh/markphelps/flipt/branch/master/graph/badge.svg" alt="Coverage" />
     </a>
     <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
         <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />
-    </a>
-    <a href="https://github.com/markphelps/flipt/releases">
-        <img src="https://img.shields.io/github/release/markphelps/flipt.svg?style=flat" alt="Releases" />
-    </a>
-    <a href="https://hub.docker.com/r/markphelps/flipt">
-        <img src="https://img.shields.io/docker/pulls/markphelps/flipt.svg" alt="Docker Pulls" />
     </a>
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
@@ -113,12 +113,12 @@ The [Flipt REST API](https://flipt.io/docs/api/) can also be used with any langu
 
 Client libraries built by awesome people from the Open Source community:
 
-| Library | Language | Author | Desc |
-| --- | --- | --- | --- |
-| [flipt-grpc-python](https://github.com/getsentry/flipt-grpc-python) | Python | [@getsentry](https://github.com/getsentry) | Python GRPC bindings for Flipt |
-| [rflipt](https://github.com/christopherdiehl/rflipt) | React | [@christopherdiehl](https://github.com/christopherdiehl) | Components/example project to control React features backed by Flipt |
-| [flipt-php](https://github.com/fetzi/flipt-php) | PHP | [@fetzi](https://github.com/fetzi) | Package for evaluating feature flags via the Flipt REST API using [HTTPlug](http://httplug.io/) |
-| [flipt-js](https://github.com/betrybe/flipt-js) | Javascript | [@betrybe](https://github.com/betrybe) | Flipt library for JS that allows rendering components based on Feature Flags 🎉 |
+| Library                                                             | Language   | Author                                                   | Desc                                                                                            |
+| ------------------------------------------------------------------- | ---------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [flipt-grpc-python](https://github.com/getsentry/flipt-grpc-python) | Python     | [@getsentry](https://github.com/getsentry)               | Python GRPC bindings for Flipt                                                                  |
+| [rflipt](https://github.com/christopherdiehl/rflipt)                | React      | [@christopherdiehl](https://github.com/christopherdiehl) | Components/example project to control React features backed by Flipt                            |
+| [flipt-php](https://github.com/fetzi/flipt-php)                     | PHP        | [@fetzi](https://github.com/fetzi)                       | Package for evaluating feature flags via the Flipt REST API using [HTTPlug](http://httplug.io/) |
+| [flipt-js](https://github.com/betrybe/flipt-js)                     | Javascript | [@betrybe](https://github.com/betrybe)                   | Flipt library for JS that allows rendering components based on Feature Flags 🎉                 |
 
 ### Generate Your Own
 
