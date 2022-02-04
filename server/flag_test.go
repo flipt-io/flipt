@@ -140,7 +140,6 @@ func TestCreateVariant(t *testing.T) {
 			Key:         "key",
 			Name:        "name",
 			Description: "desc",
-			Attachment:  []byte("attachment"),
 		}
 	)
 
@@ -172,7 +171,6 @@ func TestUpdateVariant(t *testing.T) {
 			Key:         "key",
 			Name:        "name",
 			Description: "desc",
-			Attachment:  []byte("attachment"),
 		}
 	)
 

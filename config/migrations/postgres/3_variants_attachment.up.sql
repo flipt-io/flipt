@@ -1,1 +1,1 @@
-ALTER TABLE variants ADD attachment BYTEA;
+ALTER TABLE variants ADD attachment TEXT;

@@ -84,7 +84,7 @@
         <p class="subtitle is-7">
           Return different values based on rules you define
         </p>
-        <b-table :data="flag.variants">
+        <b-table :data="flag.variants" scrollable>
           <b-table-column v-slot="props" field="key" label="Key" sortable>
             {{ props.row.key }}
           </b-table-column>
@@ -98,6 +98,14 @@
             sortable
           >
             {{ props.row.description }}
+          </b-table-column>
+          <b-table-column
+            v-slot="props"
+            field="attachment"
+            label="Attachment"
+            sortable
+          >
+            {{ props.row.attachment }}
           </b-table-column>
           <b-table-column v-slot="props" field="" label="" width="110" centered>
             <a

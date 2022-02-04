@@ -1,1 +1,1 @@
-ALTER TABLE variants ADD COLUMN attachment BLOB AFTER description;
+ALTER TABLE variants ADD COLUMN attachment TEXT AFTER description;

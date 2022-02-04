@@ -35,7 +35,7 @@ type Variant struct {
 	Key         string `yaml:"key,omitempty"`
 	Name        string `yaml:"name,omitempty"`
 	Description string `yaml:"description,omitempty"`
-	Attachment  []byte `yaml:"attachment,omitempty"`
+	Attachment  string `yaml:"attachment,omitempty"`
 }
 
 type Rule struct {

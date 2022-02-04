@@ -646,8 +646,7 @@
                   "type": "string"
                 },
                 "attachment": {
-                  "type": "string",
-                  "format": "byte"
+                  "type": "string"
                 }
               },
               "required": [
@@ -745,8 +744,7 @@
                   "type": "string"
                 },
                 "attachment": {
-                  "type": "string",
-                  "format": "byte"
+                  "type": "string"
                 }
               },
               "required": [
@@ -1584,8 +1582,7 @@
           "format": "date-time"
         },
         "attachment": {
-          "type": "string",
-          "format": "byte"
+          "type": "string"
         }
       }
     },

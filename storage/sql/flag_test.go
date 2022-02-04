@@ -210,12 +210,13 @@ func TestCreateVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
+	attachment := "{\"key\":\"value\"}"
 	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
+		Attachment:  attachment,
 	})
 
 	require.NoError(t, err)
@@ -226,7 +227,7 @@ func TestCreateVariant(t *testing.T) {
 	assert.Equal(t, t.Name(), variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
-	assert.Equal(t, []byte("baz"), variant.Attachment)
+	assert.Equal(t, attachment, variant.Attachment)
 	assert.NotZero(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
@@ -245,7 +246,6 @@ func TestCreateVariant_FlagNotFound(t *testing.T) {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
 	})
 
 	assert.EqualError(t, err, "flag \"foo\" not found")
@@ -267,7 +267,6 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
 	})
 
 	require.NoError(t, err)
@@ -279,7 +278,6 @@ func TestCreateVariant_DuplicateName(t *testing.T) {
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
 	})
 
 	assert.EqualError(t, err, "variant \"foo\" is not unique")
@@ -301,7 +299,6 @@ func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
 	})
 
 	require.NoError(t, err)
@@ -326,7 +323,6 @@ func TestCreateVariant_DuplicateName_DifferentFlag(t *testing.T) {
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
 	})
 
 	require.NoError(t, err)
@@ -348,12 +344,13 @@ func TestUpdateVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
+	attachment1 := "{\"key\":\"value1\"}"
 	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
+		Attachment:  attachment1,
 	})
 
 	require.NoError(t, err)
@@ -364,17 +361,18 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, "foo", variant.Key)
 	assert.Equal(t, "foo", variant.Name)
 	assert.Equal(t, "bar", variant.Description)
-	assert.Equal(t, []byte("baz"), variant.Attachment)
+	assert.Equal(t, attachment1, variant.Attachment)
 	assert.NotZero(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
+	attachment2 := "{\"key\":\"value2\"}"
 	updated, err := store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
 		Id:          variant.Id,
 		FlagKey:     variant.FlagKey,
 		Key:         variant.Key,
 		Name:        variant.Name,
 		Description: "foobar",
-		Attachment:  []byte("foobaz"),
+		Attachment:  attachment2,
 	})
 
 	require.NoError(t, err)
@@ -384,7 +382,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, variant.Key, updated.Key)
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
-	assert.Equal(t, []byte("foobaz"), updated.Attachment)
+	assert.Equal(t, attachment2, updated.Attachment)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 
@@ -414,7 +412,6 @@ func TestUpdateVariant_NotFound(t *testing.T) {
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Attachment:  []byte("baz"),
 	})
 
 	assert.EqualError(t, err, "variant \"foo\" not found")
