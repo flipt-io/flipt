@@ -1,6 +1,6 @@
 name: Lint/Test
 on:
-  push:
+  pull-request:
     paths-ignore:
       - "*.md"
       - ".all-contributorsrc"
