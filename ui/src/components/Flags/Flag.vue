@@ -170,7 +170,9 @@
               <b-field label="Attachment (optional)">
                 <b-input
                   v-model="newVariant.attachment"
-                  placeholder="Attachment"
+                  maxlength="255"
+                  type="textarea"
+                  placeholder="{}"
                 />
               </b-field>
               <div class="field is-grouped">
@@ -233,7 +235,9 @@
               <b-field label="Attachment (optional)">
                 <b-input
                   v-model="selectedVariant.attachment"
-                  placeholder="Attachment"
+                  maxlength="255"
+                  type="textarea"
+                  placeholder="{}"
                 />
               </b-field>
               <div class="field is-grouped">
