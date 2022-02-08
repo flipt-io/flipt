@@ -30,7 +30,7 @@ func validateAttachment(attachment string) error {
 
 	if len(bytes) > MAX_VARIANT_ATTACHMENT_SIZE {
 		return errors.InvalidFieldError("attachment",
-			fmt.Sprintf("must be less than %d Kb", MAX_VARIANT_ATTACHMENT_SIZE),
+			fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
 		)
 	}
 	return nil

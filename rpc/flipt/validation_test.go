@@ -277,7 +277,7 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d Kb", MAX_VARIANT_ATTACHMENT_SIZE),
+				fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
 			),
 		},
 		{
@@ -377,7 +377,7 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
-				fmt.Sprintf("must be less than %d Kb", MAX_VARIANT_ATTACHMENT_SIZE),
+				fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
 			),
 		},
 		{
