@@ -14,6 +14,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func getAttachment(attachment string) string {
+	if attachment == "" {
+		return "{}"
+	}
+	return attachment
+}
+
 // GetFlag gets a flag
 func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
@@ -187,7 +194,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			Key:         r.Key,
 			Name:        r.Name,
 			Description: r.Description,
-			Attachment:  r.Attachment,
+			Attachment:  getAttachment(r.Attachment),
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
@@ -209,7 +216,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("\"key\"", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
-		Set("attachment", r.Attachment).
+		Set("attachment", getAttachment(r.Attachment)).
 		Set("updated_at", &timestamp{timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
