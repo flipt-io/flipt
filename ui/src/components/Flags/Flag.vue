@@ -105,7 +105,7 @@
             label="Attachment"
             sortable
           >
-            {{ props.row.attachment }}
+            {{ props.row.attachment | limit }}
           </b-table-column>
           <b-table-column v-slot="props" field="" label="" width="110" centered>
             <a
