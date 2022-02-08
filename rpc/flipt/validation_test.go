@@ -296,7 +296,7 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 				Key:         "key",
 				Name:        "name",
 				Description: "desc",
-				Attachment:  "{\"key\":\"value\"}",
+				Attachment:  `{"key":"value"}`,
 			},
 		},
 	}
@@ -398,7 +398,7 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 				Key:         "key",
 				Name:        "name",
 				Description: "desc",
-				Attachment:  "{\"key\":\"value\"}",
+				Attachment:  `{"key":"value"}`,
 			},
 		},
 	}
