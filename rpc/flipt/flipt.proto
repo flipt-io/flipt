@@ -62,6 +62,7 @@ message EvaluationResponse {
   google.protobuf.Timestamp timestamp = 7;
   string value = 8;
   double request_duration_millis = 9;
+  string attachment = 10;
 }
 
 message BatchEvaluationResponse {

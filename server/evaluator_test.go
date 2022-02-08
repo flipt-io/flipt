@@ -423,11 +423,12 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
-				Rollout:    100,
-				VariantKey: "boz",
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           100,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
 			},
 		}, nil)
 
@@ -503,6 +504,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
+			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
 		})
 	}
 }
