@@ -1,1 +1,1 @@
-ALTER TABLE variants ADD attachment TEXT;
+ALTER TABLE variants ADD attachment JSONB;
