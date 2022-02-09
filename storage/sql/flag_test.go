@@ -210,7 +210,7 @@ func TestCreateVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	attachment := "{\"key\":\"value\"}"
+	attachment := `{"key":"value"}`
 	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
@@ -344,7 +344,7 @@ func TestUpdateVariant(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	attachment1 := "{\"key\":\"value1\"}"
+	attachment1 := `{"key":"value1"}`
 	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         "foo",
@@ -365,14 +365,13 @@ func TestUpdateVariant(t *testing.T) {
 	assert.NotZero(t, variant.CreatedAt)
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
-	attachment2 := "{\"key\":\"value2\"}"
 	updated, err := store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
 		Id:          variant.Id,
 		FlagKey:     variant.FlagKey,
 		Key:         variant.Key,
 		Name:        variant.Name,
 		Description: "foobar",
-		Attachment:  attachment2,
+		Attachment:  `{"key":      "value2"}`,
 	})
 
 	require.NoError(t, err)
@@ -382,7 +381,7 @@ func TestUpdateVariant(t *testing.T) {
 	assert.Equal(t, variant.Key, updated.Key)
 	assert.Equal(t, variant.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
-	assert.Equal(t, attachment2, updated.Attachment)
+	assert.Equal(t, `{"key":"value2"}`, updated.Attachment)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 

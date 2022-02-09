@@ -1,8 +1,10 @@
 package common
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
@@ -13,6 +15,14 @@ import (
 	"github.com/markphelps/flipt/storage"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func compactJsonString(jsonString string) (string, error) {
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, []byte(jsonString)); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
 
 func getAttachment(attachment string) string {
 	if attachment == "" {
@@ -207,6 +217,12 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		return nil, err
 	}
 
+	attachment, err := compactJsonString(v.Attachment)
+	if err != nil {
+		return nil, err
+	}
+	v.Attachment = attachment
+
 	return v, nil
 }
 
@@ -235,8 +251,9 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	}
 
 	var (
-		createdAt timestamp
-		updatedAt timestamp
+		attachment string
+		createdAt  timestamp
+		updatedAt  timestamp
 
 		v = &flipt.Variant{}
 	)
@@ -245,12 +262,17 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		From("variants").
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
 		QueryRowContext(ctx).
-		Scan(&v.Id, &v.Key, &v.FlagKey, &v.Name, &v.Description, &v.Attachment, &createdAt, &updatedAt); err != nil {
+		Scan(&v.Id, &v.Key, &v.FlagKey, &v.Name, &v.Description, &attachment, &createdAt, &updatedAt); err != nil {
 		return nil, err
 	}
 
 	v.CreatedAt = createdAt.Timestamp
 	v.UpdatedAt = updatedAt.Timestamp
+	attachment, err = compactJsonString(attachment)
+	if err != nil {
+		return nil, err
+	}
+	v.Attachment = attachment
 
 	return v, nil
 }
@@ -285,6 +307,7 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 		var (
 			variant              flipt.Variant
 			createdAt, updatedAt timestamp
+			attachment           string
 		)
 
 		if err := rows.Scan(
@@ -293,7 +316,7 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 			&variant.Key,
 			&variant.Name,
 			&variant.Description,
-			&variant.Attachment,
+			&attachment,
 			&createdAt,
 			&updatedAt); err != nil {
 			return err
@@ -301,6 +324,12 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 
 		variant.CreatedAt = createdAt.Timestamp
 		variant.UpdatedAt = updatedAt.Timestamp
+		attachment, err := compactJsonString(attachment)
+		if err != nil {
+			return err
+		}
+		variant.Attachment = attachment
+
 		flag.Variants = append(flag.Variants, &variant)
 	}
 
