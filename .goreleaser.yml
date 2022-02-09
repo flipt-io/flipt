@@ -19,9 +19,6 @@ builds:
     flags:
       - -tags=assets
 
-release:
-  mode: replace # opts: keep-existing, append, prepend, replace
-
 sboms:
   - artifacts: archive
 

@@ -11,6 +11,7 @@ RUN apt-get update && \
     sudo \
     openssh-server \
     postgresql-client && \
+    silversearcher-ag && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
