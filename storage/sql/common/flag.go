@@ -24,11 +24,11 @@ func compactJsonString(jsonString string) (string, error) {
 	return buf.String(), nil
 }
 
-func getAttachment(attachment string) string {
-	if attachment == "" {
-		return "{}"
+func emptyAsNil(str string) *string {
+	if str == "" {
+		return nil
 	}
-	return attachment
+	return &str
 }
 
 // GetFlag gets a flag
@@ -204,24 +204,27 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			Key:         r.Key,
 			Name:        r.Name,
 			Description: r.Description,
-			Attachment:  getAttachment(r.Attachment),
+			Attachment:  r.Attachment,
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
 	)
 
+	attachment := emptyAsNil(r.Attachment)
 	if _, err := s.builder.Insert("variants").
 		Columns("id", "flag_key", "\"key\"", "name", "description", "attachment", "created_at", "updated_at").
-		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, v.Attachment, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
+		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, attachment, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
-	attachment, err := compactJsonString(v.Attachment)
-	if err != nil {
-		return nil, err
+	if attachment != nil {
+		compactedAttachment, err := compactJsonString(*attachment)
+		if err != nil {
+			return nil, err
+		}
+		v.Attachment = compactedAttachment
 	}
-	v.Attachment = attachment
 
 	return v, nil
 }
@@ -232,7 +235,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("\"key\"", r.Key).
 		Set("name", r.Name).
 		Set("description", r.Description).
-		Set("attachment", getAttachment(r.Attachment)).
+		Set("attachment", emptyAsNil(r.Attachment)).
 		Set("updated_at", &timestamp{timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
@@ -251,7 +254,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	}
 
 	var (
-		attachment string
+		attachment sql.NullString
 		createdAt  timestamp
 		updatedAt  timestamp
 
@@ -268,11 +271,13 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 
 	v.CreatedAt = createdAt.Timestamp
 	v.UpdatedAt = updatedAt.Timestamp
-	attachment, err = compactJsonString(attachment)
-	if err != nil {
-		return nil, err
+	if attachment.Valid {
+		compactedAttachment, err := compactJsonString(attachment.String)
+		if err != nil {
+			return nil, err
+		}
+		v.Attachment = compactedAttachment
 	}
-	v.Attachment = attachment
 
 	return v, nil
 }
@@ -307,7 +312,7 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 		var (
 			variant              flipt.Variant
 			createdAt, updatedAt timestamp
-			attachment           string
+			attachment           sql.NullString
 		)
 
 		if err := rows.Scan(
@@ -324,11 +329,13 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 
 		variant.CreatedAt = createdAt.Timestamp
 		variant.UpdatedAt = updatedAt.Timestamp
-		attachment, err := compactJsonString(attachment)
-		if err != nil {
-			return err
+		if attachment.Valid {
+			compactedAttachment, err := compactJsonString(attachment.String)
+			if err != nil {
+				return err
+			}
+			variant.Attachment = compactedAttachment
 		}
-		variant.Attachment = attachment
 
 		flag.Variants = append(flag.Variants, &variant)
 	}

@@ -119,7 +119,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	for rows.Next() {
 		var (
 			d          storage.EvaluationDistribution
-			attachment string
+			attachment sql.NullString
 		)
 
 		if err := rows.Scan(
@@ -128,11 +128,13 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 			return nil, err
 		}
 
-		attachment, err := compactJsonString(attachment)
-		if err != nil {
-			return nil, err
+		if attachment.Valid {
+			attachmentString, err := compactJsonString(attachment.String)
+			if err != nil {
+				return nil, err
+			}
+			d.VariantAttachment = attachmentString
 		}
-		d.VariantAttachment = attachment
 
 		distributions = append(distributions, &d)
 	}
