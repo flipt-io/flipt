@@ -147,6 +147,10 @@ See [LICENSE](LICENSE).
 
 ## Logos
 
+| [![Paradigm](logos/paradigm-logo-light-vertical-128x128.png)](https://www.paradigm.co/) |
+| ------------------------------------------------------------------------------------------|
+| [Paradigm](https://www.paradigm.co/)                                                      |
+
 Using Flipt at your company? Open a PR and add your logo here!
 
 ## Sponsors
