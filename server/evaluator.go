@@ -259,6 +259,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 		resp.Match = true
 		resp.Value = d.VariantKey
+		resp.Attachment = d.VariantAttachment
 		return resp, nil
 	} // end rule loop
 

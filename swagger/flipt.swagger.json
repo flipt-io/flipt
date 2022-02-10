@@ -644,6 +644,9 @@
                 },
                 "description": {
                   "type": "string"
+                },
+                "attachment": {
+                  "type": "string"
                 }
               },
               "required": [
@@ -738,6 +741,9 @@
                   "type": "string"
                 },
                 "description": {
+                  "type": "string"
+                },
+                "attachment": {
                   "type": "string"
                 }
               },
@@ -1411,6 +1417,9 @@
         "requestDurationMillis": {
           "type": "number",
           "format": "double"
+        },
+        "attachment": {
+          "type": "string"
         }
       }
     },
@@ -1574,6 +1583,9 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "attachment": {
+          "type": "string"
         }
       }
     },
