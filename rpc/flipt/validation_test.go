@@ -1,11 +1,24 @@
 package flipt
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/markphelps/flipt/errors"
 	"github.com/stretchr/testify/assert"
 )
+
+func largeJsonString() string {
+	prefix := `{"a":"`
+	suffix := `"}`
+
+	//adding one for making the string larger than the limit
+	b := make([]byte, MAX_VARIANT_ATTACHMENT_SIZE-len(prefix)-len(suffix)+1)
+	for i := range b {
+		b[i] = 'a'
+	}
+	return fmt.Sprintf("%s%s%s", prefix, string(b), suffix)
+}
 
 func TestValidate_EvaluationRequest(t *testing.T) {
 	tests := []struct {
@@ -243,12 +256,47 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
+			name: "malformedJsonAttachment",
+			req: &CreateVariantRequest{
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Attachment:  "attachment",
+			},
+			wantErr: errors.InvalidFieldError("attachment", "must be a json string"),
+		},
+		{
+			name: "attachmentExceededLimit",
+			req: &CreateVariantRequest{
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Attachment:  largeJsonString(),
+			},
+			wantErr: errors.InvalidFieldError(
+				"attachment",
+				fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
+			),
+		},
+		{
 			name: "valid",
 			req: &CreateVariantRequest{
 				FlagKey:     "flagKey",
 				Key:         "key",
 				Name:        "name",
 				Description: "desc",
+			},
+		},
+		{
+			name: "validWithAttachment",
+			req: &CreateVariantRequest{
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Attachment:  `{"key":"value"}`,
 			},
 		},
 	}
@@ -306,6 +354,33 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 			wantErr: errors.EmptyFieldError("key"),
 		},
 		{
+			name: "malformedJsonAttachment",
+			req: &UpdateVariantRequest{
+				Id:          "id",
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Attachment:  "attachment",
+			},
+			wantErr: errors.InvalidFieldError("attachment", "must be a json string"),
+		},
+		{
+			name: "attachmentExceededLimit",
+			req: &UpdateVariantRequest{
+				Id:          "id",
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Attachment:  largeJsonString(),
+			},
+			wantErr: errors.InvalidFieldError(
+				"attachment",
+				fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
+			),
+		},
+		{
 			name: "valid",
 			req: &UpdateVariantRequest{
 				Id:          "id",
@@ -313,6 +388,17 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 				Key:         "key",
 				Name:        "name",
 				Description: "desc",
+			},
+		},
+		{
+			name: "validWithAttachment",
+			req: &UpdateVariantRequest{
+				Id:          "id",
+				FlagKey:     "flagKey",
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+				Attachment:  `{"key":"value"}`,
 			},
 		},
 	}

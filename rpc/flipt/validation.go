@@ -1,11 +1,15 @@
 package flipt
 
 import (
+	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/markphelps/flipt/errors"
 )
+
+const MAX_VARIANT_ATTACHMENT_SIZE = 10000
 
 // Validator validates types
 type Validator interface {
@@ -13,6 +17,24 @@ type Validator interface {
 }
 
 // Evaluate
+
+func validateAttachment(attachment string) error {
+	if attachment == "" {
+		return nil
+	}
+
+	bytes := []byte(attachment)
+	if !json.Valid(bytes) {
+		return errors.InvalidFieldError("attachment", "must be a json string")
+	}
+
+	if len(bytes) > MAX_VARIANT_ATTACHMENT_SIZE {
+		return errors.InvalidFieldError("attachment",
+			fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
+		)
+	}
+	return nil
+}
 
 func (req *EvaluationRequest) Validate() error {
 	if req.FlagKey == "" {
@@ -83,6 +105,10 @@ func (req *CreateVariantRequest) Validate() error {
 		return errors.EmptyFieldError("key")
 	}
 
+	if err := validateAttachment(req.Attachment); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -97,6 +123,10 @@ func (req *UpdateVariantRequest) Validate() error {
 
 	if req.Key == "" {
 		return errors.EmptyFieldError("key")
+	}
+
+	if err := validateAttachment(req.Attachment); err != nil {
+		return err
 	}
 
 	return nil

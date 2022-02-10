@@ -29,11 +29,12 @@ type EvaluationConstraint struct {
 
 // EvaluationDistribution represents a rule distribution along with its variant for evaluation
 type EvaluationDistribution struct {
-	ID         string
-	RuleID     string
-	VariantID  string
-	Rollout    float32
-	VariantKey string
+	ID                string
+	RuleID            string
+	VariantID         string
+	Rollout           float32
+	VariantKey        string
+	VariantAttachment string
 }
 
 type QueryParams struct {
