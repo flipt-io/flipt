@@ -129,7 +129,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 		}
 
 		if attachment.Valid {
-			attachmentString, err := compactJsonString(attachment.String)
+			attachmentString, err := compactJSONString(attachment.String)
 			if err != nil {
 				return nil, err
 			}

@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func compactJsonString(jsonString string) (string, error) {
+func compactJSONString(jsonString string) (string, error) {
 	var buf bytes.Buffer
 	if err := json.Compact(&buf, []byte(jsonString)); err != nil {
 		return "", err
@@ -219,7 +219,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	}
 
 	if attachment != nil {
-		compactedAttachment, err := compactJsonString(*attachment)
+		compactedAttachment, err := compactJSONString(*attachment)
 		if err != nil {
 			return nil, err
 		}
@@ -272,7 +272,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	v.CreatedAt = createdAt.Timestamp
 	v.UpdatedAt = updatedAt.Timestamp
 	if attachment.Valid {
-		compactedAttachment, err := compactJsonString(attachment.String)
+		compactedAttachment, err := compactJSONString(attachment.String)
 		if err != nil {
 			return nil, err
 		}
@@ -330,7 +330,7 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 		variant.CreatedAt = createdAt.Timestamp
 		variant.UpdatedAt = updatedAt.Timestamp
 		if attachment.Valid {
-			compactedAttachment, err := compactJsonString(attachment.String)
+			compactedAttachment, err := compactJSONString(attachment.String)
 			if err != nil {
 				return err
 			}

@@ -7,7 +7,7 @@
         <textarea
           class="textarea"
           :class="{ 'is-danger': invalidRequest }"
-          rows="10"
+          rows="15"
           :value="JSON.stringify(request, undefined, 4)"
           @change="updateRequest"
         />
@@ -17,7 +17,7 @@
         <textarea
           class="textarea"
           :class="responseClass"
-          rows="10"
+          rows="15"
           :value="JSON.stringify(response, undefined, 4)"
           disabled
         />
