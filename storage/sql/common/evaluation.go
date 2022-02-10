@@ -98,7 +98,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 }
 
 func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
-	rows, err := s.builder.Select("d.id, d.rule_id, d.variant_id, d.rollout, v.\"key\"").
+	rows, err := s.builder.Select("d.id, d.rule_id, d.variant_id, d.rollout, v.\"key\", v.attachment").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
 		Where(sq.Eq{"d.rule_id": ruleID}).
@@ -117,10 +117,23 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	var distributions []*storage.EvaluationDistribution
 
 	for rows.Next() {
-		var d storage.EvaluationDistribution
+		var (
+			d          storage.EvaluationDistribution
+			attachment sql.NullString
+		)
 
-		if err := rows.Scan(&d.ID, &d.RuleID, &d.VariantID, &d.Rollout, &d.VariantKey); err != nil {
+		if err := rows.Scan(
+			&d.ID, &d.RuleID, &d.VariantID, &d.Rollout, &d.VariantKey, &attachment,
+		); err != nil {
 			return nil, err
+		}
+
+		if attachment.Valid {
+			attachmentString, err := compactJsonString(attachment.String)
+			if err != nil {
+				return nil, err
+			}
+			d.VariantAttachment = attachmentString
 		}
 
 		distributions = append(distributions, &d)

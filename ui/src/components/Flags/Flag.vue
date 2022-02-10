@@ -84,7 +84,7 @@
         <p class="subtitle is-7">
           Return different values based on rules you define
         </p>
-        <b-table :data="flag.variants">
+        <b-table :data="flag.variants" scrollable>
           <b-table-column v-slot="props" field="key" label="Key" sortable>
             {{ props.row.key }}
           </b-table-column>
@@ -98,6 +98,14 @@
             sortable
           >
             {{ props.row.description }}
+          </b-table-column>
+          <b-table-column
+            v-slot="props"
+            field="attachment"
+            label="Attachment"
+            sortable
+          >
+            {{ props.row.attachment | limit }}
           </b-table-column>
           <b-table-column v-slot="props" field="" label="" width="110" centered>
             <a
@@ -159,6 +167,14 @@
                   placeholder="Description"
                 />
               </b-field>
+              <b-field label="Attachment (optional)">
+                <b-input
+                  v-model="newVariant.attachment"
+                  maxlength="1000"
+                  type="textarea"
+                  placeholder="{}"
+                />
+              </b-field>
               <div class="field is-grouped">
                 <div class="control">
                   <button
@@ -214,6 +230,14 @@
                 <b-input
                   v-model="selectedVariant.description"
                   placeholder="Description"
+                />
+              </b-field>
+              <b-field label="Attachment (optional)">
+                <b-input
+                  v-model="selectedVariant.attachment"
+                  maxlength="1000"
+                  type="textarea"
+                  placeholder="{}"
                 />
               </b-field>
               <div class="field is-grouped">

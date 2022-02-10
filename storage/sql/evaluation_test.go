@@ -110,8 +110,9 @@ func TestGetEvaluationDistributions(t *testing.T) {
 
 	// variant 2
 	variant2, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-		FlagKey: flag.Key,
-		Key:     "bar",
+		FlagKey:    flag.Key,
+		Key:        "bar",
+		Attachment: `{"key2":   "value2"}`,
 	})
 
 	require.NoError(t, err)
@@ -180,6 +181,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
 	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
+	assert.Equal(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
 	assert.Equal(t, float32(50.00), evaluationDistributions[1].Rollout)
 }
 

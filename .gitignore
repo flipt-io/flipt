@@ -8,6 +8,7 @@ _obj
 _test
 .DS_Store
 .envrc
+.idea
 .ruby-version
 .vagrant
 .vscode/*
