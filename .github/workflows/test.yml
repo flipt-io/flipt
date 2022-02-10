@@ -1,5 +1,8 @@
 name: Lint/Test
 on:
+  push:
+    branches:
+      - "master"
   pull_request:
     paths-ignore:
       - "*.md"

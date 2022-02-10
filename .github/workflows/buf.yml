@@ -1,5 +1,9 @@
 name: Buf
-on: pull_request
+on:
+  pull_request:
+    paths-ignore:
+      - "*.md"
+      - ".all-contributorsrc"
 
 jobs:
   lint:
@@ -11,13 +15,13 @@ jobs:
 
       - uses: bufbuild/buf-setup-action@v0.7.0
         with:
-          version: 'latest'
+          version: "latest"
 
       - uses: bufbuild/buf-lint-action@v1
         with:
-          input: 'rpc/flipt'
+          input: "rpc/flipt"
 
       - uses: bufbuild/buf-breaking-action@v1
         with:
-          input: 'rpc/flipt'
-          against: 'https://github.com/${GITHUB_REPOSITORY}.git#branch=master'
+          input: "rpc/flipt"
+          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=master"
