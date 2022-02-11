@@ -6,6 +6,15 @@ vars:
   SOURCE_FILES: ./...
 
 tasks:
+  default:
+    desc: Build the binary
+    deps: [clean, assets]
+    cmds:
+      - go build -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
+    vars:
+      GIT_COMMIT:
+        sh: set -e && git rev-parse --verify HEAD || ""
+
   assets:
     desc: Build the UI
     deps: [assets:deps]
@@ -36,15 +45,6 @@ tasks:
     desc: Install necessary development tools
     cmds:
       - ./script/bootstrap
-
-  build:
-    desc: Build the binary
-    deps: [clean, assets]
-    cmds:
-      - go build -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
-    vars:
-      GIT_COMMIT:
-        sh: set -e && git rev-parse --verify HEAD || ""
 
   build:clients:
     desc: Generate Ruby and Go proto clients

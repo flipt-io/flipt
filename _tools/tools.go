@@ -4,7 +4,6 @@
 package tools
 
 import (
-	_ "github.com/buchanae/github-release-notes"
 	_ "github.com/bufbuild/buf/cmd/buf"
 	_ "github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking"
 	_ "github.com/bufbuild/buf/cmd/protoc-gen-buf-lint"

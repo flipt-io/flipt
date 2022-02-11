@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.16
+ARG GO_VERSION=1.17
 
 FROM golang:${GO_VERSION}
 
@@ -11,6 +11,7 @@ RUN apt-get update && \
     sudo \
     openssh-server \
     postgresql-client && \
+    silversearcher-ag && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
