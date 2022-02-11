@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -32,10 +33,10 @@ type Flag struct {
 }
 
 type Variant struct {
-	Key         string `yaml:"key,omitempty"`
-	Name        string `yaml:"name,omitempty"`
-	Description string `yaml:"description,omitempty"`
-	Attachment  string `yaml:"attachment,omitempty"`
+	Key         string          `yaml:"key,omitempty"`
+	Name        string          `yaml:"name,omitempty"`
+	Description string          `yaml:"description,omitempty"`
+	Attachment  json.RawMessage `yaml:"attachment,omitempty"`
 }
 
 type Rule struct {
@@ -150,7 +151,7 @@ func runExport(_ []string) error {
 					Key:         v.Key,
 					Name:        v.Name,
 					Description: v.Description,
-					Attachment:  v.Attachment,
+					Attachment:  []byte(v.Attachment),
 				})
 
 				variantKeys[v.Id] = v.Key

@@ -139,7 +139,7 @@ func runImport(args []string) error {
 				Key:         v.Key,
 				Name:        v.Name,
 				Description: v.Description,
-				Attachment:  v.Attachment,
+				Attachment:  string(v.Attachment),
 			})
 
 			if err != nil {
