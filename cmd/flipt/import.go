@@ -103,9 +103,8 @@ func runImport(args []string) error {
 		return fmt.Errorf("migrator close: %w", err)
 	}
 
-	importer := ext.NewImporter(ctx, store)
-	_, err = importer.ReadFrom(in)
-	if err != nil {
+	importer := ext.NewImporter(store)
+	if err := importer.Import(ctx, in); err != nil {
 		return fmt.Errorf("importing: %w", err)
 	}
 

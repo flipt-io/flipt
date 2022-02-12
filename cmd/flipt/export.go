@@ -68,9 +68,8 @@ func runExport(_ []string) error {
 
 	defer out.Close()
 
-	exporter := ext.NewExporter(ctx, store)
-	_, err = exporter.WriteTo(out)
-	if err != nil {
+	exporter := ext.NewExporter(store)
+	if err := exporter.Export(ctx, out); err != nil {
 		return fmt.Errorf("exporting: %w", err)
 	}
 

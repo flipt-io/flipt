@@ -12,22 +12,19 @@ import (
 const batchSize = 25
 
 type Exporter struct {
-	ctx   context.Context
 	store storage.Store
 }
 
-func NewExporter(ctx context.Context, store storage.Store) *Exporter {
+func NewExporter(store storage.Store) *Exporter {
 	return &Exporter{
-		ctx:   ctx,
 		store: store,
 	}
 }
 
-func (e *Exporter) WriteTo(w io.Writer) (int64, error) {
+func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	var (
 		enc = yaml.NewEncoder(w)
 		doc = new(Document)
-		ctx = e.ctx
 	)
 
 	defer enc.Close()
@@ -38,7 +35,7 @@ func (e *Exporter) WriteTo(w io.Writer) (int64, error) {
 	for batch := uint64(0); remaining; batch++ {
 		flags, err := e.store.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
-			return -1, fmt.Errorf("getting flags: %w", err)
+			return fmt.Errorf("getting flags: %w", err)
 		}
 
 		remaining = len(flags) == batchSize
@@ -58,7 +55,7 @@ func (e *Exporter) WriteTo(w io.Writer) (int64, error) {
 				var attachment map[string]interface{}
 
 				if err := yaml.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
-					return -1, fmt.Errorf("unmarshaling attachment: %w", err)
+					return fmt.Errorf("unmarshaling attachment: %w", err)
 				}
 
 				flag.Variants = append(flag.Variants, &Variant{
@@ -74,7 +71,7 @@ func (e *Exporter) WriteTo(w io.Writer) (int64, error) {
 			// export rules for flag
 			rules, err := e.store.ListRules(ctx, flag.Key)
 			if err != nil {
-				return -1, fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
+				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
 
 			for _, r := range rules {
@@ -103,7 +100,7 @@ func (e *Exporter) WriteTo(w io.Writer) (int64, error) {
 	for batch := uint64(0); remaining; batch++ {
 		segments, err := e.store.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
-			return -1, fmt.Errorf("getting segments: %w", err)
+			return fmt.Errorf("getting segments: %w", err)
 		}
 
 		remaining = len(segments) == batchSize
@@ -129,8 +126,8 @@ func (e *Exporter) WriteTo(w io.Writer) (int64, error) {
 	}
 
 	if err := enc.Encode(doc); err != nil {
-		return -1, fmt.Errorf("encoding: %w", err)
+		return fmt.Errorf("marshaling document: %w", err)
 	}
 
-	return 0, nil
+	return nil
 }

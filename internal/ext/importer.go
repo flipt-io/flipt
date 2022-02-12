@@ -12,26 +12,23 @@ import (
 )
 
 type Importer struct {
-	ctx   context.Context
 	store storage.Store
 }
 
-func NewImporter(ctx context.Context, store storage.Store) *Importer {
+func NewImporter(store storage.Store) *Importer {
 	return &Importer{
-		ctx:   ctx,
 		store: store,
 	}
 }
 
-func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
+func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 	var (
-		ctx = i.ctx
 		dec = yaml.NewDecoder(r)
 		doc = new(Document)
 	)
 
 	if err := dec.Decode(doc); err != nil {
-		return -1, fmt.Errorf("importing: %w", err)
+		return fmt.Errorf("importing: %w", err)
 	}
 
 	var (
@@ -53,7 +50,7 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 		})
 
 		if err != nil {
-			return -1, fmt.Errorf("importing flag: %w", err)
+			return fmt.Errorf("importing flag: %w", err)
 		}
 
 		for _, v := range f.Variants {
@@ -65,7 +62,7 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 			if v.Attachment != nil {
 				out, err = json.Marshal(v.Attachment)
 				if err != nil {
-					return -1, fmt.Errorf("importing flag: invalid variant attachment type: %T", v.Attachment)
+					return fmt.Errorf("importing flag: invalid variant attachment type: %T", v.Attachment)
 				}
 			}
 
@@ -78,7 +75,7 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 			})
 
 			if err != nil {
-				return -1, fmt.Errorf("importing variant: %w", err)
+				return fmt.Errorf("importing variant: %w", err)
 			}
 
 			createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
@@ -96,7 +93,7 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 		})
 
 		if err != nil {
-			return -1, fmt.Errorf("importing segment: %w", err)
+			return fmt.Errorf("importing segment: %w", err)
 		}
 
 		for _, c := range s.Constraints {
@@ -109,7 +106,7 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 			})
 
 			if err != nil {
-				return -1, fmt.Errorf("importing constraint: %w", err)
+				return fmt.Errorf("importing constraint: %w", err)
 			}
 		}
 
@@ -127,13 +124,13 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 			})
 
 			if err != nil {
-				return -1, fmt.Errorf("importing rule: %w", err)
+				return fmt.Errorf("importing rule: %w", err)
 			}
 
 			for _, d := range r.Distributions {
 				variant, found := createdVariants[fmt.Sprintf("%s:%s", f.Key, d.VariantKey)]
 				if !found {
-					return -1, fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
+					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
 				}
 
 				_, err := i.store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
@@ -144,11 +141,11 @@ func (i *Importer) ReadFrom(r io.Reader) (int64, error) {
 				})
 
 				if err != nil {
-					return -1, fmt.Errorf("importing distribution: %w", err)
+					return fmt.Errorf("importing distribution: %w", err)
 				}
 			}
 		}
 	}
 
-	return 0, nil
+	return nil
 }
