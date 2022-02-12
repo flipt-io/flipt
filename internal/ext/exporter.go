@@ -2,6 +2,7 @@ package ext
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 
@@ -54,8 +55,8 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			for _, v := range f.Variants {
 				var attachment map[string]interface{}
 
-				if err := yaml.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
-					return fmt.Errorf("unmarshaling attachment: %w", err)
+				if err := json.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
+					return fmt.Errorf("unmarshaling variant attachment: %w", err)
 				}
 
 				flag.Variants = append(flag.Variants, &Variant{

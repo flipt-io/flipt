@@ -54,15 +54,12 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		for _, v := range f.Variants {
-			var (
-				out []byte
-				err error
-			)
+			var out []byte
 
 			if v.Attachment != nil {
 				out, err = json.Marshal(v.Attachment)
 				if err != nil {
-					return fmt.Errorf("importing flag: invalid variant attachment type: %T", v.Attachment)
+					return fmt.Errorf("marshaling variant attachment: %w", err)
 				}
 			}
 
