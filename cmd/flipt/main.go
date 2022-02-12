@@ -84,7 +84,7 @@ func main() {
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := run(args); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -98,7 +98,7 @@ func main() {
 			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runExport(args); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -109,7 +109,7 @@ func main() {
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runImport(args); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -121,14 +121,14 @@ func main() {
 			Run: func(cmd *cobra.Command, args []string) {
 				migrator, err := sql.NewMigrator(*cfg, l)
 				if err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Run(true); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},

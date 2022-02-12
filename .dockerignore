@@ -18,6 +18,6 @@ Dockerfile
 LICENSE
 bin/
 examples/
-site/
 ui/dist/
 ui/node_modules/
+logos/
