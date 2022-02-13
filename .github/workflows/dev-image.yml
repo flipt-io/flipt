@@ -44,4 +44,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/markphelps/flipt-dev:${{ github.event.inputs.tag }}
+          tags: ghcr.io/markphelps/flipt-dev:${{ inputs.tag }}
