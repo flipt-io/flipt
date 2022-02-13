@@ -2,11 +2,6 @@ name: Build/Push Dev Image
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Docker Tag"
-        required: true
-        default: "latest"
   schedule:
     # monthly
     - cron: "0 0 1 * *"
@@ -44,4 +39,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/markphelps/flipt-dev:${{ inputs.tag }}
+          tags: ghcr.io/markphelps/flipt-dev:latest
