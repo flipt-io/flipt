@@ -7,15 +7,23 @@ import (
 	"io"
 
 	"github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
 	"gopkg.in/yaml.v2"
 )
 
-type Importer struct {
-	store storage.Creator
+type creator interface {
+	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
+	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
+	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
+	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 }
 
-func NewImporter(store storage.Creator) *Importer {
+type Importer struct {
+	store creator
+}
+
+func NewImporter(store creator) *Importer {
 	return &Importer{
 		store: store,
 	}
@@ -28,7 +36,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 	)
 
 	if err := dec.Decode(doc); err != nil {
-		return fmt.Errorf("importing: %w", err)
+		return fmt.Errorf("unmarshalling document: %w", err)
 	}
 
 	var (
@@ -50,16 +58,17 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		})
 
 		if err != nil {
-			return fmt.Errorf("importing flag: %w", err)
+			return fmt.Errorf("creating flag: %w", err)
 		}
 
 		for _, v := range f.Variants {
 			var out []byte
 
 			if v.Attachment != nil {
-				out, err = json.Marshal(v.Attachment)
+				converted := convert(v.Attachment)
+				out, err = json.Marshal(converted)
 				if err != nil {
-					return fmt.Errorf("marshaling variant attachment: %w", err)
+					return fmt.Errorf("marshalling attachment: %w", err)
 				}
 			}
 
@@ -72,7 +81,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			})
 
 			if err != nil {
-				return fmt.Errorf("importing variant: %w", err)
+				return fmt.Errorf("creating variant: %w", err)
 			}
 
 			createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
@@ -90,7 +99,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		})
 
 		if err != nil {
-			return fmt.Errorf("importing segment: %w", err)
+			return fmt.Errorf("creating segment: %w", err)
 		}
 
 		for _, c := range s.Constraints {
@@ -103,7 +112,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			})
 
 			if err != nil {
-				return fmt.Errorf("importing constraint: %w", err)
+				return fmt.Errorf("creating constraint: %w", err)
 			}
 		}
 
@@ -121,7 +130,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			})
 
 			if err != nil {
-				return fmt.Errorf("importing rule: %w", err)
+				return fmt.Errorf("creating rule: %w", err)
 			}
 
 			for _, d := range r.Distributions {
@@ -138,11 +147,30 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				})
 
 				if err != nil {
-					return fmt.Errorf("importing distribution: %w", err)
+					return fmt.Errorf("creating distribution: %w", err)
 				}
 			}
 		}
 	}
 
 	return nil
+}
+
+// convert converts each encountered map[interface{}]interface{} to a map[string]interface{} value.
+// This is necessary because the json library does not support map[interface{}]interface{} values which nested
+// maps get unmarshalled into from the yaml library.
+func convert(i interface{}) interface{} {
+	switch x := i.(type) {
+	case map[interface{}]interface{}:
+		m := map[string]interface{}{}
+		for k, v := range x {
+			m[k.(string)] = convert(v)
+		}
+		return m
+	case []interface{}:
+		for i, v := range x {
+			x[i] = convert(v)
+		}
+	}
+	return i
 }

@@ -100,7 +100,7 @@ func runImport(args []string) error {
 	}
 
 	if _, err := migrator.Close(); err != nil {
-		return fmt.Errorf("migrator close: %w", err)
+		return fmt.Errorf("closing migrator: %w", err)
 	}
 
 	importer := ext.NewImporter(store)

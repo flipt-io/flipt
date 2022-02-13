@@ -15,10 +15,10 @@ type Flag struct {
 }
 
 type Variant struct {
-	Key         string                 `yaml:"key,omitempty"`
-	Name        string                 `yaml:"name,omitempty"`
-	Description string                 `yaml:"description,omitempty"`
-	Attachment  map[string]interface{} `yaml:"attachment,omitempty"`
+	Key         string      `yaml:"key,omitempty"`
+	Name        string      `yaml:"name,omitempty"`
+	Description string      `yaml:"description,omitempty"`
+	Attachment  interface{} `yaml:"attachment,omitempty"`
 }
 
 type Rule struct {

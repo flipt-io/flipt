@@ -64,21 +64,6 @@ type Store interface {
 	fmt.Stringer
 }
 
-type Lister interface {
-	ListFlags(ctx context.Context, opts ...QueryOption) ([]*flipt.Flag, error)
-	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
-	ListRules(ctx context.Context, flagKey string, opts ...QueryOption) ([]*flipt.Rule, error)
-}
-
-type Creator interface {
-	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
-	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
-	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
-	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
-	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
-	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
-}
-
 // EvaluationStore returns data necessary for evaluation
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided

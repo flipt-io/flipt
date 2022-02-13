@@ -6,18 +6,25 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 	"gopkg.in/yaml.v2"
 )
 
 const defaultBatchSize = 25
 
+type lister interface {
+	ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error)
+	ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error)
+	ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error)
+}
+
 type Exporter struct {
-	store     storage.Lister
+	store     lister
 	batchSize uint64
 }
 
-func NewExporter(store storage.Lister) *Exporter {
+func NewExporter(store lister) *Exporter {
 	return &Exporter{
 		store:     store,
 		batchSize: defaultBatchSize,
@@ -56,7 +63,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			variantKeys := make(map[string]string)
 
 			for _, v := range f.Variants {
-				var attachment map[string]interface{}
+				var attachment interface{}
 
 				if v.Attachment != "" {
 					if err := json.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
