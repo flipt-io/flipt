@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Flipt now shows if there is an update available in the UI [https://github.com/markphelps/flipt/pull/650](https://github.com/markphelps/flipt/pull/650). Can be disabled via config.
+- Variants now support JSON attachments :tada: ! [https://github.com/markphelps/flipt/issues/188](https://github.com/markphelps/flipt/issues/188)
+- Import/Export of variant attachment JSON marshal as YAML for human readability [https://github.com/markphelps/flipt/issues/697](https://github.com/markphelps/flipt/issues/697)
 
 ### Changed
 

@@ -84,6 +84,18 @@ type FlagStore interface {
 	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
 }
 
+// SegmentStore stores and retrieves segments and constraints
+type SegmentStore interface {
+	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
+	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
+	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
+	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+	UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
+	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
+}
+
 // RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
 	GetRule(ctx context.Context, id string) (*flipt.Rule, error)
@@ -95,16 +107,4 @@ type RuleStore interface {
 	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
-}
-
-// SegmentStore stores and retrieves segments and constraints
-type SegmentStore interface {
-	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
-	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
-	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
-	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
-	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
-	UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
-	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
 }
