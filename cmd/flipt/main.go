@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -226,19 +227,17 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	var (
-		isRelease       = false
+		isRelease       = strings.HasPrefix(version, "v")
 		updateAvailable bool
 		cv, lv          semver.Version
 	)
 
-	if version != "" && version != devVersion {
+	if isRelease {
 		var err error
 		cv, err = semver.ParseTolerant(version)
 		if err != nil {
 			return fmt.Errorf("parsing version: %w", err)
 		}
-
-		isRelease = true
 	}
 
 	if cfg.Meta.CheckForUpdates && isRelease {

@@ -3,6 +3,9 @@ before:
     - echo $DOCKER_TOKEN | docker login -u markphelps --password-stdin
     - echo $GITHUB_TOKEN | docker login ghcr.io -u markphelps --password-stdin
 
+snapshot:
+  name_template: "{{ .ShortCommit }}-snapshot"
+
 builds:
   - main: ./cmd/flipt/.
     env:
@@ -10,7 +13,7 @@ builds:
       - CC=x86_64-linux-musl-gcc
       - CXX=x86_64-linux-musl-g++
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+      - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }}
       - -linkmode external -extldflags -static
     goos:
       - linux
