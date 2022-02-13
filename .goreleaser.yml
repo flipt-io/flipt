@@ -57,8 +57,3 @@ dockers:
     extra_files:
       - config/migrations/
       - config/default.yml
-
-docker_signs:
-  - artifacts: all
-    stdin: "{{ .Env.COSIGN_PWD }}"
-    output: true
