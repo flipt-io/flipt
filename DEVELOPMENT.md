@@ -8,7 +8,7 @@ Before starting, make sure you have the following installed:
 
 - GCC Compiler
 - [SQLite](https://sqlite.org/index.html)
-- [Go 1.16+](https://golang.org/doc/install)
+- [Go 1.17+](https://golang.org/doc/install)
 - [NodeJS >= 16](https://nodejs.org/en/)
 - [Yarn](https://yarnpkg.com/en/)
 - [Task](https://taskfile.dev/#/)
@@ -19,11 +19,12 @@ Before starting, make sure you have the following installed:
 1. Run `task bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
 1. Run `task test` to execute the test suite
 1. Run `task dev` to run the server and ui in development mode.
+1. Run `task build` to build the binary with embedded assets.
 1. Run `task --list-all` to see a full list of possible commands
 
 ## Go
 
-Flipt is built with Go 1.16+.
+Flipt is built with Go 1.17+.
 
 ## Bootstrap
 

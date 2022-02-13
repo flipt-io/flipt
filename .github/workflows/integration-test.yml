@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.16.x"
+          go-version: "1.17.x"
 
       - uses: actions/setup-node@v2.5.1
         with:
@@ -59,7 +59,7 @@ jobs:
       - name: Build the binary
         run: |
           task bootstrap
-          task build
+          task
 
       - name: Test API
         uses: ./.github/actions/integration-test

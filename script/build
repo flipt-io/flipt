@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.." || exit
 
 case "$1" in
 "release")
-            goreleaser --rm-dist --release-notes <(github-release-notes -org markphelps -repo flipt --since-latest-release)
+            goreleaser --rm-dist
             ;;
 
 "snapshot")

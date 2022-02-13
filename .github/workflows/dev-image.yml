@@ -1,4 +1,4 @@
-name: Build Dev Image
+name: Build/Push Dev Image
 
 on:
   workflow_dispatch:
