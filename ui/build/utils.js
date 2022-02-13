@@ -1,7 +1,7 @@
 "use strict";
 import path from "path";
 import { dev, build } from "../config/index.js";
-import packageConfig from "../package.json";
+import packageConfig from "../package.json" assert { type: "json" };
 import notifier from "node-notifier";
 
 export const assetsPath = function (_path) {
