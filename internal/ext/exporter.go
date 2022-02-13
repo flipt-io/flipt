@@ -10,22 +10,25 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const batchSize = 25
+const defaultBatchSize = 25
 
 type Exporter struct {
-	store storage.Store
+	store     storage.Lister
+	batchSize uint64
 }
 
-func NewExporter(store storage.Store) *Exporter {
+func NewExporter(store storage.Lister) *Exporter {
 	return &Exporter{
-		store: store,
+		store:     store,
+		batchSize: defaultBatchSize,
 	}
 }
 
 func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	var (
-		enc = yaml.NewEncoder(w)
-		doc = new(Document)
+		enc       = yaml.NewEncoder(w)
+		doc       = new(Document)
+		batchSize = e.batchSize
 	)
 
 	defer enc.Close()
@@ -39,7 +42,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			return fmt.Errorf("getting flags: %w", err)
 		}
 
-		remaining = len(flags) == batchSize
+		remaining = uint64(len(flags)) == batchSize
 
 		for _, f := range flags {
 			flag := &Flag{
@@ -55,8 +58,10 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			for _, v := range f.Variants {
 				var attachment map[string]interface{}
 
-				if err := json.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
-					return fmt.Errorf("unmarshaling variant attachment: %w", err)
+				if v.Attachment != "" {
+					if err := json.Unmarshal([]byte(v.Attachment), &attachment); err != nil {
+						return fmt.Errorf("unmarshaling variant attachment: %w", err)
+					}
 				}
 
 				flag.Variants = append(flag.Variants, &Variant{
@@ -104,7 +109,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			return fmt.Errorf("getting segments: %w", err)
 		}
 
-		remaining = len(segments) == batchSize
+		remaining = uint64(len(segments)) == batchSize
 
 		for _, s := range segments {
 			segment := &Segment{

@@ -12,10 +12,10 @@ import (
 )
 
 type Importer struct {
-	store storage.Store
+	store storage.Creator
 }
 
-func NewImporter(store storage.Store) *Importer {
+func NewImporter(store storage.Creator) *Importer {
 	return &Importer{
 		store: store,
 	}
