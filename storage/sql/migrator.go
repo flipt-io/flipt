@@ -15,9 +15,9 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:   2,
-	Postgres: 2,
-	MySQL:    0,
+	SQLite:   3,
+	Postgres: 3,
+	MySQL:    1,
 }
 
 // Migrator is responsible for migrating the database schema
@@ -99,7 +99,8 @@ func (m *Migrator) Run(force bool) error {
 			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
 		}
 
-		m.logger.Debugf("current migration version: %d, expected version: %d\n running migrations...", currentVersion, expectedVersion)
+		m.logger.Debugf("current migration version: %d, expected version: %d", currentVersion, expectedVersion)
+		m.logger.Debug("running migrations...")
 
 		if err := m.migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 			return fmt.Errorf("running migrations: %w", err)
