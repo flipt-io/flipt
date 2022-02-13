@@ -227,7 +227,7 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	var (
-		isRelease       = strings.HasPrefix(version, "v")
+		isRelease       = isRelease()
 		updateAvailable bool
 		cv, lv          semver.Version
 	)
@@ -575,6 +575,16 @@ func getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
 	}
 
 	return release, nil
+}
+
+func isRelease() bool {
+	if version == "" || version == devVersion {
+		return false
+	}
+	if strings.HasSuffix(version, "-snapshot") {
+		return false
+	}
+	return true
 }
 
 type info struct {
