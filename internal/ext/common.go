@@ -37,6 +37,7 @@ type Segment struct {
 	Name        string        `yaml:"name,omitempty"`
 	Description string        `yaml:"description,omitempty"`
 	Constraints []*Constraint `yaml:"constraints,omitempty"`
+	MatchType   string        `yaml:"match_type,omitempty"`
 }
 
 type Constraint struct {

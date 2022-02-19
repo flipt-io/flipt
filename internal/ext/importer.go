@@ -96,6 +96,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			Key:         s.Key,
 			Name:        s.Name,
 			Description: s.Description,
+			MatchType:   flipt.MatchType(flipt.MatchType_value[s.MatchType]),
 		})
 
 		if err != nil {

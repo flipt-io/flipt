@@ -123,6 +123,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				Key:         s.Key,
 				Name:        s.Name,
 				Description: s.Description,
+				MatchType:   s.MatchType.String(),
 			}
 
 			for _, c := range s.Constraints {
