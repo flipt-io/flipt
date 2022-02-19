@@ -1,6 +1,8 @@
 package sql
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/golang-migrate/migrate"
@@ -80,4 +82,20 @@ func TestMigratorRun_NoChange(t *testing.T) {
 
 	err = migrator.Run(false)
 	assert.NoError(t, err)
+}
+
+func TestMigratorExpectedVersions(t *testing.T) {
+	for db, driver := range stringToDriver {
+		migrations, err := ioutil.ReadDir(filepath.Join("../../config/migrations", db))
+		require.NoError(t, err)
+
+		count := len(migrations)
+		require.True(t, count > 0, "no migrations found for %s", db)
+
+		// 1 is the up migration and 1 is the down migration
+		// so we should have count/2 migrations
+		// and they start at 0
+		actual := uint((count / 2) - 1)
+		assert.Equal(t, actual, expectedVersions[driver], "expectedVersions for %s should be set to %d. you need to increment expectedVersions after adding a new migration", db, actual)
+	}
 }
