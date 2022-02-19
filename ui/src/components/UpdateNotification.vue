@@ -26,7 +26,7 @@ export default {
       );
     },
     show() {
-      return this.info.updateAvailable && !this.isHidden;
+      return this.info.isRelease && this.info.updateAvailable && !this.isHidden;
     },
   },
   methods: {

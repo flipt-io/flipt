@@ -76,16 +76,18 @@ export default {
   computed: {
     ...mapGetters(["info"]),
     refURL() {
-      if (this.info.version) {
+      if (this.info.isRelease && this.info.version) {
         return (
           "https://github.com/markphelps/flipt/releases/tag/" +
           this.info.version
         );
+      } else if (this.info.commit) {
+        return "https://github.com/markphelps/flipt/commit/" + this.info.commit;
       }
-      return "https://github.com/markphelps/flipt/commit/" + this.info.commit;
+      return "https://github.com/markphelps/flipt";
     },
     ref() {
-      if (this.info.version) {
+      if (this.info.isRelease && this.info.version) {
         return this.info.version;
       } else if (this.info.commit) {
         return this.info.commit.substring(0, 7);
