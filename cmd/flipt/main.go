@@ -462,21 +462,13 @@ func run(_ []string) error {
 		r.Mount("/debug", middleware.Profiler())
 
 		info := info{
-			Commit:    commit,
-			BuildDate: date,
-			GoVersion: goVersion,
-		}
-
-		emptyVersion := semver.Version{}
-
-		if cv.Validate() != nil && cv.GE(emptyVersion) {
-			info.Version = cv.FinalizeVersion()
-		}
-		if lv.Validate() != nil && cv.GE(emptyVersion) {
-			info.LatestVersion = lv.FinalizeVersion()
-		}
-		if updateAvailable {
-			info.UpdateAvailable = true
+			Commit:          commit,
+			BuildDate:       date,
+			GoVersion:       goVersion,
+			Version:         cv.String(),
+			LatestVersion:   lv.String(),
+			IsRelease:       isRelease,
+			UpdateAvailable: updateAvailable,
 		}
 
 		r.Route("/meta", func(r chi.Router) {
@@ -590,10 +582,11 @@ func isRelease() bool {
 type info struct {
 	Version         string `json:"version,omitempty"`
 	LatestVersion   string `json:"latestVersion,omitempty"`
-	UpdateAvailable bool   `json:"updateAvailable,omitempty"`
 	Commit          string `json:"commit,omitempty"`
 	BuildDate       string `json:"buildDate,omitempty"`
 	GoVersion       string `json:"goVersion,omitempty"`
+	UpdateAvailable bool   `json:"updateAvailable"`
+	IsRelease       bool   `json:"isRelease"`
 }
 
 func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {

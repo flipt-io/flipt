@@ -74,6 +74,7 @@ func TestExport(t *testing.T) {
 				Key:         "segment1",
 				Name:        "segment1",
 				Description: "description",
+				MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
 				Constraints: []*flipt.Constraint{
 					{
 						Id:       "1",

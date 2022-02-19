@@ -185,7 +185,7 @@ func TestImport(t *testing.T) {
 			assert.Equal(t, "segment1", segment.Key)
 			assert.Equal(t, "segment1", segment.Name)
 			assert.Equal(t, "description", segment.Description)
-			assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
+			assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
 
 			assert.NotEmpty(t, creator.constraintReqs)
 			assert.Equal(t, 1, len(creator.constraintReqs))

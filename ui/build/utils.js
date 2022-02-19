@@ -1,7 +1,6 @@
 "use strict";
 import path from "path";
 import { dev, build } from "../config/index.js";
-import packageConfig from "../package.json";
 import notifier from "node-notifier";
 
 export const assetsPath = function (_path) {
@@ -87,7 +86,7 @@ export const createNotifierCallback = () => {
     const filename = error.file && error.file.split("!").pop();
 
     notifier.notify({
-      title: packageConfig.name,
+      title: "flipt-ui",
       message: severity + ": " + error.name,
       subtitle: filename || "",
       icon: path.join(__dirname, "logo.png"),
