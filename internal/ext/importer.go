@@ -50,6 +50,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 	// create flags/variants
 	for _, f := range doc.Flags {
+		if f == nil {
+			continue
+		}
+
 		flag, err := i.store.CreateFlag(ctx, &flipt.CreateFlagRequest{
 			Key:         f.Key,
 			Name:        f.Name,
@@ -62,6 +66,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		for _, v := range f.Variants {
+			if v == nil {
+				continue
+			}
+
 			var out []byte
 
 			if v.Attachment != nil {
@@ -92,6 +100,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 	// create segments/constraints
 	for _, s := range doc.Segments {
+		if s == nil {
+			continue
+		}
+
 		segment, err := i.store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
 			Key:         s.Key,
 			Name:        s.Name,
@@ -104,6 +116,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		for _, c := range s.Constraints {
+			if c == nil {
+				continue
+			}
+
 			_, err := i.store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
 				SegmentKey: s.Key,
 				Type:       flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
@@ -122,8 +138,16 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 	// create rules/distributions
 	for _, f := range doc.Flags {
+		if f == nil {
+			continue
+		}
+
 		// loop through rules
 		for _, r := range f.Rules {
+			if r == nil {
+				continue
+			}
+
 			rule, err := i.store.CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:    f.Key,
 				SegmentKey: r.SegmentKey,
@@ -135,6 +159,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			}
 
 			for _, d := range r.Distributions {
+				if d == nil {
+					continue
+				}
+
 				variant, found := createdVariants[fmt.Sprintf("%s:%s", f.Key, d.VariantKey)]
 				if !found {
 					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
