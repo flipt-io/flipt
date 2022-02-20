@@ -4,7 +4,8 @@ version: 2.4.11
 type: npm
 summary: Streamable SHA hashes in pure javascript
 homepage: https://github.com/crypto-browserify/sha.js
-license: other
+license: mit
+license: bsd-3-clause
 licenses:
 - sources: LICENSE
   text: |+

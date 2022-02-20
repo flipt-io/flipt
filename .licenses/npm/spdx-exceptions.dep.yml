@@ -4,6 +4,6 @@ version: 2.3.0
 type: npm
 summary: list of SPDX standard license exceptions
 homepage:
-license: none
+license: cc-by-3.0
 licenses: []
 notices: []
