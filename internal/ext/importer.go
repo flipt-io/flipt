@@ -193,7 +193,9 @@ func convert(i interface{}) interface{} {
 	case map[interface{}]interface{}:
 		m := map[string]interface{}{}
 		for k, v := range x {
-			m[k.(string)] = convert(v)
+			if sk, ok := k.(string); ok {
+				m[sk] = convert(v)
+			}
 		}
 		return m
 	case []interface{}:
