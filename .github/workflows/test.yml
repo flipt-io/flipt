@@ -1,8 +1,6 @@
 name: Lint/Test
 on:
   push:
-    branches:
-      - "master"
   pull_request:
     paths-ignore:
       - "*.md"
@@ -33,13 +31,17 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ["1.17.x", "1.18.0-rc1"]
 
     steps:
       - uses: actions/checkout@v2
 
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.17.x"
+          stable: "false"
+          go-version: ${{ matrix.go }}
 
       - id: go-cache-paths
         run: |
