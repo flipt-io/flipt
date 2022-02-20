@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: "16"
 
-      - run: cd ui && npm ci
+      - run: cd ui && yarn install --frozen-lockfile --non-interactive
 
       - id: licensed
         uses: jonabc/licensed-ci@v1
