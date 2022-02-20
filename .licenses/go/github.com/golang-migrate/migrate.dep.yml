@@ -3,7 +3,7 @@ name: github.com/golang-migrate/migrate
 version: v3.5.4+incompatible
 type: go
 summary: Package migrate reads migrations from sources and runs them against databases.
-homepage: https://godoc.org/github.com/golang-migrate/migrate
+homepage: https://pkg.go.dev/github.com/golang-migrate/migrate
 license: mit
 licenses:
 - sources: LICENSE

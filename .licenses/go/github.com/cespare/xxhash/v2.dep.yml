@@ -1,10 +1,10 @@
 ---
 name: github.com/cespare/xxhash/v2
-version: v2.1.1
+version: v2.1.2
 type: go
 summary: Package xxhash implements the 64-bit variant of xxHash (XXH64) as described
   at http://cyan4973.github.io/xxHash/.
-homepage: https://godoc.org/github.com/cespare/xxhash/v2
+homepage: https://pkg.go.dev/github.com/cespare/xxhash/v2
 license: mit
 licenses:
 - sources: LICENSE.txt

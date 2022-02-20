@@ -3,7 +3,7 @@ name: github.com/blang/semver/v4
 version: v4.0.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/blang/semver/v4
+homepage: https://pkg.go.dev/github.com/blang/semver/v4
 license: mit
 licenses:
 - sources: LICENSE

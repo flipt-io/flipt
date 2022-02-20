@@ -3,7 +3,7 @@ name: github.com/hashicorp/hcl/hcl/printer
 version: v1.0.0
 type: go
 summary: Package printer implements printing of AST nodes to HCL format.
-homepage: https://godoc.org/github.com/hashicorp/hcl/hcl/printer
+homepage: https://pkg.go.dev/github.com/hashicorp/hcl/hcl/printer
 license: mpl-2.0
 licenses:
 - sources: hcl@v1.0.0/LICENSE

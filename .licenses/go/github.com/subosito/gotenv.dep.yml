@@ -4,7 +4,7 @@ version: v1.2.0
 type: go
 summary: Package gotenv provides functionality to dynamically load the environment
   variables
-homepage: https://godoc.org/github.com/subosito/gotenv
+homepage: https://pkg.go.dev/github.com/subosito/gotenv
 license: mit
 licenses:
 - sources: LICENSE

@@ -3,7 +3,7 @@ name: github.com/lann/builder
 version: v0.0.0-20180802200727-47ae307949d0
 type: go
 summary: Package builder provides a method for writing fluent immutable builders.
-homepage: https://godoc.org/github.com/lann/builder
+homepage: https://pkg.go.dev/github.com/lann/builder
 license: mit
 licenses:
 - sources: LICENSE

@@ -4,7 +4,7 @@ version: v1.0.1
 type: go
 summary: Package quantile computes approximate quantiles over an unbounded data stream
   within low memory and CPU bounds.
-homepage: https://godoc.org/github.com/beorn7/perks/quantile
+homepage: https://pkg.go.dev/github.com/beorn7/perks/quantile
 license: mit
 licenses:
 - sources: perks@v1.0.1/LICENSE

@@ -3,7 +3,7 @@ name: github.com/grpc-ecosystem/go-grpc-prometheus
 version: v1.2.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/grpc-ecosystem/go-grpc-prometheus
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/go-grpc-prometheus
 license: apache-2.0
 licenses:
 - sources: LICENSE

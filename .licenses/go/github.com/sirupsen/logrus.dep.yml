@@ -4,7 +4,7 @@ version: v1.8.1
 type: go
 summary: Package logrus is a structured logger for Go, completely API compatible with
   the standard library logger.
-homepage: https://godoc.org/github.com/sirupsen/logrus
+homepage: https://pkg.go.dev/github.com/sirupsen/logrus
 license: mit
 licenses:
 - sources: LICENSE

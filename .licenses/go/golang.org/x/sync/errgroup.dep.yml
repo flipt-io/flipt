@@ -1,13 +1,13 @@
 ---
 name: golang.org/x/sync/errgroup
-version: v0.0.0-20201020160332-67f06af15bc9
+version: v0.0.0-20210220032951-036812b2e83c
 type: go
 summary: Package errgroup provides synchronization, error propagation, and Context
   cancelation for groups of goroutines working on subtasks of a common task.
-homepage: https://godoc.org/golang.org/x/sync/errgroup
+homepage: https://pkg.go.dev/golang.org/x/sync/errgroup
 license: bsd-3-clause
 licenses:
-- sources: sync@v0.0.0-20201020160332-67f06af15bc9/LICENSE
+- sources: sync@v0.0.0-20210220032951-036812b2e83c/LICENSE
   text: |
     Copyright (c) 2009 The Go Authors. All rights reserved.
 
@@ -36,7 +36,7 @@ licenses:
     THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- sources: sync@v0.0.0-20201020160332-67f06af15bc9/PATENTS
+- sources: sync@v0.0.0-20210220032951-036812b2e83c/PATENTS
   text: |
     Additional IP Rights Grant (Patents)
 

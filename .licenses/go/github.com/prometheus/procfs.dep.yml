@@ -1,10 +1,10 @@
 ---
 name: github.com/prometheus/procfs
-version: v0.2.0
+version: v0.7.3
 type: go
 summary: Package procfs provides functions to retrieve system, kernel and process
   metrics from the pseudo-filesystem proc.
-homepage: https://godoc.org/github.com/prometheus/procfs
+homepage: https://pkg.go.dev/github.com/prometheus/procfs
 license: apache-2.0
 licenses:
 - sources: LICENSE

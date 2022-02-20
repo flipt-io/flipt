@@ -3,7 +3,7 @@ name: github.com/google/go-github/v32/github
 version: v32.1.0
 type: go
 summary: Package github provides a client for using the GitHub API.
-homepage: https://godoc.org/github.com/google/go-github/v32/github
+homepage: https://pkg.go.dev/github.com/google/go-github/v32/github
 license: bsd-3-clause
 licenses:
 - sources: v32@v32.1.0/LICENSE

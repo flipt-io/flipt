@@ -4,7 +4,7 @@ version: v1.16.0
 type: go
 summary: Package runtime contains runtime helper functions used by servers which protoc-gen-grpc-gateway
   generates.
-homepage: https://godoc.org/github.com/grpc-ecosystem/grpc-gateway/runtime
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/grpc-gateway/runtime
 license: bsd-3-clause
 licenses:
 - sources: grpc-gateway@v1.16.0/LICENSE.txt

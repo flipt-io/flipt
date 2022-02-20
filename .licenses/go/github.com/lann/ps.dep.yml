@@ -3,7 +3,7 @@ name: github.com/lann/ps
 version: v0.0.0-20150810152359-62de8c46ede0
 type: go
 summary: Fully persistent data structures.
-homepage: https://godoc.org/github.com/lann/ps
+homepage: https://pkg.go.dev/github.com/lann/ps
 license: mit
 licenses:
 - sources: LICENSE

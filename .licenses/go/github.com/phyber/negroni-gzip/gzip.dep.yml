@@ -3,7 +3,7 @@ name: github.com/phyber/negroni-gzip/gzip
 version: v0.0.0-20180113114010-ef6356a5d029
 type: go
 summary: Package gzip implements a gzip compression handler middleware for Negroni.
-homepage: https://godoc.org/github.com/phyber/negroni-gzip/gzip
+homepage: https://pkg.go.dev/github.com/phyber/negroni-gzip/gzip
 license: mit
 licenses:
 - sources: negroni-gzip@v0.0.0-20180113114010-ef6356a5d029/LICENSE

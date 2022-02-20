@@ -3,7 +3,7 @@ name: github.com/grpc-ecosystem/grpc-gateway/utilities
 version: v1.16.0
 type: go
 summary: Package utilities provides members for internal use in grpc-gateway.
-homepage: https://godoc.org/github.com/grpc-ecosystem/grpc-gateway/utilities
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/grpc-gateway/utilities
 license: bsd-3-clause
 licenses:
 - sources: grpc-gateway@v1.16.0/LICENSE.txt

@@ -4,7 +4,7 @@ version: v1.3.0
 type: go
 summary: "`grpc_logrus` is a gRPC logging middleware backed by Logrus loggers It accepts
   a user-configured `logrus.Entry` that will be used for logging completed gRPC calls."
-homepage: https://godoc.org/github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus
 license: apache-2.0
 licenses:
 - sources: go-grpc-middleware@v1.3.0/LICENSE
