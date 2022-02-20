@@ -1,0 +1,9 @@
+---
+name: querystring
+version: 0.2.0
+type: npm
+summary: Node's querystring module for all engines.
+homepage:
+license: none
+licenses: []
+notices: []

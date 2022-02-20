@@ -1,0 +1,9 @@
+---
+name: querystring-es3
+version: 0.2.1
+type: npm
+summary: Node's querystring module for all engines. (ES3 compat fork)
+homepage:
+license: none
+licenses: []
+notices: []

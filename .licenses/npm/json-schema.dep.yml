@@ -1,0 +1,151 @@
+---
+name: json-schema
+version: 0.4.0
+type: npm
+summary: JSON Schema validation and specifications
+homepage:
+license: other
+licenses:
+- sources: LICENSE
+  text: "Dojo is available under *either* the terms of the BSD 3-Clause \"New\" License
+    *or* the\nAcademic Free License version 2.1. As a recipient of Dojo, you may choose
+    which\nlicense to receive this code under (except as noted in per-module LICENSE\nfiles).
+    Some modules may not be the copyright of the Dojo Foundation. These\nmodules contain
+    explicit declarations of copyright in both the LICENSE files in\nthe directories
+    in which they reside and in the code itself. No external\ncontributions are allowed
+    under licenses which are fundamentally incompatible\nwith the AFL-2.1 OR and BSD-3-Clause
+    licenses that Dojo is distributed under.\n\nThe text of the AFL-2.1 and BSD-3-Clause
+    licenses is reproduced below. \n\n-------------------------------------------------------------------------------\nBSD
+    3-Clause \"New\" License:\n**********************\n\nCopyright (c) 2005-2015,
+    The Dojo Foundation\nAll rights reserved.\n\nRedistribution and use in source
+    and binary forms, with or without\nmodification, are permitted provided that the
+    following conditions are met:\n\n  * Redistributions of source code must retain
+    the above copyright notice, this\n    list of conditions and the following disclaimer.\n
+    \ * Redistributions in binary form must reproduce the above copyright notice,\n
+    \   this list of conditions and the following disclaimer in the documentation\n
+    \   and/or other materials provided with the distribution.\n  * Neither the name
+    of the Dojo Foundation nor the names of its contributors\n    may be used to endorse
+    or promote products derived from this software\n    without specific prior written
+    permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    \"AS IS\" AND\nANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+    THE IMPLIED\nWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE\nDISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE\nFOR
+    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\nDAMAGES
+    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR\nSERVICES;
+    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER\nCAUSED AND ON
+    ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\nOR TORT (INCLUDING
+    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE,
+    EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n-------------------------------------------------------------------------------\nThe
+    Academic Free License, v. 2.1:\n**********************************\n\nThis Academic
+    Free License (the \"License\") applies to any original work of\nauthorship (the
+    \"Original Work\") whose owner (the \"Licensor\") has placed the\nfollowing notice
+    immediately following the copyright notice for the Original\nWork:\n\nLicensed
+    under the Academic Free License version 2.1\n\n1) Grant of Copyright License.
+    Licensor hereby grants You a world-wide,\nroyalty-free, non-exclusive, perpetual,
+    sublicenseable license to do the\nfollowing:\n\na) to reproduce the Original Work
+    in copies;\n\nb) to prepare derivative works (\"Derivative Works\") based upon
+    the Original\nWork;\n\nc) to distribute copies of the Original Work and Derivative
+    Works to the\npublic;\n\nd) to perform the Original Work publicly; and\n\ne) to
+    display the Original Work publicly.\n\n2) Grant of Patent License. Licensor hereby
+    grants You a world-wide,\nroyalty-free, non-exclusive, perpetual, sublicenseable
+    license, under patent\nclaims owned or controlled by the Licensor that are embodied
+    in the Original\nWork as furnished by the Licensor, to make, use, sell and offer
+    for sale the\nOriginal Work and Derivative Works.\n\n3) Grant of Source Code License.
+    The term \"Source Code\" means the preferred\nform of the Original Work for making
+    modifications to it and all available\ndocumentation describing how to modify
+    the Original Work. Licensor hereby\nagrees to provide a machine-readable copy
+    of the Source Code of the Original\nWork along with each copy of the Original
+    Work that Licensor distributes.\nLicensor reserves the right to satisfy this obligation
+    by placing a\nmachine-readable copy of the Source Code in an information repository\nreasonably
+    calculated to permit inexpensive and convenient access by You for as\nlong as
+    Licensor continues to distribute the Original Work, and by publishing\nthe address
+    of that information repository in a notice immediately following\nthe copyright
+    notice that applies to the Original Work.\n\n4) Exclusions From License Grant.
+    Neither the names of Licensor, nor the names\nof any contributors to the Original
+    Work, nor any of their trademarks or\nservice marks, may be used to endorse or
+    promote products derived from this\nOriginal Work without express prior written
+    permission of the Licensor. Nothing\nin this License shall be deemed to grant
+    any rights to trademarks, copyrights,\npatents, trade secrets or any other intellectual
+    property of Licensor except as\nexpressly stated herein. No patent license is
+    granted to make, use, sell or\noffer to sell embodiments of any patent claims
+    other than the licensed claims\ndefined in Section 2. No right is granted to the
+    trademarks of Licensor even if\nsuch marks are included in the Original Work.
+    Nothing in this License shall be\ninterpreted to prohibit Licensor from licensing
+    under different terms from this\nLicense any Original Work that Licensor otherwise
+    would have a right to\nlicense.\n\n5) This section intentionally omitted.\n\n6)
+    Attribution Rights. You must retain, in the Source Code of any Derivative\nWorks
+    that You create, all copyright, patent or trademark notices from the\nSource Code
+    of the Original Work, as well as any notices of licensing and any\ndescriptive
+    text identified therein as an \"Attribution Notice.\" You must cause\nthe Source
+    Code for any Derivative Works that You create to carry a prominent\nAttribution
+    Notice reasonably calculated to inform recipients that You have\nmodified the
+    Original Work.\n\n7) Warranty of Provenance and Disclaimer of Warranty. Licensor
+    warrants that\nthe copyright in and to the Original Work and the patent rights
+    granted herein\nby Licensor are owned by the Licensor or are sublicensed to You
+    under the terms\nof this License with the permission of the contributor(s) of
+    those copyrights\nand patent rights. Except as expressly stated in the immediately
+    proceeding\nsentence, the Original Work is provided under this License on an \"AS
+    IS\" BASIS\nand WITHOUT WARRANTY, either express or implied, including, without
+    limitation,\nthe warranties of NON-INFRINGEMENT, MERCHANTABILITY or FITNESS FOR
+    A PARTICULAR\nPURPOSE. THE ENTIRE RISK AS TO THE QUALITY OF THE ORIGINAL WORK
+    IS WITH YOU.\nThis DISCLAIMER OF WARRANTY constitutes an essential part of this
+    License. No\nlicense to Original Work is granted hereunder except under this disclaimer.\n\n8)
+    Limitation of Liability. Under no circumstances and under no legal theory,\nwhether
+    in tort (including negligence), contract, or otherwise, shall the\nLicensor be
+    liable to any person for any direct, indirect, special, incidental,\nor consequential
+    damages of any character arising as a result of this License\nor the use of the
+    Original Work including, without limitation, damages for loss\nof goodwill, work
+    stoppage, computer failure or malfunction, or any and all\nother commercial damages
+    or losses. This limitation of liability shall not\napply to liability for death
+    or personal injury resulting from Licensor's\nnegligence to the extent applicable
+    law prohibits such limitation. Some\njurisdictions do not allow the exclusion
+    or limitation of incidental or\nconsequential damages, so this exclusion and limitation
+    may not apply to You.\n\n9) Acceptance and Termination. If You distribute copies
+    of the Original Work or\na Derivative Work, You must make a reasonable effort
+    under the circumstances to\nobtain the express assent of recipients to the terms
+    of this License. Nothing\nelse but this License (or another written agreement
+    between Licensor and You)\ngrants You permission to create Derivative Works based
+    upon the Original Work\nor to exercise any of the rights granted in Section 1
+    herein, and any attempt\nto do so except under the terms of this License (or another
+    written agreement\nbetween Licensor and You) is expressly prohibited by U.S. copyright
+    law, the\nequivalent laws of other countries, and by international treaty. Therefore,
+    by\nexercising any of the rights granted to You in Section 1 herein, You indicate\nYour
+    acceptance of this License and all of its terms and conditions.\n\n10) Termination
+    for Patent Action. This License shall terminate automatically\nand You may no
+    longer exercise any of the rights granted to You by this License\nas of the date
+    You commence an action, including a cross-claim or counterclaim,\nagainst Licensor
+    or any licensee alleging that the Original Work infringes a\npatent. This termination
+    provision shall not apply for an action alleging\npatent infringement by combinations
+    of the Original Work with other software or\nhardware.\n\n11) Jurisdiction, Venue
+    and Governing Law. Any action or suit relating to this\nLicense may be brought
+    only in the courts of a jurisdiction wherein the\nLicensor resides or in which
+    Licensor conducts its primary business, and under\nthe laws of that jurisdiction
+    excluding its conflict-of-law provisions. The\napplication of the United Nations
+    Convention on Contracts for the International\nSale of Goods is expressly excluded.
+    Any use of the Original Work outside the\nscope of this License or after its termination
+    shall be subject to the\nrequirements and penalties of the U.S. Copyright Act,
+    17 U.S.C. Â§ 101 et\nseq., the equivalent laws of other countries, and international
+    treaty. This\nsection shall survive the termination of this License.\n\n12) Attorneys
+    Fees. In any action to enforce the terms of this License or\nseeking damages relating
+    thereto, the prevailing party shall be entitled to\nrecover its costs and expenses,
+    including, without limitation, reasonable\nattorneys' fees and costs incurred
+    in connection with such action, including\nany appeal of such action. This section
+    shall survive the termination of this\nLicense.\n\n13) Miscellaneous. This License
+    represents the complete agreement concerning\nthe subject matter hereof. If any
+    provision of this License is held to be\nunenforceable, such provision shall be
+    reformed only to the extent necessary to\nmake it enforceable.\n\n14) Definition
+    of \"You\" in This License. \"You\" throughout this License, whether\nin upper
+    or lower case, means an individual or a legal entity exercising rights\nunder,
+    and complying with all of the terms of, this License. For legal\nentities, \"You\"
+    includes any entity that controls, is controlled by, or is\nunder common control
+    with you. For purposes of this definition, \"control\" means\n(i) the power, direct
+    or indirect, to cause the direction or management of such\nentity, whether by
+    contract or otherwise, or (ii) ownership of fifty percent\n(50%) or more of the
+    outstanding shares, or (iii) beneficial ownership of such\nentity.\n\n15) Right
+    to Use. You may use the Original Work in all ways not otherwise\nrestricted or
+    conditioned by this License or by law, and Licensor promises not\nto interfere
+    with or be responsible for such uses by You.\n\nThis license is Copyright (C)
+    2003-2004 Lawrence E. Rosen. All rights reserved.\nPermission is hereby granted
+    to copy and distribute this license without\nmodification. This license may not
+    be modified without the express written\npermission of its copyright owner.\n"
+notices: []
