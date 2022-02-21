@@ -4,7 +4,7 @@ version: v1.0.0
 type: go
 summary: Package ast declares the types used to represent syntax trees for HCL (HashiCorp
   Configuration Language)
-homepage: https://godoc.org/github.com/hashicorp/hcl/hcl/ast
+homepage: https://pkg.go.dev/github.com/hashicorp/hcl/hcl/ast
 license: mpl-2.0
 licenses:
 - sources: hcl@v1.0.0/LICENSE

@@ -3,7 +3,7 @@ name: github.com/uber/jaeger-lib/metrics
 version: v2.2.0+incompatible
 type: go
 summary:
-homepage: https://godoc.org/github.com/uber/jaeger-lib/metrics
+homepage: https://pkg.go.dev/github.com/uber/jaeger-lib/metrics
 license: apache-2.0
 licenses:
 - sources: jaeger-lib@v2.2.0+incompatible/LICENSE

@@ -3,7 +3,7 @@ name: github.com/grpc-ecosystem/grpc-gateway/internal
 version: v1.16.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/grpc-ecosystem/grpc-gateway/internal
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/grpc-gateway/internal
 license: bsd-3-clause
 licenses:
 - sources: grpc-gateway@v1.16.0/LICENSE.txt

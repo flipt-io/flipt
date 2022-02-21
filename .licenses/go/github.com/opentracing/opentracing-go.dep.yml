@@ -3,7 +3,7 @@ name: github.com/opentracing/opentracing-go
 version: v1.2.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/opentracing/opentracing-go
+homepage: https://pkg.go.dev/github.com/opentracing/opentracing-go
 license: apache-2.0
 licenses:
 - sources: LICENSE

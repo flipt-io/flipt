@@ -1,9 +1,9 @@
 ---
 name: github.com/uber/jaeger-client-go
-version: v2.27.0+incompatible
+version: v2.30.0+incompatible
 type: go
 summary: Package jaeger implements an OpenTracing (http://opentracing.io) Tracer.
-homepage: https://godoc.org/github.com/uber/jaeger-client-go
+homepage: https://pkg.go.dev/github.com/uber/jaeger-client-go
 license: apache-2.0
 licenses:
 - sources: LICENSE
@@ -214,8 +214,8 @@ licenses:
     [Apache 2.0 License](LICENSE).
 
 
-    [doc-img]: https://godoc.org/github.com/uber/jaeger-client-go?status.svg
-    [doc]: https://godoc.org/github.com/uber/jaeger-client-go
+    [doc-img]: https://pkg.go.dev/badge/github.com/uber/jaeger-client-go.svg
+    [doc]: https://pkg.go.dev/github.com/uber/jaeger-client-go
     [ci-img]: https://travis-ci.org/jaegertracing/jaeger-client-go.svg?branch=master
     [ci]: https://travis-ci.org/jaegertracing/jaeger-client-go
     [cov-img]: https://codecov.io/gh/jaegertracing/jaeger-client-go/branch/master/graph/badge.svg

@@ -3,7 +3,7 @@ name: github.com/luna-duclos/instrumentedsql
 version: v1.1.3
 type: go
 summary:
-homepage: https://godoc.org/github.com/luna-duclos/instrumentedsql
+homepage: https://pkg.go.dev/github.com/luna-duclos/instrumentedsql
 license: mit
 licenses:
 - sources: LICENSE

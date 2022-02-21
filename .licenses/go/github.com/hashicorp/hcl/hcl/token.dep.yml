@@ -4,7 +4,7 @@ version: v1.0.0
 type: go
 summary: Package token defines constants representing the lexical tokens for HCL (HashiCorp
   Configuration Language)
-homepage: https://godoc.org/github.com/hashicorp/hcl/hcl/token
+homepage: https://pkg.go.dev/github.com/hashicorp/hcl/hcl/token
 license: mpl-2.0
 licenses:
 - sources: hcl@v1.0.0/LICENSE

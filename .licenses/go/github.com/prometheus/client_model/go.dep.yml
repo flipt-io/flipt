@@ -3,7 +3,7 @@ name: github.com/prometheus/client_model/go
 version: v0.2.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/prometheus/client_model/go
+homepage: https://pkg.go.dev/github.com/prometheus/client_model/go
 license: apache-2.0
 licenses:
 - sources: client_model@v0.2.0/LICENSE

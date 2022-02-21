@@ -1,12 +1,12 @@
 ---
 name: github.com/uber/jaeger-client-go/thrift
-version: v2.27.0+incompatible
+version: v2.30.0+incompatible
 type: go
-summary: 
-homepage: https://godoc.org/github.com/uber/jaeger-client-go/thrift
+summary:
+homepage: https://pkg.go.dev/github.com/uber/jaeger-client-go/thrift
 license: apache-2.0
 licenses:
-- sources: jaeger-client-go@v2.27.0+incompatible/LICENSE
+- sources: jaeger-client-go@v2.30.0+incompatible/LICENSE
   text: |2
                                      Apache License
                                Version 2.0, January 2004

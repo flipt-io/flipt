@@ -3,7 +3,7 @@ name: github.com/urfave/negroni
 version: v1.0.0
 type: go
 summary: Package negroni is an idiomatic approach to web middleware in Go.
-homepage: https://godoc.org/github.com/urfave/negroni
+homepage: https://pkg.go.dev/github.com/urfave/negroni
 license: mit
 licenses:
 - sources: LICENSE

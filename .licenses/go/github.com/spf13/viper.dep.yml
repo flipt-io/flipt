@@ -1,9 +1,9 @@
 ---
 name: github.com/spf13/viper
-version: v1.7.1
+version: v1.10.1
 type: go
 summary:
-homepage: https://godoc.org/github.com/spf13/viper
+homepage: https://pkg.go.dev/github.com/spf13/viper
 license: mit
 licenses:
 - sources: LICENSE

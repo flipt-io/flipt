@@ -1,9 +1,9 @@
 ---
 name: github.com/spf13/afero
-version: v1.2.0
+version: v1.6.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/spf13/afero
+homepage: https://pkg.go.dev/github.com/spf13/afero
 license: apache-2.0
 licenses:
 - sources: LICENSE.txt

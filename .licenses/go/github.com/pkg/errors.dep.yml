@@ -3,7 +3,7 @@ name: github.com/pkg/errors
 version: v0.9.1
 type: go
 summary: Package errors provides simple error handling primitives.
-homepage: https://godoc.org/github.com/pkg/errors
+homepage: https://pkg.go.dev/github.com/pkg/errors
 license: bsd-2-clause
 licenses:
 - sources: LICENSE

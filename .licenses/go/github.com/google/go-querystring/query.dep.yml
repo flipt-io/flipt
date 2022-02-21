@@ -3,7 +3,7 @@ name: github.com/google/go-querystring/query
 version: v1.0.0
 type: go
 summary: Package query implements encoding of structs into URL query parameters.
-homepage: https://godoc.org/github.com/google/go-querystring/query
+homepage: https://pkg.go.dev/github.com/google/go-querystring/query
 license: bsd-3-clause
 licenses:
 - sources: go-querystring@v1.0.0/LICENSE

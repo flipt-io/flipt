@@ -4,7 +4,7 @@ version: v0.0.0-20200124232849-e9ec94f52bc3
 type: go
 summary: Package dburl provides a standard, URL style mechanism for parsing and opening
   SQL database connection strings for Go.
-homepage: https://godoc.org/github.com/xo/dburl
+homepage: https://pkg.go.dev/github.com/xo/dburl
 license: mit
 licenses:
 - sources: LICENSE

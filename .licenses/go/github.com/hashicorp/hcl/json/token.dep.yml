@@ -3,7 +3,7 @@ name: github.com/hashicorp/hcl/json/token
 version: v1.0.0
 type: go
 summary:
-homepage: https://godoc.org/github.com/hashicorp/hcl/json/token
+homepage: https://pkg.go.dev/github.com/hashicorp/hcl/json/token
 license: mpl-2.0
 licenses:
 - sources: hcl@v1.0.0/LICENSE

@@ -1,13 +1,13 @@
 ---
 name: github.com/golang/protobuf/descriptor
-version: v1.5.0
+version: v1.5.2
 type: go
 summary: Package descriptor provides functions for obtaining the protocol buffer descriptors
   of generated Go types.
-homepage: https://godoc.org/github.com/golang/protobuf/descriptor
+homepage: https://pkg.go.dev/github.com/golang/protobuf/descriptor
 license: bsd-3-clause
 licenses:
-- sources: protobuf@v1.5.0/LICENSE
+- sources: protobuf@v1.5.2/LICENSE
   text: |+
     Copyright 2010 The Go Authors.  All rights reserved.
 
