@@ -24,3 +24,5 @@ allowed:
 ignored:
   go:
     - github.com/markphelps/flipt/**/*
+  npm:
+    - fsevents
