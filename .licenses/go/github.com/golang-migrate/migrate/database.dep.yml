@@ -3,7 +3,7 @@ name: github.com/golang-migrate/migrate/database
 version: v3.5.4+incompatible
 type: go
 summary: Package database provides the Database interface.
-homepage: https://godoc.org/github.com/golang-migrate/migrate/database
+homepage: https://pkg.go.dev/github.com/golang-migrate/migrate/database
 license: mit
 licenses:
 - sources: migrate@v3.5.4+incompatible/LICENSE

@@ -1,12 +1,12 @@
 ---
 name: github.com/go-chi/chi/middleware
-version: v4.0.3-0.20191031103402-221acf29d02b+incompatible
+version: v4.1.2+incompatible
 type: go
 summary:
-homepage: https://godoc.org/github.com/go-chi/chi/middleware
+homepage: https://pkg.go.dev/github.com/go-chi/chi/middleware
 license: mit
 licenses:
-- sources: chi@v4.0.3-0.20191031103402-221acf29d02b+incompatible/LICENSE
+- sources: chi@v4.1.2+incompatible/LICENSE
   text: |
     Copyright (c) 2015-present Peter Kieltyka (https://github.com/pkieltyka), Google Inc.
 
@@ -28,7 +28,7 @@ licenses:
     COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
     IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
     CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-- sources: chi@v4.0.3-0.20191031103402-221acf29d02b+incompatible/README.md
+- sources: chi@v4.1.2+incompatible/README.md
   text: |-
     Copyright (c) 2015-present [Peter Kieltyka](https://github.com/pkieltyka)
 

@@ -1,9 +1,9 @@
 ---
 name: github.com/spf13/cast
-version: v1.3.0
+version: v1.4.1
 type: go
 summary: Package cast provides easy and safe casting in Go.
-homepage: https://godoc.org/github.com/spf13/cast
+homepage: https://pkg.go.dev/github.com/spf13/cast
 license: mit
 licenses:
 - sources: LICENSE

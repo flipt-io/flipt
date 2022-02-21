@@ -1,9 +1,9 @@
 ---
 name: github.com/lib/pq
-version: v1.10.0
+version: v1.10.4
 type: go
 summary: Package pq is a pure Go Postgres driver for the database/sql package.
-homepage: https://godoc.org/github.com/lib/pq
+homepage: https://pkg.go.dev/github.com/lib/pq
 license: mit
 licenses:
 - sources: LICENSE.md
@@ -18,7 +18,7 @@ licenses:
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 notices:
 - sources: notice.go
-  text: "// +build go1.10\n\npackage pq\n\nimport (\n\t\"context\"\n\t\"database/sql/driver\"\n)\n\n//
+  text: "//go:build go1.10\n// +build go1.10\n\npackage pq\n\nimport (\n\t\"context\"\n\t\"database/sql/driver\"\n)\n\n//
     NoticeHandler returns the notice handler on the given connection, if any. A\n//
     runtime panic occurs if c is not a pq connection. This is rarely used\n// directly,
     use ConnectorNoticeHandler and ConnectorWithNoticeHandler instead.\nfunc NoticeHandler(c

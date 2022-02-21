@@ -3,7 +3,7 @@ name: github.com/golang-migrate/migrate/database/mysql
 version: v3.5.4+incompatible
 type: go
 summary:
-homepage: https://godoc.org/github.com/golang-migrate/migrate/database/mysql
+homepage: https://pkg.go.dev/github.com/golang-migrate/migrate/database/mysql
 license: mit
 licenses:
 - sources: migrate@v3.5.4+incompatible/LICENSE

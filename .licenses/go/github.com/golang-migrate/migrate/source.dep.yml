@@ -3,7 +3,7 @@ name: github.com/golang-migrate/migrate/source
 version: v3.5.4+incompatible
 type: go
 summary: Package source provides the Source interface.
-homepage: https://godoc.org/github.com/golang-migrate/migrate/source
+homepage: https://pkg.go.dev/github.com/golang-migrate/migrate/source
 license: mit
 licenses:
 - sources: migrate@v3.5.4+incompatible/LICENSE

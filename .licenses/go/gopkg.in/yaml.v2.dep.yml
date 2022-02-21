@@ -3,7 +3,7 @@ name: gopkg.in/yaml.v2
 version: v2.4.0
 type: go
 summary: Package yaml implements YAML support for the Go language.
-homepage: https://godoc.org/gopkg.in/yaml.v2
+homepage: https://pkg.go.dev/gopkg.in/yaml.v2
 license: apache-2.0
 licenses:
 - sources: LICENSE

@@ -3,7 +3,7 @@ name: github.com/hashicorp/hcl
 version: v1.0.0
 type: go
 summary: Package hcl decodes HCL into usable Go structures.
-homepage: https://godoc.org/github.com/hashicorp/hcl
+homepage: https://pkg.go.dev/github.com/hashicorp/hcl
 license: mpl-2.0
 licenses:
 - sources: LICENSE

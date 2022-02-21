@@ -1,0 +1,12 @@
+---
+name: spdx-exceptions
+version: 2.3.0
+type: npm
+summary: list of SPDX standard license exceptions
+homepage:
+license: cc-by-3.0
+licenses:
+  - sources: LICENSE
+    text: |
+      SPDX-License-Identifier: CC-BY-3.0
+notices: []

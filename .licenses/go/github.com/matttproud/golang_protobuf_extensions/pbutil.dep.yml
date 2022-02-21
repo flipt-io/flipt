@@ -3,7 +3,7 @@ name: github.com/matttproud/golang_protobuf_extensions/pbutil
 version: v1.0.1
 type: go
 summary: Package pbutil provides record length-delimited Protocol Buffer streaming.
-homepage: https://godoc.org/github.com/matttproud/golang_protobuf_extensions/pbutil
+homepage: https://pkg.go.dev/github.com/matttproud/golang_protobuf_extensions/pbutil
 license: apache-2.0
 licenses:
 - sources: golang_protobuf_extensions@v1.0.1/LICENSE

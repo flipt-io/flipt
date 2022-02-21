@@ -1,12 +1,12 @@
 ---
 name: github.com/lib/pq/scram
-version: v1.10.0
+version: v1.10.4
 type: go
 summary: Package scram implements a SCRAM-{SHA-1,etc} client per RFC5802.
-homepage: https://godoc.org/github.com/lib/pq/scram
+homepage: https://pkg.go.dev/github.com/lib/pq/scram
 license: mit
 licenses:
-- sources: pq@v1.10.0/LICENSE.md
+- sources: pq@v1.10.4/LICENSE.md
   text: |
     Copyright (c) 2011-2013, 'pq' Contributors
     Portions Copyright (C) 2011 Blake Mizerany

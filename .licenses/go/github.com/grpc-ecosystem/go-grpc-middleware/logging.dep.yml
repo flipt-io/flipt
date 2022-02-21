@@ -3,7 +3,7 @@ name: github.com/grpc-ecosystem/go-grpc-middleware/logging
 version: v1.3.0
 type: go
 summary: grpc_logging is a "parent" package for gRPC logging middlewares.
-homepage: https://godoc.org/github.com/grpc-ecosystem/go-grpc-middleware/logging
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/go-grpc-middleware/logging
 license: apache-2.0
 licenses:
 - sources: go-grpc-middleware@v1.3.0/LICENSE

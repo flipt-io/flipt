@@ -1,9 +1,9 @@
 ---
 name: github.com/mattn/go-sqlite3
-version: v1.14.7
+version: v1.14.10
 type: go
 summary: Package sqlite3 provides interface to SQLite3 databases.
-homepage: https://godoc.org/github.com/mattn/go-sqlite3
+homepage: https://pkg.go.dev/github.com/mattn/go-sqlite3
 license: mit
 licenses:
 - sources: LICENSE

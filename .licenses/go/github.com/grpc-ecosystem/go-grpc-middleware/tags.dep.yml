@@ -4,7 +4,7 @@ version: v1.3.0
 type: go
 summary: "`grpc_ctxtags` adds a Tag object to the context that can be used by other
   middleware to add context about a request."
-homepage: https://godoc.org/github.com/grpc-ecosystem/go-grpc-middleware/tags
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/go-grpc-middleware/tags
 license: apache-2.0
 licenses:
 - sources: go-grpc-middleware@v1.3.0/LICENSE

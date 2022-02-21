@@ -1,10 +1,10 @@
 ---
 name: github.com/gofrs/uuid
-version: v3.4.0+incompatible
+version: v4.2.0+incompatible
 type: go
 summary: Package uuid provides implementations of the Universally Unique Identifier
-  (UUID), as specified in RFC-4122 and DCE 1.1.
-homepage: https://godoc.org/github.com/gofrs/uuid
+  (UUID), as specified in RFC-4122 and the Peabody RFC Draft (revision 02).
+homepage: https://pkg.go.dev/github.com/gofrs/uuid
 license: mit
 licenses:
 - sources: LICENSE

@@ -12,11 +12,17 @@ allowed:
   - apache-2.0
   - bsd-2-clause
   - bsd-3-clause
+  - cc0-1.0
+  - cc-by-3.0
+  - cc-by-4.0
   - isc
   - mit
   - mpl-2.0
+  - none
   - unlicense
 
 ignored:
   go:
     - github.com/markphelps/flipt/**/*
+  npm:
+    - fsevents

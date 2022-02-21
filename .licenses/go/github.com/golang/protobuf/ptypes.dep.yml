@@ -1,12 +1,12 @@
 ---
 name: github.com/golang/protobuf/ptypes
-version: v1.5.0
+version: v1.5.2
 type: go
 summary: Package ptypes provides functionality for interacting with well-known types.
-homepage: https://godoc.org/github.com/golang/protobuf/ptypes
+homepage: https://pkg.go.dev/github.com/golang/protobuf/ptypes
 license: bsd-3-clause
 licenses:
-- sources: protobuf@v1.5.0/LICENSE
+- sources: protobuf@v1.5.2/LICENSE
   text: |+
     Copyright 2010 The Go Authors.  All rights reserved.
 

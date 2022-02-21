@@ -1,10 +1,10 @@
 ---
 name: github.com/go-chi/chi
-version: v4.0.3-0.20191031103402-221acf29d02b+incompatible
+version: v4.1.2+incompatible
 type: go
 summary: Package chi is a small, idiomatic and composable router for building HTTP
   services.
-homepage: https://godoc.org/github.com/go-chi/chi
+homepage: https://pkg.go.dev/github.com/go-chi/chi
 license: mit
 licenses:
 - sources: LICENSE

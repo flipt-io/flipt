@@ -3,7 +3,7 @@ name: github.com/golang-migrate/migrate/source/file
 version: v3.5.4+incompatible
 type: go
 summary:
-homepage: https://godoc.org/github.com/golang-migrate/migrate/source/file
+homepage: https://pkg.go.dev/github.com/golang-migrate/migrate/source/file
 license: mit
 licenses:
 - sources: migrate@v3.5.4+incompatible/LICENSE

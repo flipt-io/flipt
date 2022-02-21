@@ -3,7 +3,7 @@ name: github.com/patrickmn/go-cache
 version: v2.1.0+incompatible
 type: go
 summary:
-homepage: https://godoc.org/github.com/patrickmn/go-cache
+homepage: https://pkg.go.dev/github.com/patrickmn/go-cache
 license: mit
 licenses:
 - sources: LICENSE

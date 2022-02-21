@@ -1,10 +1,10 @@
 ---
 name: go.uber.org/atomic
-version: v1.6.0
+version: v1.7.0
 type: go
 summary: Package atomic provides simple wrappers around numerics to enforce atomic
   access.
-homepage: https://godoc.org/go.uber.org/atomic
+homepage: https://pkg.go.dev/go.uber.org/atomic
 license: mit
 licenses:
 - sources: LICENSE.txt

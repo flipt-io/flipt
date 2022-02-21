@@ -4,7 +4,7 @@ version: v1.3.0
 type: go
 summary: "`grpc_middleware` is a collection of gRPC middleware packages: interceptors,
   helpers and tools."
-homepage: https://godoc.org/github.com/grpc-ecosystem/go-grpc-middleware
+homepage: https://pkg.go.dev/github.com/grpc-ecosystem/go-grpc-middleware
 license: apache-2.0
 licenses:
 - sources: LICENSE
