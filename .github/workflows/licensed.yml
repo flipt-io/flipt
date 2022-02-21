@@ -1,9 +1,8 @@
 name: Licensed
 on:
   push:
-    branches:
-      - master
   pull_request:
+    types: [opened]
   workflow_dispatch:
 
 permissions:
