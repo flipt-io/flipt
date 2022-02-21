@@ -51,17 +51,17 @@ func TestLoad(t *testing.T) {
 	}{
 		{
 			name:     "defaults",
-			path:     "./testdata/config/default.yml",
+			path:     "./testdata/default.yml",
 			expected: Default(),
 		},
 		{
 			name:     "deprecated defaults",
-			path:     "./testdata/config/deprecated.yml",
+			path:     "./testdata/deprecated.yml",
 			expected: Default(),
 		},
 		{
 			name: "database key/value",
-			path: "./testdata/config/database.yml",
+			path: "./testdata/database.yml",
 			expected: &Config{
 				Log: LogConfig{
 					Level: "INFO",
@@ -118,7 +118,7 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name: "advanced",
-			path: "./testdata/config/advanced.yml",
+			path: "./testdata/advanced.yml",
 			expected: &Config{
 				Log: LogConfig{
 					Level: "WARN",
@@ -144,8 +144,8 @@ func TestLoad(t *testing.T) {
 					HTTPPort:  8081,
 					HTTPSPort: 8080,
 					GRPCPort:  9001,
-					CertFile:  "./testdata/config/ssl_cert.pem",
-					CertKey:   "./testdata/config/ssl_key.pem",
+					CertFile:  "./testdata/ssl_cert.pem",
+					CertKey:   "./testdata/ssl_key.pem",
 				},
 				Tracing: TracingConfig{
 					Jaeger: JaegerTracingConfig{
@@ -202,8 +202,8 @@ func TestValidate(t *testing.T) {
 			cfg: &Config{
 				Server: ServerConfig{
 					Protocol: HTTPS,
-					CertFile: "./testdata/config/ssl_cert.pem",
-					CertKey:  "./testdata/config/ssl_key.pem",
+					CertFile: "./testdata/ssl_cert.pem",
+					CertKey:  "./testdata/ssl_key.pem",
 				},
 				Database: DatabaseConfig{
 					URL: "localhost",
@@ -227,7 +227,7 @@ func TestValidate(t *testing.T) {
 				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "",
-					CertKey:  "./testdata/config/ssl_key.pem",
+					CertKey:  "./testdata/ssl_key.pem",
 				},
 			},
 			wantErrMsg: "server.cert_file cannot be empty when using HTTPS",
@@ -237,7 +237,7 @@ func TestValidate(t *testing.T) {
 			cfg: &Config{
 				Server: ServerConfig{
 					Protocol: HTTPS,
-					CertFile: "./testdata/config/ssl_cert.pem",
+					CertFile: "./testdata/ssl_cert.pem",
 					CertKey:  "",
 				},
 			},
@@ -249,7 +249,7 @@ func TestValidate(t *testing.T) {
 				Server: ServerConfig{
 					Protocol: HTTPS,
 					CertFile: "foo.pem",
-					CertKey:  "./testdata/config/ssl_key.pem",
+					CertKey:  "./testdata/ssl_key.pem",
 				},
 			},
 			wantErrMsg: "cannot find TLS server.cert_file at \"foo.pem\"",
@@ -259,7 +259,7 @@ func TestValidate(t *testing.T) {
 			cfg: &Config{
 				Server: ServerConfig{
 					Protocol: HTTPS,
-					CertFile: "./testdata/config/ssl_cert.pem",
+					CertFile: "./testdata/ssl_cert.pem",
 					CertKey:  "bar.pem",
 				},
 			},
