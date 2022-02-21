@@ -73,7 +73,7 @@
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^4.5.2",
     "jest": "~27.5.1",
-    "jest-circus": "^27.4.6",
+    "jest-circus": "^27.5.1",
     "jest-environment-node": "^27.5.1",
     "jest-playwright-preset": "^1.7.0",
     "jest-runner": "^27.4.6",
