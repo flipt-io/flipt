@@ -1,9 +1,9 @@
 ---
-name: vue
+name: "@vue/shared"
 version: 3.2.31
 type: npm
-summary: The progressive JavaScript framework for building modern web UI.
-homepage: https://github.com/vuejs/core/tree/main/packages/vue#readme
+summary: internal utils shared across @vue packages
+homepage: https://github.com/vuejs/core/tree/main/packages/shared#readme
 license: mit
 licenses:
 - sources: LICENSE

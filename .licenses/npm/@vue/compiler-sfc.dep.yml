@@ -1,9 +1,9 @@
 ---
-name: vue
+name: "@vue/compiler-sfc"
 version: 3.2.31
 type: npm
-summary: The progressive JavaScript framework for building modern web UI.
-homepage: https://github.com/vuejs/core/tree/main/packages/vue#readme
+summary: "@vue/compiler-sfc"
+homepage: https://github.com/vuejs/core/tree/main/packages/compiler-sfc#readme
 license: mit
 licenses:
 - sources: LICENSE

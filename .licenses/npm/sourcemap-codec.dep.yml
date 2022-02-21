@@ -1,16 +1,16 @@
 ---
-name: vue
-version: 3.2.31
+name: sourcemap-codec
+version: 1.4.8
 type: npm
-summary: The progressive JavaScript framework for building modern web UI.
-homepage: https://github.com/vuejs/core/tree/main/packages/vue#readme
+summary: Encode/decode sourcemap mappings
+homepage: https://github.com/Rich-Harris/sourcemap-codec
 license: mit
 licenses:
 - sources: LICENSE
   text: |
-    The MIT License (MIT)
+    The MIT License
 
-    Copyright (c) 2018-present, Yuxi (Evan) You
+    Copyright (c) 2015 Rich Harris
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
