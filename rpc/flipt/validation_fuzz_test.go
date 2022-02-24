@@ -4,19 +4,27 @@
 package flipt
 
 import (
+	"errors"
 	"testing"
+
+	errs "github.com/markphelps/flipt/errors"
 )
 
 func FuzzValidateAttachment(f *testing.F) {
-	testcases := []string{`{"key":"value"}`, `{"foo":"bar"}`, `{"foo":"bar","key":"value"}`, `{"foo":"bar","key":"value","baz":"qux"}`}
+	seeds := []string{`{"key":"value"}`, `{"foo":"bar"}`, `{"foo":"bar","key":"value"}`, `{"foo":"bar","key":"value","baz":"qux"}`}
 
-	for _, tc := range testcases {
-		f.Add(tc)
+	for _, s := range seeds {
+		f.Add(s)
 	}
 
 	f.Fuzz(func(t *testing.T, in string) {
-		if err := validateAttachment(in); err != nil {
-			t.Skip()
+		err := validateAttachment(in)
+		if err != nil {
+			var verr errs.ErrValidation
+			if errors.As(err, &verr) {
+				t.Skip()
+			}
+			t.Fail()
 		}
 	})
 }
