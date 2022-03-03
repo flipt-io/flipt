@@ -1,12 +1,12 @@
 ---
-name: google.golang.org/genproto/protobuf/field_mask
-version: v0.0.0-20220302033224-9aa15565e42a
+name: google.golang.org/grpc/health/grpc_health_v1
+version: v1.44.0
 type: go
-summary: Package field_mask aliases all exported identifiers in package "google.golang.org/protobuf/types/known/fieldmaskpb".
-homepage: https://pkg.go.dev/google.golang.org/genproto/protobuf/field_mask
+summary: 
+homepage: https://pkg.go.dev/google.golang.org/grpc/health/grpc_health_v1
 license: apache-2.0
 licenses:
-- sources: genproto@v0.0.0-20220302033224-9aa15565e42a/LICENSE
+- sources: grpc@v1.44.0/LICENSE
   text: |2
 
                                      Apache License
