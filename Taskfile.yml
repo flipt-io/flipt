@@ -10,7 +10,7 @@ tasks:
     desc: Build the binary
     deps: [clean, assets]
     cmds:
-      - go build -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
+      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
       GIT_COMMIT:
         sh: set -e && git rev-parse --verify HEAD || ""

@@ -21,6 +21,7 @@ builds:
       - amd64
     flags:
       - -tags=assets
+      - -trimpath
 
 sboms:
   - artifacts: archive

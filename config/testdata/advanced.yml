@@ -21,8 +21,8 @@ server:
   http_port: 8081
   https_port: 8080
   grpc_port: 9001
-  cert_file: "./testdata/config/ssl_cert.pem"
-  cert_key: "./testdata/config/ssl_key.pem"
+  cert_file: "./testdata/ssl_cert.pem"
+  cert_key: "./testdata/ssl_key.pem"
 
 tracing:
   jaeger:

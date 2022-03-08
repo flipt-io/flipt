@@ -9,7 +9,7 @@ import (
 	"github.com/markphelps/flipt/errors"
 )
 
-const MAX_VARIANT_ATTACHMENT_SIZE = 10000
+const maxVariantAttachmentSize = 10000
 
 // Validator validates types
 type Validator interface {
@@ -28,9 +28,9 @@ func validateAttachment(attachment string) error {
 		return errors.InvalidFieldError("attachment", "must be a json string")
 	}
 
-	if len(bytes) > MAX_VARIANT_ATTACHMENT_SIZE {
+	if len(bytes) > maxVariantAttachmentSize {
 		return errors.InvalidFieldError("attachment",
-			fmt.Sprintf("must be less than %d KB", MAX_VARIANT_ATTACHMENT_SIZE),
+			fmt.Sprintf("must be less than %d KB", maxVariantAttachmentSize),
 		)
 	}
 	return nil

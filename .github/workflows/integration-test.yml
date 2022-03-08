@@ -1,10 +1,8 @@
 name: Integration Tests
 on:
+  push:
   pull_request:
-    paths-ignore:
-      - "*.md"
-      - "*.yml"
-      - ".all-contributorsrc"
+    types: [opened]
   workflow_dispatch:
 
 jobs:

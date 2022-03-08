@@ -1,9 +1,8 @@
 name: Buf
 on:
+  push:
   pull_request:
-    paths-ignore:
-      - "*.md"
-      - ".all-contributorsrc"
+    types: [opened]
 
 jobs:
   lint:
