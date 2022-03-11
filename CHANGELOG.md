@@ -3,6 +3,21 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.6.3](https://github.com/markphelps/flipt/releases/tag/v1.6.3) - 2022-02-21
+
+### Added
+
+- Test for failure to increment expected migration versions [https://github.com/markphelps/flipt/issues/706](https://github.com/markphelps/flipt/issues/706)
+- All dependency licenses [https://github.com/markphelps/flipt/pull/714](https://github.com/markphelps/flipt/pull/714)
+
+### Changed
+
+- Dependency updates
+
+### Fixed
+
+- Potential null pointer bugs in importer found by fuzzing [https://github.com/markphelps/flipt/pull/713](https://github.com/markphelps/flipt/pull/713)
+
 ## [v1.6.2](https://github.com/markphelps/flipt/releases/tag/v1.6.2) - 2022-02-19
 
 ### Fixed

@@ -1,10 +1,8 @@
 name: Integration Tests
 on:
+  push:
   pull_request:
-    paths-ignore:
-      - "*.md"
-      - "*.yml"
-      - ".all-contributorsrc"
+    types: [opened]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +19,7 @@ jobs:
         with:
           go-version: "1.17.x"
 
-      - uses: actions/setup-node@v2.5.1
+      - uses: actions/setup-node@v3
         with:
           node-version: "16"
 
