@@ -1,6 +1,6 @@
 ---
 name: playwright
-version: 1.19.1
+version: 1.19.2
 type: npm
 summary: A high-level API to automate web browsers
 homepage: https://playwright.dev
