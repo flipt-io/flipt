@@ -1,6 +1,6 @@
 ---
 name: "@babel/generator"
-version: 7.17.0
+version: 7.17.3
 type: npm
 summary: Turns an AST into code.
 homepage: https://babel.dev/docs/en/next/babel-generator

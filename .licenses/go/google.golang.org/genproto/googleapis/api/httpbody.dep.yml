@@ -1,12 +1,12 @@
 ---
 name: google.golang.org/genproto/googleapis/api/httpbody
-version: v0.0.0-20220118154757-00ab72f36ad5
+version: v0.0.0-20220302033224-9aa15565e42a
 type: go
-summary:
+summary: 
 homepage: https://pkg.go.dev/google.golang.org/genproto/googleapis/api/httpbody
 license: apache-2.0
 licenses:
-- sources: genproto@v0.0.0-20220118154757-00ab72f36ad5/LICENSE
+- sources: genproto@v0.0.0-20220302033224-9aa15565e42a/LICENSE
   text: |2
 
                                      Apache License

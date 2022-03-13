@@ -1,6 +1,6 @@
 ---
 name: "@babel/core"
-version: 7.17.2
+version: 7.17.5
 type: npm
 summary: Babel compiler core.
 homepage: https://babel.dev/docs/en/next/babel-core

@@ -1,12 +1,12 @@
 ---
 name: github.com/grpc-ecosystem/grpc-gateway/v2/internal/httprule
-version: v2.7.3
+version: v2.8.0
 type: go
-summary:
+summary: 
 homepage: https://pkg.go.dev/github.com/grpc-ecosystem/grpc-gateway/v2/internal/httprule
 license: bsd-3-clause
 licenses:
-- sources: v2@v2.7.3/LICENSE.txt
+- sources: v2@v2.8.0/LICENSE.txt
   text: |
     Copyright (c) 2015, Gengo, Inc.
     All rights reserved.
@@ -35,7 +35,7 @@ licenses:
     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- sources: v2@v2.7.3/README.md
+- sources: v2@v2.8.0/README.md
   text: |-
     gRPC-Gateway is licensed under the BSD 3-Clause License.
     See [LICENSE.txt](https://github.com/grpc-ecosystem/grpc-gateway/blob/master/LICENSE.txt) for more details.
