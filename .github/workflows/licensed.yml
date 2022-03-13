@@ -34,3 +34,5 @@ jobs:
         uses: jonabc/licensed-ci@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: branch
+          cleanup_on_success: true
