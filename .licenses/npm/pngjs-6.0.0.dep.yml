@@ -1,14 +1,16 @@
 ---
-name: "@jridgewell/trace-mapping"
-version: 0.3.4
+name: pngjs
+version: 6.0.0
 type: npm
-summary: Trace the original position through a source map
-homepage:
-license: mit
+summary: PNG encoder/decoder in pure JS, supporting any bit size & interlace, async
+  & sync with full test suite.
+homepage: https://github.com/lukeapage/pngjs
+license: other
 licenses:
 - sources: LICENSE
   text: |
-    Copyright 2022 Justin Ridgewell <justin@ridgewell.name>
+    pngjs2 original work Copyright (c) 2015 Luke Page & Original Contributors
+    pngjs derived work Copyright (c) 2012 Kuba Niegowski
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +27,6 @@ licenses:
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
 notices: []
