@@ -1,13 +1,15 @@
 ---
-name: playwright
-version: 1.18.1
+name: "@ampproject/remapping"
+version: 2.1.0
 type: npm
-summary: A high-level API to automate web browsers
-homepage: https://playwright.dev
+summary: Remap sequential sourcemaps through transformations to point at the original
+  source code
+homepage:
 license: apache-2.0
 licenses:
 - sources: LICENSE
   text: |2
+
                                      Apache License
                                Version 2.0, January 2004
                             http://www.apache.org/licenses/
@@ -196,8 +198,7 @@ licenses:
           same "printed page" as the copyright notice for easier
           identification within third-party archives.
 
-       Portions Copyright (c) Microsoft Corporation.
-       Portions Copyright 2017 Google Inc.
+       Copyright 2019 Google LLC
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
@@ -210,11 +211,4 @@ licenses:
        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
        See the License for the specific language governing permissions and
        limitations under the License.
-notices:
-- sources: NOTICE
-  text: |-
-    Playwright
-    Copyright (c) Microsoft Corporation
-
-    This software contains code derived from the Puppeteer project (https://github.com/puppeteer/puppeteer),
-    available under the Apache 2.0 license (https://github.com/puppeteer/puppeteer/blob/master/LICENSE).
+notices: []

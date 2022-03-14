@@ -1,14 +1,14 @@
 ---
-name: axios
-version: 0.26.0
+name: "@babel/parser"
+version: 7.17.0
 type: npm
-summary: Promise based HTTP client for the browser and node.js
-homepage: https://axios-http.com
+summary: A JavaScript parser
+homepage: https://babel.dev/docs/en/next/babel-parser
 license: mit
 licenses:
 - sources: LICENSE
   text: |
-    Copyright (c) 2014-present Matt Zabriskie
+    Copyright (C) 2012-2014 by various contributors (see AUTHORS)
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
