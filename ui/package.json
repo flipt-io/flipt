@@ -13,7 +13,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "axios": "^0.26.0",
+    "axios": "^0.26.1",
     "buefy": "^0.9.16",
     "bulma": "^0.8.0",
     "jpeg-js": "0.4.3",
@@ -97,7 +97,7 @@
     "webpack": "^4.46.0",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.6.0",
+    "webpack-dev-server": "^4.7.4",
     "webpack-merge": "^4.2.1"
   },
   "engines": {
