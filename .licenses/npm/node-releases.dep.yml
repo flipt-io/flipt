@@ -1,14 +1,16 @@
 ---
-name: axios
-version: 0.26.0
+name: node-releases
+version: 2.0.1
 type: npm
-summary: Promise based HTTP client for the browser and node.js
-homepage: https://axios-http.com
+summary: Node.js releases data
+homepage:
 license: mit
 licenses:
 - sources: LICENSE
   text: |
-    Copyright (c) 2014-present Matt Zabriskie
+    The MIT License
+
+    Copyright (c) 2017 Sergey Rubanov (https://github.com/chicoxyzzy)
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
