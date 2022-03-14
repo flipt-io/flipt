@@ -1,6 +1,6 @@
 ---
 name: "@babel/parser"
-version: 7.17.3
+version: 7.17.0
 type: npm
 summary: A JavaScript parser
 homepage: https://babel.dev/docs/en/next/babel-parser

@@ -1,10 +1,10 @@
 ---
 name: "@ampproject/remapping"
-version: 2.1.2
+version: 2.1.0
 type: npm
 summary: Remap sequential sourcemaps through transformations to point at the original
   source code
-homepage: 
+homepage:
 license: apache-2.0
 licenses:
 - sources: LICENSE

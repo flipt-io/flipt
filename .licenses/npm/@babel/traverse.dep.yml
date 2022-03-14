@@ -1,6 +1,6 @@
 ---
 name: "@babel/traverse"
-version: 7.17.3
+version: 7.17.0
 type: npm
 summary: The Babel Traverse module maintains the overall tree state, and is responsible
   for replacing, removing, and adding nodes

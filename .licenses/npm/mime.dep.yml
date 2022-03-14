@@ -3,7 +3,7 @@ name: mime
 version: 2.6.0
 type: npm
 summary: A comprehensive library for mime-type mapping
-homepage: 
+homepage:
 license: mit
 licenses:
 - sources: LICENSE

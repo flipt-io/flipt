@@ -1,12 +1,12 @@
 name: Licensed
 on:
-  push:
-  pull_request:
-    types: [opened]
   workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 6"
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   licensed:
@@ -34,3 +34,5 @@ jobs:
         uses: jonabc/licensed-ci@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: branch
+          cleanup_on_success: true

@@ -13,7 +13,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "axios": "^0.26.0",
+    "axios": "^0.26.1",
     "buefy": "^0.9.16",
     "bulma": "^0.8.0",
     "jpeg-js": "0.4.3",
@@ -45,7 +45,7 @@
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
     "@babel/runtime-corejs2": "^7.17.2",
-    "@playwright/test": "^1.18.1",
+    "@playwright/test": "^1.19.2",
     "@webpack-cli/serve": "^1.6.0",
     "autoprefixer": "^9.6.1",
     "babel-eslint": "^10.0.1",
@@ -78,7 +78,7 @@
     "jest-playwright-preset": "^1.7.0",
     "jest-runner": "^27.5.1",
     "mini-css-extract-plugin": "^0.8.0",
-    "node-notifier": "^10.0.0",
+    "node-notifier": "^10.0.1",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "ora": "^6.1.0",
     "playwright-core": "^1.19.2",
@@ -97,7 +97,7 @@
     "webpack": "^4.46.0",
     "webpack-bundle-analyzer": "^4.4.2",
     "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.6.0",
+    "webpack-dev-server": "^4.7.4",
     "webpack-merge": "^4.2.1"
   },
   "engines": {
