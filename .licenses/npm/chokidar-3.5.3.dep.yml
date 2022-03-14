@@ -1,6 +1,6 @@
 ---
 name: chokidar
-version: 3.5.2
+version: 3.5.3
 type: npm
 summary: Minimal and efficient cross-platform file watching library
 homepage: https://github.com/paulmillr/chokidar
