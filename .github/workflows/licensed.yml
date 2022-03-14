@@ -1,9 +1,8 @@
 name: Licensed
 on:
-  push:
-  pull_request:
-    types: [opened]
   workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 6"
 
 permissions:
   contents: write
