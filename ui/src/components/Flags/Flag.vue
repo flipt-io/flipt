@@ -107,20 +107,30 @@
           >
             {{ props.row.attachment | limit }}
           </b-table-column>
-          <b-table-column v-slot="props" field="" label="" width="110" centered>
+          <b-table-column v-slot="props" field="" label="" width="160" centered>
             <a
               class="button is-white"
               @click.prevent="editVariant(props.index)"
             >
               <span class="icon is-small">
-                <i class="fas fa-pencil-alt" />
+                <i class="fas fa-pencil-alt" title="Edit" />
+              </span>
+            </a>
+            <a
+              class="button is-white"
+              @click.prevent="duplicateVariant(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="far fa-clone" title="Duplicate" />
               </span>
             </a>
             <a
               class="button is-white"
               @click.prevent="deleteVariant(props.index)"
             >
-              <span class="icon is-small"> <i class="fas fa-times" /> </span>
+              <span class="icon is-small">
+                <i class="fas fa-times" title="Delete" />
+              </span>
             </a>
           </b-table-column>
         </b-table>
@@ -461,6 +471,10 @@ export default {
     editVariant(index) {
       this.dialogEditVariantVisible = true;
       this.selectedVariant = cloneDeep(this.flag.variants[index]);
+    },
+    duplicateVariant(index) {
+      this.dialogAddVariantVisible = true;
+      this.newVariant = cloneDeep(this.flag.variants[index]);
     },
     cancelEditVariant() {
       this.dialogEditVariantVisible = false;

@@ -69,7 +69,7 @@ tasks:
       - buf generate
 
   clean:
-    desc: Rm built assets
+    desc: Remove built assets
     cmds:
       - go clean -i {{.SOURCE_FILES}}
       - rm -rf dist/*
@@ -84,7 +84,7 @@ tasks:
       COVERAGE_FILE: coverage.txt
 
   dev:
-    desc: Start the server and ui in development modes
+    desc: Start the server and UI in development modes
     cmds:
       - modd
     preconditions:
@@ -97,13 +97,13 @@ tasks:
       - goimports -w .
 
   lint:
-    desc: Run linters
+    desc: Run the linters
     cmds:
       - golangci-lint run 2>&1
       - buf lint
 
   test:
-    desc: Run all tests
+    desc: Run all the tests
     cmds:
       - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s {{.TEST_FLAGS}}
     vars:
