@@ -114,20 +114,30 @@
           <b-table-column v-slot="props" field="value" label="Value">
             {{ props.row.value }}
           </b-table-column>
-          <b-table-column v-slot="props" field="" label="" width="110" centered>
+          <b-table-column v-slot="props" field="" label="" width="160" centered>
             <a
               class="button is-white"
               @click.prevent="editConstraint(props.index)"
             >
               <span class="icon is-small">
-                <i class="fas fa-pencil-alt" />
+                <i class="fas fa-pencil-alt" title="Edit" />
+              </span>
+            </a>
+            <a
+              class="button is-white"
+              @click.prevent="duplicateConstraint(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="fas fa-clone" title="Duplicate" />
               </span>
             </a>
             <a
               class="button is-white"
               @click.prevent="deleteConstraint(props.index)"
             >
-              <span class="icon is-small"> <i class="fas fa-times" /> </span>
+              <span class="icon is-small">
+                <i class="fas fa-times" title="Delete" />
+              </span>
             </a>
           </b-table-column>
         </b-table>
@@ -611,6 +621,10 @@ export default {
     editConstraint(index) {
       this.dialogEditConstraintVisible = true;
       this.selectedConstraint = cloneDeep(this.segment.constraints[index]);
+    },
+    duplicateConstraint(index) {
+      this.dialogAddConstraintVisible = true;
+      this.newConstraint = cloneDeep(this.segment.constraints[index]);
     },
     cancelEditConstraint() {
       this.dialogEditConstraintVisible = false;
