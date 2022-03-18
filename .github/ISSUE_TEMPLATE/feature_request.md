@@ -12,5 +12,14 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 **Describe the solution you'd like**
 A clear and concise description of what you want to happen.
 
+**Attach an export**
+If your feature request is based on a limitation that could be best shown with a specific set of data, please export your data by running:
+
+```
+flipt export > export.yml
+```
+
+And then attach the YAML file to this issue. ❤️
+
 **Additional context**
 Add any other context or screenshots about the feature request here.
