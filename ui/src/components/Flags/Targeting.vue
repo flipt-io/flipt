@@ -266,12 +266,16 @@
 </template>
 
 <script>
-import clone from "lodash/clone";
-import cloneDeep from "lodash/cloneDeep";
-import capitalize from "lodash/capitalize";
-import map from "lodash/map";
-import find from "lodash/find";
-import forEach from "lodash/forEach";
+import {
+  capitalize,
+  clone,
+  cloneDeep,
+  find,
+  forEach,
+  isEmpty,
+  map,
+} from "lodash";
+
 import draggable from "vuedraggable";
 
 import { Api } from "@/services/api";
@@ -341,7 +345,10 @@ export default {
       return this.flag.variants && this.flag.variants.length > 0;
     },
     canAddRule() {
-      return this.isPresent(this.newRule.segmentKey);
+      return (
+        this.isPresent(this.newRule.segmentKey) &&
+        !isEmpty(this.newRule.distributions)
+      );
     },
   },
   mounted() {
@@ -523,7 +530,9 @@ export default {
     },
     ruleTypeChanged(event) {
       let val = event.target.value;
-      if (val === "rollout") {
+      if (val === "") {
+        this.newRule.distributions = [];
+      } else if (val === "rollout") {
         let n = this.flag.variants.length;
         let percentages = this.computePercentages(n);
         let distributions = [];

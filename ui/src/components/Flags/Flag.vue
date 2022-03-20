@@ -317,9 +317,7 @@
 </template>
 
 <script>
-import clone from "lodash/clone";
-import cloneDeep from "lodash/cloneDeep";
-import capitalize from "lodash/capitalize";
+import { capitalize, clone, cloneDeep } from "lodash";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";

@@ -35,8 +35,7 @@
 </template>
 
 <script>
-import clone from "lodash/clone";
-import isEmpty from "lodash/isEmpty";
+import { clone, isEmpty } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 
 import { Api } from "@/services/api";
