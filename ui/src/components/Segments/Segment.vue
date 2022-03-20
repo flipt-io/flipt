@@ -364,10 +364,7 @@
 </template>
 
 <script>
-import clone from "lodash/clone";
-import cloneDeep from "lodash/cloneDeep";
-import capitalize from "lodash/capitalize";
-import merge from "lodash/merge";
+import { capitalize, clone, cloneDeep, merge } from "lodash";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
