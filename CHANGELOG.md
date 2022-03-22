@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.0](https://github.com/markphelps/flipt/releases/tag/v1.7.0) - 2022-03-22
+
+### Added
+
+- Ability to quickly copy constraints/variants for easier creation [https://github.com/markphelps/flipt/pull/754](https://github.com/markphelps/flipt/pull/754)
+
+### Changed
+
+- Disallow empty rule creation in UI [https://github.com/markphelps/flipt/issues/758](https://github.com/markphelps/flipt/issues/758)
+- `trimpath` added as [`go build` flag](https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies) for builds [https://github.com/markphelps/flipt/pull/722](https://github.com/markphelps/flipt/pull/722)
+- Base alpine image updated to 3.15.1 [https://github.com/markphelps/flipt/pull/757](https://github.com/markphelps/flipt/pull/757)
+- Dependency updates
+
 ## [v1.6.3](https://github.com/markphelps/flipt/releases/tag/v1.6.3) - 2022-02-21
 
 ### Added
