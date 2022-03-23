@@ -9,5 +9,5 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.2
 	golang.org/x/tools v0.1.8
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.0
 )

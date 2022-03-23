@@ -8,7 +8,7 @@ vars:
 tasks:
   default:
     desc: Build the binary
-    deps: [clean, assets]
+    deps: [clean, proto, assets]
     cmds:
       - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
@@ -48,22 +48,23 @@ tasks:
 
   build:clients:
     desc: Generate Ruby and Go proto clients
+    deps: [proto]
     cmds:
       - buf generate --template=buf.public.gen.yaml
 
   build:release:
     desc: Build a release version and push the release with goreleaser
-    deps: [clean, assets]
+    deps: [clean, assets, proto]
     cmds:
       - ./script/build release
 
   build:snapshot:
     desc: Build a snapshot version with goreleaser
-    deps: [clean, assets]
+    deps: [clean, assets, proto]
     cmds:
       - ./script/build snapshot
 
-  build:proto:
+  proto:
     desc: Generate protobuf files from .protos
     cmds:
       - buf generate
@@ -71,9 +72,9 @@ tasks:
   clean:
     desc: Remove built assets
     cmds:
+      - go mod tidy
       - go clean -i {{.SOURCE_FILES}}
       - rm -rf dist/*
-      - go mod tidy
 
   cover:
     desc: Run test coverage
