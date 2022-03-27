@@ -75,7 +75,7 @@ Flipt supports use cases such as:
 
 ## Try It
 
-Try the [latest version](https://github.com/markphelps/flipt/releases) of Flipt out for yourself.
+Try the latest version of Flipt out for yourself.
 
 ### Sandbox
 
