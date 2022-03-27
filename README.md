@@ -71,20 +71,21 @@ Flipt supports use cases such as:
 - :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- :no_entry: **Privacy** - No telemetry data is collected or sent by Flipt. Ever.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
-
-## Examples
-
-Check out the [examples](/examples) to see how Flipt works.
-
-Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/basic) to get started!
 
 ## Try It
 
-![Flipt Docker](cli.gif)
+Try the [latest version](https://github.com/markphelps/flipt/releases) of Flipt out for yourself.
 
-Try Flipt out yourself with Docker:
+### Sandbox
+
+[Try Flipt](https://try.flipt.io) in a deployed environment!
+
+**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
+
+### Docker
+
+![Flipt](cli.gif)
 
 ```bash
 ❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:latest
@@ -123,6 +124,12 @@ Client libraries built by awesome people from the Open Source community:
 ### Generate Your Own
 
 If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
+
+## Examples
+
+Check out the [examples](/examples) to see how Flipt works.
+
+Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/basic) to get started!
 
 ## Licensing
 
