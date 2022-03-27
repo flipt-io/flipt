@@ -1,0 +1,11 @@
+apiVersion: v2
+name: flipt
+description: An open-source, on-prem feature flag solution
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.0
+
+appVersion: "v1.7.0"
