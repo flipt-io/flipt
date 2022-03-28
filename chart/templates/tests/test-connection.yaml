@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "flipt.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "flipt.fullname" . }}:{{ .Values.serviceWeb.port }}']
   restartPolicy: Never

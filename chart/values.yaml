@@ -38,9 +38,13 @@ securityContext:
   # runAsNonRoot: true
   # runAsUser: 1000
 
-service:
+serviceWeb:
   type: NodePort
   port: 8080
+
+serviceGRPC:
+  type: NodePort
+  port: 9000
 
 ingress:
   enabled: false

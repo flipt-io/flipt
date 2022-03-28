@@ -5,11 +5,14 @@ metadata:
   labels:
     {{- include "flipt.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.serviceWeb.port }}
       targetPort: http
       protocol: TCP
       name: http
+    - port: {{ .Values.serviceGRPC.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
   selector:
     {{- include "flipt.selectorLabels" . | nindent 4 }}
