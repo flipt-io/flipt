@@ -60,11 +60,11 @@ Flipt supports use cases such as:
 - Fast. Written in Go. Optimized for performance
 - Stand alone, easy to run and configure
 - Ability to create advanced distribution rules to target segments of users
-- Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
-- Simple REST API
-- Modern UI and debug console
+- Native [GRPC](https://grpc.io/) client SDKs to integrate with your existing applications easily
+- Powerful REST API
+- Modern, mobile friendly 📱 UI and debug console
 - Support for multiple databases (Postgres, MySQL, SQLite)
-- Data import and export to allow storing your flags as code
+- Data import and export to allow storing your data as code
 
 ## Values
 
