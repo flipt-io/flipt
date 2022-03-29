@@ -1,6 +1,6 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "flipt.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
+{{- $svcWebPort := .Values.serviceWeb.port -}}
 {{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
@@ -51,10 +51,10 @@ spec:
               service:
                 name: {{ $fullName }}
                 port:
-                  number: {{ $svcPort }}
+                  number: {{ $svcWebPort }}
               {{- else }}
               serviceName: {{ $fullName }}
-              servicePort: {{ $svcPort }}
+              servicePort: {{ $svcWebPort }}
               {{- end }}
           {{- end }}
     {{- end }}

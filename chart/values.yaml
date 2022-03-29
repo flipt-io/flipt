@@ -1,7 +1,3 @@
-# Default values for flipt.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 
 image:
@@ -39,11 +35,11 @@ securityContext:
   # runAsUser: 1000
 
 serviceWeb:
-  type: NodePort
+  type: ClusterIP
   port: 8080
 
 serviceGRPC:
-  type: NodePort
+  type: ClusterIP
   port: 9000
 
 ingress:
@@ -54,7 +50,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: chart-example.local
+    - host: flipt.local
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -65,10 +61,6 @@ ingress:
 
 resources:
   {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
