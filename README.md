@@ -27,6 +27,9 @@
     <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
         <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />
     </a>
+    <a href="https://bestpractices.coreinfrastructure.org/projects/3498">
+        <img src="https://bestpractices.coreinfrastructure.org/projects/3498/badge">
+    </a>
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
