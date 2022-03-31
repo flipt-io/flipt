@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -225,6 +226,12 @@ func run(_ []string) error {
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
 	defer signal.Stop(interrupt)
+
+	if err := initLocalState(); err != nil {
+		l.Warnf("error getting local state directory: %s %s", cfg.Meta.StateDirectory, err)
+	} else {
+		l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
+	}
 
 	var (
 		isRelease       = isRelease()
@@ -577,6 +584,29 @@ func isRelease() bool {
 		return false
 	}
 	return true
+}
+
+// check if state_directory already exists, create it if not
+func initLocalState() error {
+	if cfg.Meta.StateDirectory == "" {
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return fmt.Errorf("getting user config dir: %w", err)
+		}
+		cfg.Meta.StateDirectory = filepath.Join(configDir, "flipt")
+	}
+
+	fp, err := os.Stat(cfg.Meta.StateDirectory)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("checking state dir: %w", err)
+	}
+
+	if fp != nil && fp.IsDir() {
+		return nil
+	}
+
+	// state directory doesnt exist, so try to create it
+	return os.MkdirAll(cfg.Meta.StateDirectory, 0700)
 }
 
 type info struct {
