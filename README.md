@@ -27,6 +27,9 @@
     <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
         <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />
     </a>
+    <a href="https://bestpractices.coreinfrastructure.org/projects/3498">
+        <img src="https://bestpractices.coreinfrastructure.org/projects/3498/badge">
+    </a>
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
@@ -60,11 +63,11 @@ Flipt supports use cases such as:
 - Fast. Written in Go. Optimized for performance
 - Stand alone, easy to run and configure
 - Ability to create advanced distribution rules to target segments of users
-- Native [GRPC](https://grpc.io/) client SDKs to integrate with your applications
-- Simple REST API
-- Modern UI and debug console
+- Native [GRPC](https://grpc.io/) client SDKs to integrate with your existing applications easily
+- Powerful REST API
+- Modern, mobile friendly 📱 UI and debug console
 - Support for multiple databases (Postgres, MySQL, SQLite)
-- Data import and export to allow storing your flags as code
+- Data import and export to allow storing your data as code
 
 ## Values
 
