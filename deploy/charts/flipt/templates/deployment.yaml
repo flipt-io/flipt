@@ -35,11 +35,15 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ .Values.flipt.httpPort }}
               protocol: TCP
             - name: grpc
-              containerPort: 9000
+              containerPort: {{ .Values.flipt.grpcPort }}
               protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/flipt/config
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /
@@ -50,6 +54,10 @@ spec:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: flipt-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

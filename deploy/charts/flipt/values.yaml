@@ -84,5 +84,3 @@ flipt:
   httpPort: 8080
   # Port to expose the grpc service on
   grpcPort: 9000
-  # Log level (debug, info, warn, error, fatal)
-  logLevel: INFO
