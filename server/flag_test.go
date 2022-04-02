@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -149,6 +149,7 @@ func TestCreateVariant(t *testing.T) {
 		Key:         req.Key,
 		Name:        req.Name,
 		Description: req.Description,
+		Attachment:  req.Attachment,
 	}, nil)
 
 	got, err := s.CreateVariant(context.TODO(), req)
@@ -179,6 +180,7 @@ func TestUpdateVariant(t *testing.T) {
 		Key:         req.Key,
 		Name:        req.Name,
 		Description: req.Description,
+		Attachment:  req.Attachment,
 	}, nil)
 
 	got, err := s.UpdateVariant(context.TODO(), req)

@@ -1,10 +1,7 @@
 export default {
   methods: {
     formatStringAsKey(str) {
-      let temp = str
-        .toLowerCase()
-        .split(/\s+/)
-        .join("-");
+      let temp = str.toLowerCase().split(/\s+/).join("-");
 
       // Auto generated keys  should not begin or end in a hyphen
       if (temp.charAt(0) == "-") {
@@ -16,6 +13,6 @@ export default {
       }
 
       return temp;
-    }
-  }
+    },
+  },
 };

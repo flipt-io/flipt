@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
@@ -29,11 +29,12 @@ type EvaluationConstraint struct {
 
 // EvaluationDistribution represents a rule distribution along with its variant for evaluation
 type EvaluationDistribution struct {
-	ID         string
-	RuleID     string
-	VariantID  string
-	Rollout    float32
-	VariantKey string
+	ID                string
+	RuleID            string
+	VariantID         string
+	Rollout           float32
+	VariantKey        string
+	VariantAttachment string
 }
 
 type QueryParams struct {
@@ -83,6 +84,18 @@ type FlagStore interface {
 	DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error
 }
 
+// SegmentStore stores and retrieves segments and constraints
+type SegmentStore interface {
+	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
+	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
+	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
+	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+	UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
+	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
+}
+
 // RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
 	GetRule(ctx context.Context, id string) (*flipt.Rule, error)
@@ -94,16 +107,4 @@ type RuleStore interface {
 	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
-}
-
-// SegmentStore stores and retrieves segments and constraints
-type SegmentStore interface {
-	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
-	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
-	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
-	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
-	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
-	UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
-	DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error
 }

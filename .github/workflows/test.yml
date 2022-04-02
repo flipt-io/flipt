@@ -1,22 +1,25 @@
-name: Tests
+name: Lint/Test
 on:
   push:
-    paths-ignore:
-      - '*.md'
-      - '.all-contributorsrc'
+  pull_request:
+    types: [opened]
 
 jobs:
-  ## Lint
-  golangci:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.17.x"
+
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.1.0
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.33
+          version: v1.44
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir
@@ -27,34 +30,40 @@ jobs:
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true
 
-  ## Unit Tests
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ["1.17.x", "1.18.0-rc1"]
 
     steps:
-    - name: Setup Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.15.x'
-      id: go
+      - uses: actions/checkout@v3
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          stable: "false"
+          go-version: ${{ matrix.go }}
 
-    - name: Restore Cache
-      uses: actions/cache@preview
-      id: cache
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+      - id: go-cache-paths
+        run: |
+          echo "::set-output name=go-build::$(go env GOCACHE)"
+          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
 
-    - name: Unit Test (SQLite)
-      run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
+      - name: Go Build Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
 
-    - name: Coverage
-      if: github.repository == 'markphelps/flipt' # don't run on forks since secrets are not copied to forked repos
-      env:
-        CI_BRANCH: ${{ github.ref }}
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      run: bash <(curl -s https://codecov.io/bash)
+      - name: Go Mod Cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+
+      - name: Unit Test (SQLite)
+        run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
+
+      - name: Coverage
+        uses: codecov/codecov-action@v2.1.0

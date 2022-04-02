@@ -1,24 +1,26 @@
-#!/bin/sh
+#!/bin/bash
+set -euo pipefail
 
-TOOLS=$(pwd)/_tools
-export GOBIN=$TOOLS/bin
+GREEN='\033[1;32m'
+NC='\033[0m' # No Color
 
-mkdir -p _tools/bin
-cd $TOOLS
+cd $(pwd)/_tools
 
 if [ ! -f go.mod ]; then
     go mod init tools
 fi
 
-go get -u -v github.com/golang/protobuf/protoc-gen-go@v1.4.2
+go install \
+    github.com/bufbuild/buf/cmd/buf \
+    github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking \
+    github.com/bufbuild/buf/cmd/protoc-gen-buf-lint \
+    github.com/cortesi/modd/cmd/modd \
+    github.com/golangci/golangci-lint/cmd/golangci-lint \
+    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+    golang.org/x/tools/cmd/cover \
+    golang.org/x/tools/cmd/goimports \
+    google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+    google.golang.org/protobuf/cmd/protoc-gen-go \
 
-go install -v  \
-    "github.com/gobuffalo/packr/packr" \
-    "google.golang.org/grpc/cmd/protoc-gen-go-grpc" \
-    "github.com/golangci/golangci-lint/cmd/golangci-lint" \
-    "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway" \
-    "github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger" \
-    "golang.org/x/tools/cmd/cover" \
-    "golang.org/x/tools/cmd/goimports" \
-    "google.golang.org/grpc" \
-    "github.com/buchanae/github-release-notes"
+echo -e "\n${GREEN}Tools installed!${NC}"

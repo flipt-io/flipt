@@ -39,23 +39,64 @@
       <div class="navbar-end">
         <a
           class="navbar-item has-text-weight-semibold"
+          target="_blank"
           href="https://flipt.io/docs/getting_started/?utm_source=app"
         >
           Documentation
         </a>
-        <a class="navbar-item has-text-weight-semibold" href="/docs/">API</a>
+        <a
+          class="navbar-item has-text-weight-semibold"
+          target="_blank"
+          href="/docs/"
+          >API</a
+        >
+        <a
+          v-if="ref"
+          class="navbar-item is-size-7 has-text-weight-semibold"
+          target="_blank"
+          :href="refURL"
+        >
+          {{ ref }}
+        </a>
       </div>
     </div>
   </nav>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   Name: "nav",
   data() {
     return {
-      isActive: false
+      isActive: false,
     };
-  }
+  },
+  computed: {
+    ...mapGetters(["info"]),
+    refURL() {
+      if (this.info.isRelease && this.info.version) {
+        return (
+          "https://github.com/markphelps/flipt/releases/tag/" +
+          this.info.version
+        );
+      } else if (this.info.commit) {
+        return "https://github.com/markphelps/flipt/commit/" + this.info.commit;
+      }
+      return "https://github.com/markphelps/flipt";
+    },
+    ref() {
+      if (this.info.isRelease && this.info.version) {
+        return this.info.version;
+      } else if (this.info.commit) {
+        return this.info.commit.substring(0, 7);
+      }
+      return "";
+    },
+  },
+  mounted() {
+    this.$store.dispatch("getInfo");
+  },
 };
 </script>

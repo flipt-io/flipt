@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,7 +33,12 @@ func TestBatchEvaluate(t *testing.T) {
 		}
 	)
 
+	disabled := &flipt.Flag{
+		Key:     "bar",
+		Enabled: false,
+	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -47,6 +52,10 @@ func TestBatchEvaluate(t *testing.T) {
 					"bar": "boz",
 				},
 			},
+			{
+				EntityId: "1",
+				FlagKey:  "bar",
+			},
 		},
 	})
 
@@ -54,8 +63,102 @@ func TestBatchEvaluate(t *testing.T) {
 	assert.Equal(t, "12345", resp.RequestId)
 	assert.NotEmpty(t, resp.RequestDurationMillis)
 	assert.NotNil(t, resp.Responses)
-	assert.Equal(t, 1, len(resp.Responses))
+	assert.Equal(t, 2, len(resp.Responses))
 	assert.False(t, resp.Responses[0].Match)
+}
+
+func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
+	var (
+		store = &storeMock{}
+		s     = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	disabled := &flipt.Flag{
+		Key:     "bar",
+		Enabled: false,
+	}
+	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "NotFoundFlag"))
+
+	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+
+	resp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
+		RequestId:       "12345",
+		ExcludeNotFound: true,
+		Requests: []*flipt.EvaluationRequest{
+			{
+				EntityId: "1",
+				FlagKey:  "foo",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+			{
+				EntityId: "1",
+				FlagKey:  "bar",
+			},
+			{
+				EntityId: "1",
+				FlagKey:  "NotFoundFlag",
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "12345", resp.RequestId)
+	assert.NotEmpty(t, resp.RequestDurationMillis)
+	assert.NotNil(t, resp.Responses)
+	assert.Equal(t, 2, len(resp.Responses))
+	assert.False(t, resp.Responses[0].Match)
+}
+
+func TestBatchEvaluate_FlagNotFound(t *testing.T) {
+	var (
+		store = &storeMock{}
+		s     = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	disabled := &flipt.Flag{
+		Key:     "bar",
+		Enabled: false,
+	}
+	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "NotFoundFlag"))
+
+	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+
+	_, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
+		RequestId:       "12345",
+		ExcludeNotFound: false,
+		Requests: []*flipt.EvaluationRequest{
+			{
+				EntityId: "1",
+				FlagKey:  "foo",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+			{
+				EntityId: "1",
+				FlagKey:  "bar",
+			},
+			{
+				EntityId: "1",
+				FlagKey:  "NotFoundFlag",
+			},
+		},
+	})
+
+	require.Error(t, err)
+	assert.EqualError(t, err, "flag \"NotFoundFlag\" not found")
 }
 
 func TestEvaluate_FlagNotFound(t *testing.T) {
@@ -101,8 +204,7 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 		},
 	})
 
-	require.Error(t, err)
-	assert.EqualError(t, err, "flag \"foo\" is disabled")
+	require.NoError(t, err)
 	assert.False(t, resp.Match)
 }
 
@@ -321,11 +423,12 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
-				Rollout:    100,
-				VariantKey: "boz",
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           100,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
 			},
 		}, nil)
 
@@ -401,6 +504,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
+			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
 		})
 	}
 }

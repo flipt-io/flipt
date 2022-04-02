@@ -86,6 +86,70 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "edumucelli",
+      "name": "Eduardo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/959623?v=4",
+      "profile": "http://eduar.do",
+      "contributions": [
+        "doc",
+        "code"
+      ]
+    },
+    {
+      "login": "itaischwartz",
+      "name": "Itai Schwartz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60180089?v=4",
+      "profile": "https://github.com/itaischwartz",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "eltociear",
+      "name": "Ikko Ashimine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22633385?v=4",
+      "profile": "https://bandism.net/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "sagikazarmark",
+      "name": "Márk Sági-Kazár",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1226384?v=4",
+      "profile": "https://sagikazarmark.hu",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "pietdaniel",
+      "name": "Dan Piet",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1924983?v=4",
+      "profile": "https://github.com/pietdaniel",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "amayvs",
+      "name": "Amay Shah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/842194?v=4",
+      "profile": "https://github.com/amayvs",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kevin-ip",
+      "name": "kevin-ip",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28875408?v=4",
+      "profile": "https://github.com/kevin-ip",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

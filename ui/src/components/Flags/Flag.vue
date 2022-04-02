@@ -53,9 +53,9 @@
                     </button>
                   </div>
                   <div class="control">
-                    <RouterLink class="button is-text" :to="{ name: 'flags' }"
-                      >Cancel</RouterLink
-                    >
+                    <RouterLink class="button is-text" :to="{ name: 'flags' }">
+                      Cancel
+                    </RouterLink>
                   </div>
                 </div>
               </div>
@@ -84,34 +84,55 @@
         <p class="subtitle is-7">
           Return different values based on rules you define
         </p>
-        <b-table :data="flag.variants">
-          <template slot-scope="props">
-            <b-table-column field="key" label="Key" sortable>
-              {{ props.row.key }}
-            </b-table-column>
-            <b-table-column field="name" label="Name" sortable>
-              {{ props.row.name }}
-            </b-table-column>
-            <b-table-column field="description" label="Description" sortable>
-              {{ props.row.description }}
-            </b-table-column>
-            <b-table-column field="" label="" width="110" centered>
-              <a
-                class="button is-white"
-                @click.prevent="editVariant(props.index)"
-              >
-                <span class="icon is-small">
-                  <i class="fas fa-pencil-alt" />
-                </span>
-              </a>
-              <a
-                class="button is-white"
-                @click.prevent="deleteVariant(props.index)"
-              >
-                <span class="icon is-small"> <i class="fas fa-times" /> </span>
-              </a>
-            </b-table-column>
-          </template>
+        <b-table :data="flag.variants" scrollable>
+          <b-table-column v-slot="props" field="key" label="Key" sortable>
+            {{ props.row.key }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="name" label="Name" sortable>
+            {{ props.row.name }}
+          </b-table-column>
+          <b-table-column
+            v-slot="props"
+            field="description"
+            label="Description"
+            sortable
+          >
+            {{ props.row.description }}
+          </b-table-column>
+          <b-table-column
+            v-slot="props"
+            field="attachment"
+            label="Attachment"
+            sortable
+          >
+            {{ props.row.attachment | limit }}
+          </b-table-column>
+          <b-table-column v-slot="props" field="" label="" width="160" centered>
+            <a
+              class="button is-white"
+              @click.prevent="editVariant(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="fas fa-pencil-alt" title="Edit" />
+              </span>
+            </a>
+            <a
+              class="button is-white"
+              @click.prevent="duplicateVariant(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="far fa-clone" title="Duplicate" />
+              </span>
+            </a>
+            <a
+              class="button is-white"
+              @click.prevent="deleteVariant(props.index)"
+            >
+              <span class="icon is-small">
+                <i class="fas fa-times" title="Delete" />
+              </span>
+            </a>
+          </b-table-column>
         </b-table>
         <br />
         <div class="field">
@@ -154,6 +175,14 @@
                 <b-input
                   v-model="newVariant.description"
                   placeholder="Description"
+                />
+              </b-field>
+              <b-field label="Attachment (optional)">
+                <b-input
+                  v-model="newVariant.attachment"
+                  maxlength="1000"
+                  type="textarea"
+                  placeholder="{}"
                 />
               </b-field>
               <div class="field is-grouped">
@@ -211,6 +240,14 @@
                 <b-input
                   v-model="selectedVariant.description"
                   placeholder="Description"
+                />
+              </b-field>
+              <b-field label="Attachment (optional)">
+                <b-input
+                  v-model="selectedVariant.attachment"
+                  maxlength="1000"
+                  type="textarea"
+                  placeholder="{}"
                 />
               </b-field>
               <div class="field is-grouped">
@@ -280,9 +317,7 @@
 </template>
 
 <script>
-import clone from "lodash/clone";
-import cloneDeep from "lodash/cloneDeep";
-import capitalize from "lodash/capitalize";
+import { capitalize, clone, cloneDeep } from "lodash";
 
 import { Api } from "@/services/api";
 import notify from "@/mixins/notify";
@@ -291,7 +326,7 @@ import utils from "@/mixins/utils";
 const DEFAULT_VARIANT = {
   key: "",
   name: "",
-  description: ""
+  description: "",
 };
 
 export default {
@@ -303,10 +338,10 @@ export default {
       dialogAddVariantVisible: false,
       dialogEditVariantVisible: false,
       flag: {
-        variants: []
+        variants: [],
       },
       newVariant: clone(DEFAULT_VARIANT),
-      selectedVariant: clone(DEFAULT_VARIANT)
+      selectedVariant: clone(DEFAULT_VARIANT),
     };
   },
   computed: {
@@ -318,23 +353,20 @@ export default {
     },
     canUpdateVariant() {
       return this.isPresent(this.selectedVariant.key);
-    }
+    },
   },
   mounted() {
     this.getFlag();
   },
   methods: {
     formatVariantKey(variant) {
-      variant.key = variant.key
-        .toLowerCase()
-        .split(" ")
-        .join("-");
+      variant.key = variant.key.toLowerCase().split(" ").join("-");
     },
     getFlag() {
       let key = this.$route.params.key;
 
       Api.get("/flags/" + key)
-        .then(response => {
+        .then((response) => {
           this.flag = response.data;
           this.flag.variants = response.data.variants
             ? response.data.variants
@@ -351,7 +383,7 @@ export default {
           this.notifySuccess("Flag deleted!");
           this.$router.push("/flags");
         })
-        .catch(error => {
+        .catch((error) => {
           this.notifyError("Error deleting flag.");
           console.error(error);
         });
@@ -361,7 +393,7 @@ export default {
         .then(() => {
           this.notifySuccess("Flag updated!");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -372,13 +404,13 @@ export default {
     },
     addVariant() {
       Api.post("/flags/" + this.flag.key + "/variants", this.newVariant)
-        .then(response => {
+        .then((response) => {
           this.flag.variants.push(response.data);
           this.newVariant = clone(DEFAULT_VARIANT);
           this.notifySuccess("Variant added!");
           this.dialogAddVariantVisible = false;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -396,15 +428,15 @@ export default {
         "/flags/" + this.flag.key + "/variants/" + this.selectedVariant.id,
         this.selectedVariant
       )
-        .then(response => {
+        .then((response) => {
           let variant = response.data;
-          let index = this.flag.variants.findIndex(v => v.id === variant.id);
+          let index = this.flag.variants.findIndex((v) => v.id === variant.id);
           this.$set(this.flag.variants, index, variant);
           this.selectedVariant = clone(DEFAULT_VARIANT);
           this.notifySuccess("Variant updated!");
           this.dialogEditVariantVisible = false;
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -425,7 +457,7 @@ export default {
           this.flag.variants.splice(index, 1);
           this.notifySuccess("Variant deleted!");
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -438,10 +470,14 @@ export default {
       this.dialogEditVariantVisible = true;
       this.selectedVariant = cloneDeep(this.flag.variants[index]);
     },
+    duplicateVariant(index) {
+      this.dialogAddVariantVisible = true;
+      this.newVariant = cloneDeep(this.flag.variants[index]);
+    },
     cancelEditVariant() {
       this.dialogEditVariantVisible = false;
       this.selectedVariant = clone(DEFAULT_VARIANT);
-    }
-  }
+    },
+  },
 };
 </script>

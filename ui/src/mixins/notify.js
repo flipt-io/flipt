@@ -4,7 +4,7 @@ export default {
       this.$buefy.toast.open({
         type: "is-primary",
         position: "is-bottom",
-        message: msg
+        message: msg,
       });
     },
     notifyError(msg) {
@@ -12,8 +12,8 @@ export default {
         type: "is-danger",
         position: "is-bottom",
         message: msg,
-        duration: 3000
+        duration: 3000,
       });
-    }
-  }
+    },
+  },
 };

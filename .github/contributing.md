@@ -4,9 +4,9 @@
 
 Let me know how I can help!
 
-* include any **stack traces** with your error
-* list versions you are using: Flipt, Go, OS, etc.
-* list the contents of your Flipt configuration file. (ex: default.yml)
+* Include any **stack traces** with your error
+* List versions you are using: Flipt, Go, OS, etc.
+* List the contents of your Flipt configuration file. (ex: default.yml)
 
 ## Code
 
@@ -14,6 +14,10 @@ It's always best to open an issue before investing a lot of time into a
 fix or new functionality.
 
 Functionality must meet the design goals and vision for the project to be accepted; I would be happy to discuss how your idea can best fit into Flipt.
+
+## Testing
+
+New functionality must have accompanying tests. We aim to keep the total test coverage of the project above 80%.
 
 ## Legal
 

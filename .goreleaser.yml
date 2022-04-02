@@ -1,11 +1,25 @@
+snapshot:
+  name_template: "{{ .ShortCommit }}-snapshot"
+
 builds:
   - main: ./cmd/flipt/.
     env:
       - CGO_ENABLED=1
+      - CC=x86_64-linux-musl-gcc
+      - CXX=x86_64-linux-musl-g++
+    ldflags:
+      - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }}
+      - -linkmode external -extldflags -static
     goos:
       - linux
     goarch:
       - amd64
+    flags:
+      - -tags=assets
+      - -trimpath
+
+sboms:
+  - artifacts: archive
 
 archives:
   - id: main
@@ -15,27 +29,27 @@ archives:
       - LICENSE
       - README.md
       - CHANGELOG.md
-      - ./config/migrations/*/**
+      - ./config/migrations/
       - ./config/default.yml
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 
 changelog:
   skip: true
 
-# dockers:
-#   - dockerfile: ./build/Dockerfile
-#     binaries:
-#       - flipt
-#     image_templates:
-#       - "markphelps/flipt:latest"
-#       - "markphelps/flipt:{{ .Tag }}"
-#       - "ghcr.io/markphelps/flipt:latest"
-#       - "ghcr.io/markphelps/flipt:{{ .Tag }}"
-#     build_flag_templates:
-#       - "--label=org.opencontainers.image.created={{.Date}}"
-#       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-#       - "--label=org.opencontainers.image.version={{.Version}}"
-#     extra_files:
-#       - config
+dockers:
+  - dockerfile: ./build/Dockerfile
+    use: buildx
+    image_templates:
+      - "markphelps/flipt:latest"
+      - "markphelps/flipt:{{ .Tag }}"
+      - "ghcr.io/markphelps/flipt:latest"
+      - "ghcr.io/markphelps/flipt:{{ .Tag }}"
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - config/migrations/
+      - config/default.yml

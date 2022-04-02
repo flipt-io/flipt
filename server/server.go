@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 
 	"github.com/sirupsen/logrus"
@@ -21,8 +21,8 @@ type Option func(s *Server)
 // Server serves the Flipt backend
 type Server struct {
 	logger logrus.FieldLogger
-
-	store storage.Store
+	store  storage.Store
+	flipt.UnimplementedFliptServer
 }
 
 // New creates a new Server
@@ -56,7 +56,7 @@ func (s *Server) ValidationUnaryInterceptor(ctx context.Context, req interface{}
 func (s *Server) ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	resp, err = handler(ctx, req)
 	if err == nil {
-		return
+		return resp, nil
 	}
 
 	errorsTotal.Inc()

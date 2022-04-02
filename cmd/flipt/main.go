@@ -8,11 +8,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -22,18 +24,18 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/gobuffalo/packr"
 	"github.com/google/go-github/v32/github"
-	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/markphelps/flipt/config"
-	pb "github.com/markphelps/flipt/rpc"
+	pb "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
-	"github.com/markphelps/flipt/storage/db"
-	"github.com/markphelps/flipt/storage/db/mysql"
-	"github.com/markphelps/flipt/storage/db/postgres"
-	"github.com/markphelps/flipt/storage/db/sqlite"
+	"github.com/markphelps/flipt/storage/sql"
+	"github.com/markphelps/flipt/storage/sql/mysql"
+	"github.com/markphelps/flipt/storage/sql/postgres"
+	"github.com/markphelps/flipt/storage/sql/sqlite"
+	"github.com/markphelps/flipt/swagger"
+	"github.com/markphelps/flipt/ui"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
@@ -41,6 +43,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -50,13 +53,14 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	jaeger_config "github.com/uber/jaeger-client-go/config"
 )
 
-const defaultVersion = "dev"
+const devVersion = "dev"
 
 var (
 	l   = logrus.New()
@@ -65,7 +69,7 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   = defaultVersion
+	version   = devVersion
 	commit    string
 	date      = time.Now().UTC().Format(time.RFC3339)
 	goVersion = runtime.Version()
@@ -81,9 +85,12 @@ func main() {
 			Version: version,
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := run(args); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
+			},
+			CompletionOptions: cobra.CompletionOptions{
+				DisableDefaultCmd: true,
 			},
 		}
 
@@ -92,7 +99,7 @@ func main() {
 			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runExport(args); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -103,7 +110,7 @@ func main() {
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
 				if err := runImport(args); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -113,16 +120,16 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, args []string) {
-				migrator, err := db.NewMigrator(*cfg, l)
+				migrator, err := sql.NewMigrator(*cfg, l)
 				if err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Run(true); err != nil {
-					l.Error(err)
+					logrus.Error(err)
 					logrus.Exit(1)
 				}
 			},
@@ -219,9 +226,44 @@ func run(_ []string) error {
 
 	defer signal.Stop(interrupt)
 
-	if cfg.Meta.CheckForUpdates && version != defaultVersion {
-		if err := checkForUpdates(ctx); err != nil {
+	var (
+		isRelease       = isRelease()
+		updateAvailable bool
+		cv, lv          semver.Version
+	)
+
+	if isRelease {
+		var err error
+		cv, err = semver.ParseTolerant(version)
+		if err != nil {
+			return fmt.Errorf("parsing version: %w", err)
+		}
+	}
+
+	if cfg.Meta.CheckForUpdates && isRelease {
+		l.Debug("checking for updates...")
+
+		release, err := getLatestRelease(ctx)
+		if err != nil {
 			l.Warn(err)
+		}
+
+		if release != nil {
+			var err error
+			lv, err = semver.ParseTolerant(release.GetTagName())
+			if err != nil {
+				return fmt.Errorf("parsing latest version: %w", err)
+			}
+
+			l.Debugf("current version: %s; latest version: %s", cv, lv)
+
+			switch cv.Compare(lv) {
+			case 0:
+				color.Green("You are currently running the latest version of Flipt [%s]!", cv)
+			case -1:
+				updateAvailable = true
+				color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
+			}
 		}
 	}
 
@@ -235,7 +277,7 @@ func run(_ []string) error {
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
 
-		migrator, err := db.NewMigrator(*cfg, l)
+		migrator, err := sql.NewMigrator(*cfg, l)
 		if err != nil {
 			return err
 		}
@@ -257,27 +299,22 @@ func run(_ []string) error {
 			_ = lis.Close()
 		}()
 
-		var (
-			grpcOpts []grpc.ServerOption
-			srv      *server.Server
-		)
-
-		sql, driver, err := db.Open(*cfg)
+		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
 
-		defer sql.Close()
+		defer db.Close()
 
 		var store storage.Store
 
 		switch driver {
-		case db.SQLite:
-			store = sqlite.NewStore(sql)
-		case db.Postgres:
-			store = postgres.NewStore(sql)
-		case db.MySQL:
-			store = mysql.NewStore(sql)
+		case sql.SQLite:
+			store = sqlite.NewStore(db)
+		case sql.Postgres:
+			store = postgres.NewStore(db)
+		case sql.MySQL:
+			store = mysql.NewStore(db)
 		}
 
 		if cfg.Cache.Memory.Enabled {
@@ -292,8 +329,6 @@ func run(_ []string) error {
 		}
 
 		logger = logger.WithField("store", store.String())
-
-		srv = server.New(logger, store)
 
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
@@ -322,6 +357,11 @@ func run(_ []string) error {
 		}
 
 		opentracing.SetGlobalTracer(tracer)
+
+		var (
+			grpcOpts []grpc.ServerOption
+			srv      = server.New(logger, store)
+		)
 
 		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
 			grpc_recovery.UnaryServerInterceptor(),
@@ -356,8 +396,18 @@ func run(_ []string) error {
 		logger := l.WithField("server", cfg.Server.Protocol.String())
 
 		var (
+			// This is required to fix a backwards compatibility issue with the v2 marshaller where `null` map values
+			// cause an error because they are not allowed by the proto spec, but they were handled by the v1 marshaller.
+			//
+			// See: rpc/flipt/marshal.go
+			//
+			// See: https://github.com/markphelps/flipt/issues/664
+			muxOpts = []grpc_gateway.ServeMuxOption{
+				grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
+			}
+
 			r        = chi.NewRouter()
-			api      = grpc_gateway.NewServeMux(grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, &grpc_gateway.JSONPb{OrigName: false, EmitDefaults: true}))
+			api      = grpc_gateway.NewServeMux(muxOpts...)
 			opts     = []grpc.DialOption{grpc.WithBlock()}
 			httpPort int
 		)
@@ -372,7 +422,7 @@ func run(_ []string) error {
 			opts = append(opts, grpc.WithTransportCredentials(creds))
 			httpPort = cfg.Server.HTTPSPort
 		case config.HTTP:
-			opts = append(opts, grpc.WithInsecure())
+			opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			httpPort = cfg.Server.HTTPPort
 		}
 
@@ -411,23 +461,32 @@ func run(_ []string) error {
 		r.Mount("/api/v1", api)
 		r.Mount("/debug", middleware.Profiler())
 
+		info := info{
+			Commit:          commit,
+			BuildDate:       date,
+			GoVersion:       goVersion,
+			Version:         cv.String(),
+			LatestVersion:   lv.String(),
+			IsRelease:       isRelease,
+			UpdateAvailable: updateAvailable,
+		}
+
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
-			r.Handle("/info", info{
-				Version:   version,
-				Commit:    commit,
-				BuildDate: date,
-				GoVersion: goVersion,
-			})
+			r.Handle("/info", info)
 			r.Handle("/config", cfg)
 		})
 
 		if cfg.UI.Enabled {
-			swagger := packr.NewBox("../../swagger")
-			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(swagger)))
+			s := http.FS(swagger.Docs)
+			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(s)))
 
-			ui := packr.NewBox("../../ui/dist")
-			r.Mount("/", http.FileServer(ui))
+			u, err := fs.Sub(ui.UI, "dist")
+			if err != nil {
+				return fmt.Errorf("mounting UI: %w", err)
+			}
+
+			r.Mount("/", http.FileServer(http.FS(u)))
 		}
 
 		httpServer = &http.Server{
@@ -500,47 +559,34 @@ func run(_ []string) error {
 	return g.Wait()
 }
 
-func checkForUpdates(ctx context.Context) error {
-	l.Debug("checking for updates...")
-
+func getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
 	client := github.NewClient(nil)
 	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
 	if err != nil {
-		return fmt.Errorf("checking for latest version: %w", err)
+		return nil, fmt.Errorf("checking for latest version: %w", err)
 	}
 
-	var (
-		releaseTag                    = release.GetTagName()
-		latestVersion, currentVersion semver.Version
-	)
+	return release, nil
+}
 
-	latestVersion, err = semver.ParseTolerant(releaseTag)
-	if err != nil {
-		return fmt.Errorf("parsing latest version: %w", err)
+func isRelease() bool {
+	if version == "" || version == devVersion {
+		return false
 	}
-
-	currentVersion, err = semver.ParseTolerant(version)
-	if err != nil {
-		return fmt.Errorf("parsing current version: %w", err)
+	if strings.HasSuffix(version, "-snapshot") {
+		return false
 	}
-
-	l.Debugf("current version: %s; latest version: %s", currentVersion.String(), latestVersion.String())
-
-	switch currentVersion.Compare(latestVersion) {
-	case 0:
-		color.Green("You are currently running the latest version of Flipt [%s]!", currentVersion.String())
-	case -1:
-		color.Yellow("A newer version of Flipt exists at %s, \nplease consider updating to the latest version.", release.GetHTMLURL())
-	}
-
-	return nil
+	return true
 }
 
 type info struct {
-	Version   string `json:"version,omitempty"`
-	Commit    string `json:"commit,omitempty"`
-	BuildDate string `json:"buildDate,omitempty"`
-	GoVersion string `json:"goVersion,omitempty"`
+	Version         string `json:"version,omitempty"`
+	LatestVersion   string `json:"latestVersion,omitempty"`
+	Commit          string `json:"commit,omitempty"`
+	BuildDate       string `json:"buildDate,omitempty"`
+	GoVersion       string `json:"goVersion,omitempty"`
+	UpdateAvailable bool   `json:"updateAvailable"`
+	IsRelease       bool   `json:"isRelease"`
 }
 
 func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {

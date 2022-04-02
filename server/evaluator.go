@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"sort"
@@ -10,10 +11,10 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc"
+	errs "github.com/markphelps/flipt/errors"
+	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Evaluate evaluates a request for a given flag and entity
@@ -50,12 +51,12 @@ func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	}
 
 	resp, err := s.batchEvaluate(ctx, r)
-	if resp != nil {
-		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+	if err != nil {
+		return nil, err
 	}
 
-	if err != nil {
-		return resp, err
+	if resp != nil {
+		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 	}
 
 	s.logger.WithField("response", resp).Debug("batch-evaluate")
@@ -72,7 +73,11 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	for _, flag := range r.GetRequests() {
 		f, err := s.evaluate(ctx, flag)
 		if err != nil {
-			return nil, err
+			var errnf errs.ErrNotFound
+			if r.GetExcludeNotFound() && errors.As(err, &errnf) {
+				continue
+			}
+			return &res, err
 		}
 		f.RequestId = ""
 		f.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
@@ -84,8 +89,8 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	var (
-		ts, _ = ptypes.TimestampProto(time.Now().UTC())
-		resp  = &flipt.EvaluationResponse{
+		ts   = timestamp.New(time.Now().UTC())
+		resp = &flipt.EvaluationResponse{
 			RequestId:      r.RequestId,
 			EntityId:       r.EntityId,
 			RequestContext: r.Context,
@@ -100,7 +105,8 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	}
 
 	if !flag.Enabled {
-		return resp, errors.ErrInvalidf("flag %q is disabled", r.FlagKey)
+		resp.Match = false
+		return resp, nil
 	}
 
 	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
@@ -118,7 +124,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	// rule loop
 	for _, rule := range rules {
 		if rule.Rank < lastRank {
-			return resp, errors.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
+			return resp, errs.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
 		}
 
 		lastRank = rule.Rank
@@ -142,7 +148,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
 			default:
-				return resp, errors.ErrInvalid("unknown constraint type")
+				return resp, errs.ErrInvalid("unknown constraint type")
 			}
 
 			if err != nil {
@@ -253,6 +259,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 		resp.Match = true
 		resp.Value = d.VariantKey
+		resp.Attachment = d.VariantAttachment
 		return resp, nil
 	} // end rule loop
 

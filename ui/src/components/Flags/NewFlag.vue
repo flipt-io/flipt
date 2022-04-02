@@ -80,7 +80,7 @@ export default {
   data() {
     return {
       isValid: false,
-      flag: {}
+      flag: {},
     };
   },
   computed: {
@@ -90,7 +90,7 @@ export default {
         this.isPresent(this.flag.key) &&
         this.isValid
       );
-    }
+    },
   },
   methods: {
     formatKey() {
@@ -113,11 +113,11 @@ export default {
     },
     createFlag() {
       Api.post("/flags", this.flag)
-        .then(response => {
+        .then((response) => {
           this.notifySuccess("Flag created!");
           this.$router.push("/flags/" + response.data.key);
         })
-        .catch(error => {
+        .catch((error) => {
           if (error.response && error.response.data) {
             this.notifyError(capitalize(error.response.data.message));
           } else {
@@ -125,7 +125,7 @@ export default {
             console.error(error);
           }
         });
-    }
-  }
+    },
+  },
 };
 </script>

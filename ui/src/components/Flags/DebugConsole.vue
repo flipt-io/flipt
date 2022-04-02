@@ -7,7 +7,7 @@
         <textarea
           class="textarea"
           :class="{ 'is-danger': invalidRequest }"
-          rows="10"
+          rows="15"
           :value="JSON.stringify(request, undefined, 4)"
           @change="updateRequest"
         />
@@ -17,7 +17,7 @@
         <textarea
           class="textarea"
           :class="responseClass"
-          rows="10"
+          rows="15"
           :value="JSON.stringify(response, undefined, 4)"
           disabled
         />
@@ -35,9 +35,8 @@
 </template>
 
 <script>
-import clone from "lodash/clone";
-import isEmpty from "lodash/isEmpty";
-import uuidv4 from "uuid/v4";
+import { clone, isEmpty } from "lodash";
+import { v4 as uuidv4 } from "uuid";
 
 import { Api } from "@/services/api";
 
@@ -45,20 +44,20 @@ const DEFAULT_REQUEST = {
   flagKey: "",
   entityId: uuidv4(),
   context: {
-    foo: "bar"
-  }
+    foo: "bar",
+  },
 };
 
 export default {
   name: "FlagDebugConsole",
   props: {
-    flag: Object
+    flag: Object,
   },
   data() {
     return {
       invalidRequest: false,
       request: clone(DEFAULT_REQUEST),
-      response: {}
+      response: {},
     };
   },
   computed: {
@@ -70,12 +69,12 @@ export default {
       } else {
         return "is-success";
       }
-    }
+    },
   },
   watch: {
-    flag: function() {
+    flag: function () {
       this.$set(this.request, "flagKey", this.flag.key);
-    }
+    },
   },
   methods: {
     updateRequest(e) {
@@ -94,13 +93,13 @@ export default {
     },
     evaluate() {
       Api.post("/evaluate", this.request)
-        .then(response => {
+        .then((response) => {
           this.response = response.data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.response = { error: error.response.data.error };
         });
-    }
-  }
+    },
+  },
 };
 </script>

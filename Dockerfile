@@ -1,15 +1,40 @@
-ARG GO_VERSION=1.15
+ARG GO_VERSION=1.17
 
-FROM golang:$GO_VERSION-alpine AS build
+FROM golang:${GO_VERSION}
 
-RUN apk add --no-cache \
-    gcc \
-    git \
-    musl-dev \
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+    curl \
+    gnupg \ 
+    sudo \
+    openssh-server \
+    postgresql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# install yarn & nodejs
+RUN curl -sSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN curl -sSL https://deb.nodesource.com/setup_16.x | bash && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     nodejs \
-    openssl \
-    postgresql-client \
-    yarn
+    yarn && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# install helm
+RUN curl -sSL https://baltocdn.com/helm/signing.asc | sudo apt-key add - && \
+    sudo apt-get install -y --no-install-recommends apt-transport-https && \
+    echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends helm
+
+# install task
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
 WORKDIR /flipt
 
@@ -18,27 +43,7 @@ COPY go.sum go.sum
 RUN go mod download
 
 COPY . .
-RUN cd ./ui && yarn install && yarn run build
-RUN go get -v github.com/gobuffalo/packr/packr
-RUN packr -v -i cmd/flipt
-RUN go install -v ./cmd/flipt/
-
-FROM alpine:3.10
-LABEL maintainer="mark.aaron.phelps@gmail.com"
-
-RUN apk add --no-cache \
-    ca-certificates \
-    openssl \
-    postgresql-client
-
-RUN mkdir -p /etc/flipt && \
-    mkdir -p /var/opt/flipt
-
-COPY --from=build /go/bin/flipt /
-COPY config/migrations/ /etc/flipt/config/migrations/
-COPY config/*.yml /etc/flipt/config/
 
 EXPOSE 8080
+EXPOSE 8081
 EXPOSE 9000
-
-CMD ["./flipt"]

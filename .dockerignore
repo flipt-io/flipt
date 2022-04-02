@@ -5,15 +5,19 @@
 *.md
 *.png
 *.svg
+*.gif
 *.txt
+*.out
+*.test
 
 .github/
 .vscode/
 .licenses/
+.task/
 Dockerfile
 LICENSE
 bin/
 examples/
-script/
-site/
-_tools/
+ui/dist/
+ui/node_modules/
+logos/

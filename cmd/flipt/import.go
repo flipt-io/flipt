@@ -10,13 +10,12 @@ import (
 	"path/filepath"
 	"syscall"
 
-	flipt "github.com/markphelps/flipt/rpc"
+	"github.com/markphelps/flipt/internal/ext"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/db"
-	"github.com/markphelps/flipt/storage/db/mysql"
-	"github.com/markphelps/flipt/storage/db/postgres"
-	"github.com/markphelps/flipt/storage/db/sqlite"
-	"gopkg.in/yaml.v2"
+	"github.com/markphelps/flipt/storage/sql"
+	"github.com/markphelps/flipt/storage/sql/mysql"
+	"github.com/markphelps/flipt/storage/sql/postgres"
+	"github.com/markphelps/flipt/storage/sql/sqlite"
 )
 
 var (
@@ -38,22 +37,22 @@ func runImport(args []string) error {
 		cancel()
 	}()
 
-	sql, driver, err := db.Open(*cfg)
+	db, driver, err := sql.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
 
-	defer sql.Close()
+	defer db.Close()
 
 	var store storage.Store
 
 	switch driver {
-	case db.SQLite:
-		store = sqlite.NewStore(sql)
-	case db.Postgres:
-		store = postgres.NewStore(sql)
-	case db.MySQL:
-		store = mysql.NewStore(sql)
+	case sql.SQLite:
+		store = sqlite.NewStore(db)
+	case sql.Postgres:
+		store = postgres.NewStore(db)
+	case sql.MySQL:
+		store = mysql.NewStore(db)
 	}
 
 	var in io.ReadCloser = os.Stdin
@@ -83,13 +82,13 @@ func runImport(args []string) error {
 		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
 
 		for _, table := range tables {
-			if _, err := sql.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
+			if _, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
 				return fmt.Errorf("dropping tables: %w", err)
 			}
 		}
 	}
 
-	migrator, err := db.NewMigrator(*cfg, l)
+	migrator, err := sql.NewMigrator(*cfg, l)
 	if err != nil {
 		return err
 	}
@@ -100,118 +99,13 @@ func runImport(args []string) error {
 		return err
 	}
 
-	migrator.Close()
+	if _, err := migrator.Close(); err != nil {
+		return fmt.Errorf("closing migrator: %w", err)
+	}
 
-	var (
-		dec = yaml.NewDecoder(in)
-		doc = new(Document)
-	)
-
-	if err := dec.Decode(doc); err != nil {
+	importer := ext.NewImporter(store)
+	if err := importer.Import(ctx, in); err != nil {
 		return fmt.Errorf("importing: %w", err)
-	}
-
-	var (
-		// map flagKey => *flag
-		createdFlags = make(map[string]*flipt.Flag)
-		// map segmentKey => *segment
-		createdSegments = make(map[string]*flipt.Segment)
-		// map flagKey:variantKey => *variant
-		createdVariants = make(map[string]*flipt.Variant)
-	)
-
-	// create flags/variants
-	for _, f := range doc.Flags {
-		flag, err := store.CreateFlag(ctx, &flipt.CreateFlagRequest{
-			Key:         f.Key,
-			Name:        f.Name,
-			Description: f.Description,
-			Enabled:     f.Enabled,
-		})
-
-		if err != nil {
-			return fmt.Errorf("importing flag: %w", err)
-		}
-
-		for _, v := range f.Variants {
-			variant, err := store.CreateVariant(ctx, &flipt.CreateVariantRequest{
-				FlagKey:     f.Key,
-				Key:         v.Key,
-				Name:        v.Name,
-				Description: v.Description,
-			})
-
-			if err != nil {
-				return fmt.Errorf("importing variant: %w", err)
-			}
-
-			createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
-		}
-
-		createdFlags[flag.Key] = flag
-	}
-
-	// create segments/constraints
-	for _, s := range doc.Segments {
-		segment, err := store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
-			Key:         s.Key,
-			Name:        s.Name,
-			Description: s.Description,
-		})
-
-		if err != nil {
-			return fmt.Errorf("importing segment: %w", err)
-		}
-
-		for _, c := range s.Constraints {
-			_, err := store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-				SegmentKey: s.Key,
-				Type:       flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
-				Property:   c.Property,
-				Operator:   c.Operator,
-				Value:      c.Value,
-			})
-
-			if err != nil {
-				return fmt.Errorf("importing constraint: %w", err)
-			}
-		}
-
-		createdSegments[segment.Key] = segment
-	}
-
-	// create rules/distributions
-	for _, f := range doc.Flags {
-		// loop through rules
-		for _, r := range f.Rules {
-			rule, err := store.CreateRule(ctx, &flipt.CreateRuleRequest{
-				FlagKey:    f.Key,
-				SegmentKey: r.SegmentKey,
-				Rank:       int32(r.Rank),
-			})
-
-			if err != nil {
-				return fmt.Errorf("importing rule: %w", err)
-			}
-
-			for _, d := range r.Distributions {
-				variant, found := createdVariants[fmt.Sprintf("%s:%s", f.Key, d.VariantKey)]
-				if !found {
-					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
-				}
-
-				_, err := store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
-					FlagKey:   f.Key,
-					RuleId:    rule.Id,
-					VariantId: variant.Id,
-					Rollout:   d.Rollout,
-				})
-
-				if err != nil {
-					return fmt.Errorf("importing distribution: %w", err)
-				}
-			}
-		}
 	}
 
 	return nil
