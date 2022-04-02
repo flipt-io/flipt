@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get update && \
     apt-get -y install --no-install-recommends \
     curl \
-    gnupg \ 
+    gnupg \
     sudo \
     openssh-server \
     postgresql-client && \
@@ -25,13 +25,6 @@ RUN curl -sSL https://deb.nodesource.com/setup_16.x | bash && \
     yarn && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-# install helm
-RUN curl -sSL https://baltocdn.com/helm/signing.asc | sudo apt-key add - && \
-    sudo apt-get install -y --no-install-recommends apt-transport-https && \
-    echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends helm
 
 # install task
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
