@@ -34,13 +34,10 @@ securityContext:
   # runAsNonRoot: true
   # runAsUser: 1000
 
-serviceWeb:
+service:
   type: ClusterIP
-  port: 8080
-
-serviceGRPC:
-  type: ClusterIP
-  port: 9000
+  httpPort: 8080
+  grpcPort: 9000
 
 ingress:
   enabled: false
@@ -80,3 +77,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Flipt deployment settings
+flipt:
+  # Port to expose the http service on
+  httpPort: 8080
+  # Port to expose the grpc service on
+  grpcPort: 9000
+  # Log level (debug, info, warn, error, fatal)
+  logLevel: INFO
