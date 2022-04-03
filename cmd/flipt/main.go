@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,6 +26,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
 	"github.com/markphelps/flipt/config"
+	"github.com/markphelps/flipt/internal/info"
 	pb "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
@@ -469,7 +469,7 @@ func run(_ []string) error {
 		r.Mount("/api/v1", api)
 		r.Mount("/debug", middleware.Profiler())
 
-		info := info{
+		info := info.Flipt{
 			Commit:          commit,
 			BuildDate:       date,
 			GoVersion:       goVersion,
@@ -612,29 +612,6 @@ func initLocalState() error {
 
 	// assume state directory exists and is a directory
 	return nil
-}
-
-type info struct {
-	Version         string `json:"version,omitempty"`
-	LatestVersion   string `json:"latestVersion,omitempty"`
-	Commit          string `json:"commit,omitempty"`
-	BuildDate       string `json:"buildDate,omitempty"`
-	GoVersion       string `json:"goVersion,omitempty"`
-	UpdateAvailable bool   `json:"updateAvailable"`
-	IsRelease       bool   `json:"isRelease"`
-}
-
-func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	out, err := json.Marshal(i)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if _, err = w.Write(out); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 }
 
 // jaegerLogAdapter adapts logrus to fulfill Jager's Logger interface
