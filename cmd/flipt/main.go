@@ -228,7 +228,8 @@ func run(_ []string) error {
 	defer signal.Stop(interrupt)
 
 	if err := initLocalState(); err != nil {
-		l.Warnf("error getting local state directory: %s %s", cfg.Meta.StateDirectory, err)
+		l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
+		cfg.Meta.TelemetryEnabled = false
 	} else {
 		l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
 	}
@@ -586,7 +587,7 @@ func isRelease() bool {
 	return true
 }
 
-// check if state_directory already exists, create it if not
+// check if state directory already exists, create it if not
 func initLocalState() error {
 	if cfg.Meta.StateDirectory == "" {
 		configDir, err := os.UserConfigDir()
@@ -597,16 +598,20 @@ func initLocalState() error {
 	}
 
 	fp, err := os.Stat(cfg.Meta.StateDirectory)
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("checking state dir: %w", err)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			// state directory doesnt exist, so try to create it
+			return os.MkdirAll(cfg.Meta.StateDirectory, 0700)
+		}
+		return fmt.Errorf("checking state directory: %w", err)
 	}
 
-	if fp != nil && fp.IsDir() {
-		return nil
+	if fp != nil && !fp.IsDir() {
+		return fmt.Errorf("state directory is not a directory")
 	}
 
-	// state directory doesnt exist, so try to create it
-	return os.MkdirAll(cfg.Meta.StateDirectory, 0700)
+	// assume state directory exists and is a directory
+	return nil
 }
 
 type info struct {
