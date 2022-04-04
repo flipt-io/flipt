@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -20,13 +19,8 @@ import (
 )
 
 const (
-	file           = "flipt.telemetry.json"
-	version        = "1.0"
-	reportInterval = 8 * time.Hour
-)
-
-var (
-	firstRun sync.Once
+	file    = "telemetry.json"
+	version = "1.0"
 )
 
 type ping struct {
@@ -59,18 +53,7 @@ func NewReporter(cfg config.Config, logger logrus.FieldLogger, analytics analyti
 	}
 }
 
-func (r *Reporter) Report(ctx context.Context, info info.Flipt) error {
-	force := false
-
-	firstRun.Do(func() {
-		r.logger.Info("telemetry: first run")
-		force = true
-	})
-
-	return r.report(ctx, info, force)
-}
-
-func (r *Reporter) report(ctx context.Context, info info.Flipt, force bool) error {
+func (r *Reporter) Report(ctx context.Context, info info.Flipt) (err error) {
 	s, err := r.readState(ctx)
 	if err != nil {
 		return fmt.Errorf("reading state: %w", err)
@@ -78,13 +61,7 @@ func (r *Reporter) report(ctx context.Context, info info.Flipt, force bool) erro
 
 	t, _ := time.Parse(time.RFC3339, s.LastTimestamp)
 
-	if !force {
-		delta := time.Since(t)
-		if delta < reportInterval {
-			r.logger.Debugf("telemetry: not reporting, last report was: %v ago", delta)
-			return nil
-		}
-	}
+	r.logger.Debugf("last report was: %v ago", time.Since(t))
 
 	var (
 		props = analytics.NewProperties()
@@ -116,6 +93,10 @@ func (r *Reporter) report(ctx context.Context, info info.Flipt, force bool) erro
 	}
 
 	return nil
+}
+
+func (r *Reporter) Close() error {
+	return r.client.Close()
 }
 
 func (r *Reporter) readState(_ context.Context) (state, error) {

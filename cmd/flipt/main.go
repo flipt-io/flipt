@@ -27,6 +27,7 @@ import (
 	"github.com/google/go-github/v32/github"
 	"github.com/markphelps/flipt/config"
 	"github.com/markphelps/flipt/internal/info"
+	"github.com/markphelps/flipt/internal/telemetry"
 	pb "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
@@ -46,6 +47,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"gopkg.in/segmentio/analytics-go.v3"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 
@@ -70,12 +72,12 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   = devVersion
-	commit    string
-	date      = time.Now().UTC().Format(time.RFC3339)
-	goVersion = runtime.Version()
-
-	banner string
+	version      = devVersion
+	commit       string
+	date         = time.Now().UTC().Format(time.RFC3339)
+	goVersion    = runtime.Version()
+	analyticsKey string
+	banner       string
 )
 
 func main() {
@@ -227,13 +229,6 @@ func run(_ []string) error {
 
 	defer signal.Stop(interrupt)
 
-	if err := initLocalState(); err != nil {
-		l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
-		cfg.Meta.TelemetryEnabled = false
-	} else {
-		l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
-	}
-
 	var (
 		isRelease       = isRelease()
 		updateAvailable bool
@@ -275,12 +270,61 @@ func run(_ []string) error {
 		}
 	}
 
+	info := info.Flipt{
+		Commit:          commit,
+		BuildDate:       date,
+		GoVersion:       goVersion,
+		Version:         cv.String(),
+		LatestVersion:   lv.String(),
+		IsRelease:       isRelease,
+		UpdateAvailable: updateAvailable,
+	}
+
+	if err := initLocalState(); err != nil {
+		l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
+		cfg.Meta.TelemetryEnabled = false
+	} else {
+		l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
+	}
+
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
 		grpcServer *grpc.Server
 		httpServer *http.Server
 	)
+
+	if cfg.Meta.TelemetryEnabled {
+		reportInterval := 4 * time.Hour
+
+		ticker := time.NewTicker(reportInterval)
+		defer ticker.Stop()
+
+		g.Go(func() error {
+			var (
+				logger    = l.WithField("component", "telemetry")
+				telemetry = telemetry.NewReporter(*cfg, logger, analytics.New(analyticsKey))
+			)
+			defer telemetry.Close()
+
+			logger.Debug("starting telemetry reporter")
+			if err := telemetry.Report(ctx, info); err != nil {
+				logger.Warnf("reporting telemetry: %v", err)
+			}
+
+			for {
+				select {
+				case <-ticker.C:
+					if err := telemetry.Report(ctx, info); err != nil {
+						logger.Warnf("reporting telemetry: %v", err)
+					}
+				case <-ctx.Done():
+					ticker.Stop()
+					return nil
+				}
+			}
+		})
+	}
 
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
@@ -468,16 +512,6 @@ func run(_ []string) error {
 		r.Mount("/metrics", promhttp.Handler())
 		r.Mount("/api/v1", api)
 		r.Mount("/debug", middleware.Profiler())
-
-		info := info.Flipt{
-			Commit:          commit,
-			BuildDate:       date,
-			GoVersion:       goVersion,
-			Version:         cv.String(),
-			LatestVersion:   lv.String(),
-			IsRelease:       isRelease,
-			UpdateAvailable: updateAvailable,
-		}
 
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
