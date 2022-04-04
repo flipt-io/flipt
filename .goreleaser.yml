@@ -53,3 +53,8 @@ dockers:
     extra_files:
       - config/migrations/
       - config/default.yml
+
+announce:
+  discord:
+    enabled: true
+    
