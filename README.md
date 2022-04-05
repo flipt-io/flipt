@@ -43,8 +43,8 @@
         <a href="https://flipt.io/docs/getting_started/">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
-        <a href="#examples">Examples</a> |
-        <a href="#enterprise">Enterprise</a>
+        <a href="#integration">Integration</a> |
+        <a href="#community">Community</a>
     </h4>
 </div>
 
@@ -172,6 +172,10 @@ If you use Flipt at your company, please consider [becoming a sponsor](https://g
 Need more features or support using Flipt within your Enterprise?
 
 Please help me prioritize an Enterprise version of Flipt by filling out this [short survey](https://forms.gle/a4UBnv8LADYirA4c9)!
+
+## Community
+
+For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/fjPVc5JuyE).
 
 ## Author
 
