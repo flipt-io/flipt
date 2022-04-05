@@ -53,7 +53,7 @@
     "babel-jest": "^27.5.1",
     "babel-loader": "^8.2.4",
     "babel-plugin-transform-vue-jsx": "^4.0.1",
-    "chalk": "^5.0.0",
+    "chalk": "^5.0.1",
     "copy-webpack-plugin": "^6.4.1",
     "css-loader": "^5.1.4",
     "eslint": "^7.32.0",
