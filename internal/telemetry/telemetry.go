@@ -77,6 +77,10 @@ func (r *Reporter) Close() error {
 // report sends a ping event to the analytics service.
 // visible for testing
 func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
+	if !r.cfg.Meta.TelemetryEnabled {
+		return nil
+	}
+
 	var s state
 
 	if err := json.NewDecoder(f).Decode(&s); err != nil && !errors.Is(err, io.EOF) {
