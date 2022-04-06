@@ -33,8 +33,8 @@
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
-    <a href="https://twitter.com/mark_a_phelps">
-        <img src="https://img.shields.io/twitter/url?label=Follow%20Me&url=https%3A%2F%2Ftwitter.com%2Fmark_a_phelps" />
+    <a href="https://discord.gg/fjPVc5JuyE">
+        <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
     </a>
 </div>
 
@@ -43,8 +43,8 @@
         <a href="https://flipt.io/docs/getting_started/">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
-        <a href="#examples">Examples</a> |
-        <a href="#enterprise">Enterprise</a>
+        <a href="#integration">Integration</a> |
+        <a href="#community">Community</a>
     </h4>
 </div>
 
@@ -172,6 +172,10 @@ If you use Flipt at your company, please consider [becoming a sponsor](https://g
 Need more features or support using Flipt within your Enterprise?
 
 Please help me prioritize an Enterprise version of Flipt by filling out this [short survey](https://forms.gle/a4UBnv8LADYirA4c9)!
+
+## Community
+
+For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/fjPVc5JuyE).
 
 ## Author
 
