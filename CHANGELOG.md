@@ -3,6 +3,20 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.0](https://github.com/markphelps/flipt/releases/tag/v1.8.0) - 2022-04-06
+
+### Added
+
+- Helm Chart [https://github.com/markphelps/flipt/pull/777](https://github.com/markphelps/flipt/pull/777)
+- Basic anonymous telemetry [https://github.com/markphelps/flipt/pull/790](https://github.com/markphelps/flipt/pull/790). Can be disabled via config.
+
+### Changed
+
+- Updated protoc/protobuf to v1.28 [https://github.com/markphelps/flipt/pull/768](https://github.com/markphelps/flipt/pull/768)
+- Updated CODE_OF_CONDUCT.md with my new email address
+- Updated README.md with link to [Flipt Sandbox](https://try.flipt.io)
+- Updated README.md with link to Discord
+
 ## [v1.7.0](https://github.com/markphelps/flipt/releases/tag/v1.7.0) - 2022-03-22
 
 ### Added
