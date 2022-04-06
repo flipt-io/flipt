@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	file    = "telemetry.json"
-	version = "1.0"
+	filename = "telemetry.json"
+	version  = "1.0"
+	event    = "flipt.ping"
 )
 
 type ping struct {
@@ -53,15 +54,47 @@ func NewReporter(cfg config.Config, logger logrus.FieldLogger, analytics analyti
 	}
 }
 
+type file interface {
+	io.ReadWriteSeeker
+	Truncate(int64) error
+}
+
+// Report sends a ping event to the analytics service.
 func (r *Reporter) Report(ctx context.Context, info info.Flipt) (err error) {
-	s, err := r.readState(ctx)
+	f, err := os.OpenFile(filepath.Join(r.cfg.Meta.StateDirectory, filename), os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
+		return fmt.Errorf("opening state file: %w", err)
+	}
+	defer f.Close()
+
+	return r.report(ctx, info, f)
+}
+
+func (r *Reporter) Close() error {
+	return r.client.Close()
+}
+
+// report sends a ping event to the analytics service.
+// visible for testing
+func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
+	var s state
+
+	if err := json.NewDecoder(f).Decode(&s); err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("reading state: %w", err)
 	}
 
-	t, _ := time.Parse(time.RFC3339, s.LastTimestamp)
+	// if s is empty or outdated, we need to create a new state
+	if s.UUID == "" || s.Version != version {
+		s = newState()
+		r.logger.Debug("initialized new state")
+	} else {
+		t, _ := time.Parse(time.RFC3339, s.LastTimestamp)
+		r.logger.Debugf("last report was: %v ago", time.Since(t))
+	}
 
-	r.logger.Debugf("last report was: %v ago", time.Since(t))
+	// reset the state file
+	f.Truncate(0)
+	f.Seek(0, 0)
 
 	var (
 		props = analytics.NewProperties()
@@ -80,7 +113,7 @@ func (r *Reporter) Report(ctx context.Context, info info.Flipt) (err error) {
 
 	if err := r.client.Enqueue(analytics.Track{
 		AnonymousId: s.UUID,
-		Event:       "flipt.ping",
+		Event:       event,
 		Properties:  props,
 	}); err != nil {
 		return fmt.Errorf("tracking ping: %w", err)
@@ -88,47 +121,10 @@ func (r *Reporter) Report(ctx context.Context, info info.Flipt) (err error) {
 
 	s.LastTimestamp = time.Now().UTC().Format(time.RFC3339)
 
-	if err := r.writeState(ctx, s); err != nil {
+	if err := json.NewEncoder(f).Encode(s); err != nil {
 		return fmt.Errorf("writing state: %w", err)
 	}
 
-	return nil
-}
-
-func (r *Reporter) Close() error {
-	return r.client.Close()
-}
-
-func (r *Reporter) readState(_ context.Context) (state, error) {
-	f, err := os.Open(filepath.Join(r.cfg.Meta.StateDirectory, file))
-	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return newState(), nil
-		}
-
-		return state{}, fmt.Errorf("opening state file: %w", err)
-	}
-
-	defer f.Close()
-
-	var s state
-	if err := json.NewDecoder(f).Decode(&s); err != nil {
-		return state{}, fmt.Errorf("decoding state file: %w", err)
-	}
-
-	return s, nil
-}
-
-func (r *Reporter) writeState(_ context.Context, s state) error {
-	b, err := json.Marshal(s)
-	if err != nil {
-		return fmt.Errorf("marshaling state: %w", err)
-	}
-
-	//nolint:gosec
-	if err := os.WriteFile(filepath.Join(r.cfg.Meta.StateDirectory, file), b, 0644); err != nil {
-		return fmt.Errorf("writing state file: %w", err)
-	}
 	return nil
 }
 
