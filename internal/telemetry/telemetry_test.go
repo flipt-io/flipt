@@ -120,9 +120,9 @@ func TestReport(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.NotEmpty(t, msg.AnonymousId)
-	assert.Equal(t, msg.AnonymousId, msg.Properties["UUID"])
-	assert.Equal(t, "1.0", msg.Properties["Version"])
-	assert.Equal(t, "1.0.0", msg.Properties["Flipt"].(map[string]interface{})["Version"])
+	assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
+	assert.Equal(t, "1.0", msg.Properties["version"])
+	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
 
 	assert.NotEmpty(t, out.String())
 }
@@ -161,9 +161,9 @@ func TestReport_Existing(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.AnonymousId)
-	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.Properties["UUID"])
-	assert.Equal(t, "1.0", msg.Properties["Version"])
-	assert.Equal(t, "1.0.0", msg.Properties["Flipt"].(map[string]interface{})["Version"])
+	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.Properties["uuid"])
+	assert.Equal(t, "1.0", msg.Properties["version"])
+	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
 
 	assert.NotEmpty(t, out.String())
 }
@@ -225,9 +225,9 @@ func TestReport_SpecifyStateDir(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.NotEmpty(t, msg.AnonymousId)
-	assert.Equal(t, msg.AnonymousId, msg.Properties["UUID"])
-	assert.Equal(t, "1.0", msg.Properties["Version"])
-	assert.Equal(t, "1.0.0", msg.Properties["Flipt"].(map[string]interface{})["Version"])
+	assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
+	assert.Equal(t, "1.0", msg.Properties["version"])
+	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
 
 	b, _ := ioutil.ReadFile(path)
 	assert.NotEmpty(t, b)

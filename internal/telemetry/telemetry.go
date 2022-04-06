@@ -13,7 +13,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/markphelps/flipt/config"
 	"github.com/markphelps/flipt/internal/info"
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/segmentio/analytics-go.v3"
 )
@@ -115,8 +114,14 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 		}
 	)
 
-	if err := mapstructure.Decode(p, &props); err != nil {
-		return fmt.Errorf("decoding properties: %w", err)
+	// marshal as json first so we can get the correct case field names in the analytics service
+	out, err := json.Marshal(p)
+	if err != nil {
+		return fmt.Errorf("marshaling ping: %w", err)
+	}
+
+	if err := json.Unmarshal(out, &props); err != nil {
+		return fmt.Errorf("unmarshaling ping: %w", err)
 	}
 
 	if err := r.client.Enqueue(analytics.Track{
