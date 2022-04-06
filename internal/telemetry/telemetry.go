@@ -93,8 +93,12 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 	}
 
 	// reset the state file
-	f.Truncate(0)
-	f.Seek(0, 0)
+	if err := f.Truncate(0); err != nil {
+		return fmt.Errorf("truncating state file: %w", err)
+	}
+	if _, err := f.Seek(0, 0); err != nil {
+		return fmt.Errorf("resetting state file: %w", err)
+	}
 
 	var (
 		props = analytics.NewProperties()
