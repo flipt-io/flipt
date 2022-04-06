@@ -25,9 +25,8 @@ const (
 )
 
 type ping struct {
-	Version string `json:"version"`
-	UUID    string `json:"uuid"`
-	Flipt   flipt  `json:"flipt"`
+	state
+	Flipt flipt `json:"flipt"`
 }
 
 type flipt struct {
@@ -103,8 +102,7 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 	var (
 		props = analytics.NewProperties()
 		p     = ping{
-			Version: s.Version,
-			UUID:    s.UUID,
+			state: s,
 			Flipt: flipt{
 				Version: info.Version,
 			},
