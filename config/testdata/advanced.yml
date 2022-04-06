@@ -38,3 +38,4 @@ db:
 
 meta:
   check_for_updates: false
+  telemetry_enabled: false

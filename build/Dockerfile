@@ -3,7 +3,8 @@
 ARG BINARY=flipt
 
 FROM alpine:3.15.4
-LABEL maintainer="mark.aaron.phelps@gmail.com"
+
+LABEL maintainer="mark@markphelps.me"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
 
@@ -19,7 +20,7 @@ COPY config/migrations/ /etc/flipt/config/migrations/
 COPY config/*.yml /etc/flipt/config/
 
 RUN addgroup flipt && \
-    adduser -S -D -H -g '' -G flipt -s /bin/sh flipt && \
+    adduser -S -D -g '' -G flipt -s /bin/sh flipt && \
     chown -R flipt:flipt /etc/flipt /var/opt/flipt
 
 EXPOSE 8080

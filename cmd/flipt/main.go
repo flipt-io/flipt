@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -26,6 +26,8 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
 	"github.com/markphelps/flipt/config"
+	"github.com/markphelps/flipt/internal/info"
+	"github.com/markphelps/flipt/internal/telemetry"
 	pb "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
@@ -45,6 +47,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"gopkg.in/segmentio/analytics-go.v3"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 
@@ -69,12 +72,12 @@ var (
 	cfgPath      string
 	forceMigrate bool
 
-	version   = devVersion
-	commit    string
-	date      = time.Now().UTC().Format(time.RFC3339)
-	goVersion = runtime.Version()
-
-	banner string
+	version      = devVersion
+	commit       string
+	date         = time.Now().UTC().Format(time.RFC3339)
+	goVersion    = runtime.Version()
+	analyticsKey string
+	banner       string
 )
 
 func main() {
@@ -267,12 +270,61 @@ func run(_ []string) error {
 		}
 	}
 
+	info := info.Flipt{
+		Commit:          commit,
+		BuildDate:       date,
+		GoVersion:       goVersion,
+		Version:         cv.String(),
+		LatestVersion:   lv.String(),
+		IsRelease:       isRelease,
+		UpdateAvailable: updateAvailable,
+	}
+
+	if err := initLocalState(); err != nil {
+		l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
+		cfg.Meta.TelemetryEnabled = false
+	} else {
+		l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
+	}
+
 	g, ctx := errgroup.WithContext(ctx)
 
 	var (
 		grpcServer *grpc.Server
 		httpServer *http.Server
 	)
+
+	if cfg.Meta.TelemetryEnabled {
+		reportInterval := 4 * time.Hour
+
+		ticker := time.NewTicker(reportInterval)
+		defer ticker.Stop()
+
+		g.Go(func() error {
+			var (
+				logger    = l.WithField("component", "telemetry")
+				telemetry = telemetry.NewReporter(*cfg, logger, analytics.New(analyticsKey))
+			)
+			defer telemetry.Close()
+
+			logger.Debug("starting telemetry reporter")
+			if err := telemetry.Report(ctx, info); err != nil {
+				logger.Warnf("reporting telemetry: %v", err)
+			}
+
+			for {
+				select {
+				case <-ticker.C:
+					if err := telemetry.Report(ctx, info); err != nil {
+						logger.Warnf("reporting telemetry: %v", err)
+					}
+				case <-ctx.Done():
+					ticker.Stop()
+					return nil
+				}
+			}
+		})
+	}
 
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
@@ -461,16 +513,6 @@ func run(_ []string) error {
 		r.Mount("/api/v1", api)
 		r.Mount("/debug", middleware.Profiler())
 
-		info := info{
-			Commit:          commit,
-			BuildDate:       date,
-			GoVersion:       goVersion,
-			Version:         cv.String(),
-			LatestVersion:   lv.String(),
-			IsRelease:       isRelease,
-			UpdateAvailable: updateAvailable,
-		}
-
 		r.Route("/meta", func(r chi.Router) {
 			r.Use(middleware.SetHeader("Content-Type", "application/json"))
 			r.Handle("/info", info)
@@ -579,27 +621,31 @@ func isRelease() bool {
 	return true
 }
 
-type info struct {
-	Version         string `json:"version,omitempty"`
-	LatestVersion   string `json:"latestVersion,omitempty"`
-	Commit          string `json:"commit,omitempty"`
-	BuildDate       string `json:"buildDate,omitempty"`
-	GoVersion       string `json:"goVersion,omitempty"`
-	UpdateAvailable bool   `json:"updateAvailable"`
-	IsRelease       bool   `json:"isRelease"`
-}
+// check if state directory already exists, create it if not
+func initLocalState() error {
+	if cfg.Meta.StateDirectory == "" {
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return fmt.Errorf("getting user config dir: %w", err)
+		}
+		cfg.Meta.StateDirectory = filepath.Join(configDir, "flipt")
+	}
 
-func (i info) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	out, err := json.Marshal(i)
+	fp, err := os.Stat(cfg.Meta.StateDirectory)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		if errors.Is(err, fs.ErrNotExist) {
+			// state directory doesnt exist, so try to create it
+			return os.MkdirAll(cfg.Meta.StateDirectory, 0700)
+		}
+		return fmt.Errorf("checking state directory: %w", err)
 	}
 
-	if _, err = w.Write(out); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if fp != nil && !fp.IsDir() {
+		return fmt.Errorf("state directory is not a directory")
 	}
+
+	// assume state directory exists and is a directory
+	return nil
 }
 
 // jaegerLogAdapter adapts logrus to fulfill Jager's Logger interface
