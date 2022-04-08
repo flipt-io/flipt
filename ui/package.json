@@ -2,7 +2,7 @@
   "name": "flipt-ui",
   "version": "1.0.0",
   "description": "Flipt UI",
-  "author": "Mark Phelps <mark.aaron.phelps@gmail.com>",
+  "author": "Flipt Dev <dev@flipt.io>",
   "private": true,
   "type": "module",
   "scripts": {
