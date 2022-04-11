@@ -280,19 +280,21 @@ func run(_ []string) error {
 		UpdateAvailable: updateAvailable,
 	}
 
-	if err := initLocalState(); err != nil {
-		l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
+	if os.Getenv("CI") == "true" || os.Getenv("CI") == "1" {
+		l.Debug("CI detected, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
-	} else {
-		l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
+	}
+
+	if cfg.Meta.TelemetryEnabled {
+		if err := initLocalState(); err != nil {
+			l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
+			cfg.Meta.TelemetryEnabled = false
+		} else {
+			l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
+		}
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
-
-	var (
-		grpcServer *grpc.Server
-		httpServer *http.Server
-	)
 
 	if cfg.Meta.TelemetryEnabled {
 		reportInterval := 4 * time.Hour
@@ -301,10 +303,18 @@ func run(_ []string) error {
 		defer ticker.Stop()
 
 		g.Go(func() error {
-			var (
-				logger    = l.WithField("component", "telemetry")
-				telemetry = telemetry.NewReporter(*cfg, logger, analytics.New(analyticsKey))
-			)
+			logger := l.WithField("component", "telemetry")
+
+			client, err := analytics.NewWithConfig(analyticsKey, analytics.Config{
+				BatchSize: 1,
+			})
+			if err != nil {
+				logger.Warnf("error initializing telemetry client: %s", err)
+				return nil
+			}
+
+			telemetry := telemetry.NewReporter(*cfg, logger, client)
+
 			defer telemetry.Close()
 
 			logger.Debug("starting telemetry reporter")
@@ -325,6 +335,11 @@ func run(_ []string) error {
 			}
 		})
 	}
+
+	var (
+		grpcServer *grpc.Server
+		httpServer *http.Server
+	)
 
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
