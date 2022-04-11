@@ -30,7 +30,7 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.17.8",
+    "@babel/core": "^7.17.9",
     "@babel/plugin-proposal-class-properties": "^7.16.5",
     "@babel/plugin-proposal-decorators": "^7.17.8",
     "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
