@@ -66,4 +66,4 @@ jobs:
         run: go test -covermode=count -coverprofile=coverage.txt -count=1 ./...
 
       - name: Coverage
-        uses: codecov/codecov-action@v2.1.0
+        uses: codecov/codecov-action@v3.0.0
