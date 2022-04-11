@@ -32,7 +32,7 @@
   "devDependencies": {
     "@babel/core": "^7.17.9",
     "@babel/plugin-proposal-class-properties": "^7.16.5",
-    "@babel/plugin-proposal-decorators": "^7.17.8",
+    "@babel/plugin-proposal-decorators": "^7.17.9",
     "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
     "@babel/plugin-proposal-function-sent": "^7.16.5",
     "@babel/plugin-proposal-json-strings": "^7.13.8",
@@ -88,7 +88,7 @@
     "postcss-url": "^9.0.0",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.0",
-    "semver": "^7.3.5",
+    "semver": "^7.3.6",
     "shelljs": "^0.8.5",
     "url-loader": "^4.1.1",
     "vue-loader": "^15.9.8",

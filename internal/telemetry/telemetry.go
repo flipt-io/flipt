@@ -86,21 +86,13 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 		return fmt.Errorf("reading state: %w", err)
 	}
 
-	// if s is empty or outdated, we need to create a new state
-	if s.UUID == "" || s.Version != version {
+	// if s is empty we need to create a new state
+	if s.UUID == "" {
 		s = newState()
 		r.logger.Debug("initialized new state")
 	} else {
 		t, _ := time.Parse(time.RFC3339, s.LastTimestamp)
 		r.logger.Debugf("last report was: %v ago", time.Since(t))
-	}
-
-	// reset the state file
-	if err := f.Truncate(0); err != nil {
-		return fmt.Errorf("truncating state file: %w", err)
-	}
-	if _, err := f.Seek(0, 0); err != nil {
-		return fmt.Errorf("resetting state file: %w", err)
 	}
 
 	var (
@@ -132,7 +124,16 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 		return fmt.Errorf("tracking ping: %w", err)
 	}
 
+	s.Version = version
 	s.LastTimestamp = time.Now().UTC().Format(time.RFC3339)
+
+	// reset the state file
+	if err := f.Truncate(0); err != nil {
+		return fmt.Errorf("truncating state file: %w", err)
+	}
+	if _, err := f.Seek(0, 0); err != nil {
+		return fmt.Errorf("resetting state file: %w", err)
+	}
 
 	if err := json.NewEncoder(f).Encode(s); err != nil {
 		return fmt.Errorf("writing state: %w", err)
