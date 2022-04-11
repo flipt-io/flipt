@@ -21,8 +21,8 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
 	"github.com/markphelps/flipt/config"
