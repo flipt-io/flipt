@@ -161,6 +161,10 @@ See [LICENSE](LICENSE).
 | ------------------------------------------------------------------------------------------|
 | [Paradigm](https://www.paradigm.co/)                                                      |
 
+| <img src="logos/rokt.svg" width="200"/>                                     |
+| ------------------------------------------------------------------------------------------|
+| [Rokt](https://www.rokt.com/)                                                             |
+
 Using Flipt at your company? Open a PR and add your logo here!
 
 ## Sponsors
