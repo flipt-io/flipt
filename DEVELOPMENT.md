@@ -58,7 +58,7 @@ Running `task assets` will regenerate the embedded assets (ui, api documentation
 
 The UI is built using [Yarn](https://yarnpkg.com/en/) and [webpack](https://webpack.js.org/) and is also statically compiled into the Flipt binary.
 
-The [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
+The [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
 
 ## Remote Containers/GitHub Codespaces
 
@@ -76,7 +76,7 @@ Flipt uses [modd](https://github.com/cortesi/modd) for managing processes during
 
 Run `task dev` from the project root. See [modd.conf](modd.conf) for configuration.
 
-The `webpack-dev-server` that is used when running the UI in development mode will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/master/ui/README.md) for more info.
+The `webpack-dev-server` that is used when running the UI in development mode will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
 
 ### Ports
 
