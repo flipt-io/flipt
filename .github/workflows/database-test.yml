@@ -1,8 +1,11 @@
 name: Database Tests
 on:
   push:
+    branches:
+      - "main"
   pull_request:
-    types: [opened]
+    branches:
+      - "main"
 
 jobs:
   ## Postgres Tests
