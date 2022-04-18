@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.1](https://github.com/markphelps/flipt/releases/tag/v1.8.1) - 2022-04-18
+
+### Changed
+
+- Updated telemetry to not run if `CI` is set.
+- Updated telemtry to flush on each batch.
+- Dependency updates.
+
+### Fixed
+
+- Update CORS middleware to handle Vary header properly [https://github.com/markphelps/flipt/pull/803](https://github.com/markphelps/flipt/pull/803)
+
 ## [v1.8.0](https://github.com/markphelps/flipt/releases/tag/v1.8.0) - 2022-04-06
 
 ### Added
