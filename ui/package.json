@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "axios": "^0.26.1",
-    "buefy": "^0.9.19",
+    "buefy": "^0.9.20",
     "bulma": "^0.8.0",
     "jpeg-js": "0.4.3",
     "lodash": "^4.17.21",
@@ -44,7 +44,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.17.7",
     "@babel/plugin-transform-runtime": "^7.17.0",
     "@babel/preset-env": "^7.16.11",
-    "@babel/runtime-corejs2": "^7.17.8",
+    "@babel/runtime-corejs2": "^7.17.9",
     "@playwright/test": "^1.20.2",
     "@webpack-cli/serve": "^1.6.0",
     "autoprefixer": "^9.6.1",
