@@ -23,4 +23,4 @@ jobs:
       - uses: bufbuild/buf-breaking-action@v1
         with:
           input: "rpc/flipt"
-          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=master"
+          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
