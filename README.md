@@ -15,14 +15,14 @@
     <a href="https://github.com/markphelps/flipt/actions">
         <img src="https://github.com/markphelps/flipt/workflows/Tests/badge.svg" alt="Build Status" />
     </a>
-    <a href="https://github.com/markphelps/flipt/blob/master/LICENSE">
+    <a href="https://github.com/markphelps/flipt/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/markphelps/flipt.svg" alt="GPL 3.0" />
     </a>
     <a href="https://hub.docker.com/r/markphelps/flipt">
         <img src="https://img.shields.io/docker/pulls/markphelps/flipt.svg" alt="Docker Pulls" />
     </a>
     <a href="https://codecov.io/gh/markphelps/flipt">
-        <img src="https://codecov.io/gh/markphelps/flipt/branch/master/graph/badge.svg" alt="Coverage" />
+        <img src="https://codecov.io/gh/markphelps/flipt/branch/main/graph/badge.svg" alt="Coverage" />
     </a>
     <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
         <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />
@@ -126,13 +126,13 @@ Client libraries built by awesome people from the Open Source community:
 
 ### Generate Your Own
 
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/master/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
 
 ## Examples
 
 Check out the [examples](/examples) to see how Flipt works.
 
-Here's a [basic one](https://github.com/markphelps/flipt/tree/master/examples/basic) to get started!
+Here's a [basic one](https://github.com/markphelps/flipt/tree/main/examples/basic) to get started!
 
 ## Licensing
 

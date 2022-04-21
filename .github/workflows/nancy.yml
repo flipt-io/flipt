@@ -1,8 +1,11 @@
 name: Go Nancy
 on:
   push:
+    branches:
+      - "main"
   pull_request:
-    types: [opened]
+    branches:
+      - "main"
 
 jobs:
   sleuth:
