@@ -10,6 +10,7 @@ import (
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
+	"github.com/markphelps/flipt/storage/cache/memory"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
@@ -663,7 +664,7 @@ func BenchmarkGetRule_CacheMemory(b *testing.B) {
 	var (
 		l, _       = test.NewNullLogger()
 		logger     = logrus.NewEntry(l)
-		cacher     = cache.NewInMemoryCache(5*time.Minute, 10*time.Minute, logger)
+		cacher     = memory.NewCache(5*time.Minute, 10*time.Minute, logger)
 		storeCache = cache.NewStore(logger, cacher, store)
 
 		ctx       = context.Background()

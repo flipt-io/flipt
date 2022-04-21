@@ -5,6 +5,7 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/cache/metrics"
 )
 
 const ruleCachePrefix = "rule:"
@@ -12,12 +13,15 @@ const ruleCachePrefix = "rule:"
 // GetRule returns the rule from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
-	key := ruleCachePrefix + id
+	var (
+		key   = ruleCachePrefix + id
+		cache = c.cache.String()
+	)
 
 	// check if rule exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("memory").Inc()
+		metrics.CacheHitTotal.WithLabelValues(cache).Inc()
 
 		rule, ok := data.(*flipt.Rule)
 		if !ok {
@@ -36,7 +40,7 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 
 	c.cache.Set(key, rule)
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("memory").Inc()
+	metrics.CacheMissTotal.WithLabelValues(cache).Inc()
 
 	return rule, nil
 }

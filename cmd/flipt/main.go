@@ -32,6 +32,7 @@ import (
 	"github.com/markphelps/flipt/server"
 	"github.com/markphelps/flipt/storage"
 	"github.com/markphelps/flipt/storage/cache"
+	"github.com/markphelps/flipt/storage/cache/memory"
 	"github.com/markphelps/flipt/storage/sql"
 	"github.com/markphelps/flipt/storage/sql/mysql"
 	"github.com/markphelps/flipt/storage/sql/postgres"
@@ -385,7 +386,7 @@ func run(_ []string) error {
 		}
 
 		if cfg.Cache.Memory.Enabled {
-			cacher := cache.NewInMemoryCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
+			cacher := memory.NewCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
 			if cfg.Cache.Memory.Expiration > 0 {
 				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
 			} else {

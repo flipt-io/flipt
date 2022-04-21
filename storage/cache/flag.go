@@ -5,6 +5,7 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/cache/metrics"
 )
 
 const flagCachePrefix = "flag:"
@@ -12,12 +13,15 @@ const flagCachePrefix = "flag:"
 // GetFlag returns the flag from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
-	key := flagCachePrefix + k
+	var (
+		key   = flagCachePrefix + k
+		cache = c.cache.String()
+	)
 
 	// check if flag exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("memory").Inc()
+		metrics.CacheHitTotal.WithLabelValues(cache).Inc()
 
 		flag, ok := data.(*flipt.Flag)
 		if !ok {
@@ -36,7 +40,7 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 
 	c.cache.Set(key, flag)
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("memory").Inc()
+	metrics.CacheMissTotal.WithLabelValues(cache).Inc()
 
 	return flag, nil
 }

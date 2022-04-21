@@ -5,6 +5,7 @@ import (
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
+	"github.com/markphelps/flipt/storage/cache/metrics"
 )
 
 const segmentCachePrefix = "segment:"
@@ -12,12 +13,15 @@ const segmentCachePrefix = "segment:"
 // GetSegment returns the segment from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error) {
-	key := segmentCachePrefix + k
+	var (
+		key   = segmentCachePrefix + k
+		cache = c.cache.String()
+	)
 
 	// check if segment exists in cache
 	if data, ok := c.cache.Get(key); ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues("memory").Inc()
+		metrics.CacheHitTotal.WithLabelValues(cache).Inc()
 
 		segment, ok := data.(*flipt.Segment)
 		if !ok {
@@ -36,7 +40,7 @@ func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error
 
 	c.cache.Set(key, segment)
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues("memory").Inc()
+	metrics.CacheMissTotal.WithLabelValues(cache).Inc()
 
 	return segment, nil
 }
