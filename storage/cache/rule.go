@@ -2,10 +2,10 @@ package cache
 
 import (
 	"context"
+	"errors"
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/cache/metrics"
 )
 
 const ruleCachePrefix = "rule:"
@@ -15,21 +15,24 @@ const ruleCachePrefix = "rule:"
 func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	var (
 		key   = ruleCachePrefix + id
-		cache = c.cache.String()
+		label = c.cache.String()
 	)
 
 	// check if rule exists in cache
-	if data, ok := c.cache.Get(key); ok {
+	data, err := c.cache.Get(ctx, key)
+	if err == nil {
 		c.logger.Debugf("cache hit: %q", key)
-		metrics.CacheHitTotal.WithLabelValues(cache).Inc()
+		cacheHitTotal.WithLabelValues(label).Inc()
 
 		rule, ok := data.(*flipt.Rule)
 		if !ok {
 			// not rule, bad cache
-			return nil, ErrCacheCorrupt
+			return nil, ErrCorrupt
 		}
 
 		return rule, nil
+	} else if !errors.Is(err, ErrNotFound) {
+		c.logger.WithError(err).Warnf("failed to get cache: %q", key)
 	}
 
 	// else, get it and add to cache
@@ -38,10 +41,13 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 		return rule, err
 	}
 
-	c.cache.Set(key, rule)
-	c.logger.Debugf("cache miss; added: %q", key)
-	metrics.CacheMissTotal.WithLabelValues(cache).Inc()
+	if err := c.cache.Set(ctx, key, rule); err != nil {
+		c.logger.WithError(err).Warnf("failed to set cache: %q", key)
+	} else {
+		c.logger.Debugf("cache miss; added: %q", key)
+	}
 
+	cacheMissTotal.WithLabelValues(label).Inc()
 	return rule, nil
 }
 
@@ -52,49 +58,49 @@ func (c *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 
 // CreateRule delegates to the underlying store, flushing the cache in the process
 func (c *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.CreateRule(ctx, r)
 }
 
 // UpdateRule delegates to the underlying store, flushing the cache in the process
 func (c *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.UpdateRule(ctx, r)
 }
 
 // DeleteRule delegates to the underlying store, flushing the cache in the process
 func (c *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.DeleteRule(ctx, r)
 }
 
 // OrderRules delegates to the underlying store, flushing the cache in the process
 func (c *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.OrderRules(ctx, r)
 }
 
 // CreateDistribution delegates to the underlying store, flushing the cache in the process
 func (c *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.CreateDistribution(ctx, r)
 }
 
 // UpdateDistribution delegates to the underlying store, flushing the cache in the process
 func (c *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.UpdateDistribution(ctx, r)
 }
 
 // DeleteDistribution delegates to the underlying store, flushing the cache in the process
 func (c *Store) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
-	c.cache.Flush()
+	c.cache.Flush(ctx)
 	c.logger.Debug("flushed cache")
 	return c.store.DeleteDistribution(ctx, r)
 }
