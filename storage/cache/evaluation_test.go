@@ -27,8 +27,8 @@ func TestGetEvaluationRules(t *testing.T) {
 	}
 
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{}, nil).Once()
-	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{}, ErrMiss).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetEvaluationRules(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -59,8 +59,7 @@ func TestGetEvaluationRules_NoResults(t *testing.T) {
 	ret := []*storage.EvaluationRule{}
 
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{}, nil).Once()
-	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{}, ErrMiss).Once()
 
 	got, err := subject.GetEvaluationRules(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -94,8 +93,8 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	}
 
 	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationDistribution{}, nil).Once()
-	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationDistribution{}, ErrMiss).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetEvaluationDistributions(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -126,7 +125,7 @@ func TestGetEvaluationDistributions_NoResults(t *testing.T) {
 	ret := []*storage.EvaluationDistribution{}
 
 	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationDistribution{}, nil).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationDistribution{}, ErrMiss).Once()
 	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
 
 	got, err := subject.GetEvaluationDistributions(context.TODO(), "foo")

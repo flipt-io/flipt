@@ -19,8 +19,8 @@ func TestGetFlag(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, nil).Once()
-	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, ErrMiss).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetFlag(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -49,7 +49,7 @@ func TestGetFlagNotFound(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{}, errors.ErrNotFound("foo"))
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, nil).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, ErrMiss).Once()
 
 	_, err := subject.GetFlag(context.TODO(), "foo")
 	require.Error(t, err)

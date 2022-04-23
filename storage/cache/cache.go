@@ -8,8 +8,9 @@ import (
 
 var (
 	// ErrCorrupt represents a corrupt cache error
-	ErrCorrupt  = errors.New("cache corrupted")
-	ErrNotFound = errors.New("not found")
+	ErrCorrupt = errors.New("cache corrupted")
+	// ErrMiss represents a cache miss error
+	ErrMiss = errors.New("cache miss")
 )
 
 // Cacher modifies and queries a cache

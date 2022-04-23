@@ -28,15 +28,19 @@ func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 		rules, ok := data.([]*storage.EvaluationRule)
 		if !ok {
 			// not rules slice, bad cache
+			// TODO: should we just invalidate the cache instead of returning an error?
 			return nil, ErrCorrupt
 		}
 
 		return rules, nil
-	} else if !errors.Is(err, ErrNotFound) {
-		c.logger.WithError(err).Warnf("failed to get cache: %q", key)
 	}
 
-	// else, get them and add to cache
+	if !errors.Is(err, ErrMiss) {
+		// some other error
+		return nil, err
+	}
+
+	// rules not in cache, delegate to underlying store
 	rules, err := c.store.GetEvaluationRules(ctx, flagKey)
 	if err != nil {
 		return rules, err
@@ -44,11 +48,10 @@ func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 
 	if len(rules) > 0 {
 		if err := c.cache.Set(ctx, key, rules); err != nil {
-			c.logger.WithError(err).Warnf("failed to set cache: %q", key)
-		} else {
-			c.logger.Debugf("cache miss; added: %q", key)
+			return rules, err
 		}
 
+		c.logger.Debugf("cache miss; added: %q", key)
 		cacheMissTotal.WithLabelValues(label).Inc()
 	}
 
@@ -71,15 +74,20 @@ func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 		distributions, ok := data.([]*storage.EvaluationDistribution)
 		if !ok {
 			// not distributions slice, bad cache
+			// TODO: should we just invalidate the cache instead of returning an error?
+
 			return nil, ErrCorrupt
 		}
 
 		return distributions, nil
-	} else if !errors.Is(err, ErrNotFound) {
-		c.logger.WithError(err).Warnf("failed to get cache: %q", key)
 	}
 
-	// else, get them and add to cache
+	if !errors.Is(err, ErrMiss) {
+		// some other error
+		return nil, err
+	}
+
+	// distributions not in cache, delegate to underlying store
 	distributions, err := c.store.GetEvaluationDistributions(ctx, ruleID)
 	if err != nil {
 		return distributions, err
@@ -87,11 +95,10 @@ func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 
 	if len(distributions) > 0 {
 		if err := c.cache.Set(ctx, key, distributions); err != nil {
-			c.logger.WithError(err).Warnf("failed to set cache: %q", key)
-		} else {
-			c.logger.Debugf("cache miss; added %q", key)
+			return distributions, err
 		}
 
+		c.logger.Debugf("cache miss; added %q", key)
 		cacheMissTotal.WithLabelValues(label).Inc()
 	}
 

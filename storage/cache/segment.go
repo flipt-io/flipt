@@ -27,27 +27,29 @@ func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error
 		segment, ok := data.(*flipt.Segment)
 		if !ok {
 			// not segment, bad cache
+			// TODO: should we just invalidate the cache instead of returning an error?
 			return nil, ErrCorrupt
 		}
 
 		return segment, nil
-
-	} else if !errors.Is(err, ErrNotFound) {
-		c.logger.WithError(err).Warnf("failed to get cache: %q", key)
 	}
 
-	// else, get it and add to cache
+	if !errors.Is(err, ErrMiss) {
+		// some other error
+		return nil, err
+	}
+
+	// segment not in cache, delegate to underlying store
 	segment, err := c.store.GetSegment(ctx, k)
 	if err != nil {
 		return segment, err
 	}
 
 	if err := c.cache.Set(ctx, key, segment); err != nil {
-		c.logger.WithError(err).Warnf("failed to set cache: %q", key)
-	} else {
-		c.logger.Debugf("cache miss; added: %q", key)
+		return segment, err
 	}
 
+	c.logger.Debugf("cache miss; added: %q", key)
 	cacheMissTotal.WithLabelValues(label).Inc()
 	return segment, nil
 }

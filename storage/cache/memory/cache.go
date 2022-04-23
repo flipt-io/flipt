@@ -54,7 +54,7 @@ func NewCache(expiration time.Duration, evictionInterval time.Duration, logger l
 func (i *InMemoryCache) Get(_ context.Context, key string) (interface{}, error) {
 	v, ok := i.c.Get(key)
 	if !ok {
-		return nil, cache.ErrNotFound
+		return nil, cache.ErrMiss
 	}
 	return v, nil
 }

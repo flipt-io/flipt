@@ -27,26 +27,29 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 		rule, ok := data.(*flipt.Rule)
 		if !ok {
 			// not rule, bad cache
+			// TODO: should we just invalidate the cache instead of returning an error?
 			return nil, ErrCorrupt
 		}
 
 		return rule, nil
-	} else if !errors.Is(err, ErrNotFound) {
-		c.logger.WithError(err).Warnf("failed to get cache: %q", key)
 	}
 
-	// else, get it and add to cache
+	if !errors.Is(err, ErrMiss) {
+		// some other error
+		return nil, err
+	}
+
+	// rule not in cache, delegate to underlying store
 	rule, err := c.store.GetRule(ctx, id)
 	if err != nil {
 		return rule, err
 	}
 
 	if err := c.cache.Set(ctx, key, rule); err != nil {
-		c.logger.WithError(err).Warnf("failed to set cache: %q", key)
-	} else {
-		c.logger.Debugf("cache miss; added: %q", key)
+		return rule, err
 	}
 
+	c.logger.Debugf("cache miss; added: %q", key)
 	cacheMissTotal.WithLabelValues(label).Inc()
 	return rule, nil
 }

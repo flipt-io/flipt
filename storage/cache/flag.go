@@ -27,27 +27,29 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 		flag, ok := data.(*flipt.Flag)
 		if !ok {
 			// not flag, bad cache
+			// TODO: should we just invalidate the cache instead of returning an error?
 			return nil, ErrCorrupt
 		}
 
 		return flag, nil
-
-	} else if !errors.Is(err, ErrNotFound) {
-		c.logger.WithError(err).Warnf("failed to get cache: %q", key)
 	}
 
-	// else, get it and add to cache
+	if !errors.Is(err, ErrMiss) {
+		// some other error
+		return nil, err
+	}
+
+	// flag not in cache, delegate to underlying store
 	flag, err := c.store.GetFlag(ctx, k)
 	if err != nil {
 		return flag, err
 	}
 
 	if err := c.cache.Set(ctx, key, flag); err != nil {
-		c.logger.WithError(err).Warnf("failed to set cache: %q", key)
-	} else {
-		c.logger.Debugf("cache miss; added: %q", key)
+		return flag, err
 	}
 
+	c.logger.Debugf("cache miss; added: %q", key)
 	cacheMissTotal.WithLabelValues(label).Inc()
 	return flag, nil
 }

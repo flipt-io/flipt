@@ -19,8 +19,8 @@ func TestGetRule(t *testing.T) {
 	)
 
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{}, nil).Once()
-	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{}, ErrMiss).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetRule(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -49,7 +49,7 @@ func TestGetRuleNotFound(t *testing.T) {
 	)
 
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{}, errors.ErrNotFound("foo"))
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{}, nil).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{}, ErrMiss).Once()
 
 	_, err := subject.GetRule(context.TODO(), "foo")
 	require.Error(t, err)
