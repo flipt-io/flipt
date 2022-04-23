@@ -269,12 +269,15 @@ step_9_test_metrics()
         status 200
 }
 
+# allow specifying config file
+CONFIG="${1:-local}"
+
 run()
 {
     # run any pending db migrations
-    ./bin/flipt migrate --config ./config/local.yml &> /dev/null
+    ./bin/flipt migrate --config "./config/${CONFIG}.yml" &> /dev/null
 
-    ./bin/flipt --config ./config/local.yml &> /dev/null &
+    ./bin/flipt --config "./config/${CONFIG}.yml" &> /dev/null &
     echo $! > "$FLIPT_PID"
 
     sleep 5
