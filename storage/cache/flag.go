@@ -13,10 +13,7 @@ const flagCachePrefix = "flag:"
 // GetFlag returns the flag from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
-	var (
-		key   = flagCachePrefix + k
-		label = c.cache.String()
-	)
+	key := flagCachePrefix + k
 
 	// check if flag exists in cache
 	data, ok, err := c.cache.Get(ctx, key)
@@ -26,7 +23,6 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 
 	if ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues(label).Inc()
 
 		flag, ok := data.(*flipt.Flag)
 		if !ok {
@@ -49,7 +45,6 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 	}
 
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues(label).Inc()
 	return flag, nil
 }
 

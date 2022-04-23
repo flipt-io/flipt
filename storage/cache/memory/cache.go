@@ -21,6 +21,20 @@ const (
 )
 
 var (
+	cacheHitTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      "hit_total",
+		Help:      "The number of cache hits",
+	}, []string{"cache"})
+
+	cacheMissTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      "miss_total",
+		Help:      "The number of cache misses",
+	}, []string{"cache"})
+
 	cacheItemCount = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: namespace,
 		Subsystem: subsystem,
@@ -33,6 +47,13 @@ var (
 		Subsystem: subsystem,
 		Name:      "eviction_total",
 		Help:      "The number of times an item is evicted from the cache",
+	}, []string{"cache"})
+
+	cacheFlushTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      "flush_total",
+		Help:      "The number of times the cache is flushed",
 	}, []string{"cache"})
 )
 
@@ -53,8 +74,11 @@ func NewCache(expiration time.Duration, evictionInterval time.Duration, logger l
 func (i *InMemoryCache) Get(_ context.Context, key string) (interface{}, bool, error) {
 	v, ok := i.c.Get(key)
 	if !ok {
+		cacheMissTotal.WithLabelValues("memory").Inc()
 		return nil, false, nil
 	}
+
+	cacheHitTotal.WithLabelValues("memory").Inc()
 	return v, true, nil
 }
 
@@ -73,6 +97,7 @@ func (i *InMemoryCache) Delete(_ context.Context, key string) error {
 func (i *InMemoryCache) Flush(_ context.Context) error {
 	i.c.Flush()
 	cacheItemCount.WithLabelValues("memory").Set(0)
+	cacheFlushTotal.WithLabelValues("memory").Inc()
 	return nil
 }
 

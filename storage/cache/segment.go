@@ -13,10 +13,7 @@ const segmentCachePrefix = "segment:"
 // GetSegment returns the segment from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error) {
-	var (
-		key   = segmentCachePrefix + k
-		label = c.cache.String()
-	)
+	key := segmentCachePrefix + k
 
 	// check if segment exists in cache
 	data, ok, err := c.cache.Get(ctx, key)
@@ -26,7 +23,6 @@ func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error
 
 	if ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues(label).Inc()
 
 		segment, ok := data.(*flipt.Segment)
 		if !ok {
@@ -49,7 +45,6 @@ func (c *Store) GetSegment(ctx context.Context, k string) (*flipt.Segment, error
 	}
 
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues(label).Inc()
 	return segment, nil
 }
 

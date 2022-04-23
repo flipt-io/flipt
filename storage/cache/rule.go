@@ -13,10 +13,7 @@ const ruleCachePrefix = "rule:"
 // GetRule returns the rule from the cache if it exists; otherwise it delegates to the underlying store
 // caching the result if no error
 func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
-	var (
-		key   = ruleCachePrefix + id
-		label = c.cache.String()
-	)
+	key := ruleCachePrefix + id
 
 	// check if rule exists in cache
 	data, ok, err := c.cache.Get(ctx, key)
@@ -26,7 +23,6 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 
 	if ok {
 		c.logger.Debugf("cache hit: %q", key)
-		cacheHitTotal.WithLabelValues(label).Inc()
 
 		rule, ok := data.(*flipt.Rule)
 		if !ok {
@@ -49,7 +45,6 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	}
 
 	c.logger.Debugf("cache miss; added: %q", key)
-	cacheMissTotal.WithLabelValues(label).Inc()
 	return rule, nil
 }
 
