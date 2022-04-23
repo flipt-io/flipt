@@ -19,18 +19,18 @@ func TestGetSegment(t *testing.T) {
 	)
 
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
-	cacher.On("Get", mock.Anything).Return(&flipt.Segment{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{}, false, nil).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetSegment(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "segment:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "segment:foo")
+	cacher.AssertCalled(t, "Get", mock.Anything, "segment:foo")
+	cacher.AssertCalled(t, "Set", mock.Anything, "segment:foo", mock.Anything)
 
-	cacher.On("Get", mock.Anything).Return(&flipt.Segment{Key: "foo"}, true)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, true, nil)
 
 	got, err = subject.GetSegment(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -49,14 +49,14 @@ func TestGetSegmentNotFound(t *testing.T) {
 	)
 
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{}, errors.ErrNotFound("foo"))
-	cacher.On("Get", mock.Anything).Return(&flipt.Segment{}, false).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{}, false, nil)
 
 	_, err := subject.GetSegment(context.TODO(), "foo")
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "segment:foo")
+	cacher.AssertCalled(t, "Get", mock.Anything, "segment:foo")
 }
 
 func TestListSegments(t *testing.T) {
@@ -90,7 +90,7 @@ func TestCreateSegment(t *testing.T) {
 	)
 
 	store.On("CreateSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	segment, err := subject.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{Key: "foo"})
 	require.NoError(t, err)
@@ -99,7 +99,7 @@ func TestCreateSegment(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestUpdateSegment(t *testing.T) {
@@ -110,7 +110,7 @@ func TestUpdateSegment(t *testing.T) {
 	)
 
 	store.On("UpdateSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	_, err := subject.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{Key: "foo"})
 	require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestUpdateSegment(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestDeleteSegment(t *testing.T) {
@@ -129,7 +129,7 @@ func TestDeleteSegment(t *testing.T) {
 	)
 
 	store.On("DeleteSegment", mock.Anything, mock.Anything).Return(nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	err := subject.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{Key: "foo"})
 	require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestDeleteSegment(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestCreateConstraint(t *testing.T) {
@@ -148,7 +148,7 @@ func TestCreateConstraint(t *testing.T) {
 	)
 
 	store.On("CreateConstraint", mock.Anything, mock.Anything).Return(&flipt.Constraint{SegmentKey: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	_, err := subject.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{SegmentKey: "foo"})
 	require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestCreateConstraint(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestUpdateConstraint(t *testing.T) {
@@ -167,7 +167,7 @@ func TestUpdateConstraint(t *testing.T) {
 	)
 
 	store.On("UpdateConstraint", mock.Anything, mock.Anything).Return(&flipt.Constraint{SegmentKey: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	_, err := subject.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{SegmentKey: "foo"})
 	require.NoError(t, err)
@@ -175,7 +175,7 @@ func TestUpdateConstraint(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestDeleteConstraint(t *testing.T) {
@@ -186,7 +186,7 @@ func TestDeleteConstraint(t *testing.T) {
 	)
 
 	store.On("DeleteConstraint", mock.Anything, mock.Anything).Return(nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	err := subject.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{SegmentKey: "foo"})
 	require.NoError(t, err)
@@ -194,5 +194,5 @@ func TestDeleteConstraint(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }

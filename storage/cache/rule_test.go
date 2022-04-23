@@ -19,18 +19,18 @@ func TestGetRule(t *testing.T) {
 	)
 
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
-	cacher.On("Get", mock.Anything).Return(&flipt.Rule{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{}, false, nil).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetRule(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "rule:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "rule:foo")
+	cacher.AssertCalled(t, "Set", mock.Anything, "rule:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", mock.Anything, "rule:foo")
 
-	cacher.On("Get", mock.Anything).Return(&flipt.Rule{Id: "foo"}, true)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, true, nil)
 
 	got, err = subject.GetRule(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -49,14 +49,14 @@ func TestGetRuleNotFound(t *testing.T) {
 	)
 
 	store.On("GetRule", mock.Anything, mock.Anything).Return(&flipt.Rule{}, errors.ErrNotFound("foo"))
-	cacher.On("Get", mock.Anything).Return(&flipt.Rule{}, false).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Rule{}, false, nil)
 
 	_, err := subject.GetRule(context.TODO(), "foo")
 	require.Error(t, err)
 
 	// doesnt exists so it should not be added
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "rule:foo")
+	cacher.AssertCalled(t, "Get", mock.Anything, "rule:foo")
 }
 
 func TestListRules(t *testing.T) {
@@ -90,7 +90,7 @@ func TestCreateRule(t *testing.T) {
 	)
 
 	store.On("CreateRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	rule, err := subject.CreateRule(context.TODO(), &flipt.CreateRuleRequest{FlagKey: "foo"})
 	require.NoError(t, err)
@@ -99,7 +99,7 @@ func TestCreateRule(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestUpdateRule(t *testing.T) {
@@ -110,7 +110,7 @@ func TestUpdateRule(t *testing.T) {
 	)
 
 	store.On("UpdateRule", mock.Anything, mock.Anything).Return(&flipt.Rule{Id: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	_, err := subject.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{Id: "foo"})
 	require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestUpdateRule(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestDeleteRule(t *testing.T) {
@@ -129,7 +129,7 @@ func TestDeleteRule(t *testing.T) {
 	)
 
 	store.On("DeleteRule", mock.Anything, mock.Anything).Return(nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	err := subject.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{Id: "foo"})
 	require.NoError(t, err)
@@ -137,7 +137,7 @@ func TestDeleteRule(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestCreateDistribution(t *testing.T) {
@@ -148,7 +148,7 @@ func TestCreateDistribution(t *testing.T) {
 	)
 
 	store.On("CreateDistribution", mock.Anything, mock.Anything).Return(&flipt.Distribution{RuleId: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	_, err := subject.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{RuleId: "foo"})
 	require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestCreateDistribution(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestUpdateDistribution(t *testing.T) {
@@ -167,7 +167,7 @@ func TestUpdateDistribution(t *testing.T) {
 	)
 
 	store.On("UpdateDistribution", mock.Anything, mock.Anything).Return(&flipt.Distribution{RuleId: "foo"}, nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	_, err := subject.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{RuleId: "foo"})
 	require.NoError(t, err)
@@ -175,7 +175,7 @@ func TestUpdateDistribution(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
 
 func TestDeleteDistribution(t *testing.T) {
@@ -186,7 +186,7 @@ func TestDeleteDistribution(t *testing.T) {
 	)
 
 	store.On("DeleteDistribution", mock.Anything, mock.Anything).Return(nil)
-	cacher.On("Flush")
+	cacher.On("Flush", mock.Anything).Return(nil)
 
 	err := subject.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{RuleId: "foo"})
 	require.NoError(t, err)
@@ -194,5 +194,5 @@ func TestDeleteDistribution(t *testing.T) {
 	// should not be added
 	cacher.AssertNotCalled(t, "Set")
 	// should flush cache
-	cacher.AssertCalled(t, "Flush")
+	cacher.AssertCalled(t, "Flush", mock.Anything)
 }
