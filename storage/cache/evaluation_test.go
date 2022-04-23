@@ -27,18 +27,18 @@ func TestGetEvaluationRules(t *testing.T) {
 	}
 
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*storage.EvaluationRule{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{}, false, nil).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetEvaluationRules(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "eval:rules:flag:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "eval:rules:flag:foo")
+	cacher.AssertCalled(t, "Set", mock.Anything, "eval:rules:flag:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", mock.Anything, "eval:rules:flag:foo")
 
-	cacher.On("Get", mock.Anything).Return(ret, true)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(ret, true, nil)
 
 	got, err = subject.GetEvaluationRules(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -59,8 +59,7 @@ func TestGetEvaluationRules_NoResults(t *testing.T) {
 	ret := []*storage.EvaluationRule{}
 
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*storage.EvaluationRule{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationRule{}, false, nil)
 
 	got, err := subject.GetEvaluationRules(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -68,9 +67,7 @@ func TestGetEvaluationRules_NoResults(t *testing.T) {
 
 	// should not be set in the cache
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "eval:rules:flag:foo")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
+	cacher.AssertCalled(t, "Get", mock.Anything, "eval:rules:flag:foo")
 
 	got, err = subject.GetEvaluationRules(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -94,18 +91,18 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	}
 
 	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*storage.EvaluationDistribution{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationDistribution{}, false, nil).Once()
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetEvaluationDistributions(context.TODO(), "foo")
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	// shouldnt exist in the cache so it should be added
-	cacher.AssertCalled(t, "Set", "eval:dist:rule:foo", mock.Anything)
-	cacher.AssertCalled(t, "Get", "eval:dist:rule:foo")
+	cacher.AssertCalled(t, "Set", mock.Anything, "eval:dist:rule:foo", mock.Anything)
+	cacher.AssertCalled(t, "Get", mock.Anything, "eval:dist:rule:foo")
 
-	cacher.On("Get", mock.Anything).Return(ret, true)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(ret, true, nil)
 
 	got, err = subject.GetEvaluationDistributions(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -126,8 +123,8 @@ func TestGetEvaluationDistributions_NoResults(t *testing.T) {
 	ret := []*storage.EvaluationDistribution{}
 
 	store.On("GetEvaluationDistributions", mock.Anything, mock.Anything).Return(ret, nil)
-	cacher.On("Get", mock.Anything).Return([]*storage.EvaluationDistribution{}, false).Once()
-	cacher.On("Set", mock.Anything, mock.Anything)
+	cacher.On("Get", mock.Anything, mock.Anything).Return([]*storage.EvaluationDistribution{}, false, nil)
+	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything)
 
 	got, err := subject.GetEvaluationDistributions(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -135,9 +132,7 @@ func TestGetEvaluationDistributions_NoResults(t *testing.T) {
 
 	// should not be set in the cache
 	cacher.AssertNotCalled(t, "Set")
-	cacher.AssertCalled(t, "Get", "eval:dist:rule:foo")
-
-	cacher.On("Get", mock.Anything).Return(ret, true)
+	cacher.AssertCalled(t, "Get", mock.Anything, "eval:dist:rule:foo")
 
 	got, err = subject.GetEvaluationDistributions(context.TODO(), "foo")
 	require.NoError(t, err)

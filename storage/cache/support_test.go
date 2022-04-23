@@ -21,21 +21,24 @@ type cacherSpy struct {
 	mock.Mock
 }
 
-func (s *cacherSpy) Get(key string) (interface{}, bool) {
-	args := s.Called(key)
-	return args.Get(0), args.Bool(1)
+func (s *cacherSpy) Get(ctx context.Context, key string) (interface{}, bool, error) {
+	args := s.Called(ctx, key)
+	return args.Get(0), args.Bool(1), args.Error(2)
 }
 
-func (s *cacherSpy) Set(key string, value interface{}) {
-	s.Called(key, value)
+func (s *cacherSpy) Set(ctx context.Context, key string, value interface{}) error {
+	args := s.Called(ctx, key, value)
+	return args.Error(0)
 }
 
-func (s *cacherSpy) Delete(key string) {
-	s.Called(key)
+func (s *cacherSpy) Delete(ctx context.Context, key string) error {
+	args := s.Called(ctx, key)
+	return args.Error(0)
 }
 
-func (s *cacherSpy) Flush() {
-	s.Called()
+func (s *cacherSpy) Flush(ctx context.Context) error {
+	args := s.Called(ctx)
+	return args.Error(0)
 }
 
 var _ storage.Store = &storeMock{}
