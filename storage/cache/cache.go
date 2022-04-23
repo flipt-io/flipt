@@ -9,15 +9,17 @@ import (
 var (
 	// ErrCorrupt represents a corrupt cache error
 	ErrCorrupt = errors.New("cache corrupted")
-	// ErrMiss represents a cache miss error
-	ErrMiss = errors.New("cache miss")
 )
 
 // Cacher modifies and queries a cache
 type Cacher interface {
-	Get(ctx context.Context, key string) (interface{}, error)
+	// Get retrieves a value from the cache, the bool indicates if the item was found
+	Get(ctx context.Context, key string) (interface{}, bool, error)
+	// Set sets a value in the cache
 	Set(ctx context.Context, key string, value interface{}) error
+	// Delete removes a value from the cache
 	Delete(ctx context.Context, key string) error
+	// Flush removes all values from the cache
 	Flush(ctx context.Context) error
 	fmt.Stringer
 }

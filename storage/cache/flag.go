@@ -2,7 +2,7 @@ package cache
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
@@ -19,8 +19,12 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 	)
 
 	// check if flag exists in cache
-	data, err := c.cache.Get(ctx, key)
-	if err == nil {
+	data, ok, err := c.cache.Get(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("getting flag from cache: %w", err)
+	}
+
+	if ok {
 		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues(label).Inc()
 
@@ -32,11 +36,6 @@ func (c *Store) GetFlag(ctx context.Context, k string) (*flipt.Flag, error) {
 		}
 
 		return flag, nil
-	}
-
-	if !errors.Is(err, ErrMiss) {
-		// some other error
-		return nil, err
 	}
 
 	// flag not in cache, delegate to underlying store

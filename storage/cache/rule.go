@@ -2,7 +2,7 @@ package cache
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/markphelps/flipt/storage"
@@ -19,8 +19,12 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	)
 
 	// check if rule exists in cache
-	data, err := c.cache.Get(ctx, key)
-	if err == nil {
+	data, ok, err := c.cache.Get(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("getting rule from cache: %w", err)
+	}
+
+	if ok {
 		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues(label).Inc()
 
@@ -32,11 +36,6 @@ func (c *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 		}
 
 		return rule, nil
-	}
-
-	if !errors.Is(err, ErrMiss) {
-		// some other error
-		return nil, err
 	}
 
 	// rule not in cache, delegate to underlying store

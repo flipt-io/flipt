@@ -19,7 +19,7 @@ func TestGetFlag(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, ErrMiss).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, false, nil).Once()
 	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetFlag(context.TODO(), "foo")
@@ -30,7 +30,7 @@ func TestGetFlag(t *testing.T) {
 	cacher.AssertCalled(t, "Set", mock.Anything, "flag:foo", mock.Anything)
 	cacher.AssertCalled(t, "Get", mock.Anything, "flag:foo")
 
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, nil)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{Key: "foo"}, true, nil)
 
 	got, err = subject.GetFlag(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -49,7 +49,7 @@ func TestGetFlagNotFound(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything).Return(&flipt.Flag{}, errors.ErrNotFound("foo"))
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, ErrMiss).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Flag{}, false, nil)
 
 	_, err := subject.GetFlag(context.TODO(), "foo")
 	require.Error(t, err)

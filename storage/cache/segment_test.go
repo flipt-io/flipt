@@ -19,7 +19,7 @@ func TestGetSegment(t *testing.T) {
 	)
 
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{}, ErrMiss).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{}, false, nil).Once()
 	cacher.On("Set", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	got, err := subject.GetSegment(context.TODO(), "foo")
@@ -30,7 +30,7 @@ func TestGetSegment(t *testing.T) {
 	cacher.AssertCalled(t, "Get", mock.Anything, "segment:foo")
 	cacher.AssertCalled(t, "Set", mock.Anything, "segment:foo", mock.Anything)
 
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, nil)
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{Key: "foo"}, true, nil)
 
 	got, err = subject.GetSegment(context.TODO(), "foo")
 	require.NoError(t, err)
@@ -49,7 +49,7 @@ func TestGetSegmentNotFound(t *testing.T) {
 	)
 
 	store.On("GetSegment", mock.Anything, mock.Anything).Return(&flipt.Segment{}, errors.ErrNotFound("foo"))
-	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{}, ErrMiss).Once()
+	cacher.On("Get", mock.Anything, mock.Anything).Return(&flipt.Segment{}, false, nil)
 
 	_, err := subject.GetSegment(context.TODO(), "foo")
 	require.Error(t, err)

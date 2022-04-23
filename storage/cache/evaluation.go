@@ -2,7 +2,7 @@ package cache
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/markphelps/flipt/storage"
 )
@@ -20,8 +20,12 @@ func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 	)
 
 	// check if rules exists in cache
-	data, err := c.cache.Get(ctx, key)
-	if err == nil {
+	data, ok, err := c.cache.Get(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("getting rules from cache: %w", err)
+	}
+
+	if ok {
 		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues(label).Inc()
 
@@ -33,11 +37,6 @@ func (c *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 		}
 
 		return rules, nil
-	}
-
-	if !errors.Is(err, ErrMiss) {
-		// some other error
-		return nil, err
 	}
 
 	// rules not in cache, delegate to underlying store
@@ -66,8 +65,12 @@ func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	)
 
 	// check if distributions exists in cache
-	data, err := c.cache.Get(ctx, key)
-	if err == nil {
+	data, ok, err := c.cache.Get(ctx, key)
+	if err != nil {
+		return nil, fmt.Errorf("getting distributions from cache: %w", err)
+	}
+
+	if ok {
 		c.logger.Debugf("cache hit: %q", key)
 		cacheHitTotal.WithLabelValues(label).Inc()
 
@@ -80,11 +83,6 @@ func (c *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 		}
 
 		return distributions, nil
-	}
-
-	if !errors.Is(err, ErrMiss) {
-		// some other error
-		return nil, err
 	}
 
 	// distributions not in cache, delegate to underlying store

@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/markphelps/flipt/storage/cache"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -51,12 +50,12 @@ func NewCache(expiration time.Duration, evictionInterval time.Duration, logger l
 	return &InMemoryCache{c: c}
 }
 
-func (i *InMemoryCache) Get(_ context.Context, key string) (interface{}, error) {
+func (i *InMemoryCache) Get(_ context.Context, key string) (interface{}, bool, error) {
 	v, ok := i.c.Get(key)
 	if !ok {
-		return nil, cache.ErrMiss
+		return nil, false, nil
 	}
-	return v, nil
+	return v, true, nil
 }
 
 func (i *InMemoryCache) Set(_ context.Context, key string, value interface{}) error {

@@ -21,9 +21,9 @@ type cacherSpy struct {
 	mock.Mock
 }
 
-func (s *cacherSpy) Get(ctx context.Context, key string) (interface{}, error) {
+func (s *cacherSpy) Get(ctx context.Context, key string) (interface{}, bool, error) {
 	args := s.Called(ctx, key)
-	return args.Get(0), args.Error(1)
+	return args.Get(0), args.Bool(1), args.Error(2)
 }
 
 func (s *cacherSpy) Set(ctx context.Context, key string, value interface{}) error {
