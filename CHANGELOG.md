@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.2](https://github.com/markphelps/flipt/releases/tag/v1.8.2) - 2022-04-27
+
+### Fixed
+
+- Broken rules reordering resulting from GRPC update [https://github.com/markphelps/flipt/pull/836](https://github.com/markphelps/flipt/pull/836)
+
 ## [v1.8.1](https://github.com/markphelps/flipt/releases/tag/v1.8.1) - 2022-04-18
 
 ### Changed
