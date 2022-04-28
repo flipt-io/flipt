@@ -31,9 +31,6 @@ http:
     delete: /api/v1/flags/{flag_key}/variants/{id}
   - selector: flipt.Flipt.GetRule
     get: /api/v1/flags/{flag_key}/rules/{id}
-  - selector: flipt.Flipt.OrderRules
-    put: /api/v1/flags/{flag_key}/rules/order
-    body: "*"
   - selector: flipt.Flipt.ListRules
     get: /api/v1/flags/{flag_key}/rules
   - selector: flipt.Flipt.CreateRule
@@ -41,6 +38,9 @@ http:
     body: "*"
   - selector: flipt.Flipt.UpdateRule
     put: /api/v1/flags/{flag_key}/rules/{id}
+    body: "*"
+  - selector: flipt.Flipt.OrderRules
+    put: /api/v1/flags/{flag_key}/rules/order
     body: "*"
   - selector: flipt.Flipt.DeleteRule
     delete: /api/v1/flags/{flag_key}/rules/{id}

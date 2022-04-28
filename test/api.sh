@@ -172,21 +172,35 @@ step_4_test_rules_and_distributions()
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
-    rule_id=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key/rules" | jq '.rules | .[0].id')
-    rule_id=$(eval echo "$rule_id")
+    rule_id_1=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key/rules" | jq '.rules | .[0].id')
+    rule_id_1=$(eval echo "$rule_id_1")
 
     # get rule
-    shakedown GET "/api/v1/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
+    shakedown GET "/api/v1/flags/$flag_key/rules/$rule_id_1" -H 'Content-Type:application/json'
         status 200
-        matches "\"id\":\"$rule_id\""
+        matches "\"id\":\"$rule_id_1\""
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
-    # create distribution
-    shakedown POST "/api/v1/flags/$flag_key/rules/$rule_id/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
+    # create another rule
+    shakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":2}"
         status 200
-        matches "\"ruleId\":\"$rule_id\""
+        matches "\"flagKey\":\"$flag_key\""
+        matches "\"segmentKey\":\"$segment_key\""
+        matches "\"rank\":2"
+
+    rule_id_2=$(curl -sS "$SHAKEDOWN_URL/api/v1/flags/$flag_key/rules" | jq '.rules | .[1].id')
+    rule_id_2=$(eval echo "$rule_id_2")
+
+    # reorder rules
+    shakedown PUT "/api/v1/flags/$flag_key/rules/order" -H 'Content-Type:application/json' -d "{\"ruleIds\":[\"$rule_id_2\",\"$rule_id_1\"]}"
+        status 200
+
+    # create distribution
+    shakedown POST "/api/v1/flags/$flag_key/rules/$rule_id_2/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
+        status 200
+        matches "\"ruleId\":\"$rule_id_2\""
         matches "\"variantId\":\"$variant_id\""
         matches "\"rollout\":100"
 }
@@ -234,8 +248,11 @@ step_6_test_batch_evaluation()
 
 step_7_test_delete()
 {
-    # delete rule and distributions
-    shakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id" -H 'Content-Type:application/json'
+    # delete rules and distributions
+    shakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id_1" -H 'Content-Type:application/json'
+        status 200
+
+    shakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id_2" -H 'Content-Type:application/json'
         status 200
 
     # delete flag and variants
