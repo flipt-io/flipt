@@ -544,14 +544,6 @@ service Flipt {
     };
   }
 
-  rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "orderRules";
-      description: "Order Rules";
-      tags: "rules";
-    };
-  }
-
   rpc CreateRule(CreateRuleRequest) returns (Rule) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "createRule";
@@ -564,6 +556,14 @@ service Flipt {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "updateRule";
       description: "Update Rule";
+      tags: "rules";
+    };
+  }
+
+  rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "orderRules";
+      description: "Order Rules";
       tags: "rules";
     };
   }

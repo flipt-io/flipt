@@ -8,8 +8,10 @@ vars:
 tasks:
   default:
     desc: Build the binary
-    deps: [clean, proto, assets]
     cmds:
+      - task: clean
+      - task: proto
+      - task: assets
       - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
       GIT_COMMIT:
@@ -54,14 +56,18 @@ tasks:
 
   build:release:
     desc: Build a release version and push the release with goreleaser
-    deps: [clean, assets, proto]
     cmds:
+      - task: clean
+      - task: proto
+      - task: assets
       - ./script/build release
 
   build:snapshot:
     desc: Build a snapshot version with goreleaser
-    deps: [clean, assets, proto]
     cmds:
+      - task: clean
+      - task: proto
+      - task: assets
       - ./script/build snapshot
 
   proto:

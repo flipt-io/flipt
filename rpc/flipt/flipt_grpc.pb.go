@@ -36,9 +36,9 @@ type FliptClient interface {
 	DeleteVariant(ctx context.Context, in *DeleteVariantRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetRule(ctx context.Context, in *GetRuleRequest, opts ...grpc.CallOption) (*Rule, error)
 	ListRules(ctx context.Context, in *ListRuleRequest, opts ...grpc.CallOption) (*RuleList, error)
-	OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*Rule, error)
 	UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*Rule, error)
+	OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	UpdateDistribution(ctx context.Context, in *UpdateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
@@ -169,15 +169,6 @@ func (c *fliptClient) ListRules(ctx context.Context, in *ListRuleRequest, opts .
 	return out, nil
 }
 
-func (c *fliptClient) OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/flipt.Flipt/OrderRules", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *fliptClient) CreateRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*Rule, error) {
 	out := new(Rule)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/CreateRule", in, out, opts...)
@@ -190,6 +181,15 @@ func (c *fliptClient) CreateRule(ctx context.Context, in *CreateRuleRequest, opt
 func (c *fliptClient) UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*Rule, error) {
 	out := new(Rule)
 	err := c.cc.Invoke(ctx, "/flipt.Flipt/UpdateRule", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fliptClient) OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/flipt.Flipt/OrderRules", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -320,9 +320,9 @@ type FliptServer interface {
 	DeleteVariant(context.Context, *DeleteVariantRequest) (*emptypb.Empty, error)
 	GetRule(context.Context, *GetRuleRequest) (*Rule, error)
 	ListRules(context.Context, *ListRuleRequest) (*RuleList, error)
-	OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error)
 	CreateRule(context.Context, *CreateRuleRequest) (*Rule, error)
 	UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error)
+	OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error)
 	DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error)
 	CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error)
 	UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error)
@@ -378,14 +378,14 @@ func (UnimplementedFliptServer) GetRule(context.Context, *GetRuleRequest) (*Rule
 func (UnimplementedFliptServer) ListRules(context.Context, *ListRuleRequest) (*RuleList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRules not implemented")
 }
-func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OrderRules not implemented")
-}
 func (UnimplementedFliptServer) CreateRule(context.Context, *CreateRuleRequest) (*Rule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRule not implemented")
 }
 func (UnimplementedFliptServer) UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRule not implemented")
+}
+func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderRules not implemented")
 }
 func (UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
@@ -652,24 +652,6 @@ func _Flipt_ListRules_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Flipt_OrderRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrderRulesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FliptServer).OrderRules(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/flipt.Flipt/OrderRules",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).OrderRules(ctx, req.(*OrderRulesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Flipt_CreateRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRuleRequest)
 	if err := dec(in); err != nil {
@@ -702,6 +684,24 @@ func _Flipt_UpdateRule_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FliptServer).UpdateRule(ctx, req.(*UpdateRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flipt_OrderRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderRulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).OrderRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.Flipt/OrderRules",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).OrderRules(ctx, req.(*OrderRulesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -978,16 +978,16 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Flipt_ListRules_Handler,
 		},
 		{
-			MethodName: "OrderRules",
-			Handler:    _Flipt_OrderRules_Handler,
-		},
-		{
 			MethodName: "CreateRule",
 			Handler:    _Flipt_CreateRule_Handler,
 		},
 		{
 			MethodName: "UpdateRule",
 			Handler:    _Flipt_UpdateRule_Handler,
+		},
+		{
+			MethodName: "OrderRules",
+			Handler:    _Flipt_OrderRules_Handler,
 		},
 		{
 			MethodName: "DeleteRule",
