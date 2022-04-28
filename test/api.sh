@@ -183,13 +183,6 @@ step_4_test_rules_and_distributions()
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
-    # create distribution
-    shakedown POST "/api/v1/flags/$flag_key/rules/$rule_id_1/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
-        status 200
-        matches "\"ruleId\":\"$rule_id_1\""
-        matches "\"variantId\":\"$variant_id\""
-        matches "\"rollout\":100"
-
     # create another rule
     shakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":2}"
         status 200
@@ -203,6 +196,13 @@ step_4_test_rules_and_distributions()
     # reorder rules
     shakedown PUT "/api/v1/flags/$flag_key/rules/order" -H 'Content-Type:application/json' -d "{\"ruleIds\":[\"$rule_id_2\",\"$rule_id_1\"]}"
         status 200
+
+    # create distribution
+    shakedown POST "/api/v1/flags/$flag_key/rules/$rule_id_2/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
+        status 200
+        matches "\"ruleId\":\"$rule_id_2\""
+        matches "\"variantId\":\"$variant_id\""
+        matches "\"rollout\":100"
 }
 
 step_5_test_evaluation()
