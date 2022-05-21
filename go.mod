@@ -3,7 +3,7 @@ module github.com/markphelps/flipt
 go 1.16
 
 require (
-	github.com/Masterminds/squirrel v1.5.2
+	github.com/Masterminds/squirrel v1.5.3
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/blang/semver/v4 v4.0.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
