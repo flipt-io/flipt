@@ -2,13 +2,11 @@ version: "3"
 
 services:
   jaeger:
-    image: jaegertracing/all-in-one:1.16
+    image: jaegertracing/all-in-one:latest
     ports:
       - "16686:16686"
     networks:
       - flipt_network
-    environment:
-      - "COLLECTOR_ZIPKIN_HTTP_PORT=9411"
 
   flipt:
     image: markphelps/flipt:latest
@@ -21,7 +19,8 @@ services:
     environment:
       - "FLIPT_LOG_LEVEL=debug"
       - "FLIPT_TRACING_JAEGER_ENABLED=true"
-      - "FLIPT_TRACING_JAEGER_HOST=jaeger"
+      - "OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger"
+      - "OTEL_EXPORTER_JAEGER_ENDPOINT=http://jaeger:14268/api/traces"
 
 networks:
   flipt_network:

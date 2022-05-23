@@ -31,8 +31,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.10
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/opentracing-contrib/go-grpc v0.0.0-20200813121455-4a6760c71486
-	github.com/opentracing/opentracing-go v1.2.0
+	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v0.0.0-20180113114010-ef6356a5d029
 	github.com/prometheus/client_golang v1.12.2
@@ -47,6 +46,11 @@ require (
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.32.0
+	go.opentelemetry.io/otel v1.7.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.7.0
+	go.opentelemetry.io/otel/sdk v1.7.0
+	go.opentelemetry.io/otel/trace v1.7.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/grpc v1.46.2
 	google.golang.org/protobuf v1.28.0

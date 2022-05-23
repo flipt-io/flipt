@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"net"
 	"net/http"
@@ -59,9 +58,13 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
-	otgrpc "github.com/opentracing-contrib/go-grpc"
-	"github.com/opentracing/opentracing-go"
-	jaeger_config "github.com/uber/jaeger-client-go/config"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const devVersion = "dev"
@@ -398,33 +401,27 @@ func run(_ []string) error {
 
 		logger = logger.WithField("store", store.String())
 
-		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
+		var tracer trace.TracerProvider = trace.NewNoopTracerProvider()
 
 		if cfg.Tracing.Jaeger.Enabled {
-			jaegerCfg := jaeger_config.Configuration{
-				ServiceName: "flipt",
-				Sampler: &jaeger_config.SamplerConfig{
-					Type:  "const",
-					Param: 1,
-				},
-				Reporter: &jaeger_config.ReporterConfig{
-					LocalAgentHostPort:  fmt.Sprintf("%s:%d", cfg.Tracing.Jaeger.Host, cfg.Tracing.Jaeger.Port),
-					LogSpans:            true,
-					BufferFlushInterval: 1 * time.Second,
-				},
-			}
-
-			var closer io.Closer
-
-			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegerLogAdapter{logger}))
+			exp, err := jaeger.New(jaeger.WithCollectorEndpoint())
 			if err != nil {
-				return fmt.Errorf("configuring tracing: %w", err)
+				return fmt.Errorf("initializing jaeger tracer: %w", err)
 			}
 
-			defer closer.Close()
+			resources := resource.NewWithAttributes(
+				semconv.SchemaURL,
+				semconv.ServiceNameKey.String("flipt"),
+				semconv.ServiceVersionKey.String(version),
+			)
+
+			tracer = tracesdk.NewTracerProvider(
+				tracesdk.WithBatcher(exp),
+				tracesdk.WithResource(resources),
+			)
 		}
 
-		opentracing.SetGlobalTracer(tracer)
+		otel.SetTracerProvider(tracer)
 
 		var (
 			grpcOpts []grpc.ServerOption
@@ -436,7 +433,7 @@ func run(_ []string) error {
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_logrus.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
-			otgrpc.OpenTracingServerInterceptor(tracer),
+			otelgrpc.UnaryServerInterceptor(),
 			srv.ErrorUnaryInterceptor,
 			srv.ValidationUnaryInterceptor,
 		))
@@ -662,14 +659,4 @@ func initLocalState() error {
 
 	// assume state directory exists and is a directory
 	return nil
-}
-
-// jaegerLogAdapter adapts logrus to fulfill Jager's Logger interface
-type jaegerLogAdapter struct {
-	*logrus.Entry
-}
-
-// Error logs a message at error priority
-func (l *jaegerLogAdapter) Error(msg string) {
-	l.Entry.Error(msg)
 }
