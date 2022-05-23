@@ -233,6 +233,9 @@ func run(_ []string) error {
 
 	defer signal.Stop(interrupt)
 
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
 	var (
 		isRelease       = isRelease()
 		updateAvailable bool
@@ -415,10 +418,14 @@ func run(_ []string) error {
 				semconv.ServiceVersionKey.String(version),
 			)
 
-			tracer = tracesdk.NewTracerProvider(
+			tp := tracesdk.NewTracerProvider(
 				tracesdk.WithBatcher(exp),
 				tracesdk.WithResource(resources),
 			)
+
+			defer tp.Shutdown(shutdownCtx)
+
+			tracer = tp
 		}
 
 		otel.SetTracerProvider(tracer)
@@ -599,9 +606,6 @@ func run(_ []string) error {
 	l.Info("shutting down...")
 
 	cancel()
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
 
 	if httpServer != nil {
 		_ = httpServer.Shutdown(shutdownCtx)
