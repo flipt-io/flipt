@@ -6,7 +6,7 @@ require (
 	github.com/bufbuild/buf v1.4.0
 	github.com/cortesi/modd v0.0.0-20211215124449-6083f9d1c171
 	github.com/golangci/golangci-lint v1.43.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.2
 	golang.org/x/tools v0.1.10
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.0
