@@ -76,7 +76,7 @@
     "jest-circus": "^27.5.1",
     "jest-environment-node": "^27.5.1",
     "jest-playwright-preset": "^1.7.0",
-    "jest-runner": "^27.5.1",
+    "jest-runner": "^28.1.0",
     "mini-css-extract-plugin": "^0.8.0",
     "node-notifier": "^10.0.1",
     "optimize-css-assets-webpack-plugin": "^6.0.1",
