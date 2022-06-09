@@ -4,4 +4,4 @@ home: https://flipt.io
 description: Flipt is an open-source, on-prem feature flag solution for your existing infrastructure.
 type: application
 version: 0.1.0
-appVersion: "v1.8.2"
+appVersion: "v1.8.3"
