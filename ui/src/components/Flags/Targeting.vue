@@ -266,15 +266,7 @@
 </template>
 
 <script>
-import {
-  capitalize,
-  clone,
-  cloneDeep,
-  find,
-  forEach,
-  isEmpty,
-  map,
-} from "lodash";
+import { capitalize, clone, cloneDeep, find, forEach, map } from "lodash";
 
 import draggable from "vuedraggable";
 
@@ -345,10 +337,7 @@ export default {
       return this.flag.variants && this.flag.variants.length > 0;
     },
     canAddRule() {
-      return (
-        this.isPresent(this.newRule.segmentKey) &&
-        !isEmpty(this.newRule.distributions)
-      );
+      return this.isPresent(this.newRule.segmentKey);
     },
   },
   mounted() {
