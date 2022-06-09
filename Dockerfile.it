@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:21.10
 
 LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
 
@@ -34,4 +34,4 @@ RUN mkdir /tmp/pwt && cd /tmp/pwt && \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-EXPOSE 8080
+EXPOSE 8079
