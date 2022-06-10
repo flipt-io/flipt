@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.7.2
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
