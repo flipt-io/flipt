@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "axios": "^0.26.1",
-    "buefy": "^0.9.20",
+    "buefy": "^0.9.21",
     "bulma": "^0.8.0",
     "jpeg-js": "0.4.3",
     "lodash": "^4.17.21",
@@ -75,7 +75,7 @@
     "jest": "~27.5.1",
     "jest-circus": "^27.5.1",
     "jest-environment-node": "^27.5.1",
-    "jest-playwright-preset": "^1.7.0",
+    "jest-playwright-preset": "^1.7.2",
     "jest-runner": "^27.5.1",
     "mini-css-extract-plugin": "^0.8.0",
     "node-notifier": "^10.0.1",
