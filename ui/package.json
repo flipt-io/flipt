@@ -74,7 +74,7 @@
     "html-webpack-plugin": "^4.5.2",
     "jest": "~27.5.1",
     "jest-circus": "^27.5.1",
-    "jest-environment-node": "^27.5.1",
+    "jest-environment-node": "^28.1.1",
     "jest-playwright-preset": "^1.7.0",
     "jest-runner": "^27.5.1",
     "mini-css-extract-plugin": "^0.8.0",
