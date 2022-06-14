@@ -1064,12 +1064,12 @@
     "@babel/types" "^7.4.4"
     esutils "^2.0.2"
 
-"@babel/runtime-corejs2@^7.17.9":
-  version "7.17.9"
-  resolved "https://registry.yarnpkg.com/@babel/runtime-corejs2/-/runtime-corejs2-7.17.9.tgz#068e3f4cc08c7c62504eb704b5eb8b735b079b56"
-  integrity sha512-+QThIsnjVY12uURTvmnW33risFZ7ulq6OWw0VJL08UwiYiWVp9PM63s+W1L2ppajYyKAYKb7afcGYSHzA0k04Q==
+"@babel/runtime-corejs2@^7.18.3":
+  version "7.18.3"
+  resolved "https://registry.yarnpkg.com/@babel/runtime-corejs2/-/runtime-corejs2-7.18.3.tgz#415671a614d82e9791df7acf67b4853b96346643"
+  integrity sha512-r9L5eZChdP1DHSL+YwGEd7Rcs8Yk2KDOwSJ4cdB8ZAMolqiW7Qa9I1ir/05lte/i6N979PKYr5288OqoyZkabA==
   dependencies:
-    core-js "^2.6.5"
+    core-js "^2.6.12"
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.8.4":
@@ -3484,7 +3484,7 @@ core-js-compat@^3.20.0, core-js-compat@^3.22.1:
     browserslist "^4.20.3"
     semver "7.0.0"
 
-core-js@^2.6.5:
+core-js@^2.6.12:
   version "2.6.12"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
   integrity sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==
