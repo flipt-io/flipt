@@ -46,7 +46,7 @@
     "@babel/preset-env": "^7.18.2",
     "@babel/runtime-corejs2": "^7.18.3",
     "@playwright/test": "^1.22.2",
-    "@webpack-cli/serve": "^1.6.0",
+    "@webpack-cli/serve": "^1.7.0",
     "autoprefixer": "^9.6.1",
     "babel-eslint": "^10.0.1",
     "babel-helper-vue-jsx-merge-props": "^2.0.3",
