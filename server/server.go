@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
+	errs "go.flipt.io/flipt/errors"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

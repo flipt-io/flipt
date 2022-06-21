@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 

@@ -1,4 +1,4 @@
-module github.com/markphelps/flipt
+module go.flipt.io/flipt
 
 go 1.17
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/markphelps/flipt/storage"
+	"go.flipt.io/flipt/storage"
 )
 
 const (

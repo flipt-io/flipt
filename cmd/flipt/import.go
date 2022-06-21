@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/markphelps/flipt/internal/ext"
-	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/sql"
-	"github.com/markphelps/flipt/storage/sql/mysql"
-	"github.com/markphelps/flipt/storage/sql/postgres"
-	"github.com/markphelps/flipt/storage/sql/sqlite"
+	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql"
+	"go.flipt.io/flipt/storage/sql/mysql"
+	"go.flipt.io/flipt/storage/sql/postgres"
+	"go.flipt.io/flipt/storage/sql/sqlite"
 )
 
 var (

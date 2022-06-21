@@ -7,7 +7,7 @@ import (
 	"errors"
 	"testing"
 
-	errs "github.com/markphelps/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 )
 
 func FuzzValidateAttachment(f *testing.F) {

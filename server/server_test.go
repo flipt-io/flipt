@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/markphelps/flipt/errors"
+	"go.flipt.io/flipt/errors"
 
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"

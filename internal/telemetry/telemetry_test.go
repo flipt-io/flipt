@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/markphelps/flipt/config"
-	"github.com/markphelps/flipt/internal/info"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/info"
 
 	"github.com/sirupsen/logrus/hooks/test"
 	"gopkg.in/segmentio/analytics-go.v3"

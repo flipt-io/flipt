@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 )
 
 const ruleCachePrefix = "rule:"

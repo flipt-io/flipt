@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
+	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a

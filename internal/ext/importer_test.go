@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
-	"github.com/markphelps/flipt/rpc/flipt"
 	"github.com/stretchr/testify/assert"
+	"go.flipt.io/flipt/rpc/flipt"
 )
 
 type mockCreator struct {

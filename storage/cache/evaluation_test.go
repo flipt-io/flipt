@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/storage"
 )
 
 func TestGetEvaluationRules(t *testing.T) {

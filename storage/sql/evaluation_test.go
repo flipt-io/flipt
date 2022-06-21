@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
 func TestGetEvaluationRules(t *testing.T) {
@@ -185,7 +185,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	assert.Equal(t, float32(50.00), evaluationDistributions[1].Rollout)
 }
 
-// https://github.com/markphelps/flipt/issues/229
+// https://go.flipt.io/flipt/issues/229
 func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),

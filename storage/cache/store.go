@@ -3,8 +3,8 @@ package cache
 import (
 	"fmt"
 
-	"github.com/markphelps/flipt/storage"
 	"github.com/sirupsen/logrus"
+	"go.flipt.io/flipt/storage"
 )
 
 var _ storage.Store = &Store{}
