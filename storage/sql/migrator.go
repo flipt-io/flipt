@@ -10,8 +10,8 @@ import (
 	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
-	"github.com/markphelps/flipt/config"
 	"github.com/sirupsen/logrus"
+	"go.flipt.io/flipt/config"
 )
 
 var expectedVersions = map[Driver]uint{

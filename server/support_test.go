@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/mock"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 )
 
 var (

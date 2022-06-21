@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
+	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"gopkg.in/yaml.v2"
 )
 

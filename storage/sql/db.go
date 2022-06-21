@@ -10,9 +10,9 @@ import (
 	"github.com/lib/pq"
 	"github.com/luna-duclos/instrumentedsql"
 	"github.com/luna-duclos/instrumentedsql/opentracing"
-	"github.com/markphelps/flipt/config"
 	"github.com/mattn/go-sqlite3"
 	"github.com/xo/dburl"
+	"go.flipt.io/flipt/config"
 )
 
 // Open opens a connection to the db

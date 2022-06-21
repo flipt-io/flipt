@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
 func TestGetEvaluationRules(t *testing.T) {

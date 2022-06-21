@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/cache"
-	"github.com/markphelps/flipt/storage/cache/memory"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/cache"
+	"go.flipt.io/flipt/storage/cache/memory"
 )
 
 func TestGetRule(t *testing.T) {

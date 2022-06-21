@@ -5,8 +5,8 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 )
 
 type optionalConstraint struct {

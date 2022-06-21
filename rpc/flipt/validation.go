@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/markphelps/flipt/errors"
+	"go.flipt.io/flipt/errors"
 )
 
 const maxVariantAttachmentSize = 10000

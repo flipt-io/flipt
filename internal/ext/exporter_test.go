@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
 	"github.com/stretchr/testify/assert"
+	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 )
 
 type mockLister struct {

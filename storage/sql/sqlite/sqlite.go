@@ -7,11 +7,11 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/sql/common"
 	"github.com/mattn/go-sqlite3"
+	errs "go.flipt.io/flipt/errors"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 )
 
 var _ storage.Store = &Store{}

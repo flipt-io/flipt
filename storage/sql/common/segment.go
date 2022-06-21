@@ -9,9 +9,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
 
-	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
+	errs "go.flipt.io/flipt/errors"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

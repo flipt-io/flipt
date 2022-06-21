@@ -13,13 +13,13 @@ import (
 	ms "github.com/golang-migrate/migrate/database/mysql"
 	pg "github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
-	"github.com/markphelps/flipt/config"
-	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/sql/mysql"
-	"github.com/markphelps/flipt/storage/sql/postgres"
-	"github.com/markphelps/flipt/storage/sql/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/mysql"
+	"go.flipt.io/flipt/storage/sql/postgres"
+	"go.flipt.io/flipt/storage/sql/sqlite"
 
 	_ "github.com/golang-migrate/migrate/source/file"
 )

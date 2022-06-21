@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/markphelps/flipt/errors"
 	"github.com/stretchr/testify/assert"
+	"go.flipt.io/flipt/errors"
 )
 
 func largeJsonString() string {

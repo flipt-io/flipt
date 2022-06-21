@@ -8,10 +8,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/go-sql-driver/mysql"
-	errs "github.com/markphelps/flipt/errors"
-	flipt "github.com/markphelps/flipt/rpc/flipt"
-	"github.com/markphelps/flipt/storage"
-	"github.com/markphelps/flipt/storage/sql/common"
+	errs "go.flipt.io/flipt/errors"
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 )
 
 const (
