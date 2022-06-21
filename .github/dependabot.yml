@@ -10,6 +10,9 @@ updates:
     assignees:
       - markphelps
     ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
       - dependency-name: github.com/golangci/golangci-lint
         versions:
           - "> 1.26.0"
@@ -24,6 +27,9 @@ updates:
     assignees:
       - markphelps
     ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
       - dependency-name: github.com/golangci/golangci-lint
         versions:
           - "> 1.26.0"
@@ -37,6 +43,10 @@ updates:
       - markphelps
     assignees:
       - markphelps
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
