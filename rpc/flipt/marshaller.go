@@ -15,7 +15,7 @@ var _ grpc_gateway_v2.Marshaler = &V1toV2MarshallerAdapter{}
 // This is required to fix a backwards compatibility issue with the v2 marshaller where `null` map values
 // cause an error because they are not allowed by the proto spec, but they were handled by the v1 marshaller.
 //
-// See: https://go.flipt.io/flipt/issues/664
+// See: https://github.com/markphelps/flipt/issues/664
 //
 // TODO: remove this custom marshaller for Flipt API v2 as we want to use the default v2 marshaller directly.
 type V1toV2MarshallerAdapter struct {

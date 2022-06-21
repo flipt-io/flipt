@@ -185,7 +185,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	assert.Equal(t, float32(50.00), evaluationDistributions[1].Rollout)
 }
 
-// https://go.flipt.io/flipt/issues/229
+// https://github.com/markphelps/flipt/issues/229
 func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
