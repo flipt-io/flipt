@@ -2,7 +2,7 @@
     <img src="logo.svg" alt="Flipt" width=200 height=200 />
 </p>
 
-<p align="center">An open-source, on-prem feature flag solution</p>
+<p align="center">An open source, self-hosted feature flag solution</p>
 
 <hr />
 
@@ -48,7 +48,7 @@
     </h4>
 </div>
 
-Flipt is an open source, on-prem feature flag application that allows you to run experiments across services in **your** environment.
+Flipt is an open source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
