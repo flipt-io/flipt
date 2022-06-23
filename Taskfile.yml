@@ -22,6 +22,8 @@ tasks:
     deps: [assets:deps]
     cmds:
       - cd ui && yarn build
+    vars:
+      NODE_OPTIONS: --openssl-legacy-provider
     sources:
       - ./ui/static/*
       - ./ui/src/**/*
@@ -47,6 +49,14 @@ tasks:
     desc: Install necessary development tools
     cmds:
       - ./script/bootstrap
+
+  build:
+    desc: Run Go build
+    cmds:
+      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
+    vars:
+      GIT_COMMIT:
+        sh: set -e && git rev-parse --verify HEAD || ""
 
   build:clients:
     desc: Generate Ruby and Go proto clients
@@ -101,7 +111,7 @@ tasks:
   fmt:
     desc: Run goimports
     cmds:
-      - goimports -w .
+      - goimports -w $(go list -f {{`{{.Dir}}`}} ./... | grep -v /rpc/)
 
   lint:
     desc: Run the linters
@@ -117,4 +127,4 @@ tasks:
       COVERAGE_FILE: coverage.txt
       TEST_PATTERN: .
       TEST_FLAGS: -v
-      TEST_OPTS:
+      TEST_OPTS: -race
