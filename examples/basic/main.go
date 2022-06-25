@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"text/template"
 
-	flipt "github.com/markphelps/flipt-grpc-go"
+	flipt "go.flipt.io/flipt-grpc"
 
 	"google.golang.org/grpc"
 )
