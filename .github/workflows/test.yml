@@ -3,7 +3,21 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - "deploy/**"
+      - "examples/**"
+      - "logos/**"
+      - "**.md"
+      - "**.txt"
+      - "**.ya?ml"
   pull_request:
+    paths-ignore:
+      - "deploy/**"
+      - "examples/**"
+      - "logos/**"
+      - "**.md"
+      - "**.txt"
+      - "**.ya?ml"
 
 jobs:
   lint:

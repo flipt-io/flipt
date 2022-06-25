@@ -1,7 +1,7 @@
 apiVersion: v2
 name: flipt
 home: https://flipt.io
-description: Flipt is an open source, self-hosted feature flag solution for your existing infrastructure.
+description: Flipt is an open source, self-hosted feature flag solution.
 type: application
 version: 0.2.0
 appVersion: "v1.8.3"
