@@ -42,7 +42,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /etc/flipt/config
+              mountPath: /etc/flipt/config.yml
               readOnly: true
           livenessProbe:
             httpGet:
@@ -55,9 +55,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: config
+        - name: config-volume
           configMap:
-            name: flipt-config
+            name: {{ include "flipt.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
