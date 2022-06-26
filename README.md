@@ -58,6 +58,8 @@ Flipt supports use cases such as:
 - Rolling out features to a percentage of your customers
 - Using advanced segmentation to target and serve users based on custom properties that you define
 
+**Note: Flipt is in the process of moving to it's new home under the [flipt-io organization](https://github.com/flipt-io/).**
+
 ## Features
 
 - Fast. Written in Go. Optimized for performance
@@ -68,6 +70,7 @@ Flipt supports use cases such as:
 - Modern, mobile friendly 📱 UI and debug console
 - Support for multiple databases (Postgres, MySQL, SQLite)
 - Data import and export to allow storing your data as code
+- **Cloud ready** :cloud: - Runs anywhere. Bare metal, PaaS, K8s, with Docker or without.
 
 ## Values
 
@@ -75,7 +78,6 @@ Flipt supports use cases such as:
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite.. Flipt supports it all.
-- :cloud: **Runs Anywhere** - Bare metal, PaaS, K8s, with Docker or without.
 
 ## Try It
 
