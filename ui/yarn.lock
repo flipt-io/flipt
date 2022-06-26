@@ -451,10 +451,10 @@
     "@babel/helper-plugin-utils" "^7.17.12"
     "@babel/plugin-syntax-export-namespace-from" "^7.8.3"
 
-"@babel/plugin-proposal-function-sent@^7.17.12":
-  version "7.17.12"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-function-sent/-/plugin-proposal-function-sent-7.17.12.tgz#29cf0004323185740a8488b3726049f2520c901a"
-  integrity sha512-gmg9gutLxaVFWz7l9QkedjArYK0KUBe9zUR/SVGVzeiJ/3AVTllBzh1A6PPBq+fvoWzGVuRSp49yD/jKaFP3Zg==
+"@babel/plugin-proposal-function-sent@^7.18.2":
+  version "7.18.2"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-function-sent/-/plugin-proposal-function-sent-7.18.2.tgz#460a3c6ceac16da8e50a93b6068fd99265e56c75"
+  integrity sha512-JKAqbpAh6/ZA9satxaP02oL9lmyF1XxzItEONAPHd+jhZtzxBu5sR4L2LhnzjUwR3uJzExaiuHLGuUMNMt/t5A==
   dependencies:
     "@babel/helper-plugin-utils" "^7.17.12"
     "@babel/helper-wrap-function" "^7.16.8"
