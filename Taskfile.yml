@@ -22,7 +22,7 @@ tasks:
     deps: [assets:deps]
     cmds:
       - cd ui && yarn build
-    vars:
+    env:
       NODE_OPTIONS: --openssl-legacy-provider
     sources:
       - ./ui/static/*
@@ -36,6 +36,8 @@ tasks:
     desc: Install UI dependencies
     cmds:
       - cd ui && yarn --frozen-lockfile
+    env:
+      NODE_OPTIONS: --openssl-legacy-provider
 
   bench:
     desc: Run benchmarks

@@ -11,7 +11,7 @@ RUN echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
     apt-get install -y \
     sudo tzdata bats curl wget jq gnupg
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash
 
 RUN apt-get update && \
     apt-get install -y nodejs
