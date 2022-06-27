@@ -9,7 +9,7 @@ Before starting, make sure you have the following installed:
 - GCC Compiler
 - [SQLite](https://sqlite.org/index.html)
 - [Go 1.17+](https://golang.org/doc/install)
-- [NodeJS >= 16](https://nodejs.org/en/)
+- [NodeJS >= 18](https://nodejs.org/en/)
 - [Yarn](https://yarnpkg.com/en/)
 - [Task](https://taskfile.dev/#/)
 
