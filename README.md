@@ -70,7 +70,7 @@ Flipt supports use cases such as:
 - Modern, mobile friendly 📱 UI and debug console
 - Support for multiple databases (Postgres, MySQL, SQLite)
 - Data import and export to allow storing your data as code
-- **Cloud ready** :cloud: - Runs anywhere. Bare metal, PaaS, K8s, with Docker or without.
+- Cloud ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without.
 
 ## Values
 
