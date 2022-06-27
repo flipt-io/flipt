@@ -36,6 +36,8 @@ tasks:
     desc: Install UI dependencies
     cmds:
       - cd ui && yarn --frozen-lockfile
+    vars:
+      NODE_OPTIONS: --openssl-legacy-provider
 
   bench:
     desc: Run benchmarks
