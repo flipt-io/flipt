@@ -7,7 +7,6 @@ cd "$(dirname "$0")/.." || exit
 FLIPT_PID="/tmp/flipt.api.pid"
 
 finish() {
-  _finish # shakedown trap that sets exit code correctly
   [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
 }
 
@@ -18,7 +17,7 @@ run()
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
     echo $! > "$FLIPT_PID"
-    
+
     sleep 5
 
     flipt_host="127.0.0.1:8080"
