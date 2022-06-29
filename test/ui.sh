@@ -22,8 +22,7 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && npm ci
-    npm test
+    cd "ui" && npm test
 }
 
 run

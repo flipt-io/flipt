@@ -35,7 +35,7 @@ tasks:
   assets:deps:
     desc: Install UI dependencies
     cmds:
-      - cd ui && npm i
+      - cd ui && npm ci
     env:
       NODE_OPTIONS: --openssl-legacy-provider
 
