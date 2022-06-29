@@ -39,6 +39,11 @@ tasks:
     env:
       NODE_OPTIONS: --openssl-legacy-provider
 
+  assets:dev:
+    desc: Run the UI dev server
+    cmds:
+      - cd ui && npm run dev
+
   bench:
     desc: Run benchmarks
     cmds:
@@ -103,12 +108,9 @@ tasks:
       COVERAGE_FILE: coverage.txt
 
   dev:
-    desc: Start the server and UI in development modes
+    desc: Start the server
     cmds:
-      - modd
-    preconditions:
-      - sh: "! [ -x '$(command -v modd)' ]"
-        msg: "modd not found. run bootstrap."
+      - go run ./cmd/flipt/. --config ./config/local.yml --force-migrate
 
   fmt:
     desc: Run goimports

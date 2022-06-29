@@ -73,9 +73,7 @@ If you have access to [GitHub Codespaces](https://github.com/features/codespaces
 
 ### Building/Running
 
-Flipt uses [modd](https://github.com/cortesi/modd) for managing processes during development.
-
-Run `task dev` from the project root. See [modd.conf](modd.conf) for configuration.
+Run `script/server` from the project root.
 
 The `webpack-dev-server` that is used when running the UI in development mode will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
 
