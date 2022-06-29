@@ -128,10 +128,3 @@ jobs:
 
       - name: Test UI
         run: ./test/ui.sh
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: playwright-report
-          path: playwright-report
