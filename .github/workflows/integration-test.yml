@@ -49,17 +49,14 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - name: Go Build Cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
-          path: ${{ steps.go-cache-paths.outputs.go-build }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
-      - name: Go Mod Cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Install dependencies
         run: |
