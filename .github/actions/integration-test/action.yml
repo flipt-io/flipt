@@ -8,6 +8,5 @@ inputs:
 runs:
   using: "docker"
   image: "docker://ghcr.io/markphelps/flipt-integration-test:latest"
-  pre-entrypoint: "npx playwright install chromium --with-deps" # install latest chromium with deps
   args:
     - ${{ inputs.args }}
