@@ -40,6 +40,9 @@ jobs:
           cache: "npm"
           cache-dependency-path: ui/package-lock.json
 
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+
       - uses: arduino/setup-task@v1
 
       - id: go-cache-paths
@@ -77,6 +80,11 @@ jobs:
           args: ./test/cli.bats
 
       - name: Test UI
-        uses: ./.github/actions/integration-test
+        run: ./test/ui.sh
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v2
         with:
-          args: ./test/ui.sh
+          name: playwright-report
+          path: playwright-report

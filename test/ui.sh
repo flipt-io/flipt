@@ -22,9 +22,7 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && npm i
-    # install latest chromium
-    sudo npx playwright install chromium --with-deps
+    cd "ui" && npm ci
     npm test
 }
 
