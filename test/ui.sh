@@ -24,7 +24,7 @@ run()
 
     cd "ui" && npm i
     # install latest chromium
-    npx playwright install chromium --with-deps
+    sudo npx playwright install chromium --with-deps
     npm test
 }
 
