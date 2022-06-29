@@ -69,16 +69,6 @@ jobs:
           task bootstrap
           task
 
-      - name: Test API
-        uses: ./.github/actions/integration-test
-        with:
-          args: ./test/api.sh
-
-      - name: Test CLI
-        uses: ./.github/actions/integration-test
-        with:
-          args: ./test/cli.bats
-
       - name: Test UI
         run: ./test/ui.sh
 
