@@ -26,7 +26,6 @@ RUN mkdir ${PLAYWRIGHT_BROWSERS_PATH}
 # using this hack because of npm junk: https://github.com/microsoft/playwright/issues/9858#issuecomment-954311179
 RUN mkdir /tmp/pwt && cd /tmp/pwt && \
     npm install @playwright/test && \
-    npx playwright install chromium --with-deps && \
     chmod -R 777 /ms-playwright
 
 RUN apt-get clean && \
