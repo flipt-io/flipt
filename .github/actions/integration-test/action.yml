@@ -5,13 +5,9 @@ inputs:
   args: # id of input
     description: "args to pass to container"
     required: true
-  tag: # image tag
-    description: "tag to use for image"
-    default: "latest"
-    required: false
 runs:
   using: "docker"
-  image: "docker://ghcr.io/markphelps/flipt-integration-test:${{ inputs.tag }}"
+  image: "docker://ghcr.io/markphelps/flipt-integration-test:latest"
   pre-entrypoint: "npx playwright install chromium --with-deps" # install latest chromium with deps
   args:
     - ${{ inputs.args }}
