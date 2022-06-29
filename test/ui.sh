@@ -22,8 +22,8 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && yarn install --frozen-lockfile
-    yarn test
+    cd "ui" && npm i
+    npm test
 }
 
 run

@@ -21,7 +21,7 @@ tasks:
     desc: Build the UI
     deps: [assets:deps]
     cmds:
-      - cd ui && yarn build
+      - cd ui && npm run build
     env:
       NODE_OPTIONS: --openssl-legacy-provider
     sources:
@@ -35,7 +35,7 @@ tasks:
   assets:deps:
     desc: Install UI dependencies
     cmds:
-      - cd ui && yarn --frozen-lockfile
+      - cd ui && npm i
     env:
       NODE_OPTIONS: --openssl-legacy-provider
 

@@ -16,8 +16,6 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x | bash
 RUN apt-get update && \
     apt-get install -y nodejs
 
-RUN npm install -g yarn
-
 # specify location of to be installed browsers
 # so that our IT can find them at runtime
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
