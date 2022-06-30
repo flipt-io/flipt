@@ -1,20 +1,8 @@
-import { chromium } from "playwright";
-
-let browser;
-let page;
+import { test, expect } from "@playwright/test";
 
 const addr = "http://127.0.0.1:8080";
 
-beforeAll(async () => {
-  browser = await chromium.launch();
-  page = await browser.newPage();
-});
-
-afterAll(async () => {
-  await browser.close();
-});
-
-test("createSegment", async () => {
+test("createSegment", async ({ page }) => {
   await page.goto(addr);
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
@@ -27,11 +15,12 @@ test("createSegment", async () => {
   );
   await page.click("[data-testid='create-segment']");
   await page.click('[aria-label="breadcrumbs"] .router-link-active');
-  await expect(page).toHaveText("power-users");
-  await page.click('[href="#/segments/power-users"]');
+  const locator = page.locator("a", { hasText: "power-users" });
+  await expect(locator).toBeVisible();
+  await locator.click();
 });
 
-test("createSegmentDisallowSpecialChars", async () => {
+test("createSegmentDisallowSpecialChars", async ({ page }) => {
   await page.goto(addr);
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
@@ -41,7 +30,8 @@ test("createSegmentDisallowSpecialChars", async () => {
     "[placeholder='Segment description']",
     "This should not be saved"
   );
-  await expect(page).toHaveText(
-    "Only letters, numbers, hypens and underscores allowed"
-  );
+  const locator = page.locator("p", {
+    hasText: "Only letters, numbers, hypens and underscores allowed",
+  });
+  await expect(locator).toBeVisible();
 });
