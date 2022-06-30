@@ -4,7 +4,7 @@ set -o pipefail
 
 cd "$(dirname "$0")/.." || exit
 
-export SHAKEDOWN_URL="http://127.0.0.1:9090"
+export SHAKEDOWN_URL="http://127.0.0.1:8080"
 
 source ./test/helpers/shakedown/shakedown.sh
 
