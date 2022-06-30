@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const addr = "http://127.0.0.1:8081";
+const addr = "http://127.0.0.1:8080";
 
 test("createSegment", async ({ page }) => {
   await page.goto(addr);
