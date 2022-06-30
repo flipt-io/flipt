@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const addr = "http://127.0.0.1:8080";
+const addr = "http://127.0.0.1:8081";
 
 test("createFlag", async ({ page }) => {
   await page.goto(addr);
@@ -12,8 +12,9 @@ test("createFlag", async ({ page }) => {
   );
   await page.click("[data-testid='create-flag']");
   await page.click('[aria-label="breadcrumbs"] .router-link-active');
-  await expect(page).toHaveText("awesome-new-feature");
-  await page.click('[href="#/flags/awesome-new-feature"]');
+  const locator = page.locator("a", { hasText: "awesome-new-feature" });
+  await expect(locator).toBeVisible();
+  await locator.click();
 });
 
 test("createFlagDisallowSpecialChars", async ({ page }) => {
@@ -25,7 +26,8 @@ test("createFlagDisallowSpecialChars", async ({ page }) => {
     "[placeholder='Flag description']",
     "This should not be saved"
   );
-  await expect(page).toHaveText(
-    "Only letters, numbers, hypens and underscores allowed"
-  );
+  const locator = page.locator("p", {
+    hasText: "Only letters, numbers, hypens and underscores allowed",
+  });
+  await expect(locator).toBeVisible();
 });
