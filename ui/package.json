@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--experimental-json-modules --openssl-legacy-provider' npx webpack serve --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "lint": "eslint --ext .js,.vue src __tests__",
+    "lint": "eslint --ext .js,.vue src tests",
     "build": "node --experimental-json-modules build/build.js",
-    "test": "playwright test"
+    "test": "jest && playwright test"
   },
   "dependencies": {
     "axios": "^0.26.1",
@@ -113,6 +113,11 @@
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "testRegex": "(/tests/.*|(\\.|/)(test|spec))\\.(jsx?|js?|tsx?|ts?)$",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/e2e/"
+    ]
   }
 }
