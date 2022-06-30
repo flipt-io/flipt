@@ -7,4 +7,3 @@ The ui directory contains these `.vue` files, along with others used in the web 
 ## Build Requirements
 
 - [NodeJS >= 18](https://nodejs.org/en/)
-- [Yarn](https://yarnpkg.com/en/)

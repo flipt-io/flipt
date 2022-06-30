@@ -4,12 +4,19 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit
 
+FLIPT_PID="/tmp/flipt.api.pid"
+
+finish() {
+  [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
+}
+
 run()
 {
     # run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
     ./bin/flipt --config ./config/local.yml &> /dev/null &
+    echo $! > "$FLIPT_PID"
 
     sleep 5
 
@@ -22,8 +29,7 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && yarn install --frozen-lockfile
-    yarn test
+    cd "ui" &&  npm test
 }
 
 run

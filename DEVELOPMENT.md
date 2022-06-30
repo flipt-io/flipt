@@ -10,7 +10,6 @@ Before starting, make sure you have the following installed:
 - [SQLite](https://sqlite.org/index.html)
 - [Go 1.17+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/)
-- [Yarn](https://yarnpkg.com/en/)
 - [Task](https://taskfile.dev/#/)
 
 ## Setup
@@ -56,7 +55,7 @@ Running `task assets` will regenerate the embedded assets (ui, api documentation
 
 #### UI components
 
-The UI is built using [Yarn](https://yarnpkg.com/en/) and [webpack](https://webpack.js.org/) and is also statically compiled into the Flipt binary.
+The UI is built using [NPM](https://nodejs.org/en/) and [webpack](https://webpack.js.org/) and is also statically compiled into the Flipt binary.
 
 The [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
 
@@ -74,9 +73,7 @@ If you have access to [GitHub Codespaces](https://github.com/features/codespaces
 
 ### Building/Running
 
-Flipt uses [modd](https://github.com/cortesi/modd) for managing processes during development.
-
-Run `task dev` from the project root. See [modd.conf](modd.conf) for configuration.
+Run `script/server` from the project root.
 
 The `webpack-dev-server` that is used when running the UI in development mode will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
 
@@ -84,4 +81,4 @@ The `webpack-dev-server` that is used when running the UI in development mode wi
 
 The three ports `8080`, `8081`, `9000` will be forwarded to your local machine automatically.
 
-`8081` is the UI dev port that runs the `yarn dev server` that you can open in your browser.
+`8081` is the UI dev port that runs the `npm dev server` that you can open in your browser.

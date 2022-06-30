@@ -1,4 +1,4 @@
-FROM ubuntu:21.10
+FROM ubuntu:focal
 
 LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
 
@@ -16,8 +16,6 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x | bash
 RUN apt-get update && \
     apt-get install -y nodejs
 
-RUN npm install -g yarn
-
 # specify location of to be installed browsers
 # so that our IT can find them at runtime
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
@@ -27,7 +25,6 @@ RUN mkdir ${PLAYWRIGHT_BROWSERS_PATH}
 # need to install browser and deps for playwright
 # using this hack because of npm junk: https://github.com/microsoft/playwright/issues/9858#issuecomment-954311179
 RUN mkdir /tmp/pwt && cd /tmp/pwt && \
-    npm install @playwright/test && \
     npx playwright install chromium --with-deps && \
     chmod -R 777 /ms-playwright
 

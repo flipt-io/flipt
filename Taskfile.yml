@@ -21,7 +21,7 @@ tasks:
     desc: Build the UI
     deps: [assets:deps]
     cmds:
-      - cd ui && yarn build
+      - cd ui && npm run build
     env:
       NODE_OPTIONS: --openssl-legacy-provider
     sources:
@@ -35,9 +35,14 @@ tasks:
   assets:deps:
     desc: Install UI dependencies
     cmds:
-      - cd ui && yarn --frozen-lockfile
+      - cd ui && npm ci
     env:
       NODE_OPTIONS: --openssl-legacy-provider
+
+  assets:dev:
+    desc: Run the UI dev server
+    cmds:
+      - cd ui && npm run dev
 
   bench:
     desc: Run benchmarks
@@ -103,12 +108,9 @@ tasks:
       COVERAGE_FILE: coverage.txt
 
   dev:
-    desc: Start the server and UI in development modes
+    desc: Start the server
     cmds:
-      - modd
-    preconditions:
-      - sh: "! [ -x '$(command -v modd)' ]"
-        msg: "modd not found. run bootstrap."
+      - go run ./cmd/flipt/. --config ./config/local.yml --force-migrate
 
   fmt:
     desc: Run goimports
