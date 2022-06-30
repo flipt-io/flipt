@@ -67,14 +67,12 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
     "eslint-plugin-vue": "^8.7.1",
-    "expect-playwright": "^0.8.0",
     "file-loader": "^6.2.0",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^4.5.2",
     "jest": "~27.5.1",
     "jest-circus": "^27.5.1",
     "jest-environment-node": "^27.5.1",
-    "jest-playwright-preset": "^1.7.2",
     "jest-runner": "^27.5.1",
     "mini-css-extract-plugin": "^0.8.0",
     "node-notifier": "^10.0.1",
@@ -109,7 +107,6 @@
     "not ie <= 8"
   ],
   "jest": {
-    "preset": "jest-playwright-preset",
     "moduleDirectories": [
       "node_modules",
       "src"
