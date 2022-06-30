@@ -1,20 +1,8 @@
-import { chromium } from "playwright";
-
-let browser;
-let page;
+import { test, expect } from "@playwright/test";
 
 const addr = "http://127.0.0.1:8080";
 
-beforeAll(async () => {
-  browser = await chromium.launch();
-  page = await browser.newPage();
-});
-
-afterAll(async () => {
-  await browser.close();
-});
-
-test("createSegment", async () => {
+test("createSegment", async ({ page }) => {
   await page.goto(addr);
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
@@ -31,7 +19,7 @@ test("createSegment", async () => {
   await page.click('[href="#/segments/power-users"]');
 });
 
-test("createSegmentDisallowSpecialChars", async () => {
+test("createSegmentDisallowSpecialChars", async ({ page }) => {
   await page.goto(addr);
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");

@@ -1,20 +1,8 @@
-import { chromium } from "playwright";
-
-let browser;
-let page;
+import { test, expect } from "@playwright/test";
 
 const addr = "http://127.0.0.1:8080";
 
-beforeAll(async () => {
-  browser = await chromium.launch();
-  page = await browser.newPage();
-});
-
-afterAll(async () => {
-  await browser.close();
-});
-
-test("createFlag", async () => {
+test("createFlag", async ({ page }) => {
   await page.goto(addr);
   await page.click("[data-testid='new-flag']");
   await page.type("[placeholder='Flag name']", "Awesome new feature");
@@ -28,7 +16,7 @@ test("createFlag", async () => {
   await page.click('[href="#/flags/awesome-new-feature"]');
 });
 
-test("createFlagDisallowSpecialChars", async () => {
+test("createFlagDisallowSpecialChars", async ({ page }) => {
   await page.goto(addr);
   await page.click("[data-testid='new-flag']");
   await page.type("[placeholder='Flag name']", "My flag with colons");
