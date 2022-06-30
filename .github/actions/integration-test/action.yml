@@ -1,0 +1,12 @@
+# action.yml
+name: "Flipt IT Tests"
+description: "Container for running Flipt ITs"
+inputs:
+  args: # id of input
+    description: args to pass to container'
+    required: true
+runs:
+  using: "docker"
+  image: "docker://ghcr.io/markphelps/flipt-integration-test"
+  args:
+    - ${{ inputs.args }}

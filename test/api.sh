@@ -291,7 +291,7 @@ run()
     # run any pending db migrations
     ./bin/flipt migrate --config ./config/local.yml &> /dev/null
 
-    FLIPT_SERVER_HTTP_PORT=9090 ./bin/flipt --config ./config/local.yml &> /dev/null &
+    ./bin/flipt --config ./config/local.yml &> /dev/null &
     echo $! > "$FLIPT_PID"
 
     sleep 5
@@ -301,7 +301,7 @@ run()
     echo -e "\e[32mStart testing $SHAKEDOWN_URL\e[0m"
     echo -e "\e[32m===========================================\e[0m"
 
-    ./test/helpers/wait-for-it/wait-for-it.sh "127.0.0.1:9090" -t 30
+    ./test/helpers/wait-for-it/wait-for-it.sh "127.0.0.1:8080" -t 30
 
     step_1_test_health
     step_2_test_flags_and_variants

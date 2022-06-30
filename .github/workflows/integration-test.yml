@@ -21,8 +21,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  cli:
-    name: CLI/API Tests
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     timeout-minutes: 20
@@ -42,8 +42,6 @@ jobs:
 
       - uses: arduino/setup-task@v1
 
-      - uses: actions/checkout@v3
-
       - uses: actions/cache@v3
         with:
           path: |
@@ -52,12 +50,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update && \
-          sudo apt-get install -y \
-          bats curl wget jq gnupg
 
       - name: Build the binary
         run: |
@@ -65,48 +57,16 @@ jobs:
           task
 
       - name: Test API
-        run: ./test/api.sh
+        uses: ./.github/actions/integration-test
+        with:
+          args: ./test/api.sh
 
       - name: Test CLI
-        run: ./test/cli.bats
-
-  ui:
-    name: UI Tests
-    runs-on: ubuntu-latest
-
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-go@v3
+        uses: ./.github/actions/integration-test
         with:
-          go-version: "1.17.x"
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-          cache: "npm"
-          cache-dependency-path: ui/package-lock.json
-
-      - name: Install Playwright
-        run: npx playwright install chromium --with-deps
-
-      - uses: arduino/setup-task@v1
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Build the binary
-        run: |
-          task bootstrap
-          task
+          args: ./test/cli.bats
 
       - name: Test UI
-        run: ./test/ui.sh
+        uses: ./.github/actions/integration-test
+        with:
+          args: ./test/ui.sh
