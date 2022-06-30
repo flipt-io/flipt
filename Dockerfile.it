@@ -14,22 +14,14 @@ RUN echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash
 
 RUN apt-get update && \
-    apt-get install -y nodejs
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # specify location of to be installed browsers
 # so that our IT can find them at runtime
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-RUN mkdir ${PLAYWRIGHT_BROWSERS_PATH}
-
-# need to install browser and deps for playwright
-# using this hack because of npm junk: https://github.com/microsoft/playwright/issues/9858#issuecomment-954311179
-RUN mkdir /tmp/pwt && cd /tmp/pwt && \
-    npm install @playwright/test && \
-    npx playwright install chromium --with-deps && \
-    chmod -R 777 /ms-playwright
-
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN mkdir ${PLAYWRIGHT_BROWSERS_PATH} && chmod -R 777 /ms-playwright
 
 EXPOSE 8079
