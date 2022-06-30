@@ -10,7 +10,7 @@
     "start": "npm run dev",
     "lint": "eslint --ext .js,.vue src __tests__",
     "build": "node --experimental-json-modules build/build.js",
-    "test": "jest"
+    "test": "playwright test"
   },
   "dependencies": {
     "axios": "^0.26.1",
