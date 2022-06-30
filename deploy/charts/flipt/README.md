@@ -1,5 +1,3 @@
 # Flipt Helm Chart
 
-This chart is still a work in progress.
-
-Please [create an issue](https://github.com/markphelps/flipt/issues/new?labels=helm) or submit a pull request for any issues or missing features.
+The Flipt Helm Chart has moved to [https://github.com/flipt-io/helm-charts](https://github.com/flipt-io/helm-charts).
