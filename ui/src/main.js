@@ -1,14 +1,14 @@
 import Vue from "vue";
 import App from "./App";
 import Buefy from "buefy";
-
+import VueMoment from "vue-moment";
 import router from "./router";
 import store from "./store";
 
 import "./assets/sass/main.scss";
 
 Vue.config.productionTip = false;
-Vue.use(require("vue-moment"));
+Vue.use(VueMoment);
 Vue.use(Buefy);
 
 Vue.filter("limit", function (value) {
