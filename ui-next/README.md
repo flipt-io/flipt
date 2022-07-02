@@ -1,7 +1,12 @@
-# Vue 3 + Vite
+# Flipt UI
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+The Flipt UI uses the [Vue.js](https://vuejs.org/) framework to build a modern single page application.
 
-## Recommended IDE Setup
+This directory contains these `.vue` files, along with others used in the web UI. These source files are built and packed together into simple HTML, JS, and CSS assets using the [Vite](https://vitejs.dev/) build tool.
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar)
+For easier distribution these assets are then statically compiled into the Flipt binary using the [go/embed](https://golang.org/pkg/embed/) package.
+
+## Build Requirements
+
+- [NodeJS >= 18](https://nodejs.org/en/)
+- [Go >= 1.17](https://golang.org/doc/install/source.html)
