@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "test": "jest",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src",
-    "format": "prettier .  --write"
+    "format": "prettier . --write"
   },
   "dependencies": {
     "axios": "^0.27.2",
