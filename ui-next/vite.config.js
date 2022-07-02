@@ -19,6 +19,11 @@ export default defineConfig({
         replacement: path.resolve(__dirname, "./src"),
       },
     ],
-    //...
+  },
+  server: {
+    proxy: {
+      "/api": "http://localhost:8080",
+      "/meta": "http://localhost:8080",
+    },
   },
 });
