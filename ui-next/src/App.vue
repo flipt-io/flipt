@@ -10,9 +10,9 @@
 </template>
 
 <script>
-import Nav from "./components/Nav.vue";
-import Footer from "./components/Footer.vue";
-import UpdateNotification from "./components/UpdateNotification.vue";
+import Nav from "./components/Nav";
+import Footer from "./components/Footer";
+import UpdateNotification from "./components/UpdateNotification";
 
 export default {
   name: "App",
