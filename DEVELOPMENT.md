@@ -34,7 +34,7 @@ The `bootstrap` task will install all of the necessary tools used for developmen
 Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
 ```shell
-task dev
+task server
 ```
 
 ## Changes
@@ -55,9 +55,27 @@ Running `task assets` will regenerate the embedded assets (ui, api documentation
 
 #### UI components
 
-The UI is built using [NPM](https://nodejs.org/en/) and [webpack](https://webpack.js.org/) and is also statically compiled into the Flipt binary.
+The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.dev/) and is also statically compiled into the Flipt binary.
 
 The [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
+
+## Building/Running
+
+**Run `script/server` from the project root.**
+
+Vite will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
+
+You'll need to stop and re-run `script/server` for any changes in the server (Go) code :exclamation:
+
+### Ports
+
+In development, the three ports that Flipt users are:
+
+- `8080`: The port for the Flipt REST API
+- `8081`: The port for the Flipt UI (via `npm run dev`)
+- `9000`: The port for the Flipt GRPC Server
+
+These three ports will be forwarded to your local machine automatically if you are developing Flipt in a VSCode Remote Container or GitHub Codespace.
 
 ## Remote Containers/GitHub Codespaces
 
@@ -70,15 +88,3 @@ For VSCode Remote Containers (devcontainers), make sure you have [Docker](https:
 If you have access to [GitHub Codespaces](https://github.com/features/codespaces), simply open Flipt in a codespaces from the `Code` tab in the repo on GitHub or click the button below.
 
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=markphelps/flipt)
-
-### Building/Running
-
-Run `script/server` from the project root.
-
-The `webpack-dev-server` that is used when running the UI in development mode will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
-
-### Ports
-
-The three ports `8080`, `8081`, `9000` will be forwarded to your local machine automatically.
-
-`8081` is the UI dev port that runs the `npm dev server` that you can open in your browser.

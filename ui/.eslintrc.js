@@ -2,9 +2,6 @@
 
 module.exports = {
   root: true,
-  parserOptions: {
-    parser: "babel-eslint",
-  },
   env: {
     browser: true,
     node: true,
@@ -42,6 +39,7 @@ module.exports = {
         ignores: ["draggable"],
       },
     ],
+    "vue/no-reserved-component-names": "off",
     "vue/multi-word-component-names": "off",
     "no-async-promise-executor": "off",
     "no-misleading-character-class": "off",

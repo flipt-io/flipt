@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-task --parallel dev assets:dev
+task --parallel server assets:dev

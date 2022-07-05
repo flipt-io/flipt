@@ -4,6 +4,7 @@ version: 3
 vars:
   PROJECT: flipt
   SOURCE_FILES: ./...
+  UI: ui
 
 tasks:
   default:
@@ -20,29 +21,28 @@ tasks:
   assets:
     desc: Build the UI
     deps: [assets:deps]
+    dir: "{{.UI}}"
     cmds:
-      - cd ui && npm run build
-    env:
-      NODE_OPTIONS: --openssl-legacy-provider
+      - npm run build
     sources:
-      - ./ui/static/*
-      - ./ui/src/**/*
-      - ./ui/src/**/**/*
-      - ./ui/index.html
-      - ./ui/package.json
+      - ./{{.UI}}/static/*
+      - ./{{.UI}}/src/**/*
+      - ./{{.UI}}/src/**/**/*
+      - ./{{.UI}}/index.html
+      - ./{{.UI}}/package.json
     method: checksum
 
   assets:deps:
     desc: Install UI dependencies
+    dir: "{{.UI}}"
     cmds:
-      - cd ui && npm ci
-    env:
-      NODE_OPTIONS: --openssl-legacy-provider
+      - npm ci
 
   assets:dev:
     desc: Run the UI dev server
+    dir: "{{.UI}}"
     cmds:
-      - cd ui && npm run dev
+      - npm run dev
 
   bench:
     desc: Run benchmarks
@@ -92,6 +92,11 @@ tasks:
     cmds:
       - buf generate
 
+  server:
+    desc: Start the server
+    cmds:
+      - go run ./cmd/flipt/. --config ./config/local.yml --force-migrate
+
   clean:
     desc: Remove built assets
     cmds:
@@ -106,11 +111,6 @@ tasks:
       - go tool cover -html={{.COVERAGE_FILE}}
     vars:
       COVERAGE_FILE: coverage.txt
-
-  dev:
-    desc: Start the server
-    cmds:
-      - go run ./cmd/flipt/. --config ./config/local.yml --force-migrate
 
   fmt:
     desc: Run goimports
