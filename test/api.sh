@@ -289,9 +289,9 @@ step_9_test_metrics()
 run()
 {
     # run any pending db migrations
-    ./bin/flipt migrate --config ./config/local.yml &> /dev/null
+    ./bin/flipt migrate ---config ./test/config/test.yml &> /dev/null
 
-    ./bin/flipt --config ./config/local.yml &> /dev/null &
+    ./bin/flipt --config ./test/config/test.yml &> /dev/null &
     echo $! > "$FLIPT_PID"
 
     sleep 5

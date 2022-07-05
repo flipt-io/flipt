@@ -13,14 +13,16 @@ finish() {
 run()
 {
     # run any pending db migrations
-    ./bin/flipt migrate --config ./config/local.yml &> /dev/null
+    ./bin/flipt migrate --config ./test/config/test.yml &> /dev/null
 
-    ./bin/flipt --config ./config/local.yml &> /dev/null &
+    ./bin/flipt --config ./test/config/test.yml &> /dev/null &
     echo $! > "$FLIPT_PID"
+
+    port="${FLIPT_SERVER_HTTP_PORT:-8080}"
 
     sleep 5
 
-    flipt_host="127.0.0.1:8080"
+    flipt_host="127.0.0.1:${port}"
 
     echo -e "\e[32m                \e[0m"
     echo -e "\e[32m===========================================\e[0m"
@@ -29,7 +31,7 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" &&  npm test
+    cd "ui" &&  npm test && npx playwright test
 }
 
 run
