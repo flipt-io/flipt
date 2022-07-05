@@ -1,5 +1,5 @@
 import Vue from "vue";
-import App from "./App.vue";
+import App from "./App";
 import Buefy from "buefy";
 import VueMoment from "vue-moment";
 import router from "./router";

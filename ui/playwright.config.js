@@ -7,10 +7,10 @@ const { devices } = require("@playwright/test");
  */
 // require('dotenv').config();
 
-// get FLIPT_HTTP_SERVER_HOST from environment variable or default to localhost
-const host = process.env.FLIPT_HTTP_SERVER_HOST || "localhost";
-// get FLIPT_HTTP_SERVER_PORT from environment variable or default to 8080
-const port = process.env.FLIPT_HTTP_SERVER_PORT || 8080;
+// get FLIPT_SERVER_HTTP_HOST from environment variable or default to localhost
+const host = process.env.FLIPT_SERVER_HTTP_HOST || "localhost";
+// get FLIPT_SERVER_HTTP_PORT from environment variable or default to 8080
+const port = process.env.FLIPT_SERVER_HTTP_PORT || 8080;
 
 /**
  * @see https://playwright.dev/docs/test-configuration
