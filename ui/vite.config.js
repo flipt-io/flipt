@@ -1,14 +1,15 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { createVuePlugin as vue } from "vite-plugin-vue2";
 
 const path = require("path");
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
-  // get FLIPT_HTTP_SERVER_HOST from environment variable or default to localhost
-  const host = process.env.FLIPT_HTTP_SERVER_HOST || "localhost";
-  // get FLIPT_HTTP_SERVER_PORT from environment variable or default to 8080
-  const port = process.env.FLIPT_HTTP_SERVER_PORT || 8080;
+export default defineConfig(({ mode }) => {
+  Object.assign(process.env, loadEnv(mode, process.cwd(), ""));
+  // get FLIPT_SERVER_HTTP_HOST from environment variable or default to localhost
+  const host = process.env.FLIPT_SERVER_HTTP_HOST || "localhost";
+  // get FLIPT_SERVER_HTTP_PORT from environment variable or default to 8080
+  const port = process.env.FLIPT_SERVER_HTTP_PORT || 8080;
   return {
     plugins: [vue()],
     resolve: {
