@@ -42,7 +42,6 @@ import (
 	"go.flipt.io/flipt/storage/sql/postgres"
 	"go.flipt.io/flipt/storage/sql/sqlite"
 	"go.flipt.io/flipt/swagger"
-	"go.flipt.io/flipt/ui"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

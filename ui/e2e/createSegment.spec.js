@@ -1,9 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-const addr = "http://127.0.0.1:8080";
-
 test("createSegment", async ({ page }) => {
-  await page.goto(addr);
+  await page.goto("/");
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
   await page.click("[placeholder='Segment name']");
@@ -21,7 +19,7 @@ test("createSegment", async ({ page }) => {
 });
 
 test("createSegmentDisallowSpecialChars", async ({ page }) => {
-  await page.goto(addr);
+  await page.goto("/");
   await page.click("[data-testid='segments']");
   await page.click("[data-testid='new-segment']");
   await page.type("[placeholder='Segment name']", "My segment with colons");

@@ -1,11 +1,16 @@
 // @ts-check
-import { devices } from "@playwright/test";
+const { devices } = require("@playwright/test");
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
 // require('dotenv').config();
+
+// get FLIPT_HTTP_SERVER_HOST from environment variable or default to localhost
+const host = process.env.FLIPT_HTTP_SERVER_HOST || "localhost";
+// get FLIPT_HTTP_SERVER_PORT from environment variable or default to 8080
+const port = process.env.FLIPT_HTTP_SERVER_PORT || 8080;
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -37,7 +42,7 @@ const config = {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL: `http://${host}:${port}`,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -51,18 +56,17 @@ const config = {
         ...devices["Desktop Chrome"],
       },
     },
-
     // {
-    //   name: "firefox",
+    //   name: 'firefox',
     //   use: {
-    //     ...devices["Desktop Firefox"],
+    //     ...devices['Desktop Firefox'],
     //   },
     // },
 
     // {
-    //   name: "webkit",
+    //   name: 'webkit',
     //   use: {
-    //     ...devices["Desktop Safari"],
+    //     ...devices['Desktop Safari'],
     //   },
     // },
 
@@ -105,4 +109,4 @@ const config = {
   // },
 };
 
-export default config;
+module.exports = config;
