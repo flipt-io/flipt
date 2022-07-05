@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
       ],
     },
     server: {
+      port: 8081,
       proxy: {
         "/api": `http://${host}:${port}`,
         "/meta": `http://${host}:${port}`,
