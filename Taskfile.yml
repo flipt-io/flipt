@@ -9,14 +9,19 @@ vars:
 tasks:
   default:
     desc: Build the binary
+    deps: [prep]
     cmds:
-      - task: clean
-      - task: proto
-      - task: assets
       - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
       GIT_COMMIT:
         sh: set -e && git rev-parse --verify HEAD || ""
+
+  prep:
+    desc: Prepare for release
+    cmds:
+      - task: clean
+      - task: proto
+      - task: assets
 
   assets:
     desc: Build the UI
@@ -37,6 +42,9 @@ tasks:
     dir: "{{.UI}}"
     cmds:
       - npm ci
+    sources:
+      - ./{{.UI}}/package-lock.json
+    method: checksum
 
   assets:dev:
     desc: Run the UI dev server
@@ -56,9 +64,15 @@ tasks:
     desc: Install necessary development tools
     cmds:
       - ./script/bootstrap
+    sources:
+      - ./_tools/go.mod
+    generates:
+      - ./_tools/go.sum
+    method: checksum
 
   build:
     desc: Run Go build
+    deps: [bootstrap]
     cmds:
       - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
@@ -71,24 +85,9 @@ tasks:
     cmds:
       - buf generate --template=buf.public.gen.yaml
 
-  build:release:
-    desc: Build a release version and push the release with goreleaser
-    cmds:
-      - task: clean
-      - task: proto
-      - task: assets
-      - ./script/build release
-
-  build:snapshot:
-    desc: Build a snapshot version with goreleaser
-    cmds:
-      - task: clean
-      - task: proto
-      - task: assets
-      - ./script/build snapshot
-
   proto:
     desc: Generate protobuf files from .protos
+    deps: [bootstrap]
     cmds:
       - buf generate
 

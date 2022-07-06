@@ -1795,12 +1795,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/Evaluate", runtime.WithHTTPPathPattern("/api/v1/evaluate"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/Evaluate", runtime.WithHTTPPathPattern("/api/v1/evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_Evaluate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_Evaluate_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1818,12 +1819,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/BatchEvaluate", runtime.WithHTTPPathPattern("/api/v1/batch-evaluate"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/BatchEvaluate", runtime.WithHTTPPathPattern("/api/v1/batch-evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_BatchEvaluate_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_BatchEvaluate_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1841,12 +1843,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_GetFlag_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_GetFlag_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1864,12 +1867,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListFlags", runtime.WithHTTPPathPattern("/api/v1/flags"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListFlags", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_ListFlags_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_ListFlags_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1887,12 +1891,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateFlag", runtime.WithHTTPPathPattern("/api/v1/flags"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateFlag", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_CreateFlag_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_CreateFlag_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1910,12 +1915,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_UpdateFlag_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_UpdateFlag_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1933,12 +1939,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_DeleteFlag_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_DeleteFlag_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1956,12 +1963,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_CreateVariant_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_CreateVariant_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -1979,12 +1987,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_UpdateVariant_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_UpdateVariant_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2002,12 +2011,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_DeleteVariant_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_DeleteVariant_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2025,12 +2035,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_GetRule_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_GetRule_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2048,12 +2059,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_ListRules_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_ListRules_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2071,12 +2083,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_CreateRule_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_CreateRule_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2094,12 +2107,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_UpdateRule_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_UpdateRule_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2117,12 +2131,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/OrderRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/order"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/OrderRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/order"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_OrderRules_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_OrderRules_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2140,12 +2155,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_DeleteRule_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_DeleteRule_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2163,12 +2179,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_CreateDistribution_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_CreateDistribution_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2186,12 +2203,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_UpdateDistribution_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_UpdateDistribution_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2209,12 +2227,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_DeleteDistribution_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_DeleteDistribution_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2232,12 +2251,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_GetSegment_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_GetSegment_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2255,12 +2275,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/segments"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_ListSegments_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_ListSegments_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2278,12 +2299,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/segments"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_CreateSegment_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_CreateSegment_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2301,12 +2323,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_UpdateSegment_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_UpdateSegment_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2324,12 +2347,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_DeleteSegment_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_DeleteSegment_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2347,12 +2371,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_CreateConstraint_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_CreateConstraint_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2370,12 +2395,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_UpdateConstraint_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_UpdateConstraint_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2393,12 +2419,13 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Flipt_DeleteConstraint_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Flipt_DeleteConstraint_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -2455,12 +2482,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/Evaluate", runtime.WithHTTPPathPattern("/api/v1/evaluate"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/Evaluate", runtime.WithHTTPPathPattern("/api/v1/evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_Evaluate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_Evaluate_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2475,12 +2503,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/BatchEvaluate", runtime.WithHTTPPathPattern("/api/v1/batch-evaluate"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/BatchEvaluate", runtime.WithHTTPPathPattern("/api/v1/batch-evaluate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_BatchEvaluate_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_BatchEvaluate_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2495,12 +2524,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_GetFlag_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_GetFlag_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2515,12 +2545,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListFlags", runtime.WithHTTPPathPattern("/api/v1/flags"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListFlags", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_ListFlags_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_ListFlags_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2535,12 +2566,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateFlag", runtime.WithHTTPPathPattern("/api/v1/flags"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateFlag", runtime.WithHTTPPathPattern("/api/v1/flags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_CreateFlag_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_CreateFlag_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2555,12 +2587,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_UpdateFlag_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_UpdateFlag_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2575,12 +2608,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteFlag", runtime.WithHTTPPathPattern("/api/v1/flags/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_DeleteFlag_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_DeleteFlag_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2595,12 +2629,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_CreateVariant_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_CreateVariant_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2615,12 +2650,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_UpdateVariant_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_UpdateVariant_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2635,12 +2671,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteVariant", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/variants/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_DeleteVariant_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_DeleteVariant_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2655,12 +2692,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_GetRule_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_GetRule_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2675,12 +2713,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_ListRules_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_ListRules_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2695,12 +2734,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_CreateRule_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_CreateRule_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2715,12 +2755,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_UpdateRule_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_UpdateRule_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2735,12 +2776,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/OrderRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/order"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/OrderRules", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/order"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_OrderRules_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_OrderRules_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2755,12 +2797,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteRule", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_DeleteRule_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_DeleteRule_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2775,12 +2818,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_CreateDistribution_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_CreateDistribution_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2795,12 +2839,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_UpdateDistribution_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_UpdateDistribution_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2815,12 +2860,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteDistribution", runtime.WithHTTPPathPattern("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_DeleteDistribution_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_DeleteDistribution_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2835,12 +2881,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_GetSegment_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_GetSegment_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2855,12 +2902,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/segments"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_ListSegments_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_ListSegments_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2875,12 +2923,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/segments"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_CreateSegment_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_CreateSegment_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2895,12 +2944,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_UpdateSegment_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_UpdateSegment_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2915,12 +2965,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_DeleteSegment_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_DeleteSegment_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2935,12 +2986,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_CreateConstraint_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_CreateConstraint_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2955,12 +3007,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_UpdateConstraint_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_UpdateConstraint_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -2975,12 +3028,13 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteConstraint", runtime.WithHTTPPathPattern("/api/v1/segments/{segment_key}/constraints/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Flipt_DeleteConstraint_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Flipt_DeleteConstraint_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)

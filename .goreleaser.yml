@@ -5,8 +5,6 @@ builds:
   - main: ./cmd/flipt/.
     env:
       - CGO_ENABLED=1
-      - CC=x86_64-linux-musl-gcc
-      - CXX=x86_64-linux-musl-g++
     ldflags:
       - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
       - -linkmode external -extldflags -static
@@ -36,7 +34,7 @@ checksum:
   name_template: "checksums.txt"
 
 changelog:
-  skip: true
+  use: github-native
 
 dockers:
   - dockerfile: ./build/Dockerfile
@@ -57,4 +55,3 @@ dockers:
 announce:
   discord:
     enabled: true
-    
