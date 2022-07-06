@@ -1,5 +1,6 @@
 tap 'filosottile/musl-cross'
 tap 'goreleaser/tap'
+tap 'anchore/syft'
 
 brew 'cmake'
 brew 'cosign'
@@ -11,3 +12,4 @@ brew 'musl-cross'
 brew 'pkg-config'
 brew 'protobuf'
 brew 'sqlite'
+brew 'syft'

@@ -244,7 +244,7 @@
                 }
               },
               "required": [
-                "flag_key",
+                "flagKey",
                 "segmentKey",
                 "rank"
               ]
@@ -264,6 +264,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -296,7 +297,7 @@
                 }
               },
               "required": [
-                "flag_key",
+                "flagKey",
                 "ruleIds"
               ]
             }
@@ -350,6 +351,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -420,7 +422,7 @@
                 }
               },
               "required": [
-                "flag_key",
+                "flagKey",
                 "segmentKey"
               ]
             }
@@ -478,8 +480,8 @@
                 }
               },
               "required": [
-                "flag_key",
-                "rule_id",
+                "flagKey",
+                "ruleId",
                 "variantId",
                 "rollout"
               ]
@@ -499,6 +501,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -591,8 +594,8 @@
                 }
               },
               "required": [
-                "flag_key",
-                "rule_id",
+                "flagKey",
+                "ruleId",
                 "variantId",
                 "rollout"
               ]
@@ -650,7 +653,7 @@
                 }
               },
               "required": [
-                "flag_key",
+                "flagKey",
                 "key"
               ]
             }
@@ -669,6 +672,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -748,7 +752,7 @@
                 }
               },
               "required": [
-                "flag_key",
+                "flagKey",
                 "key"
               ]
             }
@@ -796,6 +800,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -977,6 +982,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -1097,7 +1103,7 @@
                 }
               },
               "required": [
-                "segment_key",
+                "segmentKey",
                 "type",
                 "property",
                 "operator"
@@ -1118,6 +1124,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -1197,7 +1204,7 @@
                 }
               },
               "required": [
-                "segment_key",
+                "segmentKey",
                 "type",
                 "property",
                 "operator"
