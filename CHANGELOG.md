@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed Yarn in favor of NPM [https://github.com/markphelps/flipt/pull/916](https://github.com/markphelps/flipt/pull/916)
 - Switched to ViteJS for UI build instead of Webpack [https://github.com/markphelps/flipt/pull/924](https://github.com/markphelps/flipt/pull/924)
 - All UI dependencies are now bundled as well, instead of pulling from external sources (e.g. FontAwesome) [https://github.com/markphelps/flipt/pull/924](https://github.com/markphelps/flipt/pull/924)
-- Telemetry no outputs log messages in case of errors or in-ability to connect [https://github.com/markphelps/flipt/pull/926](https://github.com/markphelps/flipt/pull/926)
+- Telemetry no longer outputs log messages in case of errors or in-ability to connect [https://github.com/markphelps/flipt/pull/926](https://github.com/markphelps/flipt/pull/926)
 - Telemetry will not run in dev or snapshot mode [https://github.com/markphelps/flipt/pull/926](https://github.com/markphelps/flipt/pull/926)
 - Dependency updates
 
