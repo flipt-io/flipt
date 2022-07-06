@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.9.0](https://github.com/markphelps/flipt/releases/tag/v1.9.0) - 2022-07-06
+
+### Changed
+
+- Module name changed to `go.flipt.io/flipt` [https://github.com/markphelps/flipt/pull/898](https://github.com/markphelps/flipt/pull/898)
+- Upgraded NodeJS to v18 [https://github.com/markphelps/flipt/pull/911](https://github.com/markphelps/flipt/pull/911)
+- Removed Yarn in favor of NPM [https://github.com/markphelps/flipt/pull/916](https://github.com/markphelps/flipt/pull/916)
+- Switched to ViteJS for UI build instead of Webpack [https://github.com/markphelps/flipt/pull/924](https://github.com/markphelps/flipt/pull/924)
+- All UI dependencies are now bundled as well, instead of pulling from external sources (e.g. FontAwesome) [https://github.com/markphelps/flipt/pull/924](https://github.com/markphelps/flipt/pull/924)
+- Telemetry no longer outputs log messages in case of errors or in-ability to connect [https://github.com/markphelps/flipt/pull/926](https://github.com/markphelps/flipt/pull/926)
+- Telemetry will not run in dev or snapshot mode [https://github.com/markphelps/flipt/pull/926](https://github.com/markphelps/flipt/pull/926)
+- Dependency updates
+
 ## [v1.8.3](https://github.com/markphelps/flipt/releases/tag/v1.8.3) - 2022-06-08
 
 ### Changed
