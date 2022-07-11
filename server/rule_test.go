@@ -195,14 +195,12 @@ func TestDeleteDistribution(t *testing.T) {
 			logger: logger,
 			store:  store,
 		}
-		req = &flipt.DeleteRuleRequest{
-			Id: "foo",
-		}
+		req = &flipt.DeleteDistributionRequest{Id: "1", FlagKey: "flagKey", RuleId: "ruleID", VariantId: "variantID"}
 	)
 
-	store.On("DeleteRule", mock.Anything, req).Return(nil)
+	store.On("DeleteDistribution", mock.Anything, req).Return(nil)
 
-	got, err := s.DeleteRule(context.TODO(), req)
+	got, err := s.DeleteDistribution(context.TODO(), req)
 	require.NoError(t, err)
 
 	assert.NotNil(t, got)
