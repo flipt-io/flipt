@@ -6,7 +6,7 @@ FROM alpine:3.16.0
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
-LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
+LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
 RUN apk add --no-cache postgresql-client \
     openssl \

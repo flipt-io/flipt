@@ -6,7 +6,7 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 package flipt;
 
-option go_package = "github.com/markphelps/flipt/rpc/flipt/flipt";
+option go_package = "go.flipt.io/flipt/rpc/flipt/flipt";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
@@ -14,7 +14,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     version: "latest";
     contact: {
       name: "Mark Phelps";
-      url: "https://github.com/markphelps/flipt";
+      url: "https://github.com/flipt-io/flipt";
     };
   };
   external_docs: {

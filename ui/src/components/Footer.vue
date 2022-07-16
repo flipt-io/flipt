@@ -2,7 +2,7 @@
   <footer class="footer has-background-dark">
     <a
       class="has-text-white"
-      href="https://github.com/markphelps/flipt"
+      href="https://github.com/flipt-io/flipt"
       target="_blank"
     >
       <span class="icon">
@@ -11,7 +11,7 @@
     </a>
     <a
       class="has-text-white"
-      href="https://github.com/markphelps/flipt/issues/new?assignees=&labels=bug&template=bug_report.md"
+      href="https://github.com/flipt-io/flipt/issues/new?labels=bug&template=bug_report.md"
       target="_blank"
     >
       Report an Issue

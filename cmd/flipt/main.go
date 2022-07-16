@@ -482,7 +482,7 @@ func run(_ []string) error {
 			//
 			// See: rpc/flipt/marshal.go
 			//
-			// See: https://github.com/markphelps/flipt/issues/664
+			// See: https://github.com/flipt-io/flipt/issues/664
 			muxOpts = []grpc_gateway.ServeMuxOption{
 				grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
 			}
@@ -629,7 +629,7 @@ func run(_ []string) error {
 
 func getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
 	client := github.NewClient(nil)
-	release, _, err := client.Repositories.GetLatestRelease(ctx, "markphelps", "flipt")
+	release, _, err := client.Repositories.GetLatestRelease(ctx, "flipt-io", "flipt")
 	if err != nil {
 		return nil, fmt.Errorf("checking for latest version: %w", err)
 	}

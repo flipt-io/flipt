@@ -21,7 +21,7 @@ export default {
     ...mapGetters(["info"]),
     releaseURL() {
       return (
-        "https://github.com/markphelps/flipt/releases/tag/" +
+        "https://github.com/flipt-io/flipt/releases/tag/" +
         this.info.latestVersion
       );
     },
