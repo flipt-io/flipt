@@ -78,13 +78,12 @@ export default {
     refURL() {
       if (this.info.isRelease && this.info.version) {
         return (
-          "https://github.com/markphelps/flipt/releases/tag/" +
-          this.info.version
+          "https://github.com/flipt-io/flipt/releases/tag/" + this.info.version
         );
       } else if (this.info.commit) {
-        return "https://github.com/markphelps/flipt/commit/" + this.info.commit;
+        return "https://github.com/flipt-io/flipt/commit/" + this.info.commit;
       }
-      return "https://github.com/markphelps/flipt";
+      return "https://github.com/flipt-io/flipt";
     },
     ref() {
       if (this.info.isRelease && this.info.version) {

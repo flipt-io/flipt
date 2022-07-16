@@ -9,23 +9,23 @@
 ![Flipt](demo.gif)
 
 <div align="center">
-    <a href="https://github.com/markphelps/flipt/releases">
-        <img src="https://img.shields.io/github/release/markphelps/flipt.svg?style=flat" alt="Releases" />
+    <a href="https://github.com/flipt-io/flipt/releases">
+        <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
     </a>
-    <a href="https://github.com/markphelps/flipt/actions">
-        <img src="https://github.com/markphelps/flipt/workflows/Tests/badge.svg" alt="Build Status" />
+    <a href="https://github.com/flipt-io/flipt/actions">
+        <img src="https://github.com/flipt-io/flipt/workflows/Tests/badge.svg" alt="Build Status" />
     </a>
-    <a href="https://github.com/markphelps/flipt/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/markphelps/flipt.svg" alt="GPL 3.0" />
+    <a href="https://github.com/flipt-io/flipt/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/flipt-io/flipt.svg" alt="GPL 3.0" />
     </a>
     <a href="https://hub.docker.com/r/markphelps/flipt">
         <img src="https://img.shields.io/docker/pulls/markphelps/flipt.svg" alt="Docker Pulls" />
     </a>
-    <a href="https://codecov.io/gh/markphelps/flipt">
-        <img src="https://codecov.io/gh/markphelps/flipt/branch/main/graph/badge.svg" alt="Coverage" />
+    <a href="https://codecov.io/gh/flipt-io/flipt">
+        <img src="https://codecov.io/gh/flipt-io/flipt/branch/main/graph/badge.svg" alt="Coverage" />
     </a>
-    <a href="https://goreportcard.com/report/github.com/markphelps/flipt">
-        <img src="https://goreportcard.com/badge/github.com/markphelps/flipt" alt="Go Report Card" />
+    <a href="https://goreportcard.com/report/github.com/flipt-io/flipt">
+        <img src="https://goreportcard.com/badge/github.com/flipt-io/flipt" alt="Go Report Card" />
     </a>
     <a href="https://bestpractices.coreinfrastructure.org/projects/3498">
         <img src="https://bestpractices.coreinfrastructure.org/projects/3498/badge">
@@ -57,8 +57,6 @@ Flipt supports use cases such as:
 - Simple on/off feature flags to toggle functionality in your applications
 - Rolling out features to a percentage of your customers
 - Using advanced segmentation to target and serve users based on custom properties that you define
-
-**Note: Flipt is in the process of moving to it's new home under the [flipt-io organization](https://github.com/flipt-io/).**
 
 ## Features
 
@@ -133,13 +131,13 @@ Client libraries built by awesome people from the Open Source community:
 
 ### Generate Your Own
 
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/markphelps/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
 
 ## Examples
 
 Check out the [examples](/examples) to see how Flipt works.
 
-Here's a [basic one](https://github.com/markphelps/flipt/tree/main/examples/basic) to get started!
+Here's a [basic one](https://github.com/flipt-io/flipt/tree/main/examples/basic) to get started!
 
 ## Licensing
 
@@ -209,27 +207,27 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="http://aaronraff.github.io"><img src="https://avatars0.githubusercontent.com/u/16910064?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aaron Raff</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=aaronraff" title="Code">💻</a></td>
-    <td align="center"><a href="http://twitter.com/rochacon"><img src="https://avatars2.githubusercontent.com/u/321351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rodrigo Chacon</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=rochacon" title="Code">💻</a></td>
-    <td align="center"><a href="http://christopherdiehl.github.io"><img src="https://avatars0.githubusercontent.com/u/10383665?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christopher Diehl</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=christopherdiehl" title="Code">💻</a></td>
-    <td align="center"><a href="https://www.andrewzallen.com"><img src="https://avatars3.githubusercontent.com/u/37206?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrew Z Allen</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=achew22" title="Documentation">📖</a></td>
-    <td align="center"><a href="http://sf.khepin.com"><img src="https://avatars3.githubusercontent.com/u/455656?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sebastien Armand</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=khepin" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/badboyd"><img src="https://avatars0.githubusercontent.com/u/20040686?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dat Tran</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=badboyd" title="Code">💻</a></td>
-    <td align="center"><a href="http://twitter.com/jon_perl"><img src="https://avatars2.githubusercontent.com/u/1136652?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon Perl</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=jperl" title="Tests">⚠️</a> <a href="https://github.com/markphelps/flipt/commits?author=jperl" title="Code">💻</a></td>
+    <td align="center"><a href="http://aaronraff.github.io"><img src="https://avatars0.githubusercontent.com/u/16910064?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aaron Raff</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=aaronraff" title="Code">💻</a></td>
+    <td align="center"><a href="http://twitter.com/rochacon"><img src="https://avatars2.githubusercontent.com/u/321351?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rodrigo Chacon</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=rochacon" title="Code">💻</a></td>
+    <td align="center"><a href="http://christopherdiehl.github.io"><img src="https://avatars0.githubusercontent.com/u/10383665?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christopher Diehl</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=christopherdiehl" title="Code">💻</a></td>
+    <td align="center"><a href="https://www.andrewzallen.com"><img src="https://avatars3.githubusercontent.com/u/37206?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrew Z Allen</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=achew22" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://sf.khepin.com"><img src="https://avatars3.githubusercontent.com/u/455656?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sebastien Armand</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=khepin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/badboyd"><img src="https://avatars0.githubusercontent.com/u/20040686?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dat Tran</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=badboyd" title="Code">💻</a></td>
+    <td align="center"><a href="http://twitter.com/jon_perl"><img src="https://avatars2.githubusercontent.com/u/1136652?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jon Perl</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=jperl" title="Tests">⚠️</a> <a href="https://github.com/flipt-io/flipt/commits?author=jperl" title="Code">💻</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://or-e.net"><img src="https://avatars1.githubusercontent.com/u/2883824?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Or Elimelech</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=vic3lord" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/giddel"><img src="https://avatars0.githubusercontent.com/u/10463018?v=4?s=100" width="100px;" alt=""/><br /><sub><b>giddel</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=giddel" title="Code">💻</a></td>
-    <td align="center"><a href="http://eduar.do"><img src="https://avatars.githubusercontent.com/u/959623?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Eduardo</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=edumucelli" title="Documentation">📖</a> <a href="https://github.com/markphelps/flipt/commits?author=edumucelli" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/itaischwartz"><img src="https://avatars.githubusercontent.com/u/60180089?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itai Schwartz</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=itaischwartz" title="Code">💻</a></td>
-    <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=eltociear" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://sagikazarmark.hu"><img src="https://avatars.githubusercontent.com/u/1226384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Márk Sági-Kazár</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=sagikazarmark" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/pietdaniel"><img src="https://avatars.githubusercontent.com/u/1924983?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Piet</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=pietdaniel" title="Code">💻</a></td>
+    <td align="center"><a href="https://or-e.net"><img src="https://avatars1.githubusercontent.com/u/2883824?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Or Elimelech</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=vic3lord" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/giddel"><img src="https://avatars0.githubusercontent.com/u/10463018?v=4?s=100" width="100px;" alt=""/><br /><sub><b>giddel</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=giddel" title="Code">💻</a></td>
+    <td align="center"><a href="http://eduar.do"><img src="https://avatars.githubusercontent.com/u/959623?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Eduardo</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=edumucelli" title="Documentation">📖</a> <a href="https://github.com/flipt-io/flipt/commits?author=edumucelli" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/itaischwartz"><img src="https://avatars.githubusercontent.com/u/60180089?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itai Schwartz</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=itaischwartz" title="Code">💻</a></td>
+    <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=eltociear" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://sagikazarmark.hu"><img src="https://avatars.githubusercontent.com/u/1226384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Márk Sági-Kazár</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=sagikazarmark" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/pietdaniel"><img src="https://avatars.githubusercontent.com/u/1924983?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Piet</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=pietdaniel" title="Code">💻</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/amayvs"><img src="https://avatars.githubusercontent.com/u/842194?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amay Shah</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=amayvs" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/kevin-ip"><img src="https://avatars.githubusercontent.com/u/28875408?v=4?s=100" width="100px;" alt=""/><br /><sub><b>kevin-ip</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=kevin-ip" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/albertchae"><img src="https://avatars.githubusercontent.com/u/217050?v=4?s=100" width="100px;" alt=""/><br /><sub><b>albertchae</b></sub></a><br /><a href="https://github.com/markphelps/flipt/commits?author=albertchae" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/amayvs"><img src="https://avatars.githubusercontent.com/u/842194?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amay Shah</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=amayvs" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/kevin-ip"><img src="https://avatars.githubusercontent.com/u/28875408?v=4?s=100" width="100px;" alt=""/><br /><sub><b>kevin-ip</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=kevin-ip" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/albertchae"><img src="https://avatars.githubusercontent.com/u/217050?v=4?s=100" width="100px;" alt=""/><br /><sub><b>albertchae</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=albertchae" title="Code">💻</a></td>
   </tr>
 </table>
 
