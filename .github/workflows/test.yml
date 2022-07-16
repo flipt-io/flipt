@@ -69,7 +69,7 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Unit Test (SQLite)
-        run: go test -race -coverprofile=coverage.txt -count=1 -covermode=atomic
+        run: go test -race -covermode=atomic -coverprofile=coverage.txt -count=1 ./...
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.0
