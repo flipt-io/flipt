@@ -2,7 +2,7 @@ name: Buf
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - "deploy/**"
       - "examples/**"
