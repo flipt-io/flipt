@@ -79,7 +79,7 @@ require (
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
-	github.com/urfave/negroni v1.0.0 // indirect
+	github.com/urfave/negroni v1.0.1-0.20200608235619-7de0dfc1ff79 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
