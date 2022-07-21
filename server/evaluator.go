@@ -15,9 +15,9 @@ import (
 )
 
 // Evaluate evaluates a request for a given flag and entity
-func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
+func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.WithField("request", r).Debug("evaluate")
-	resp, err = s.evaluate(ctx, r)
+	resp, err := s.evaluate(ctx, r)
 	if err != nil {
 		return resp, err
 	}

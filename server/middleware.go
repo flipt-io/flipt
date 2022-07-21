@@ -241,7 +241,7 @@ type variantFlagKeyger interface {
 
 func flagCacheKey(key string) string {
 	k := fmt.Sprintf("f:%s", key)
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k))) //nolint:gosec
+	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
 
 func evaluationCacheKey(r *flipt.EvaluationRequest) (string, error) {
@@ -251,5 +251,5 @@ func evaluationCacheKey(r *flipt.EvaluationRequest) (string, error) {
 	}
 
 	k := fmt.Sprintf("e:%s:%s:%s", r.GetFlagKey(), r.GetEntityId(), out)
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k))), nil //nolint:gosec
+	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k))), nil
 }
