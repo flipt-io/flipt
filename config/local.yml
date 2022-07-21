@@ -9,12 +9,16 @@ log:
 #   allowed_origins: "*"
 
 # cache:
+#   enabled: false
+#   backend: "memory"
+#   ttl: 60s
+#   redis:
+#     host: "localhost"
+#     port: 6379
 #   memory:
-#     enabled: false
-#     expiration: -1 # Items Do Not Expire
-#     eviction_interval: 10m # Evict Expired Items Every 10m
+#     eviction_interval: 5m # evict expired items every 5m
 
-# server:
+# # server:
 #   protocol: http
 #   host: 0.0.0.0
 #   https_port: 443

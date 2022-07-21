@@ -36,9 +36,10 @@ import (
 	"go.flipt.io/flipt/internal/telemetry"
 	pb "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/server"
+	"go.flipt.io/flipt/server/cache"
+	"go.flipt.io/flipt/server/cache/memory"
+	"go.flipt.io/flipt/server/cache/redis"
 	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/cache"
-	"go.flipt.io/flipt/storage/cache/memory"
 	"go.flipt.io/flipt/storage/sql"
 	"go.flipt.io/flipt/storage/sql/mysql"
 	"go.flipt.io/flipt/storage/sql/postgres"
@@ -50,6 +51,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 	"gopkg.in/segmentio/analytics-go.v3"
 
 	_ "github.com/golang-migrate/migrate/source/file"
@@ -61,6 +63,8 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
+	goredis_cache "github.com/go-redis/cache/v8"
+	goredis "github.com/go-redis/redis/v8"
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	jaeger_config "github.com/uber/jaeger-client-go/config"
@@ -89,8 +93,8 @@ func main() {
 			Use:     "flipt",
 			Short:   "Flipt is a modern feature flag solution",
 			Version: version,
-			Run: func(cmd *cobra.Command, args []string) {
-				if err := run(args); err != nil {
+			Run: func(cmd *cobra.Command, _ []string) {
+				if err := run(cmd.Context()); err != nil {
 					logrus.Error(err)
 					logrus.Exit(1)
 				}
@@ -103,8 +107,8 @@ func main() {
 		exportCmd = &cobra.Command{
 			Use:   "export",
 			Short: "Export flags/segments/rules to file/stdout",
-			Run: func(cmd *cobra.Command, args []string) {
-				if err := runExport(args); err != nil {
+			Run: func(cmd *cobra.Command, _ []string) {
+				if err := runExport(cmd.Context()); err != nil {
 					logrus.Error(err)
 					logrus.Exit(1)
 				}
@@ -115,7 +119,7 @@ func main() {
 			Use:   "import",
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := runImport(args); err != nil {
+				if err := runImport(cmd.Context(), args); err != nil {
 					logrus.Error(err)
 					logrus.Exit(1)
 				}
@@ -125,7 +129,7 @@ func main() {
 		migrateCmd = &cobra.Command{
 			Use:   "migrate",
 			Short: "Run pending database migrations",
-			Run: func(cmd *cobra.Command, args []string) {
+			Run: func(cmd *cobra.Command, _ []string) {
 				migrator, err := sql.NewMigrator(*cfg, l)
 				if err != nil {
 					logrus.Error(err)
@@ -218,11 +222,10 @@ func main() {
 	logrus.Exit(0)
 }
 
-func run(_ []string) error {
+func run(ctx context.Context) error {
 	color.Cyan(banner)
 	fmt.Println()
 
-	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer cancel()
@@ -232,14 +235,14 @@ func run(_ []string) error {
 
 	defer signal.Stop(interrupt)
 
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
 	var (
 		isRelease       = isRelease()
 		updateAvailable bool
 		cv, lv          semver.Version
 	)
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
 
 	if isRelease {
 		var err error
@@ -247,6 +250,11 @@ func run(_ []string) error {
 		if err != nil {
 			return fmt.Errorf("parsing version: %w", err)
 		}
+	}
+
+	// print out any warnings from config parsing
+	for _, warning := range cfg.Warnings {
+		l.Warn(warning)
 	}
 
 	if cfg.Meta.CheckForUpdates && isRelease {
@@ -308,7 +316,7 @@ func run(_ []string) error {
 
 		defer ticker.Stop()
 
-		// start telemetry
+		// start telemetry if enabled
 		g.Go(func() error {
 			logger := l.WithField("component", "telemetry")
 
@@ -355,6 +363,7 @@ func run(_ []string) error {
 		httpServer *http.Server
 	)
 
+	// starts grpc server
 	g.Go(func() error {
 		logger := l.WithField("server", "grpc")
 
@@ -387,6 +396,10 @@ func run(_ []string) error {
 
 		defer db.Close()
 
+		if err := db.PingContext(ctx); err != nil {
+			return fmt.Errorf("pinging db: %w", err)
+		}
+
 		var store storage.Store
 
 		switch driver {
@@ -398,18 +411,7 @@ func run(_ []string) error {
 			store = mysql.NewStore(db)
 		}
 
-		if cfg.Cache.Memory.Enabled {
-			cacher := memory.NewCache(cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval, logger)
-			if cfg.Cache.Memory.Expiration > 0 {
-				logger.Infof("in-memory cache enabled [expiration: %v, evictionInterval: %v]", cfg.Cache.Memory.Expiration, cfg.Cache.Memory.EvictionInterval)
-			} else {
-				logger.Info("in-memory cache enabled with no expiration")
-			}
-
-			store = cache.NewStore(logger, cacher, store)
-		}
-
-		logger = logger.WithField("store", store.String())
+		logger.Debugf("store: %q enabled", store.String())
 
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
@@ -439,20 +441,52 @@ func run(_ []string) error {
 
 		opentracing.SetGlobalTracer(tracer)
 
-		var (
-			grpcOpts []grpc.ServerOption
-			srv      = server.New(logger, store)
-		)
-
-		grpcOpts = append(grpcOpts, grpc_middleware.WithUnaryServerChain(
+		interceptors := []grpc.UnaryServerInterceptor{
 			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_logrus.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
 			otgrpc.OpenTracingServerInterceptor(tracer),
-			srv.ErrorUnaryInterceptor,
-			srv.ValidationUnaryInterceptor,
-		))
+			server.ErrorUnaryInterceptor,
+			server.ValidationUnaryInterceptor,
+			server.EvaluationUnaryInterceptor,
+		}
+
+		if cfg.Cache.Enabled {
+			var cacher cache.Cacher
+
+			switch cfg.Cache.Backend {
+			case config.CacheMemory:
+				cacher = memory.NewCache(cfg.Cache)
+			case config.CacheRedis:
+				rdb := goredis.NewClient(&goredis.Options{
+					Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
+					Password: cfg.Cache.Redis.Password,
+					DB:       cfg.Cache.Redis.DB,
+				})
+
+				defer rdb.Shutdown(shutdownCtx)
+
+				status := rdb.Ping(ctx)
+				if status == nil {
+					return errors.New("connecting to redis: no status")
+				}
+
+				if status.Err() != nil {
+					return fmt.Errorf("connecting to redis: %w", status.Err())
+				}
+
+				cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
+					Redis: rdb,
+				}))
+			}
+
+			interceptors = append(interceptors, server.CacheUnaryInterceptor(cacher, logger))
+
+			logger.Debugf("cache: %q enabled", cacher.String())
+		}
+
+		grpcOpts := []grpc.ServerOption{grpc_middleware.WithUnaryServerChain(interceptors...)}
 
 		if cfg.Server.Protocol == config.HTTPS {
 			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
@@ -463,7 +497,11 @@ func run(_ []string) error {
 			grpcOpts = append(grpcOpts, grpc.Creds(creds))
 		}
 
+		// initialize server
+		srv := server.New(logger, store)
+		// initialize grpc server
 		grpcServer = grpc.NewServer(grpcOpts...)
+
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.EnableHandlingTimeHistogram()
 		grpc_prometheus.Register(grpcServer)
@@ -473,6 +511,7 @@ func run(_ []string) error {
 		return grpcServer.Serve(lis)
 	})
 
+	// starts REST http(s) server
 	g.Go(func() error {
 		logger := l.WithField("server", cfg.Server.Protocol.String())
 
@@ -485,6 +524,15 @@ func run(_ []string) error {
 			// See: https://github.com/flipt-io/flipt/issues/664
 			muxOpts = []grpc_gateway.ServeMuxOption{
 				grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
+				grpc_gateway.WithMarshalerOption("application/json+pretty", &grpc_gateway.JSONPb{
+					MarshalOptions: protojson.MarshalOptions{
+						Indent:    "  ",
+						Multiline: true, // Optional, implied by presence of "Indent".
+					},
+					UnmarshalOptions: protojson.UnmarshalOptions{
+						DiscardUnknown: true,
+					},
+				}),
 			}
 
 			r        = chi.NewRouter()
@@ -536,6 +584,16 @@ func run(_ []string) error {
 		r.Use(middleware.RequestID)
 		r.Use(middleware.RealIP)
 		r.Use(middleware.Heartbeat("/health"))
+		r.Use(func(h http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// checking Values as map[string][]string also catches ?pretty and ?pretty=
+				// r.URL.Query().Get("pretty") would not.
+				if _, ok := r.URL.Query()["pretty"]; ok {
+					r.Header.Set("Accept", "application/json+pretty")
+				}
+				h.ServeHTTP(w, r)
+			})
+		})
 		r.Use(middleware.Compress(gzip.DefaultCompression))
 		r.Use(middleware.Recoverer)
 		r.Mount("/metrics", promhttp.Handler())

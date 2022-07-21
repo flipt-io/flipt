@@ -8,34 +8,19 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
-	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Evaluate evaluates a request for a given flag and entity
-func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	s.logger.WithField("request", r).Debug("evaluate")
-	startTime := time.Now()
-
-	// set request ID if not present
-	if r.RequestId == "" {
-		r.RequestId = uuid.Must(uuid.NewV4()).String()
-	}
-
-	resp, err := s.evaluate(ctx, r)
-	if resp != nil {
-		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
-	}
-
+	resp, err = s.evaluate(ctx, r)
 	if err != nil {
 		return resp, err
 	}
-
 	s.logger.WithField("response", resp).Debug("evaluate")
 	return resp, nil
 }
@@ -43,34 +28,23 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 // BatchEvaluate evaluates a request for multiple flags and entities
 func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
 	s.logger.WithField("request", r).Debug("batch-evaluate")
-	startTime := time.Now()
-
-	// set request ID if not present
-	if r.RequestId == "" {
-		r.RequestId = uuid.Must(uuid.NewV4()).String()
-	}
-
 	resp, err := s.batchEvaluate(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-
-	if resp != nil {
-		resp.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
-	}
-
 	s.logger.WithField("response", resp).Debug("batch-evaluate")
 	return resp, nil
 }
 
 func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
-	startTime := time.Now()
 	res := flipt.BatchEvaluationResponse{
-		RequestId: r.RequestId,
 		Responses: make([]*flipt.EvaluationResponse, 0, len(r.GetRequests())),
 	}
 
+	// TODO: we should change this to a native batch query instead of looping through
+	// each request individually
 	for _, flag := range r.GetRequests() {
+		// TODO: we also need to validate each request, we should likely do this in the validation middleware
 		f, err := s.evaluate(ctx, flag)
 		if err != nil {
 			var errnf errs.ErrNotFound
@@ -80,7 +54,6 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 			return &res, err
 		}
 		f.RequestId = ""
-		f.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 		res.Responses = append(res.Responses, f)
 	}
 
@@ -89,12 +62,10 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	var (
-		ts   = timestamp.New(time.Now().UTC())
 		resp = &flipt.EvaluationResponse{
 			RequestId:      r.RequestId,
 			EntityId:       r.EntityId,
 			RequestContext: r.Context,
-			Timestamp:      ts,
 			FlagKey:        r.FlagKey,
 		}
 	)

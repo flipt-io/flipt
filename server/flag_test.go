@@ -21,13 +21,16 @@ func TestGetFlag(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
-		Key: req.Key,
+		Key:     req.Key,
+		Enabled: true,
 	}, nil)
 
 	got, err := s.GetFlag(context.TODO(), req)
 	require.NoError(t, err)
 
 	assert.NotNil(t, got)
+	assert.Equal(t, "foo", got.Key)
+	assert.Equal(t, true, got.Enabled)
 }
 
 func TestListFlags(t *testing.T) {

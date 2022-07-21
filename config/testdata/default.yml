@@ -9,10 +9,11 @@
 #   allowed_origins: "*"
 
 # cache:
+#   enabled: false
+#   backend: memory
+#   ttl: 60s
 #   memory:
-#     enabled: false
-#     expiration: -1 # Items Do Not Expire
-#     eviction_interval: 10m # Evict Expired Items Every 10m
+#     eviction_interval: 5m # Evict Expired Items Every 5m
 
 # server:
 #   protocol: http

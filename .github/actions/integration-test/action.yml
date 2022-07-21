@@ -2,11 +2,15 @@
 name: "Flipt IT Tests"
 description: "Container for running Flipt ITs"
 inputs:
-  args: # id of input
-    description: args to pass to container'
+  script: # id of input
+    description: "script to run in the container"
     required: true
+  config: # id of input
+    description: "optional config file"
+    required: false
 runs:
   using: "docker"
   image: "docker://ghcr.io/markphelps/flipt-integration-test"
   args:
-    - ${{ inputs.args }}
+    - ${{ inputs.script }}
+    - ${{ inputs.config }}

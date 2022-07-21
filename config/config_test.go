@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	jaeger "github.com/uber/jaeger-client-go"
 )
 
 func TestScheme(t *testing.T) {
@@ -42,65 +41,105 @@ func TestScheme(t *testing.T) {
 	}
 }
 
+func TestCacheBackend(t *testing.T) {
+	tests := []struct {
+		name    string
+		backend CacheBackend
+		want    string
+	}{
+		{
+			name:    "memory",
+			backend: CacheMemory,
+			want:    "memory",
+		},
+		{
+			name:    "redis",
+			backend: CacheRedis,
+			want:    "redis",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			backend = tt.backend
+			want    = tt.want
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, want, backend.String())
+		})
+	}
+}
+
+func TestDatabaseProtocol(t *testing.T) {
+	tests := []struct {
+		name     string
+		protocol DatabaseProtocol
+		want     string
+	}{
+		{
+			name:     "postgres",
+			protocol: DatabasePostgres,
+			want:     "postgres",
+		},
+		{
+			name:     "mysql",
+			protocol: DatabaseMySQL,
+			want:     "mysql",
+		},
+		{
+			name:     "sqlite",
+			protocol: DatabaseSQLite,
+			want:     "file",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			protocol = tt.protocol
+			want     = tt.want
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, want, protocol.String())
+		})
+	}
+}
+
 func TestLoad(t *testing.T) {
 	tests := []struct {
 		name     string
 		path     string
 		wantErr  bool
-		expected *Config
+		expected func() *Config
 	}{
 		{
 			name:     "defaults",
 			path:     "./testdata/default.yml",
-			expected: Default(),
+			expected: Default,
 		},
 		{
-			name:     "deprecated defaults",
-			path:     "./testdata/deprecated.yml",
-			expected: Default(),
+			name:     "deprecated - cache memory items defaults",
+			path:     "./testdata/deprecated/cache_memory_items.yml",
+			expected: Default,
+		},
+		{
+			name: "deprecated - cache memory enabled",
+			path: "./testdata/deprecated/cache_memory_enabled.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheMemory
+				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled)
+				return cfg
+			},
 		},
 		{
 			name: "database key/value",
 			path: "./testdata/database.yml",
-			expected: &Config{
-				Log: LogConfig{
-					Level: "INFO",
-				},
-
-				UI: UIConfig{
-					Enabled: true,
-				},
-
-				Cors: CorsConfig{
-					Enabled:        false,
-					AllowedOrigins: []string{"*"},
-				},
-
-				Cache: CacheConfig{
-					Memory: MemoryCacheConfig{
-						Enabled:          false,
-						Expiration:       -1,
-						EvictionInterval: 10 * time.Minute,
-					},
-				},
-
-				Server: ServerConfig{
-					Host:      "0.0.0.0",
-					Protocol:  HTTP,
-					HTTPPort:  8080,
-					HTTPSPort: 443,
-					GRPCPort:  9000,
-				},
-
-				Tracing: TracingConfig{
-					Jaeger: JaegerTracingConfig{
-						Enabled: false,
-						Host:    jaeger.DefaultUDPSpanServerHost,
-						Port:    jaeger.DefaultUDPSpanServerPort,
-					},
-				},
-
-				Database: DatabaseConfig{
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Database = DatabaseConfig{
 					Protocol:       DatabaseMySQL,
 					Host:           "localhost",
 					Port:           3306,
@@ -109,37 +148,32 @@ func TestLoad(t *testing.T) {
 					Name:           "flipt",
 					MigrationsPath: "/etc/flipt/config/migrations",
 					MaxIdleConn:    2,
-				},
-
-				Meta: MetaConfig{
-					CheckForUpdates:  true,
-					TelemetryEnabled: true,
-				},
+				}
+				return cfg
 			},
 		},
 		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
-			expected: &Config{
-				Log: LogConfig{
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Log = LogConfig{
 					Level: "WARN",
 					File:  "testLogFile.txt",
-				},
-				UI: UIConfig{
+				}
+				cfg.UI = UIConfig{
 					Enabled: false,
-				},
-				Cors: CorsConfig{
+				}
+				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com"},
-				},
-				Cache: CacheConfig{
-					Memory: MemoryCacheConfig{
-						Enabled:          true,
-						Expiration:       5 * time.Minute,
-						EvictionInterval: 1 * time.Minute,
-					},
-				},
-				Server: ServerConfig{
+				}
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.Memory = MemoryCacheConfig{
+					EvictionInterval: 5 * time.Minute,
+				}
+				cfg.Server = ServerConfig{
 					Host:      "127.0.0.1",
 					Protocol:  HTTPS,
 					HTTPPort:  8081,
@@ -147,25 +181,26 @@ func TestLoad(t *testing.T) {
 					GRPCPort:  9001,
 					CertFile:  "./testdata/ssl_cert.pem",
 					CertKey:   "./testdata/ssl_key.pem",
-				},
-				Tracing: TracingConfig{
+				}
+				cfg.Tracing = TracingConfig{
 					Jaeger: JaegerTracingConfig{
 						Enabled: true,
 						Host:    "localhost",
 						Port:    6831,
 					},
-				},
-				Database: DatabaseConfig{
+				}
+				cfg.Database = DatabaseConfig{
 					MigrationsPath:  "./config/migrations",
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 					MaxIdleConn:     10,
 					MaxOpenConn:     50,
 					ConnMaxLifetime: 30 * time.Minute,
-				},
-				Meta: MetaConfig{
+				}
+				cfg.Meta = MetaConfig{
 					CheckForUpdates:  false,
 					TelemetryEnabled: false,
-				},
+				}
+				return cfg
 			},
 		},
 	}
@@ -174,7 +209,7 @@ func TestLoad(t *testing.T) {
 		var (
 			path     = tt.path
 			wantErr  = tt.wantErr
-			expected = tt.expected
+			expected = tt.expected()
 		)
 
 		t.Run(tt.name, func(t *testing.T) {

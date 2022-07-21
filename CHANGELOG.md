@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Redis cache support :tada: [https://github.com/markphelps/flipt/issues/633](https://github.com/markphelps/flipt/issues/633)
+- Configuration warnings/deprecations are displayed in console at startup
+
+### Changed
+
+- Ping database on startup to check if it's alive
+- Default cache TTL is 1m. Previously there was no TTL for the in memory cache.
+
+### Deprecated
+
+- `cache.memory.enabled` config value is deprecated. See [Deprecations](DEPRECATIONS.md) for more info
+- `cache.memory.expiration` config value is deprecated. See [Deprecations](DEPRECATIONS.md) for more info
+
 ## [v1.9.0](https://github.com/markphelps/flipt/releases/tag/v1.9.0) - 2022-07-06
 
 ### Changed

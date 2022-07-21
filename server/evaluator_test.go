@@ -60,8 +60,6 @@ func TestBatchEvaluate(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Equal(t, "12345", resp.RequestId)
-	assert.NotEmpty(t, resp.RequestDurationMillis)
 	assert.NotNil(t, resp.Responses)
 	assert.Equal(t, 2, len(resp.Responses))
 	assert.False(t, resp.Responses[0].Match)
@@ -109,8 +107,6 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	assert.Equal(t, "12345", resp.RequestId)
-	assert.NotEmpty(t, resp.RequestDurationMillis)
 	assert.NotNil(t, resp.Responses)
 	assert.Equal(t, 2, len(resp.Responses))
 	assert.False(t, resp.Responses[0].Match)

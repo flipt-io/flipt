@@ -8,6 +8,7 @@ export SHAKEDOWN_URL="http://127.0.0.1:8080"
 
 source ./test/helpers/shakedown/shakedown.sh
 
+CONFIG_FILE=${1:-"test.yml"}
 FLIPT_PID="/tmp/flipt.api.pid"
 
 finish() {
@@ -289,9 +290,9 @@ step_9_test_metrics()
 run()
 {
     # run any pending db migrations
-    ./bin/flipt migrate ---config ./test/config/test.yml &> /dev/null
+    ./bin/flipt migrate ---config "./test/config/$CONFIG_FILE" &> /dev/null
 
-    ./bin/flipt --config ./test/config/test.yml &> /dev/null &
+    ./bin/flipt --config "./test/config/$CONFIG_FILE" &> out.log &
     echo $! > "$FLIPT_PID"
 
     sleep 5

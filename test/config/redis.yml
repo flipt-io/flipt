@@ -1,0 +1,15 @@
+log:
+  level: DEBUG
+
+db:
+  url: file:./test/flipt.db
+  migrations:
+    path: ./config/migrations
+
+cache:
+  enabled: true
+  backend: "redis"
+  ttl: 60s
+  redis:
+    host: "redis"
+    port: 6379

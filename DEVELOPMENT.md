@@ -11,6 +11,7 @@ Before starting, make sure you have the following installed:
 - [Go 1.17+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/)
 - [Task](https://taskfile.dev/#/)
+- [Docker](https://docs.docker.com/install/) (for running tests)
 
 ## Setup
 
@@ -33,9 +34,7 @@ The `bootstrap` task will install all of the necessary tools used for developmen
 
 Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
-```shell
-task server
-```
+`task server` or `task dev`
 
 ## Changes
 
@@ -61,11 +60,11 @@ The [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) h
 
 ## Building/Running
 
-**Run `script/server` from the project root.**
+**Run `task dev` from the project root.**
 
 Vite will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
 
-You'll need to stop and re-run `script/server` for any changes in the server (Go) code :exclamation:
+You'll need to stop and re-run for any changes in the server (Go) code :exclamation:
 
 ### Ports
 
