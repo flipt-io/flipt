@@ -16,7 +16,17 @@ type Flipt struct {
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	out, err := json.Marshal(f)
+	var (
+		out []byte
+		err error
+	)
+
+	if r.Header.Get("Accept") == "application/json+pretty" {
+		out, err = json.MarshalIndent(f, "", "  ")
+	} else {
+		out, err = json.Marshal(f)
+	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Redis cache support :tada: [https://github.com/markphelps/flipt/issues/633](https://github.com/markphelps/flipt/issues/633)
+- Support for pretty printing JSON responses from API (via ?pretty=true or setting `Accept: application/json+pretty` header)
 - Configuration warnings/deprecations are displayed in console at startup
 
 ### Changed
