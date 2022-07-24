@@ -34,7 +34,7 @@ jobs:
           context: .
           file: Dockerfile.it
           push: true
-          tags: ghcr.io/markphelps/flipt-integration-test:latest
+          tags: ghcr.io/flipt-io/flipt-integration-test:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 

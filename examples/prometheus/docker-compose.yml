@@ -11,7 +11,7 @@ services:
       - flipt_network
 
   flipt:
-    image: markphelps/flipt:latest
+    image: flipt/flipt:latest
     depends_on:
       - prometheus
     ports:

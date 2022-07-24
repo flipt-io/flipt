@@ -14,7 +14,7 @@ Before starting, make sure you have the following installed:
 
 ## Setup
 
-1. Clone this repo: `git clone https://github.com/markphelps/flipt`
+1. Clone this repo: `git clone https://github.com/flipt-io/flipt`
 1. Run `task bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
 1. Run `task test` to execute the test suite
 1. Run `task dev` to run the server and ui in development mode.
@@ -57,13 +57,13 @@ Running `task assets` will regenerate the embedded assets (ui, api documentation
 
 The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.dev/) and is also statically compiled into the Flipt binary.
 
-The [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
+The [ui/README.md](https://github.com/flipt-io/flipt/tree/main/ui/README.md) has more information on how to build the UI and also how to run it locally during development.
 
 ## Building/Running
 
 **Run `script/server` from the project root.**
 
-Vite will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/markphelps/flipt/tree/main/ui/README.md) for more info.
+Vite will rebuild the UI assets when applicable files in the `ui` folder change. See [ui/README.md](https://github.com/flipt-io/flipt/tree/main/ui/README.md) for more info.
 
 You'll need to stop and re-run `script/server` for any changes in the server (Go) code :exclamation:
 
@@ -87,4 +87,4 @@ For VSCode Remote Containers (devcontainers), make sure you have [Docker](https:
 
 If you have access to [GitHub Codespaces](https://github.com/features/codespaces), simply open Flipt in a codespaces from the `Code` tab in the repo on GitHub or click the button below.
 
-[![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=markphelps/flipt)
+[![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
