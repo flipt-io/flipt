@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: 10 0 * * 0 # weekly, sunday at 00:10
 
+permissions:
+  packages: write
+
 jobs:
   build:
     name: Build
