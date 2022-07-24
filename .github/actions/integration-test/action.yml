@@ -7,6 +7,6 @@ inputs:
     required: true
 runs:
   using: "docker"
-  image: "docker://ghcr.io/markphelps/flipt-integration-test"
+  image: "docker://ghcr.io/flipt-io/flipt-integration-test"
   args:
     - ${{ inputs.args }}
