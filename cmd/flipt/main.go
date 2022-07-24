@@ -77,7 +77,7 @@ var (
 
 	version      = devVersion
 	commit       string
-	date         = time.Now().UTC().Format(time.RFC3339)
+	date         string
 	goVersion    = runtime.Version()
 	analyticsKey string
 	banner       string
