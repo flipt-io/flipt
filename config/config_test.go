@@ -130,7 +130,46 @@ func TestLoad(t *testing.T) {
 				cfg := Default()
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled)
+				cfg.Cache.TTL = -1
+				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled, deprecatedMsgMemoryExpiration)
+				return cfg
+			},
+		},
+		{
+			name: "cache - no backend set",
+			path: "./testdata/cache/default.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.TTL = 30 * time.Minute
+				return cfg
+			},
+		},
+		{
+			name: "cache - memory",
+			path: "./testdata/cache/memory.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.TTL = 5 * time.Minute
+				cfg.Cache.Memory.EvictionInterval = 10 * time.Minute
+				return cfg
+			},
+		},
+		{
+			name: "cache - redis",
+			path: "./testdata/cache/redis.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Cache.Enabled = true
+				cfg.Cache.Backend = CacheRedis
+				cfg.Cache.TTL = time.Minute
+				cfg.Cache.Redis.Host = "localhost"
+				cfg.Cache.Redis.Port = 6378
+				cfg.Cache.Redis.DB = 1
+				cfg.Cache.Redis.Password = "s3cr3t!"
 				return cfg
 			},
 		},

@@ -10,10 +10,10 @@ log:
 
 # cache:
 #   enabled: false
-#   backend: "memory"
+#   backend: memory
 #   ttl: 60s
 #   redis:
-#     host: "localhost"
+#     host: localhost
 #     port: 6379
 #   memory:
 #     eviction_interval: 5m # evict expired items every 5m
