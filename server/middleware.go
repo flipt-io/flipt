@@ -20,7 +20,7 @@ import (
 	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// ValidationUnaryInterceptor validates incomming requests
+// ValidationUnaryInterceptor validates incoming requests
 func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	if v, ok := req.(flipt.Validator); ok {
 		if err := v.Validate(); err != nil {
