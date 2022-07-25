@@ -18,7 +18,7 @@ log:
 #   memory:
 #     eviction_interval: 5m # evict expired items every 5m
 
-# # server:
+# server:
 #   protocol: http
 #   host: 0.0.0.0
 #   https_port: 443
