@@ -4,7 +4,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit
 
-FLIPT_PID="/tmp/flipt.api.pid"
+FLIPT_PID="/tmp/flipt.ui.pid"
 
 finish() {
   [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
@@ -31,7 +31,8 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" &&  npm test && npx playwright test
+    cd "ui" && npm ci
+    npm test && npx playwright test
 }
 
 run

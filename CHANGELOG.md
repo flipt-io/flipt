@@ -5,6 +5,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Redis cache support :tada: [https://github.com/markphelps/flipt/issues/633](https://github.com/markphelps/flipt/issues/633)
+- Support for pretty printing JSON responses from API (via ?pretty=true or setting `Accept: application/json+pretty` header)
+- Configuration warnings/deprecations are displayed in console at startup
+
+### Changed
+
+- Ping database on startup to check if it's alive
+- Default cache TTL is 1m. Previously there was no TTL for the in memory cache.
+
+### Deprecated
+
+- `cache.memory.enabled` config value is deprecated. See [Deprecations](DEPRECATIONS.md) for more info
+- `cache.memory.expiration` config value is deprecated. See [Deprecations](DEPRECATIONS.md) for more info
+
 ### Fixed
 
 - Build date was incorrect and always showed current date/time

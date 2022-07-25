@@ -23,8 +23,7 @@ var (
 	importStdin      bool
 )
 
-func runImport(args []string) error {
-	ctx := context.Background()
+func runImport(ctx context.Context, args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer cancel()

@@ -11,8 +11,9 @@ tasks:
     desc: Build the binary
     deps: [prep]
     cmds:
-      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}} -X main.date={{.BUILD_DATE}}" --o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
+      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}} -X main.date={{.BUILD_DATE}}" -o {{.OUTPUT}}/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
+      OUTPUT: '{{default "./bin" .OUTPUT}}'
       GIT_COMMIT:
         sh: set -e && git rev-parse --verify HEAD || ""
       BUILD_DATE:
@@ -24,6 +25,18 @@ tasks:
       - task: clean
       - task: proto
       - task: assets
+
+  pkg:
+    desc: Package the binary
+    cmds:
+      - task: default
+        vars: { OUTPUT: "./pkg" }
+      - mkdir -p ./pkg/config/migrations
+      - cp -R ./config/migrations/ ./pkg/config/migrations/
+      - cp ./config/*.yml ./pkg/config/
+    vars:
+      GIT_COMMIT:
+        sh: set -e && git rev-parse --verify HEAD || ""
 
   assets:
     desc: Build the UI
@@ -74,7 +87,6 @@ tasks:
 
   build:
     desc: Run Go build
-    deps: [bootstrap]
     cmds:
       - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
@@ -93,6 +105,11 @@ tasks:
     cmds:
       - buf generate
 
+  dev:
+    desc: Run the server and UI in development mode
+    cmds:
+      - script/server
+
   server:
     desc: Start the server
     cmds:
@@ -104,6 +121,8 @@ tasks:
       - go mod tidy
       - go clean -i {{.SOURCE_FILES}}
       - rm -rf dist/*
+      - rm -rf pkg/*
+      - rm -rf bin/*
 
   cover:
     desc: Run test coverage

@@ -25,6 +25,7 @@ _test
 !**/**/testdata/**/*.pem
 
 bin
+pkg
 benchmark
 coverage.txt
 dist

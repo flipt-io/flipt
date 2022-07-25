@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/server/cache"
 	"go.flipt.io/flipt/storage"
 )
 
@@ -153,4 +154,44 @@ func (m *storeMock) GetEvaluationRules(ctx context.Context, flagKey string) ([]*
 func (m *storeMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	args := m.Called(ctx, ruleID)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
+}
+
+type cacheSpy struct {
+	cache.Cacher
+
+	getKeys   map[string]struct{}
+	getCalled int
+
+	setItems  map[string][]byte
+	setCalled int
+
+	deleteKeys   map[string]struct{}
+	deleteCalled int
+}
+
+func newCacheSpy(c cache.Cacher) *cacheSpy {
+	return &cacheSpy{
+		Cacher:     c,
+		getKeys:    make(map[string]struct{}),
+		setItems:   make(map[string][]byte),
+		deleteKeys: make(map[string]struct{}),
+	}
+}
+
+func (c *cacheSpy) Get(ctx context.Context, key string) ([]byte, bool, error) {
+	c.getCalled++
+	c.getKeys[key] = struct{}{}
+	return c.Cacher.Get(ctx, key)
+}
+
+func (c *cacheSpy) Set(ctx context.Context, key string, value []byte) error {
+	c.setCalled++
+	c.setItems[key] = value
+	return c.Cacher.Set(ctx, key, value)
+}
+
+func (c *cacheSpy) Delete(ctx context.Context, key string) error {
+	c.deleteCalled++
+	c.deleteKeys[key] = struct{}{}
+	return c.Cacher.Delete(ctx, key)
 }

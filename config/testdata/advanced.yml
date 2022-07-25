@@ -10,10 +10,11 @@ cors:
   allowed_origins: "foo.com"
 
 cache:
+  enabled: true
+  backend: memory
+  ttl: 60s
   memory:
-    enabled: true
-    expiration: 5m
-    eviction_interval: 1m
+    eviction_interval: 5m # Evict Expired Items Every 5m
 
 server:
   protocol: https

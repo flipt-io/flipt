@@ -3,14 +3,9 @@ package sql
 import (
 	"context"
 	"testing"
-	"time"
 
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/cache"
-	"go.flipt.io/flipt/storage/cache/memory"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -476,54 +471,6 @@ func BenchmarkGetSegment(b *testing.B) {
 
 		for i := 0; i < b.N; i++ {
 			s, _ = store.GetSegment(context.TODO(), segment.Key)
-		}
-
-		benchSegment = s
-	})
-}
-
-func BenchmarkGetSegment_CacheMemory(b *testing.B) {
-	var (
-		l, _       = test.NewNullLogger()
-		logger     = logrus.NewEntry(l)
-		cacher     = memory.NewCache(5*time.Minute, 10*time.Minute, logger)
-		storeCache = cache.NewStore(logger, cacher, store)
-
-		ctx = context.Background()
-
-		segment, err = storeCache.CreateSegment(ctx, &flipt.CreateSegmentRequest{
-			Key:         b.Name(),
-			Name:        "foo",
-			Description: "bar",
-		})
-	)
-
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	_, err = storeCache.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-		SegmentKey: segment.Key,
-		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-		Property:   "foo",
-		Operator:   "EQ",
-		Value:      "bar",
-	})
-
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	var s *flipt.Segment
-
-	// warm the cache
-	s, _ = storeCache.GetSegment(context.TODO(), segment.Key)
-
-	b.ResetTimer()
-
-	b.Run("get-segment-cache", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			s, _ = storeCache.GetSegment(context.TODO(), segment.Key)
 		}
 
 		benchSegment = s

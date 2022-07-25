@@ -1,0 +1,6 @@
+cache:
+  enabled: true
+  backend: memory
+  ttl: 5m
+  memory:
+    eviction_interval: 10m

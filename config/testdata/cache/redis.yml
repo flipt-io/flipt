@@ -1,0 +1,9 @@
+cache:
+  enabled: true
+  backend: redis
+  ttl: 60s
+  redis:
+    host: localhost
+    port: 6378
+    db: 1
+    password: "s3cr3t!"

@@ -14,6 +14,11 @@ import (
 	jaeger "github.com/uber/jaeger-client-go"
 )
 
+const (
+	deprecatedMsgMemoryEnabled    = `'cache.memory.enabled' is deprecated and will be removed in a future version. Please use 'cache.backend' and 'cache.enabled' instead.`
+	deprecatedMsgMemoryExpiration = `'cache.memory.expiration' is deprecated and will be removed in a future version. Please use 'cache.ttl' instead.`
+)
+
 type Config struct {
 	Log      LogConfig      `json:"log,omitempty"`
 	UI       UIConfig       `json:"ui,omitempty"`
@@ -23,6 +28,7 @@ type Config struct {
 	Tracing  TracingConfig  `json:"tracing,omitempty"`
 	Database DatabaseConfig `json:"database,omitempty"`
 	Meta     MetaConfig     `json:"meta,omitempty"`
+	Warnings []string       `json:"warnings,omitempty"`
 }
 
 type LogConfig struct {
@@ -39,14 +45,50 @@ type CorsConfig struct {
 	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
 }
 
+// CacheBackend is either memory or redis
+type CacheBackend uint8
+
+func (c CacheBackend) String() string {
+	return cacheBackendToString[c]
+}
+
+const (
+	_ CacheBackend = iota
+	// CacheMemory ...
+	CacheMemory
+	// CacheRedis ...
+	CacheRedis
+)
+
+var (
+	cacheBackendToString = map[CacheBackend]string{
+		CacheMemory: "memory",
+		CacheRedis:  "redis",
+	}
+
+	stringToCacheBackend = map[string]CacheBackend{
+		"memory": CacheMemory,
+		"redis":  CacheRedis,
+	}
+)
+
 type MemoryCacheConfig struct {
-	Enabled          bool          `json:"enabled"`
-	Expiration       time.Duration `json:"expiration,omitempty"`
 	EvictionInterval time.Duration `json:"evictionInterval,omitempty"`
 }
 
+type RedisCacheConfig struct {
+	Host     string `json:"host,omitempty"`
+	Port     int    `json:"port,omitempty"`
+	Password string `json:"password,omitempty"`
+	DB       int    `json:"db,omitempty"`
+}
+
 type CacheConfig struct {
-	Memory MemoryCacheConfig `json:"memory,omitempty"`
+	Enabled bool              `json:"enabled"`
+	TTL     time.Duration     `json:"ttl,omitempty"`
+	Backend CacheBackend      `json:"backend,omitempty"`
+	Memory  MemoryCacheConfig `json:"memory,omitempty"`
+	Redis   RedisCacheConfig  `json:"redis,omitempty"`
 }
 
 type ServerConfig struct {
@@ -160,10 +202,17 @@ func Default() *Config {
 		},
 
 		Cache: CacheConfig{
+			Enabled: false,
+			Backend: CacheMemory,
+			TTL:     1 * time.Minute,
 			Memory: MemoryCacheConfig{
-				Enabled:          false,
-				Expiration:       -1,
-				EvictionInterval: 10 * time.Minute,
+				EvictionInterval: 5 * time.Minute,
+			},
+			Redis: RedisCacheConfig{
+				Host:     "localhost",
+				Port:     6379,
+				Password: "",
+				DB:       0,
 			},
 		},
 
@@ -210,9 +259,16 @@ const (
 	corsAllowedOrigins = "cors.allowed_origins"
 
 	// Cache
-	cacheMemoryEnabled          = "cache.memory.enabled"
-	cacheMemoryExpiration       = "cache.memory.expiration"
+	cacheBackend                = "cache.backend"
+	cacheEnabled                = "cache.enabled"
+	cacheTTL                    = "cache.ttl"
+	cacheMemoryEnabled          = "cache.memory.enabled"    // deprecated in v1.10.0
+	cacheMemoryExpiration       = "cache.memory.expiration" // deprecated in v1.10.0
 	cacheMemoryEvictionInterval = "cache.memory.eviction_interval"
+	cacheRedisHost              = "cache.redis.host"
+	cacheRedisPort              = "cache.redis.port"
+	cacheRedisPassword          = "cache.redis.password"
+	cacheRedisDB                = "cache.redis.db"
 
 	// Server
 	serverHost      = "server.host"
@@ -284,14 +340,46 @@ func Load(path string) (*Config, error) {
 	}
 
 	// Cache
-	if viper.IsSet(cacheMemoryEnabled) {
-		cfg.Cache.Memory.Enabled = viper.GetBool(cacheMemoryEnabled)
+	if viper.GetBool(cacheMemoryEnabled) { // handle deprecated memory config
+		cfg.Cache.Backend = CacheMemory
+		cfg.Cache.Enabled = true
+
+		cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled)
 
 		if viper.IsSet(cacheMemoryExpiration) {
-			cfg.Cache.Memory.Expiration = viper.GetDuration(cacheMemoryExpiration)
+			cfg.Cache.TTL = viper.GetDuration(cacheMemoryExpiration)
+			cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryExpiration)
 		}
-		if viper.IsSet(cacheMemoryEvictionInterval) {
-			cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cacheMemoryEvictionInterval)
+
+	} else if viper.IsSet(cacheEnabled) {
+		cfg.Cache.Enabled = viper.GetBool(cacheEnabled)
+		if viper.IsSet(cacheBackend) {
+			cfg.Cache.Backend = stringToCacheBackend[viper.GetString(cacheBackend)]
+		}
+		if viper.IsSet(cacheTTL) {
+			cfg.Cache.TTL = viper.GetDuration(cacheTTL)
+		}
+	}
+
+	if cfg.Cache.Enabled {
+		switch cfg.Cache.Backend {
+		case CacheRedis:
+			if viper.IsSet(cacheRedisHost) {
+				cfg.Cache.Redis.Host = viper.GetString(cacheRedisHost)
+			}
+			if viper.IsSet(cacheRedisPort) {
+				cfg.Cache.Redis.Port = viper.GetInt(cacheRedisPort)
+			}
+			if viper.IsSet(cacheRedisPassword) {
+				cfg.Cache.Redis.Password = viper.GetString(cacheRedisPassword)
+			}
+			if viper.IsSet(cacheRedisDB) {
+				cfg.Cache.Redis.DB = viper.GetInt(cacheRedisDB)
+			}
+		case CacheMemory:
+			if viper.IsSet(cacheMemoryEvictionInterval) {
+				cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cacheMemoryEvictionInterval)
+			}
 		}
 	}
 
@@ -443,7 +531,17 @@ func (c *Config) validate() error {
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	out, err := json.Marshal(c)
+	var (
+		out []byte
+		err error
+	)
+
+	if r.Header.Get("Accept") == "application/json+pretty" {
+		out, err = json.MarshalIndent(c, "", "  ")
+	} else {
+		out, err = json.Marshal(c)
+	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

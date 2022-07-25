@@ -10,9 +10,9 @@
 *.out
 *.test
 
+.devcontainer/
 .github/
 .vscode/
-.licenses/
 .task/
 Dockerfile
 LICENSE
