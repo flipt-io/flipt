@@ -92,7 +92,7 @@ Try the latest version of Flipt out for yourself.
 ![Flipt](cli.gif)
 
 ```bash
-❯ docker run --rm -p 8080:8080 -p 9000:9000 -t markphelps/flipt:latest
+❯ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
 ```
 
 Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).

@@ -1,6 +1,6 @@
 FROM ubuntu:focal
 
-LABEL org.opencontainers.image.source="https://github.com/markphelps/flipt"
+LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true

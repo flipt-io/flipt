@@ -2,6 +2,6 @@ version: "3"
 
 services:
   flipt:
-    image: markphelps/flipt:latest
+    image: flipt/flipt:latest
     ports:
       - "8080:8080"

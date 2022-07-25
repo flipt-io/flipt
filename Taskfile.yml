@@ -11,11 +11,13 @@ tasks:
     desc: Build the binary
     deps: [prep]
     cmds:
-      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o {{.OUTPUT}}/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
+      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}} -X main.date={{.BUILD_DATE}}" -o {{.OUTPUT}}/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
     vars:
       OUTPUT: '{{default "./bin" .OUTPUT}}'
       GIT_COMMIT:
         sh: set -e && git rev-parse --verify HEAD || ""
+      BUILD_DATE:
+        sh: date -u +%Y-%m-%dT%H:%M:%SZ
 
   prep:
     desc: Prepare for release

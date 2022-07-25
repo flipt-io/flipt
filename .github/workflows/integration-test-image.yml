@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: 10 0 * * 0 # weekly, sunday at 00:10
 
+permissions:
+  packages: write
+
 jobs:
   build:
     name: Build
@@ -34,7 +37,7 @@ jobs:
           context: .
           file: Dockerfile.it
           push: true
-          tags: ghcr.io/markphelps/flipt-integration-test:latest
+          tags: ghcr.io/flipt-io/flipt-integration-test:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
