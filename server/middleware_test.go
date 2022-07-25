@@ -135,6 +135,152 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 	}
 }
 
+func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
+	var (
+		req = &flipt.GetFlagRequest{
+			Key: "foo",
+		}
+
+		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+			return &flipt.Flag{
+				Key: "foo",
+			}, nil
+		}
+
+		info = &grpc.UnaryServerInfo{
+			FullMethod: "FakeMethod",
+		}
+	)
+
+	got, err := EvaluationUnaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+
+	resp, ok := got.(*flipt.Flag)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "foo", resp.Key)
+}
+
+func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
+	var (
+		req = &flipt.EvaluationRequest{
+			FlagKey: "foo",
+		}
+
+		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+			return &flipt.EvaluationResponse{
+				FlagKey: "foo",
+			}, nil
+		}
+
+		info = &grpc.UnaryServerInfo{
+			FullMethod: "FakeMethod",
+		}
+	)
+
+	got, err := EvaluationUnaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+
+	resp, ok := got.(*flipt.EvaluationResponse)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+
+	assert.Equal(t, "foo", resp.FlagKey)
+	// check that the requestID was created and set
+	assert.NotEmpty(t, resp.RequestId)
+	assert.NotZero(t, resp.Timestamp)
+	assert.NotZero(t, resp.RequestDurationMillis)
+
+	req = &flipt.EvaluationRequest{
+		FlagKey:   "foo",
+		RequestId: "bar",
+	}
+
+	got, err = EvaluationUnaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+
+	resp, ok = got.(*flipt.EvaluationResponse)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+
+	assert.Equal(t, "foo", resp.FlagKey)
+	// check that the requestID was propagated
+	assert.NotEmpty(t, resp.RequestId)
+	assert.Equal(t, "bar", resp.RequestId)
+	assert.NotZero(t, resp.Timestamp)
+	assert.NotZero(t, resp.RequestDurationMillis)
+}
+
+func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
+	var (
+		req = &flipt.BatchEvaluationRequest{
+			Requests: []*flipt.EvaluationRequest{
+				{
+					FlagKey: "foo",
+				},
+			},
+		}
+
+		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+			return &flipt.BatchEvaluationResponse{
+				Responses: []*flipt.EvaluationResponse{
+					{
+						FlagKey: "foo",
+					},
+				},
+			}, nil
+		}
+
+		info = &grpc.UnaryServerInfo{
+			FullMethod: "FakeMethod",
+		}
+	)
+
+	got, err := EvaluationUnaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+
+	resp, ok := got.(*flipt.BatchEvaluationResponse)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+	assert.NotEmpty(t, resp.Responses)
+	assert.Equal(t, "foo", resp.Responses[0].FlagKey)
+	// check that the requestID was created and set
+	assert.NotEmpty(t, resp.RequestId)
+	assert.NotZero(t, resp.RequestDurationMillis)
+
+	req = &flipt.BatchEvaluationRequest{
+		RequestId: "bar",
+		Requests: []*flipt.EvaluationRequest{
+			{
+				FlagKey: "foo",
+			},
+		},
+	}
+
+	got, err = EvaluationUnaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+
+	resp, ok = got.(*flipt.BatchEvaluationResponse)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+	assert.NotEmpty(t, resp.Responses)
+	assert.Equal(t, "foo", resp.Responses[0].FlagKey)
+	// check that the requestID was propagated
+	assert.NotEmpty(t, resp.RequestId)
+	assert.Equal(t, "bar", resp.RequestId)
+	assert.NotZero(t, resp.RequestDurationMillis)
+}
+
 func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	var (
 		store = &storeMock{}
