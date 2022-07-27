@@ -20,9 +20,9 @@ services:
       - flipt_network
     environment:
       - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_CACHE_MEMORY_ENABLED=true"
-      - "FLIPT_CACHE_MEMORY_EXPIRATION=1m"
-      - "FLIPT_CACHE_MEMORY_EVICTION_INTERVAL=2m"
+      - "FLIPT_CACHE_ENABLED=true"
+      - "FLIPT_CACHE_BACKEND=memory"
+      - "FLIPT_CACHE_TTL=1m"
 
 networks:
   flipt_network:
