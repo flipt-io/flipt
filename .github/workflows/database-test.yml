@@ -31,8 +31,11 @@ jobs:
         ports:
           # will assign a random free host port
           - 5432/tcp
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         env:
           POSTGRES_DB: flipt_test
           POSTGRES_USER: postgres
@@ -43,16 +46,9 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: "1.17.x"
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: "1.17"
+          check-latest: true
+          cache: true
 
       - name: Unit Test (Postgres)
         run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
@@ -79,22 +75,9 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: "1.17.x"
-
-      - id: go-cache-paths
-        run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
-
-      - uses: actions/cache@v3
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-build }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
-      - uses: actions/cache@v3
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+          go-version: "1.17"
+          check-latest: true
+          cache: true
 
       - name: Unit Test (MySQL)
         run: DB_URL="mysql://mysql:password@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...
