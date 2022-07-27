@@ -44,8 +44,8 @@ dockers:
       - "flipt/flipt:{{ .Tag }}"
       - "markphelps/flipt:latest" # TODO: deprecate
       - "markphelps/flipt:{{ .Tag }}" # TODO: deprecate
-      - "ghcr.io/markphelps/flipt:latest" # TODO: deprecate
-      - "ghcr.io/markphelps/flipt:{{ .Tag }}" # TODO: deprecate
+      - "ghcr.io/flipt-io/flipt:latest"
+      - "ghcr.io/flipt-io/flipt:{{ .Tag }}"
     build_flag_templates:
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"

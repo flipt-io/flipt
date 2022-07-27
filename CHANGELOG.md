@@ -3,7 +3,7 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.10.0](https://github.com/markphelps/flipt/releases/tag/v1.10.0) - 2022-07-27
 
 ### Added
 
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ping database on startup to check if it's alive
 - Default cache TTL is 1m. Previously there was no TTL for the in memory cache.
+- Dependency updates
 
 ### Deprecated
 
@@ -56,9 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated telemetry to not run if `CI` is set.
-- Updated telemtry to flush on each batch.
-- Dependency updates.
+- Updated telemetry to not run if `CI` is set
+- Updated telemtry to flush on each batch
+- Dependency updates
 
 ### Fixed
 
