@@ -6,15 +6,38 @@ labels: enhancement
 assignees: markphelps
 ---
 
-**Is your feature request related to a problem? Please describe.**
+### Problem
 
+Is your feature request related to a problem? Please describe:
+
+<!--
 A clear and concise description of what the problem is. Ex. I'm frustrated by [...]
+-->
 
-**Describe the solution you'd like**
+### Ideal Solution
 
+Describe the solution you'd like:
+
+<!--
 A clear and concise description of what you want to happen.
+-->
 
-**Attach an export**
+### Additional Context
+
+Add any other context about the feature request here.
+
+Examples:
+
+- Screenshots
+- Exported data from the database
+
+<!--
+
+**Screenshots**
+
+If applicable, add screenshots to help explain your request.
+
+**Attach an Export**
 
 If your feature request is based on a limitation that could be best shown with a specific set of data, please export your data by running:
 
@@ -24,6 +47,4 @@ flipt export > export.yml
 
 And then attach the YAML file to this issue. ❤️
 
-**Additional context**
-
-Add any other context or screenshots about the feature request here.
+-->

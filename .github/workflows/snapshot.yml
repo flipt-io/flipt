@@ -12,18 +12,11 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: "1.17.x"
+          go-version: "1.17"
+          check-latest: true
+          cache: true
 
       - uses: arduino/setup-task@v1
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
 
       - name: Install Syft
         run: |

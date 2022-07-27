@@ -49,6 +49,8 @@
           >
             New Rule
           </button>
+        </div>
+        <div class="control">
           <button
             class="button"
             :disabled="!reordered"

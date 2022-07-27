@@ -23,11 +23,13 @@
         />
       </div>
     </div>
-    <div class="field">
-      <div class="control is-grouped">
+    <div class="field is-grouped">
+      <div class="control">
         <button class="button is-primary" @click.prevent="evaluate()">
           Debug
         </button>
+      </div>
+      <div class="control">
         <button class="button" @click.prevent="reset()">Reset</button>
       </div>
     </div>
