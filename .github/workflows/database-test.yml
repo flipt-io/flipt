@@ -48,7 +48,7 @@ jobs:
           cache: true
 
       - name: Unit Test (Postgres)
-        run: DB_URL="postgres://postgres:password@localhost:5432/flipt_test?sslmode=disable" go test -count=1 -v ./...
+        run: DB_URL="postgres://postgres:password@localhost:${{ job.services.postgres.ports['5432'] }}/flipt_test?sslmode=disable" go test -count=1 -v ./...
 
   ## MySQL Tests
   mysql:
@@ -74,4 +74,4 @@ jobs:
           cache: true
 
       - name: Unit Test (MySQL)
-        run: DB_URL="mysql://mysql:password@localhost:3306/flipt_test" go test -count=1 -v ./...
+        run: DB_URL="mysql://mysql:password@localhost:${{ job.services.mysql.ports['3306'] }}/flipt_test" go test -count=1 -v ./...

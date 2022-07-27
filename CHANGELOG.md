@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Build date was incorrect and always showed current date/time
+- Button spacing issue on targeting page
+- Docker compose examples run again after switch to non-root user 
 
 ## [v1.9.0](https://github.com/markphelps/flipt/releases/tag/v1.9.0) - 2022-07-06
 
