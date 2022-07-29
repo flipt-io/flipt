@@ -77,6 +77,16 @@ Flipt supports use cases such as:
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite, Redis.. Flipt supports it all.
 
+## Works With
+
+<p align="center">
+    <img src="./logos/sqlite.svg" alt="SQLite" width=200 height=200 />
+    <img src="./logos/mysql.svg" alt="MySQL" width=200 height=200 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=200 height=200 />
+    <img src="./logos/redis.svg" alt="Redis" width=200 height=200 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=200 height=200 />
+</p>
+
 ## Try It
 
 Try the latest version of Flipt out for yourself.
@@ -98,6 +108,21 @@ Try the latest version of Flipt out for yourself.
 Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
+
+## Logos
+
+Some of our users running Flipt in production.
+
+<p>
+    <a href="https://paradigm.co">
+        <img src="./logos/users/paradigm.png" alt="Paradigm" />
+    </a>
+    <a href="https://rokt.com">
+        <img src="logos/users/rokt.svg" alt="Rokt" width="200"/>
+    </a>
+</p>
+
+Using Flipt at your company? Open a PR and add your logo here!
 
 ## Integration
 
@@ -159,18 +184,6 @@ The client code is the code that you would integrate into your applications, whi
 The server code is licensed under the [GPL 3.0 License](https://spdx.org/licenses/GPL-3.0.html).
 
 See [LICENSE](LICENSE).
-
-## Logos
-
-| [![Paradigm](logos/paradigm-logo-light-vertical-128x128.png)](https://www.paradigm.co/) |
-| ------------------------------------------------------------------------------------------|
-| [Paradigm](https://www.paradigm.co/)                                                      |
-
-| <img src="logos/rokt.svg" width="200"/>                                     |
-| ------------------------------------------------------------------------------------------|
-| [Rokt](https://www.rokt.com/)                                                             |
-
-Using Flipt at your company? Open a PR and add your logo here!
 
 ## Sponsors
 

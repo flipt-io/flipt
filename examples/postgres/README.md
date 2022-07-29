@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="../../logos/postgresql.svg" alt="Postgres" width=250 height=250 />
+</p>
+
 # Postgres Example
 
 This example shows how you can run Flipt with a Postgres database over the default SQLite.
