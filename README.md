@@ -111,7 +111,7 @@ For more permanent methods of running Flipt, see the [Installation](https://flip
 
 ## Logos
 
-Some of our users running Flipt in production.
+Some of the companies depending on Flipt in production.
 
 <p>
     <a href="https://paradigm.co">
