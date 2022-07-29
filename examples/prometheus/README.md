@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="../../logos/prometheus.svg" alt="Prometheus" width=250 height=250 />
+</p>
+
 # Prometheus Example
 
 This example shows how you can run Flipt with a Prometheus sidecar application in Docker.
