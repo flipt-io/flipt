@@ -80,11 +80,11 @@ Flipt supports use cases such as:
 ## Works With
 
 <p align="center">
-    <img src="./logos/sqlite.svg" alt="SQLite" width=200 height=200 />
-    <img src="./logos/mysql.svg" alt="MySQL" width=200 height=200 />
-    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=200 height=200 />
-    <img src="./logos/redis.svg" alt="Redis" width=200 height=200 />
-    <img src="./logos/prometheus.svg" alt="Prometheus" width=200 height=200 />
+    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 />
+    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
+    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
 </p>
 
 ## Try It
