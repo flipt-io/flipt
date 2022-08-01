@@ -40,14 +40,15 @@ Examples:
 - Screenshots
 - Exported data from the database
 
-<!--
-
 **Screenshots**
 
+<!--
 If applicable, add screenshots to help explain your problem.
+-->
 
 **Attach an Export**
 
+<!--
 If the bug could be best shown with a specific set of data, please export your data by running:
 
 ```
@@ -55,5 +56,4 @@ flipt export > export.yml
 ```
 
 And then attach the YAML file to this issue. ❤️
-
 -->
