@@ -44,7 +44,8 @@
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
         <a href="#integration">Integration</a> |
-        <a href="#community">Community</a>
+        <a href="#community">Community</a> |
+        <a href="#feedback">Feedback</a>
     </h4>
 </div>
 
@@ -198,6 +199,12 @@ Please help me prioritize an Enterprise version of Flipt by filling out this [sh
 ## Community
 
 For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/fjPVc5JuyE).
+
+## Feedback
+
+If you are a user of Flipt I'd really :heart: it if you could leave a testimonal on how Flipt is working for you.
+
+https://testimonial.to/flipt
 
 ## Author
 
