@@ -36,7 +36,7 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && npm ci && npx playwright install chromium --with-deps
+    cd "ui" && npm ci && npx playwright install chromium
     npm test && npx playwright test
 }
 
