@@ -2,6 +2,11 @@
 
 set -o pipefail
 
+if [[ -z "$CI" ]]; then
+    echo "This script is meant to run in CI only" 1>&2
+    exit 1
+fi
+
 cd "$(dirname "$0")/.." || exit
 
 export SHAKEDOWN_URL="http://127.0.0.1:8080"
