@@ -24,7 +24,7 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.9",
+    "@babel/core": "^7.18.10",
     "@babel/preset-env": "^7.18.9",
     "@playwright/test": "^1.23.4",
     "babel-jest": "^28.1.2",
