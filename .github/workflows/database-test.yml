@@ -18,6 +18,7 @@ on:
       - "**.md"
       - "**.txt"
       - "**.ya?ml"
+  workflow_dispatch:
 
 jobs:
   ## Postgres Tests
