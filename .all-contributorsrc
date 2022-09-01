@@ -159,6 +159,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tsickert",
+      "name": "Thomas Sickert",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11492877?v=4",
+      "profile": "http://thomas.sickert.dev",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
