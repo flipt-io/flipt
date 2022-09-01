@@ -33,7 +33,7 @@
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
-    <a href="https://discord.gg/fjPVc5JuyE">
+    <a href="https://discord.gg/kRhEqG2TEZ">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
     </a>
 </div>
