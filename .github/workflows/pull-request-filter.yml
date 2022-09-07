@@ -1,0 +1,21 @@
+# This workflow is meant to filter out dependabot Pull Requests. They're noisy
+# and posting them in the PR channel is unnecessary. 
+on:
+  pull_request:
+    types:
+      - opened
+      - closed
+      - reopened
+
+jobs:
+  notify_if_not_dependabot:
+    if:  ${{ github.actor }} != 'dependabot'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Save event to file
+      run: echo ${{ github.event }} > event.json
+    - name: Discord Webhook Action
+      uses: tsickert/discord-webhook@v5.0.0
+      with:
+        webhook-url: ${{ secrets.WEBHOOK_URL }}
+        raw-data: event.json
