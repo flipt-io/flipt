@@ -3,8 +3,6 @@ snapshot:
 
 builds:
   - main: ./cmd/flipt/.
-    env:
-      - CGO_ENABLED=1
     ldflags:
       - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
       - -linkmode external -extldflags -static
@@ -12,9 +10,22 @@ builds:
       - linux
     goarch:
       - amd64
+      - arm64
     flags:
-      - -tags=assets
+      - -tags=assets,netgo
       - -trimpath
+    overrides:
+      - goos: linux
+        goarch: amd64
+        goamd64: v1
+        env:
+          - CGO_ENABLED=1
+          - CC=x86_64-linux-gnu-gcc
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=aarch64-linux-gnu-gcc
 
 sboms:
   - artifacts: archive
@@ -39,20 +50,56 @@ changelog:
 dockers:
   - dockerfile: ./build/Dockerfile
     use: buildx
+    goarch: amd64
     image_templates:
-      - "flipt/flipt:latest"
-      - "flipt/flipt:{{ .Tag }}"
-      - "markphelps/flipt:latest" # TODO: deprecate
-      - "markphelps/flipt:{{ .Tag }}" # TODO: deprecate
-      - "ghcr.io/flipt-io/flipt:latest"
-      - "ghcr.io/flipt-io/flipt:{{ .Tag }}"
+      - "flipt/flipt:{{ .Tag }}-amd64"
     build_flag_templates:
+      - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
       - config/migrations/
       - config/default.yml
+  - dockerfile: ./build/Dockerfile
+    use: buildx
+    goarch: arm64
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - config/migrations/
+      - config/default.yml
+
+docker_manifests:
+  - name_template: "flipt/flipt:latest"
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-amd64"
+      - "flipt/flipt:{{ .Tag }}-arm64"
+  - name_template: "flipt/flipt:{{ .Tag }}"
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-amd64"
+      - "flipt/flipt:{{ .Tag }}-arm64"
+  - name_template: "markphelps/flipt:latest" # TODO: deprecate
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-amd64"
+      - "flipt/flipt:{{ .Tag }}-arm64"
+  - name_template: "markphelps/flipt:{{ .Tag }}" # TODO: deprecate
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-amd64"
+      - "flipt/flipt:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/flipt-io/flipt:latest"
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-amd64"
+      - "flipt/flipt:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/flipt-io/flipt:{{ .Tag }}"
+    image_templates:
+      - "flipt/flipt:{{ .Tag }}-amd64"
+      - "flipt/flipt:{{ .Tag }}-arm64"
 
 announce:
   discord:

@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if [[ -z "$CI" ]]; then
+    echo "This script is meant to run in CI only" 1>&2
+    exit 1
+fi
+
 cd "$(dirname "$0")/.." || exit
 
 FLIPT_PID="/tmp/flipt.ui.pid"
@@ -31,7 +36,7 @@ run()
 
     ./test/helpers/wait-for-it/wait-for-it.sh "$flipt_host" -t 30
 
-    cd "ui" && npm ci
+    cd "ui" && npm ci && npx playwright install chromium
     npm test && npx playwright test
 }
 

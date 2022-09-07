@@ -25,6 +25,14 @@ jobs:
 
       - uses: arduino/setup-task@v1
 
+      - uses: docker/setup-qemu-action@v2
+
+      - uses: docker/setup-buildx-action@v2
+
+      - name: Install GCC for arm64
+        run: |
+          sudo apt-get install gcc-aarch64-linux-gnu
+
       - name: Install Syft
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin

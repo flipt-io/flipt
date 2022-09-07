@@ -18,6 +18,7 @@ on:
       - "**.md"
       - "**.txt"
       - "**.ya?ml"
+  workflow_dispatch:
 
 jobs:
   ## Postgres Tests
@@ -27,7 +28,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres@sha256:c132d7802dcc127486a403fb9e9a52d9df2e3ab84037c5de8395ed6ba2743e20
+        image: postgres@sha256:afc79f5499a589f3130bd8666c1743db6748aa43083b52f823db72dd3af89785
         ports:
           # will assign a random free host port
           - 5432/tcp

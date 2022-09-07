@@ -33,7 +33,7 @@
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
-    <a href="https://discord.gg/fjPVc5JuyE">
+    <a href="https://discord.gg/kRhEqG2TEZ">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
     </a>
 </div>
@@ -44,7 +44,8 @@
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
         <a href="#integration">Integration</a> |
-        <a href="#community">Community</a>
+        <a href="#community">Community</a> |
+        <a href="#feedback">Feedback</a>
     </h4>
 </div>
 
@@ -77,6 +78,16 @@ Flipt supports use cases such as:
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite, Redis.. Flipt supports it all.
 
+## Works With
+
+<p align="center">
+    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 />
+    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
+    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
+</p>
+
 ## Try It
 
 Try the latest version of Flipt out for yourself.
@@ -98,6 +109,21 @@ Try the latest version of Flipt out for yourself.
 Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
+
+## Logos
+
+Some of the companies depending on Flipt in production.
+
+<p>
+    <a href="https://paradigm.co">
+        <img src="./logos/users/paradigm.png" alt="Paradigm" />
+    </a>
+    <a href="https://rokt.com">
+        <img src="logos/users/rokt.svg" alt="Rokt" width="200"/>
+    </a>
+</p>
+
+Using Flipt at your company? Open a PR and add your logo here!
 
 ## Integration
 
@@ -160,18 +186,6 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
-## Logos
-
-| [![Paradigm](logos/paradigm-logo-light-vertical-128x128.png)](https://www.paradigm.co/) |
-| ------------------------------------------------------------------------------------------|
-| [Paradigm](https://www.paradigm.co/)                                                      |
-
-| <img src="logos/rokt.svg" width="200"/>                                     |
-| ------------------------------------------------------------------------------------------|
-| [Rokt](https://www.rokt.com/)                                                             |
-
-Using Flipt at your company? Open a PR and add your logo here!
-
 ## Sponsors
 
 If you use Flipt at your company, please consider [becoming a sponsor](https://github.com/sponsors/markphelps) today.
@@ -185,6 +199,12 @@ Please help me prioritize an Enterprise version of Flipt by filling out this [sh
 ## Community
 
 For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/fjPVc5JuyE).
+
+## Feedback
+
+If you are a user of Flipt I'd really :heart: it if you could leave a testimonal on how Flipt is working for you.
+
+https://testimonial.to/flipt
 
 ## Author
 
@@ -228,6 +248,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/amayvs"><img src="https://avatars.githubusercontent.com/u/842194?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Amay Shah</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=amayvs" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/kevin-ip"><img src="https://avatars.githubusercontent.com/u/28875408?v=4?s=100" width="100px;" alt=""/><br /><sub><b>kevin-ip</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=kevin-ip" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/albertchae"><img src="https://avatars.githubusercontent.com/u/217050?v=4?s=100" width="100px;" alt=""/><br /><sub><b>albertchae</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=albertchae" title="Code">💻</a></td>
+    <td align="center"><a href="http://thomas.sickert.dev"><img src="https://avatars.githubusercontent.com/u/11492877?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Thomas Sickert</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=tsickert" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/jalaziz"><img src="https://avatars.githubusercontent.com/u/247849?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jameel Al-Aziz</b></sub></a><br /><a href="#platform-jalaziz" title="Packaging/porting to new platform">📦</a></td>
   </tr>
 </table>
 

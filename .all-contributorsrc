@@ -159,6 +159,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tsickert",
+      "name": "Thomas Sickert",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11492877?v=4",
+      "profile": "http://thomas.sickert.dev",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "jalaziz",
+      "name": "Jameel Al-Aziz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/247849?v=4",
+      "profile": "https://github.com/jalaziz",
+      "contributions": [
+        "platform"
+      ]
     }
   ],
   "contributorsPerLine": 7,

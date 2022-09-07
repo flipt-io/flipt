@@ -31,14 +31,15 @@ Examples:
 - Screenshots
 - Exported data from the database
 
-<!--
-
 **Screenshots**
 
+<!--
 If applicable, add screenshots to help explain your request.
+-->
 
 **Attach an Export**
 
+<!--
 If your feature request is based on a limitation that could be best shown with a specific set of data, please export your data by running:
 
 ```
@@ -46,5 +47,4 @@ flipt export > export.yml
 ```
 
 And then attach the YAML file to this issue. ❤️
-
 -->

@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="../../logos/mysql.svg" alt="MySQL" width=250 height=250 />
+</p>
+
 # MySQL Example
 
 This example shows how you can run Flipt with a MySQL database over the default SQLite.

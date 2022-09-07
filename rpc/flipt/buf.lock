@@ -4,14 +4,8 @@ deps:
   - remote: buf.build
     owner: googleapis
     repository: googleapis
-    branch: main
-    commit: f3590c56d388417ebbedefae77ac12bf
-    digest: b1-nbZ1ZLsYdwXyEysqVWKYATvTXYr_alNRBebrjXpIv6k=
-    create_time: 2022-04-23T15:03:48.462865Z
+    commit: 62f35d8aed1149c291d606d958a7ce32
   - remote: buf.build
     owner: grpc-ecosystem
     repository: grpc-gateway
-    branch: main
-    commit: febd9e8be39b4f4b878b9c64bcc203fd
-    digest: b1-K5jSHBrJ24jZXRgQgkmphZuP-cAL2b90ssKrgvDK2hU=
-    create_time: 2022-04-17T01:28:07.574665Z
+    commit: bc28b723cd774c32b6fbc77621518765
