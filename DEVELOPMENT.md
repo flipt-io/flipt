@@ -8,7 +8,7 @@ Before starting, make sure you have the following installed:
 
 - GCC Compiler
 - [SQLite](https://sqlite.org/index.html)
-- [Go 1.17+](https://golang.org/doc/install)
+- [Go 1.18+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/)
 - [Task](https://taskfile.dev/#/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
@@ -24,7 +24,7 @@ Before starting, make sure you have the following installed:
 
 ## Go
 
-Flipt is built with Go 1.17+.
+Flipt is built with Go 1.18+.
 
 ## Bootstrap
 
