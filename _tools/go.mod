@@ -1,6 +1,6 @@
 module tools
 
-go 1.17
+go 1.18
 
 require (
 	github.com/bufbuild/buf v1.4.0
