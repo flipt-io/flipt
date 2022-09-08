@@ -31,3 +31,4 @@ jobs:
         embed-title: '[${{ github.event.repository.full_name }}] Pull request ${{ github.event.action }}: #${{ github.event.number }} ${{ github.event.pull_request.title }}'
         embed-description: ${{ steps.truncate-body.outputs.string }}
         embed-url: ${{ github.event.pull_request.html_url }}
+        
