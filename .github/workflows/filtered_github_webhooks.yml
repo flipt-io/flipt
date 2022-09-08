@@ -9,12 +9,14 @@ on:
       - reopened
 
 jobs:
-  notify_if_not_dependabot:
+  notify_discord:
+    name: Notify Discord
     if: ${{ !contains(github.event.pull_request.user.login, 'dependabot') }}
     runs-on: ubuntu-latest
     steps:
     # Discord Webhooks have a maximum size of 4k characters. Truncate the body to avoid a failed API call.
-    - id: truncate-body
+    - name: Truncate Event Body
+      id: truncate-body
       uses: 2428392/gh-truncate-string-action@v1.1.0
       with:
         stringToTruncate: ${{ github.event.pull_request.body }}
