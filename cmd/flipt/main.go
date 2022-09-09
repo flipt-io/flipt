@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"text/template"
 	"time"
@@ -29,7 +30,6 @@ import (
 	"github.com/google/go-github/v32/github"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/config"
 	"go.flipt.io/flipt/internal/info"
@@ -46,6 +46,7 @@ import (
 	"go.flipt.io/flipt/storage/sql/sqlite"
 	"go.flipt.io/flipt/swagger"
 	"go.flipt.io/flipt/ui"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -57,7 +58,7 @@ import (
 	_ "github.com/golang-migrate/migrate/source/file"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -68,12 +69,12 @@ import (
 	otgrpc "github.com/opentracing-contrib/go-grpc"
 	"github.com/opentracing/opentracing-go"
 	jaeger_config "github.com/uber/jaeger-client-go/config"
+	jaeger_zap "github.com/uber/jaeger-client-go/log/zap"
 )
 
 const devVersion = "dev"
 
 var (
-	l   = logrus.New()
 	cfg *config.Config
 
 	cfgPath      string
@@ -89,14 +90,34 @@ var (
 
 func main() {
 	var (
+		once         sync.Once
+		loggerConfig = zap.Config{
+			Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+			Development:      true,
+			Encoding:         "console",
+			EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+			OutputPaths:      []string{"stdout"},
+			ErrorOutputPaths: []string{"stderr"},
+		}
+		l      *zap.Logger
+		logger = func() *zap.Logger {
+			once.Do(func() { l = zap.Must(loggerConfig.Build()) })
+			return l
+		}
+	)
+
+	defer func() {
+		logger().Sync()
+	}()
+
+	var (
 		rootCmd = &cobra.Command{
 			Use:     "flipt",
 			Short:   "Flipt is a modern feature flag solution",
 			Version: version,
 			Run: func(cmd *cobra.Command, _ []string) {
-				if err := run(cmd.Context()); err != nil {
-					logrus.Error(err)
-					logrus.Exit(1)
+				if err := run(cmd.Context(), logger()); err != nil {
+					logger().Fatal("flipt", zap.Error(err))
 				}
 			},
 			CompletionOptions: cobra.CompletionOptions{
@@ -108,9 +129,8 @@ func main() {
 			Use:   "export",
 			Short: "Export flags/segments/rules to file/stdout",
 			Run: func(cmd *cobra.Command, _ []string) {
-				if err := runExport(cmd.Context()); err != nil {
-					logrus.Error(err)
-					logrus.Exit(1)
+				if err := runExport(cmd.Context(), logger()); err != nil {
+					logger().Fatal("export", zap.Error(err))
 				}
 			},
 		}
@@ -119,9 +139,8 @@ func main() {
 			Use:   "import",
 			Short: "Import flags/segments/rules from file",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := runImport(cmd.Context(), args); err != nil {
-					logrus.Error(err)
-					logrus.Exit(1)
+				if err := runImport(cmd.Context(), logger(), args); err != nil {
+					logger().Fatal("import", zap.Error(err))
 				}
 			},
 		}
@@ -130,17 +149,15 @@ func main() {
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, _ []string) {
-				migrator, err := sql.NewMigrator(*cfg, l)
+				migrator, err := sql.NewMigrator(*cfg, logger())
 				if err != nil {
-					logrus.Error(err)
-					logrus.Exit(1)
+					logger().Fatal("initializing migrator", zap.Error(err))
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Run(true); err != nil {
-					logrus.Error(err)
-					logrus.Exit(1)
+					logger().Fatal("running migrator", zap.Error(err))
 				}
 			},
 		}
@@ -157,8 +174,7 @@ func main() {
 		Date:      date,
 		GoVersion: goVersion,
 	}); err != nil {
-		l.Errorf("executing template: %v", err)
-		logrus.Exit(1)
+		logger().Fatal("executing template", zap.Error(err))
 	}
 
 	banner = buf.String()
@@ -169,36 +185,19 @@ func main() {
 		// read in config
 		cfg, err = config.Load(cfgPath)
 		if err != nil {
-			l.Error(err)
-			logrus.Exit(1)
+			logger().Fatal("loading configuration", zap.Error(err))
 		}
-
-		l.SetOutput(os.Stdout)
 
 		// log to file if enabled
 		if cfg.Log.File != "" {
-			logFile, err := os.OpenFile(cfg.Log.File, os.O_CREATE|os.O_WRONLY, 0600)
-			if err != nil {
-				l.Errorf("opening log file: %s %v", cfg.Log.File, err)
-				logrus.Exit(1)
-			}
-
-			l.SetOutput(logFile)
-			logrus.RegisterExitHandler(func() {
-				if logFile != nil {
-					_ = logFile.Close()
-				}
-			})
+			loggerConfig.OutputPaths = []string{cfg.Log.File}
 		}
 
 		// parse/set log level
-		lvl, err := logrus.ParseLevel(cfg.Log.Level)
+		loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
 		if err != nil {
-			l.Errorf("parsing log level: %s %v", cfg.Log.Level, err)
-			logrus.Exit(1)
+			logger().Fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
 		}
-
-		l.SetLevel(lvl)
 	})
 
 	rootCmd.SetVersionTemplate(banner)
@@ -215,14 +214,11 @@ func main() {
 	rootCmd.AddCommand(importCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		l.Error(err)
-		logrus.Exit(1)
+		logger().Fatal("execute", zap.Error(err))
 	}
-
-	logrus.Exit(0)
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context, logger *zap.Logger) error {
 	color.Cyan(banner)
 	fmt.Println()
 
@@ -254,15 +250,15 @@ func run(ctx context.Context) error {
 
 	// print out any warnings from config parsing
 	for _, warning := range cfg.Warnings {
-		l.Warn(warning)
+		logger.Warn("configuration warning", zap.String("message", warning))
 	}
 
 	if cfg.Meta.CheckForUpdates && isRelease {
-		l.Debug("checking for updates...")
+		logger.Debug("checking for updates")
 
 		release, err := getLatestRelease(ctx)
 		if err != nil {
-			l.Warn(err)
+			logger.Warn("getting latest release", zap.Error(err))
 		}
 
 		if release != nil {
@@ -272,7 +268,7 @@ func run(ctx context.Context) error {
 				return fmt.Errorf("parsing latest version: %w", err)
 			}
 
-			l.Debugf("current version: %s; latest version: %s", cv, lv)
+			logger.Debug("version info", zap.Stringer("current_version", cv), zap.Stringer("latest_version", lv))
 
 			switch cv.Compare(lv) {
 			case 0:
@@ -295,7 +291,7 @@ func run(ctx context.Context) error {
 	}
 
 	if os.Getenv("CI") == "true" || os.Getenv("CI") == "1" {
-		l.Debug("CI detected, disabling telemetry")
+		logger.Debug("CI detected, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
 
@@ -303,10 +299,10 @@ func run(ctx context.Context) error {
 
 	if cfg.Meta.TelemetryEnabled && isRelease {
 		if err := initLocalState(); err != nil {
-			l.Warnf("error getting local state directory: %s, disabling telemetry: %s", cfg.Meta.StateDirectory, err)
+			logger.Warn("error getting local state directory, disabling telemetry", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
 			cfg.Meta.TelemetryEnabled = false
 		} else {
-			l.Debugf("local state directory exists: %s", cfg.Meta.StateDirectory)
+			logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
 		}
 
 		var (
@@ -318,7 +314,7 @@ func run(ctx context.Context) error {
 
 		// start telemetry if enabled
 		g.Go(func() error {
-			logger := l.WithField("component", "telemetry")
+			logger := logger.With(zap.String("component", "telemetry"))
 
 			// don't log from analytics package
 			analyticsLogger := func() analytics.Logger {
@@ -332,7 +328,7 @@ func run(ctx context.Context) error {
 				Logger:    analyticsLogger(),
 			})
 			if err != nil {
-				logger.Warnf("error initializing telemetry client: %s", err)
+				logger.Warn("error initializing telemetry client", zap.Error(err))
 				return nil
 			}
 
@@ -341,14 +337,14 @@ func run(ctx context.Context) error {
 
 			logger.Debug("starting telemetry reporter")
 			if err := telemetry.Report(ctx, info); err != nil {
-				logger.Warnf("reporting telemetry: %v", err)
+				logger.Warn("reporting telemetry", zap.Error(err))
 			}
 
 			for {
 				select {
 				case <-ticker.C:
 					if err := telemetry.Report(ctx, info); err != nil {
-						logger.Warnf("reporting telemetry: %v", err)
+						logger.Warn("reporting telemetry", zap.Error(err))
 					}
 				case <-ctx.Done():
 					ticker.Stop()
@@ -365,9 +361,9 @@ func run(ctx context.Context) error {
 
 	// starts grpc server
 	g.Go(func() error {
-		logger := l.WithField("server", "grpc")
+		logger := logger.With(zap.String("server", "grpc"))
 
-		migrator, err := sql.NewMigrator(*cfg, l)
+		migrator, err := sql.NewMigrator(*cfg, logger)
 		if err != nil {
 			return err
 		}
@@ -411,7 +407,7 @@ func run(ctx context.Context) error {
 			store = mysql.NewStore(db)
 		}
 
-		logger.Debugf("store: %q enabled", store.String())
+		logger.Debug("store enabled", zap.Stringer("driver", store))
 
 		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
 
@@ -431,7 +427,7 @@ func run(ctx context.Context) error {
 
 			var closer io.Closer
 
-			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(&jaegerLogAdapter{logger}))
+			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(jaeger_zap.NewLogger(logger)))
 			if err != nil {
 				return fmt.Errorf("configuring tracing: %w", err)
 			}
@@ -444,7 +440,7 @@ func run(ctx context.Context) error {
 		interceptors := []grpc.UnaryServerInterceptor{
 			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
-			grpc_logrus.UnaryServerInterceptor(logger),
+			grpc_zap.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
 			otgrpc.OpenTracingServerInterceptor(tracer),
 			server.ErrorUnaryInterceptor,
@@ -483,7 +479,7 @@ func run(ctx context.Context) error {
 
 			interceptors = append(interceptors, server.CacheUnaryInterceptor(cacher, logger))
 
-			logger.Debugf("cache: %q enabled", cacher.String())
+			logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 		}
 
 		grpcOpts := []grpc.ServerOption{grpc_middleware.WithUnaryServerChain(interceptors...)}
@@ -513,7 +509,7 @@ func run(ctx context.Context) error {
 
 	// starts REST http(s) server
 	g.Go(func() error {
-		logger := l.WithField("server", cfg.Server.Protocol.String())
+		logger := logger.With(zap.Stringer("server", cfg.Server.Protocol))
 
 		var (
 			// This is required to fix a backwards compatibility issue with the v2 marshaller where `null` map values
@@ -578,7 +574,7 @@ func run(ctx context.Context) error {
 			})
 
 			r.Use(cors.Handler)
-			logger.Infof("CORS enabled with allowed origins: %v", cfg.Cors.AllowedOrigins)
+			logger.Info("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 		}
 
 		r.Use(middleware.RequestID)
@@ -670,7 +666,7 @@ func run(ctx context.Context) error {
 		break
 	}
 
-	l.Info("shutting down...")
+	logger.Info("shutting down...")
 
 	cancel()
 
@@ -730,14 +726,4 @@ func initLocalState() error {
 
 	// assume state directory exists and is a directory
 	return nil
-}
-
-// jaegerLogAdapter adapts logrus to fulfill Jager's Logger interface
-type jaegerLogAdapter struct {
-	*logrus.Entry
-}
-
-// Error logs a message at error priority
-func (l *jaegerLogAdapter) Error(msg string) {
-	l.Entry.Error(msg)
 }

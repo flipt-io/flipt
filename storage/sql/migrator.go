@@ -10,8 +10,8 @@ import (
 	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
-	"github.com/sirupsen/logrus"
 	"go.flipt.io/flipt/config"
+	"go.uber.org/zap"
 )
 
 var expectedVersions = map[Driver]uint{
@@ -23,12 +23,12 @@ var expectedVersions = map[Driver]uint{
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
 	driver   Driver
-	logger   *logrus.Entry
+	logger   *zap.Logger
 	migrator *migrate.Migrate
 }
 
 // NewMigrator creates a new Migrator
-func NewMigrator(cfg config.Config, logger *logrus.Logger) (*Migrator, error) {
+func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 	sql, driver, err := open(cfg, true)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
@@ -58,7 +58,7 @@ func NewMigrator(cfg config.Config, logger *logrus.Logger) (*Migrator, error) {
 
 	return &Migrator{
 		migrator: mm,
-		logger:   logrus.NewEntry(logger),
+		logger:   logger,
 		driver:   driver,
 	}, nil
 }
@@ -99,7 +99,8 @@ func (m *Migrator) Run(force bool) error {
 			return errors.New("migrations pending, please backup your database and run `flipt migrate`")
 		}
 
-		m.logger.Debugf("current migration version: %d, expected version: %d", currentVersion, expectedVersion)
+		m.logger.Debug("current migration", zap.Uint("current_version", currentVersion), zap.Uint("expected_version", expectedVersion))
+
 		m.logger.Debug("running migrations...")
 
 		if err := m.migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {

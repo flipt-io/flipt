@@ -10,8 +10,8 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/server/cache/memory"
 	"go.flipt.io/flipt/storage"
+	"go.uber.org/zap/zaptest"
 
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -19,8 +19,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-var logger, _ = test.NewNullLogger()
 
 type validatable struct {
 	err error
@@ -290,6 +288,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,
@@ -340,6 +339,7 @@ func TestCacheUnaryInterceptor_UpdateFlag(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,
@@ -386,6 +386,7 @@ func TestCacheUnaryInterceptor_DeleteFlag(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,
@@ -424,6 +425,7 @@ func TestCacheUnaryInterceptor_CreateVariant(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,
@@ -472,6 +474,7 @@ func TestCacheUnaryInterceptor_UpdateVariant(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,
@@ -521,6 +524,7 @@ func TestCacheUnaryInterceptor_DeleteVariant(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,
@@ -559,6 +563,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
 		s        = &Server{
 			logger: logger,
 			store:  store,

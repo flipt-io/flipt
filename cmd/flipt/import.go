@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/storage/sql/mysql"
 	"go.flipt.io/flipt/storage/sql/postgres"
 	"go.flipt.io/flipt/storage/sql/sqlite"
+	"go.uber.org/zap"
 )
 
 var (
@@ -23,7 +24,7 @@ var (
 	importStdin      bool
 )
 
-func runImport(ctx context.Context, args []string) error {
+func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer cancel()
@@ -64,7 +65,7 @@ func runImport(ctx context.Context, args []string) error {
 
 		f := filepath.Clean(importFilename)
 
-		l.Debugf("importing from %q", f)
+		logger.Debug("importing flags", zap.String("source_path", f))
 
 		in, err = os.Open(f)
 		if err != nil {
@@ -76,7 +77,7 @@ func runImport(ctx context.Context, args []string) error {
 
 	// drop tables if specified
 	if dropBeforeImport {
-		l.Debug("dropping tables before import")
+		logger.Debug("dropping tables before import")
 
 		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
 
@@ -87,7 +88,7 @@ func runImport(ctx context.Context, args []string) error {
 		}
 	}
 
-	migrator, err := sql.NewMigrator(*cfg, l)
+	migrator, err := sql.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}
