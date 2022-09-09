@@ -107,7 +107,7 @@ func main() {
 	)
 
 	defer func() {
-		logger().Sync()
+		_ = logger().Sync()
 	}()
 
 	var (
