@@ -65,7 +65,7 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 
 		f := filepath.Clean(importFilename)
 
-		logger.Debug("importing flags", zap.String("source_path", f))
+		logger.Debug("importing", zap.String("source_path", f))
 
 		in, err = os.Open(f)
 		if err != nil {

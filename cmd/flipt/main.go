@@ -47,6 +47,7 @@ import (
 	"go.flipt.io/flipt/swagger"
 	"go.flipt.io/flipt/ui"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -92,10 +93,24 @@ func main() {
 	var (
 		once         sync.Once
 		loggerConfig = zap.Config{
-			Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
-			Development:      true,
-			Encoding:         "console",
-			EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+			Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+			Development: true,
+			Encoding:    "console",
+			EncoderConfig: zapcore.EncoderConfig{
+				// Keys can be anything except the empty string.
+				TimeKey:        "T",
+				LevelKey:       "L",
+				NameKey:        "N",
+				CallerKey:      zapcore.OmitKey,
+				FunctionKey:    zapcore.OmitKey,
+				MessageKey:     "M",
+				StacktraceKey:  "S",
+				LineEnding:     zapcore.DefaultLineEnding,
+				EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+				EncodeTime:     zapcore.RFC3339TimeEncoder,
+				EncodeDuration: zapcore.StringDurationEncoder,
+				EncodeCaller:   zapcore.ShortCallerEncoder,
+			},
 			OutputPaths:      []string{"stdout"},
 			ErrorOutputPaths: []string{"stderr"},
 		}

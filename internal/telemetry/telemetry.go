@@ -92,7 +92,7 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 		r.logger.Debug("initialized new state")
 	} else {
 		t, _ := time.Parse(time.RFC3339, s.LastTimestamp)
-		r.logger.Debug("last report", zap.Time("when", t), zap.Duration("ellapsed", time.Since(t)))
+		r.logger.Debug("last report", zap.Time("when", t), zap.Duration("elapsed", time.Since(t)))
 	}
 
 	var (

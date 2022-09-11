@@ -128,7 +128,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			}
 
 			if match {
-				s.logger.Debug("constraint matche", zap.Reflect("constraint", c))
+				s.logger.Debug("constraint matches", zap.Reflect("constraint", c))
 
 				// increase the matchCount
 				constraintMatches++

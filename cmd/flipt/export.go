@@ -56,7 +56,7 @@ func runExport(ctx context.Context, logger *zap.Logger) error {
 
 	// export to file
 	if exportFilename != "" {
-		logger.Debug("exporting flags", zap.String("destination_path", exportFilename))
+		logger.Debug("exporting", zap.String("destination_path", exportFilename))
 
 		out, err = os.Create(exportFilename)
 		if err != nil {
