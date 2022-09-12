@@ -28,6 +28,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
+	"github.com/mattn/go-isatty"
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
@@ -94,7 +95,7 @@ func main() {
 		once         sync.Once
 		loggerConfig = zap.Config{
 			Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-			Development: true,
+			Development: false,
 			Encoding:    "console",
 			EncoderConfig: zapcore.EncoderConfig{
 				// Keys can be anything except the empty string.
@@ -213,6 +214,13 @@ func main() {
 		if err != nil {
 			logger().Fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
 		}
+
+		if cfg.Log.Encoding > config.LogEncodingConsole {
+			loggerConfig.Encoding = cfg.Log.Encoding.String()
+
+			// don't encode with colors if not using console log output
+			loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+		}
 	})
 
 	rootCmd.SetVersionTemplate(banner)
@@ -234,16 +242,18 @@ func main() {
 }
 
 func run(ctx context.Context, logger *zap.Logger) error {
-	color.Cyan(banner)
-	fmt.Println()
-
 	ctx, cancel := context.WithCancel(ctx)
-
 	defer cancel()
+
+	tty := isatty.IsTerminal(os.Stdout.Fd())
+
+	if tty {
+		color.Cyan(banner)
+		fmt.Println()
+	}
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
 	defer signal.Stop(interrupt)
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -639,13 +649,15 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		logger.Debug("starting http server")
 
-		color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		if tty {
+			color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 
-		if cfg.UI.Enabled {
-			color.Green("UI: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			if cfg.UI.Enabled {
+				color.Green("UI: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			}
+
+			fmt.Println()
 		}
-
-		fmt.Println()
 
 		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
