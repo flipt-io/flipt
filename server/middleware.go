@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/sirupsen/logrus"
 	errs "go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/server/cache"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -117,7 +117,7 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 
 // CacheUnaryInterceptor caches the response of a request if the request is cacheable.
 // TODO: we could clean this up by using generics in 1.18+ to avoid the type switch/duplicate code.
-func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.UnaryServerInterceptor {
+func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if cache == nil {
 			return handler(ctx, req)
@@ -127,25 +127,25 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.U
 		case *flipt.EvaluationRequest:
 			key, err := evaluationCacheKey(r)
 			if err != nil {
-				logger.WithError(err).Error("getting cache key")
+				logger.Error("getting cache key", zap.Error(err))
 				return handler(ctx, req)
 			}
 
 			cached, ok, err := cache.Get(ctx, key)
 			if err != nil {
 				// if error, log and without cache
-				logger.WithError(err).Error("getting from cache")
+				logger.Error("getting from cache", zap.Error(err))
 				return handler(ctx, req)
 			}
 
 			if ok {
 				resp := &flipt.EvaluationResponse{}
 				if err := proto.Unmarshal(cached, resp); err != nil {
-					logger.WithError(err).Error("unmarshalling from cache")
+					logger.Error("unmarshalling from cache", zap.Error(err))
 					return handler(ctx, req)
 				}
 
-				logger.Debugf("evaluate cache hit: %+v", resp)
+				logger.Debug("evaluate cache hit", zap.Stringer("response", resp))
 				return resp, nil
 			}
 
@@ -158,13 +158,13 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.U
 			// marshal response
 			data, merr := proto.Marshal(resp.(*flipt.EvaluationResponse))
 			if merr != nil {
-				logger.WithError(merr).Error("marshalling for cache")
+				logger.Error("marshalling for cache", zap.Error(err))
 				return resp, err
 			}
 
 			// set in cache
 			if cerr := cache.Set(ctx, key, data); cerr != nil {
-				logger.WithError(cerr).Error("setting in cache")
+				logger.Error("setting in cache", zap.Error(err))
 			}
 
 			return resp, err
@@ -175,7 +175,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.U
 			cached, ok, err := cache.Get(ctx, key)
 			if err != nil {
 				// if error, log and continue without cache
-				logger.WithError(err).Error("getting from cache")
+				logger.Error("getting from cache", zap.Error(err))
 				return handler(ctx, req)
 			}
 
@@ -183,11 +183,11 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.U
 				// if cached, return it
 				flag := &flipt.Flag{}
 				if err := proto.Unmarshal(cached, flag); err != nil {
-					logger.WithError(err).Error("unmarshalling from cache")
+					logger.Error("unmarshalling from cache", zap.Error(err))
 					return handler(ctx, req)
 				}
 
-				logger.Debugf("flag cache hit: %+v", flag)
+				logger.Debug("flag cache hit", zap.Stringer("flag", flag))
 				return flag, nil
 			}
 
@@ -200,13 +200,13 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.U
 			// marshal response
 			data, merr := proto.Marshal(resp.(*flipt.Flag))
 			if merr != nil {
-				logger.WithError(merr).Error("marshalling for cache")
+				logger.Error("marshalling for cache", zap.Error(err))
 				return resp, err
 			}
 
 			// set in cache
 			if cerr := cache.Set(ctx, key, data); cerr != nil {
-				logger.WithError(cerr).Error("setting in cache")
+				logger.Error("setting in cache", zap.Error(err))
 			}
 
 			return resp, err
@@ -216,14 +216,14 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger logrus.FieldLogger) grpc.U
 			keyer := r.(flagKeyer)
 			// delete from cache
 			if err := cache.Delete(ctx, flagCacheKey(keyer.GetKey())); err != nil {
-				logger.WithError(err).Error("deleting from cache")
+				logger.Error("deleting from cache", zap.Error(err))
 			}
 		case *flipt.CreateVariantRequest, *flipt.UpdateVariantRequest, *flipt.DeleteVariantRequest:
 			// need to do this assertion because the request type is not known in this block
 			keyer := r.(variantFlagKeyger)
 			// delete from cache
 			if err := cache.Delete(ctx, flagCacheKey(keyer.GetFlagKey())); err != nil {
-				logger.WithError(err).Error("deleting from cache")
+				logger.Error("deleting from cache", zap.Error(err))
 			}
 		}
 

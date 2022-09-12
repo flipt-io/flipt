@@ -12,27 +12,28 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
+	"go.uber.org/zap"
 )
 
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	s.logger.WithField("request", r).Debug("evaluate")
+	s.logger.Debug("evaluate", zap.Stringer("request", r))
 	resp, err := s.evaluate(ctx, r)
 	if err != nil {
 		return resp, err
 	}
-	s.logger.WithField("response", resp).Debug("evaluate")
+	s.logger.Debug("evaluate", zap.Stringer("response", resp))
 	return resp, nil
 }
 
 // BatchEvaluate evaluates a request for multiple flags and entities
 func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
-	s.logger.WithField("request", r).Debug("batch-evaluate")
+	s.logger.Debug("batch-evaluate", zap.Stringer("request", r))
 	resp, err := s.batchEvaluate(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	s.logger.WithField("response", resp).Debug("batch-evaluate")
+	s.logger.Debug("batch-evaluate", zap.Stringer("response", resp))
 	return resp, nil
 }
 
@@ -127,7 +128,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			}
 
 			if match {
-				s.logger.Debugf("constraint: %+v matches", c)
+				s.logger.Debug("constraint matches", zap.Reflect("constraint", c))
 
 				// increase the matchCount
 				constraintMatches++
@@ -142,7 +143,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 				}
 			} else {
 				// no match
-				s.logger.Debugf("constraint: %+v does not match", c)
+				s.logger.Debug("constraint does not match", zap.Reflect("constraint", c))
 
 				switch rule.SegmentMatchType {
 				case flipt.MatchType_ALL_MATCH_TYPE:
@@ -170,7 +171,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 				continue
 			}
 		default:
-			s.logger.Errorf("unknown match type: %v", rule.SegmentMatchType)
+			s.logger.Error("unknown match type", zap.Int32("match_type", int32(rule.SegmentMatchType)))
 			continue
 		}
 
@@ -226,7 +227,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		}
 
 		d := validDistributions[index]
-		s.logger.Debugf("matched distribution: %+v", d)
+		s.logger.Debug("matched distribution", zap.Reflect("evaluation_distribution", d))
 
 		resp.Match = true
 		resp.Value = d.VariantKey
