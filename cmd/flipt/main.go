@@ -243,12 +243,6 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	if cfg.Log.Encoding == config.LogEncodingConsole {
-		color.Cyan("%s\n", banner)
-	} else {
-		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
-	}
-
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(interrupt)
@@ -257,10 +251,18 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	defer shutdownCancel()
 
 	var (
-		isRelease       = isRelease()
+		isRelease = isRelease()
+		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
+
 		updateAvailable bool
 		cv, lv          semver.Version
 	)
+
+	if isConsole {
+		color.Cyan("%s\n", banner)
+	} else {
+		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
+	}
 
 	if isRelease {
 		var err error
@@ -646,17 +648,24 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		logger.Debug("starting http server")
 
-		if cfg.Log.Encoding == config.LogEncodingConsole {
-			color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		var (
+			apiAddr = fmt.Sprintf("%s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			uiAddr  = fmt.Sprintf("%s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		)
+
+		if isConsole {
+			color.Green("\nAPI: %s", apiAddr)
 
 			if cfg.UI.Enabled {
-				color.Green("UI: %s://%s:%d\n", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+				color.Green("UI: %s", uiAddr)
 			}
+
+			fmt.Println()
 		} else {
-			logger.Info(fmt.Sprintf("api: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort))
+			logger.Info(fmt.Sprintf("api: %s", apiAddr))
 
 			if cfg.UI.Enabled {
-				logger.Info(fmt.Sprintf("ui: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort))
+				logger.Info(fmt.Sprintf("ui: %s", uiAddr))
 			}
 		}
 
