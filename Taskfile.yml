@@ -150,5 +150,4 @@ tasks:
     vars:
       COVERAGE_FILE: coverage.txt
       TEST_PATTERN: .
-      TEST_FLAGS: -v
       TEST_OPTS: -race
