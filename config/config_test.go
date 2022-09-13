@@ -106,6 +106,36 @@ func TestDatabaseProtocol(t *testing.T) {
 	}
 }
 
+func TestLogEncoding(t *testing.T) {
+	tests := []struct {
+		name     string
+		encoding LogEncoding
+		want     string
+	}{
+		{
+			name:     "console",
+			encoding: LogEncodingConsole,
+			want:     "console",
+		},
+		{
+			name:     "json",
+			encoding: LogEncodingJSON,
+			want:     "json",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			encoding = tt.encoding
+			want     = tt.want
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, want, encoding.String())
+		})
+	}
+}
+
 func TestLoad(t *testing.T) {
 	tests := []struct {
 		name     string
