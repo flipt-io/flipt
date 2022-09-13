@@ -461,6 +461,16 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		opentracing.SetGlobalTracer(tracer)
 
+		{
+			// forward internal gRPC logging to zap
+			grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
+			if err != nil {
+				return fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
+			}
+
+			grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
+		}
+
 		interceptors := []grpc.UnaryServerInterceptor{
 			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),

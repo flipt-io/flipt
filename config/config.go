@@ -32,9 +32,10 @@ type Config struct {
 }
 
 type LogConfig struct {
-	Level    string      `json:"level,omitempty"`
-	File     string      `json:"file,omitempty"`
-	Encoding LogEncoding `json:"encoding,omitempty"`
+	Level     string      `json:"level,omitempty"`
+	File      string      `json:"file,omitempty"`
+	Encoding  LogEncoding `json:"encoding,omitempty"`
+	GRPCLevel string      `json:"grpc_level,omitempty"`
 }
 
 type LogEncoding uint8
@@ -214,8 +215,9 @@ var (
 func Default() *Config {
 	return &Config{
 		Log: LogConfig{
-			Level:    "INFO",
-			Encoding: LogEncodingConsole,
+			Level:     "INFO",
+			Encoding:  LogEncodingConsole,
+			GRPCLevel: "ERROR",
 		},
 
 		UI: UIConfig{
@@ -274,9 +276,10 @@ func Default() *Config {
 
 const (
 	// Logging
-	logLevel    = "log.level"
-	logFile     = "log.file"
-	logEncoding = "log.encoding"
+	logLevel     = "log.level"
+	logFile      = "log.file"
+	logEncoding  = "log.encoding"
+	logGRPCLevel = "log.grpc_level"
 
 	// UI
 	uiEnabled = "ui.enabled"
@@ -354,6 +357,10 @@ func Load(path string) (*Config, error) {
 
 	if viper.IsSet(logEncoding) {
 		cfg.Log.Encoding = stringToLogEncoding[viper.GetString(logEncoding)]
+	}
+
+	if viper.IsSet(logGRPCLevel) {
+		cfg.Log.GRPCLevel = viper.GetString(logGRPCLevel)
 	}
 
 	// UI
