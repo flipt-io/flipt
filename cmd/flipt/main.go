@@ -243,7 +243,11 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	color.Cyan("%s\n", banner)
+	if cfg.Log.Encoding == config.LogEncodingConsole {
+		color.Cyan("%s\n", banner)
+	} else {
+		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
+	}
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -670,8 +674,6 @@ func run(ctx context.Context, logger *zap.Logger) error {
 				logger.Info("ui available", zap.String("address", uiAddr))
 			}
 		}
-
-		fmt.Println()
 
 		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
