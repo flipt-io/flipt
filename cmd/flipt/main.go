@@ -80,7 +80,6 @@ var (
 
 	cfgPath      string
 	forceMigrate bool
-
 	version      = devVersion
 	commit       string
 	date         string
@@ -244,7 +243,11 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	color.Cyan("%s\n", banner)
+	if cfg.Log.Encoding == config.LogEncodingConsole {
+		color.Cyan("%s\n", banner)
+	} else {
+		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
+	}
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -643,13 +646,19 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		logger.Debug("starting http server")
 
-		color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		if cfg.Log.Encoding == config.LogEncodingConsole {
+			color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
 
-		if cfg.UI.Enabled {
-			color.Green("UI: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			if cfg.UI.Enabled {
+				color.Green("UI: %s://%s:%d\n", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			}
+		} else {
+			logger.Info(fmt.Sprintf("api: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort))
+
+			if cfg.UI.Enabled {
+				logger.Info(fmt.Sprintf("ui: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort))
+			}
 		}
-
-		fmt.Println()
 
 		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
