@@ -1,6 +1,7 @@
 log:
   level: WARN
   file: "testLogFile.txt"
+  encoding: "json"
 
 ui:
   enabled: false

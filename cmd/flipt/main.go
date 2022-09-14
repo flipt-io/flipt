@@ -80,7 +80,6 @@ var (
 
 	cfgPath      string
 	forceMigrate bool
-
 	version      = devVersion
 	commit       string
 	date         string
@@ -94,7 +93,7 @@ func main() {
 		once         sync.Once
 		loggerConfig = zap.Config{
 			Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-			Development: true,
+			Development: false,
 			Encoding:    "console",
 			EncoderConfig: zapcore.EncoderConfig{
 				// Keys can be anything except the empty string.
@@ -213,6 +212,13 @@ func main() {
 		if err != nil {
 			logger().Fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
 		}
+
+		if cfg.Log.Encoding > config.LogEncodingConsole {
+			loggerConfig.Encoding = cfg.Log.Encoding.String()
+
+			// don't encode with colors if not using console log output
+			loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+		}
 	})
 
 	rootCmd.SetVersionTemplate(banner)
@@ -234,26 +240,29 @@ func main() {
 }
 
 func run(ctx context.Context, logger *zap.Logger) error {
-	color.Cyan(banner)
-	fmt.Println()
-
 	ctx, cancel := context.WithCancel(ctx)
-
 	defer cancel()
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
 	defer signal.Stop(interrupt)
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 
 	var (
-		isRelease       = isRelease()
+		isRelease = isRelease()
+		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
+
 		updateAvailable bool
 		cv, lv          semver.Version
 	)
+
+	if isConsole {
+		color.Cyan("%s\n", banner)
+	} else {
+		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
+	}
 
 	if isRelease {
 		var err error
@@ -639,13 +648,26 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		logger.Debug("starting http server")
 
-		color.Green("\nAPI: %s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		var (
+			apiAddr = fmt.Sprintf("%s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+			uiAddr  = fmt.Sprintf("%s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		)
 
-		if cfg.UI.Enabled {
-			color.Green("UI: %s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
+		if isConsole {
+			color.Green("\nAPI: %s", apiAddr)
+
+			if cfg.UI.Enabled {
+				color.Green("UI: %s", uiAddr)
+			}
+
+			fmt.Println()
+		} else {
+			logger.Info("api available", zap.String("address", apiAddr))
+
+			if cfg.UI.Enabled {
+				logger.Info("ui available", zap.String("address", uiAddr))
+			}
 		}
-
-		fmt.Println()
 
 		if cfg.Server.Protocol == config.HTTPS {
 			httpServer.TLSConfig = &tls.Config{
