@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -37,6 +38,9 @@ func TestScheme(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, scheme.String())
+			json, err := scheme.MarshalJSON()
+			assert.NoError(t, err)
+			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -67,6 +71,9 @@ func TestCacheBackend(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, backend.String())
+			json, err := backend.MarshalJSON()
+			assert.NoError(t, err)
+			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -102,6 +109,9 @@ func TestDatabaseProtocol(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, protocol.String())
+			json, err := protocol.MarshalJSON()
+			assert.NoError(t, err)
+			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
@@ -132,6 +142,9 @@ func TestLogEncoding(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, want, encoding.String())
+			json, err := encoding.MarshalJSON()
+			assert.NoError(t, err)
+			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
 		})
 	}
 }
