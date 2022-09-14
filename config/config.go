@@ -37,10 +37,15 @@ type LogConfig struct {
 	Encoding LogEncoding `json:"encoding,omitempty"`
 }
 
+// LogEncoding is either console or JSON
 type LogEncoding uint8
 
 func (e LogEncoding) String() string {
 	return logEncodingToString[e]
+}
+
+func (e LogEncoding) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
 }
 
 const (
@@ -75,6 +80,10 @@ type CacheBackend uint8
 
 func (c CacheBackend) String() string {
 	return cacheBackendToString[c]
+}
+
+func (c CacheBackend) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
 }
 
 const (
@@ -143,6 +152,10 @@ func (d DatabaseProtocol) String() string {
 	return databaseProtocolToString[d]
 }
 
+func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.String())
+}
+
 const (
 	_ DatabaseProtocol = iota
 	// DatabaseSQLite ...
@@ -192,6 +205,10 @@ type Scheme uint
 
 func (s Scheme) String() string {
 	return schemeToString[s]
+}
+
+func (s Scheme) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
 }
 
 const (
