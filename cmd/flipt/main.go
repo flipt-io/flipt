@@ -665,7 +665,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			logger.Info("api starting", zap.String("address", apiAddr))
 
 			if cfg.UI.Enabled {
-				logger.Info(fmt.Sprintf("ui: %s", uiAddr))
+				logger.Info("ui starting", zap.String("address", uiAddr))
 			}
 		}
 
