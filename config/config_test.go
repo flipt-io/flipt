@@ -240,9 +240,10 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := Default()
 				cfg.Log = LogConfig{
-					Level:    "WARN",
-					File:     "testLogFile.txt",
-					Encoding: LogEncodingJSON,
+					Level:     "WARN",
+					File:      "testLogFile.txt",
+					Encoding:  LogEncodingJSON,
+					GRPCLevel: "ERROR",
 				}
 				cfg.UI = UIConfig{
 					Enabled: false,
