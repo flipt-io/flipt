@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Ability to log as structure JSON [#1027](https://github.com/flipt-io/flipt/pull/1027)
+- Ability to configure GRPC log level seperately from main service log level [#1029](https://github.com/flipt-io/flipt/pull/1029)
+
+### Changed
+
+- Configuration 'enums' are encoding correctly as JSON [#1030](https://github.com/flipt-io/flipt/pull/1030)
+- Dependency updates
+
 ## [v1.11.0](https://github.com/markphelps/flipt/releases/tag/v1.11.0) - 2022-09-12
 
 ### Added
