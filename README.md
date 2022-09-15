@@ -125,6 +125,10 @@ Some of the companies depending on Flipt in production.
 
 Using Flipt at your company? Open a PR and add your logo here!
 
+## Office Hours
+
+Join us on [Discord](https://discord.com/channels/960634591000014878/1014947722001907773) :keyboard: and/or [Whereby](https://whereby.com/flipt) :video_camera: for office hours every Wednesday at 10am ET to chat about anything Flipt related or just to say hi.
+
 ## Integration
 
 Checkout the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing application.
