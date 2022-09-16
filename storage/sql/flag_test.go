@@ -62,8 +62,9 @@ func TestListFlags(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := store.ListFlags(context.TODO())
+	res, err := store.ListFlags(context.TODO())
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotZero(t, len(got))
 }
 
@@ -87,8 +88,9 @@ func TestFlagsPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := store.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := store.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
+	got := res.Results
 	assert.Len(t, got, 1)
 }
 

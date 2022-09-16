@@ -60,8 +60,9 @@ func TestListSegments(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := store.ListSegments(context.TODO())
+	res, err := store.ListSegments(context.TODO())
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotZero(t, len(got))
 }
 
@@ -84,9 +85,9 @@ func TestListSegmentsPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := store.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
-
+	res, err := store.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
+	got := res.Results
 	assert.Len(t, got, 1)
 }
 

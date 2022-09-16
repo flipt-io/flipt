@@ -2,6 +2,7 @@ package common
 
 import (
 	"database/sql"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -16,4 +17,9 @@ func NewStore(db *sql.DB, builder sq.StatementBuilderType) *Store {
 		db:      db,
 		builder: builder,
 	}
+}
+
+type pageToken struct {
+	Key       string    `json:"key,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 }

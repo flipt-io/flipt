@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
@@ -21,16 +22,50 @@ func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.F
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
 
-	flags, err := s.store.ListFlags(ctx, storage.WithLimit(uint64(r.Limit)), storage.WithOffset(uint64(r.Offset)))
+	if r.Limit < 1 {
+		r.Limit = defaultListLimit
+	}
+
+	if r.Limit > maxListLimit {
+		r.Limit = maxListLimit
+	}
+
+	if r.Offset < 0 {
+		r.Offset = 0
+	}
+
+	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
+
+	if r.PageToken != "" {
+		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
+		if err != nil {
+			return nil, err
+		}
+
+		opts = append(opts, storage.WithPageToken(string(tok)))
+	} else if r.Offset >= 0 {
+		// TODO: deprecate
+		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
+	}
+
+	results, err := s.store.ListFlags(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	var resp flipt.FlagList
 
-	for i := range flags {
-		resp.Flags = append(resp.Flags, flags[i])
+	for _, f := range results.Results {
+		resp.Flags = append(resp.Flags, f)
 	}
+
+	total, err := s.store.CountFlags(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.TotalCount = int32(total)
+	resp.NextPageToken = base64.RawStdEncoding.EncodeToString([]byte(results.NextPageToken))
 
 	s.logger.Debug("list flags", zap.Stringer("response", &resp))
 	return &resp, nil

@@ -1,9 +1,12 @@
 package common
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
@@ -48,33 +51,38 @@ func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 }
 
 // ListRules gets all rules for a flag
-func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error) {
-	var (
-		rules []*flipt.Rule
-
-		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
-			From("rules").
-			Where(sq.Eq{"flag_key": flagKey}).
-			OrderBy("\"rank\" ASC")
-	)
-
+func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
 	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
 		opt(params)
 	}
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit)
-	}
+	var (
+		rules   []*flipt.Rule
+		results = storage.ResultSet[*flipt.Rule]{}
 
-	if params.Offset > 0 {
+		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
+			From("rules").
+			Where(sq.Eq{"flag_key": flagKey}).
+			OrderBy("\"rank\" ASC").
+			Limit(uint64(params.Limit) + 1)
+	)
+
+	if params.PageToken != "" {
+		var token pageToken
+		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
+			return results, fmt.Errorf("decoding page token %w", err)
+		}
+
+		query = query.Where(sq.Gt{"id": token.Key})
+	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
-		return nil, err
+		return results, err
 	}
 
 	defer func() {
@@ -97,20 +105,44 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 			&rule.Rank,
 			&createdAt,
 			&updatedAt); err != nil {
-			return nil, err
+			return results, err
 		}
 
 		rule.CreatedAt = createdAt.Timestamp
 		rule.UpdatedAt = updatedAt.Timestamp
 
 		if err := s.distributions(ctx, &rule); err != nil {
-			return nil, err
+			return results, err
 		}
 
 		rules = append(rules, &rule)
 	}
 
-	return rules, rows.Err()
+	if err := rows.Err(); err != nil {
+		return results, err
+	}
+
+	rules, next := rules[:len(rules)-1], rules[len(rules)-1]
+	results.Results = rules
+
+	var out bytes.Buffer
+	if err := json.NewEncoder(&out).Encode(pageToken{Key: next.Id, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+		return results, fmt.Errorf("encoding page token %w", err)
+	}
+
+	results.NextPageToken = out.String()
+	return results, rows.Err()
+}
+
+// CountRules counts all rules
+func (s *Store) CountRules(ctx context.Context) (uint64, error) {
+	var count uint64
+
+	if err := s.builder.Select("COUNT(*)").From("rules").QueryRowContext(ctx).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // CreateRule creates a rule

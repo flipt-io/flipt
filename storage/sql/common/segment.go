@@ -1,9 +1,12 @@
 package common
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -54,32 +57,37 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 }
 
 // ListSegments lists all segments
-func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
-	var (
-		segments []*flipt.Segment
-
-		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
-			From("segments").
-			OrderBy("created_at ASC")
-	)
-
+func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
 	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
 		opt(params)
 	}
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit)
-	}
+	var (
+		segments []*flipt.Segment
+		results  = storage.ResultSet[*flipt.Segment]{}
 
-	if params.Offset > 0 {
+		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
+			From("segments").
+			OrderBy("created_at ASC").
+			Limit(uint64(params.Limit) + 1)
+	)
+
+	if params.PageToken != "" {
+		var token pageToken
+		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
+			return results, fmt.Errorf("decoding page token %w", err)
+		}
+
+		query = query.Where(sq.Gt{"created_at": token.CreatedAt})
+	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
-		return segments, err
+		return results, err
 	}
 
 	defer func() {
@@ -102,20 +110,44 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 			&segment.MatchType,
 			&createdAt,
 			&updatedAt); err != nil {
-			return segments, err
+			return results, err
 		}
 
 		segment.CreatedAt = createdAt.Timestamp
 		segment.UpdatedAt = updatedAt.Timestamp
 
 		if err := s.constraints(ctx, segment); err != nil {
-			return segments, err
+			return results, err
 		}
 
 		segments = append(segments, segment)
 	}
 
-	return segments, rows.Err()
+	if err := rows.Err(); err != nil {
+		return results, err
+	}
+
+	segments, next := segments[:len(segments)-1], segments[len(segments)-1]
+	results.Results = segments
+
+	var out bytes.Buffer
+	if err := json.NewEncoder(&out).Encode(pageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+		return results, fmt.Errorf("encoding page token %w", err)
+	}
+
+	results.NextPageToken = out.String()
+	return results, rows.Err()
+}
+
+// CountSegments counts all segments
+func (s *Store) CountSegments(ctx context.Context) (uint64, error) {
+	var count uint64
+
+	if err := s.builder.Select("COUNT(*)").From("segments").QueryRowContext(ctx).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // CreateSegment creates a segment

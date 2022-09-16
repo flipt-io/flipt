@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
@@ -71,32 +72,37 @@ func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 }
 
 // ListFlags lists all flags
-func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
-	var (
-		flags []*flipt.Flag
-
-		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
-			From("flags").
-			OrderBy("created_at ASC")
-	)
-
+func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
 	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
 		opt(params)
 	}
 
-	if params.Limit > 0 {
-		query = query.Limit(params.Limit)
-	}
+	var (
+		flags   []*flipt.Flag
+		results = storage.ResultSet[*flipt.Flag]{}
 
-	if params.Offset > 0 {
+		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
+			From("flags").
+			OrderBy("created_at ASC").
+			Limit(uint64(params.Limit) + 1)
+	)
+
+	if params.PageToken != "" {
+		var token pageToken
+		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
+			return results, fmt.Errorf("decoding page token %w", err)
+		}
+
+		query = query.Where(sq.Gt{"created_at": token.CreatedAt})
+	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
-		return nil, err
+		return results, err
 	}
 
 	defer func() {
@@ -119,20 +125,44 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*
 			&flag.Enabled,
 			&createdAt,
 			&updatedAt); err != nil {
-			return nil, err
+			return results, err
 		}
 
 		flag.CreatedAt = createdAt.Timestamp
 		flag.UpdatedAt = updatedAt.Timestamp
 
 		if err := s.variants(ctx, flag); err != nil {
-			return nil, err
+			return results, err
 		}
 
 		flags = append(flags, flag)
 	}
 
-	return flags, rows.Err()
+	if err := rows.Err(); err != nil {
+		return results, err
+	}
+
+	flags, next := flags[:len(flags)-1], flags[len(flags)-1]
+	results.Results = flags
+
+	var out bytes.Buffer
+	if err := json.NewEncoder(&out).Encode(pageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+		return results, fmt.Errorf("encoding page token %w", err)
+	}
+
+	results.NextPageToken = out.String()
+	return results, nil
+}
+
+// CountFlags counts all flags
+func (s *Store) CountFlags(ctx context.Context) (uint64, error) {
+	var count uint64
+
+	if err := s.builder.Select("COUNT(*)").From("flags").QueryRowContext(ctx).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // CreateFlag creates a flag

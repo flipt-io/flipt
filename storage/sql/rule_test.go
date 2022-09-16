@@ -120,7 +120,7 @@ func TestListRules(t *testing.T) {
 	got, err := store.ListRules(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
-	assert.NotZero(t, len(got))
+	assert.NotZero(t, len(got.Results))
 }
 
 func TestListRulesPagination(t *testing.T) {
@@ -488,10 +488,11 @@ func TestDeleteRule(t *testing.T) {
 
 	require.NoError(t, err)
 
-	got, err := store.ListRules(context.TODO(), flag.Key)
+	res, err := store.ListRules(context.TODO(), flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotNil(t, got)
 	assert.Equal(t, 2, len(got))
 	assert.Equal(t, rules[0].Id, got[0].Id)
@@ -580,10 +581,11 @@ func TestOrderRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	got, err := store.ListRules(context.TODO(), flag.Key)
+	res, err := store.ListRules(context.TODO(), flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotNil(t, got)
 	assert.Equal(t, 3, len(got))
 	assert.Equal(t, rules[0].Id, got[0].Id)
