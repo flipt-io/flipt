@@ -1,0 +1,28 @@
+# Filters GitHub webhooks to avoid noise in the Discord server.
+name: Execute Filtered GitHub Webhook
+
+on:
+  pull_request:
+    types:
+      - opened
+      - closed
+      - reopened
+
+jobs:
+  notify_discord:
+    name: Notify Discord
+    if: ${{ !contains(github.event.pull_request.user.login, 'dependabot') }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Discord Webhook Action
+      uses: tsickert/discord-webhook@v5.2.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        username: GitHub
+        avatar-url: "https://cdn.discordapp.com/avatars/999680196040982618/df91181b3f1cf0ef1592fbe18e0962d7.webp"
+        embed-author-name: ${{ github.event.pull_request.user.login }}
+        embed-author-url: ${{ github.event.pull_request.user.html_url }}
+        embed-author-icon-url: ${{ github.event.pull_request.user.avatar_url }}
+        embed-title: '[${{ github.event.repository.full_name }}] Pull request ${{ github.event.action }}: #${{ github.event.number }} ${{ github.event.pull_request.title }}'
+        embed-description: ${{ github.event.pull_request.body }}
+        embed-url: ${{ github.event.pull_request.html_url }}
