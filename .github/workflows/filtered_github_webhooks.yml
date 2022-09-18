@@ -24,5 +24,5 @@ jobs:
         embed-author-url: ${{ github.event.pull_request.user.html_url }}
         embed-author-icon-url: ${{ github.event.pull_request.user.avatar_url }}
         embed-title: '[${{ github.event.repository.full_name }}] Pull request ${{ github.event.action }}: #${{ github.event.number }} ${{ github.event.pull_request.title }}'
-        embed-description: ${{ steps.truncate-body.outputs.string }}
+        embed-description: ${{ github.event.pull_request.body }}
         embed-url: ${{ github.event.pull_request.html_url }}
