@@ -14,15 +14,8 @@ jobs:
     if: ${{ !contains(github.event.pull_request.user.login, 'dependabot') }}
     runs-on: ubuntu-latest
     steps:
-    # Discord Webhooks have a maximum size of 4k characters. Truncate the body to avoid a failed API call.
-    - name: Truncate Event Body
-      id: truncate-body
-      uses: 2428392/gh-truncate-string-action@v1.1.0
-      with:
-        stringToTruncate: ${{ github.event.pull_request.body }}
-        maxLength: 4000
     - name: Discord Webhook Action
-      uses: tsickert/discord-webhook@v5.1.1
+      uses: tsickert/discord-webhook@v5.2.0
       with:
         webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
         username: GitHub
