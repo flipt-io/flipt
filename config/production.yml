@@ -1,5 +1,6 @@
 log:
   level: WARN
+  encoding: json
 
 server:
   protocol: https

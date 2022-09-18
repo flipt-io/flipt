@@ -32,9 +32,40 @@ type Config struct {
 }
 
 type LogConfig struct {
-	Level string `json:"level,omitempty"`
-	File  string `json:"file,omitempty"`
+	Level     string      `json:"level,omitempty"`
+	File      string      `json:"file,omitempty"`
+	Encoding  LogEncoding `json:"encoding,omitempty"`
+	GRPCLevel string      `json:"grpc_level,omitempty"`
 }
+
+// LogEncoding is either console or JSON
+type LogEncoding uint8
+
+func (e LogEncoding) String() string {
+	return logEncodingToString[e]
+}
+
+func (e LogEncoding) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+const (
+	_ LogEncoding = iota
+	LogEncodingConsole
+	LogEncodingJSON
+)
+
+var (
+	logEncodingToString = map[LogEncoding]string{
+		LogEncodingConsole: "console",
+		LogEncodingJSON:    "json",
+	}
+
+	stringToLogEncoding = map[string]LogEncoding{
+		"console": LogEncodingConsole,
+		"json":    LogEncodingJSON,
+	}
+)
 
 type UIConfig struct {
 	Enabled bool `json:"enabled"`
@@ -50,6 +81,10 @@ type CacheBackend uint8
 
 func (c CacheBackend) String() string {
 	return cacheBackendToString[c]
+}
+
+func (c CacheBackend) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
 }
 
 const (
@@ -118,6 +153,10 @@ func (d DatabaseProtocol) String() string {
 	return databaseProtocolToString[d]
 }
 
+func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.String())
+}
+
 const (
 	_ DatabaseProtocol = iota
 	// DatabaseSQLite ...
@@ -169,6 +208,10 @@ func (s Scheme) String() string {
 	return schemeToString[s]
 }
 
+func (s Scheme) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
+}
+
 const (
 	HTTP Scheme = iota
 	HTTPS
@@ -189,7 +232,9 @@ var (
 func Default() *Config {
 	return &Config{
 		Log: LogConfig{
-			Level: "INFO",
+			Level:     "INFO",
+			Encoding:  LogEncodingConsole,
+			GRPCLevel: "ERROR",
 		},
 
 		UI: UIConfig{
@@ -248,8 +293,10 @@ func Default() *Config {
 
 const (
 	// Logging
-	logLevel = "log.level"
-	logFile  = "log.file"
+	logLevel     = "log.level"
+	logFile      = "log.file"
+	logEncoding  = "log.encoding"
+	logGRPCLevel = "log.grpc_level"
 
 	// UI
 	uiEnabled = "ui.enabled"
@@ -323,6 +370,14 @@ func Load(path string) (*Config, error) {
 
 	if viper.IsSet(logFile) {
 		cfg.Log.File = viper.GetString(logFile)
+	}
+
+	if viper.IsSet(logEncoding) {
+		cfg.Log.Encoding = stringToLogEncoding[viper.GetString(logEncoding)]
+	}
+
+	if viper.IsSet(logGRPCLevel) {
+		cfg.Log.GRPCLevel = viper.GetString(logGRPCLevel)
 	}
 
 	// UI

@@ -8,12 +8,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestGetSegment(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -32,8 +34,9 @@ func TestGetSegment(t *testing.T) {
 
 func TestListSegments(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -54,8 +57,9 @@ func TestListSegments(t *testing.T) {
 
 func TestCreateSegment(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -80,8 +84,9 @@ func TestCreateSegment(t *testing.T) {
 
 func TestUpdateSegment(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -106,8 +111,9 @@ func TestUpdateSegment(t *testing.T) {
 
 func TestDeleteSegment(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -126,8 +132,9 @@ func TestDeleteSegment(t *testing.T) {
 
 func TestCreateConstraint(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -157,8 +164,9 @@ func TestCreateConstraint(t *testing.T) {
 
 func TestUpdateConstraint(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}
@@ -189,8 +197,9 @@ func TestUpdateConstraint(t *testing.T) {
 
 func TestDeleteConstraint(t *testing.T) {
 	var (
-		store = &storeMock{}
-		s     = &Server{
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
 			logger: logger,
 			store:  store,
 		}

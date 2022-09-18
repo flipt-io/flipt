@@ -15,11 +15,12 @@ import (
 	"go.flipt.io/flipt/storage/sql/mysql"
 	"go.flipt.io/flipt/storage/sql/postgres"
 	"go.flipt.io/flipt/storage/sql/sqlite"
+	"go.uber.org/zap"
 )
 
 var exportFilename string
 
-func runExport(ctx context.Context) error {
+func runExport(ctx context.Context, logger *zap.Logger) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer cancel()
@@ -55,7 +56,7 @@ func runExport(ctx context.Context) error {
 
 	// export to file
 	if exportFilename != "" {
-		l.Debugf("exporting to %q", exportFilename)
+		logger.Debug("exporting", zap.String("destination_path", exportFilename))
 
 		out, err = os.Create(exportFilename)
 		if err != nil {

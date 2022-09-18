@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/sirupsen/logrus"
 	"go.flipt.io/flipt/config"
 	"go.flipt.io/flipt/internal/info"
+	"go.uber.org/zap"
 	"gopkg.in/segmentio/analytics-go.v3"
 )
 
@@ -41,11 +41,11 @@ type state struct {
 
 type Reporter struct {
 	cfg    config.Config
-	logger logrus.FieldLogger
+	logger *zap.Logger
 	client analytics.Client
 }
 
-func NewReporter(cfg config.Config, logger logrus.FieldLogger, analytics analytics.Client) *Reporter {
+func NewReporter(cfg config.Config, logger *zap.Logger, analytics analytics.Client) *Reporter {
 	return &Reporter{
 		cfg:    cfg,
 		logger: logger,
@@ -92,7 +92,7 @@ func (r *Reporter) report(_ context.Context, info info.Flipt, f file) error {
 		r.logger.Debug("initialized new state")
 	} else {
 		t, _ := time.Parse(time.RFC3339, s.LastTimestamp)
-		r.logger.Debugf("last report was: %v ago", time.Since(t))
+		r.logger.Debug("last report", zap.Time("when", t), zap.Duration("elapsed", time.Since(t)))
 	}
 
 	var (

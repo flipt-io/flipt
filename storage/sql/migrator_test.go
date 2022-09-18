@@ -9,10 +9,9 @@ import (
 	stubDB "github.com/golang-migrate/migrate/database/stub"
 	"github.com/golang-migrate/migrate/source"
 	stubSource "github.com/golang-migrate/migrate/source/stub"
-	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
 
 func TestMigratorRun(t *testing.T) {
@@ -34,8 +33,7 @@ func TestMigratorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	var (
-		l, _     = test.NewNullLogger()
-		logger   = logrus.NewEntry(l)
+		logger   = zaptest.NewLogger(t)
 		migrator = Migrator{
 			migrator: m,
 			logger:   logger,
@@ -70,8 +68,7 @@ func TestMigratorRun_NoChange(t *testing.T) {
 	require.NoError(t, err)
 
 	var (
-		l, _     = test.NewNullLogger()
-		logger   = logrus.NewEntry(l)
+		logger   = zaptest.NewLogger(t)
 		migrator = Migrator{
 			migrator: m,
 			logger:   logger,

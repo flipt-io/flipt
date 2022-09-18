@@ -1,6 +1,8 @@
 # log:
 #   level: INFO
 #   file:
+#   encoding: console
+#   grpc_level: ERROR
 
 # ui:
 #   enabled: true

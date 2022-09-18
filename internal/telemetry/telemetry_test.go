@@ -13,15 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/config"
 	"go.flipt.io/flipt/internal/info"
+	"go.uber.org/zap/zaptest"
 
-	"github.com/sirupsen/logrus/hooks/test"
 	"gopkg.in/segmentio/analytics-go.v3"
 )
 
-var (
-	_         analytics.Client = &mockAnalytics{}
-	logger, _                  = test.NewNullLogger()
-)
+var _ analytics.Client = &mockAnalytics{}
 
 type mockAnalytics struct {
 	msg        analytics.Message
@@ -54,6 +51,7 @@ func (m *mockFile) Truncate(_ int64) error {
 
 func TestNewReporter(t *testing.T) {
 	var (
+		logger        = zaptest.NewLogger(t)
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = NewReporter(config.Config{
@@ -68,6 +66,7 @@ func TestNewReporter(t *testing.T) {
 
 func TestReporterClose(t *testing.T) {
 	var (
+		logger        = zaptest.NewLogger(t)
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -89,6 +88,7 @@ func TestReporterClose(t *testing.T) {
 
 func TestReport(t *testing.T) {
 	var (
+		logger        = zaptest.NewLogger(t)
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -129,6 +129,7 @@ func TestReport(t *testing.T) {
 
 func TestReport_Existing(t *testing.T) {
 	var (
+		logger        = zaptest.NewLogger(t)
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -170,6 +171,7 @@ func TestReport_Existing(t *testing.T) {
 
 func TestReport_Disabled(t *testing.T) {
 	var (
+		logger        = zaptest.NewLogger(t)
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -195,6 +197,7 @@ func TestReport_Disabled(t *testing.T) {
 
 func TestReport_SpecifyStateDir(t *testing.T) {
 	var (
+		logger = zaptest.NewLogger(t)
 		tmpDir = os.TempDir()
 
 		mockAnalytics = &mockAnalytics{}
