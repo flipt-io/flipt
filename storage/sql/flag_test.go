@@ -2,11 +2,13 @@ package sql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -68,7 +70,7 @@ func TestListFlags(t *testing.T) {
 	assert.NotZero(t, len(got))
 }
 
-func TestFlagsPagination(t *testing.T) {
+func TestFlagsPagination_Offset(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -90,8 +92,44 @@ func TestFlagsPagination(t *testing.T) {
 
 	res, err := store.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
+
 	got := res.Results
 	assert.Len(t, got, 1)
+	assert.Empty(t, res.NextPageToken)
+}
+
+func TestFlagsPagination_OffsetWithNextPage(t *testing.T) {
+	reqs := []*flipt.CreateFlagRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := store.CreateFlag(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	res, err := store.ListFlags(context.TODO(), storage.WithLimit(1))
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.Len(t, got, 1)
+	assert.NotEmpty(t, res.NextPageToken)
+
+	pageToken := &common.PageToken{}
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+
+	assert.Equal(t, reqs[1].Key, pageToken.Key)
 }
 
 func TestCreateFlag(t *testing.T) {

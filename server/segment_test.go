@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -43,9 +44,11 @@ func TestListSegments(t *testing.T) {
 	)
 
 	store.On("ListSegments", mock.Anything, mock.Anything).Return(
-		[]*flipt.Segment{
-			{
-				Key: "foo",
+		storage.ResultSet[*flipt.Segment]{
+			Results: []*flipt.Segment{
+				{
+					Key: "foo",
+				},
 			},
 		}, nil)
 

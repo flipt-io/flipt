@@ -75,7 +75,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 	)
 
 	if params.PageToken != "" {
-		var token pageToken
+		var token PageToken
 		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
@@ -131,7 +131,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 	results.Results = segments
 
 	var out bytes.Buffer
-	if err := json.NewEncoder(&out).Encode(pageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+	if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
 		return results, fmt.Errorf("encoding page token %w", err)
 	}
 

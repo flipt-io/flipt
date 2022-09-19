@@ -19,7 +19,7 @@ func NewStore(db *sql.DB, builder sq.StatementBuilderType) *Store {
 	}
 }
 
-type pageToken struct {
+type PageToken struct {
 	Key       string    `json:"key,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 }

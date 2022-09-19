@@ -90,7 +90,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 	)
 
 	if params.PageToken != "" {
-		var token pageToken
+		var token PageToken
 		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
@@ -142,15 +142,23 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 		return results, err
 	}
 
-	flags, next := flags[:len(flags)-1], flags[len(flags)-1]
-	results.Results = flags
+	var next *flipt.Flag
 
-	var out bytes.Buffer
-	if err := json.NewEncoder(&out).Encode(pageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
-		return results, fmt.Errorf("encoding page token %w", err)
+	if len(flags) > int(params.Limit) {
+		next = flags[len(flags)-1]
+		flags = flags[:params.Limit]
 	}
 
-	results.NextPageToken = out.String()
+	results.Results = flags
+
+	if next != nil {
+		var out bytes.Buffer
+		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+			return results, fmt.Errorf("encoding page token %w", err)
+		}
+		results.NextPageToken = out.String()
+	}
+
 	return results, nil
 }
 

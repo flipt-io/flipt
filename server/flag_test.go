@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -46,9 +47,11 @@ func TestListFlags(t *testing.T) {
 	)
 
 	store.On("ListFlags", mock.Anything, mock.Anything).Return(
-		[]*flipt.Flag{
-			{
-				Key: "foo",
+		storage.ResultSet[*flipt.Flag]{
+			Results: []*flipt.Flag{
+				{
+					Key: "foo",
+				},
 			},
 		}, nil)
 
@@ -56,6 +59,7 @@ func TestListFlags(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, got.Flags)
+	assert.Empty(t, got.NextPageToken)
 }
 
 func TestCreateFlag(t *testing.T) {

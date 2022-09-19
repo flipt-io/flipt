@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -44,9 +45,11 @@ func TestListRules(t *testing.T) {
 	)
 
 	store.On("ListRules", mock.Anything, "flagKey", mock.Anything).Return(
-		[]*flipt.Rule{
-			{
-				FlagKey: req.FlagKey,
+		storage.ResultSet[*flipt.Rule]{
+			Results: []*flipt.Rule{
+				{
+					FlagKey: req.FlagKey,
+				},
 			},
 		}, nil)
 
