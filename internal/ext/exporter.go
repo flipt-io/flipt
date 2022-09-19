@@ -14,9 +14,9 @@ import (
 const defaultBatchSize = 25
 
 type lister interface {
-	ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error)
-	ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error)
-	ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error)
+	ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error)
+	ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error)
+	ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error)
 }
 
 type Exporter struct {
@@ -44,11 +44,13 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	// export flags/variants in batches
 	for batch := uint64(0); remaining; batch++ {
-		flags, err := e.store.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		resp, err := e.store.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting flags: %w", err)
 		}
 
+		flags := resp.Results
+		// TODO: use count instead
 		remaining = uint64(len(flags)) == batchSize
 
 		for _, f := range flags {
@@ -82,11 +84,12 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			}
 
 			// export rules for flag
-			rules, err := e.store.ListRules(ctx, flag.Key)
+			resp, err := e.store.ListRules(ctx, flag.Key)
 			if err != nil {
 				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
 
+			rules := resp.Results
 			for _, r := range rules {
 				rule := &Rule{
 					SegmentKey: r.SegmentKey,
@@ -111,11 +114,13 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	// export segments/constraints in batches
 	for batch := uint64(0); remaining; batch++ {
-		segments, err := e.store.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		resp, err := e.store.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting segments: %w", err)
 		}
 
+		segments := resp.Results
+		// TODO: use count instead
 		remaining = uint64(len(segments)) == batchSize
 
 		for _, s := range segments {

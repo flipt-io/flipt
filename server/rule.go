@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
@@ -20,16 +21,51 @@ func (s *Server) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.R
 // ListRules lists all rules for a flag
 func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flipt.RuleList, error) {
 	s.logger.Debug("list rules", zap.Stringer("request", r))
-	rules, err := s.store.ListRules(ctx, r.FlagKey, storage.WithLimit(uint64(r.Limit)), storage.WithOffset(uint64(r.Offset)))
+
+	if r.Limit < 1 {
+		r.Limit = defaultListLimit
+	}
+
+	if r.Limit > maxListLimit {
+		r.Limit = maxListLimit
+	}
+
+	if r.Offset < 0 {
+		r.Offset = 0
+	}
+
+	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
+
+	if r.PageToken != "" {
+		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
+		if err != nil {
+			return nil, err
+		}
+
+		opts = append(opts, storage.WithPageToken(string(tok)))
+	} else if r.Offset >= 0 {
+		// TODO: deprecate
+		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
+	}
+
+	results, err := s.store.ListRules(ctx, r.FlagKey, opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	var resp flipt.RuleList
 
-	for i := range rules {
-		resp.Rules = append(resp.Rules, rules[i])
+	for _, r := range results.Results {
+		resp.Rules = append(resp.Rules, r)
 	}
+
+	total, err := s.store.CountRules(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.TotalCount = int32(total)
+	resp.NextPageToken = base64.RawStdEncoding.EncodeToString([]byte(results.NextPageToken))
 
 	s.logger.Debug("list rules", zap.Stringer("response", &resp))
 	return &resp, nil
