@@ -85,7 +85,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			OrderBy("created_at ASC")
+			OrderBy(fmt.Sprintf("created_at %s", params.Order.String()))
 	)
 
 	if params.Limit > 0 {
@@ -98,7 +98,12 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
+		if params.Order == storage.OrderAsc {
+			query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
+		} else {
+			query = query.Where(sq.LtOrEq{"created_at": token.CreatedAt})
+		}
+
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}

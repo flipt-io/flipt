@@ -171,9 +171,10 @@ func TestListRulesPagination(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	got, err := store.ListRules(context.TODO(), flag.Key, storage.WithLimit(1), storage.WithOffset(1))
-
+	res, err := store.ListRules(context.TODO(), flag.Key, storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
+
+	got := res.Results
 	assert.Len(t, got, 1)
 }
 

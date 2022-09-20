@@ -71,7 +71,6 @@ func TestListFlags(t *testing.T) {
 	assert.NotZero(t, len(got))
 }
 
-// TODO: these pagination tests now require clean slate from the db
 func TestFlagsPagination_LimitOffset(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
@@ -92,12 +91,11 @@ func TestFlagsPagination_LimitOffset(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	res, err := store.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 
 	got := res.Results
 	assert.Len(t, got, 1)
-	assert.Empty(t, res.NextPageToken)
 }
 
 func TestFlagsPagination_LimitWithNextPage(t *testing.T) {
@@ -121,27 +119,31 @@ func TestFlagsPagination_LimitWithNextPage(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	res, err := store.ListFlags(context.TODO(), storage.WithLimit(1))
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
+
+	res, err := store.ListFlags(context.TODO(), opts...)
 	require.NoError(t, err)
 
 	got := res.Results
 	assert.Len(t, got, 1)
-	assert.Equal(t, reqs[0].Key, got[0].Key)
+	assert.Equal(t, reqs[1].Key, got[0].Key)
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pageToken := &common.PageToken{}
 	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
 	require.NoError(t, err)
-	assert.Equal(t, reqs[1].Key, pageToken.Key)
+	assert.Equal(t, reqs[0].Key, pageToken.Key)
 	assert.NotZero(t, pageToken.CreatedAt)
 
-	res, err = store.ListFlags(context.TODO(), storage.WithPageToken(res.NextPageToken))
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+
+	res, err = store.ListFlags(context.TODO(), opts...)
 	require.NoError(t, err)
 
 	got = res.Results
 	assert.Len(t, got, 1)
-	assert.Equal(t, reqs[1].Key, got[0].Key)
-	assert.Empty(t, res.NextPageToken)
+	assert.Equal(t, reqs[0].Key, got[0].Key)
 }
 
 func TestCreateFlag(t *testing.T) {

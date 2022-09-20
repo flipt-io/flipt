@@ -41,6 +41,7 @@ type QueryParams struct {
 	Limit     uint64
 	Offset    uint64 // deprecated
 	PageToken string
+	Order     Order
 }
 
 type QueryOption func(p *QueryParams)
@@ -60,6 +61,29 @@ func WithOffset(offset uint64) QueryOption {
 func WithPageToken(pageToken string) QueryOption {
 	return func(p *QueryParams) {
 		p.PageToken = pageToken
+	}
+}
+
+type Order uint8
+
+const (
+	OrderAsc Order = iota
+	OrderDesc
+)
+
+func (o Order) String() string {
+	switch o {
+	case OrderAsc:
+		return "ASC"
+	case OrderDesc:
+		return "DESC"
+	}
+	return ""
+}
+
+func WithOrder(order Order) QueryOption {
+	return func(p *QueryParams) {
+		p.Order = order
 	}
 }
 
