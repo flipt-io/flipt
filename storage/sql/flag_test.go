@@ -71,6 +71,7 @@ func TestListFlags(t *testing.T) {
 	assert.NotZero(t, len(got))
 }
 
+// TODO: these pagination tests now require clean slate from the db
 func TestFlagsPagination_LimitOffset(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
@@ -116,7 +117,7 @@ func TestFlagsPagination_LimitWithNextPage(t *testing.T) {
 
 	for _, req := range reqs {
 		_, err := store.CreateFlag(context.TODO(), req)
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(time.Millisecond)
 		require.NoError(t, err)
 	}
 

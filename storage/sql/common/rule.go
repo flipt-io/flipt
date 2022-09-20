@@ -65,9 +65,12 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
 			From("rules").
 			Where(sq.Eq{"flag_key": flagKey}).
-			OrderBy("\"rank\" ASC").
-			Limit(uint64(params.Limit) + 1)
+			OrderBy("\"rank\" ASC")
 	)
+
+	if params.Limit > 0 {
+		query = query.Limit(uint64(params.Limit) + 1)
+	}
 
 	if params.PageToken != "" {
 		var token PageToken
@@ -75,7 +78,7 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Where(sq.Gt{"id": token.Key})
+		query = query.Where(sq.GtOrEq{"id": token.Key})
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
@@ -122,15 +125,23 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		return results, err
 	}
 
-	rules, next := rules[:len(rules)-1], rules[len(rules)-1]
-	results.Results = rules
+	var next *flipt.Rule
 
-	var out bytes.Buffer
-	if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Id, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
-		return results, fmt.Errorf("encoding page token %w", err)
+	if len(rules) > int(params.Limit) && params.Limit > 0 {
+		next = rules[len(rules)-1]
+		rules = rules[:params.Limit]
 	}
 
-	results.NextPageToken = out.String()
+	results.Results = rules
+
+	if next != nil {
+		var out bytes.Buffer
+		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Id, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+			return results, fmt.Errorf("encoding page token %w", err)
+		}
+		results.NextPageToken = out.String()
+	}
+
 	return results, rows.Err()
 }
 

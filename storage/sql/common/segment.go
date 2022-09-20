@@ -70,9 +70,12 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 
 		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			OrderBy("created_at ASC").
-			Limit(uint64(params.Limit) + 1)
+			OrderBy("created_at ASC")
 	)
+
+	if params.Limit > 0 {
+		query = query.Limit(uint64(params.Limit) + 1)
+	}
 
 	if params.PageToken != "" {
 		var token PageToken
@@ -80,7 +83,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Where(sq.Gt{"created_at": token.CreatedAt})
+		query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
@@ -127,15 +130,23 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		return results, err
 	}
 
-	segments, next := segments[:len(segments)-1], segments[len(segments)-1]
-	results.Results = segments
+	var next *flipt.Segment
 
-	var out bytes.Buffer
-	if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
-		return results, fmt.Errorf("encoding page token %w", err)
+	if len(segments) > int(params.Limit) && params.Limit > 0 {
+		next = segments[len(segments)-1]
+		segments = segments[:params.Limit]
 	}
 
-	results.NextPageToken = out.String()
+	results.Results = segments
+
+	if next != nil {
+		var out bytes.Buffer
+		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+			return results, fmt.Errorf("encoding page token %w", err)
+		}
+		results.NextPageToken = out.String()
+	}
+
 	return results, rows.Err()
 }
 
