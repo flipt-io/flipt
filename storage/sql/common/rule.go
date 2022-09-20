@@ -65,7 +65,7 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
 			From("rules").
 			Where(sq.Eq{"flag_key": flagKey}).
-			OrderBy("\"rank\" ASC")
+			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
 	)
 
 	if params.Limit > 0 {
@@ -78,7 +78,11 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Where(sq.GtOrEq{"id": token.Key})
+		if params.Order == storage.OrderAsc {
+			query = query.Where(sq.GtOrEq{"id": token.Key})
+		} else {
+			query = query.Where(sq.LtOrEq{"id": token.Key})
+		}
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}

@@ -85,7 +85,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			OrderBy(fmt.Sprintf("created_at %s", params.Order.String()))
+			OrderBy(fmt.Sprintf("created_at %s", params.Order))
 	)
 
 	if params.Limit > 0 {

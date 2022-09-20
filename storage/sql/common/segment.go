@@ -70,7 +70,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 
 		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			OrderBy("created_at ASC")
+			OrderBy(fmt.Sprintf("created_at %s", params.Order))
 	)
 
 	if params.Limit > 0 {
@@ -83,7 +83,11 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
+		if params.Order == storage.OrderAsc {
+			query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
+		} else {
+			query = query.Where(sq.LtOrEq{"created_at": token.CreatedAt})
+		}
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
