@@ -149,5 +149,6 @@ tasks:
       - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s {{.TEST_FLAGS}}
     vars:
       COVERAGE_FILE: coverage.txt
+    env:
       TEST_PATTERN: .
       TEST_OPTS: -race

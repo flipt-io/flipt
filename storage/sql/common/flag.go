@@ -85,9 +85,12 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			OrderBy("created_at ASC").
-			Limit(uint64(params.Limit) + 1)
+			OrderBy("created_at ASC")
 	)
+
+	if params.Limit > 0 {
+		query = query.Limit(uint64(params.Limit) + 1)
+	}
 
 	if params.PageToken != "" {
 		var token PageToken
@@ -95,7 +98,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Where(sq.Gt{"created_at": token.CreatedAt})
+		query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
@@ -144,7 +147,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 	var next *flipt.Flag
 
-	if len(flags) > int(params.Limit) {
+	if len(flags) > int(params.Limit) && params.Limit > 0 {
 		next = flags[len(flags)-1]
 		flags = flags[:params.Limit]
 	}
