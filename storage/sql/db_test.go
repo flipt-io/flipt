@@ -15,7 +15,7 @@ import (
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/storage"
 	"go.flipt.io/flipt/storage/sql/mysql"
 	"go.flipt.io/flipt/storage/sql/postgres"

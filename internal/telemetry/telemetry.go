@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.uber.org/zap"
 	"gopkg.in/segmentio/analytics-go.v3"
