@@ -10,7 +10,7 @@ import (
 	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
 )
 

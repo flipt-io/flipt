@@ -12,7 +12,7 @@ import (
 	"github.com/luna-duclos/instrumentedsql/opentracing"
 	"github.com/mattn/go-sqlite3"
 	"github.com/xo/dburl"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 )
 
 // Open opens a connection to the db

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"go.flipt.io/flipt/config"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/config"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/server/cache/memory"
 	"go.flipt.io/flipt/storage"

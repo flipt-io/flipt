@@ -14,7 +14,7 @@
 .github/
 .vscode/
 .task/
-Dockerfile
+Dockerfile*
 LICENSE
 bin/
 examples/

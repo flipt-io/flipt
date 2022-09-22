@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	gocache "github.com/patrickmn/go-cache"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/server/cache"
 )
 

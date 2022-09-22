@@ -3,7 +3,7 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.12.0](https://github.com/markphelps/flipt/releases/tag/v1.12.0) - 2022-09-22
 
 ### Added
 
@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Configuration 'enums' are encoding correctly as JSON [#1030](https://github.com/flipt-io/flipt/pull/1030)
 - Dependency updates
+
+### Fixed
+
+- Rendering of clone icon for variants/constraints [#1038](https://github.com/flipt-io/flipt/pull/1038)
 
 ## [v1.11.0](https://github.com/markphelps/flipt/releases/tag/v1.11.0) - 2022-09-12
 
