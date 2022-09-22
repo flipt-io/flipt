@@ -31,7 +31,7 @@ import (
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/telemetry"
 	pb "go.flipt.io/flipt/rpc/flipt"

@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	redis "github.com/go-redis/cache/v8"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/server/cache"
 )
 

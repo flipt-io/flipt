@@ -16,7 +16,7 @@ type statsGetter interface {
 	Stats() sql.DBStats
 }
 
-//nolint
+// nolint
 func registerMetrics(d Driver, s statsGetter) {
 	labels := prometheus.Labels{"driver": d.String()}
 

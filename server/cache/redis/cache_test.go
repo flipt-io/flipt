@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"go.flipt.io/flipt/config"
+	"go.flipt.io/flipt/internal/config"
 )
 
 func TestSet(t *testing.T) {
