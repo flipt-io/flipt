@@ -2,10 +2,12 @@ package sql
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -66,7 +68,7 @@ func TestListSegments(t *testing.T) {
 	assert.NotZero(t, len(got))
 }
 
-func TestListSegmentsPagination(t *testing.T) {
+func TestListSegmentsPagination_LimitOffset(t *testing.T) {
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -89,6 +91,52 @@ func TestListSegmentsPagination(t *testing.T) {
 	require.NoError(t, err)
 	got := res.Results
 	assert.Len(t, got, 1)
+}
+
+func TestListSegmentsPagination_LimitWithNextPage(t *testing.T) {
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := store.CreateSegment(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
+
+	res, err := store.ListSegments(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, reqs[1].Key, got[0].Key)
+	assert.NotEmpty(t, res.NextPageToken)
+
+	pageToken := &common.PageToken{}
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	assert.Equal(t, reqs[0].Key, pageToken.Key)
+	assert.NotZero(t, pageToken.Offset)
+
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+
+	res, err = store.ListSegments(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, reqs[0].Key, got[0].Key)
 }
 
 func TestCreateSegment(t *testing.T) {

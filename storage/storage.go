@@ -41,7 +41,7 @@ type QueryParams struct {
 	Limit     uint64
 	Offset    uint64 // deprecated
 	PageToken string
-	Order     Order
+	Order     Order // not exposed to the user yet
 }
 
 type QueryOption func(p *QueryParams)

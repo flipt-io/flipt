@@ -78,11 +78,7 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		if params.Order == storage.OrderAsc {
-			query = query.Where(sq.GtOrEq{"id": token.Key})
-		} else {
-			query = query.Where(sq.LtOrEq{"id": token.Key})
-		}
+		query = query.Offset(token.Offset)
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
@@ -140,7 +136,7 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 
 	if next != nil {
 		var out bytes.Buffer
-		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Id, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Id, Offset: uint64(len(rules))}); err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
 		results.NextPageToken = out.String()

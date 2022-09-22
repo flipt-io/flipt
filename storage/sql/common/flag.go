@@ -98,12 +98,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		if params.Order == storage.OrderAsc {
-			query = query.Where(sq.GtOrEq{"created_at": token.CreatedAt})
-		} else {
-			query = query.Where(sq.LtOrEq{"created_at": token.CreatedAt})
-		}
-
+		query = query.Offset(uint64(token.Offset))
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}
@@ -161,7 +156,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 	if next != nil {
 		var out bytes.Buffer
-		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, CreatedAt: next.CreatedAt.AsTime()}); err != nil {
+		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, Offset: uint64(len(flags))}); err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
 		results.NextPageToken = out.String()

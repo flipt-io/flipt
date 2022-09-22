@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
@@ -71,7 +70,7 @@ func TestListFlags(t *testing.T) {
 	assert.NotZero(t, len(got))
 }
 
-func TestFlagsPagination_LimitOffset(t *testing.T) {
+func TestListFlagsPagination_LimitOffset(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -98,7 +97,7 @@ func TestFlagsPagination_LimitOffset(t *testing.T) {
 	assert.Len(t, got, 1)
 }
 
-func TestFlagsPagination_LimitWithNextPage(t *testing.T) {
+func TestListFlagsPagination_LimitWithNextPage(t *testing.T) {
 	reqs := []*flipt.CreateFlagRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -115,7 +114,6 @@ func TestFlagsPagination_LimitWithNextPage(t *testing.T) {
 
 	for _, req := range reqs {
 		_, err := store.CreateFlag(context.TODO(), req)
-		time.Sleep(time.Millisecond)
 		require.NoError(t, err)
 	}
 
@@ -134,7 +132,7 @@ func TestFlagsPagination_LimitWithNextPage(t *testing.T) {
 	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
 	require.NoError(t, err)
 	assert.Equal(t, reqs[0].Key, pageToken.Key)
-	assert.NotZero(t, pageToken.CreatedAt)
+	assert.NotZero(t, pageToken.Offset)
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
