@@ -28,7 +28,7 @@
     "@babel/preset-env": "^7.19.1",
     "@playwright/test": "^1.25.2",
     "babel-jest": "^28.1.2",
-    "eslint": "^8.23.0",
+    "eslint": "^8.23.1",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.5.1",
