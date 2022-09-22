@@ -9,8 +9,8 @@ import (
 var _ flipt.FliptServer = &Server{}
 
 const (
-	defaultListLimit = 20
-	maxListLimit     = 50
+	defaultListLimit = 25
+	maxListLimit     = 100
 )
 
 // Server serves the Flipt backend
