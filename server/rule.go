@@ -55,9 +55,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 
 	var resp flipt.RuleList
 
-	for _, r := range results.Results {
-		resp.Rules = append(resp.Rules, r)
-	}
+	resp.Rules = append(resp.Rules, results.Results...)
 
 	total, err := s.store.CountRules(ctx)
 	if err != nil {

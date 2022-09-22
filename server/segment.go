@@ -55,9 +55,7 @@ func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) 
 
 	var resp flipt.SegmentList
 
-	for _, s := range results.Results {
-		resp.Segments = append(resp.Segments, s)
-	}
+	resp.Segments = append(resp.Segments, results.Results...)
 
 	total, err := s.store.CountSegments(ctx)
 	if err != nil {

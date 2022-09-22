@@ -89,7 +89,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 	)
 
 	if params.Limit > 0 {
-		query = query.Limit(uint64(params.Limit) + 1)
+		query = query.Limit(params.Limit + 1)
 	}
 
 	if params.PageToken != "" {
@@ -98,7 +98,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
-		query = query.Offset(uint64(token.Offset))
+		query = query.Offset(token.Offset)
 	} else if params.Offset > 0 {
 		query = query.Offset(params.Offset)
 	}

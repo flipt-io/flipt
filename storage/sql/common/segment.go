@@ -74,7 +74,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 	)
 
 	if params.Limit > 0 {
-		query = query.Limit(uint64(params.Limit) + 1)
+		query = query.Limit(params.Limit + 1)
 	}
 
 	if params.PageToken != "" {

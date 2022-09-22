@@ -55,9 +55,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 
 	var resp flipt.FlagList
 
-	for _, f := range results.Results {
-		resp.Flags = append(resp.Flags, f)
-	}
+	resp.Flags = append(resp.Flags, results.Results...)
 
 	total, err := s.store.CountFlags(ctx)
 	if err != nil {
