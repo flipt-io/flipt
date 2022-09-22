@@ -128,7 +128,7 @@
               @click.prevent="duplicateConstraint(props.index)"
             >
               <span class="icon is-small">
-                <i class="far fa-clone" title="Duplicate" />
+                <i class="fas fa-clone" title="Duplicate" />
               </span>
             </a>
             <a
