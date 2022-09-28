@@ -285,126 +285,126 @@ func TestMain(m *testing.M) {
 }
 
 func (s *DBTestSuite) SetupSuite() {
-	s.Require().NoError(s.setupSuite())
-}
+	setup := func() error {
+		var proto config.DatabaseProtocol
 
-func (s *DBTestSuite) setupSuite() error {
-	var proto config.DatabaseProtocol
+		switch dd {
+		case "postgres":
+			proto = config.DatabasePostgres
+		case "mysql":
+			proto = config.DatabaseMySQL
+		default:
+			proto = config.DatabaseSQLite
+		}
 
-	switch dd {
-	case "postgres":
-		proto = config.DatabasePostgres
-	case "mysql":
-		proto = config.DatabaseMySQL
-	default:
-		proto = config.DatabaseSQLite
-	}
+		cfg := config.Config{
+			Database: config.DatabaseConfig{
+				Protocol: proto,
+				URL:      defaultTestDBURL,
+			},
+		}
 
-	cfg := config.Config{
-		Database: config.DatabaseConfig{
-			Protocol: proto,
-			URL:      defaultTestDBURL,
-		},
-	}
+		if proto != config.DatabaseSQLite {
+			ctx := context.Background()
 
-	if proto != config.DatabaseSQLite {
-		ctx := context.Background()
+			dbContainer, err := newDBContainer(s.T(), ctx, proto)
+			if err != nil {
+				return fmt.Errorf("creating db container: %w", err)
+			}
 
-		dbContainer, err := newDBContainer(s.T(), ctx, proto)
+			cfg.Database.URL = ""
+			cfg.Database.Host = dbContainer.host
+			cfg.Database.Port = dbContainer.port
+			cfg.Database.Name = "flipt_test"
+			cfg.Database.User = "flipt"
+			cfg.Database.Password = "password"
+
+			s.testcontainer = dbContainer
+		}
+
+		db, driver, err := open(cfg, options{migrate: true, sslDisabled: true})
 		if err != nil {
-			return fmt.Errorf("creating db container: %w", err)
+			return fmt.Errorf("opening db: %w", err)
 		}
 
-		cfg.Database.URL = ""
-		cfg.Database.Host = dbContainer.host
-		cfg.Database.Port = dbContainer.port
-		cfg.Database.Name = "flipt_test"
-		cfg.Database.User = "flipt"
-		cfg.Database.Password = "password"
+		var (
+			dr   database.Driver
+			stmt string
 
-		s.testcontainer = dbContainer
-	}
+			tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
+		)
 
-	db, driver, err := open(cfg, options{migrate: true, sslDisabled: true})
-	if err != nil {
-		return fmt.Errorf("opening db: %w", err)
-	}
+		switch driver {
+		case SQLite:
+			dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+			stmt = "DELETE FROM %s"
+		case Postgres:
+			dr, err = pg.WithInstance(db, &pg.Config{})
+			stmt = "TRUNCATE TABLE %s CASCADE"
+		case MySQL:
+			dr, err = ms.WithInstance(db, &ms.Config{})
+			stmt = "TRUNCATE TABLE %s"
 
-	var (
-		dr   database.Driver
-		stmt string
+			// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
+			if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
+				return fmt.Errorf("disabling foreign key checks: %w", err)
+			}
 
-		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags"}
-	)
-
-	switch driver {
-	case SQLite:
-		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		stmt = "DELETE FROM %s"
-	case Postgres:
-		dr, err = pg.WithInstance(db, &pg.Config{})
-		stmt = "TRUNCATE TABLE %s CASCADE"
-	case MySQL:
-		dr, err = ms.WithInstance(db, &ms.Config{})
-		stmt = "TRUNCATE TABLE %s"
-
-		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
-			return fmt.Errorf("disabling foreign key checks: %w", err)
+		default:
+			return fmt.Errorf("unknown driver: %s", proto)
 		}
 
-	default:
-		return fmt.Errorf("unknown driver: %s", proto)
-	}
-
-	if err != nil {
-		return fmt.Errorf("creating driver: %w", err)
-	}
-
-	for _, t := range tables {
-		_, _ = db.Exec(fmt.Sprintf(stmt, t))
-	}
-
-	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
-
-	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
-	if err != nil {
-		return fmt.Errorf("creating migrate instance: %w", err)
-	}
-
-	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return fmt.Errorf("running migrations: %w", err)
-	}
-
-	if err := db.Close(); err != nil {
-		return fmt.Errorf("closing db: %w", err)
-	}
-
-	// re-open db and enable ANSI mode for MySQL
-	db, driver, err = open(cfg, options{migrate: false, sslDisabled: true})
-	if err != nil {
-		return fmt.Errorf("opening db: %w", err)
-	}
-
-	s.db = db
-
-	var store storage.Store
-
-	switch driver {
-	case SQLite:
-		store = sqlite.NewStore(db)
-	case Postgres:
-		store = postgres.NewStore(db)
-	case MySQL:
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
-			return fmt.Errorf("enabling foreign key checks: %w", err)
+		if err != nil {
+			return fmt.Errorf("creating driver: %w", err)
 		}
 
-		store = mysql.NewStore(db)
+		for _, t := range tables {
+			_, _ = db.Exec(fmt.Sprintf(stmt, t))
+		}
+
+		f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
+
+		mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+		if err != nil {
+			return fmt.Errorf("creating migrate instance: %w", err)
+		}
+
+		if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+			return fmt.Errorf("running migrations: %w", err)
+		}
+
+		if err := db.Close(); err != nil {
+			return fmt.Errorf("closing db: %w", err)
+		}
+
+		// re-open db and enable ANSI mode for MySQL
+		db, driver, err = open(cfg, options{migrate: false, sslDisabled: true})
+		if err != nil {
+			return fmt.Errorf("opening db: %w", err)
+		}
+
+		s.db = db
+
+		var store storage.Store
+
+		switch driver {
+		case SQLite:
+			store = sqlite.NewStore(db)
+		case Postgres:
+			store = postgres.NewStore(db)
+		case MySQL:
+			if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
+				return fmt.Errorf("enabling foreign key checks: %w", err)
+			}
+
+			store = mysql.NewStore(db)
+		}
+
+		s.store = store
+		return nil
 	}
 
-	s.store = store
-	return nil
+	s.Require().NoError(setup())
 }
 
 func (s *DBTestSuite) TearDownSuite() {

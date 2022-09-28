@@ -140,24 +140,20 @@ tasks:
     desc: Run all the tests
     cmds:
       - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s
-    prefix: "test-{{.FLIPT_TEST_DATABASE_PROTOCOL}}"
     vars:
       TEST_PATTERN: '{{.TEST_PATTERN | default "."}}'
       TEST_OPTS: '{{.TEST_OPTS | default "-race"}}'
-      FLIPT_TEST_DATABASE_PROTOCOL: '{{.FLIPT_TEST_DATABASE_PROTOCOL | default "sqlite"}}'
     env:
       FLIPT_TEST_DATABASE_PROTOCOL: '{{.FLIPT_TEST_DATABASE_PROTOCOL | default "sqlite"}}'
 
   test:mysql:
     desc: Run all the tests with MySQL db backend
-    prefix: "test-mysql"
     cmds:
       - task: test
         vars: { FLIPT_TEST_DATABASE_PROTOCOL: "mysql" }
 
   test:postgres:
     desc: Run all the tests with Postgres db backend
-    prefix: "test-postgres"
     cmds:
       - task: test
         vars: { FLIPT_TEST_DATABASE_PROTOCOL: "postgres" }
