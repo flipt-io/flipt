@@ -1,26 +1,33 @@
 package sql
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database"
-	ms "github.com/golang-migrate/migrate/database/mysql"
-	pg "github.com/golang-migrate/migrate/database/postgres"
-	"github.com/golang-migrate/migrate/database/sqlite3"
+	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/storage"
 	"go.flipt.io/flipt/storage/sql/mysql"
 	"go.flipt.io/flipt/storage/sql/postgres"
 	"go.flipt.io/flipt/storage/sql/sqlite"
 
+	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/database"
+	ms "github.com/golang-migrate/migrate/database/mysql"
+	pg "github.com/golang-migrate/migrate/database/postgres"
+	"github.com/golang-migrate/migrate/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/source/file"
 )
 
@@ -238,7 +245,7 @@ func TestParse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d, u, err := parse(config.Config{
 				Database: cfg,
-			}, false)
+			}, dbOptions{})
 
 			if wantErr {
 				require.Error(t, err)
@@ -252,37 +259,71 @@ func TestParse(t *testing.T) {
 	}
 }
 
-var store storage.Store
+func TestDBTestSuite(t *testing.T) {
+	suite.Run(t, new(DBTestSuite))
+}
 
 const defaultTestDBURL = "file:../../flipt_test.db"
 
-func TestMain(m *testing.M) {
-	// os.Exit skips defer calls
-	// so we need to use another fn
-	code, err := run(m)
-	if err != nil {
-		fmt.Println(err)
-	}
-	os.Exit(code)
+type dbContainer struct {
+	testcontainers.Container
+	host string
+	port int
 }
 
-func run(m *testing.M) (code int, err error) {
+type DBTestSuite struct {
+	suite.Suite
+	db            *sql.DB
+	store         storage.Store
+	testcontainer *dbContainer
+}
 
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		dbURL = defaultTestDBURL
+var dd string
+
+func TestMain(m *testing.M) {
+	dd = os.Getenv("FLIPT_TEST_DB_DRIVER")
+	os.Exit(m.Run())
+}
+
+func (s *DBTestSuite) SetupSuite() {
+
+	var proto config.DatabaseProtocol
+
+	switch dd {
+	case "postgres":
+		proto = config.DatabasePostgres
+	case "mysql":
+		proto = config.DatabaseMySQL
+	default:
+		proto = config.DatabaseSQLite
 	}
 
 	cfg := config.Config{
 		Database: config.DatabaseConfig{
-			URL: dbURL,
+			Protocol: proto,
 		},
 	}
 
-	db, driver, err := open(cfg, true)
-	if err != nil {
-		return 1, err
+	if proto != config.DatabaseSQLite {
+		ctx := context.Background()
+
+		dbContainer := newDBContainer(s.T(), ctx, proto)
+
+		cfg.Database.Host = dbContainer.host
+		cfg.Database.Port = dbContainer.port
+		cfg.Database.Name = "flipt_test"
+		cfg.Database.User = "flipt"
+		cfg.Database.Password = "password"
+
+		s.testcontainer = dbContainer
+	} else {
+		cfg.Database.URL = defaultTestDBURL
 	}
+
+	require := s.Require()
+
+	db, driver, err := open(cfg, dbOptions{migrate: true, sslDisabled: true})
+	require.NoError(err)
 
 	var (
 		dr   database.Driver
@@ -304,16 +345,14 @@ func run(m *testing.M) (code int, err error) {
 
 		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
-			return 1, fmt.Errorf("disabling foreign key checks: mysql: %w", err)
+			require.NoError(err)
 		}
 
 	default:
-		return 1, fmt.Errorf("unknown driver: %s", driver)
+		err = fmt.Errorf("unknown driver: %s", proto)
 	}
 
-	if err != nil {
-		return 1, err
-	}
+	require.NoError(err)
 
 	for _, t := range tables {
 		_, _ = db.Exec(fmt.Sprintf(stmt, t))
@@ -322,20 +361,15 @@ func run(m *testing.M) (code int, err error) {
 	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
-	if err != nil {
-		return 1, err
-	}
+	require.NoError(err)
 
 	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return 1, err
+		require.NoError(err)
 	}
 
-	db, driver, err = open(cfg, false)
-	if err != nil {
-		return 1, err
-	}
+	s.db = db
 
-	defer db.Close()
+	var store storage.Store
 
 	switch driver {
 	case SQLite:
@@ -344,11 +378,101 @@ func run(m *testing.M) (code int, err error) {
 		store = postgres.NewStore(db)
 	case MySQL:
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
-			return 1, fmt.Errorf("enabling foreign key checks: mysql: %w", err)
+			require.NoError(err)
 		}
 
 		store = mysql.NewStore(db)
 	}
 
-	return m.Run(), nil
+	s.store = store
+}
+
+func (s *DBTestSuite) TearDownSuite() {
+	if s.db != nil {
+		s.db.Close()
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if s.testcontainer != nil {
+		_ = s.testcontainer.Terminate(shutdownCtx)
+	}
+}
+
+func setupDBContainer(t *testing.T, ctx context.Context, proto config.DatabaseProtocol) (*dbContainer, error) {
+	t.Helper()
+
+	var (
+		req         testcontainers.ContainerRequest
+		exposedPort string
+	)
+
+	switch proto {
+	case config.DatabasePostgres:
+		req = testcontainers.ContainerRequest{
+			Image:        "postgres:11.2",
+			ExposedPorts: []string{"5432/tcp"},
+			WaitingFor:   wait.ForListeningPort("5432/tcp"),
+			Env: map[string]string{
+				"POSTGRES_USER":     "flipt",
+				"POSTGRES_PASSWORD": "password",
+				"POSTGRES_DB":       "flipt_test",
+			},
+		}
+		exposedPort = "5432"
+	case config.DatabaseMySQL:
+		req = testcontainers.ContainerRequest{
+			Image:        "mysql:8",
+			ExposedPorts: []string{"3306/tcp"},
+			WaitingFor:   wait.ForListeningPort("3306/tcp"),
+			Env: map[string]string{
+				"MYSQL_USER":                 "flipt",
+				"MYSQL_PASSWORD":             "password",
+				"MYSQL_DATABASE":             "flipt_test",
+				"MYSQL_ALLOW_EMPTY_PASSWORD": "true",
+			},
+		}
+		exposedPort = "3306"
+	}
+
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	mappedPort, err := container.MappedPort(ctx, nat.Port(exposedPort))
+	if err != nil {
+		return nil, err
+	}
+
+	hostIP, err := container.Host(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	port, err := strconv.Atoi(mappedPort.Port())
+	if err != nil {
+		return nil, err
+	}
+
+	return &dbContainer{Container: container, host: hostIP, port: port}, nil
+}
+
+func newDBContainer(t *testing.T, ctx context.Context, proto config.DatabaseProtocol) *dbContainer {
+	t.Helper()
+
+	if testing.Short() {
+		t.Skipf("skipping running %s tests in short mode", proto.String())
+	}
+
+	dbContainer, err := setupDBContainer(t, ctx, proto)
+	if err != nil {
+		assert.FailNowf(t, "failed to setup %s container: %s", proto.String(), err.Error())
+	}
+
+	return dbContainer
 }
