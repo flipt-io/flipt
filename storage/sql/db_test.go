@@ -285,6 +285,10 @@ func TestMain(m *testing.M) {
 }
 
 func (s *DBTestSuite) SetupSuite() {
+	s.Require().NoError(s.setupSuite())
+}
+
+func (s *DBTestSuite) setupSuite() error {
 	var proto config.DatabaseProtocol
 
 	switch dd {
@@ -299,17 +303,19 @@ func (s *DBTestSuite) SetupSuite() {
 	cfg := config.Config{
 		Database: config.DatabaseConfig{
 			Protocol: proto,
+			URL:      defaultTestDBURL,
 		},
 	}
-
-	require := s.Require()
 
 	if proto != config.DatabaseSQLite {
 		ctx := context.Background()
 
 		dbContainer, err := newDBContainer(s.T(), ctx, proto)
-		require.NoError(err)
+		if err != nil {
+			return fmt.Errorf("creating db container: %w", err)
+		}
 
+		cfg.Database.URL = ""
 		cfg.Database.Host = dbContainer.host
 		cfg.Database.Port = dbContainer.port
 		cfg.Database.Name = "flipt_test"
@@ -317,12 +323,12 @@ func (s *DBTestSuite) SetupSuite() {
 		cfg.Database.Password = "password"
 
 		s.testcontainer = dbContainer
-	} else {
-		cfg.Database.URL = defaultTestDBURL
 	}
 
 	db, driver, err := open(cfg, options{migrate: true, sslDisabled: true})
-	require.NoError(err)
+	if err != nil {
+		return fmt.Errorf("opening db: %w", err)
+	}
 
 	var (
 		dr   database.Driver
@@ -344,14 +350,16 @@ func (s *DBTestSuite) SetupSuite() {
 
 		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
-			require.NoError(err)
+			return fmt.Errorf("disabling foreign key checks: %w", err)
 		}
 
 	default:
-		err = fmt.Errorf("unknown driver: %s", proto)
+		return fmt.Errorf("unknown driver: %s", proto)
 	}
 
-	require.NoError(err)
+	if err != nil {
+		return fmt.Errorf("creating driver: %w", err)
+	}
 
 	for _, t := range tables {
 		_, _ = db.Exec(fmt.Sprintf(stmt, t))
@@ -360,17 +368,23 @@ func (s *DBTestSuite) SetupSuite() {
 	f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
 
 	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
-	require.NoError(err)
-
-	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		require.NoError(err)
+	if err != nil {
+		return fmt.Errorf("creating migrate instance: %w", err)
 	}
 
-	db.Close()
+	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("running migrations: %w", err)
+	}
+
+	if err := db.Close(); err != nil {
+		return fmt.Errorf("closing db: %w", err)
+	}
 
 	// re-open db and enable ANSI mode for MySQL
 	db, driver, err = open(cfg, options{migrate: false, sslDisabled: true})
-	require.NoError(err)
+	if err != nil {
+		return fmt.Errorf("opening db: %w", err)
+	}
 
 	s.db = db
 
@@ -383,13 +397,14 @@ func (s *DBTestSuite) SetupSuite() {
 		store = postgres.NewStore(db)
 	case MySQL:
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
-			require.NoError(err)
+			return fmt.Errorf("enabling foreign key checks: %w", err)
 		}
 
 		store = mysql.NewStore(db)
 	}
 
 	s.store = store
+	return nil
 }
 
 func (s *DBTestSuite) TearDownSuite() {
