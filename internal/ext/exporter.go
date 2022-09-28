@@ -40,18 +40,21 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	defer enc.Close()
 
-	var remaining = true
+	var (
+		remaining = true
+		nextPage  string
+	)
 
 	// export flags/variants in batches
 	for batch := uint64(0); remaining; batch++ {
-		resp, err := e.store.ListFlags(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		resp, err := e.store.ListFlags(ctx, storage.WithPageToken(nextPage), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting flags: %w", err)
 		}
 
 		flags := resp.Results
-		// TODO: use count instead
-		remaining = uint64(len(flags)) == batchSize
+		nextPage = resp.NextPageToken
+		remaining = nextPage != ""
 
 		for _, f := range flags {
 			flag := &Flag{
@@ -111,17 +114,18 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	}
 
 	remaining = true
+	nextPage = ""
 
 	// export segments/constraints in batches
 	for batch := uint64(0); remaining; batch++ {
-		resp, err := e.store.ListSegments(ctx, storage.WithOffset(batch*batchSize), storage.WithLimit(batchSize))
+		resp, err := e.store.ListSegments(ctx, storage.WithPageToken(nextPage), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting segments: %w", err)
 		}
 
 		segments := resp.Results
-		// TODO: use count instead
-		remaining = uint64(len(segments)) == batchSize
+		nextPage = resp.NextPageToken
+		remaining = nextPage != ""
 
 		for _, s := range segments {
 			segment := &Segment{
