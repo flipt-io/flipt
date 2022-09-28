@@ -1,8 +1,6 @@
 # https://taskfile.dev/
 version: 3
 
-output: prefixed
-
 vars:
   PROJECT: flipt
   SOURCE_FILES: ./...

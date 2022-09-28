@@ -109,6 +109,7 @@ func TestParse(t *testing.T) {
 		cfg     config.DatabaseConfig
 		dsn     string
 		driver  Driver
+		options options
 		wantErr bool
 	}{
 		{
@@ -132,6 +133,29 @@ func TestParse(t *testing.T) {
 			name: "postres url",
 			cfg: config.DatabaseConfig{
 				URL: "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+			},
+			driver: Postgres,
+			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+		},
+		{
+			name: "postres no disable sslmode",
+			cfg: config.DatabaseConfig{
+				URL: "postgres://postgres@localhost:5432/flipt",
+			},
+			driver: Postgres,
+			dsn:    "dbname=flipt host=localhost port=5432 user=postgres",
+		},
+		{
+			name: "postres disable sslmode via opts",
+			cfg: config.DatabaseConfig{
+				Protocol: config.DatabasePostgres,
+				Name:     "flipt",
+				Host:     "localhost",
+				Port:     5432,
+				User:     "postgres",
+			},
+			options: options{
+				sslDisabled: true,
 			},
 			driver: Postgres,
 			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
@@ -179,6 +203,21 @@ func TestParse(t *testing.T) {
 			},
 			driver: MySQL,
 			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true&sql_mode=ANSI",
+		},
+		{
+			name: "mysql no ANSI sql mode via opts",
+			cfg: config.DatabaseConfig{
+				Protocol: config.DatabaseMySQL,
+				Name:     "flipt",
+				Host:     "localhost",
+				Port:     3306,
+				User:     "mysql",
+			},
+			options: options{
+				migrate: true,
+			},
+			driver: MySQL,
+			dsn:    "mysql@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true",
 		},
 		{
 			name: "mysql no port",
@@ -244,7 +283,7 @@ func TestParse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d, u, err := parse(config.Config{
 				Database: cfg,
-			}, options{})
+			}, tt.options)
 
 			if wantErr {
 				require.Error(t, err)
