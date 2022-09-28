@@ -17,7 +17,7 @@ import (
 
 // Open opens a connection to the db
 func Open(cfg config.Config) (*sql.DB, Driver, error) {
-	sql, driver, err := open(cfg, false)
+	sql, driver, err := open(cfg, options{})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -36,8 +36,13 @@ func Open(cfg config.Config) (*sql.DB, Driver, error) {
 	return sql, driver, nil
 }
 
-func open(cfg config.Config, migrate bool) (*sql.DB, Driver, error) {
-	d, url, err := parse(cfg, migrate)
+type options struct {
+	sslDisabled bool
+	migrate     bool
+}
+
+func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
+	d, url, err := parse(cfg, opts)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -107,7 +112,7 @@ const (
 	MySQL
 )
 
-func parse(cfg config.Config, migrate bool) (Driver, *dburl.URL, error) {
+func parse(cfg config.Config, opts options) (Driver, *dburl.URL, error) {
 	u := cfg.Database.URL
 
 	if u == "" {
@@ -134,13 +139,9 @@ func parse(cfg config.Config, migrate bool) (Driver, *dburl.URL, error) {
 		u = uu.String()
 	}
 
-	errURL := func(rawurl string, err error) error {
-		return fmt.Errorf("error parsing url: %q, %w", rawurl, err)
-	}
-
 	url, err := dburl.Parse(u)
 	if err != nil {
-		return 0, nil, errURL(u, err)
+		return 0, nil, fmt.Errorf("error parsing url: %q, %w", url, err)
 	}
 
 	driver := stringToDriver[url.Driver]
@@ -149,11 +150,19 @@ func parse(cfg config.Config, migrate bool) (Driver, *dburl.URL, error) {
 	}
 
 	switch driver {
+	case Postgres:
+		if opts.sslDisabled {
+			v := url.Query()
+			v.Set("sslmode", "disable")
+			url.RawQuery = v.Encode()
+			// we need to re-parse since we modified the query params
+			url, err = dburl.Parse(url.URL.String())
+		}
 	case MySQL:
 		v := url.Query()
 		v.Set("multiStatements", "true")
 		v.Set("parseTime", "true")
-		if !migrate {
+		if !opts.migrate {
 			v.Set("sql_mode", "ANSI")
 		}
 		url.RawQuery = v.Encode()

@@ -135,7 +135,7 @@ func newCache(t *testing.T, ctx context.Context) (*Cache, func()) {
 
 	redisContainer, err := setupRedis(ctx)
 	if err != nil {
-		assert.FailNowf(t, "failed to setup redis container: %s", err.Error())
+		assert.FailNow(t, "failed to setup redis container", err.Error())
 	}
 
 	rdb := goredis.NewClient(&goredis.Options{

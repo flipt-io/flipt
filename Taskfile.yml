@@ -5,6 +5,7 @@ vars:
   PROJECT: flipt
   SOURCE_FILES: ./...
   UI: ui
+  COVERAGE_FILE: coverage.txt
 
 tasks:
   default:
@@ -67,14 +68,6 @@ tasks:
     cmds:
       - npm run dev
 
-  bench:
-    desc: Run benchmarks
-    cmds:
-      - go test -bench={{.BENCH_PATTERN}} {{.SOURCE_FILES}} -run=XXX {{.TEST_FLAGS}}
-    vars:
-      BENCH_PATTERN: .
-      TEST_FLAGS: -v
-
   bootstrap:
     desc: Install necessary development tools
     cmds:
@@ -129,8 +122,6 @@ tasks:
     deps: [test]
     cmds:
       - go tool cover -html={{.COVERAGE_FILE}}
-    vars:
-      COVERAGE_FILE: coverage.txt
 
   fmt:
     desc: Run goimports
@@ -146,8 +137,21 @@ tasks:
   test:
     desc: Run all the tests
     cmds:
-      - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s {{.TEST_FLAGS}}
+      - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s
     vars:
-      COVERAGE_FILE: coverage.txt
-      TEST_PATTERN: .
-      TEST_OPTS: -race
+      TEST_PATTERN: '{{.TEST_PATTERN | default "."}}'
+      TEST_OPTS: '{{.TEST_OPTS | default "-race"}}'
+    env:
+      FLIPT_TEST_DATABASE_PROTOCOL: '{{.FLIPT_TEST_DATABASE_PROTOCOL | default "sqlite"}}'
+
+  test:mysql:
+    desc: Run all the tests with MySQL db backend
+    cmds:
+      - task: test
+        vars: { FLIPT_TEST_DATABASE_PROTOCOL: "mysql" }
+
+  test:postgres:
+    desc: Run all the tests with Postgres db backend
+    cmds:
+      - task: test
+        vars: { FLIPT_TEST_DATABASE_PROTOCOL: "postgres" }

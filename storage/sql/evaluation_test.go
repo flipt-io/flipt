@@ -2,7 +2,6 @@ package sql
 
 import (
 	"context"
-	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -10,8 +9,10 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-func TestGetEvaluationRules(t *testing.T) {
-	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+func (s *DBTestSuite) TestGetEvaluationRules() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -20,7 +21,7 @@ func TestGetEvaluationRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -30,7 +31,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	require.NoError(t, err)
 
 	// constraint 1
-	_, err = store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -41,7 +42,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	require.NoError(t, err)
 
 	// constraint 2
-	_, err = store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foz",
@@ -52,7 +53,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	require.NoError(t, err)
 
 	// rule rank 1
-	rule1, err := store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule1, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -61,7 +62,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	require.NoError(t, err)
 
 	// rule rank 2
-	rule2, err := store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule2, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       2,
@@ -69,7 +70,7 @@ func TestGetEvaluationRules(t *testing.T) {
 
 	require.NoError(t, err)
 
-	evaluationRules, err := store.GetEvaluationRules(context.TODO(), flag.Key)
+	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), flag.Key)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, evaluationRules)
@@ -90,8 +91,10 @@ func TestGetEvaluationRules(t *testing.T) {
 	assert.Equal(t, 2, len(evaluationRules[1].Constraints))
 }
 
-func TestGetEvaluationDistributions(t *testing.T) {
-	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+func (s *DBTestSuite) TestGetEvaluationDistributions() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -101,7 +104,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	require.NoError(t, err)
 
 	// variant 1
-	variant1, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant1, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey: flag.Key,
 		Key:     "foo",
 	})
@@ -109,7 +112,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	require.NoError(t, err)
 
 	// variant 2
-	variant2, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant2, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:    flag.Key,
 		Key:        "bar",
 		Attachment: `{"key2":   "value2"}`,
@@ -117,7 +120,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 
 	require.NoError(t, err)
 
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -126,7 +129,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -136,7 +139,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 
 	require.NoError(t, err)
 
-	rule, err := store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -145,19 +148,19 @@ func TestGetEvaluationDistributions(t *testing.T) {
 	require.NoError(t, err)
 
 	// 50/50 distribution
-	_, err = store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	_, err = s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variant1.Id,
 		Rollout:   50.00,
 	})
 
-	// required for MySQL since it only stores timestamps to the second and not millisecond granularity
+	// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 	time.Sleep(1 * time.Second)
 
 	require.NoError(t, err)
 
-	_, err = store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	_, err = s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variant2.Id,
@@ -166,7 +169,7 @@ func TestGetEvaluationDistributions(t *testing.T) {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
@@ -186,8 +189,10 @@ func TestGetEvaluationDistributions(t *testing.T) {
 }
 
 // https://github.com/flipt-io/flipt/issues/229
-func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
-	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -197,7 +202,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	// variant 1
-	variant1, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant1, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey: flag.Key,
 		Key:     "foo",
 	})
@@ -205,14 +210,14 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	// variant 2
-	variant2, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant2, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey: flag.Key,
 		Key:     "bar",
 	})
 
 	require.NoError(t, err)
 
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -221,7 +226,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -231,7 +236,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
-	rule, err := store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -240,7 +245,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	require.NoError(t, err)
 
 	// 80/20 distribution
-	dist1, err := store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	dist1, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variant1.Id,
@@ -249,10 +254,10 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
-	// required for MySQL since it only stores timestamps to the second and not millisecond granularity
+	// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 	time.Sleep(1 * time.Second)
 
-	dist2, err := store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+	dist2, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variant2.Id,
@@ -261,7 +266,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err := store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err := s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
@@ -279,7 +284,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 
 	// update dist1 with same values
-	_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+	_, err = s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		Id:        dist1.Id,
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
@@ -289,11 +294,11 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
-	// required for MySQL since it only stores timestamps to the second and not millisecond granularity
+	// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 	time.Sleep(1 * time.Second)
 
 	// update dist2 with same values
-	_, err = store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+	_, err = s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		Id:        dist2.Id,
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
@@ -303,7 +308,7 @@ func TestGetEvaluationDistributions_MaintainOrder(t *testing.T) {
 
 	require.NoError(t, err)
 
-	evaluationDistributions, err = store.GetEvaluationDistributions(context.TODO(), rule.Id)
+	evaluationDistributions, err = s.store.GetEvaluationDistributions(context.TODO(), rule.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationDistributions))
