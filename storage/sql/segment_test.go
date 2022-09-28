@@ -3,7 +3,6 @@ package sql
 import (
 	"context"
 	"encoding/json"
-	"testing"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
@@ -14,8 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetSegment(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestGetSegment() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -25,7 +26,7 @@ func TestGetSegment(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	got, err := store.GetSegment(context.TODO(), segment.Key)
+	got, err := s.store.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -38,12 +39,16 @@ func TestGetSegment(t *testing.T) {
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
-func TestGetSegmentNotFound(t *testing.T) {
-	_, err := store.GetSegment(context.TODO(), "foo")
+func (s *DBTestSuite) TestGetSegmentNotFound() {
+	t := s.T()
+
+	_, err := s.store.GetSegment(context.TODO(), "foo")
 	assert.EqualError(t, err, "segment \"foo\" not found")
 }
 
-func TestListSegments(t *testing.T) {
+func (s *DBTestSuite) TestListSegments() {
+	t := s.T()
+
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -58,17 +63,19 @@ func TestListSegments(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := store.CreateSegment(context.TODO(), req)
+		_, err := s.store.CreateSegment(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	res, err := store.ListSegments(context.TODO())
+	res, err := s.store.ListSegments(context.TODO())
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
 }
 
-func TestListSegmentsPagination_LimitOffset(t *testing.T) {
+func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
+	t := s.T()
+
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -83,17 +90,19 @@ func TestListSegmentsPagination_LimitOffset(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := store.CreateSegment(context.TODO(), req)
+		_, err := s.store.CreateSegment(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	res, err := store.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 	got := res.Results
 	assert.Len(t, got, 1)
 }
 
-func TestListSegmentsPagination_LimitWithNextPage(t *testing.T) {
+func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
+	t := s.T()
+
 	reqs := []*flipt.CreateSegmentRequest{
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -108,14 +117,14 @@ func TestListSegmentsPagination_LimitWithNextPage(t *testing.T) {
 	}
 
 	for _, req := range reqs {
-		_, err := store.CreateSegment(context.TODO(), req)
+		_, err := s.store.CreateSegment(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := store.ListSegments(context.TODO(), opts...)
+	res, err := s.store.ListSegments(context.TODO(), opts...)
 	require.NoError(t, err)
 
 	got := res.Results
@@ -131,7 +140,7 @@ func TestListSegmentsPagination_LimitWithNextPage(t *testing.T) {
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
-	res, err = store.ListSegments(context.TODO(), opts...)
+	res, err = s.store.ListSegments(context.TODO(), opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -139,8 +148,10 @@ func TestListSegmentsPagination_LimitWithNextPage(t *testing.T) {
 	assert.Equal(t, reqs[0].Key, got[0].Key)
 }
 
-func TestCreateSegment(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestCreateSegment() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -157,8 +168,10 @@ func TestCreateSegment(t *testing.T) {
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
-func TestCreateSegment_DuplicateKey(t *testing.T) {
-	_, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestCreateSegment_DuplicateKey() {
+	t := s.T()
+
+	_, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -166,17 +179,19 @@ func TestCreateSegment_DuplicateKey(t *testing.T) {
 
 	require.NoError(t, err)
 
-	_, err = store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	_, err = s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "segment \"TestCreateSegment_DuplicateKey\" is not unique")
+	assert.EqualError(t, err, "segment \"TestDBTestSuite/TestCreateSegment_DuplicateKey\" is not unique")
 }
 
-func TestUpdateSegment(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestUpdateSegment() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -192,7 +207,7 @@ func TestUpdateSegment(t *testing.T) {
 	assert.NotZero(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 
-	updated, err := store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
+	updated, err := s.store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
 		Key:         segment.Key,
 		Name:        segment.Name,
 		Description: "foobar",
@@ -209,8 +224,10 @@ func TestUpdateSegment(t *testing.T) {
 	assert.NotZero(t, updated.UpdatedAt)
 }
 
-func TestUpdateSegment_NotFound(t *testing.T) {
-	_, err := store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
+func (s *DBTestSuite) TestUpdateSegment_NotFound() {
+	t := s.T()
+
+	_, err := s.store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
@@ -219,8 +236,10 @@ func TestUpdateSegment_NotFound(t *testing.T) {
 	assert.EqualError(t, err, "segment \"foo\" not found")
 }
 
-func TestDeleteSegment(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestDeleteSegment() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -229,15 +248,16 @@ func TestDeleteSegment(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	err = store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{Key: segment.Key})
+	err = s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{Key: segment.Key})
 	require.NoError(t, err)
 }
 
-func TestDeleteSegment_ExistingRule(t *testing.T) {
+func (s *DBTestSuite) TestDeleteSegment_ExistingRule() {
+	t := s.T()
 	// TODO
 	t.SkipNow()
 
-	flag, err := store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -247,7 +267,7 @@ func TestDeleteSegment_ExistingRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
 		Key:         t.Name(),
 		Name:        "foo",
@@ -257,7 +277,7 @@ func TestDeleteSegment_ExistingRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -266,7 +286,7 @@ func TestDeleteSegment_ExistingRule(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	rule, err := store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		FlagKey:    flag.Key,
 		SegmentKey: segment.Key,
 		Rank:       1,
@@ -276,34 +296,38 @@ func TestDeleteSegment_ExistingRule(t *testing.T) {
 	assert.NotNil(t, rule)
 
 	// try to delete segment with attached rule
-	err = store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{
+	err = s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{
 		Key: segment.Key,
 	})
 
 	assert.EqualError(t, err, "atleast one rule exists that matches this segment")
 
 	// delete the rule, then try to delete the segment again
-	err = store.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
+	err = s.store.DeleteRule(context.TODO(), &flipt.DeleteRuleRequest{
 		Id:      rule.Id,
 		FlagKey: flag.Key,
 	})
 
 	require.NoError(t, err)
 
-	err = store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{
+	err = s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{
 		Key: segment.Key,
 	})
 
 	require.NoError(t, err)
 }
 
-func TestDeleteSegment_NotFound(t *testing.T) {
-	err := store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{Key: "foo"})
+func (s *DBTestSuite) TestDeleteSegment_NotFound() {
+	t := s.T()
+
+	err := s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{Key: "foo"})
 	require.NoError(t, err)
 }
 
-func TestCreateConstraint(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestCreateConstraint() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -312,7 +336,7 @@ func TestCreateConstraint(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	constraint, err := store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -333,7 +357,7 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	// get the segment again
-	segment, err = store.GetSegment(context.TODO(), segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -341,8 +365,10 @@ func TestCreateConstraint(t *testing.T) {
 	assert.Len(t, segment.Constraints, 1)
 }
 
-func TestCreateConstraint_SegmentNotFound(t *testing.T) {
-	_, err := store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+func (s *DBTestSuite) TestCreateConstraint_SegmentNotFound() {
+	t := s.T()
+
+	_, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: "foo",
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -353,8 +379,10 @@ func TestCreateConstraint_SegmentNotFound(t *testing.T) {
 	assert.EqualError(t, err, "segment \"foo\" not found")
 }
 
-func TestUpdateConstraint(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestUpdateConstraint() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -363,7 +391,7 @@ func TestUpdateConstraint(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	constraint, err := store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -383,7 +411,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.NotZero(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
-	updated, err := store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
+	updated, err := s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
 		Id:         constraint.Id,
 		SegmentKey: constraint.SegmentKey,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
@@ -404,7 +432,7 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.NotZero(t, updated.UpdatedAt)
 
 	// get the segment again
-	segment, err = store.GetSegment(context.TODO(), segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -412,8 +440,10 @@ func TestUpdateConstraint(t *testing.T) {
 	assert.Len(t, segment.Constraints, 1)
 }
 
-func TestUpdateConstraint_NotFound(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestUpdateConstraint_NotFound() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -422,7 +452,7 @@ func TestUpdateConstraint_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	_, err = store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
+	_, err = s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
 		Id:         "foo",
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
@@ -434,8 +464,10 @@ func TestUpdateConstraint_NotFound(t *testing.T) {
 	assert.EqualError(t, err, "constraint \"foo\" not found")
 }
 
-func TestDeleteConstraint(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestDeleteConstraint() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -444,7 +476,7 @@ func TestDeleteConstraint(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	constraint, err := store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		SegmentKey: segment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
@@ -455,11 +487,11 @@ func TestDeleteConstraint(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, constraint)
 
-	err = store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{SegmentKey: constraint.SegmentKey, Id: constraint.Id})
+	err = s.store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{SegmentKey: constraint.SegmentKey, Id: constraint.Id})
 	require.NoError(t, err)
 
 	// get the segment again
-	segment, err = store.GetSegment(context.TODO(), segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -467,8 +499,10 @@ func TestDeleteConstraint(t *testing.T) {
 	assert.Empty(t, segment.Constraints)
 }
 
-func TestDeleteConstraint_NotFound(t *testing.T) {
-	segment, err := store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+func (s *DBTestSuite) TestDeleteConstraint_NotFound() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -477,51 +511,10 @@ func TestDeleteConstraint_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	err = store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{
+	err = s.store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{
 		Id:         "foo",
 		SegmentKey: segment.Key,
 	})
 
 	require.NoError(t, err)
-}
-
-var benchSegment *flipt.Segment
-
-func BenchmarkGetSegment(b *testing.B) {
-	var (
-		ctx          = context.Background()
-		segment, err = store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
-			Key:         b.Name(),
-			Name:        "foo",
-			Description: "bar",
-		})
-	)
-
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	_, err = store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-		SegmentKey: segment.Key,
-		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-		Property:   "foo",
-		Operator:   "EQ",
-		Value:      "bar",
-	})
-
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	b.ResetTimer()
-
-	b.Run("get-segment", func(b *testing.B) {
-		var s *flipt.Segment
-
-		for i := 0; i < b.N; i++ {
-			s, _ = store.GetSegment(context.TODO(), segment.Key)
-		}
-
-		benchSegment = s
-	})
 }
