@@ -45,7 +45,6 @@ jobs:
     strategy:
       matrix:
         go: ["1.18", "1.19"]
-
     steps:
       - uses: actions/checkout@v3
 
@@ -60,3 +59,23 @@ jobs:
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.0
+
+  database:
+    name: Database Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: ["mysql", "postgres"]
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "1.18"
+          check-latest: true
+          cache: true
+
+      - name: Unit Test ${{ matrix.database }}
+        env:
+          FLIPT_TEST_DATABASE_PROTOCOL: ${{ matrix.database }}
+        run: go test -count=1 ./...
