@@ -139,13 +139,9 @@ func parse(cfg config.Config, opts options) (Driver, *dburl.URL, error) {
 		u = uu.String()
 	}
 
-	errURL := func(rawurl string, err error) error {
-		return fmt.Errorf("error parsing url: %q, %w", rawurl, err)
-	}
-
 	url, err := dburl.Parse(u)
 	if err != nil {
-		return 0, nil, errURL(u, err)
+		return 0, nil, fmt.Errorf("error parsing url: %q, %w", url, err)
 	}
 
 	driver := stringToDriver[url.Driver]

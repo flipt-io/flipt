@@ -366,6 +366,12 @@ func (s *DBTestSuite) SetupSuite() {
 		require.NoError(err)
 	}
 
+	db.Close()
+
+	// re-open db and enable ANSI mode for MySQL
+	db, driver, err = open(cfg, options{migrate: false, sslDisabled: true})
+	require.NoError(err)
+
 	s.db = db
 
 	var store storage.Store
