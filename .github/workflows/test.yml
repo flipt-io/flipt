@@ -54,7 +54,7 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: ${{ matrix.go }}
+      - name: Unit Test ${{ matrix.go }}
         run: go test -race -covermode=atomic -coverprofile=coverage.txt -count=1 ./...
 
       - name: Upload Coverage
@@ -75,7 +75,7 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: ${{ matrix.database }}
+      - name: Unit Test ${{ matrix.database }}
         env:
           FLIPT_TEST_DATABASE_PROTOCOL: ${{ matrix.database }}
         run: go test -count=1 ./...
