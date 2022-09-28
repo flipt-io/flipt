@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
@@ -122,6 +123,10 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	}
 
 	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
 		_, err := s.store.CreateFlag(context.TODO(), req)
 		require.NoError(t, err)
 	}

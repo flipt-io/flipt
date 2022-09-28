@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
@@ -117,6 +118,10 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	}
 
 	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
 		_, err := s.store.CreateSegment(context.TODO(), req)
 		require.NoError(t, err)
 	}

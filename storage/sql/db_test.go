@@ -313,6 +313,7 @@ type DBTestSuite struct {
 	suite.Suite
 	db            *sql.DB
 	store         storage.Store
+	driver        Driver
 	testcontainer *dbContainer
 }
 
@@ -344,9 +345,7 @@ func (s *DBTestSuite) SetupSuite() {
 		}
 
 		if proto != config.DatabaseSQLite {
-			ctx := context.Background()
-
-			dbContainer, err := newDBContainer(s.T(), ctx, proto)
+			dbContainer, err := newDBContainer(s.T(), context.Background(), proto)
 			if err != nil {
 				return fmt.Errorf("creating db container: %w", err)
 			}
@@ -423,6 +422,7 @@ func (s *DBTestSuite) SetupSuite() {
 		}
 
 		s.db = db
+		s.driver = driver
 
 		var store storage.Store
 
