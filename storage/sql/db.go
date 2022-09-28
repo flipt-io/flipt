@@ -17,7 +17,7 @@ import (
 
 // Open opens a connection to the db
 func Open(cfg config.Config) (*sql.DB, Driver, error) {
-	sql, driver, err := open(cfg, dbOptions{})
+	sql, driver, err := open(cfg, options{})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -36,12 +36,12 @@ func Open(cfg config.Config) (*sql.DB, Driver, error) {
 	return sql, driver, nil
 }
 
-type dbOptions struct {
+type options struct {
 	sslDisabled bool
 	migrate     bool
 }
 
-func open(cfg config.Config, opts dbOptions) (*sql.DB, Driver, error) {
+func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
 	d, url, err := parse(cfg, opts)
 	if err != nil {
 		return nil, 0, err
@@ -112,7 +112,7 @@ const (
 	MySQL
 )
 
-func parse(cfg config.Config, opts dbOptions) (Driver, *dburl.URL, error) {
+func parse(cfg config.Config, opts options) (Driver, *dburl.URL, error) {
 	u := cfg.Database.URL
 
 	if u == "" {

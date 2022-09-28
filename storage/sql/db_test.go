@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"testing"
 	"time"
 
@@ -245,7 +244,7 @@ func TestParse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d, u, err := parse(config.Config{
 				Database: cfg,
-			}, dbOptions{})
+			}, options{})
 
 			if wantErr {
 				require.Error(t, err)
@@ -281,12 +280,11 @@ type DBTestSuite struct {
 var dd string
 
 func TestMain(m *testing.M) {
-	dd = os.Getenv("FLIPT_TEST_DB_DRIVER")
+	dd = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	os.Exit(m.Run())
 }
 
 func (s *DBTestSuite) SetupSuite() {
-
 	var proto config.DatabaseProtocol
 
 	switch dd {
@@ -304,10 +302,13 @@ func (s *DBTestSuite) SetupSuite() {
 		},
 	}
 
+	require := s.Require()
+
 	if proto != config.DatabaseSQLite {
 		ctx := context.Background()
 
-		dbContainer := newDBContainer(s.T(), ctx, proto)
+		dbContainer, err := newDBContainer(s.T(), ctx, proto)
+		require.NoError(err)
 
 		cfg.Database.Host = dbContainer.host
 		cfg.Database.Port = dbContainer.port
@@ -320,9 +321,7 @@ func (s *DBTestSuite) SetupSuite() {
 		cfg.Database.URL = defaultTestDBURL
 	}
 
-	require := s.Require()
-
-	db, driver, err := open(cfg, dbOptions{migrate: true, sslDisabled: true})
+	db, driver, err := open(cfg, options{migrate: true, sslDisabled: true})
 	require.NoError(err)
 
 	var (
@@ -400,32 +399,37 @@ func (s *DBTestSuite) TearDownSuite() {
 	}
 }
 
-func setupDBContainer(t *testing.T, ctx context.Context, proto config.DatabaseProtocol) (*dbContainer, error) {
+func newDBContainer(t *testing.T, ctx context.Context, proto config.DatabaseProtocol) (*dbContainer, error) {
 	t.Helper()
 
+	if testing.Short() {
+		t.Skipf("skipping running %s tests in short mode", proto.String())
+	}
+
 	var (
-		req         testcontainers.ContainerRequest
-		exposedPort string
+		req  testcontainers.ContainerRequest
+		port nat.Port
 	)
 
 	switch proto {
 	case config.DatabasePostgres:
+		port = nat.Port("5432/tcp")
 		req = testcontainers.ContainerRequest{
 			Image:        "postgres:11.2",
 			ExposedPorts: []string{"5432/tcp"},
-			WaitingFor:   wait.ForListeningPort("5432/tcp"),
+			WaitingFor:   wait.ForListeningPort(port),
 			Env: map[string]string{
 				"POSTGRES_USER":     "flipt",
 				"POSTGRES_PASSWORD": "password",
 				"POSTGRES_DB":       "flipt_test",
 			},
 		}
-		exposedPort = "5432"
 	case config.DatabaseMySQL:
+		port = nat.Port("3306/tcp")
 		req = testcontainers.ContainerRequest{
 			Image:        "mysql:8",
 			ExposedPorts: []string{"3306/tcp"},
-			WaitingFor:   wait.ForListeningPort("3306/tcp"),
+			WaitingFor:   wait.ForListeningPort(port),
 			Env: map[string]string{
 				"MYSQL_USER":                 "flipt",
 				"MYSQL_PASSWORD":             "password",
@@ -433,7 +437,6 @@ func setupDBContainer(t *testing.T, ctx context.Context, proto config.DatabasePr
 				"MYSQL_ALLOW_EMPTY_PASSWORD": "true",
 			},
 		}
-		exposedPort = "3306"
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -444,7 +447,7 @@ func setupDBContainer(t *testing.T, ctx context.Context, proto config.DatabasePr
 		return nil, err
 	}
 
-	mappedPort, err := container.MappedPort(ctx, nat.Port(exposedPort))
+	mappedPort, err := container.MappedPort(ctx, port)
 	if err != nil {
 		return nil, err
 	}
@@ -454,25 +457,5 @@ func setupDBContainer(t *testing.T, ctx context.Context, proto config.DatabasePr
 		return nil, err
 	}
 
-	port, err := strconv.Atoi(mappedPort.Port())
-	if err != nil {
-		return nil, err
-	}
-
-	return &dbContainer{Container: container, host: hostIP, port: port}, nil
-}
-
-func newDBContainer(t *testing.T, ctx context.Context, proto config.DatabaseProtocol) *dbContainer {
-	t.Helper()
-
-	if testing.Short() {
-		t.Skipf("skipping running %s tests in short mode", proto.String())
-	}
-
-	dbContainer, err := setupDBContainer(t, ctx, proto)
-	if err != nil {
-		assert.FailNowf(t, "failed to setup %s container: %s", proto.String(), err.Error())
-	}
-
-	return dbContainer
+	return &dbContainer{Container: container, host: hostIP, port: mappedPort.Int()}, nil
 }

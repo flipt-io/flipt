@@ -146,8 +146,7 @@ tasks:
   test:
     desc: Run all the tests
     cmds:
-      - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -run={{.TEST_PATTERN}} -timeout=30s
+      - go test {{.TEST_OPTS}} -covermode=atomic -count=1 -coverprofile={{.COVERAGE_FILE}} {{.SOURCE_FILES}} -timeout=30s
     vars:
       COVERAGE_FILE: coverage.txt
-      TEST_PATTERN: .
       TEST_OPTS: -race
