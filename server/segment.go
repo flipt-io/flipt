@@ -22,14 +22,6 @@ func (s *Server) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*f
 func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
 	s.logger.Debug("list segments", zap.Stringer("request", r))
 
-	if r.Limit < 1 {
-		r.Limit = defaultListLimit
-	}
-
-	if r.Limit > maxListLimit {
-		r.Limit = maxListLimit
-	}
-
 	if r.Offset < 0 {
 		r.Offset = 0
 	}

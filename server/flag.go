@@ -22,14 +22,6 @@ func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.F
 func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flipt.FlagList, error) {
 	s.logger.Debug("list flags", zap.Stringer("request", r))
 
-	if r.Limit < 1 {
-		r.Limit = defaultListLimit
-	}
-
-	if r.Limit > maxListLimit {
-		r.Limit = maxListLimit
-	}
-
 	if r.Offset < 0 {
 		r.Offset = 0
 	}

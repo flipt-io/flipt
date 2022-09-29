@@ -22,14 +22,6 @@ func (s *Server) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.R
 func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flipt.RuleList, error) {
 	s.logger.Debug("list rules", zap.Stringer("request", r))
 
-	if r.Limit < 1 {
-		r.Limit = defaultListLimit
-	}
-
-	if r.Limit > maxListLimit {
-		r.Limit = maxListLimit
-	}
-
 	if r.Offset < 0 {
 		r.Offset = 0
 	}
