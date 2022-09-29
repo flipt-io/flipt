@@ -273,6 +273,8 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
+
 		var (
 			cfg     = tt.cfg
 			driver  = tt.driver

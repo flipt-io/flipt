@@ -1,3 +1,4 @@
+//nolint:goconst
 package server
 
 import (
@@ -36,7 +37,7 @@ func TestGetFlag(t *testing.T) {
 	assert.Equal(t, true, got.Enabled)
 }
 
-func TestListFlags(t *testing.T) {
+func TestListFlags_PaginationDefaultLimits(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		logger = zaptest.NewLogger(t)
@@ -46,7 +47,17 @@ func TestListFlags(t *testing.T) {
 		}
 	)
 
-	store.On("ListFlags", mock.Anything, mock.Anything).Return(
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListFlags", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert defaults are applied
+		return params.Limit == defaultListLimit && params.Offset == 0
+	})).Return(
 		storage.ResultSet[*flipt.Flag]{
 			Results: []*flipt.Flag{
 				{
@@ -55,11 +66,105 @@ func TestListFlags(t *testing.T) {
 			},
 		}, nil)
 
-	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{})
+	store.On("CountFlags", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
+		Limit:  0,
+		Offset: -1,
+	})
+
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, got.Flags)
 	assert.Empty(t, got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListFlags_PaginationMaxLimits(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListFlags", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert max is applied
+		return params.Limit == maxListLimit && params.Offset == 0
+	})).Return(
+		storage.ResultSet[*flipt.Flag]{
+			Results: []*flipt.Flag{
+				{
+					Key: "foo",
+				},
+			},
+		}, nil)
+
+	store.On("CountFlags", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
+		Limit:  200,
+		Offset: -1,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Flags)
+	assert.Empty(t, got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListFlags_PaginationNextPageToken(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListFlags", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert page token is preferred over offset
+		return params.PageToken == "foo" && params.Offset == 0
+	})).Return(
+		storage.ResultSet[*flipt.Flag]{
+			Results: []*flipt.Flag{
+				{
+					Key: "foo",
+				},
+			},
+			NextPageToken: "bar",
+		}, nil)
+
+	store.On("CountFlags", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
+		PageToken: "Zm9v",
+		Offset:    10,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Flags)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
 }
 
 func TestCreateFlag(t *testing.T) {

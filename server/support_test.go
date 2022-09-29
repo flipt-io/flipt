@@ -9,9 +9,7 @@ import (
 	"go.flipt.io/flipt/storage"
 )
 
-var (
-	_ storage.Store = &storeMock{}
-)
+var _ storage.Store = &storeMock{}
 
 type storeMock struct {
 	mock.Mock
@@ -31,9 +29,9 @@ func (m *storeMock) ListFlags(ctx context.Context, opts ...storage.QueryOption) 
 	return args.Get(0).(storage.ResultSet[*flipt.Flag]), args.Error(1)
 }
 
-// TODO: implement
 func (m *storeMock) CountFlags(ctx context.Context) (uint64, error) {
-	return 0, nil
+	args := m.Called(ctx)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
 func (m *storeMock) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
@@ -76,9 +74,9 @@ func (m *storeMock) ListSegments(ctx context.Context, opts ...storage.QueryOptio
 	return args.Get(0).(storage.ResultSet[*flipt.Segment]), args.Error(1)
 }
 
-// TODO: implement
 func (m *storeMock) CountSegments(ctx context.Context) (uint64, error) {
-	return 0, nil
+	args := m.Called(ctx)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
 func (m *storeMock) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
@@ -121,9 +119,9 @@ func (m *storeMock) ListRules(ctx context.Context, flagKey string, opts ...stora
 	return args.Get(0).(storage.ResultSet[*flipt.Rule]), args.Error(1)
 }
 
-// TODO: implement
 func (m *storeMock) CountRules(ctx context.Context) (uint64, error) {
-	return 0, nil
+	args := m.Called(ctx)
+	return args.Get(0).(uint64), args.Error(1)
 }
 
 func (m *storeMock) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {

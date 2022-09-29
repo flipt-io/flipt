@@ -1,3 +1,4 @@
+//nolint:goconst
 package server
 
 import (
@@ -33,7 +34,7 @@ func TestGetSegment(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
-func TestListSegments(t *testing.T) {
+func TestListSegments_PaginationDefaultLimits(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		logger = zaptest.NewLogger(t)
@@ -43,7 +44,17 @@ func TestListSegments(t *testing.T) {
 		}
 	)
 
-	store.On("ListSegments", mock.Anything, mock.Anything).Return(
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert defaults are applied
+		return params.Limit == defaultListLimit && params.Offset == 0
+	})).Return(
 		storage.ResultSet[*flipt.Segment]{
 			Results: []*flipt.Segment{
 				{
@@ -52,10 +63,105 @@ func TestListSegments(t *testing.T) {
 			},
 		}, nil)
 
-	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
+	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		Limit:  0,
+		Offset: -1,
+	})
+
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, got.Segments)
+	assert.Empty(t, got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListSegments_PaginationMaxLimits(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert max is applied
+		return params.Limit == maxListLimit && params.Offset == 0
+	})).Return(
+		storage.ResultSet[*flipt.Segment]{
+			Results: []*flipt.Segment{
+				{
+					Key: "foo",
+				},
+			},
+		}, nil)
+
+	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		Limit:  200,
+		Offset: -1,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Segments)
+	assert.Empty(t, got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListSegments_PaginationNextPageToken(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert page token is preferred over offset
+		return params.PageToken == "foo" && params.Offset == 0
+	})).Return(
+		storage.ResultSet[*flipt.Segment]{
+			Results: []*flipt.Segment{
+				{
+					Key: "foo",
+				},
+			},
+			NextPageToken: "bar",
+		}, nil)
+
+	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		PageToken: "Zm9v",
+		Offset:    10,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Segments)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
 }
 
 func TestCreateSegment(t *testing.T) {

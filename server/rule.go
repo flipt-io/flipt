@@ -63,7 +63,10 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 	}
 
 	resp.TotalCount = int32(total)
-	resp.NextPageToken = base64.RawStdEncoding.EncodeToString([]byte(results.NextPageToken))
+
+	if results.NextPageToken != "" {
+		resp.NextPageToken = base64.RawStdEncoding.EncodeToString([]byte(results.NextPageToken))
+	}
 
 	s.logger.Debug("list rules", zap.Stringer("response", &resp))
 	return &resp, nil
