@@ -132,8 +132,6 @@ export default {
         uri = `${uri}&pageToken=${this.nextPageToken}`;
       }
 
-      console.log(uri);
-
       Api.get(uri)
         .then((response) => {
           this.flags = response.data.flags ? response.data.flags : [];
