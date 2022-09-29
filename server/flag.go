@@ -63,10 +63,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 	}
 
 	resp.TotalCount = int32(total)
-
-	if results.NextPageToken != "" {
-		resp.NextPageToken = base64.RawStdEncoding.EncodeToString([]byte(results.NextPageToken))
-	}
+	resp.NextPageToken = base64.StdEncoding.EncodeToString([]byte(results.NextPageToken))
 
 	s.logger.Debug("list flags", zap.Stringer("response", &resp))
 	return &resp, nil

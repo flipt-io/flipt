@@ -28,13 +28,7 @@
           </div>
         </div>
       </div>
-      <b-table
-        :data="isEmpty ? [] : filteredFlags"
-        :paginated="flags.length > 20"
-        per-page="20"
-        icon-pack="fas"
-        :hoverable="true"
-      >
+      <b-table :data="filteredFlags" icon-pack="fas" :hoverable="true">
         <b-table-column v-slot="props" field="enabled" label="Enabled">
           <span v-if="props.row.enabled" class="tag is-primary is-rounded"
             >On</span
@@ -84,6 +78,19 @@
           </section>
         </template>
       </b-table>
+      <div class="mt-5">
+        <b-pagination
+          v-model="currentPage"
+          :perPage="perPage"
+          :total="totalCount"
+          icon-pack="fas"
+          size="is-small"
+          :simple="true"
+          order="is-right"
+          @change="getFlags"
+        >
+        </b-pagination>
+      </div>
     </div>
   </section>
 </template>
@@ -97,9 +104,12 @@ export default {
   mixins: [notify],
   data() {
     return {
-      isEmpty: true,
       search: "",
       flags: [],
+      currentPage: 1,
+      perPage: 1,
+      nextPageToken: "",
+      totalCount: 0,
     };
   },
   computed: {
@@ -116,10 +126,19 @@ export default {
   },
   methods: {
     getFlags() {
-      Api.get("/flags")
+      let uri = `/flags?limit=${this.perPage}`;
+
+      if (this.nextPageToken) {
+        uri = `${uri}&pageToken=${this.nextPageToken}`;
+      }
+
+      console.log(uri);
+
+      Api.get(uri)
         .then((response) => {
-          this.isEmpty = false;
           this.flags = response.data.flags ? response.data.flags : [];
+          this.totalCount = response.data.totalCount;
+          this.nextPageToken = response.data.nextPageToken;
         })
         .catch((error) => {
           this.notifyError("Error loading flags.");

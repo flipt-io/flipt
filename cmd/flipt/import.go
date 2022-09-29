@@ -48,11 +48,11 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 
 	switch driver {
 	case sql.SQLite:
-		store = sqlite.NewStore(db)
+		store = sqlite.NewStore(db, logger)
 	case sql.Postgres:
-		store = postgres.NewStore(db)
+		store = postgres.NewStore(db, logger)
 	case sql.MySQL:
-		store = mysql.NewStore(db)
+		store = mysql.NewStore(db, logger)
 	}
 
 	var in io.ReadCloser = os.Stdin
