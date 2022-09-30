@@ -91,18 +91,67 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 			Name:        "foo",
 			Description: "bar",
 		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		},
 	}
 
 	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
 		_, err := s.store.CreateFlag(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
+	var (
+		oldest = reqs[0]
+		newest = reqs[2]
+		middle = reqs[1]
+	)
+
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	// get middle flag
 	res, err := s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 
 	got := res.Results
 	assert.Len(t, got, 1)
+
+	assert.Equal(t, middle.Key, got[0].Key)
+
+	// get first (newest) flag
+	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+
+	assert.Equal(t, newest.Key, got[0].Key)
+
+	// get last (oldest) flag
+	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+
+	assert.Equal(t, oldest.Key, got[0].Key)
+
+	// get all flags
+	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 3)
+
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[1].Key)
+	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
 func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
@@ -120,6 +169,12 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 			Name:        "foo",
 			Description: "bar",
 		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		},
 	}
 
 	for _, req := range reqs {
@@ -131,7 +186,14 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 		require.NoError(t, err)
 	}
 
+	var (
+		oldest = reqs[0]
+		newest = reqs[2]
+		middle = reqs[1]
+	)
+
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	// get middle flag
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
 	res, err := s.store.ListFlags(context.TODO(), opts...)
@@ -139,13 +201,14 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 	got := res.Results
 	assert.Len(t, got, 1)
-	assert.Equal(t, reqs[1].Key, got[0].Key)
+	assert.Equal(t, newest.Key, got[0].Key)
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pageToken := &common.PageToken{}
 	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
 	require.NoError(t, err)
-	assert.Equal(t, reqs[0].Key, pageToken.Key)
+	// next page should be the middle flag
+	assert.Equal(t, middle.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
@@ -155,7 +218,13 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 	got = res.Results
 	assert.Len(t, got, 1)
-	assert.Equal(t, reqs[0].Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[0].Key)
+
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	// next page should be the oldest flag
+	assert.Equal(t, oldest.Key, pageToken.Key)
+	assert.NotZero(t, pageToken.Offset)
 }
 
 func (s *DBTestSuite) TestCreateFlag() {
