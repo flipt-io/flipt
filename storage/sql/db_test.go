@@ -281,12 +281,13 @@ func TestParse(t *testing.T) {
 			driver  = tt.driver
 			url     = tt.dsn
 			wantErr = tt.wantErr
+			opts    = tt.options
 		)
 
 		t.Run(tt.name, func(t *testing.T) {
 			d, u, err := parse(config.Config{
 				Database: cfg,
-			}, tt.options)
+			}, opts)
 
 			if wantErr {
 				require.Error(t, err)
