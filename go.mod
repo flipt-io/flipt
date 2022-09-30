@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/Masterminds/squirrel v1.5.3
 	github.com/blang/semver/v4 v4.0.0
+	github.com/docker/go-connections v0.4.0
 	github.com/fatih/color v1.13.0
 	github.com/go-chi/chi/v5 v5.0.8-0.20220103191336-b750c805b4ee
 	github.com/go-chi/cors v1.2.1
@@ -56,7 +57,6 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v20.10.17+incompatible // indirect
-	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
