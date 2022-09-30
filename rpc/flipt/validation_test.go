@@ -8,11 +8,11 @@ import (
 	"go.flipt.io/flipt/errors"
 )
 
-func largeJsonString() string {
+func largeJSONString() string {
 	prefix := `{"a":"`
 	suffix := `"}`
 
-	//adding one for making the string larger than the limit
+	// adding one for making the string larger than the limit
 	b := make([]byte, maxVariantAttachmentSize-len(prefix)-len(suffix)+1)
 	for i := range b {
 		b[i] = 'a'
@@ -69,6 +69,49 @@ func TestValidate_GetFlagRequest(t *testing.T) {
 		{
 			name: "valid",
 			req:  &GetFlagRequest{Key: "key"},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_ListFlagRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *ListFlagRequest
+		wantErr error
+	}{
+		{
+			name:    "noLimitOffset",
+			req:     &ListFlagRequest{Offset: 1},
+			wantErr: errors.ErrInvalid("limit must be set when offset or pageToken is set"),
+		},
+		{
+			name:    "noLimitPageToken",
+			req:     &ListFlagRequest{PageToken: "foo"},
+			wantErr: errors.ErrInvalid("limit must be set when offset or pageToken is set"),
+		},
+		{
+			name: "validLimitOnly",
+			req:  &ListFlagRequest{Limit: 1},
+		},
+		{
+			name: "validLimitAndOffset",
+			req:  &ListFlagRequest{Offset: 1, Limit: 1},
+		},
+		{
+			name: "validLimitAndPageToken",
+			req:  &ListFlagRequest{PageToken: "foo", Limit: 1},
 		},
 	}
 
@@ -273,7 +316,7 @@ func TestValidate_CreateVariantRequest(t *testing.T) {
 				Key:         "key",
 				Name:        "name",
 				Description: "desc",
-				Attachment:  largeJsonString(),
+				Attachment:  largeJSONString(),
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
@@ -373,7 +416,7 @@ func TestValidate_UpdateVariantRequest(t *testing.T) {
 				Key:         "key",
 				Name:        "name",
 				Description: "desc",
-				Attachment:  largeJsonString(),
+				Attachment:  largeJSONString(),
 			},
 			wantErr: errors.InvalidFieldError(
 				"attachment",
@@ -474,6 +517,28 @@ func TestValidate_ListRuleRequest(t *testing.T) {
 		{
 			name: "valid",
 			req:  &ListRuleRequest{FlagKey: "flagKey"},
+		},
+		{
+			name:    "noLimitOffset",
+			req:     &ListRuleRequest{FlagKey: "flagKey", Offset: 1},
+			wantErr: errors.ErrInvalid("limit must be set when offset or pageToken is set"),
+		},
+		{
+			name:    "noLimitPageToken",
+			req:     &ListRuleRequest{FlagKey: "flagKey", PageToken: "foo"},
+			wantErr: errors.ErrInvalid("limit must be set when offset or pageToken is set"),
+		},
+		{
+			name: "validLimitOnly",
+			req:  &ListRuleRequest{FlagKey: "flagKey", Limit: 1},
+		},
+		{
+			name: "validLimitAndOffset",
+			req:  &ListRuleRequest{FlagKey: "flagKey", Offset: 1, Limit: 1},
+		},
+		{
+			name: "validLimitAndPageToken",
+			req:  &ListRuleRequest{FlagKey: "flagKey", PageToken: "foo", Limit: 1},
 		},
 	}
 
@@ -880,6 +945,49 @@ func TestValidate_GetSegmentRequest(t *testing.T) {
 		{
 			name: "valid",
 			req:  &GetSegmentRequest{Key: "key"},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_ListSegmentRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *ListSegmentRequest
+		wantErr error
+	}{
+		{
+			name:    "noLimitOffset",
+			req:     &ListSegmentRequest{Offset: 1},
+			wantErr: errors.ErrInvalid("limit must be set when offset or pageToken is set"),
+		},
+		{
+			name:    "noLimitPageToken",
+			req:     &ListSegmentRequest{PageToken: "foo"},
+			wantErr: errors.ErrInvalid("limit must be set when offset or pageToken is set"),
+		},
+		{
+			name: "validLimitOnly",
+			req:  &ListSegmentRequest{Limit: 1},
+		},
+		{
+			name: "validLimitAndOffset",
+			req:  &ListSegmentRequest{Offset: 1, Limit: 1},
+		},
+		{
+			name: "validLimitAndPageToken",
+			req:  &ListSegmentRequest{PageToken: "foo", Limit: 1},
 		},
 	}
 

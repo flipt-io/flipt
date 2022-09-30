@@ -108,11 +108,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 		require.NoError(t, err)
 	}
 
-	var (
-		oldest = reqs[0]
-		newest = reqs[2]
-		middle = reqs[1]
-	)
+	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	// get middle flag
@@ -147,7 +143,6 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 	require.NoError(t, err)
 
 	got = res.Results
-	assert.Len(t, got, 3)
 
 	assert.Equal(t, newest.Key, got[0].Key)
 	assert.Equal(t, middle.Key, got[1].Key)
@@ -186,14 +181,10 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 		require.NoError(t, err)
 	}
 
-	var (
-		oldest = reqs[0]
-		newest = reqs[2]
-		middle = reqs[1]
-	)
+	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
-	// get middle flag
+	// get newest flag
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
 	res, err := s.store.ListFlags(context.TODO(), opts...)
@@ -213,6 +204,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
+	// get middle flag
 	res, err = s.store.ListFlags(context.TODO(), opts...)
 	require.NoError(t, err)
 
@@ -225,6 +217,27 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	// next page should be the oldest flag
 	assert.Equal(t, oldest.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
+
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
+
+	// get oldest flag
+	res, err = s.store.ListFlags(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, oldest.Key, got[0].Key)
+
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
+	// get all flags
+	res, err = s.store.ListFlags(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 3)
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[1].Key)
+	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
 func (s *DBTestSuite) TestCreateFlag() {

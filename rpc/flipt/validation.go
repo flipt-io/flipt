@@ -60,6 +60,14 @@ func (req *GetFlagRequest) Validate() error {
 	return nil
 }
 
+func (req *ListFlagRequest) Validate() error {
+	if req.Limit == 0 && (req.Offset > 0 || req.PageToken != "") {
+		return errors.ErrInvalid("limit must be set when offset or pageToken is set")
+	}
+
+	return nil
+}
+
 func (req *CreateFlagRequest) Validate() error {
 	if req.Key == "" {
 		return errors.EmptyFieldError("key")
@@ -149,6 +157,10 @@ func (req *DeleteVariantRequest) Validate() error {
 func (req *ListRuleRequest) Validate() error {
 	if req.FlagKey == "" {
 		return errors.EmptyFieldError("flagKey")
+	}
+
+	if req.Limit == 0 && (req.Offset > 0 || req.PageToken != "") {
+		return errors.ErrInvalid("limit must be set when offset or pageToken is set")
 	}
 
 	return nil
@@ -299,6 +311,14 @@ func (req *DeleteDistributionRequest) Validate() error {
 func (req *GetSegmentRequest) Validate() error {
 	if req.Key == "" {
 		return errors.EmptyFieldError("key")
+	}
+
+	return nil
+}
+
+func (req *ListSegmentRequest) Validate() error {
+	if req.Limit == 0 && (req.Offset > 0 || req.PageToken != "") {
+		return errors.ErrInvalid("limit must be set when offset or pageToken is set")
 	}
 
 	return nil
