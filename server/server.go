@@ -8,11 +8,6 @@ import (
 
 var _ flipt.FliptServer = &Server{}
 
-const (
-	defaultListLimit = 25
-	maxListLimit     = 100
-)
-
 // Server serves the Flipt backend
 type Server struct {
 	logger *zap.Logger
