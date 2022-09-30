@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
@@ -1952,6 +1953,8 @@ func Test_matchesNumber(t *testing.T) {
 
 			if wantErr {
 				require.Error(t, err)
+				var ierr errs.ErrInvalid
+				require.ErrorAs(t, err, &ierr)
 				return
 			}
 
@@ -2074,6 +2077,8 @@ func Test_matchesBool(t *testing.T) {
 
 			if wantErr {
 				require.Error(t, err)
+				var ierr errs.ErrInvalid
+				require.ErrorAs(t, err, &ierr)
 				return
 			}
 

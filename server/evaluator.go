@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -294,12 +293,12 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	n, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		return false, fmt.Errorf("parsing number from %q", v)
+		return false, errs.ErrInvalidf("parsing number from %q", v)
 	}
 
 	value, err := strconv.ParseFloat(c.Value, 64)
 	if err != nil {
-		return false, fmt.Errorf("parsing number from %q", c.Value)
+		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
 	}
 
 	switch c.Operator {
@@ -335,7 +334,7 @@ func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	value, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, fmt.Errorf("parsing boolean from %q", v)
+		return false, errs.ErrInvalidf("parsing boolean from %q", v)
 	}
 
 	switch c.Operator {

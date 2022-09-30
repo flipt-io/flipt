@@ -58,6 +58,7 @@ export default {
   data() {
     return {
       invalidRequest: false,
+      isError: false,
       request: clone(DEFAULT_REQUEST),
       response: {},
     };
@@ -66,7 +67,7 @@ export default {
     responseClass() {
       if (isEmpty(this.response)) {
         return "";
-      } else if (this.response.error) {
+      } else if (this.isError) {
         return "is-danger";
       } else {
         return "is-success";
@@ -92,6 +93,7 @@ export default {
       this.request.entityId = uuidv4();
       this.request.flagKey = this.flag.key;
       this.response = {};
+      this.isError = false;
     },
     evaluate() {
       Api.post("/evaluate", this.request)
@@ -99,7 +101,16 @@ export default {
           this.response = response.data;
         })
         .catch((error) => {
-          this.response = { error: error.response.data.error };
+          this.isError = true;
+          if (error.response) {
+            this.response = {
+              error: error.response.data.message,
+            };
+          } else {
+            this.response = {
+              error: error.message,
+            };
+          }
         });
     },
   },
