@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
@@ -83,7 +83,7 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
 	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -131,7 +131,7 @@ func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
 	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -171,7 +171,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errors.ErrNotFoundf("flag %q", "foo"))
+	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "foo"))
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
@@ -1952,6 +1952,8 @@ func Test_matchesNumber(t *testing.T) {
 
 			if wantErr {
 				require.Error(t, err)
+				var ierr errs.ErrInvalid
+				require.ErrorAs(t, err, &ierr)
 				return
 			}
 
@@ -2074,6 +2076,8 @@ func Test_matchesBool(t *testing.T) {
 
 			if wantErr {
 				require.Error(t, err)
+				var ierr errs.ErrInvalid
+				require.ErrorAs(t, err, &ierr)
 				return
 			}
 

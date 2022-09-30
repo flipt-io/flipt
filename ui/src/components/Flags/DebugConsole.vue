@@ -99,7 +99,15 @@ export default {
           this.response = response.data;
         })
         .catch((error) => {
-          this.response = { error: error.response.data.error };
+          if (error.response) {
+            this.response = {
+              error: error.response.data.message,
+            };
+          } else {
+            this.response = {
+              error: error.message,
+            };
+          }
         });
     },
   },
