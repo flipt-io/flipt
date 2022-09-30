@@ -296,6 +296,7 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 		return false, errs.ErrInvalidf("parsing number from %q", v)
 	}
 
+	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
 	value, err := strconv.ParseFloat(c.Value, 64)
 	if err != nil {
 		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
