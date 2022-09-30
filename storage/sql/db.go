@@ -15,10 +15,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 )
 
-const (
-	defaultLimit uint64 = 1000
-)
-
 // Open opens a connection to the db
 func Open(cfg config.Config) (*sql.DB, Driver, error) {
 	sql, driver, err := open(cfg, options{})
