@@ -34,6 +34,49 @@ func TestGetRule(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
+func TestListRules_PaginationOffset(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListRules", mock.Anything, "flagKey", mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert offset is provided
+		return params.PageToken == "" && params.Offset > 0
+	})).Return(
+		storage.ResultSet[*flipt.Rule]{
+			Results: []*flipt.Rule{
+				{
+					FlagKey: "flagKey",
+				},
+			},
+			NextPageToken: "bar",
+		}, nil)
+
+	store.On("CountRules", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
+		Offset: 10,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Rules)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
 func TestListRules_PaginationNextPageToken(t *testing.T) {
 	var (
 		store  = &storeMock{}

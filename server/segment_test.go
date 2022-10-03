@@ -34,6 +34,49 @@ func TestGetSegment(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
+func TestListSegments_PaginationOffset(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert offset is provided
+		return params.PageToken == "" && params.Offset > 0
+	})).Return(
+		storage.ResultSet[*flipt.Segment]{
+			Results: []*flipt.Segment{
+				{
+					Key: "foo",
+				},
+			},
+			NextPageToken: "bar",
+		}, nil)
+
+	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		Offset: 10,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Segments)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
 func TestListSegments_PaginationNextPageToken(t *testing.T) {
 	var (
 		store  = &storeMock{}
