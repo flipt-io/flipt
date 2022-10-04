@@ -1,5 +1,5 @@
 <p align=center>
-    <img src="logo.svg" alt="Flipt" width=200 height=200 />
+    <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
 <p align="center">An open source, self-hosted feature flag solution</p>
