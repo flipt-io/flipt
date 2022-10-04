@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -16,6 +15,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -46,6 +46,13 @@ import (
 	"go.flipt.io/flipt/storage/sql/sqlite"
 	"go.flipt.io/flipt/swagger"
 	"go.flipt.io/flipt/ui"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
@@ -67,10 +74,6 @@ import (
 
 	goredis_cache "github.com/go-redis/cache/v8"
 	goredis "github.com/go-redis/redis/v8"
-	otgrpc "github.com/opentracing-contrib/go-grpc"
-	"github.com/opentracing/opentracing-go"
-	jaeger_config "github.com/uber/jaeger-client-go/config"
-	jaeger_zap "github.com/uber/jaeger-client-go/log/zap"
 )
 
 const devVersion = "dev"
@@ -433,33 +436,31 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		logger.Debug("store enabled", zap.Stringer("driver", store))
 
-		var tracer opentracing.Tracer = &opentracing.NoopTracer{}
+		var tracingProvider = trace.NewNoopTracerProvider()
 
 		if cfg.Tracing.Jaeger.Enabled {
-			jaegerCfg := jaeger_config.Configuration{
-				ServiceName: "flipt",
-				Sampler: &jaeger_config.SamplerConfig{
-					Type:  "const",
-					Param: 1,
-				},
-				Reporter: &jaeger_config.ReporterConfig{
-					LocalAgentHostPort:  fmt.Sprintf("%s:%d", cfg.Tracing.Jaeger.Host, cfg.Tracing.Jaeger.Port),
-					LogSpans:            true,
-					BufferFlushInterval: 1 * time.Second,
-				},
-			}
-
-			var closer io.Closer
-
-			tracer, closer, err = jaegerCfg.NewTracer(jaeger_config.Logger(jaeger_zap.NewLogger(logger)))
+			exp, err := jaeger.New(jaeger.WithAgentEndpoint(
+				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
+				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
+			))
 			if err != nil {
-				return fmt.Errorf("configuring tracing: %w", err)
+				return err
 			}
 
-			defer closer.Close()
+			tracingProvider = tracesdk.NewTracerProvider(
+				tracesdk.WithBatcher(
+					exp,
+					tracesdk.WithBatchTimeout(1*time.Second),
+				),
+				tracesdk.WithResource(resource.NewWithAttributes(
+					semconv.SchemaURL,
+					semconv.ServiceNameKey.String("flipt"),
+				)),
+				tracesdk.WithSampler(tracesdk.AlwaysSample()),
+			)
 		}
 
-		opentracing.SetGlobalTracer(tracer)
+		otel.SetTracerProvider(tracingProvider)
 
 		{
 			// forward internal gRPC logging to zap
@@ -476,7 +477,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_zap.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
-			otgrpc.OpenTracingServerInterceptor(tracer),
+			otelgrpc.UnaryServerInterceptor(),
 			server.ErrorUnaryInterceptor,
 			server.ValidationUnaryInterceptor,
 			server.EvaluationUnaryInterceptor,
