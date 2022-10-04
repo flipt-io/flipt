@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/squirrel v1.5.3
+	github.com/XSAM/otelsql v0.16.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/go-connections v0.4.0
 	github.com/fatih/color v1.13.0
@@ -20,8 +21,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/lib/pq v1.10.7
-	github.com/luna-duclos/instrumentedsql v1.1.3
-	github.com/luna-duclos/instrumentedsql/opentracing v0.0.0-20200611091901-487c5ec83473
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/phyber/negroni-gzip v1.0.0
@@ -33,7 +32,7 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.0.0-20200124232849-e9ec94f52bc3
 	go.flipt.io/flipt-grpc v1.0.0
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.28.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.36.1
 	go.opentelemetry.io/otel v1.10.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.10.0
 	go.opentelemetry.io/otel/sdk v1.10.0
@@ -50,7 +49,6 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/Microsoft/hcsshim v0.9.4 // indirect
-	github.com/XSAM/otelsql v0.16.0 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
