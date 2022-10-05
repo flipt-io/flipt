@@ -1,3 +1,4 @@
+//nolint:goconst
 package server
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -32,7 +34,7 @@ func TestGetSegment(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
-func TestListSegments(t *testing.T) {
+func TestListSegments_PaginationOffset(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		logger = zaptest.NewLogger(t)
@@ -42,17 +44,81 @@ func TestListSegments(t *testing.T) {
 		}
 	)
 
-	store.On("ListSegments", mock.Anything, mock.Anything).Return(
-		[]*flipt.Segment{
-			{
-				Key: "foo",
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert offset is provided
+		return params.PageToken == "" && params.Offset > 0
+	})).Return(
+		storage.ResultSet[*flipt.Segment]{
+			Results: []*flipt.Segment{
+				{
+					Key: "foo",
+				},
 			},
+			NextPageToken: "bar",
 		}, nil)
 
-	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{})
+	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		Offset: 10,
+	})
+
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, got.Segments)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListSegments_PaginationNextPageToken(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert page token is preferred over offset
+		return params.PageToken == "foo" && params.Offset == 0
+	})).Return(
+		storage.ResultSet[*flipt.Segment]{
+			Results: []*flipt.Segment{
+				{
+					Key: "foo",
+				},
+			},
+			NextPageToken: "bar",
+		}, nil)
+
+	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		PageToken: "Zm9v",
+		Offset:    10,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Segments)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
 }
 
 func TestCreateSegment(t *testing.T) {

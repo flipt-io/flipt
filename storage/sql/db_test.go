@@ -21,6 +21,7 @@ import (
 	"go.flipt.io/flipt/storage/sql/mysql"
 	"go.flipt.io/flipt/storage/sql/postgres"
 	"go.flipt.io/flipt/storage/sql/sqlite"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
@@ -273,6 +274,8 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
+
 		var (
 			cfg     = tt.cfg
 			driver  = tt.driver
@@ -314,6 +317,7 @@ type DBTestSuite struct {
 	suite.Suite
 	db            *sql.DB
 	store         storage.Store
+	driver        Driver
 	testcontainer *dbContainer
 }
 
@@ -345,9 +349,7 @@ func (s *DBTestSuite) SetupSuite() {
 		}
 
 		if proto != config.DatabaseSQLite {
-			ctx := context.Background()
-
-			dbContainer, err := newDBContainer(s.T(), ctx, proto)
+			dbContainer, err := newDBContainer(s.T(), context.Background(), proto)
 			if err != nil {
 				return fmt.Errorf("creating db container: %w", err)
 			}
@@ -424,20 +426,22 @@ func (s *DBTestSuite) SetupSuite() {
 		}
 
 		s.db = db
+		s.driver = driver
 
 		var store storage.Store
+		logger := zaptest.NewLogger(s.T())
 
 		switch driver {
 		case SQLite:
-			store = sqlite.NewStore(db)
+			store = sqlite.NewStore(db, logger)
 		case Postgres:
-			store = postgres.NewStore(db)
+			store = postgres.NewStore(db, logger)
 		case MySQL:
 			if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
 				return fmt.Errorf("enabling foreign key checks: %w", err)
 			}
 
-			store = mysql.NewStore(db)
+			store = mysql.NewStore(db, logger)
 		}
 
 		s.store = store

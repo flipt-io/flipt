@@ -83,6 +83,8 @@ message Flag {
 
 message FlagList {
   repeated Flag flags = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
 }
 
 message GetFlagRequest {
@@ -97,7 +99,8 @@ message GetFlagRequest {
 
 message ListFlagRequest {
   int32 limit = 1;
-  int32 offset = 2;
+  int32 offset = 2 [deprecated=true];
+  string page_token = 3;
 }
 
 message CreateFlagRequest {
@@ -204,6 +207,8 @@ message Segment {
 
 message SegmentList {
   repeated Segment segments = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
 }
 
 message GetSegmentRequest {
@@ -218,7 +223,8 @@ message GetSegmentRequest {
 
 message ListSegmentRequest {
   int32 limit = 1;
-  int32 offset = 2;
+  int32 offset = 2 [deprecated=true];
+  string page_token = 3;
 }
 
 message CreateSegmentRequest {
@@ -327,6 +333,8 @@ message Rule {
 
 message RuleList {
   repeated Rule rules = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
 }
 
 message ListRuleRequest {
@@ -337,8 +345,9 @@ message ListRuleRequest {
   };
 
   int32 limit = 1;
-  int32 offset = 2;
+  int32 offset = 2 [deprecated=true];
   string flag_key = 3;
+  string page_token = 4;
 }
 
 message GetRuleRequest {

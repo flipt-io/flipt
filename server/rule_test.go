@@ -1,3 +1,4 @@
+//nolint:goconst
 package server
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -32,7 +34,7 @@ func TestGetRule(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
-func TestListRules(t *testing.T) {
+func TestListRules_PaginationOffset(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		logger = zaptest.NewLogger(t)
@@ -40,20 +42,83 @@ func TestListRules(t *testing.T) {
 			logger: logger,
 			store:  store,
 		}
-		req = &flipt.ListRuleRequest{FlagKey: "flagKey"}
 	)
 
-	store.On("ListRules", mock.Anything, "flagKey", mock.Anything).Return(
-		[]*flipt.Rule{
-			{
-				FlagKey: req.FlagKey,
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListRules", mock.Anything, "flagKey", mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert offset is provided
+		return params.PageToken == "" && params.Offset > 0
+	})).Return(
+		storage.ResultSet[*flipt.Rule]{
+			Results: []*flipt.Rule{
+				{
+					FlagKey: "flagKey",
+				},
 			},
+			NextPageToken: "bar",
 		}, nil)
 
-	got, err := s.ListRules(context.TODO(), req)
+	store.On("CountRules", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
+		Offset: 10,
+	})
+
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, got.Rules)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListRules_PaginationNextPageToken(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	params := storage.QueryParams{}
+	store.On("ListRules", mock.Anything, "flagKey", mock.MatchedBy(func(opts []storage.QueryOption) bool {
+		for _, opt := range opts {
+			opt(&params)
+		}
+
+		// assert page token is preferred over offset
+		return params.PageToken == "foo" && params.Offset == 0
+	})).Return(
+		storage.ResultSet[*flipt.Rule]{
+			Results: []*flipt.Rule{
+				{
+					FlagKey: "flagKey",
+				},
+			},
+			NextPageToken: "bar",
+		}, nil)
+
+	store.On("CountRules", mock.Anything).Return(uint64(1), nil)
+
+	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
+		PageToken: "Zm9v",
+		Offset:    10,
+	})
+
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, got.Rules)
+	assert.Equal(t, "YmFy", got.NextPageToken)
+	assert.Equal(t, int32(1), got.TotalCount)
 }
 
 func TestCreateRule(t *testing.T) {

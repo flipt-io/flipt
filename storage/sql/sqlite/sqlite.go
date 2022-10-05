@@ -12,16 +12,17 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
 	"go.flipt.io/flipt/storage/sql/common"
+	"go.uber.org/zap"
 )
 
 var _ storage.Store = &Store{}
 
 // NewStore creates a new sqlite.Store
-func NewStore(db *sql.DB) *Store {
+func NewStore(db *sql.DB, logger *zap.Logger) *Store {
 	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
 
 	return &Store{
-		Store: common.NewStore(db, builder),
+		Store: common.NewStore(db, builder, logger),
 	}
 }
 

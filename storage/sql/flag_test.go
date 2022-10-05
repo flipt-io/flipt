@@ -2,10 +2,13 @@ package sql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -67,8 +70,9 @@ func (s *DBTestSuite) TestListFlags() {
 		require.NoError(t, err)
 	}
 
-	got, err := s.store.ListFlags(context.TODO())
+	res, err := s.store.ListFlags(context.TODO())
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotZero(t, len(got))
 }
 
@@ -87,16 +91,153 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 			Name:        "foo",
 			Description: "bar",
 		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		},
 	}
 
 	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
 		_, err := s.store.CreateFlag(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	got, err := s.store.ListFlags(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
+
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	// get middle flag
+	res, err := s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
+
+	got := res.Results
 	assert.Len(t, got, 1)
+
+	assert.Equal(t, middle.Key, got[0].Key)
+
+	// get first (newest) flag
+	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+
+	assert.Equal(t, newest.Key, got[0].Key)
+
+	// get last (oldest) flag
+	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+
+	assert.Equal(t, oldest.Key, got[0].Key)
+
+	// get all flags
+	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc))
+	require.NoError(t, err)
+
+	got = res.Results
+
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[1].Key)
+	assert.Equal(t, oldest.Key, got[2].Key)
+}
+
+func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
+	t := s.T()
+
+	reqs := []*flipt.CreateFlagRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+			Enabled:     true,
+		},
+	}
+
+	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
+		_, err := s.store.CreateFlag(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
+
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	// get newest flag
+	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
+
+	res, err := s.store.ListFlags(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.NotEmpty(t, res.NextPageToken)
+
+	pageToken := &common.PageToken{}
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	// next page should be the middle flag
+	assert.Equal(t, middle.Key, pageToken.Key)
+	assert.NotZero(t, pageToken.Offset)
+
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+
+	// get middle flag
+	res, err = s.store.ListFlags(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, middle.Key, got[0].Key)
+
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	// next page should be the oldest flag
+	assert.Equal(t, oldest.Key, pageToken.Key)
+	assert.NotZero(t, pageToken.Offset)
+
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
+
+	// get oldest flag
+	res, err = s.store.ListFlags(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, oldest.Key, got[0].Key)
+
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
+	// get all flags
+	res, err = s.store.ListFlags(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 3)
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[1].Key)
+	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
 func (s *DBTestSuite) TestCreateFlag() {
