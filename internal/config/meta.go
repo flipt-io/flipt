@@ -1,5 +1,7 @@
 package config
 
+import "github.com/spf13/viper"
+
 const (
 	// configuration keys
 	metaCheckForUpdates  = "meta.check_for_updates"
@@ -12,4 +14,20 @@ type MetaConfig struct {
 	CheckForUpdates  bool   `json:"checkForUpdates"`
 	TelemetryEnabled bool   `json:"telemetryEnabled"`
 	StateDirectory   string `json:"stateDirectory"`
+}
+
+func (c *MetaConfig) init() (warnings []string, _ error) {
+	if viper.IsSet(metaCheckForUpdates) {
+		c.CheckForUpdates = viper.GetBool(metaCheckForUpdates)
+	}
+
+	if viper.IsSet(metaTelemetryEnabled) {
+		c.TelemetryEnabled = viper.GetBool(metaTelemetryEnabled)
+	}
+
+	if viper.IsSet(metaStateDirectory) {
+		c.StateDirectory = viper.GetString(metaStateDirectory)
+	}
+
+	return
 }

@@ -1,5 +1,7 @@
 package config
 
+import "github.com/spf13/viper"
+
 const (
 	// configuration keys
 	tracingJaegerEnabled = "tracing.jaeger.enabled"
@@ -19,4 +21,20 @@ type JaegerTracingConfig struct {
 // output destinations.
 type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
+}
+
+func (c *TracingConfig) init() (warnings []string, _ error) {
+	if viper.IsSet(tracingJaegerEnabled) {
+		c.Jaeger.Enabled = viper.GetBool(tracingJaegerEnabled)
+
+		if viper.IsSet(tracingJaegerHost) {
+			c.Jaeger.Host = viper.GetString(tracingJaegerHost)
+		}
+
+		if viper.IsSet(tracingJaegerPort) {
+			c.Jaeger.Port = viper.GetInt(tracingJaegerPort)
+		}
+	}
+
+	return
 }

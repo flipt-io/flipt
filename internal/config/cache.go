@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 const (
@@ -29,6 +31,53 @@ type CacheConfig struct {
 	Backend CacheBackend      `json:"backend,omitempty"`
 	Memory  MemoryCacheConfig `json:"memory,omitempty"`
 	Redis   RedisCacheConfig  `json:"redis,omitempty"`
+}
+
+func (c *CacheConfig) init() (warnings []string, _ error) {
+	if viper.GetBool(cacheMemoryEnabled) { // handle deprecated memory config
+		c.Backend = CacheMemory
+		c.Enabled = true
+
+		warnings = append(warnings, deprecatedMsgMemoryEnabled)
+
+		if viper.IsSet(cacheMemoryExpiration) {
+			c.TTL = viper.GetDuration(cacheMemoryExpiration)
+			warnings = append(warnings, deprecatedMsgMemoryExpiration)
+		}
+
+	} else if viper.IsSet(cacheEnabled) {
+		c.Enabled = viper.GetBool(cacheEnabled)
+		if viper.IsSet(cacheBackend) {
+			c.Backend = stringToCacheBackend[viper.GetString(cacheBackend)]
+		}
+		if viper.IsSet(cacheTTL) {
+			c.TTL = viper.GetDuration(cacheTTL)
+		}
+	}
+
+	if c.Enabled {
+		switch c.Backend {
+		case CacheRedis:
+			if viper.IsSet(cacheRedisHost) {
+				c.Redis.Host = viper.GetString(cacheRedisHost)
+			}
+			if viper.IsSet(cacheRedisPort) {
+				c.Redis.Port = viper.GetInt(cacheRedisPort)
+			}
+			if viper.IsSet(cacheRedisPassword) {
+				c.Redis.Password = viper.GetString(cacheRedisPassword)
+			}
+			if viper.IsSet(cacheRedisDB) {
+				c.Redis.DB = viper.GetInt(cacheRedisDB)
+			}
+		case CacheMemory:
+			if viper.IsSet(cacheMemoryEvictionInterval) {
+				c.Memory.EvictionInterval = viper.GetDuration(cacheMemoryEvictionInterval)
+			}
+		}
+	}
+
+	return
 }
 
 // CacheBackend is either memory or redis

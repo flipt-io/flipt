@@ -1,6 +1,10 @@
 package config
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/spf13/viper"
+)
 
 const (
 	// configuration keys
@@ -15,6 +19,35 @@ const (
 	LogEncodingJSON
 )
 
+// LogConfig contains fields which control, direct and filter
+// the logging telemetry produces by Flipt.
+type LogConfig struct {
+	Level     string      `json:"level,omitempty"`
+	File      string      `json:"file,omitempty"`
+	Encoding  LogEncoding `json:"encoding,omitempty"`
+	GRPCLevel string      `json:"grpc_level,omitempty"`
+}
+
+func (c *LogConfig) init() (_ []string, _ error) {
+	if viper.IsSet(logLevel) {
+		c.Level = viper.GetString(logLevel)
+	}
+
+	if viper.IsSet(logFile) {
+		c.File = viper.GetString(logFile)
+	}
+
+	if viper.IsSet(logEncoding) {
+		c.Encoding = stringToLogEncoding[viper.GetString(logEncoding)]
+	}
+
+	if viper.IsSet(logGRPCLevel) {
+		c.GRPCLevel = viper.GetString(logGRPCLevel)
+	}
+
+	return
+}
+
 var (
 	logEncodingToString = map[LogEncoding]string{
 		LogEncodingConsole: "console",
@@ -26,15 +59,6 @@ var (
 		"json":    LogEncodingJSON,
 	}
 )
-
-// LogConfig contains fields which control, direct and filter
-// the logging telemetry produces by Flipt.
-type LogConfig struct {
-	Level     string      `json:"level,omitempty"`
-	File      string      `json:"file,omitempty"`
-	Encoding  LogEncoding `json:"encoding,omitempty"`
-	GRPCLevel string      `json:"grpc_level,omitempty"`
-}
 
 // LogEncoding is either console or JSON
 type LogEncoding uint8
