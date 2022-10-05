@@ -31,16 +31,6 @@ type Config struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-type ServerConfig struct {
-	Host      string `json:"host,omitempty"`
-	Protocol  Scheme `json:"protocol,omitempty"`
-	HTTPPort  int    `json:"httpPort,omitempty"`
-	HTTPSPort int    `json:"httpsPort,omitempty"`
-	GRPCPort  int    `json:"grpcPort,omitempty"`
-	CertFile  string `json:"certFile,omitempty"`
-	CertKey   string `json:"certKey,omitempty"`
-}
-
 type JaegerTracingConfig struct {
 	Enabled bool   `json:"enabled,omitempty"`
 	Host    string `json:"host,omitempty"`
@@ -197,15 +187,6 @@ func Default() *Config {
 }
 
 const (
-	// Server
-	serverHost      = "server.host"
-	serverProtocol  = "server.protocol"
-	serverHTTPPort  = "server.http_port"
-	serverHTTPSPort = "server.https_port"
-	serverGRPCPort  = "server.grpc_port"
-	serverCertFile  = "server.cert_file"
-	serverCertKey   = "server.cert_key"
-
 	// Tracing
 	tracingJaegerEnabled = "tracing.jaeger.enabled"
 	tracingJaegerHost    = "tracing.jaeger.host"
