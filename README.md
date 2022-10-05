@@ -1,5 +1,5 @@
 <p align=center>
-    <img src="logo.svg" alt="Flipt" width=200 height=200 />
+    <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
 
 <p align="center">An open source, self-hosted feature flag solution</p>
@@ -194,15 +194,9 @@ See [LICENSE](LICENSE).
 
 If you use Flipt at your company, please consider [becoming a sponsor](https://github.com/sponsors/markphelps) today.
 
-## Enterprise
-
-Need more features or support using Flipt within your Enterprise?
-
-Please help me prioritize an Enterprise version of Flipt by filling out this [short survey](https://forms.gle/a4UBnv8LADYirA4c9)!
-
 ## Community
 
-For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/fjPVc5JuyE).
+For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/kRhEqG2TEZ).
 
 ## Feedback
 

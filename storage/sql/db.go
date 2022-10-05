@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/XSAM/otelsql"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
-	"github.com/luna-duclos/instrumentedsql"
-	"github.com/luna-duclos/instrumentedsql/opentracing"
 	"github.com/mattn/go-sqlite3"
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 // Open opens a connection to the db
@@ -49,15 +50,21 @@ func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
 
 	driverName := fmt.Sprintf("instrumented-%s", d)
 
-	var dr driver.Driver
+	var (
+		dr    driver.Driver
+		attrs []attribute.KeyValue
+	)
 
 	switch d {
 	case SQLite:
 		dr = &sqlite3.SQLiteDriver{}
+		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
 	case Postgres:
 		dr = &pq.Driver{}
+		attrs = []attribute.KeyValue{semconv.DBSystemPostgreSQL}
 	case MySQL:
 		dr = &mysql.MySQLDriver{}
+		attrs = []attribute.KeyValue{semconv.DBSystemMySQL}
 	}
 
 	registered := false
@@ -70,7 +77,7 @@ func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
 	}
 
 	if !registered {
-		sql.Register(driverName, instrumentedsql.WrapDriver(dr, instrumentedsql.WithTracer(opentracing.NewTracer(false))))
+		sql.Register(driverName, otelsql.WrapDriver(dr, otelsql.WithAttributes(attrs...)))
 	}
 
 	db, err := sql.Open(driverName, url.DSN)
