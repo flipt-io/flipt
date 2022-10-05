@@ -250,9 +250,6 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(interrupt)
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-
 	var (
 		isRelease = isRelease()
 		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
@@ -384,6 +381,8 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	var (
 		grpcServer *grpc.Server
 		httpServer *http.Server
+
+		shutdownFuncs = []func(context.Context){}
 	)
 
 	// starts grpc server
@@ -496,7 +495,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 					DB:       cfg.Cache.Redis.DB,
 				})
 
-				defer rdb.Shutdown(shutdownCtx)
+				shutdownFuncs = append(shutdownFuncs, func(ctx context.Context) { _ = rdb.Shutdown(ctx) })
 
 				status := rdb.Ping(ctx)
 				if status == nil {
@@ -532,6 +531,9 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		srv := server.New(logger, store)
 		// initialize grpc server
 		grpcServer = grpc.NewServer(grpcOpts...)
+
+		// register grpcServer graceful stop on shutdown
+		shutdownFuncs = append(shutdownFuncs, func(context.Context) { grpcServer.GracefulStop() })
 
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.EnableHandlingTimeHistogram()
@@ -657,6 +659,9 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			MaxHeaderBytes: 1 << 20,
 		}
 
+		// register httpServer graceful stop on shutdown
+		shutdownFuncs = append(shutdownFuncs, func(ctx context.Context) { _ = httpServer.Shutdown(ctx) })
+
 		logger.Debug("starting http server")
 
 		var (
@@ -718,12 +723,11 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 	cancel()
 
-	if httpServer != nil {
-		_ = httpServer.Shutdown(shutdownCtx)
-	}
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
 
-	if grpcServer != nil {
-		grpcServer.GracefulStop()
+	for _, shutdown := range shutdownFuncs {
+		shutdown(shutdownCtx)
 	}
 
 	return g.Wait()
