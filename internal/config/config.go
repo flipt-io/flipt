@@ -31,16 +31,6 @@ type Config struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-type JaegerTracingConfig struct {
-	Enabled bool   `json:"enabled,omitempty"`
-	Host    string `json:"host,omitempty"`
-	Port    int    `json:"port,omitempty"`
-}
-
-type TracingConfig struct {
-	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
-}
-
 // DatabaseProtocol represents a database protocol
 type DatabaseProtocol uint8
 
@@ -187,11 +177,6 @@ func Default() *Config {
 }
 
 const (
-	// Tracing
-	tracingJaegerEnabled = "tracing.jaeger.enabled"
-	tracingJaegerHost    = "tracing.jaeger.host"
-	tracingJaegerPort    = "tracing.jaeger.port"
-
 	// DB
 	dbURL             = "db.url"
 	dbMigrationsPath  = "db.migrations.path"
