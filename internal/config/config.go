@@ -31,12 +31,6 @@ type Config struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-type MetaConfig struct {
-	CheckForUpdates  bool   `json:"checkForUpdates"`
-	TelemetryEnabled bool   `json:"telemetryEnabled"`
-	StateDirectory   string `json:"stateDirectory"`
-}
-
 type Scheme uint
 
 func (s Scheme) String() string {
@@ -125,13 +119,6 @@ func Default() *Config {
 		},
 	}
 }
-
-const (
-	// Meta
-	metaCheckForUpdates  = "meta.check_for_updates"
-	metaTelemetryEnabled = "meta.telemetry_enabled"
-	metaStateDirectory   = "meta.state_directory"
-)
 
 func Load(path string) (*Config, error) {
 	viper.SetEnvPrefix("FLIPT")
