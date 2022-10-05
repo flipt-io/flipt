@@ -533,7 +533,10 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		grpcServer = grpc.NewServer(grpcOpts...)
 
 		// register grpcServer graceful stop on shutdown
-		shutdownFuncs = append(shutdownFuncs, func(context.Context) { grpcServer.GracefulStop() })
+		shutdownFuncs = append(shutdownFuncs, func(context.Context) {
+			grpcServer.GracefulStop()
+			logger.Info("grpc server shutdown gracefully")
+		})
 
 		pb.RegisterFliptServer(grpcServer, srv)
 		grpc_prometheus.EnableHandlingTimeHistogram()
@@ -660,7 +663,10 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		}
 
 		// register httpServer graceful stop on shutdown
-		shutdownFuncs = append(shutdownFuncs, func(ctx context.Context) { _ = httpServer.Shutdown(ctx) })
+		shutdownFuncs = append(shutdownFuncs, func(ctx context.Context) {
+			_ = httpServer.Shutdown(ctx)
+			logger.Info("http server shutdown gracefully")
+		})
 
 		logger.Debug("starting http server")
 
@@ -708,7 +714,6 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			return fmt.Errorf("http server: %w", err)
 		}
 
-		logger.Info("server shutdown gracefully")
 		return nil
 	})
 
