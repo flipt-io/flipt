@@ -426,11 +426,11 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		switch driver {
 		case sql.SQLite:
-			store = sqlite.NewStore(db)
+			store = sqlite.NewStore(db, logger)
 		case sql.Postgres:
-			store = postgres.NewStore(db)
+			store = postgres.NewStore(db, logger)
 		case sql.MySQL:
-			store = mysql.NewStore(db)
+			store = mysql.NewStore(db, logger)
 		}
 
 		logger.Debug("store enabled", zap.Stringer("driver", store))

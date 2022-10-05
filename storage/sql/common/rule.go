@@ -3,7 +3,9 @@ package common
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/gofrs/uuid"
@@ -48,33 +50,44 @@ func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 }
 
 // ListRules gets all rules for a flag
-func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error) {
-	var (
-		rules []*flipt.Rule
-
-		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
-			From("rules").
-			Where(sq.Eq{"flag_key": flagKey}).
-			OrderBy("\"rank\" ASC")
-	)
-
+func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
 	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
 		opt(params)
 	}
 
+	var (
+		rules   []*flipt.Rule
+		results = storage.ResultSet[*flipt.Rule]{}
+
+		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
+			From("rules").
+			Where(sq.Eq{"flag_key": flagKey}).
+			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
+	)
+
 	if params.Limit > 0 {
-		query = query.Limit(params.Limit)
+		query = query.Limit(params.Limit + 1)
 	}
 
-	if params.Offset > 0 {
-		query = query.Offset(params.Offset)
+	var offset uint64
+	if params.PageToken != "" {
+		var token PageToken
+		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
+			return results, fmt.Errorf("decoding page token %w", err)
+		}
+
+		offset = token.Offset
+		query = query.Offset(offset)
+	} else if params.Offset > 0 {
+		offset = params.Offset
+		query = query.Offset(offset)
 	}
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
-		return nil, err
+		return results, err
 	}
 
 	defer func() {
@@ -97,20 +110,52 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 			&rule.Rank,
 			&createdAt,
 			&updatedAt); err != nil {
-			return nil, err
+			return results, err
 		}
 
 		rule.CreatedAt = createdAt.Timestamp
 		rule.UpdatedAt = updatedAt.Timestamp
 
 		if err := s.distributions(ctx, &rule); err != nil {
-			return nil, err
+			return results, err
 		}
 
 		rules = append(rules, &rule)
 	}
 
-	return rules, rows.Err()
+	if err := rows.Err(); err != nil {
+		return results, err
+	}
+
+	var next *flipt.Rule
+
+	if len(rules) > int(params.Limit) && params.Limit > 0 {
+		next = rules[len(rules)-1]
+		rules = rules[:params.Limit]
+	}
+
+	results.Results = rules
+
+	if next != nil {
+		out, err := json.Marshal(PageToken{Key: next.Id, Offset: offset + uint64(len(rules))})
+		if err != nil {
+			return results, fmt.Errorf("encoding page token %w", err)
+		}
+		results.NextPageToken = string(out)
+	}
+
+	return results, rows.Err()
+}
+
+// CountRules counts all rules
+func (s *Store) CountRules(ctx context.Context) (uint64, error) {
+	var count uint64
+
+	if err := s.builder.Select("COUNT(*)").From("rules").QueryRowContext(ctx).Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // CreateRule creates a rule

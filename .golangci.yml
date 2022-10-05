@@ -14,9 +14,7 @@ run:
     - "bin"
     - "_tools"
     - "dist"
-    - "docs"
     - "rpc"
-    - "site"
     - "swagger"
     - "ui"
 
@@ -28,7 +26,6 @@ run:
 
 linters:
   enable:
-    - deadcode
     - depguard
     - errcheck
     - goconst
@@ -41,11 +38,9 @@ linters:
     - megacheck
     - misspell
     - staticcheck
-    - structcheck
     - stylecheck
     - unconvert
     - unparam
-    - varcheck
   disable:
     - contextcheck
     - exhaustive

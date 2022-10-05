@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt"
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
@@ -38,8 +38,10 @@ type EvaluationDistribution struct {
 }
 
 type QueryParams struct {
-	Limit  uint64
-	Offset uint64
+	Limit     uint64
+	Offset    uint64 // deprecated
+	PageToken string
+	Order     Order // not exposed to the user yet
 }
 
 type QueryOption func(p *QueryParams)
@@ -56,12 +58,46 @@ func WithOffset(offset uint64) QueryOption {
 	}
 }
 
+func WithPageToken(pageToken string) QueryOption {
+	return func(p *QueryParams) {
+		p.PageToken = pageToken
+	}
+}
+
+type Order uint8
+
+const (
+	OrderAsc Order = iota
+	OrderDesc
+)
+
+func (o Order) String() string {
+	switch o {
+	case OrderAsc:
+		return "ASC"
+	case OrderDesc:
+		return "DESC"
+	}
+	return ""
+}
+
+func WithOrder(order Order) QueryOption {
+	return func(p *QueryParams) {
+		p.Order = order
+	}
+}
+
 type Store interface {
 	FlagStore
 	RuleStore
 	SegmentStore
 	EvaluationStore
 	fmt.Stringer
+}
+
+type ResultSet[T any] struct {
+	Results       []T
+	NextPageToken string
 }
 
 // EvaluationStore returns data necessary for evaluation
@@ -75,7 +111,8 @@ type EvaluationStore interface {
 // FlagStore stores and retrieves flags and variants
 type FlagStore interface {
 	GetFlag(ctx context.Context, key string) (*flipt.Flag, error)
-	ListFlags(ctx context.Context, opts ...QueryOption) ([]*flipt.Flag, error)
+	ListFlags(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
+	CountFlags(ctx context.Context) (uint64, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
@@ -87,7 +124,8 @@ type FlagStore interface {
 // SegmentStore stores and retrieves segments and constraints
 type SegmentStore interface {
 	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, opts ...QueryOption) ([]*flipt.Segment, error)
+	ListSegments(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
+	CountSegments(ctx context.Context) (uint64, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
@@ -99,7 +137,8 @@ type SegmentStore interface {
 // RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
 	GetRule(ctx context.Context, id string) (*flipt.Rule, error)
-	ListRules(ctx context.Context, flagKey string, opts ...QueryOption) ([]*flipt.Rule, error)
+	ListRules(ctx context.Context, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rule], error)
+	CountRules(ctx context.Context) (uint64, error)
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error

@@ -2,6 +2,7 @@ package sql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 )
 
 func (s *DBTestSuite) TestGetRule() {
@@ -125,7 +127,7 @@ func (s *DBTestSuite) TestListRules() {
 	got, err := s.store.ListRules(context.TODO(), flag.Key)
 
 	require.NoError(t, err)
-	assert.NotZero(t, len(got))
+	assert.NotZero(t, len(got.Results))
 }
 
 func (s *DBTestSuite) TestListRulesPagination_LimitOffset() {
@@ -178,10 +180,88 @@ func (s *DBTestSuite) TestListRulesPagination_LimitOffset() {
 		require.NoError(t, err)
 	}
 
-	got, err := s.store.ListRules(context.TODO(), flag.Key, storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListRules(context.TODO(), flag.Key, storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 
+	got := res.Results
 	assert.Len(t, got, 1)
+}
+
+func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	reqs := []*flipt.CreateRuleRequest{
+		{
+			FlagKey:    flag.Key,
+			SegmentKey: segment.Key,
+			Rank:       1,
+		},
+		{
+			FlagKey:    flag.Key,
+			SegmentKey: segment.Key,
+			Rank:       2,
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := s.store.CreateRule(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
+
+	res, err := s.store.ListRules(context.TODO(), flag.Key, opts...)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, reqs[1].Rank, got[0].Rank)
+	assert.NotEmpty(t, res.NextPageToken)
+
+	pageToken := &common.PageToken{}
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	assert.NotEmpty(t, pageToken.Key)
+	assert.Equal(t, uint64(1), pageToken.Offset)
+
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+
+	res, err = s.store.ListRules(context.TODO(), flag.Key, opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, reqs[0].Rank, got[0].Rank)
 }
 
 func (s *DBTestSuite) TestCreateRuleAndDistribution() {
@@ -509,10 +589,11 @@ func (s *DBTestSuite) TestDeleteRule() {
 
 	require.NoError(t, err)
 
-	got, err := s.store.ListRules(context.TODO(), flag.Key)
+	res, err := s.store.ListRules(context.TODO(), flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotNil(t, got)
 	assert.Equal(t, 2, len(got))
 	assert.Equal(t, rules[0].Id, got[0].Id)
@@ -605,10 +686,11 @@ func (s *DBTestSuite) TestOrderRules() {
 
 	require.NoError(t, err)
 
-	got, err := s.store.ListRules(context.TODO(), flag.Key)
+	res, err := s.store.ListRules(context.TODO(), flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotNil(t, got)
 	assert.Equal(t, 3, len(got))
 	assert.Equal(t, rules[0].Id, got[0].Id)

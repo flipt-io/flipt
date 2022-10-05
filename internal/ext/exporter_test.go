@@ -22,16 +22,22 @@ type mockLister struct {
 	ruleErr error
 }
 
-func (m mockLister) ListFlags(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Flag, error) {
-	return m.flags, m.flagErr
+func (m mockLister) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
+	return storage.ResultSet[*flipt.Flag]{
+		Results: m.flags,
+	}, m.flagErr
 }
 
-func (m mockLister) ListSegments(ctx context.Context, opts ...storage.QueryOption) ([]*flipt.Segment, error) {
-	return m.segments, m.segmentErr
+func (m mockLister) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
+	return storage.ResultSet[*flipt.Segment]{
+		Results: m.segments,
+	}, m.segmentErr
 }
 
-func (m mockLister) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) ([]*flipt.Rule, error) {
-	return m.rules, m.ruleErr
+func (m mockLister) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
+	return storage.ResultSet[*flipt.Rule]{
+		Results: m.rules,
+	}, m.ruleErr
 }
 
 func TestExport(t *testing.T) {

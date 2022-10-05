@@ -2,9 +2,12 @@ package sql
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/storage"
+	"go.flipt.io/flipt/storage/sql/common"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -65,8 +68,9 @@ func (s *DBTestSuite) TestListSegments() {
 		require.NoError(t, err)
 	}
 
-	got, err := s.store.ListSegments(context.TODO())
+	res, err := s.store.ListSegments(context.TODO())
 	require.NoError(t, err)
+	got := res.Results
 	assert.NotZero(t, len(got))
 }
 
@@ -84,17 +88,150 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 			Name:        "foo",
 			Description: "bar",
 		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
 	}
 
 	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
 		_, err := s.store.CreateSegment(context.TODO(), req)
 		require.NoError(t, err)
 	}
 
-	got, err := s.store.ListSegments(context.TODO(), storage.WithLimit(1), storage.WithOffset(1))
+	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
 
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	// get middle segment
+	res, err := s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
+
+	got := res.Results
 	assert.Len(t, got, 1)
+
+	assert.Equal(t, middle.Key, got[0].Key)
+
+	// get first (newest) segment
+	res, err = s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+
+	assert.Equal(t, newest.Key, got[0].Key)
+
+	// get last (oldest) segment
+	res, err = s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+
+	assert.Equal(t, oldest.Key, got[0].Key)
+
+	// get all segments
+	res, err = s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc))
+	require.NoError(t, err)
+
+	got = res.Results
+
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[1].Key)
+	assert.Equal(t, oldest.Key, got[2].Key)
+}
+
+func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
+	t := s.T()
+
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+		{
+			Key:         uuid.Must(uuid.NewV4()).String(),
+			Name:        "foo",
+			Description: "bar",
+		},
+	}
+
+	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
+
+	for _, req := range reqs {
+		if s.driver == MySQL {
+			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+			time.Sleep(time.Second)
+		}
+		_, err := s.store.CreateSegment(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
+	// get newest segment
+	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
+
+	res, err := s.store.ListSegments(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.NotEmpty(t, res.NextPageToken)
+
+	pageToken := &common.PageToken{}
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	// next page should be the middle segment
+	assert.Equal(t, middle.Key, pageToken.Key)
+	assert.NotZero(t, pageToken.Offset)
+
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+
+	// get middle segment
+	res, err = s.store.ListSegments(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, middle.Key, got[0].Key)
+
+	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	require.NoError(t, err)
+	// next page should be the oldest segment
+	assert.Equal(t, oldest.Key, pageToken.Key)
+	assert.NotZero(t, pageToken.Offset)
+
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
+
+	// get oldest segment
+	res, err = s.store.ListSegments(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 1)
+	assert.Equal(t, oldest.Key, got[0].Key)
+
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
+	// get all segments
+	res, err = s.store.ListSegments(context.TODO(), opts...)
+	require.NoError(t, err)
+
+	got = res.Results
+	assert.Len(t, got, 3)
+	assert.Equal(t, newest.Key, got[0].Key)
+	assert.Equal(t, middle.Key, got[1].Key)
+	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
 func (s *DBTestSuite) TestCreateSegment() {

@@ -3,6 +3,21 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Page token based pagination for `list` methods for forward compatibility with
+  future versions of the API [#936](https://github.com/flipt-io/flipt/issues/936)
+
+### Changed
+
+- Validation for `list` methods now requires a `limit` if requesting with an `offset` or `page_token`
+
+### Deprecated
+
+- Deprecated `offset` in `list` methods in favor of `page_token` [#936](https://github.com/flipt-io/flipt/issues/936)
+
 ## [v1.12.1](https://github.com/markphelps/flipt/releases/tag/v1.12.1) - 2022-09-30
 
 ### Fixed
