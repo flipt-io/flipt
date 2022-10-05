@@ -31,10 +31,6 @@ type Config struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-type UIConfig struct {
-	Enabled bool `json:"enabled"`
-}
-
 type CorsConfig struct {
 	Enabled        bool     `json:"enabled"`
 	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
@@ -256,9 +252,6 @@ func Default() *Config {
 }
 
 const (
-	// UI
-	uiEnabled = "ui.enabled"
-
 	// CORS
 	corsEnabled        = "cors.enabled"
 	corsAllowedOrigins = "cors.allowed_origins"
