@@ -12,8 +12,8 @@ import (
 	"github.com/gofrs/uuid"
 
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
