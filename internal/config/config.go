@@ -31,11 +31,6 @@ type Config struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-type CorsConfig struct {
-	Enabled        bool     `json:"enabled"`
-	AllowedOrigins []string `json:"allowedOrigins,omitempty"`
-}
-
 // CacheBackend is either memory or redis
 type CacheBackend uint8
 
@@ -252,10 +247,6 @@ func Default() *Config {
 }
 
 const (
-	// CORS
-	corsEnabled        = "cors.enabled"
-	corsAllowedOrigins = "cors.allowed_origins"
-
 	// Cache
 	cacheBackend                = "cache.backend"
 	cacheEnabled                = "cache.enabled"
