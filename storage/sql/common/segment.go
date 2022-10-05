@@ -1,7 +1,6 @@
 package common
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -81,7 +80,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 
 	if params.PageToken != "" {
 		var token PageToken
-		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
+		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 
@@ -144,11 +143,11 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 	results.Results = segments
 
 	if next != nil {
-		var out bytes.Buffer
-		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, Offset: offset + uint64(len(segments))}); err != nil {
+		out, err := json.Marshal(PageToken{Key: next.Key, Offset: offset + uint64(len(segments))})
+		if err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
-		results.NextPageToken = out.String()
+		results.NextPageToken = string(out)
 	}
 
 	return results, rows.Err()

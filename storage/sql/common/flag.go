@@ -96,7 +96,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 	if params.PageToken != "" {
 		var token PageToken
-		if err := json.NewDecoder(bytes.NewBufferString(params.PageToken)).Decode(&token); err != nil {
+		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
 		offset = token.Offset
@@ -158,11 +158,11 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 	results.Results = flags
 
 	if next != nil {
-		var out bytes.Buffer
-		if err := json.NewEncoder(&out).Encode(PageToken{Key: next.Key, Offset: offset + uint64(len(flags))}); err != nil {
+		out, err := json.Marshal(PageToken{Key: next.Key, Offset: offset + uint64(len(flags))})
+		if err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
-		results.NextPageToken = out.String()
+		results.NextPageToken = string(out)
 	}
 
 	return results, nil
