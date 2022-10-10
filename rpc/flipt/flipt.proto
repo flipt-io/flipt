@@ -57,7 +57,7 @@ message EvaluationResponse {
   string entity_id = 2;
   map<string, string> request_context = 3;
   bool match = 4;
-  string flag_key = 5 [deprecated = true];]; 
+  string flag_key = 5 [deprecated = true];
   string segment_key = 6;
   google.protobuf.Timestamp timestamp = 7;
   string value = 8;

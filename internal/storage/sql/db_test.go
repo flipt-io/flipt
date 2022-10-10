@@ -32,6 +32,8 @@ import (
 )
 
 func TestOpen(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
 	tests := []struct {
 		name    string
 		cfg     config.DatabaseConfig
@@ -87,7 +89,7 @@ func TestOpen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db, d, err := Open(config.Config{
 				Database: cfg,
-			})
+			}, logger)
 
 			if wantErr {
 				require.Error(t, err)
@@ -105,6 +107,8 @@ func TestOpen(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
+	logger := zaptest.NewLogger(t)
+
 	tests := []struct {
 		name    string
 		cfg     config.DatabaseConfig
@@ -287,7 +291,7 @@ func TestParse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d, u, err := parse(config.Config{
 				Database: cfg,
-			}, opts)
+			}, logger, opts)
 
 			if wantErr {
 				require.Error(t, err)
@@ -330,7 +334,10 @@ func TestMain(m *testing.M) {
 
 func (s *DBTestSuite) SetupSuite() {
 	setup := func() error {
-		var proto config.DatabaseProtocol
+		var (
+			logger = zaptest.NewLogger(s.T())
+			proto  config.DatabaseProtocol
+		)
 
 		switch dd {
 		case "postgres":
@@ -364,7 +371,7 @@ func (s *DBTestSuite) SetupSuite() {
 			s.testcontainer = dbContainer
 		}
 
-		db, driver, err := open(cfg, options{migrate: true, sslDisabled: true})
+		db, driver, err := open(cfg, logger, options{migrate: true, sslDisabled: true})
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
@@ -420,7 +427,7 @@ func (s *DBTestSuite) SetupSuite() {
 		}
 
 		// re-open db and enable ANSI mode for MySQL
-		db, driver, err = open(cfg, options{migrate: false, sslDisabled: true})
+		db, driver, err = open(cfg, logger, options{migrate: false, sslDisabled: true})
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
@@ -429,7 +436,6 @@ func (s *DBTestSuite) SetupSuite() {
 		s.driver = driver
 
 		var store storage.Store
-		logger := zaptest.NewLogger(s.T())
 
 		switch driver {
 		case SQLite:

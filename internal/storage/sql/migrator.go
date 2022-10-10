@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/cockroachdb"
 	"github.com/golang-migrate/migrate/database/mysql"
 	"github.com/golang-migrate/migrate/database/postgres"
 	"github.com/golang-migrate/migrate/database/sqlite3"
@@ -15,9 +16,10 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:   3,
-	Postgres: 3,
-	MySQL:    1,
+	SQLite:      3,
+	Postgres:    3,
+	MySQL:       1,
+	CockroachDB: 1,
 }
 
 // Migrator is responsible for migrating the database schema
@@ -29,7 +31,7 @@ type Migrator struct {
 
 // NewMigrator creates a new Migrator
 func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
-	sql, driver, err := open(cfg, options{migrate: true})
+	sql, driver, err := open(cfg, logger, options{migrate: true})
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
@@ -41,9 +43,13 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
 	case Postgres:
 		dr, err = postgres.WithInstance(sql, &postgres.Config{})
+	case CockroachDB:
+		dr, err = cockroachdb.WithInstance(sql, &cockroachdb.Config{})
 	case MySQL:
 		dr, err = mysql.WithInstance(sql, &mysql.Config{})
 	}
+
+	logger.Debug("using driver", zap.String("driver", driver.String()))
 
 	if err != nil {
 		return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)

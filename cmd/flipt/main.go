@@ -106,7 +106,7 @@ func main() {
 				CallerKey:      zapcore.OmitKey,
 				FunctionKey:    zapcore.OmitKey,
 				MessageKey:     "M",
-				StacktraceKey:  "S",
+				StacktraceKey:  zapcore.OmitKey,
 				LineEnding:     zapcore.DefaultLineEnding,
 				EncodeLevel:    zapcore.CapitalColorLevelEncoder,
 				EncodeTime:     zapcore.RFC3339TimeEncoder,
@@ -411,7 +411,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			_ = lis.Close()
 		}()
 
-		db, driver, err := sql.Open(*cfg)
+		db, driver, err := sql.Open(*cfg, logger)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}
@@ -427,13 +427,15 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		switch driver {
 		case sql.SQLite:
 			store = sqlite.NewStore(db, logger)
-		case sql.Postgres:
+		case sql.Postgres, sql.CockroachDB:
 			store = postgres.NewStore(db, logger)
 		case sql.MySQL:
 			store = mysql.NewStore(db, logger)
+		default:
+			return fmt.Errorf("unsupported driver: %s", driver)
 		}
 
-		logger.Debug("store enabled", zap.Stringer("driver", store))
+		logger.Debug("store enabled", zap.Stringer("driver", driver))
 
 		var tracingProvider = trace.NewNoopTracerProvider()
 

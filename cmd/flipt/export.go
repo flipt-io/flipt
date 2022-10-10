@@ -33,7 +33,7 @@ func runExport(ctx context.Context, logger *zap.Logger) error {
 		cancel()
 	}()
 
-	db, driver, err := sql.Open(*cfg)
+	db, driver, err := sql.Open(*cfg, logger)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}
