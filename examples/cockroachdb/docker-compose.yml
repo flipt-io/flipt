@@ -2,7 +2,7 @@ version: "3"
 
 services:
   crdb:
-    image: cockroachdb/cockroach:latest
+    image: cockroachdb/cockroach:latest-v21.2
     networks:
       - flipt_network
     ports:

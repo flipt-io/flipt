@@ -25,8 +25,10 @@ import (
 
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database"
+	"github.com/golang-migrate/migrate/database/cockroachdb"
 	ms "github.com/golang-migrate/migrate/database/mysql"
 	pg "github.com/golang-migrate/migrate/database/postgres"
+
 	"github.com/golang-migrate/migrate/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/source/file"
 )
@@ -432,6 +434,8 @@ func (s *DBTestSuite) SetupSuite() {
 		)
 
 		switch dd {
+		case "cockroachdb":
+			proto = config.DatabaseCockroachDB
 		case "postgres":
 			proto = config.DatabasePostgres
 		case "mysql":
@@ -447,7 +451,27 @@ func (s *DBTestSuite) SetupSuite() {
 			},
 		}
 
-		if proto != config.DatabaseSQLite {
+		var (
+			username, password, dbName string
+			useTestContainer           bool
+		)
+
+		switch proto {
+		case config.DatabaseSQLite:
+			// no-op
+		case config.DatabaseCockroachDB:
+			useTestContainer = true
+			username = "root"
+			password = ""
+			dbName = "defaultdb"
+		default:
+			useTestContainer = true
+			username = "flipt"
+			password = "password"
+			dbName = "flipt_test"
+		}
+
+		if useTestContainer {
 			dbContainer, err := newDBContainer(s.T(), context.Background(), proto)
 			if err != nil {
 				return fmt.Errorf("creating db container: %w", err)
@@ -456,9 +480,9 @@ func (s *DBTestSuite) SetupSuite() {
 			cfg.Database.URL = ""
 			cfg.Database.Host = dbContainer.host
 			cfg.Database.Port = dbContainer.port
-			cfg.Database.Name = "flipt_test"
-			cfg.Database.User = "flipt"
-			cfg.Database.Password = "password"
+			cfg.Database.Name = dbName
+			cfg.Database.User = username
+			cfg.Database.Password = password
 
 			s.testcontainer = dbContainer
 		}
@@ -481,6 +505,9 @@ func (s *DBTestSuite) SetupSuite() {
 			stmt = "DELETE FROM %s"
 		case Postgres:
 			dr, err = pg.WithInstance(db, &pg.Config{})
+			stmt = "TRUNCATE TABLE %s CASCADE"
+		case CockroachDB:
+			dr, err = cockroachdb.WithInstance(db, &cockroachdb.Config{})
 			stmt = "TRUNCATE TABLE %s CASCADE"
 		case MySQL:
 			dr, err = ms.WithInstance(db, &ms.Config{})
@@ -532,7 +559,7 @@ func (s *DBTestSuite) SetupSuite() {
 		switch driver {
 		case SQLite:
 			store = sqlite.NewStore(db, logger)
-		case Postgres:
+		case Postgres, CockroachDB:
 			store = postgres.NewStore(db, logger)
 		case MySQL:
 			if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
@@ -586,6 +613,18 @@ func newDBContainer(t *testing.T, ctx context.Context, proto config.DatabaseProt
 				"POSTGRES_PASSWORD": "password",
 				"POSTGRES_DB":       "flipt_test",
 			},
+		}
+	case config.DatabaseCockroachDB:
+		port = nat.Port("26257/tcp")
+		req = testcontainers.ContainerRequest{
+			Image:        "cockroachdb/cockroach:latest-v21.2",
+			ExposedPorts: []string{"26257/tcp", "8080/tcp"},
+			WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
+			Env: map[string]string{
+				"COCKROACH_USER":     "root",
+				"COCKROACH_DATABASE": "defaultdb",
+			},
+			Cmd: []string{"start-single-node", "--insecure"},
 		}
 	case config.DatabaseMySQL:
 		port = nat.Port("3306/tcp")

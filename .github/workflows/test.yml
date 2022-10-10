@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        database: ["mysql", "postgres"]
+        database: ["mysql", "postgres", "cockroachdb"]
     steps:
       - uses: actions/checkout@v3
 
