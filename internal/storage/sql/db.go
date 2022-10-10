@@ -106,6 +106,7 @@ var (
 		"mysql":       MySQL,
 		"cockroachdb": CockroachDB,
 		"cockroach":   CockroachDB,
+		"crdb":        CockroachDB,
 	}
 )
 
