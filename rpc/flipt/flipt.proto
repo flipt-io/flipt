@@ -18,7 +18,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     };
   };
   external_docs: {
-    url: "https://flipt.io/docs";
+    url: "https://flipt.io";
     description: "Flipt Docs";
   }
   schemes: HTTP;
@@ -57,14 +57,12 @@ message EvaluationResponse {
   string entity_id = 2;
   map<string, string> request_context = 3;
   bool match = 4;
-  string flag_key = 5 [deprecated = true];
+  string flag_key = 5;
   string segment_key = 6;
   google.protobuf.Timestamp timestamp = 7;
   string value = 8;
   double request_duration_millis = 9;
   string attachment = 10;
-  Flag flag = 11;
-  Variant variant = 12; 
 }
 
 message BatchEvaluationResponse {
