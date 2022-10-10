@@ -1445,12 +1445,6 @@
         },
         "attachment": {
           "type": "string"
-        },
-        "flagEnabled": {
-          "type": "boolean"
-        },
-        "variant": {
-          "type": "string"
         }
       }
     },
@@ -1671,6 +1665,6 @@
   },
   "externalDocs": {
     "description": "Flipt Docs",
-    "url": "https://flipt.io/docs"
+    "url": "https://flipt.io"
   }
 }
