@@ -13,12 +13,17 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     title: "Flipt API";
     version: "latest";
     contact: {
-      name: "Mark Phelps";
+      name: "Flipt Team";
       url: "https://github.com/flipt-io/flipt";
+      email: "dev@flipt.io"
+    };
+    license: {
+      name: "MIT License";
+      url: "https://github.com/flipt-io/flipt/blob/main/rpc/flipt/LICENSE";
     };
   };
   external_docs: {
-    url: "https://flipt.io";
+    url: "https://www.flipt.io/docs";
     description: "Flipt Docs";
   }
   schemes: HTTP;
@@ -423,7 +428,7 @@ message CreateDistributionRequest {
     }
   };
 
-  string flag_key = 1; // TODO: remove before 1.0
+  string flag_key = 1;
   string rule_id = 2;
   string variant_id = 3;
   float rollout = 4;
@@ -437,7 +442,7 @@ message UpdateDistributionRequest {
   };
 
   string id = 1;
-  string flag_key = 2; // TODO: remove before 1.0
+  string flag_key = 2;
   string rule_id = 3;
   string variant_id = 4;
   float rollout = 5;
@@ -451,7 +456,7 @@ message DeleteDistributionRequest {
   };
 
   string id = 1;
-  string flag_key = 2; // TODO: remove before 1.0
+  string flag_key = 2;
   string rule_id = 3;
   string variant_id = 4;
 }

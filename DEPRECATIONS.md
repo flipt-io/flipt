@@ -4,6 +4,8 @@ This page is used to list deprecation notices for Flipt.
 
 Deprecated configuration options will be removed after ~6 months from the time they were deprecated.
 
+Deprecated API endpoints, fields and objects will be removed after ~1 year from the time they were deprecated.
+
 ## Active Deprecations
 
 <!--
@@ -29,6 +31,12 @@ Description.
     ```
 
 -->
+
+### API ListFlagRequest, ListSegmentRequest, ListRuleRequest offset
+
+> since [v1.13.0](https://github.com/markphelps/flipt/releases/tag/v1.13.0)
+
+`offset` has been deprecated in favor of `page_token`/`next_page_token` for `ListFlagRequest`, `ListSegmentRequest` and `ListRuleRequest`. See: [#936](https://github.com/flipt-io/flipt/issues/936).
 
 ### cache.memory.enabled
 

@@ -13,10 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Validation for `list` methods now requires a `limit` if requesting with an `offset` or `page_token`
+- Replaced OpenTracing with OpenTelemetry [#576](https://github.com/flipt-io/flipt/issues/576)
+- Remove stacktrace from error logs [#1066](https://github.com/flipt-io/flipt/pull/1066)
+- Dependency updates
 
 ### Deprecated
 
 - Deprecated `offset` in `list` methods in favor of `page_token` [#936](https://github.com/flipt-io/flipt/issues/936)
+
+### Fixed
+
+- Correctly initialize shutdown context after interrupt [#1057](https://github.com/flipt-io/flipt/pull/1057)
 
 ## [v1.12.1](https://github.com/markphelps/flipt/releases/tag/v1.12.1) - 2022-09-30
 

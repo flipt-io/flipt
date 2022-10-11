@@ -4,8 +4,13 @@
     "title": "Flipt API",
     "version": "latest",
     "contact": {
-      "name": "Mark Phelps",
-      "url": "https://github.com/flipt-io/flipt"
+      "name": "Flipt Team",
+      "url": "https://github.com/flipt-io/flipt",
+      "email": "dev@flipt.io"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/flipt-io/flipt/blob/main/rpc/flipt/LICENSE"
     }
   },
   "tags": [
@@ -1665,6 +1670,6 @@
   },
   "externalDocs": {
     "description": "Flipt Docs",
-    "url": "https://flipt.io"
+    "url": "https://www.flipt.io/docs"
   }
 }
