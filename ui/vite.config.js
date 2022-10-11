@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         "/api": `http://${host}:${port}`,
         "/meta": `http://${host}:${port}`,
+        "/docs": `http://${host}:${port}`,
       },
     },
   };
