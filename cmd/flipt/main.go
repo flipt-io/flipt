@@ -106,7 +106,7 @@ func main() {
 				CallerKey:      zapcore.OmitKey,
 				FunctionKey:    zapcore.OmitKey,
 				MessageKey:     "M",
-				StacktraceKey:  "S",
+				StacktraceKey:  zapcore.OmitKey,
 				LineEnding:     zapcore.DefaultLineEnding,
 				EncodeLevel:    zapcore.CapitalColorLevelEncoder,
 				EncodeTime:     zapcore.RFC3339TimeEncoder,
