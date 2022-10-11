@@ -1,8 +1,8 @@
 package server
 
 import (
+	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap"
 )
 

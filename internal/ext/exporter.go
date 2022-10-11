@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
+	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
 	"gopkg.in/yaml.v2"
 )
 

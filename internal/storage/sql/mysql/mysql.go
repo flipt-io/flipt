@@ -1,4 +1,4 @@
-package sqlite
+package mysql
 
 import (
 	"context"
@@ -7,17 +7,21 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattn/go-sqlite3"
+	"github.com/go-sql-driver/mysql"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/sql/common"
 	"go.uber.org/zap"
+)
+
+const (
+	constraintForeignKeyErrCode uint16 = 1452
+	constraintUniqueErrCode     uint16 = 1062
 )
 
 var _ storage.Store = &Store{}
 
-// NewStore creates a new sqlite.Store
 func NewStore(db *sql.DB, logger *zap.Logger) *Store {
 	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
 
@@ -26,22 +30,21 @@ func NewStore(db *sql.DB, logger *zap.Logger) *Store {
 	}
 }
 
-// Store is a sqlite specific implementation of storage.Store
 type Store struct {
 	*common.Store
 }
 
 func (s *Store) String() string {
-	return "sqlite"
+	return "mysql"
 }
 
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
 			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
 		}
 
@@ -55,13 +58,13 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	variant, err := s.Store.CreateVariant(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) {
-			switch serr.ExtendedCode {
-			case sqlite3.ErrConstraintForeignKey:
+		if errors.As(err, &merr) {
+			switch merr.Number {
+			case constraintForeignKeyErrCode:
 				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
-			case sqlite3.ErrConstraintUnique:
+			case constraintUniqueErrCode:
 				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 			}
 		}
@@ -76,9 +79,9 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	variant, err := s.Store.UpdateVariant(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
 			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
@@ -92,9 +95,9 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	segment, err := s.Store.CreateSegment(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
 			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
 		}
 
@@ -108,9 +111,9 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	constraint, err := s.Store.CreateConstraint(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
 			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
 		}
 
@@ -124,9 +127,9 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	rule, err := s.Store.CreateRule(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
 			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 		}
 
@@ -140,9 +143,9 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	dist, err := s.Store.CreateDistribution(ctx, r)
 
 	if err != nil {
-		var serr sqlite3.Error
+		var merr *mysql.MySQLError
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
 			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 		}
 

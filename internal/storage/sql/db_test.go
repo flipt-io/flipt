@@ -17,10 +17,10 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/sql/mysql"
-	"go.flipt.io/flipt/storage/sql/postgres"
-	"go.flipt.io/flipt/storage/sql/sqlite"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/sql/mysql"
+	"go.flipt.io/flipt/internal/storage/sql/postgres"
+	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/golang-migrate/migrate"
@@ -404,7 +404,7 @@ func (s *DBTestSuite) SetupSuite() {
 			_, _ = db.Exec(fmt.Sprintf(stmt, t))
 		}
 
-		f := filepath.Clean(fmt.Sprintf("../../config/migrations/%s", driver))
+		f := filepath.Clean(fmt.Sprintf("../../../config/migrations/%s", driver))
 
 		mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
 		if err != nil {

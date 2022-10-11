@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/sql/common"
 )
 
 func (s *DBTestSuite) TestGetRule() {
