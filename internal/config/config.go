@@ -29,11 +29,6 @@ type Config struct {
 
 func Default() *Config {
 	return &Config{
-		Cors: CorsConfig{
-			Enabled:        false,
-			AllowedOrigins: []string{"*"},
-		},
-
 		Cache: CacheConfig{
 			Enabled: false,
 			Backend: CacheMemory,
@@ -94,7 +89,6 @@ func Load(path string) (*Config, error) {
 	for _, initializer := range []interface {
 		init() (warnings []string, err error)
 	}{
-		&cfg.Cors,
 		&cfg.Cache,
 		&cfg.Server,
 		&cfg.Tracing,
@@ -115,6 +109,7 @@ func Load(path string) (*Config, error) {
 	}{
 		&cfg.Log,
 		&cfg.UI,
+		&cfg.Cors,
 	} {
 		if v := viper.Sub(unmarshaller.viperKey()); v != nil {
 			warnings, err := unmarshaller.unmarshalViper(v)
