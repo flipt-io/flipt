@@ -144,14 +144,21 @@ tasks:
     env:
       FLIPT_TEST_DATABASE_PROTOCOL: '{{.FLIPT_TEST_DATABASE_PROTOCOL | default "sqlite"}}'
 
-  test:mysql:
+  # TODO: clean these up, come up with a different way to do this
+  test:db:mysql:
     desc: Run all the tests with MySQL db backend
     cmds:
       - task: test
         vars: { FLIPT_TEST_DATABASE_PROTOCOL: "mysql" }
 
-  test:postgres:
+  test:db:postgres:
     desc: Run all the tests with Postgres db backend
     cmds:
       - task: test
         vars: { FLIPT_TEST_DATABASE_PROTOCOL: "postgres" }
+
+  test:db:cockroachdb:
+    desc: Run all the tests with CockroachDB backend
+    cmds:
+      - task: test
+        vars: { FLIPT_TEST_DATABASE_PROTOCOL: "cockroachdb" }

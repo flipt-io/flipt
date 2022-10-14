@@ -38,3 +38,4 @@ __debug_bin
 Brewfile.lock.json
 *.key
 .task/
+examples/cockroachdb/data
