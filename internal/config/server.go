@@ -4,60 +4,41 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
-const (
-	// configuration keys
-	serverHost      = "server.host"
-	serverProtocol  = "server.protocol"
-	serverHTTPPort  = "server.http_port"
-	serverHTTPSPort = "server.https_port"
-	serverGRPCPort  = "server.grpc_port"
-	serverCertFile  = "server.cert_file"
-	serverCertKey   = "server.cert_key"
+var serverDecodeHooks = mapstructure.ComposeDecodeHookFunc(
+	mapstructure.StringToTimeDurationHookFunc(),
+	mapstructure.StringToSliceHookFunc(","),
+	StringToEnumHookFunc(stringToScheme),
 )
 
 // ServerConfig contains fields, which configure both HTTP and gRPC
 // API serving.
 type ServerConfig struct {
-	Host      string `json:"host,omitempty"`
-	Protocol  Scheme `json:"protocol,omitempty"`
-	HTTPPort  int    `json:"httpPort,omitempty"`
-	HTTPSPort int    `json:"httpsPort,omitempty"`
-	GRPCPort  int    `json:"grpcPort,omitempty"`
-	CertFile  string `json:"certFile,omitempty"`
-	CertKey   string `json:"certKey,omitempty"`
+	Host      string `json:"host,omitempty" mapstructure:"host"`
+	Protocol  Scheme `json:"protocol,omitempty" mapstructure:"protocol"`
+	HTTPPort  int    `json:"httpPort,omitempty" mapstructure:"http_port"`
+	HTTPSPort int    `json:"httpsPort,omitempty" mapstructure:"https_port"`
+	GRPCPort  int    `json:"grpcPort,omitempty" mapstructure:"grpc_port"`
+	CertFile  string `json:"certFile,omitempty" mapstructure:"cert_file"`
+	CertKey   string `json:"certKey,omitempty" mapstructure:"cert_key"`
 }
 
-func (c *ServerConfig) init() (warnings []string, _ error) {
-	// read in configuration via viper
-	if viper.IsSet(serverHost) {
-		c.Host = viper.GetString(serverHost)
-	}
+func (c *ServerConfig) viperKey() string {
+	return "server"
+}
 
-	if viper.IsSet(serverProtocol) {
-		c.Protocol = stringToScheme[viper.GetString(serverProtocol)]
-	}
+func (c *ServerConfig) unmarshalViper(v *viper.Viper) (warnings []string, err error) {
+	v.SetDefault("host", "0.0.0.0")
+	v.SetDefault("protocol", HTTP)
+	v.SetDefault("http_port", 8080)
+	v.SetDefault("https_port", 443)
+	v.SetDefault("grpc_port", 9000)
 
-	if viper.IsSet(serverHTTPPort) {
-		c.HTTPPort = viper.GetInt(serverHTTPPort)
-	}
-
-	if viper.IsSet(serverHTTPSPort) {
-		c.HTTPSPort = viper.GetInt(serverHTTPSPort)
-	}
-
-	if viper.IsSet(serverGRPCPort) {
-		c.GRPCPort = viper.GetInt(serverGRPCPort)
-	}
-
-	if viper.IsSet(serverCertFile) {
-		c.CertFile = viper.GetString(serverCertFile)
-	}
-
-	if viper.IsSet(serverCertKey) {
-		c.CertKey = viper.GetString(serverCertKey)
+	if err = v.Unmarshal(c, viper.DecodeHook(serverDecodeHooks)); err != nil {
+		return
 	}
 
 	// validate configuration is as expected

@@ -28,14 +28,6 @@ type Config struct {
 
 func Default() *Config {
 	return &Config{
-		Server: ServerConfig{
-			Host:      "0.0.0.0",
-			Protocol:  HTTP,
-			HTTPPort:  8080,
-			HTTPSPort: 443,
-			GRPCPort:  9000,
-		},
-
 		Tracing: TracingConfig{
 			Jaeger: JaegerTracingConfig{
 				Enabled: false,
@@ -73,7 +65,6 @@ func Load(path string) (*Config, error) {
 	for _, initializer := range []interface {
 		init() (warnings []string, err error)
 	}{
-		&cfg.Server,
 		&cfg.Tracing,
 		&cfg.Database,
 		&cfg.Meta,
@@ -94,6 +85,7 @@ func Load(path string) (*Config, error) {
 		&cfg.UI,
 		&cfg.Cors,
 		&cfg.Cache,
+		&cfg.Server,
 	} {
 		if v := viper.Sub(unmarshaller.viperKey()); v != nil {
 			warnings, err := unmarshaller.unmarshalViper(v)
