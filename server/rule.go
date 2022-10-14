@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 
+	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
 	"go.uber.org/zap"
 	empty "google.golang.org/protobuf/types/known/emptypb"
 )

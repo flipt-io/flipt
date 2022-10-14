@@ -40,7 +40,7 @@
         <a
           class="navbar-item has-text-weight-semibold"
           target="_blank"
-          href="https://flipt.io/docs/getting_started/?utm_source=app"
+          href="https://www.flipt.io/docs?utm_source=app"
         >
           Documentation
         </a>

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/sql/common"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"

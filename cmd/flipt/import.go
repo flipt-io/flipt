@@ -11,11 +11,11 @@ import (
 	"syscall"
 
 	"go.flipt.io/flipt/internal/ext"
-	"go.flipt.io/flipt/storage"
-	"go.flipt.io/flipt/storage/sql"
-	"go.flipt.io/flipt/storage/sql/mysql"
-	"go.flipt.io/flipt/storage/sql/postgres"
-	"go.flipt.io/flipt/storage/sql/sqlite"
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/internal/storage/sql/mysql"
+	"go.flipt.io/flipt/internal/storage/sql/postgres"
+	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.uber.org/zap"
 )
 

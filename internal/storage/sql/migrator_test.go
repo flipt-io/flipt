@@ -83,7 +83,7 @@ func TestMigratorRun_NoChange(t *testing.T) {
 
 func TestMigratorExpectedVersions(t *testing.T) {
 	for db, driver := range stringToDriver {
-		migrations, err := ioutil.ReadDir(filepath.Join("../../config/migrations", db))
+		migrations, err := ioutil.ReadDir(filepath.Join("../../../config/migrations", db))
 		require.NoError(t, err)
 
 		count := len(migrations)
