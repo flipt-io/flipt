@@ -3,53 +3,41 @@ package config
 import (
 	"encoding/json"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
-)
-
-const (
-	// configuration keys
-	logLevel     = "log.level"
-	logFile      = "log.file"
-	logEncoding  = "log.encoding"
-	logGRPCLevel = "log.grpc_level"
-
-	// encoding enum
-	_ LogEncoding = iota
-	LogEncodingConsole
-	LogEncodingJSON
 )
 
 // LogConfig contains fields which control, direct and filter
 // the logging telemetry produces by Flipt.
 type LogConfig struct {
-	Level     string      `json:"level,omitempty"`
-	File      string      `json:"file,omitempty"`
-	Encoding  LogEncoding `json:"encoding,omitempty"`
-	GRPCLevel string      `json:"grpc_level,omitempty"`
-}
-
-func (c *LogConfig) init() (_ []string, _ error) {
-	if viper.IsSet(logLevel) {
-		c.Level = viper.GetString(logLevel)
-	}
-
-	if viper.IsSet(logFile) {
-		c.File = viper.GetString(logFile)
-	}
-
-	if viper.IsSet(logEncoding) {
-		c.Encoding = stringToLogEncoding[viper.GetString(logEncoding)]
-	}
-
-	if viper.IsSet(logGRPCLevel) {
-		c.GRPCLevel = viper.GetString(logGRPCLevel)
-	}
-
-	return
+	Level     string      `json:"level,omitempty" mapstructure:"level"`
+	File      string      `json:"file,omitempty" mapstructure:"file"`
+	Encoding  LogEncoding `json:"encoding,omitempty" mapstructure:"encoding"`
+	GRPCLevel string      `json:"grpc_level,omitempty" mapstructure:"grpc_level"`
 }
 
 var (
-	logEncodingToString = map[LogEncoding]string{
+	logDecodeHooks = mapstructure.ComposeDecodeHookFunc(
+		mapstructure.StringToTimeDurationHookFunc(),
+		mapstructure.StringToSliceHookFunc(","),
+		StringToEnumHookFunc(stringToLogEncoding),
+	)
+)
+
+func (c *LogConfig) viperKey() string {
+	return "log"
+}
+
+func (c *LogConfig) unmarshalViper(v *viper.Viper) (_ []string, _ error) {
+	v.SetDefault("level", "INFO")
+	v.SetDefault("encoding", "console")
+	v.SetDefault("grpc_level", "ERROR")
+
+	return nil, v.Unmarshal(c, viper.DecodeHook(logDecodeHooks))
+}
+
+var (
+	logEncodingToString = [...]string{
 		LogEncodingConsole: "console",
 		LogEncodingJSON:    "json",
 	}
@@ -62,6 +50,12 @@ var (
 
 // LogEncoding is either console or JSON
 type LogEncoding uint8
+
+const (
+	_ LogEncoding = iota
+	LogEncodingConsole
+	LogEncodingJSON
+)
 
 func (e LogEncoding) String() string {
 	return logEncodingToString[e]
