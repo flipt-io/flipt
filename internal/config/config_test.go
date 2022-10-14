@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -153,7 +154,7 @@ func TestLoad(t *testing.T) {
 	tests := []struct {
 		name     string
 		path     string
-		wantErr  bool
+		wantErr  error
 		expected func() *Config
 	}{
 		{
@@ -235,6 +236,41 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name:    "server - https missing cert file",
+			path:    "./testdata/server/https_missing_cert_file.yml",
+			wantErr: errValidationRequired,
+		},
+		{
+			name:    "server - https missing cert key",
+			path:    "./testdata/server/https_missing_cert_key.yml",
+			wantErr: errValidationRequired,
+		},
+		{
+			name:    "server - https defined but not found cert file",
+			path:    "./testdata/server/https_not_found_cert_file.yml",
+			wantErr: fs.ErrNotExist,
+		},
+		{
+			name:    "server - https defined but not found cert key",
+			path:    "./testdata/server/https_not_found_cert_key.yml",
+			wantErr: fs.ErrNotExist,
+		},
+		{
+			name:    "database - protocol required",
+			path:    "./testdata/database/missing_protocol.yml",
+			wantErr: errValidationRequired,
+		},
+		{
+			name:    "database - host required",
+			path:    "./testdata/database/missing_host.yml",
+			wantErr: errValidationRequired,
+		},
+		{
+			name:    "database - name required",
+			path:    "./testdata/database/missing_name.yml",
+			wantErr: errValidationRequired,
+		},
+		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
@@ -293,14 +329,19 @@ func TestLoad(t *testing.T) {
 		var (
 			path     = tt.path
 			wantErr  = tt.wantErr
-			expected = tt.expected()
+			expected *Config
 		)
+
+		if tt.expected != nil {
+			expected = tt.expected()
+		}
 
 		t.Run(tt.name, func(t *testing.T) {
 			cfg, err := Load(path)
 
-			if wantErr {
-				require.Error(t, err)
+			if wantErr != nil {
+				t.Log(err)
+				require.ErrorIs(t, err, wantErr)
 				return
 			}
 
@@ -308,137 +349,6 @@ func TestLoad(t *testing.T) {
 
 			assert.NotNil(t, cfg)
 			assert.Equal(t, expected, cfg)
-		})
-	}
-}
-
-func TestValidate(t *testing.T) {
-	tests := []struct {
-		name       string
-		cfg        *Config
-		wantErrMsg string
-	}{
-		{
-			name: "https: valid",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTPS,
-					CertFile: "./testdata/ssl_cert.pem",
-					CertKey:  "./testdata/ssl_key.pem",
-				},
-				Database: DatabaseConfig{
-					URL: "localhost",
-				},
-			},
-		},
-		{
-			name: "http: valid",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTP,
-				},
-				Database: DatabaseConfig{
-					URL: "localhost",
-				},
-			},
-		},
-		{
-			name: "https: empty cert_file path",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTPS,
-					CertFile: "",
-					CertKey:  "./testdata/ssl_key.pem",
-				},
-			},
-			wantErrMsg: "server.cert_file cannot be empty when using HTTPS",
-		},
-		{
-			name: "https: empty key_file path",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTPS,
-					CertFile: "./testdata/ssl_cert.pem",
-					CertKey:  "",
-				},
-			},
-			wantErrMsg: "server.cert_key cannot be empty when using HTTPS",
-		},
-		{
-			name: "https: missing cert_file",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTPS,
-					CertFile: "foo.pem",
-					CertKey:  "./testdata/ssl_key.pem",
-				},
-			},
-			wantErrMsg: "cannot find TLS server.cert_file at \"foo.pem\"",
-		},
-		{
-			name: "https: missing key_file",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTPS,
-					CertFile: "./testdata/ssl_cert.pem",
-					CertKey:  "bar.pem",
-				},
-			},
-			wantErrMsg: "cannot find TLS server.cert_key at \"bar.pem\"",
-		},
-		{
-			name: "db: missing protocol",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTP,
-				},
-				Database: DatabaseConfig{},
-			},
-			wantErrMsg: "database.protocol cannot be empty",
-		},
-		{
-			name: "db: missing host",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTP,
-				},
-				Database: DatabaseConfig{
-					Protocol: DatabaseSQLite,
-				},
-			},
-			wantErrMsg: "database.host cannot be empty",
-		},
-		{
-			name: "db: missing name",
-			cfg: &Config{
-				Server: ServerConfig{
-					Protocol: HTTP,
-				},
-				Database: DatabaseConfig{
-					Protocol: DatabaseSQLite,
-					Host:     "localhost",
-				},
-			},
-			wantErrMsg: "database.name cannot be empty",
-		},
-	}
-
-	for _, tt := range tests {
-		var (
-			cfg        = tt.cfg
-			wantErrMsg = tt.wantErrMsg
-		)
-
-		t.Run(tt.name, func(t *testing.T) {
-			err := cfg.validate()
-
-			if wantErrMsg != "" {
-				require.Error(t, err)
-				assert.EqualError(t, err, wantErrMsg)
-				return
-			}
-
-			require.NoError(t, err)
 		})
 	}
 }
