@@ -23,7 +23,7 @@ type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
 }
 
-func (c *TracingConfig) init() (warnings []string, _ error) {
+func (c *TracingConfig) init() ([]string, error) {
 	if viper.IsSet(tracingJaegerEnabled) {
 		c.Jaeger.Enabled = viper.GetBool(tracingJaegerEnabled)
 
@@ -36,5 +36,5 @@ func (c *TracingConfig) init() (warnings []string, _ error) {
 		}
 	}
 
-	return
+	return nil, nil
 }

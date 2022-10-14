@@ -8,9 +8,9 @@ import (
 const fieldErrFmt = "field %q: %w"
 
 var (
-	// ErrValidationRequired is returned when a required value is
+	// errValidationRequired is returned when a required value is
 	// either not supplied or supplied with empty value.
-	ErrValidationRequired = errors.New("non-empty value is required")
+	errValidationRequired = errors.New("non-empty value is required")
 )
 
 func errFieldWrap(field string, err error) error {
@@ -18,5 +18,5 @@ func errFieldWrap(field string, err error) error {
 }
 
 func errFieldRequired(field string) error {
-	return errFieldWrap(field, ErrValidationRequired)
+	return errFieldWrap(field, errValidationRequired)
 }

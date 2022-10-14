@@ -127,8 +127,6 @@ func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
-const ()
-
 var (
 	databaseProtocolToString = map[DatabaseProtocol]string{
 		DatabaseSQLite:   "file",

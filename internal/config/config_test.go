@@ -238,12 +238,12 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "server - https missing cert file",
 			path:    "./testdata/server/https_missing_cert_file.yml",
-			wantErr: ErrValidationRequired,
+			wantErr: errValidationRequired,
 		},
 		{
 			name:    "server - https missing cert key",
 			path:    "./testdata/server/https_missing_cert_key.yml",
-			wantErr: ErrValidationRequired,
+			wantErr: errValidationRequired,
 		},
 		{
 			name:    "server - https defined but not found cert file",
@@ -258,17 +258,17 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "database - protocol required",
 			path:    "./testdata/database/missing_protocol.yml",
-			wantErr: ErrValidationRequired,
+			wantErr: errValidationRequired,
 		},
 		{
 			name:    "database - host required",
 			path:    "./testdata/database/missing_host.yml",
-			wantErr: ErrValidationRequired,
+			wantErr: errValidationRequired,
 		},
 		{
 			name:    "database - name required",
 			path:    "./testdata/database/missing_name.yml",
-			wantErr: ErrValidationRequired,
+			wantErr: errValidationRequired,
 		},
 		{
 			name: "advanced",
@@ -327,22 +327,25 @@ func TestLoad(t *testing.T) {
 
 	for _, tt := range tests {
 		var (
-			path    = tt.path
-			wantErr = tt.wantErr
+			path     = tt.path
+			wantErr  = tt.wantErr
+			expected *Config
 		)
+
+		if tt.expected != nil {
+			expected = tt.expected()
+		}
 
 		t.Run(tt.name, func(t *testing.T) {
 			cfg, err := Load(path)
 
 			if wantErr != nil {
 				t.Log(err)
-				require.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, wantErr)
 				return
 			}
 
 			require.NoError(t, err)
-
-			expected := tt.expected()
 
 			assert.NotNil(t, cfg)
 			assert.Equal(t, expected, cfg)
