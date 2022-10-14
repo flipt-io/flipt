@@ -290,6 +290,7 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
+				cfg.Cache.TTL = 1 * time.Minute
 				cfg.Cache.Memory = MemoryCacheConfig{
 					EvictionInterval: 5 * time.Minute,
 				}

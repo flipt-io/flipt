@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -29,21 +28,6 @@ type Config struct {
 
 func Default() *Config {
 	return &Config{
-		Cache: CacheConfig{
-			Enabled: false,
-			Backend: CacheMemory,
-			TTL:     1 * time.Minute,
-			Memory: MemoryCacheConfig{
-				EvictionInterval: 5 * time.Minute,
-			},
-			Redis: RedisCacheConfig{
-				Host:     "localhost",
-				Port:     6379,
-				Password: "",
-				DB:       0,
-			},
-		},
-
 		Server: ServerConfig{
 			Host:      "0.0.0.0",
 			Protocol:  HTTP,
@@ -89,7 +73,6 @@ func Load(path string) (*Config, error) {
 	for _, initializer := range []interface {
 		init() (warnings []string, err error)
 	}{
-		&cfg.Cache,
 		&cfg.Server,
 		&cfg.Tracing,
 		&cfg.Database,
@@ -110,6 +93,7 @@ func Load(path string) (*Config, error) {
 		&cfg.Log,
 		&cfg.UI,
 		&cfg.Cors,
+		&cfg.Cache,
 	} {
 		if v := viper.Sub(unmarshaller.viperKey()); v != nil {
 			warnings, err := unmarshaller.unmarshalViper(v)
