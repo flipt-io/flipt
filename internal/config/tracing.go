@@ -2,19 +2,12 @@ package config
 
 import "github.com/spf13/viper"
 
-const (
-	// configuration keys
-	tracingJaegerEnabled = "tracing.jaeger.enabled"
-	tracingJaegerHost    = "tracing.jaeger.host"
-	tracingJaegerPort    = "tracing.jaeger.port"
-)
-
 // JaegerTracingConfig contains fields, which configure specifically
 // Jaeger span and tracing output destination.
 type JaegerTracingConfig struct {
-	Enabled bool   `json:"enabled,omitempty"`
-	Host    string `json:"host,omitempty"`
-	Port    int    `json:"port,omitempty"`
+	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled"`
+	Host    string `json:"host,omitempty" mapstructure:"host"`
+	Port    int    `json:"port,omitempty" mapstructure:"port"`
 }
 
 // TracingConfig contains fields, which configure tracing telemetry
@@ -23,18 +16,16 @@ type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
 }
 
-func (c *TracingConfig) init() ([]string, error) {
-	if viper.IsSet(tracingJaegerEnabled) {
-		c.Jaeger.Enabled = viper.GetBool(tracingJaegerEnabled)
+func (c *TracingConfig) viperKey() string {
+	return "tracing"
+}
 
-		if viper.IsSet(tracingJaegerHost) {
-			c.Jaeger.Host = viper.GetString(tracingJaegerHost)
-		}
-
-		if viper.IsSet(tracingJaegerPort) {
-			c.Jaeger.Port = viper.GetInt(tracingJaegerPort)
-		}
+func (c *TracingConfig) unmarshalViper(v *viper.Viper) ([]string, error) {
+	if v.IsSet("jaeger.enabled") {
+		v.SetDefault("jaeger", map[string]any{
+			"host": "localhost",
+			"port": 6831,
+		})
 	}
-
-	return nil, nil
+	return nil, v.Unmarshal(c)
 }

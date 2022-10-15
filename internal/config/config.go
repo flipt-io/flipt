@@ -10,8 +10,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/constraints"
-
-	jaeger "github.com/uber/jaeger-client-go"
 )
 
 type Config struct {
@@ -28,14 +26,6 @@ type Config struct {
 
 func Default() *Config {
 	return &Config{
-		Tracing: TracingConfig{
-			Jaeger: JaegerTracingConfig{
-				Enabled: false,
-				Host:    jaeger.DefaultUDPSpanServerHost,
-				Port:    jaeger.DefaultUDPSpanServerPort,
-			},
-		},
-
 		Database: DatabaseConfig{
 			URL:            "file:/var/opt/flipt/flipt.db",
 			MigrationsPath: "/etc/flipt/config/migrations",
@@ -65,7 +55,6 @@ func Load(path string) (*Config, error) {
 	for _, initializer := range []interface {
 		init() (warnings []string, err error)
 	}{
-		&cfg.Tracing,
 		&cfg.Database,
 		&cfg.Meta,
 	} {
@@ -86,6 +75,7 @@ func Load(path string) (*Config, error) {
 		&cfg.Cors,
 		&cfg.Cache,
 		&cfg.Server,
+		&cfg.Tracing,
 	} {
 		if v := viper.Sub(unmarshaller.viperKey()); v != nil {
 			warnings, err := unmarshaller.unmarshalViper(v)
