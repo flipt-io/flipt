@@ -45,26 +45,20 @@ func (c *CacheConfig) unmarshalViper(v *viper.Viper) (warnings []string, err err
 		mem.SetDefault("eviction_interval", 5*time.Minute)
 		// handle legacy memory structure
 		if mem.GetBool("enabled") {
+			warnings = append(warnings, deprecatedMsgMemoryEnabled)
 			// forcibly set top-level `enabled` to true
 			v.Set("enabled", true)
 			// ensure ttl is mapped to the value at memory.expiration
 			v.RegisterAlias("ttl", "memory.expiration")
+
 		}
-	}
 
-	if err = v.Unmarshal(c, viper.DecodeHook(cacheDecodeHooks)); err != nil {
-		return
-	}
-
-	if v.GetBool("memory.enabled") { // handle deprecated memory config
-		warnings = append(warnings, deprecatedMsgMemoryEnabled)
-
-		if v.IsSet("memory.expiration") {
+		if mem.IsSet("expiration") {
 			warnings = append(warnings, deprecatedMsgMemoryExpiration)
 		}
 	}
 
-	return
+	return warnings, v.Unmarshal(c, viper.DecodeHook(cacheDecodeHooks))
 }
 
 // CacheBackend is either memory or redis
