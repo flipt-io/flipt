@@ -4,23 +4,11 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
 const (
-	// configuration keys
-	dbURL             = "db.url"
-	dbMigrationsPath  = "db.migrations.path"
-	dbMaxIdleConn     = "db.max_idle_conn"
-	dbMaxOpenConn     = "db.max_open_conn"
-	dbConnMaxLifetime = "db.conn_max_lifetime"
-	dbName            = "db.name"
-	dbUser            = "db.user"
-	dbPassword        = "db.password"
-	dbHost            = "db.host"
-	dbPort            = "db.port"
-	dbProtocol        = "db.protocol"
-
 	// database protocol enum
 	_ DatabaseProtocol = iota
 	// DatabaseSQLite ...
@@ -31,71 +19,52 @@ const (
 	DatabaseMySQL
 )
 
+var dbProtocolDecodeHooks = mapstructure.ComposeDecodeHookFunc(
+	mapstructure.StringToTimeDurationHookFunc(),
+	mapstructure.StringToSliceHookFunc(","),
+	StringToEnumHookFunc(stringToDatabaseProtocol),
+)
+
 // DatabaseConfig contains fields, which configure the various relational database backends.
 //
 // Flipt currently supports SQLite, Postgres and MySQL backends.
 type DatabaseConfig struct {
-	MigrationsPath  string           `json:"migrationsPath,omitempty"`
-	URL             string           `json:"url,omitempty"`
-	MaxIdleConn     int              `json:"maxIdleConn,omitempty"`
-	MaxOpenConn     int              `json:"maxOpenConn,omitempty"`
-	ConnMaxLifetime time.Duration    `json:"connMaxLifetime,omitempty"`
-	Name            string           `json:"name,omitempty"`
-	User            string           `json:"user,omitempty"`
-	Password        string           `json:"password,omitempty"`
-	Host            string           `json:"host,omitempty"`
-	Port            int              `json:"port,omitempty"`
-	Protocol        DatabaseProtocol `json:"protocol,omitempty"`
+	MigrationsPath  string           `json:"migrationsPath,omitempty" mapstructure:"migrations_path"`
+	URL             string           `json:"url,omitempty" mapstructure:"url"`
+	MaxIdleConn     int              `json:"maxIdleConn,omitempty" mapstructure:"max_idle_conn"`
+	MaxOpenConn     int              `json:"maxOpenConn,omitempty" mapstructure:"max_open_conn"`
+	ConnMaxLifetime time.Duration    `json:"connMaxLifetime,omitempty" mapstructure:"conn_max_lifetime"`
+	Name            string           `json:"name,omitempty" mapstructure:"name"`
+	User            string           `json:"user,omitempty" mapstructure:"user"`
+	Password        string           `json:"password,omitempty" mapstructure:"password"`
+	Host            string           `json:"host,omitempty" mapstructure:"host"`
+	Port            int              `json:"port,omitempty" mapstructure:"port"`
+	Protocol        DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol"`
 }
 
-func (c *DatabaseConfig) init() (warnings []string, _ error) {
-	// read in configuration via viper
-	if viper.IsSet(dbURL) {
-		c.URL = viper.GetString(dbURL)
+func (c *DatabaseConfig) viperKey() string {
+	return "db"
+}
 
-	} else if viper.IsSet(dbProtocol) || viper.IsSet(dbName) || viper.IsSet(dbUser) || viper.IsSet(dbPassword) || viper.IsSet(dbHost) || viper.IsSet(dbPort) {
-		c.URL = ""
+func (c *DatabaseConfig) unmarshalViper(v *viper.Viper) (warnings []string, err error) {
+	// supports nesting `path` beneath `migrations` key
+	v.RegisterAlias("migrations_path", "migrations.path")
+	v.SetDefault("migrations_path", "/etc/flipt/config/migrations")
+	v.SetDefault("max_idle_conn", 2)
 
-		if viper.IsSet(dbProtocol) {
-			c.Protocol = stringToDatabaseProtocol[viper.GetString(dbProtocol)]
-		}
-
-		if viper.IsSet(dbName) {
-			c.Name = viper.GetString(dbName)
-		}
-
-		if viper.IsSet(dbUser) {
-			c.User = viper.GetString(dbUser)
-		}
-
-		if viper.IsSet(dbPassword) {
-			c.Password = viper.GetString(dbPassword)
-		}
-
-		if viper.IsSet(dbHost) {
-			c.Host = viper.GetString(dbHost)
-		}
-
-		if viper.IsSet(dbPort) {
-			c.Port = viper.GetInt(dbPort)
-		}
-
+	// URL default is only set given that none of the alternative
+	// database connections parameters are provided
+	setDefaultURL := true
+	for _, field := range []string{"name", "user", "password", "host", "port", "protocol"} {
+		setDefaultURL = setDefaultURL && !v.IsSet(field)
 	}
 
-	if viper.IsSet(dbMigrationsPath) {
-		c.MigrationsPath = viper.GetString(dbMigrationsPath)
+	if setDefaultURL {
+		v.SetDefault("url", "file:/var/opt/flipt/flipt.db")
 	}
 
-	if viper.IsSet(dbMaxIdleConn) {
-		c.MaxIdleConn = viper.GetInt(dbMaxIdleConn)
-	}
-
-	if viper.IsSet(dbMaxOpenConn) {
-		c.MaxOpenConn = viper.GetInt(dbMaxOpenConn)
-	}
-
-	if viper.IsSet(dbConnMaxLifetime) {
-		c.ConnMaxLifetime = viper.GetDuration(dbConnMaxLifetime)
+	if err = v.Unmarshal(c, viper.DecodeHook(dbProtocolDecodeHooks)); err != nil {
+		return
 	}
 
 	// validation

@@ -26,12 +26,6 @@ type Config struct {
 
 func Default() *Config {
 	return &Config{
-		Database: DatabaseConfig{
-			URL:            "file:/var/opt/flipt/flipt.db",
-			MigrationsPath: "/etc/flipt/config/migrations",
-			MaxIdleConn:    2,
-		},
-
 		Meta: MetaConfig{
 			CheckForUpdates:  true,
 			TelemetryEnabled: true,
@@ -55,7 +49,6 @@ func Load(path string) (*Config, error) {
 	for _, initializer := range []interface {
 		init() (warnings []string, err error)
 	}{
-		&cfg.Database,
 		&cfg.Meta,
 	} {
 		warnings, err := initializer.init()
@@ -76,6 +69,7 @@ func Load(path string) (*Config, error) {
 		&cfg.Cache,
 		&cfg.Server,
 		&cfg.Tracing,
+		&cfg.Database,
 	} {
 		if v := viper.Sub(unmarshaller.viperKey()); v != nil {
 			warnings, err := unmarshaller.unmarshalViper(v)

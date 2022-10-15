@@ -16,12 +16,10 @@ type LogConfig struct {
 	GRPCLevel string      `json:"grpc_level,omitempty" mapstructure:"grpc_level"`
 }
 
-var (
-	logDecodeHooks = mapstructure.ComposeDecodeHookFunc(
-		mapstructure.StringToTimeDurationHookFunc(),
-		mapstructure.StringToSliceHookFunc(","),
-		StringToEnumHookFunc(stringToLogEncoding),
-	)
+var logDecodeHooks = mapstructure.ComposeDecodeHookFunc(
+	mapstructure.StringToTimeDurationHookFunc(),
+	mapstructure.StringToSliceHookFunc(","),
+	StringToEnumHookFunc(stringToLogEncoding),
 )
 
 func (c *LogConfig) viperKey() string {
