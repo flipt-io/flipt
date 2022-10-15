@@ -31,28 +31,25 @@ func (c *CacheConfig) viperKey() string {
 }
 
 func (c *CacheConfig) unmarshalViper(v *viper.Viper) (warnings []string, err error) {
+	v.SetDefault("backend", CacheMemory)
+	v.SetDefault("ttl", 1*time.Minute)
+	v.SetDefault("redis", map[string]any{
+		"host": "localhost",
+		"port": 6379,
+	})
+	v.SetDefault("memory", map[string]any{
+		"eviction_interval": 5 * time.Minute,
+	})
+
 	if mem := v.Sub("memory"); mem != nil {
+		mem.SetDefault("eviction_interval", 5*time.Minute)
 		// handle legacy memory structure
 		if mem.GetBool("enabled") {
 			// forcibly set top-level `enabled` to true
 			v.Set("enabled", true)
 			// ensure ttl is mapped to the value at memory.expiration
 			v.RegisterAlias("ttl", "memory.expiration")
-		} else {
-			mem.SetDefault("eviction_interval", 5*time.Minute)
 		}
-	}
-
-	if redis := v.Sub("redis"); redis != nil {
-		redis.SetDefault("host", "localhost")
-		redis.SetDefault("port", 6379)
-		redis.SetDefault("password", "")
-		redis.SetDefault("db", 0)
-	}
-
-	if v.GetBool("enabled") {
-		v.SetDefault("backend", CacheMemory)
-		v.SetDefault("ttl", 1*time.Minute)
 	}
 
 	if err = v.Unmarshal(c, viper.DecodeHook(cacheDecodeHooks)); err != nil {

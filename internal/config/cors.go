@@ -14,5 +14,6 @@ func (c *CorsConfig) viperKey() string {
 }
 
 func (c *CorsConfig) unmarshalViper(v *viper.Viper) (_ []string, _ error) {
+	v.SetDefault("allowed_origins", "*")
 	return nil, v.Unmarshal(c)
 }

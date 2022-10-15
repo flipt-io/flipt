@@ -21,11 +21,9 @@ func (c *TracingConfig) viperKey() string {
 }
 
 func (c *TracingConfig) unmarshalViper(v *viper.Viper) ([]string, error) {
-	if v.IsSet("jaeger.enabled") {
-		v.SetDefault("jaeger", map[string]any{
-			"host": "localhost",
-			"port": 6831,
-		})
-	}
+	v.SetDefault("jaeger", map[string]any{
+		"host": "localhost",
+		"port": 6831,
+	})
 	return nil, v.Unmarshal(c)
 }

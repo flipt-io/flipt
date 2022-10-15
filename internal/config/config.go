@@ -24,16 +24,6 @@ type Config struct {
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
-func Default() *Config {
-	return &Config{
-		Meta: MetaConfig{
-			CheckForUpdates:  true,
-			TelemetryEnabled: true,
-			StateDirectory:   "",
-		},
-	}
-}
-
 func Load(path string) (*Config, error) {
 	viper.SetEnvPrefix("FLIPT")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -45,19 +35,7 @@ func Load(path string) (*Config, error) {
 		return nil, fmt.Errorf("loading configuration: %w", err)
 	}
 
-	cfg := Default()
-	for _, initializer := range []interface {
-		init() (warnings []string, err error)
-	}{
-		&cfg.Meta,
-	} {
-		warnings, err := initializer.init()
-		if err != nil {
-			return nil, err
-		}
-
-		cfg.Warnings = append(cfg.Warnings, warnings...)
-	}
+	cfg := &Config{}
 
 	for _, unmarshaller := range []interface {
 		viperKey() string
@@ -70,15 +48,19 @@ func Load(path string) (*Config, error) {
 		&cfg.Server,
 		&cfg.Tracing,
 		&cfg.Database,
+		&cfg.Meta,
 	} {
-		if v := viper.Sub(unmarshaller.viperKey()); v != nil {
-			warnings, err := unmarshaller.unmarshalViper(v)
-			if err != nil {
-				return nil, err
-			}
-
-			cfg.Warnings = append(cfg.Warnings, warnings...)
+		v := viper.Sub(unmarshaller.viperKey())
+		if v == nil {
+			v = viper.New()
 		}
+
+		warnings, err := unmarshaller.unmarshalViper(v)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg.Warnings = append(cfg.Warnings, warnings...)
 	}
 
 	return cfg, nil

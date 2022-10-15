@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uber/jaeger-client-go"
 )
 
 func TestScheme(t *testing.T) {
@@ -150,6 +151,68 @@ func TestLogEncoding(t *testing.T) {
 	}
 }
 
+func defaultConfig() *Config {
+	return &Config{
+		Log: LogConfig{
+			Level:     "INFO",
+			Encoding:  LogEncodingConsole,
+			GRPCLevel: "ERROR",
+		},
+
+		UI: UIConfig{
+			Enabled: true,
+		},
+
+		Cors: CorsConfig{
+			Enabled:        false,
+			AllowedOrigins: []string{"*"},
+		},
+
+		Cache: CacheConfig{
+			Enabled: false,
+			Backend: CacheMemory,
+			TTL:     1 * time.Minute,
+			Memory: MemoryCacheConfig{
+				EvictionInterval: 5 * time.Minute,
+			},
+			Redis: RedisCacheConfig{
+				Host:     "localhost",
+				Port:     6379,
+				Password: "",
+				DB:       0,
+			},
+		},
+
+		Server: ServerConfig{
+			Host:      "0.0.0.0",
+			Protocol:  HTTP,
+			HTTPPort:  8080,
+			HTTPSPort: 443,
+			GRPCPort:  9000,
+		},
+
+		Tracing: TracingConfig{
+			Jaeger: JaegerTracingConfig{
+				Enabled: false,
+				Host:    jaeger.DefaultUDPSpanServerHost,
+				Port:    jaeger.DefaultUDPSpanServerPort,
+			},
+		},
+
+		Database: DatabaseConfig{
+			URL:            "file:/var/opt/flipt/flipt.db",
+			MigrationsPath: "/etc/flipt/config/migrations",
+			MaxIdleConn:    2,
+		},
+
+		Meta: MetaConfig{
+			CheckForUpdates:  true,
+			TelemetryEnabled: true,
+			StateDirectory:   "",
+		},
+	}
+}
+
 func TestLoad(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -160,18 +223,18 @@ func TestLoad(t *testing.T) {
 		{
 			name:     "defaults",
 			path:     "./testdata/default.yml",
-			expected: Default,
+			expected: defaultConfig,
 		},
 		{
 			name:     "deprecated - cache memory items defaults",
 			path:     "./testdata/deprecated/cache_memory_items.yml",
-			expected: Default,
+			expected: defaultConfig,
 		},
 		{
 			name: "deprecated - cache memory enabled",
 			path: "./testdata/deprecated/cache_memory_enabled.yml",
 			expected: func() *Config {
-				cfg := Default()
+				cfg := defaultConfig()
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = -1
@@ -183,7 +246,7 @@ func TestLoad(t *testing.T) {
 			name: "cache - no backend set",
 			path: "./testdata/cache/default.yml",
 			expected: func() *Config {
-				cfg := Default()
+				cfg := defaultConfig()
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = 30 * time.Minute
@@ -194,7 +257,7 @@ func TestLoad(t *testing.T) {
 			name: "cache - memory",
 			path: "./testdata/cache/memory.yml",
 			expected: func() *Config {
-				cfg := Default()
+				cfg := defaultConfig()
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = 5 * time.Minute
@@ -206,7 +269,7 @@ func TestLoad(t *testing.T) {
 			name: "cache - redis",
 			path: "./testdata/cache/redis.yml",
 			expected: func() *Config {
-				cfg := Default()
+				cfg := defaultConfig()
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheRedis
 				cfg.Cache.TTL = time.Minute
@@ -221,7 +284,7 @@ func TestLoad(t *testing.T) {
 			name: "database key/value",
 			path: "./testdata/database.yml",
 			expected: func() *Config {
-				cfg := Default()
+				cfg := defaultConfig()
 				cfg.Database = DatabaseConfig{
 					Protocol:       DatabaseMySQL,
 					Host:           "localhost",
@@ -274,7 +337,7 @@ func TestLoad(t *testing.T) {
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
-				cfg := Default()
+				cfg := defaultConfig()
 				cfg.Log = LogConfig{
 					Level:     "WARN",
 					File:      "testLogFile.txt",
@@ -356,7 +419,7 @@ func TestLoad(t *testing.T) {
 
 func TestServeHTTP(t *testing.T) {
 	var (
-		cfg = Default()
+		cfg = defaultConfig()
 		req = httptest.NewRequest("GET", "http://example.com/foo", nil)
 		w   = httptest.NewRecorder()
 	)
