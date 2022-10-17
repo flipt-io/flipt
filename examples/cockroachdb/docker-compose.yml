@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  crdb:
+    image: cockroachdb/cockroach:latest-v21.2
+    networks:
+      - flipt_network
+    ports:
+     - "26257:26257"
+    command: start-single-node --insecure
+    volumes:
+     - "${PWD}/data:/cockroach/cockroach-data"
+
+  flipt:
+    build: .
+    depends_on:
+      - crdb
+    ports:
+      - "8080:8080"
+    networks:
+      - flipt_network
+    environment:
+      - FLIPT_DB_URL=cockroach://root@crdb:26257/defaultdb?sslmode=disable
+      - FLIPT_LOG_LEVEL=debug
+    command: ["./tmp/wait-for-it.sh", "crdb:26257", "--", "./flipt"]
+
+networks:
+  flipt_network:

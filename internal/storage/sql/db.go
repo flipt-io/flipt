@@ -14,11 +14,12 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.uber.org/zap"
 )
 
 // Open opens a connection to the db
-func Open(cfg config.Config) (*sql.DB, Driver, error) {
-	sql, driver, err := open(cfg, options{})
+func Open(cfg config.Config, logger *zap.Logger) (*sql.DB, Driver, error) {
+	sql, driver, err := open(cfg, logger, options{})
 	if err != nil {
 		return nil, 0, err
 	}
@@ -42,8 +43,8 @@ type options struct {
 	migrate     bool
 }
 
-func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
-	d, url, err := parse(cfg, opts)
+func open(cfg config.Config, logger *zap.Logger, opts options) (*sql.DB, Driver, error) {
+	d, url, err := parse(cfg, logger, opts)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -62,6 +63,9 @@ func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
 	case Postgres:
 		dr = &pq.Driver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemPostgreSQL}
+	case CockroachDB:
+		dr = &pq.Driver{}
+		attrs = []attribute.KeyValue{semconv.DBSystemCockroachdb}
 	case MySQL:
 		dr = &mysql.MySQLDriver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemMySQL}
@@ -90,15 +94,17 @@ func open(cfg config.Config, opts options) (*sql.DB, Driver, error) {
 
 var (
 	driverToString = map[Driver]string{
-		SQLite:   "sqlite3",
-		Postgres: "postgres",
-		MySQL:    "mysql",
+		SQLite:      "sqlite3",
+		Postgres:    "postgres",
+		MySQL:       "mysql",
+		CockroachDB: "cockroachdb",
 	}
 
 	stringToDriver = map[string]Driver{
-		"sqlite3":  SQLite,
-		"postgres": Postgres,
-		"mysql":    MySQL,
+		"sqlite3":     SQLite,
+		"postgres":    Postgres,
+		"mysql":       MySQL,
+		"cockroachdb": CockroachDB,
 	}
 )
 
@@ -117,9 +123,11 @@ const (
 	Postgres
 	// MySQL ...
 	MySQL
+	// CockroachDB ...
+	CockroachDB
 )
 
-func parse(cfg config.Config, opts options) (Driver, *dburl.URL, error) {
+func parse(cfg config.Config, _ *zap.Logger, opts options) (Driver, *dburl.URL, error) {
 	u := cfg.Database.URL
 
 	if u == "" {
@@ -151,13 +159,13 @@ func parse(cfg config.Config, opts options) (Driver, *dburl.URL, error) {
 		return 0, nil, fmt.Errorf("error parsing url: %q, %w", url, err)
 	}
 
-	driver := stringToDriver[url.Driver]
+	driver := stringToDriver[url.Unaliased]
 	if driver == 0 {
 		return 0, nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
 	}
 
 	switch driver {
-	case Postgres:
+	case Postgres, CockroachDB:
 		if opts.sslDisabled {
 			v := url.Query()
 			v.Set("sslmode", "disable")
