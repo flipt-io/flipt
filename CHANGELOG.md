@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Page token based pagination for `list` methods for forward compatibility with
   future versions of the API [#936](https://github.com/flipt-io/flipt/issues/936)
+- Support for CockroachDB :tada: [#1064](https://github.com/flipt-io/flipt/pull/1064)
 
 ### Changed
 
