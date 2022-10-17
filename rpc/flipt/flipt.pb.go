@@ -2617,7 +2617,7 @@ type CreateDistributionRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FlagKey   string  `protobuf:"bytes,1,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"` // TODO: remove before 1.0
+	FlagKey   string  `protobuf:"bytes,1,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
 	RuleId    string  `protobuf:"bytes,2,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	VariantId string  `protobuf:"bytes,3,opt,name=variant_id,json=variantId,proto3" json:"variant_id,omitempty"`
 	Rollout   float32 `protobuf:"fixed32,4,opt,name=rollout,proto3" json:"rollout,omitempty"`
@@ -2689,7 +2689,7 @@ type UpdateDistributionRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id        string  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FlagKey   string  `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"` // TODO: remove before 1.0
+	FlagKey   string  `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
 	RuleId    string  `protobuf:"bytes,3,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	VariantId string  `protobuf:"bytes,4,opt,name=variant_id,json=variantId,proto3" json:"variant_id,omitempty"`
 	Rollout   float32 `protobuf:"fixed32,5,opt,name=rollout,proto3" json:"rollout,omitempty"`
@@ -2768,7 +2768,7 @@ type DeleteDistributionRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id        string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FlagKey   string `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"` // TODO: remove before 1.0
+	FlagKey   string `protobuf:"bytes,2,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
 	RuleId    string `protobuf:"bytes,3,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	VariantId string `protobuf:"bytes,4,opt,name=variant_id,json=variantId,proto3" json:"variant_id,omitempty"`
 }
