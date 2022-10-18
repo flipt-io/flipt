@@ -148,7 +148,7 @@ func stringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstruc
 			return data, nil
 		}
 
-		enum, _ := mappings[data.(string)]
+		enum := mappings[data.(string)]
 
 		return enum, nil
 	}

@@ -6,6 +6,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// cheers up the unparam linter
+var _ defaulter = (*LogConfig)(nil)
+
 // LogConfig contains fields which control, direct and filter
 // the logging telemetry produces by Flipt.
 type LogConfig struct {

@@ -2,6 +2,9 @@ package config
 
 import "github.com/spf13/viper"
 
+// cheers up the unparam linter
+var _ defaulter = (*TracingConfig)(nil)
+
 // JaegerTracingConfig contains fields, which configure specifically
 // Jaeger span and tracing output destination.
 type JaegerTracingConfig struct {

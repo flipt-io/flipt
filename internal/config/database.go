@@ -7,6 +7,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// cheers up the unparam linter
+var _ defaulter = (*DatabaseConfig)(nil)
+
 const (
 	defaultMigrationsPath = "/etc/flipt/config/migrations"
 
