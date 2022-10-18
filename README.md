@@ -18,9 +18,6 @@
     <a href="https://github.com/flipt-io/flipt/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/flipt-io/flipt.svg" alt="GPL 3.0" />
     </a>
-    <a href="https://hub.docker.com/r/markphelps/flipt">
-        <img src="https://img.shields.io/docker/pulls/markphelps/flipt.svg" alt="Docker Pulls" />
-    </a>
     <a href="https://codecov.io/gh/flipt-io/flipt">
         <img src="https://codecov.io/gh/flipt-io/flipt/branch/main/graph/badge.svg" alt="Coverage" />
     </a>
@@ -76,16 +73,17 @@ Flipt supports use cases such as:
 - :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, SQLite, Redis.. Flipt supports it all.
+- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis.. Flipt supports it all.
 
 ## Works With
 
 <p align="center">
-    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 />
-    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
-    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
-    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
-    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
+    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 alt="SQLite" />
+    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 alt="MySQL" />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 alt="Postgres" />
+    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 alt="CockroachDB" />
+    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 alt="Redis" />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 alt="Prometheus" />
 </p>
 
 ## Try It

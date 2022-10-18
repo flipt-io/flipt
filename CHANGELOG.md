@@ -3,20 +3,33 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.13.0](https://github.com/markphelps/flipt/releases/tag/v1.13.0) - 2022-10-17
 
 ### Added
 
 - Page token based pagination for `list` methods for forward compatibility with
   future versions of the API [#936](https://github.com/flipt-io/flipt/issues/936)
+- Support for CockroachDB :tada: [#1064](https://github.com/flipt-io/flipt/pull/1064)
 
 ### Changed
 
 - Validation for `list` methods now requires a `limit` if requesting with an `offset` or `page_token`
+- Replaced OpenTracing with OpenTelemetry [#576](https://github.com/flipt-io/flipt/issues/576)
+- Updated favicon to new logo
+- Documentation link in app no longer uses redirects
+- Dependency updates
 
 ### Deprecated
 
 - Deprecated `offset` in `list` methods in favor of `page_token` [#936](https://github.com/flipt-io/flipt/issues/936)
+
+### Fixed
+
+- Correctly initialize shutdown context after interrupt [#1057](https://github.com/flipt-io/flipt/pull/1057)
+
+### Removed
+
+- Removed stacktrace from error logs [#1066](https://github.com/flipt-io/flipt/pull/1066)
 
 ## [v1.12.1](https://github.com/markphelps/flipt/releases/tag/v1.12.1) - 2022-09-30
 
