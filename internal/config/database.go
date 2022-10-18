@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
 const (
+	defaultMigrationsPath = "/etc/flipt/config/migrations"
+
 	// database protocol enum
 	_ DatabaseProtocol = iota
 	// DatabaseSQLite ...
@@ -17,12 +18,6 @@ const (
 	DatabasePostgres
 	// DatabaseMySQL ...
 	DatabaseMySQL
-)
-
-var dbProtocolDecodeHooks = mapstructure.ComposeDecodeHookFunc(
-	mapstructure.StringToTimeDurationHookFunc(),
-	mapstructure.StringToSliceHookFunc(","),
-	StringToEnumHookFunc(stringToDatabaseProtocol),
 )
 
 // DatabaseConfig contains fields, which configure the various relational database backends.
@@ -42,43 +37,44 @@ type DatabaseConfig struct {
 	Protocol        DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol"`
 }
 
-func (c *DatabaseConfig) viperKey() string {
-	return "db"
-}
-
-func (c *DatabaseConfig) unmarshalViper(v *viper.Viper) (warnings []string, err error) {
+func (c *DatabaseConfig) setDefaults(v *viper.Viper) []string {
 	// supports nesting `path` beneath `migrations` key
-	v.RegisterAlias("migrations_path", "migrations.path")
-	v.SetDefault("migrations_path", "/etc/flipt/config/migrations")
-	v.SetDefault("max_idle_conn", 2)
+	v.RegisterAlias("db.migrations_path", "db.migrations.path")
+
+	v.SetDefault("db", map[string]any{
+		"migrations_path": defaultMigrationsPath,
+		"migrations": map[string]any{
+			"path": defaultMigrationsPath,
+		},
+		"max_idle_conn": 2,
+	})
 
 	// URL default is only set given that none of the alternative
 	// database connections parameters are provided
 	setDefaultURL := true
 	for _, field := range []string{"name", "user", "password", "host", "port", "protocol"} {
-		setDefaultURL = setDefaultURL && !v.IsSet(field)
+		setDefaultURL = setDefaultURL && !v.IsSet("db."+field)
 	}
 
 	if setDefaultURL {
-		v.SetDefault("url", "file:/var/opt/flipt/flipt.db")
+		v.SetDefault("db.url", "file:/var/opt/flipt/flipt.db")
 	}
 
-	if err = v.Unmarshal(c, viper.DecodeHook(dbProtocolDecodeHooks)); err != nil {
-		return
-	}
+	return nil
+}
 
-	// validation
+func (c *DatabaseConfig) validate() (err error) {
 	if c.URL == "" {
 		if c.Protocol == 0 {
-			return nil, errFieldRequired("database.protocol")
+			return errFieldRequired("db.protocol")
 		}
 
 		if c.Host == "" {
-			return nil, errFieldRequired("database.host")
+			return errFieldRequired("db.host")
 		}
 
 		if c.Name == "" {
-			return nil, errFieldRequired("database.name")
+			return errFieldRequired("db.name")
 		}
 	}
 

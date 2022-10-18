@@ -16,14 +16,13 @@ type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
 }
 
-func (c *TracingConfig) viperKey() string {
-	return "tracing"
-}
-
-func (c *TracingConfig) unmarshalViper(v *viper.Viper) ([]string, error) {
-	v.SetDefault("jaeger", map[string]any{
-		"host": "localhost",
-		"port": 6831,
+func (c *TracingConfig) setDefaults(v *viper.Viper) []string {
+	v.SetDefault("tracing", map[string]any{
+		"jaeger": map[string]any{
+			"host": "localhost",
+			"port": 6831,
+		},
 	})
-	return nil, v.Unmarshal(c)
+
+	return nil
 }

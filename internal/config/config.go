@@ -12,58 +12,104 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+var decodeHooks = mapstructure.ComposeDecodeHookFunc(
+	mapstructure.StringToTimeDurationHookFunc(),
+	mapstructure.StringToSliceHookFunc(","),
+	StringToEnumHookFunc(stringToLogEncoding),
+	StringToEnumHookFunc(stringToCacheBackend),
+	StringToEnumHookFunc(stringToScheme),
+	StringToEnumHookFunc(stringToDatabaseProtocol),
+)
+
+// Config contains all of Flipts configuration needs.
+//
+// The root of this structure contains a collection of sub-configuration categories,
+// along with a set of warnings derived once the configuration has been loaded.
+//
+// Each sub-configuration (e.g. LogConfig) optionally implements either or both of
+// the defaulter or validator interfaces.
+// Given the sub-config implements a `setDefaults(*viper.Viper) []string` method
+// then this will be called with the viper context before unmarshalling.
+// This allows the sub-configuration to set any appropriate defaults.
+// Given the sub-config implements a `validate() error` method
+// then this will be called after unmarshalling, such that the function can emit
+// any errors derived from the resulting state of the configuration.
 type Config struct {
-	Log      LogConfig      `json:"log,omitempty"`
-	UI       UIConfig       `json:"ui,omitempty"`
-	Cors     CorsConfig     `json:"cors,omitempty"`
-	Cache    CacheConfig    `json:"cache,omitempty"`
-	Server   ServerConfig   `json:"server,omitempty"`
-	Tracing  TracingConfig  `json:"tracing,omitempty"`
-	Database DatabaseConfig `json:"database,omitempty"`
-	Meta     MetaConfig     `json:"meta,omitempty"`
+	Log      LogConfig      `json:"log,omitempty" mapstructure:"log"`
+	UI       UIConfig       `json:"ui,omitempty" mapstructure:"ui"`
+	Cors     CorsConfig     `json:"cors,omitempty" mapstructure:"cors"`
+	Cache    CacheConfig    `json:"cache,omitempty" mapstructure:"cache"`
+	Server   ServerConfig   `json:"server,omitempty" mapstructure:"server"`
+	Tracing  TracingConfig  `json:"tracing,omitempty" mapstructure:"tracing"`
+	Database DatabaseConfig `json:"database,omitempty" mapstructure:"db"`
+	Meta     MetaConfig     `json:"meta,omitempty" mapstructure:"meta"`
 	Warnings []string       `json:"warnings,omitempty"`
 }
 
 func Load(path string) (*Config, error) {
-	viper.SetEnvPrefix("FLIPT")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
+	v := viper.New()
+	v.SetEnvPrefix("FLIPT")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	v.AutomaticEnv()
 
-	viper.SetConfigFile(path)
+	v.SetConfigFile(path)
 
-	if err := viper.ReadInConfig(); err != nil {
+	if err := v.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("loading configuration: %w", err)
 	}
 
-	cfg := &Config{}
+	var (
+		cfg    = &Config{}
+		fields = cfg.fields()
+	)
 
-	for _, unmarshaller := range []interface {
-		viperKey() string
-		unmarshalViper(*viper.Viper) (warnings []string, err error)
-	}{
-		&cfg.Log,
-		&cfg.UI,
-		&cfg.Cors,
-		&cfg.Cache,
-		&cfg.Server,
-		&cfg.Tracing,
-		&cfg.Database,
-		&cfg.Meta,
-	} {
-		v := viper.Sub(unmarshaller.viperKey())
-		if v == nil {
-			v = viper.New()
-		}
+	// set viper defaults per field
+	for _, defaulter := range fields.defaulters {
+		cfg.Warnings = append(cfg.Warnings, defaulter.setDefaults(v)...)
+	}
 
-		warnings, err := unmarshaller.unmarshalViper(v)
-		if err != nil {
+	if err := v.Unmarshal(cfg, viper.DecodeHook(decodeHooks)); err != nil {
+		return nil, err
+	}
+
+	// run any validation steps
+	for _, validator := range fields.validators {
+		if err := validator.validate(); err != nil {
 			return nil, err
 		}
-
-		cfg.Warnings = append(cfg.Warnings, warnings...)
 	}
 
 	return cfg, nil
+}
+
+type defaulter interface {
+	setDefaults(v *viper.Viper) []string
+}
+
+type validator interface {
+	validate() error
+}
+
+type fields struct {
+	defaulters []defaulter
+	validators []validator
+}
+
+func (c *Config) fields() (fields fields) {
+	structVal := reflect.ValueOf(c).Elem()
+	for i := 0; i < structVal.NumField(); i++ {
+		field := structVal.Field(i).Addr().Interface()
+
+		if defaulter, ok := field.(defaulter); ok {
+			fields.defaulters = append(fields.defaulters, defaulter)
+		}
+
+		if validator, ok := field.(validator); ok {
+			fields.validators = append(fields.validators, validator)
+		}
+	}
+
+	return
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {

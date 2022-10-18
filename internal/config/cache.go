@@ -4,14 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
-)
-
-var cacheDecodeHooks = mapstructure.ComposeDecodeHookFunc(
-	mapstructure.StringToTimeDurationHookFunc(),
-	mapstructure.StringToSliceHookFunc(","),
-	StringToEnumHookFunc(stringToCacheBackend),
 )
 
 // CacheConfig contains fields, which enable and configure
@@ -26,31 +19,30 @@ type CacheConfig struct {
 	Redis   RedisCacheConfig  `json:"redis,omitempty" mapstructure:"redis"`
 }
 
-func (c *CacheConfig) viperKey() string {
-	return "cache"
-}
-
-func (c *CacheConfig) unmarshalViper(v *viper.Viper) (warnings []string, err error) {
-	v.SetDefault("backend", CacheMemory)
-	v.SetDefault("ttl", 1*time.Minute)
-	v.SetDefault("redis", map[string]any{
-		"host": "localhost",
-		"port": 6379,
-	})
-	v.SetDefault("memory", map[string]any{
-		"eviction_interval": 5 * time.Minute,
+func (c *CacheConfig) setDefaults(v *viper.Viper) (warnings []string) {
+	v.SetDefault("cache", map[string]any{
+		"backend": CacheMemory,
+		"ttl":     1 * time.Minute,
+		"redis": map[string]any{
+			"host": "localhost",
+			"port": 6379,
+		},
+		"memory": map[string]any{
+			"eviction_interval": 5 * time.Minute,
+		},
 	})
 
-	if mem := v.Sub("memory"); mem != nil {
+	if mem := v.Sub("cache.memory"); mem != nil {
 		mem.SetDefault("eviction_interval", 5*time.Minute)
 		// handle legacy memory structure
 		if mem.GetBool("enabled") {
 			warnings = append(warnings, deprecatedMsgMemoryEnabled)
 			// forcibly set top-level `enabled` to true
-			v.Set("enabled", true)
+			v.Set("cache.enabled", true)
 			// ensure ttl is mapped to the value at memory.expiration
-			v.RegisterAlias("ttl", "memory.expiration")
-
+			v.RegisterAlias("cache.ttl", "cache.memory.expiration")
+			// ensure ttl default is set
+			v.SetDefault("cache.memory.expiration", 1*time.Minute)
 		}
 
 		if mem.IsSet("expiration") {
@@ -58,7 +50,7 @@ func (c *CacheConfig) unmarshalViper(v *viper.Viper) (warnings []string, err err
 		}
 	}
 
-	return warnings, v.Unmarshal(c, viper.DecodeHook(cacheDecodeHooks))
+	return
 }
 
 // CacheBackend is either memory or redis

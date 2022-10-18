@@ -4,14 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
-)
-
-var serverDecodeHooks = mapstructure.ComposeDecodeHookFunc(
-	mapstructure.StringToTimeDurationHookFunc(),
-	mapstructure.StringToSliceHookFunc(","),
-	StringToEnumHookFunc(stringToScheme),
 )
 
 // ServerConfig contains fields, which configure both HTTP and gRPC
@@ -26,37 +19,35 @@ type ServerConfig struct {
 	CertKey   string `json:"certKey,omitempty" mapstructure:"cert_key"`
 }
 
-func (c *ServerConfig) viperKey() string {
-	return "server"
+func (c *ServerConfig) setDefaults(v *viper.Viper) []string {
+	v.SetDefault("server", map[string]any{
+		"host":       "0.0.0.0",
+		"protocol":   HTTP,
+		"http_port":  8080,
+		"https_port": 443,
+		"grpc_port":  9000,
+	})
+
+	return nil
 }
 
-func (c *ServerConfig) unmarshalViper(v *viper.Viper) (warnings []string, err error) {
-	v.SetDefault("host", "0.0.0.0")
-	v.SetDefault("protocol", HTTP)
-	v.SetDefault("http_port", 8080)
-	v.SetDefault("https_port", 443)
-	v.SetDefault("grpc_port", 9000)
-
-	if err = v.Unmarshal(c, viper.DecodeHook(serverDecodeHooks)); err != nil {
-		return
-	}
-
+func (c *ServerConfig) validate() (err error) {
 	// validate configuration is as expected
 	if c.Protocol == HTTPS {
 		if c.CertFile == "" {
-			return nil, errFieldRequired("server.cert_file")
+			return errFieldRequired("server.cert_file")
 		}
 
 		if c.CertKey == "" {
-			return nil, errFieldRequired("server.cert_key")
+			return errFieldRequired("server.cert_key")
 		}
 
 		if _, err := os.Stat(c.CertFile); err != nil {
-			return nil, errFieldWrap("server.cert_file", err)
+			return errFieldWrap("server.cert_file", err)
 		}
 
 		if _, err := os.Stat(c.CertKey); err != nil {
-			return nil, errFieldWrap("server.cert_key", err)
+			return errFieldWrap("server.cert_key", err)
 		}
 	}
 

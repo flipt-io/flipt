@@ -9,12 +9,11 @@ type MetaConfig struct {
 	StateDirectory   string `json:"stateDirectory" mapstructure:"state_directory"`
 }
 
-func (c *MetaConfig) viperKey() string {
-	return "meta"
-}
+func (c *MetaConfig) setDefaults(v *viper.Viper) []string {
+	v.SetDefault("meta", map[string]any{
+		"check_for_updates": true,
+		"telemetry_enabled": true,
+	})
 
-func (c *MetaConfig) unmarshalViper(v *viper.Viper) (warnings []string, _ error) {
-	v.SetDefault("check_for_updates", true)
-	v.SetDefault("telemetry_enabled", true)
-	return nil, v.Unmarshal(c)
+	return nil
 }

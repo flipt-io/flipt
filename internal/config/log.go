@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 )
 
@@ -16,22 +15,14 @@ type LogConfig struct {
 	GRPCLevel string      `json:"grpc_level,omitempty" mapstructure:"grpc_level"`
 }
 
-var logDecodeHooks = mapstructure.ComposeDecodeHookFunc(
-	mapstructure.StringToTimeDurationHookFunc(),
-	mapstructure.StringToSliceHookFunc(","),
-	StringToEnumHookFunc(stringToLogEncoding),
-)
+func (c *LogConfig) setDefaults(v *viper.Viper) []string {
+	v.SetDefault("log", map[string]any{
+		"level":      "INFO",
+		"encoding":   "console",
+		"grpc_level": "ERROR",
+	})
 
-func (c *LogConfig) viperKey() string {
-	return "log"
-}
-
-func (c *LogConfig) unmarshalViper(v *viper.Viper) (_ []string, _ error) {
-	v.SetDefault("level", "INFO")
-	v.SetDefault("encoding", "console")
-	v.SetDefault("grpc_level", "ERROR")
-
-	return nil, v.Unmarshal(c, viper.DecodeHook(logDecodeHooks))
+	return nil
 }
 
 var (
