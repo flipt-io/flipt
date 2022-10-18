@@ -15,10 +15,10 @@ import (
 var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 	mapstructure.StringToTimeDurationHookFunc(),
 	mapstructure.StringToSliceHookFunc(","),
-	StringToEnumHookFunc(stringToLogEncoding),
-	StringToEnumHookFunc(stringToCacheBackend),
-	StringToEnumHookFunc(stringToScheme),
-	StringToEnumHookFunc(stringToDatabaseProtocol),
+	stringToEnumHookFunc(stringToLogEncoding),
+	stringToEnumHookFunc(stringToCacheBackend),
+	stringToEnumHookFunc(stringToScheme),
+	stringToEnumHookFunc(stringToDatabaseProtocol),
 )
 
 // Config contains all of Flipts configuration needs.
@@ -135,8 +135,8 @@ func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// StringToEnumHookFunc returns a DecodeHookFunc that converts strings to a target enum
-func StringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstructure.DecodeHookFunc {
+// stringToEnumHookFunc returns a DecodeHookFunc that converts strings to a target enum
+func stringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstructure.DecodeHookFunc {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
