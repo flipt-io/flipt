@@ -10,8 +10,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/cache"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/server/cache"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

@@ -6,7 +6,7 @@ import (
 
 	gocache "github.com/patrickmn/go-cache"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/server/cache"
+	"go.flipt.io/flipt/internal/server/cache"
 )
 
 // Cache wraps gocache.Cache in order to implement Cacher
