@@ -2,21 +2,19 @@ package config
 
 import "github.com/spf13/viper"
 
-const (
-	// configuration keys
-	uiEnabled = "ui.enabled"
-)
+// cheers up the unparam linter
+var _ defaulter = (*UIConfig)(nil)
 
 // UIConfig contains fields, which control the behaviour
 // of Flipt's user interface.
 type UIConfig struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool `json:"enabled" mapstructure:"enabled"`
 }
 
-func (c *UIConfig) init() (_ []string, _ error) {
-	if viper.IsSet(uiEnabled) {
-		c.Enabled = viper.GetBool(uiEnabled)
-	}
+func (c *UIConfig) setDefaults(v *viper.Viper) []string {
+	v.SetDefault("ui", map[string]any{
+		"enabled": true,
+	})
 
-	return
+	return nil
 }

@@ -2,32 +2,21 @@ package config
 
 import "github.com/spf13/viper"
 
-const (
-	// configuration keys
-	metaCheckForUpdates  = "meta.check_for_updates"
-	metaTelemetryEnabled = "meta.telemetry_enabled"
-	metaStateDirectory   = "meta.state_directory"
-)
+// cheers up the unparam linter
+var _ defaulter = (*MetaConfig)(nil)
 
 // MetaConfig contains a variety of meta configuration fields.
 type MetaConfig struct {
-	CheckForUpdates  bool   `json:"checkForUpdates"`
-	TelemetryEnabled bool   `json:"telemetryEnabled"`
-	StateDirectory   string `json:"stateDirectory"`
+	CheckForUpdates  bool   `json:"checkForUpdates" mapstructure:"check_for_updates"`
+	TelemetryEnabled bool   `json:"telemetryEnabled" mapstructure:"telemetry_enabled"`
+	StateDirectory   string `json:"stateDirectory" mapstructure:"state_directory"`
 }
 
-func (c *MetaConfig) init() (warnings []string, _ error) {
-	if viper.IsSet(metaCheckForUpdates) {
-		c.CheckForUpdates = viper.GetBool(metaCheckForUpdates)
-	}
+func (c *MetaConfig) setDefaults(v *viper.Viper) []string {
+	v.SetDefault("meta", map[string]any{
+		"check_for_updates": true,
+		"telemetry_enabled": true,
+	})
 
-	if viper.IsSet(metaTelemetryEnabled) {
-		c.TelemetryEnabled = viper.GetBool(metaTelemetryEnabled)
-	}
-
-	if viper.IsSet(metaStateDirectory) {
-		c.StateDirectory = viper.GetString(metaStateDirectory)
-	}
-
-	return
+	return nil
 }
