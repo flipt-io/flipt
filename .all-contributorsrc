@@ -186,6 +186,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "syntaqx",
+      "name": "Chase Pierce",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6037730?v=4",
+      "profile": "https://syntaqx.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -193,5 +202,6 @@
   "projectOwner": "flipt-io",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }
