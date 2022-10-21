@@ -91,6 +91,12 @@ tasks:
     deps: [proto]
     cmds:
       - buf generate --template=buf.public.gen.yaml
+    preconditions:
+      - sh: "command -v buf"
+      - sh: "[ -d ../flipt-grpc-go ]"
+        msg: "⚠️  clone https://github.com/flipt-io/flipt-grpc-go to ../flipt-grpc-go first ⚠️"
+      - sh: "[ -d ../flipt-grpc-ruby ]"
+        msg: "⚠️  clone https://github.com/flipt-io/flipt-grpc-ruby to ../flipt-grpc-ruby first ⚠️"
 
   proto:
     desc: Generate protobuf files from .protos
