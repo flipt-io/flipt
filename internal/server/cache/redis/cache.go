@@ -7,7 +7,7 @@ import (
 
 	redis "github.com/go-redis/cache/v8"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/server/cache"
+	"go.flipt.io/flipt/internal/server/cache"
 )
 
 type Cache struct {

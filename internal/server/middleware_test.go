@@ -7,9 +7,9 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/server/cache/memory"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/stretchr/testify/assert"
