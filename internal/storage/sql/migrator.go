@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database"
-	"github.com/golang-migrate/migrate/database/cockroachdb"
-	"github.com/golang-migrate/migrate/database/mysql"
-	"github.com/golang-migrate/migrate/database/postgres"
-	"github.com/golang-migrate/migrate/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
 )

@@ -23,14 +23,14 @@ import (
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database"
-	"github.com/golang-migrate/migrate/database/cockroachdb"
-	ms "github.com/golang-migrate/migrate/database/mysql"
-	pg "github.com/golang-migrate/migrate/database/postgres"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
+	ms "github.com/golang-migrate/migrate/v4/database/mysql"
+	pg "github.com/golang-migrate/migrate/v4/database/postgres"
 
-	"github.com/golang-migrate/migrate/database/sqlite3"
-	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func TestOpen(t *testing.T) {
