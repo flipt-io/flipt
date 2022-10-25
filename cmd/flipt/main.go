@@ -63,7 +63,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"gopkg.in/segmentio/analytics-go.v3"
 
-	_ "github.com/golang-migrate/migrate/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
