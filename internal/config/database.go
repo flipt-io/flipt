@@ -11,8 +11,6 @@ import (
 var _ defaulter = (*DatabaseConfig)(nil)
 
 const (
-	defaultMigrationsPath = "/etc/flipt/config/migrations"
-
 	// database protocol enum
 	_ DatabaseProtocol = iota
 	// DatabaseSQLite ...
@@ -29,7 +27,6 @@ const (
 //
 // Flipt currently supports SQLite, Postgres and MySQL backends.
 type DatabaseConfig struct {
-	MigrationsPath  string           `json:"migrationsPath,omitempty" mapstructure:"migrations_path"`
 	URL             string           `json:"url,omitempty" mapstructure:"url"`
 	MaxIdleConn     int              `json:"maxIdleConn,omitempty" mapstructure:"max_idle_conn"`
 	MaxOpenConn     int              `json:"maxOpenConn,omitempty" mapstructure:"max_open_conn"`
@@ -43,14 +40,7 @@ type DatabaseConfig struct {
 }
 
 func (c *DatabaseConfig) setDefaults(v *viper.Viper) []string {
-	// supports nesting `path` beneath `migrations` key
-	v.RegisterAlias("db.migrations_path", "db.migrations.path")
-
 	v.SetDefault("db", map[string]any{
-		"migrations_path": defaultMigrationsPath,
-		"migrations": map[string]any{
-			"path": defaultMigrationsPath,
-		},
 		"max_idle_conn": 2,
 	})
 
@@ -63,6 +53,10 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) []string {
 
 	if setDefaultURL {
 		v.SetDefault("db.url", "file:/var/opt/flipt/flipt.db")
+	}
+
+	if v.IsSet("db.migrations.path") || v.IsSet("db.migrations_path") {
+		return []string{deprecatedMsgDatabaseMigrations}
 	}
 
 	return nil

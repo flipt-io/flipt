@@ -200,9 +200,8 @@ func defaultConfig() *Config {
 		},
 
 		Database: DatabaseConfig{
-			URL:            "file:/var/opt/flipt/flipt.db",
-			MigrationsPath: "/etc/flipt/config/migrations",
-			MaxIdleConn:    2,
+			URL:         "file:/var/opt/flipt/flipt.db",
+			MaxIdleConn: 2,
 		},
 
 		Meta: MetaConfig{
@@ -239,6 +238,24 @@ func TestLoad(t *testing.T) {
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = -1
 				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled, deprecatedMsgMemoryExpiration)
+				return cfg
+			},
+		},
+		{
+			name: "deprecated - database migrations path",
+			path: "./testdata/deprecated/database_migrations_path.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Warnings = append(cfg.Warnings, deprecatedMsgDatabaseMigrations)
+				return cfg
+			},
+		},
+		{
+			name: "deprecated - database migrations path legacy",
+			path: "./testdata/deprecated/database_migrations_path_legacy.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Warnings = append(cfg.Warnings, deprecatedMsgDatabaseMigrations)
 				return cfg
 			},
 		},
@@ -286,14 +303,13 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := defaultConfig()
 				cfg.Database = DatabaseConfig{
-					Protocol:       DatabaseMySQL,
-					Host:           "localhost",
-					Port:           3306,
-					User:           "flipt",
-					Password:       "s3cr3t!",
-					Name:           "flipt",
-					MigrationsPath: "/etc/flipt/config/migrations",
-					MaxIdleConn:    2,
+					Protocol:    DatabaseMySQL,
+					Host:        "localhost",
+					Port:        3306,
+					User:        "flipt",
+					Password:    "s3cr3t!",
+					Name:        "flipt",
+					MaxIdleConn: 2,
 				}
 				return cfg
 			},
@@ -374,7 +390,6 @@ func TestLoad(t *testing.T) {
 					},
 				}
 				cfg.Database = DatabaseConfig{
-					MigrationsPath:  "./config/migrations",
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 					MaxIdleConn:     10,
 					MaxOpenConn:     50,

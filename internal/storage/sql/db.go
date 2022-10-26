@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/XSAM/otelsql"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -14,12 +15,16 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.uber.org/zap"
 )
 
 // Open opens a connection to the db
-func Open(cfg config.Config, logger *zap.Logger) (*sql.DB, Driver, error) {
-	sql, driver, err := open(cfg, logger, options{})
+func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
+	var options Options
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	sql, driver, err := open(cfg, options)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -38,13 +43,34 @@ func Open(cfg config.Config, logger *zap.Logger) (*sql.DB, Driver, error) {
 	return sql, driver, nil
 }
 
-type options struct {
+// BuilderFor returns a squirrel statement builder which decorates
+// the provided sql.DB configured for the provided driver.
+func BuilderFor(db *sql.DB, driver Driver) sq.StatementBuilderType {
+	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+	if driver == Postgres || driver == CockroachDB {
+		builder = builder.PlaceholderFormat(sq.Dollar)
+	}
+
+	return builder
+}
+
+type Options struct {
 	sslDisabled bool
 	migrate     bool
 }
 
-func open(cfg config.Config, logger *zap.Logger, opts options) (*sql.DB, Driver, error) {
-	d, url, err := parse(cfg, logger, opts)
+type Option func(*Options)
+
+func WithSSLDisabled(o *Options) {
+	o.sslDisabled = true
+}
+
+func WithMigrate(o *Options) {
+	o.migrate = true
+}
+
+func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
+	d, url, err := parse(cfg, opts)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -127,7 +153,7 @@ const (
 	CockroachDB
 )
 
-func parse(cfg config.Config, _ *zap.Logger, opts options) (Driver, *dburl.URL, error) {
+func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 	u := cfg.Database.URL
 
 	if u == "" {

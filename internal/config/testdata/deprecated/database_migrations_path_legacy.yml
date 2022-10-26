@@ -1,0 +1,3 @@
+db:
+  migrations:
+    path: "../config/migrations"

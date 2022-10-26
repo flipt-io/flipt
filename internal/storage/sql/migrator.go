@@ -3,7 +3,6 @@ package sql
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -11,6 +10,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"go.flipt.io/flipt/config/migrations"
 	"go.flipt.io/flipt/internal/config"
 	"go.uber.org/zap"
 )
@@ -31,7 +32,7 @@ type Migrator struct {
 
 // NewMigrator creates a new Migrator
 func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
-	sql, driver, err := open(cfg, logger, options{migrate: true})
+	sql, driver, err := open(cfg, Options{migrate: true})
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
@@ -55,11 +56,16 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
 	}
 
-	f := filepath.Clean(fmt.Sprintf("%s/%s", cfg.Database.MigrationsPath, driver))
-
-	mm, err := migrate.NewWithDatabaseInstance(fmt.Sprintf("file://%s", f), driver.String(), dr)
+	// source migrations from embedded config/migrations package
+	// relative to the specific driver
+	sourceDriver, err := iofs.New(migrations.FS, driver.String())
 	if err != nil {
-		return nil, fmt.Errorf("opening migrations: %w", err)
+		return nil, err
+	}
+
+	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
+	if err != nil {
+		return nil, fmt.Errorf("creating migrate instance: %w", err)
 	}
 
 	return &Migrator{

@@ -30,8 +30,6 @@
 
 # db:
 #   url: file:/var/opt/flipt/flipt.db
-#   migrations:
-#     path: /etc/flipt/config/migrations
 #   max_idle_conn: 2
 #   max_open_conn: 0 # unlimited
 #   conn_max_lifetime: 0 # unlimited
