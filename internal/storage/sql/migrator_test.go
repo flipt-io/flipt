@@ -42,7 +42,7 @@ func TestMigratorRun(t *testing.T) {
 
 	defer migrator.Close()
 
-	err = migrator.Run(false)
+	err = migrator.Up(false)
 	assert.NoError(t, err)
 }
 
@@ -77,7 +77,7 @@ func TestMigratorRun_NoChange(t *testing.T) {
 
 	defer migrator.Close()
 
-	err = migrator.Run(false)
+	err = migrator.Up(false)
 	assert.NoError(t, err)
 }
 
