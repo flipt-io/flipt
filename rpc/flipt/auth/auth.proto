@@ -32,8 +32,8 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 enum Method {
-  METHOD_NONE = 0;
-  METHOD_TOKEN = 1;
+  NONE = 0;
+  TOKEN = 1;
 }
 
 message Authentication {
