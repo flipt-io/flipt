@@ -38,10 +38,8 @@ func (d *Database) Shutdown(ctx context.Context) {
 	}
 
 	if d.Container != nil {
-		d.Container.Terminate(ctx)
+		_ = d.Container.Terminate(ctx)
 	}
-
-	return
 }
 
 func Open() (*Database, error) {
