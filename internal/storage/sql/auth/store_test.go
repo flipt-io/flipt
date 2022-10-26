@@ -78,18 +78,26 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			},
 		},
 	} {
-		t.Run(test.name, func(t *testing.T) {
-			store := newTestStore(t, test.opts(t)...)
+		var (
+			opts                   = test.opts
+			req                    = test.req
+			expectedErr            = test.expectedErr
+			expectedToken          = test.expectedToken
+			expectedAuthentication = test.expectedAuthentication
+		)
 
-			clientToken, created, err := store.CreateAuthentication(ctx, test.req)
-			if test.expectedErr != nil {
-				require.Equal(t, test.expectedErr, err)
+		t.Run(test.name, func(t *testing.T) {
+			store := newTestStore(t, opts(t)...)
+
+			clientToken, created, err := store.CreateAuthentication(ctx, req)
+			if expectedErr != nil {
+				require.Equal(t, expectedErr, err)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, test.expectedToken, clientToken)
-			assert.Equal(t, test.expectedAuthentication, created)
+			assert.Equal(t, expectedToken, clientToken)
+			assert.Equal(t, expectedAuthentication, created)
 		})
 	}
 }
@@ -137,15 +145,21 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 			},
 		},
 	} {
+		var (
+			clientToken            = test.clientToken
+			expectedErrIs          = test.expectedErrIs
+			expectedAuthentication = test.expectedAuthentication
+		)
+
 		t.Run(test.name, func(t *testing.T) {
-			retrieved, err := store.GetAuthenticationByClientToken(ctx, test.clientToken)
-			if test.expectedErrIs != nil {
-				require.ErrorIs(t, err, test.expectedErrIs)
+			retrieved, err := store.GetAuthenticationByClientToken(ctx, clientToken)
+			if expectedErrIs != nil {
+				require.ErrorIs(t, err, expectedErrIs)
 				return
 			}
 
 			require.NoError(t, err)
-			assert.Equal(t, test.expectedAuthentication, retrieved)
+			assert.Equal(t, expectedAuthentication, retrieved)
 		})
 	}
 }
