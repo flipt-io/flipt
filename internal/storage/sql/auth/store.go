@@ -3,14 +3,12 @@ package auth
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"math/rand"
-	"sync"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -57,7 +55,7 @@ func NewStore(builder sq.StatementBuilderType, logger *zap.Logger, opts ...Optio
 }
 
 // WithNowFunc overrides the stores now() function used to obtain
-// a protobuf timestamp representive of the current time of evaluation.
+// a protobuf timestamp representative of the current time of evaluation.
 func WithNowFunc(fn func() *timestamppb.Timestamp) Option {
 	return func(s *Store) {
 		s.now = fn
@@ -180,19 +178,11 @@ func ptr[T any](t T) *T {
 
 const decodedTokenLen = 32
 
-var (
-	mu     sync.Mutex
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
-)
-
 // generateRandomToken produces a URL safe base64 encoded string of random characters
 // the data is sourced from a pseudo-random input stream
 func generateRandomToken() string {
-	mu.Lock()
-	defer mu.Unlock()
-
 	var token [decodedTokenLen]byte
-	if _, err := random.Read(token[:]); err != nil {
+	if _, err := rand.Read(token[:]); err != nil {
 		panic(err)
 	}
 
@@ -204,7 +194,7 @@ func generateRandomToken() string {
 func hashClientToken(token string) string {
 	// produce SHA256 hash of token
 	hash := sha256.New()
-	hash.Write([]byte(token))
+	_, _ = hash.Write([]byte(token))
 
 	// base64(sha256sum)
 	var (
@@ -213,8 +203,8 @@ func hashClientToken(token string) string {
 		enc  = base64.NewEncoder(base64.URLEncoding, buf)
 	)
 
-	enc.Write(hash.Sum(nil))
-	enc.Close()
+	_, _ = enc.Write(hash.Sum(nil))
+	_ = enc.Close()
 
 	return buf.String()
 }
