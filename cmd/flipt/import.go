@@ -75,19 +75,6 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 
 	defer in.Close()
 
-	// drop tables if specified
-	if dropBeforeImport {
-		logger.Debug("dropping tables before import")
-
-		tables := []string{"schema_migrations", "distributions", "rules", "constraints", "variants", "segments", "flags"}
-
-		for _, table := range tables {
-			if _, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table)); err != nil {
-				return fmt.Errorf("dropping tables: %w", err)
-			}
-		}
-	}
-
 	migrator, err := sql.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
@@ -95,7 +82,16 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 
 	defer migrator.Close()
 
-	if err := migrator.Run(forceMigrate); err != nil {
+	// drop tables if specified
+	if dropBeforeImport {
+		logger.Debug("dropping tables before import")
+
+		if err := migrator.Down(); err != nil {
+			return fmt.Errorf("attempting to drop during import: %w", err)
+		}
+	}
+
+	if err := migrator.Up(forceMigrate); err != nil {
 		return err
 	}
 

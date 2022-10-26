@@ -174,7 +174,7 @@ func main() {
 
 				defer migrator.Close()
 
-				if err := migrator.Run(true); err != nil {
+				if err := migrator.Up(true); err != nil {
 					logger().Fatal("running migrator", zap.Error(err))
 				}
 			},
@@ -397,7 +397,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		defer migrator.Close()
 
-		if err := migrator.Run(forceMigrate); err != nil {
+		if err := migrator.Up(forceMigrate); err != nil {
 			return err
 		}
 
