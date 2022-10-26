@@ -2,10 +2,17 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/auth"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// ErrNotFound is returned when a resource is requested by a key identifier
+// and it could not be found in the backing store.
+var ErrNotFound = errors.New("resource not found")
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
@@ -146,4 +153,22 @@ type RuleStore interface {
 	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
+}
+
+// CreateAuthenticationRequest is the argument passed when creating instances
+// of an Authentication on a target AuthenticationStore.
+type CreateAuthenticationRequest struct {
+	Method    auth.Method
+	ExpiresAt *timestamppb.Timestamp
+	Metadata  map[string]string
+}
+
+// AuthenticationStore persists Authentication instances.
+type AuthenticationStore interface {
+	// CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
+	// string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
+	CreateAuthentication(context.Context, *CreateAuthenticationRequest) (string, *auth.Authentication, error)
+	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
+	// store using the provided clientToken string as the key.
+	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
 }
