@@ -3,5 +3,3 @@ log:
 
 db:
   url: file:./test/flipt.db
-  migrations:
-    path: ./config/migrations

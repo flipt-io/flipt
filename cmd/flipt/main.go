@@ -411,7 +411,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			_ = lis.Close()
 		}()
 
-		db, driver, err := sql.Open(*cfg, logger)
+		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
 		}

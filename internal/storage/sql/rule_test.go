@@ -1,4 +1,4 @@
-package sql
+package sql_test
 
 import (
 	"context"

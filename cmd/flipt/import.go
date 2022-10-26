@@ -37,7 +37,7 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 		cancel()
 	}()
 
-	db, driver, err := sql.Open(*cfg, logger)
+	db, driver, err := sql.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)
 	}

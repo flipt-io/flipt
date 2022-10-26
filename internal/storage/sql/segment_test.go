@@ -1,4 +1,4 @@
-package sql
+package sql_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/storage"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 
@@ -96,7 +97,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	}
 
 	for _, req := range reqs {
-		if s.driver == MySQL {
+		if s.db.Driver == fliptsql.MySQL {
 			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 			time.Sleep(time.Second)
 		}
@@ -169,7 +170,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	oldest, middle, newest := reqs[0], reqs[1], reqs[2]
 
 	for _, req := range reqs {
-		if s.driver == MySQL {
+		if s.db.Driver == fliptsql.MySQL {
 			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
 			time.Sleep(time.Second)
 		}

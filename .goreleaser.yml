@@ -38,7 +38,6 @@ archives:
       - LICENSE
       - README.md
       - CHANGELOG.md
-      - ./config/migrations/
       - ./config/default.yml
 
 checksum:
@@ -60,7 +59,6 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
-      - config/migrations/
       - config/default.yml
 
   - dockerfile: ./build/Dockerfile
@@ -75,7 +73,6 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
     extra_files:
-      - config/migrations/
       - config/default.yml
 
 docker_manifests:

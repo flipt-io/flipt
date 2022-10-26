@@ -38,6 +38,13 @@ Description.
 
 `offset` has been deprecated in favor of `page_token`/`next_page_token` for `ListFlagRequest`, `ListSegmentRequest` and `ListRuleRequest`. See: [#936](https://github.com/flipt-io/flipt/issues/936).
 
+### db.migrations.path and db.migrations_path
+
+> since [v1.14.0](https://github.com/markphelps/flipt/releases/tag/v1.10.0)
+
+These options are no longer considered during Flipt execution.
+Database migrations are embedded directly within the Flipt binary.
+
 ### cache.memory.enabled
 
 > since [v1.10.0](https://github.com/markphelps/flipt/releases/tag/v1.10.0)

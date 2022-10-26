@@ -32,8 +32,6 @@ tasks:
     cmds:
       - task: default
         vars: { OUTPUT: "./pkg" }
-      - mkdir -p ./pkg/config/migrations
-      - cp -R ./config/migrations/ ./pkg/config/migrations/
       - cp ./config/*.yml ./pkg/config/
     vars:
       GIT_COMMIT:
