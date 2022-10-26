@@ -25,5 +25,3 @@ server:
 
 # db:
 #   url: file:/var/opt/flipt/flipt.db
-#   migrations:
-#     path: /etc/flipt/config/migrations
