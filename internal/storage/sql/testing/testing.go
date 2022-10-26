@@ -87,6 +87,7 @@ func Open() (*Database, error) {
 		container *DBContainer
 		err       error
 	)
+
 	if useTestContainer {
 		container, err = NewDBContainer(context.Background(), proto)
 		if err != nil {
@@ -148,7 +149,7 @@ func Open() (*Database, error) {
 	// relative to the specific driver
 	sourceDriver, err := iofs.New(migrations.FS, driver.String())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("constructing migration source driver (db driver %q): %w", driver.String(), err)
 	}
 
 	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
