@@ -184,6 +184,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 	require.Error(t, err)
 	assert.EqualError(t, err, "flag \"foo\" not found")
 	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluate_FlagDisabled(t *testing.T) {
@@ -208,6 +209,7 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluate_FlagNoRules(t *testing.T) {
@@ -234,6 +236,7 @@ func TestEvaluate_FlagNoRules(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluate_RulesOutOfOrder(t *testing.T) {
@@ -295,6 +298,7 @@ func TestEvaluate_RulesOutOfOrder(t *testing.T) {
 	require.Error(t, err)
 	assert.EqualError(t, err, "rule rank: 0 detected out of order")
 	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
 }
 
 // Match ALL constraints
@@ -382,6 +386,7 @@ func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Empty(t, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -511,6 +516,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
 			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -631,6 +637,7 @@ func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -707,6 +714,7 @@ func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 	assert.Equal(t, "subscribers", resp.SegmentKey)
 	assert.Equal(t, "foo", resp.FlagKey)
 	assert.NotEmpty(t, resp.Value)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
@@ -813,6 +821,7 @@ func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -903,6 +912,7 @@ func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Empty(t, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -1064,6 +1074,7 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -1184,6 +1195,7 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -1260,6 +1272,7 @@ func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	assert.Equal(t, "subscribers", resp.SegmentKey)
 	assert.Equal(t, "foo", resp.FlagKey)
 	assert.NotEmpty(t, resp.Value)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 }
 
 func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
@@ -1366,6 +1379,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -1466,6 +1480,7 @@ func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -1593,6 +1608,7 @@ func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
 			assert.True(t, resp.Match)
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }

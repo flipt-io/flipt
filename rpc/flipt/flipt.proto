@@ -68,6 +68,15 @@ message EvaluationResponse {
   string value = 8;
   double request_duration_millis = 9;
   string attachment = 10;
+  EvaluationReason reason = 11;
+}
+
+enum EvaluationReason {
+  UNKNOWN_EVALUATION_REASON = 0;
+  FLAG_DISABLED_EVALUATION_REASON = 1;
+  FLAG_NOT_FOUND_EVALUATION_REASON = 2;
+  MATCH_EVALUATION_REASON = 3;
+  ERROR_EVALUATION_REASON = 4;
 }
 
 message BatchEvaluationResponse {
