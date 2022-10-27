@@ -181,7 +181,13 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 
 	if _, err := s.builder.Insert("segments").
 		Columns("\"key\"", "name", "description", "match_type", "created_at", "updated_at").
-		Values(segment.Key, segment.Name, segment.Description, segment.MatchType, &fliptsql.Timestamp{segment.CreatedAt}, &fliptsql.Timestamp{segment.UpdatedAt}).
+		Values(
+			segment.Key,
+			segment.Name,
+			segment.Description,
+			segment.MatchType,
+			&fliptsql.Timestamp{Timestamp: segment.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: segment.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -195,7 +201,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("match_type", r.MatchType).
-		Set("updated_at", &fliptsql.Timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
@@ -248,7 +254,15 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 
 	if _, err := s.builder.Insert("constraints").
 		Columns("id", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
-		Values(c.Id, c.SegmentKey, c.Type, c.Property, c.Operator, c.Value, &fliptsql.Timestamp{c.CreatedAt}, &fliptsql.Timestamp{c.UpdatedAt}).
+		Values(
+			c.Id,
+			c.SegmentKey,
+			c.Type,
+			c.Property,
+			c.Operator,
+			c.Value,
+			&fliptsql.Timestamp{Timestamp: c.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: c.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -270,7 +284,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		Set("property", r.Property).
 		Set("operator", operator).
 		Set("value", r.Value).
-		Set("updated_at", &fliptsql.Timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}}).
 		ExecContext(ctx)
 	if err != nil {

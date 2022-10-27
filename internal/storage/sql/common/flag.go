@@ -196,7 +196,14 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 
 	if _, err := s.builder.Insert("flags").
 		Columns("\"key\"", "name", "description", "enabled", "created_at", "updated_at").
-		Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &fliptsql.Timestamp{flag.CreatedAt}, &fliptsql.Timestamp{flag.UpdatedAt}).
+		Values(
+			flag.Key,
+			flag.Name,
+			flag.Description,
+			flag.Enabled,
+			&fliptsql.Timestamp{Timestamp: flag.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: flag.UpdatedAt},
+		).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -210,7 +217,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("updated_at", &fliptsql.Timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
@@ -258,7 +265,16 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	attachment := emptyAsNil(r.Attachment)
 	if _, err := s.builder.Insert("variants").
 		Columns("id", "flag_key", "\"key\"", "name", "description", "attachment", "created_at", "updated_at").
-		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, attachment, &fliptsql.Timestamp{v.CreatedAt}, &fliptsql.Timestamp{v.UpdatedAt}).
+		Values(
+			v.Id,
+			v.FlagKey,
+			v.Key,
+			v.Name,
+			v.Description,
+			attachment,
+			&fliptsql.Timestamp{Timestamp: v.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: v.UpdatedAt},
+		).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -281,7 +297,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("attachment", emptyAsNil(r.Attachment)).
-		Set("updated_at", &fliptsql.Timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)

@@ -117,10 +117,10 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 			&authentication.Id,
 			&hashedToken,
 			&authentication.Method,
-			&fliptsql.JSONField[map[string]string]{authentication.Metadata},
-			&fliptsql.Timestamp{authentication.ExpiresAt},
-			&fliptsql.Timestamp{authentication.CreatedAt},
-			&fliptsql.Timestamp{authentication.UpdatedAt},
+			&fliptsql.JSONField[map[string]string]{T: authentication.Metadata},
+			&fliptsql.Timestamp{Timestamp: authentication.ExpiresAt},
+			&fliptsql.Timestamp{Timestamp: authentication.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: authentication.UpdatedAt},
 		).
 		ExecContext(ctx); err != nil {
 		return "", nil, fmt.Errorf(
@@ -145,7 +145,6 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 	var (
 		authentication auth.Authentication
-		method         auth.Method
 		expiresAt      fliptsql.Timestamp
 		createdAt      fliptsql.Timestamp
 		updatedAt      fliptsql.Timestamp
@@ -164,8 +163,8 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 		QueryRowContext(ctx).
 		Scan(
 			&authentication.Id,
-			&method,
-			&fliptsql.JSONField[*map[string]string]{&authentication.Metadata},
+			&authentication.Method,
+			&fliptsql.JSONField[*map[string]string]{T: &authentication.Metadata},
 			&expiresAt,
 			&createdAt,
 			&updatedAt,
@@ -176,18 +175,11 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 		)
 	}
 
-	authentication.Method = auth.Method(method)
 	authentication.ExpiresAt = expiresAt.Timestamp
 	authentication.CreatedAt = createdAt.Timestamp
 	authentication.UpdatedAt = updatedAt.Timestamp
 
 	return &authentication, nil
-}
-
-// ptr allows for one-lining the creation of a pointer
-// to any type T.
-func ptr[T any](t T) *T {
-	return &t
 }
 
 const decodedTokenLen = 32
