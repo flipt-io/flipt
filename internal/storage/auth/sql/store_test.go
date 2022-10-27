@@ -1,27 +1,26 @@
-package auth
+package sql
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
+	storagetesting "go.flipt.io/flipt/internal/storage/testing"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
-	db *fliptsqltesting.Database
-
 	someTimestamp = timestamppb.New(time.Date(2022, 10, 25, 18, 0, 0, 0, time.UTC))
 	commonOpts    = func(t *testing.T) []Option {
 		return []Option{
@@ -36,25 +35,22 @@ var (
 	}
 )
 
-func TestMain(m *testing.M) {
-	var err error
-	db, err = fliptsqltesting.Open()
-	if err != nil {
-		panic(err)
-	}
-	os.Exit(m.Run())
+func TestAuthenticationStoreHarness(t *testing.T) {
+	storagetesting.TestAuthenticationStoreHarness(t, func(t *testing.T) storage.AuthenticationStore {
+		return newTestStore(t)()
+	})
 }
 
 func TestAuthentication_CreateAuthentication(t *testing.T) {
 	// established a store factory with a single seeded auth entry
-	storeFn := newTestStore(t, createAuth("create_auth_id", "create_auth_token"))
+	storeFn := newTestStore(t, createAuth("create_auth_id", "create_auth_token", auth.Method_TOKEN))
 
 	ctx := context.TODO()
 	for _, test := range []struct {
 		name                   string
 		opts                   func(t *testing.T) []Option
 		req                    *storage.CreateAuthenticationRequest
-		expectedErrIs          error
+		expectedErrAs          error
 		expectedToken          string
 		expectedAuthentication *auth.Authentication
 	}{
@@ -83,6 +79,28 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			},
 		},
 		{
+			name: "successfully creates authentication (no expiration)",
+			opts: commonOpts,
+			req: &storage.CreateAuthenticationRequest{
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_all_areas",
+					"io.flipt.auth.token.description": "The keys to the castle",
+				},
+			},
+			expectedToken: "token:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
+			expectedAuthentication: &auth.Authentication{
+				Id:     "id:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_all_areas",
+					"io.flipt.auth.token.description": "The keys to the castle",
+				},
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+		},
+		{
 			name: "fails ID uniqueness constraint",
 			opts: func(t *testing.T) []Option {
 				return []Option{
@@ -100,7 +118,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrIs: storage.ErrInvalid,
+			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 		{
 			name: "fails token uniqueness constraint",
@@ -120,7 +138,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrIs: storage.ErrInvalid,
+			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 	} {
 		test := test
@@ -128,8 +146,8 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			store := storeFn(test.opts(t)...)
 
 			clientToken, created, err := store.CreateAuthentication(ctx, test.req)
-			if test.expectedErrIs != nil {
-				require.ErrorIs(t, err, test.expectedErrIs)
+			if test.expectedErrAs != nil {
+				require.ErrorAs(t, err, test.expectedErrAs)
 				return
 			}
 
@@ -145,19 +163,19 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	ctx := context.TODO()
 
 	// established a store factory with a single seeded auth entry
-	storeFn := newTestStore(t, createAuth("get_auth_id", "get_auth_token"))
+	storeFn := newTestStore(t, createAuth("get_auth_id", "get_auth_token", auth.Method_TOKEN))
 
 	// run table tests
 	for _, test := range []struct {
 		name                   string
 		clientToken            string
-		expectedErrIs          error
+		expectedErrAs          error
 		expectedAuthentication *auth.Authentication
 	}{
 		{
 			name:          "error not found for unexpected clientToken",
 			clientToken:   "unknown",
-			expectedErrIs: storage.ErrNotFound,
+			expectedErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			name:        "successfully retrieves authentication by clientToken",
@@ -177,14 +195,14 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	} {
 		var (
 			clientToken            = test.clientToken
-			expectedErrIs          = test.expectedErrIs
+			expectedErrAs          = test.expectedErrAs
 			expectedAuthentication = test.expectedAuthentication
 		)
 
 		t.Run(test.name, func(t *testing.T) {
 			retrieved, err := storeFn(commonOpts(t)...).GetAuthenticationByClientToken(ctx, clientToken)
-			if expectedErrIs != nil {
-				require.ErrorIs(t, err, expectedErrIs)
+			if expectedErrAs != nil {
+				require.ErrorAs(t, err, expectedErrAs)
 				return
 			}
 
@@ -194,38 +212,119 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	}
 }
 
-func FuzzHashClientToken(f *testing.F) {
-	for _, seed := range []string{
-		"hello, world",
-		"supersecretstring",
-		"egGpvIxtdG6tI3OIJjXOrv7xZW3hRMYg/Lt/G6X/UEwC",
-	} {
-		f.Add(seed)
-	}
-	for _, seed := range [][]byte{{}, {0}, {9}, {0xa}, {0xf}, {1, 2, 3, 4}} {
-		f.Add(string(seed))
-	}
-	f.Fuzz(func(t *testing.T, token string) {
-		hashed, err := hashClientToken(token)
-		require.NoError(t, err)
-		require.NotEmpty(t, hashed, "hashed result is empty")
+func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
+	ctx := context.TODO()
+	storeFn := newTestStore(t,
+		createAuth("token_id_one", "token_client_token_one", auth.Method_TOKEN),
+		createAuth("token_id_two", "token_client_token_two", auth.Method_TOKEN),
+		createAuth("token_id_three", "token_client_token_three", auth.Method_TOKEN),
+		createAuth("none_id_one", "none_client_token_one", auth.Method_NONE),
+		createAuth("none_id_two", "none_client_token_two", auth.Method_NONE),
+		createAuth("none_id_three", "none_client_token_three", auth.Method_NONE),
+	)
 
-		_, err = base64.URLEncoding.DecodeString(hashed)
-		require.NoError(t, err)
-	})
+	// list predicated with none auth method
+	req := storage.NewListRequest(ListWithMethod(auth.Method_NONE))
+	noneMethod, err := storeFn().ListAuthentications(ctx, req)
+	require.NoError(t, err)
+	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
+		Results: []*rpcauth.Authentication{
+			{
+				Id:     "none_id_one",
+				Method: auth.Method_NONE,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_some_areas",
+					"io.flipt.auth.token.description": "The keys to some of the castle",
+				},
+				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+			{
+				Id:     "none_id_two",
+				Method: auth.Method_NONE,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_some_areas",
+					"io.flipt.auth.token.description": "The keys to some of the castle",
+				},
+				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+			{
+				Id:     "none_id_three",
+				Method: auth.Method_NONE,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_some_areas",
+					"io.flipt.auth.token.description": "The keys to some of the castle",
+				},
+				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+		},
+	}, noneMethod)
+
+	// list predicated with token auth method
+	req = storage.NewListRequest(ListWithMethod(auth.Method_TOKEN))
+	tokenMethod, err := storeFn().ListAuthentications(ctx, req)
+	require.NoError(t, err)
+	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
+		Results: []*rpcauth.Authentication{
+			{
+				Id:     "token_id_one",
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_some_areas",
+					"io.flipt.auth.token.description": "The keys to some of the castle",
+				},
+				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+			{
+				Id:     "token_id_two",
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_some_areas",
+					"io.flipt.auth.token.description": "The keys to some of the castle",
+				},
+				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+			{
+				Id:     "token_id_three",
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_some_areas",
+					"io.flipt.auth.token.description": "The keys to some of the castle",
+				},
+				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+		},
+	}, tokenMethod)
 }
 
 type authentication struct {
-	id    string
-	token string
+	id     string
+	token  string
+	method auth.Method
 }
 
-func createAuth(id, token string) authentication {
-	return authentication{id, token}
+func createAuth(id, token string, method auth.Method) authentication {
+	return authentication{id, token, method}
 }
 
 func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 	t.Helper()
+
+	db, err := fliptsqltesting.Open()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var (
 		ctx     = context.TODO()
@@ -251,7 +350,7 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 			WithIDGeneratorFunc(func() string { return a.id }),
 		)
 		clientToken, _, err := store.CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
-			Method:    auth.Method_TOKEN,
+			Method:    a.method,
 			ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 			Metadata: map[string]string{
 				"io.flipt.auth.token.name":        "access_some_areas",
@@ -273,4 +372,8 @@ func newStaticGenerator(t *testing.T, purpose string) func() string {
 	return func() string {
 		return fmt.Sprintf("%s:%s", purpose, t.Name())
 	}
+}
+
+func errPtr[E error](e E) *E {
+	return &e
 }
