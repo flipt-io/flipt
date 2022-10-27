@@ -19,9 +19,6 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	s.logger.Debug("evaluate", zap.Stringer("request", r))
 	resp, err := s.evaluate(ctx, r)
 	if err != nil {
-		if resp.Reason == 0 {
-			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-		}
 		return resp, err
 	}
 	s.logger.Debug("evaluate", zap.Stringer("response", resp))
@@ -75,6 +72,8 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 	flag, err := s.store.GetFlag(ctx, r.FlagKey)
 	if err != nil {
+		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+
 		var errnf errs.ErrNotFound
 		if errors.As(err, &errnf) {
 			resp.Reason = flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
@@ -91,6 +90,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
 	if err != nil {
+		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 		return resp, err
 	}
 
@@ -104,6 +104,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	// rule loop
 	for _, rule := range rules {
 		if rule.Rank < lastRank {
+			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, errs.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
 		}
 
@@ -128,10 +129,12 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
 			default:
+				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 				return resp, errs.ErrInvalid("unknown constraint type")
 			}
 
 			if err != nil {
+				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 				return resp, err
 			}
 
@@ -189,6 +192,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 
 		distributions, err := s.store.GetEvaluationDistributions(ctx, rule.ID)
 		if err != nil {
+			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
 		}
 
