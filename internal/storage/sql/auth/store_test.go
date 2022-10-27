@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"testing"
@@ -162,6 +163,20 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 			assert.Equal(t, expectedAuthentication, retrieved)
 		})
 	}
+}
+
+func Fuzz_hashClientToken(f *testing.F) {
+	for _, seed := range [][]byte{{}, {0}, {9}, {0xa}, {0xf}, {1, 2, 3, 4}} {
+		f.Add(string(seed))
+	}
+	f.Fuzz(func(t *testing.T, token string) {
+		hashed, err := hashClientToken(token)
+		require.NoError(t, err)
+		require.NotEmpty(t, hashed, "hashed result is empty")
+
+		_, err = base64.URLEncoding.DecodeString(hashed)
+		require.NoError(t, err)
+	})
 }
 
 func newTestStore(t *testing.T, opts ...Option) *Store {

@@ -97,6 +97,11 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 		}
 	)
 
+	hashedToken, err := hashClientToken(clientToken)
+	if err != nil {
+		return "", nil, fmt.Errorf("creating authentication: %w", err)
+	}
+
 	if _, err := s.builder.Insert("authentications").
 		Columns(
 			"id",
@@ -109,7 +114,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 		).
 		Values(
 			&authentication.Id,
-			ptr(hashClientToken(clientToken)),
+			&hashedToken,
 			ptr(method(authentication.Method)),
 			&jsonField[map[string]string]{authentication.Metadata},
 			&timestamp{authentication.ExpiresAt},
@@ -128,6 +133,11 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 // Given a row is present for the hash of the clientToken then materialize into an Authentication.
 // Else, given it cannot be located, a storage.ErrNotFound error is wrapped and returned instead.
 func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error) {
+	hashedToken, err := hashClientToken(clientToken)
+	if err != nil {
+		return nil, fmt.Errorf("getting authentication by token: %w", err)
+	}
+
 	var (
 		authentication auth.Authentication
 		method         method
@@ -145,7 +155,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 		"updated_at",
 	).
 		From("authentications").
-		Where(sq.Eq{"hashed_client_token": hashClientToken(clientToken)}).
+		Where(sq.Eq{"hashed_client_token": hashedToken}).
 		QueryRowContext(ctx).
 		Scan(
 			&authentication.Id,
@@ -191,10 +201,12 @@ func generateRandomToken() string {
 
 // hashClientToken performs a SHA256 sum on the input string
 // it returns the result as a URL safe base64 encoded string
-func hashClientToken(token string) string {
+func hashClientToken(token string) (string, error) {
 	// produce SHA256 hash of token
 	hash := sha256.New()
-	_, _ = hash.Write([]byte(token))
+	if _, err := hash.Write([]byte(token)); err != nil {
+		return "", fmt.Errorf("hashing client token: %w", err)
+	}
 
 	// base64(sha256sum)
 	var (
@@ -203,8 +215,13 @@ func hashClientToken(token string) string {
 		enc  = base64.NewEncoder(base64.URLEncoding, buf)
 	)
 
-	_, _ = enc.Write(hash.Sum(nil))
-	_ = enc.Close()
+	if _, err := enc.Write(hash.Sum(nil)); err != nil {
+		return "", fmt.Errorf("hashing client token: %w", err)
+	}
 
-	return buf.String()
+	if err := enc.Close(); err != nil {
+		return "", fmt.Errorf("hashing client token: %w", err)
+	}
+
+	return buf.String(), nil
 }
