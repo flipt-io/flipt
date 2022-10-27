@@ -116,11 +116,11 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 		Values(
 			&authentication.Id,
 			&hashedToken,
-			ptr(method(authentication.Method)),
-			&jsonField[map[string]string]{authentication.Metadata},
-			&timestamp{authentication.ExpiresAt},
-			&timestamp{authentication.CreatedAt},
-			&timestamp{authentication.UpdatedAt},
+			&authentication.Method,
+			&fliptsql.JSONField[map[string]string]{authentication.Metadata},
+			&fliptsql.Timestamp{authentication.ExpiresAt},
+			&fliptsql.Timestamp{authentication.CreatedAt},
+			&fliptsql.Timestamp{authentication.UpdatedAt},
 		).
 		ExecContext(ctx); err != nil {
 		return "", nil, fmt.Errorf(
@@ -145,10 +145,10 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 	var (
 		authentication auth.Authentication
-		method         method
-		expiresAt      timestamp
-		createdAt      timestamp
-		updatedAt      timestamp
+		method         auth.Method
+		expiresAt      fliptsql.Timestamp
+		createdAt      fliptsql.Timestamp
+		updatedAt      fliptsql.Timestamp
 	)
 
 	if err := s.builder.Select(
@@ -165,7 +165,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 		Scan(
 			&authentication.Id,
 			&method,
-			&jsonField[*map[string]string]{&authentication.Metadata},
+			&fliptsql.JSONField[*map[string]string]{&authentication.Metadata},
 			&expiresAt,
 			&createdAt,
 			&updatedAt,

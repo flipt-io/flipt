@@ -13,6 +13,7 @@ import (
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -35,8 +36,8 @@ func emptyAsNil(str string) *string {
 // GetFlag gets a flag
 func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
-		createdAt timestamp
-		updatedAt timestamp
+		createdAt fliptsql.Timestamp
+		updatedAt fliptsql.Timestamp
 
 		flag = &flipt.Flag{}
 
@@ -120,8 +121,8 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 	for rows.Next() {
 		var (
 			flag      = &flipt.Flag{}
-			createdAt timestamp
-			updatedAt timestamp
+			createdAt fliptsql.Timestamp
+			updatedAt fliptsql.Timestamp
 		)
 
 		if err := rows.Scan(
@@ -195,7 +196,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 
 	if _, err := s.builder.Insert("flags").
 		Columns("\"key\"", "name", "description", "enabled", "created_at", "updated_at").
-		Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &timestamp{flag.CreatedAt}, &timestamp{flag.UpdatedAt}).
+		Values(flag.Key, flag.Name, flag.Description, flag.Enabled, &fliptsql.Timestamp{flag.CreatedAt}, &fliptsql.Timestamp{flag.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -209,7 +210,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("enabled", r.Enabled).
-		Set("updated_at", &timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{timestamppb.Now()}).
 		Where(sq.Eq{"\"key\"": r.Key})
 
 	res, err := query.ExecContext(ctx)
@@ -257,7 +258,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 	attachment := emptyAsNil(r.Attachment)
 	if _, err := s.builder.Insert("variants").
 		Columns("id", "flag_key", "\"key\"", "name", "description", "attachment", "created_at", "updated_at").
-		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, attachment, &timestamp{v.CreatedAt}, &timestamp{v.UpdatedAt}).
+		Values(v.Id, v.FlagKey, v.Key, v.Name, v.Description, attachment, &fliptsql.Timestamp{v.CreatedAt}, &fliptsql.Timestamp{v.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -280,7 +281,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("attachment", emptyAsNil(r.Attachment)).
-		Set("updated_at", &timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)
@@ -299,8 +300,8 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 
 	var (
 		attachment sql.NullString
-		createdAt  timestamp
-		updatedAt  timestamp
+		createdAt  fliptsql.Timestamp
+		updatedAt  fliptsql.Timestamp
 
 		v = &flipt.Variant{}
 	)
@@ -355,7 +356,7 @@ func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
 	for rows.Next() {
 		var (
 			variant              flipt.Variant
-			createdAt, updatedAt timestamp
+			createdAt, updatedAt fliptsql.Timestamp
 			attachment           sql.NullString
 		)
 
