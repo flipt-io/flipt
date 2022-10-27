@@ -5,15 +5,14 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/base64"
-	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/gofrs/uuid"
 	"go.flipt.io/flipt/internal/storage"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,6 +22,7 @@ import (
 // based relational database systems.
 type Store struct {
 	logger  *zap.Logger
+	driver  fliptsql.Driver
 	builder sq.StatementBuilderType
 
 	now func() *timestamppb.Timestamp
@@ -36,9 +36,10 @@ type Option func(*Store)
 
 // NewStore constructs and configures a new instance of *Store.
 // Queries are issued to the database via the provided statement builder.
-func NewStore(builder sq.StatementBuilderType, logger *zap.Logger, opts ...Option) *Store {
+func NewStore(driver fliptsql.Driver, builder sq.StatementBuilderType, logger *zap.Logger, opts ...Option) *Store {
 	store := &Store{
 		logger:  logger,
+		driver:  driver,
 		builder: builder,
 		now:     timestamppb.Now,
 		generateID: func() string {
@@ -122,7 +123,11 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 			&timestamp{authentication.UpdatedAt},
 		).
 		ExecContext(ctx); err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf(
+			"inserting authentication %q: %w",
+			authentication.Id,
+			s.driver.AdaptError(err),
+		)
 	}
 
 	return clientToken, &authentication, nil
@@ -165,11 +170,10 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 			&createdAt,
 			&updatedAt,
 		); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("getting authentication by token: %w", storage.ErrNotFound)
-		}
-
-		return nil, err
+		return nil, fmt.Errorf(
+			"getting authentication by token: %w",
+			s.driver.AdaptError(err),
+		)
 	}
 
 	authentication.Method = auth.Method(method)

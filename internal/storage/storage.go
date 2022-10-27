@@ -10,9 +10,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// ErrNotFound is returned when a resource is requested by a key identifier
-// and it could not be found in the backing store.
-var ErrNotFound = errors.New("resource not found")
+var (
+	// ErrNotFound is returned when a resource is requested by a key identifier
+	// and it could not be found in the backing store.
+	ErrNotFound = errors.New("resource not found")
+	// ErrInvalid is returned when an invalid attempt is made to persist a resource
+	ErrInvalid = errors.New("resource is invalid")
+)
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
