@@ -44,3 +44,30 @@ message Authentication {
   google.protobuf.Timestamp updated_at = 5;
   map<string, string> metadata = 6;
 }
+
+message CreateTokenRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["name", "description"]
+    }
+  };
+
+  string name = 1;
+  string description = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message CreateTokenResponse {
+  string client_token = 1;
+  Authentication authentication = 2;
+}
+
+service AuthenticationMethodTokenService {
+  rpc CreateToken(CreateTokenRequest) returns (CreateTokenResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "create",
+      description: "Create authentication token",
+      tags: "authentication authentication_method token",
+    };
+  }
+}
