@@ -194,7 +194,7 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	}
 }
 
-func Fuzz_hashClientToken(f *testing.F) {
+func FuzzHashClientToken(f *testing.F) {
 	for _, seed := range []string{
 		"hello, world",
 		"supersecretstring",
