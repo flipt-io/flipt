@@ -224,25 +224,6 @@ func createAuth(id, token string) authentication {
 	return authentication{id, token}
 }
 
-type testOptions struct {
-	seedAuthentications []authentication
-	storeOptions        []Option
-}
-
-type testOption func(*testOptions)
-
-func withSeed(auths ...authentication) testOption {
-	return func(t *testOptions) {
-		t.seedAuthentications = auths
-	}
-}
-
-func withStoreOptions(opts ...Option) testOption {
-	return func(t *testOptions) {
-		t.storeOptions = opts
-	}
-}
-
 func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 	t.Helper()
 
@@ -261,6 +242,7 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 
 	// seed any authentication fixtures
 	for _, a := range seed {
+		a := a
 		store := storeFn(
 			WithNowFunc(func() *timestamppb.Timestamp {
 				return someTimestamp

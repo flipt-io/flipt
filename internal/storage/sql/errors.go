@@ -42,8 +42,7 @@ func adaptSQLiteError(err error) error {
 	var serr sqlite3.Error
 
 	if errors.As(err, &serr) {
-		switch serr.Code {
-		case sqlite3.ErrConstraint:
+		if serr.Code == sqlite3.ErrConstraint {
 			switch serr.ExtendedCode {
 			case sqlite3.ErrConstraintForeignKey:
 				return errForeignKeyNotFound
