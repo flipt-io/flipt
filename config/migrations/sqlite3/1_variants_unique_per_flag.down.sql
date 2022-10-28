@@ -9,16 +9,15 @@ CREATE TABLE variants_temp
 (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL REFERENCES flags ON DELETE CASCADE,
-  key VARCHAR(255) NOT NULL,
+  key VARCHAR(255) NOT NULL UNIQUE ON CONFLICT REPLACE,
   name VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  UNIQUE key ON CONFLICT REPLACE
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-INSERT INTO variants_temp (id, flag_key, key, name, description, created_at, updated_at)
-  SELECT id, flag_key, key, name, description, created_at, updated_at
+INSERT INTO variants_temp (id, flag_key, `key`, name, description, created_at, updated_at)
+  SELECT id, flag_key, `key`, name, description, created_at, updated_at
   FROM variants;
 
 DROP TABLE variants;
