@@ -79,6 +79,10 @@ func WithIDGeneratorFunc(fn func() string) Option {
 // CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
 // string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
 func (s *Store) CreateAuthentication(_ context.Context, r *storage.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
+	if r.ExpiresAt != nil && !r.ExpiresAt.IsValid() {
+		return "", nil, errors.ErrInvalidf("invalid expiry time: %v", r.ExpiresAt)
+	}
+
 	var (
 		now            = s.now()
 		clientToken    = s.generateToken()
