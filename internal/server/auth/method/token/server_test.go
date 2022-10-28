@@ -1,4 +1,4 @@
-package auth
+package token
 
 import (
 	"context"
@@ -88,7 +88,7 @@ func TestServer(t *testing.T) {
 	}
 
 	// attempt to create token with invalid expires at
-	resp, err = client.CreateToken(ctx, &auth.CreateTokenRequest{
+	_, err = client.CreateToken(ctx, &auth.CreateTokenRequest{
 		Name:        "access_all_areas",
 		Description: "Super secret skeleton key",
 		// invalid expires at, nanos must be positive

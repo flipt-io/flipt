@@ -115,7 +115,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 			&hashedToken,
 			&authentication.Method,
 			&fliptsql.JSONField[map[string]string]{T: authentication.Metadata},
-			&fliptsql.Timestamp{Timestamp: authentication.ExpiresAt},
+			&fliptsql.NullableTimestamp{Timestamp: authentication.ExpiresAt},
 			&fliptsql.Timestamp{Timestamp: authentication.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: authentication.UpdatedAt},
 		).
@@ -142,7 +142,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 	var (
 		authentication rpcauth.Authentication
-		expiresAt      fliptsql.Timestamp
+		expiresAt      fliptsql.NullableTimestamp
 		createdAt      fliptsql.Timestamp
 		updatedAt      fliptsql.Timestamp
 	)

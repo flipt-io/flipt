@@ -83,6 +83,28 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			},
 		},
 		{
+			name: "successfully creates authentication (no expiration)",
+			opts: commonOpts,
+			req: &storage.CreateAuthenticationRequest{
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_all_areas",
+					"io.flipt.auth.token.description": "The keys to the castle",
+				},
+			},
+			expectedToken: "token:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
+			expectedAuthentication: &auth.Authentication{
+				Id:     "id:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_all_areas",
+					"io.flipt.auth.token.description": "The keys to the castle",
+				},
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+		},
+		{
 			name: "fails ID uniqueness constraint",
 			opts: func(t *testing.T) []Option {
 				return []Option{
