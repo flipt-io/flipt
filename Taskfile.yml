@@ -70,11 +70,6 @@ tasks:
     desc: Install necessary development tools
     cmds:
       - ./script/bootstrap
-    sources:
-      - ./_tools/go.mod
-    generates:
-      - ./_tools/go.sum
-    method: checksum
 
   build:
     desc: Run Go build

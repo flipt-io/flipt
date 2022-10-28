@@ -4,20 +4,16 @@ on:
     branches:
       - main
     paths-ignore:
-      - "deploy/**"
       - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
-      - "**.ya?ml"
   pull_request:
     paths-ignore:
-      - "deploy/**"
       - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
-      - "**.ya?ml"
   workflow_dispatch:
 
 jobs:
