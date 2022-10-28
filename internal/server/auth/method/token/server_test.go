@@ -22,14 +22,23 @@ func TestServer(t *testing.T) {
 		store    = memory.NewStore()
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer()
+		errC     = make(chan error)
+		shutdown = func(t *testing.T) {
+			t.Helper()
+
+			server.Stop()
+			if err := <-errC; err != nil {
+				t.Fatal(err)
+			}
+		}
 	)
+
+	defer shutdown(t)
 
 	auth.RegisterAuthenticationMethodTokenServiceServer(server, NewServer(logger, store))
 
 	go func() {
-		if err := server.Serve(listener); err != nil {
-			t.Fatal(err)
-		}
+		errC <- server.Serve(listener)
 	}()
 
 	var (
