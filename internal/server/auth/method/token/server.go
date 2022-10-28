@@ -23,6 +23,14 @@ type Server struct {
 	auth.UnimplementedAuthenticationMethodTokenServiceServer
 }
 
+// NewServer constructs and configures a new *Server.
+func NewServer(logger *zap.Logger, store storage.AuthenticationStore) *Server {
+	return &Server{
+		logger: logger,
+		store:  store,
+	}
+}
+
 // CreateToken adapts and delegates the token request to the backing AuthenticationStore.
 //
 // Implicitly, the Authentication created will be of type auth.Method_TOKEN.

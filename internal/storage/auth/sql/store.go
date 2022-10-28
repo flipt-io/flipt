@@ -1,19 +1,16 @@
-package auth
+package sql
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/gofrs/uuid"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/internal/storage/auth"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/rpc/flipt/auth"
+	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -45,7 +42,7 @@ func NewStore(driver fliptsql.Driver, builder sq.StatementBuilderType, logger *z
 		generateID: func() string {
 			return uuid.Must(uuid.NewV4()).String()
 		},
-		generateToken: generateRandomToken,
+		generateToken: auth.GenerateRandomToken,
 	}
 
 	for _, opt := range opts {
@@ -84,11 +81,11 @@ func WithIDGeneratorFunc(fn func() string) Option {
 }
 
 // CreateAuthentication creates and persists an instance of an Authentication.
-func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthenticationRequest) (string, *auth.Authentication, error) {
+func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	var (
 		now            = s.now()
 		clientToken    = s.generateToken()
-		authentication = auth.Authentication{
+		authentication = rpcauth.Authentication{
 			Id:        s.generateID(),
 			Method:    r.Method,
 			Metadata:  r.Metadata,
@@ -98,7 +95,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 		}
 	)
 
-	hashedToken, err := hashClientToken(clientToken)
+	hashedToken, err := auth.HashClientToken(clientToken)
 	if err != nil {
 		return "", nil, fmt.Errorf("creating authentication: %w", err)
 	}
@@ -137,14 +134,14 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 //
 // Given a row is present for the hash of the clientToken then materialize into an Authentication.
 // Else, given it cannot be located, a storage.ErrNotFound error is wrapped and returned instead.
-func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error) {
-	hashedToken, err := hashClientToken(clientToken)
+func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*rpcauth.Authentication, error) {
+	hashedToken, err := auth.HashClientToken(clientToken)
 	if err != nil {
 		return nil, fmt.Errorf("getting authentication by token: %w", err)
 	}
 
 	var (
-		authentication auth.Authentication
+		authentication rpcauth.Authentication
 		expiresAt      fliptsql.Timestamp
 		createdAt      fliptsql.Timestamp
 		updatedAt      fliptsql.Timestamp
@@ -180,44 +177,4 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	authentication.UpdatedAt = updatedAt.Timestamp
 
 	return &authentication, nil
-}
-
-const decodedTokenLen = 32
-
-// generateRandomToken produces a URL safe base64 encoded string of random characters
-// the data is sourced from a pseudo-random input stream
-func generateRandomToken() string {
-	var token [decodedTokenLen]byte
-	if _, err := rand.Read(token[:]); err != nil {
-		panic(err)
-	}
-
-	return base64.URLEncoding.EncodeToString(token[:])
-}
-
-// hashClientToken performs a SHA256 sum on the input string
-// it returns the result as a URL safe base64 encoded string
-func hashClientToken(token string) (string, error) {
-	// produce SHA256 hash of token
-	hash := sha256.New()
-	if _, err := hash.Write([]byte(token)); err != nil {
-		return "", fmt.Errorf("hashing client token: %w", err)
-	}
-
-	// base64(sha256sum)
-	var (
-		data = make([]byte, 0, base64.URLEncoding.EncodedLen(hash.Size()))
-		buf  = bytes.NewBuffer(data)
-		enc  = base64.NewEncoder(base64.URLEncoding, buf)
-	)
-
-	if _, err := enc.Write(hash.Sum(nil)); err != nil {
-		return "", fmt.Errorf("hashing client token: %w", err)
-	}
-
-	if err := enc.Close(); err != nil {
-		return "", fmt.Errorf("hashing client token: %w", err)
-	}
-
-	return buf.String(), nil
 }
