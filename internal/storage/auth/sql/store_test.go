@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
@@ -53,7 +54,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 		name                   string
 		opts                   func(t *testing.T) []Option
 		req                    *storage.CreateAuthenticationRequest
-		expectedErrIs          error
+		expectedErrAs          error
 		expectedToken          string
 		expectedAuthentication *auth.Authentication
 	}{
@@ -99,7 +100,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrIs: storage.ErrInvalid,
+			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 		{
 			name: "fails token uniqueness constraint",
@@ -119,7 +120,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrIs: storage.ErrInvalid,
+			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 	} {
 		test := test
@@ -127,8 +128,8 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			store := storeFn(test.opts(t)...)
 
 			clientToken, created, err := store.CreateAuthentication(ctx, test.req)
-			if test.expectedErrIs != nil {
-				require.ErrorIs(t, err, test.expectedErrIs)
+			if test.expectedErrAs != nil {
+				require.ErrorAs(t, err, test.expectedErrAs)
 				return
 			}
 
@@ -150,13 +151,13 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	for _, test := range []struct {
 		name                   string
 		clientToken            string
-		expectedErrIs          error
+		expectedErrAs          error
 		expectedAuthentication *auth.Authentication
 	}{
 		{
 			name:          "error not found for unexpected clientToken",
 			clientToken:   "unknown",
-			expectedErrIs: storage.ErrNotFound,
+			expectedErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			name:        "successfully retrieves authentication by clientToken",
@@ -176,14 +177,14 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	} {
 		var (
 			clientToken            = test.clientToken
-			expectedErrIs          = test.expectedErrIs
+			expectedErrAs          = test.expectedErrAs
 			expectedAuthentication = test.expectedAuthentication
 		)
 
 		t.Run(test.name, func(t *testing.T) {
 			retrieved, err := storeFn(commonOpts(t)...).GetAuthenticationByClientToken(ctx, clientToken)
-			if expectedErrIs != nil {
-				require.ErrorIs(t, err, expectedErrIs)
+			if expectedErrAs != nil {
+				require.ErrorAs(t, err, expectedErrAs)
 				return
 			}
 
@@ -251,4 +252,8 @@ func newStaticGenerator(t *testing.T, purpose string) func() string {
 	return func() string {
 		return fmt.Sprintf("%s:%s", purpose, t.Name())
 	}
+}
+
+func errPtr[E error](e E) *E {
+	return &e
 }

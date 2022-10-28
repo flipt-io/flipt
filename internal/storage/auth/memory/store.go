@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/gofrs/uuid"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/auth"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -115,7 +116,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	authentication, ok := s.auths[hashedToken]
 	s.mu.Unlock()
 	if !ok {
-		return nil, fmt.Errorf("getting authentication by toke: %w", storage.ErrNotFound)
+		return nil, errors.ErrNotFoundf("getting authentication by token")
 	}
 
 	return authentication, nil
