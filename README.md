@@ -98,8 +98,6 @@ Try the latest version of Flipt out for yourself.
 
 ### Docker
 
-![Flipt](cli.gif)
-
 ```bash
 ❯ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
 ```

@@ -261,7 +261,6 @@
                 }
               },
               "required": [
-                "flagKey",
                 "segmentKey",
                 "rank"
               ]
@@ -314,7 +313,6 @@
                 }
               },
               "required": [
-                "flagKey",
                 "ruleIds"
               ]
             }
@@ -439,7 +437,6 @@
                 }
               },
               "required": [
-                "flagKey",
                 "segmentKey"
               ]
             }
@@ -497,8 +494,6 @@
                 }
               },
               "required": [
-                "flagKey",
-                "ruleId",
                 "variantId",
                 "rollout"
               ]
@@ -551,7 +546,7 @@
           {
             "name": "variantId",
             "in": "query",
-            "required": false,
+            "required": true,
             "type": "string"
           }
         ],
@@ -611,8 +606,6 @@
                 }
               },
               "required": [
-                "flagKey",
-                "ruleId",
                 "variantId",
                 "rollout"
               ]
@@ -670,7 +663,6 @@
                 }
               },
               "required": [
-                "flagKey",
                 "key"
               ]
             }
@@ -769,7 +761,6 @@
                 }
               },
               "required": [
-                "flagKey",
                 "key"
               ]
             }
@@ -1126,7 +1117,6 @@
                 }
               },
               "required": [
-                "segmentKey",
                 "type",
                 "property",
                 "operator"
@@ -1227,7 +1217,6 @@
                 }
               },
               "required": [
-                "segmentKey",
                 "type",
                 "property",
                 "operator"
