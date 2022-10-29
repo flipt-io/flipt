@@ -1378,6 +1378,17 @@
         }
       }
     },
+    "fliptEvaluationReason": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN_EVALUATION_REASON",
+        "FLAG_DISABLED_EVALUATION_REASON",
+        "FLAG_NOT_FOUND_EVALUATION_REASON",
+        "MATCH_EVALUATION_REASON",
+        "ERROR_EVALUATION_REASON"
+      ],
+      "default": "UNKNOWN_EVALUATION_REASON"
+    },
     "fliptEvaluationRequest": {
       "type": "object",
       "properties": {
@@ -1439,6 +1450,9 @@
         },
         "attachment": {
           "type": "string"
+        },
+        "reason": {
+          "$ref": "#/definitions/fliptEvaluationReason"
         }
       }
     },
