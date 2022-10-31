@@ -74,7 +74,9 @@ func main() {
 		}
 	})
 
-	log.Println("demo ui available at http://localhost:8000")
-	log.Printf("flag key: %s\n", flagKey)
+	log.Println("Flip UI available at http://localhost:8080")
+	log.Println("Client UI available at http://localhost:8000")
+	log.Println("Jaeger UI available at http://localhost:16686")
+	log.Printf("Flag Key: %q\n", flagKey)
 	log.Fatal(http.ListenAndServe(":8000", h))
 }
