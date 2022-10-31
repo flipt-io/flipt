@@ -36,7 +36,5 @@ services:
     networks:
       - flipt_network
 
-
-
 networks:
   flipt_network:
