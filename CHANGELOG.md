@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Propogating OpenTelemetry spans through Flipt 
+- Propogating OpenTelemetry spans through Flipt [#1112](https://github.com/flipt-io/flipt/pull/1112)
 
 ## [v1.13.0](https://github.com/markphelps/flipt/releases/tag/v1.13.0) - 2022-10-17
 
