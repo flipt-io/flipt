@@ -49,6 +49,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -462,7 +463,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		}
 
 		otel.SetTracerProvider(tracingProvider)
-
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 		{
 			// forward internal gRPC logging to zap
 			grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
