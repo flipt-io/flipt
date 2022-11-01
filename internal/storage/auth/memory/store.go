@@ -3,6 +3,8 @@ package memory
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strconv"
 	"sync"
 
 	"github.com/gofrs/uuid"
@@ -124,4 +126,49 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	}
 
 	return authentication, nil
+}
+
+func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
+	var set storage.ResultSet[*rpcauth.Authentication]
+	if err := req.QueryParams.Validate(); err != nil {
+		return set, fmt.Errorf("listing authentications: %w", err)
+	}
+
+	// copy all auths into slice
+	s.mu.Lock()
+	set.Results = make([]*rpcauth.Authentication, 0, len(s.auths))
+	for _, res := range s.auths {
+		set.Results = append(set.Results, res)
+	}
+	s.mu.Unlock()
+
+	// sort by created_at and specified order
+	sort.Slice(set.Results, func(i, j int) bool {
+		if req.QueryParams.Order != storage.OrderAsc {
+			i, j = j, i
+		}
+
+		return set.Results[i].CreatedAt.AsTime().
+			Before(set.Results[j].CreatedAt.AsTime())
+	})
+
+	// parse page token as an offset integer
+	var offset int
+	if v, err := strconv.ParseInt(req.QueryParams.PageToken, 10, 64); err == nil {
+		offset = int(v)
+	}
+
+	// ensure end of page does not exceed entire set
+	end := offset + int(req.QueryParams.Limit)
+	if end > len(set.Results) {
+		end = len(set.Results)
+	} else if end < len(set.Results) {
+		// set next page token given there are more entries
+		set.NextPageToken = fmt.Sprintf("%d", end)
+	}
+
+	// reduce results set to requested page
+	set.Results = set.Results[offset:end]
+
+	return set, nil
 }

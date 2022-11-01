@@ -3,7 +3,6 @@ package sql
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
+	storagetesting "go.flipt.io/flipt/internal/storage/testing"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -20,8 +20,6 @@ import (
 )
 
 var (
-	db *fliptsqltesting.Database
-
 	someTimestamp = timestamppb.New(time.Date(2022, 10, 25, 18, 0, 0, 0, time.UTC))
 	commonOpts    = func(t *testing.T) []Option {
 		return []Option{
@@ -36,13 +34,10 @@ var (
 	}
 )
 
-func TestMain(m *testing.M) {
-	var err error
-	db, err = fliptsqltesting.Open()
-	if err != nil {
-		panic(err)
-	}
-	os.Exit(m.Run())
+func TestAuthenticationStoreHarness(t *testing.T) {
+	storagetesting.TestAuthenticationStoreHarness(t, func(t *testing.T) storage.AuthenticationStore {
+		return newTestStore(t)()
+	})
 }
 
 func TestAuthentication_CreateAuthentication(t *testing.T) {
@@ -227,6 +222,11 @@ func createAuth(id, token string) authentication {
 
 func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 	t.Helper()
+
+	db, err := fliptsqltesting.Open()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var (
 		ctx     = context.TODO()

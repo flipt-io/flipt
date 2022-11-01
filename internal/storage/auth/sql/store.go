@@ -3,7 +3,9 @@ package sql
 import (
 	"context"
 	"fmt"
+	"strconv"
 
+	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/gofrs/uuid"
@@ -140,24 +142,113 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 		return nil, fmt.Errorf("getting authentication by token: %w", err)
 	}
 
+	var authentication rpcauth.Authentication
+
+	if err := s.scanAuthentication(
+		s.builder.
+			Select(
+				"id",
+				"method",
+				"metadata",
+				"expires_at",
+				"created_at",
+				"updated_at",
+			).
+			From("authentications").
+			Where(sq.Eq{"hashed_client_token": hashedToken}).
+			QueryRowContext(ctx), &authentication); err != nil {
+		return nil, fmt.Errorf(
+			"getting authentication by token: %w",
+			s.driver.AdaptError(err),
+		)
+	}
+
+	return &authentication, nil
+}
+
+// ListWithMethod can be passed to storage.NewListRequest.
+// The request can then be used to predicate ListAuthentications by auth method.
+func ListWithMethod(method rpcauth.Method) storage.ListOption[storage.ListAuthenticationsPredicate] {
+	return func(r *storage.ListRequest[storage.ListAuthenticationsPredicate]) {
+		r.Predicate.Method = &method
+	}
+}
+
+// ListAuthentications lists a page of Authentications from the backing store.
+func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf(
+				"listing authentications: %w",
+				s.driver.AdaptError(err),
+			)
+		}
+	}()
+
+	if err = req.QueryParams.Validate(); err != nil {
+		return
+	}
+
+	query := s.builder.
+		Select(
+			"id",
+			"method",
+			"metadata",
+			"expires_at",
+			"created_at",
+			"updated_at",
+		).
+		From("authentications").
+		Limit(req.QueryParams.Limit + 1)
+
+	if req.QueryParams.Order != storage.OrderAsc {
+		query = query.OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
+	}
+
+	var offset int
+	if v, err := strconv.ParseInt(req.QueryParams.PageToken, 10, 64); err == nil {
+		offset = int(v)
+		query = query.Offset(uint64(v))
+	}
+
+	rows, err := query.QueryContext(ctx)
+	if err != nil {
+		return set, err
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var authentication rpcauth.Authentication
+		if err = s.scanAuthentication(rows, &authentication); err != nil {
+			return
+		}
+
+		if len(set.Results) >= int(req.QueryParams.Limit) {
+			// set the next page token to the first
+			// row beyond the query limit and break
+			set.NextPageToken = fmt.Sprintf("%d", offset+int(req.QueryParams.Limit))
+			break
+		}
+
+		set.Results = append(set.Results, &authentication)
+	}
+
+	if err = rows.Err(); err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *Store) scanAuthentication(scanner squirrel.RowScanner, authentication *rpcauth.Authentication) error {
 	var (
-		authentication rpcauth.Authentication
-		expiresAt      fliptsql.NullableTimestamp
-		createdAt      fliptsql.Timestamp
-		updatedAt      fliptsql.Timestamp
+		expiresAt fliptsql.NullableTimestamp
+		createdAt fliptsql.Timestamp
+		updatedAt fliptsql.Timestamp
 	)
 
-	if err := s.builder.Select(
-		"id",
-		"method",
-		"metadata",
-		"expires_at",
-		"created_at",
-		"updated_at",
-	).
-		From("authentications").
-		Where(sq.Eq{"hashed_client_token": hashedToken}).
-		QueryRowContext(ctx).
+	if err := scanner.
 		Scan(
 			&authentication.Id,
 			&authentication.Method,
@@ -166,8 +257,8 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 			&createdAt,
 			&updatedAt,
 		); err != nil {
-		return nil, fmt.Errorf(
-			"getting authentication by token: %w",
+		return fmt.Errorf(
+			"reading authentication: %w",
 			s.driver.AdaptError(err),
 		)
 	}
@@ -176,5 +267,5 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	authentication.CreatedAt = createdAt.Timestamp
 	authentication.UpdatedAt = updatedAt.Timestamp
 
-	return &authentication, nil
+	return nil
 }
