@@ -201,6 +201,10 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		From("authentications").
 		Limit(req.QueryParams.Limit + 1)
 
+	if req.Predicate.Method != nil {
+		query = query.Where(sq.Eq{"method": *req.Predicate.Method})
+	}
+
 	if req.QueryParams.Order != storage.OrderAsc {
 		query = query.OrderBy(fmt.Sprintf("created_at %s", req.QueryParams.Order))
 	}
