@@ -14,7 +14,11 @@ import (
 	"github.com/gorilla/mux"
 	otelHook "github.com/open-feature/go-sdk-contrib/hooks/open-telemetry/pkg"
 	"github.com/open-feature/go-sdk/pkg/openfeature"
+	fliptgrpc "go.flipt.io/flipt-grpc"
 	"go.flipt.io/flipt-openfeature-provider/pkg/provider/flipt"
+	servicegrpc "go.flipt.io/flipt-openfeature-provider/pkg/service/flipt/grpc"
+
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -22,6 +26,10 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/go-logr/stdr"
 )
 
 type response struct {
@@ -79,6 +87,10 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
+	stdr.SetVerbosity(1)
+	logger := stdr.New(log.Default())
+	openfeature.SetLogger(logger)
+
 	tp, err := tracerProvider(jaegerServer)
 	if err != nil {
 		log.Fatal(err)
@@ -94,11 +106,25 @@ func main() {
 	// set the opentelemetry hook
 	openfeature.AddHooks(otelHook.NewHook())
 
+	// need to use our own grpc dialer to add the opentelemetry grpc client interceptor
+	conn, err := grpc.Dial(
+		fliptServer,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		log.Fatalf("dialing %v", err)
+	}
+
+	svc := servicegrpc.New(servicegrpc.WithGRPCClient(fliptgrpc.NewFliptClient(conn)))
+
 	// setup Flipt OpenFeature provider with GRPC client
 	provider := flipt.NewProvider(
-		flipt.WithAddress(fliptServer),
+		flipt.WithService(svc),
 		flipt.WithServiceType(flipt.ServiceTypeGRPC),
 	)
+
 	openfeature.SetProvider(provider)
 
 	client := openfeature.NewClient(service + "-client")
