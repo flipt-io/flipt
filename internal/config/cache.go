@@ -21,6 +21,7 @@ type CacheConfig struct {
 
 func (c *CacheConfig) setDefaults(v *viper.Viper) (warnings []string) {
 	v.SetDefault("cache", map[string]any{
+		"enabled": false,
 		"backend": CacheMemory,
 		"ttl":     1 * time.Minute,
 		"redis": map[string]any{
