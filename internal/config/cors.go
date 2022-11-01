@@ -14,6 +14,7 @@ type CorsConfig struct {
 
 func (c *CorsConfig) setDefaults(v *viper.Viper) []string {
 	v.SetDefault("cors", map[string]any{
+		"enabled":         false,
 		"allowed_origins": "*",
 	})
 

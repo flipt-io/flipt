@@ -18,19 +18,29 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 )
 
-type data struct {
+type response struct {
 	RequestID string `json:"request_id"`
+	User      string `json:"user"`
 	Language  string `json:"language"`
+	Greeting  string `json:"greeting"`
 }
 
 var (
 	fliptServer  string
 	jaegerServer string
+	greetings    = map[string]string{
+		"en": "Hello",
+		"fr": "Bonjour",
+		"es": "Hola",
+		"de": "Hallo",
+		"jp": "こんにちは",
+	}
 )
 
 const (
@@ -39,7 +49,7 @@ const (
 )
 
 func init() {
-	flag.StringVar(&fliptServer, "server", "http://flipt:8080", "address of Flipt backend server")
+	flag.StringVar(&fliptServer, "server", "flipt:9000", "address of Flipt backend server")
 	flag.StringVar(&jaegerServer, "jaeger", "http://jaeger:14268/api/traces", "address of Jaeger server")
 }
 
@@ -67,6 +77,7 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 
 func main() {
 	flag.Parse()
+	log.SetFlags(0)
 
 	tp, err := tracerProvider(jaegerServer)
 	if err != nil {
@@ -75,25 +86,37 @@ func main() {
 
 	defer tp.Shutdown(context.Background())
 
-	// Register our TracerProvider as the global so any imported
+	// register our TracerProvider as the global so any imported
 	// instrumentation in the future will default to using it.
 	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	// set the opentelemetry hook
 	openfeature.AddHooks(otelHook.NewHook())
-	openfeature.SetProvider(flipt.NewProvider(flipt.WithAddress(fliptServer)))
+
+	// setup Flipt OpenFeature provider with GRPC client
+	provider := flipt.NewProvider(
+		flipt.WithAddress(fliptServer),
+		flipt.WithServiceType(flipt.ServiceTypeGRPC),
+	)
+	openfeature.SetProvider(provider)
 
 	client := openfeature.NewClient(service + "-client")
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/api/greeting", func(w http.ResponseWriter, r *http.Request) {
 		requestID := r.Header.Get("X-Request-ID")
 		if requestID == "" {
 			requestID = uuid.Must(uuid.NewV4()).String()
 		}
 
+		key := r.URL.Query().Get("user")
+		if key == "" {
+			key = uuid.Must(uuid.NewV4()).String()
+		}
+
 		value, err := client.StringValue(r.Context(), "language", "en", openfeature.NewEvaluationContext(
-			requestID,
+			key,
 			map[string]interface{}{},
 		))
 
@@ -102,23 +125,25 @@ func main() {
 			return
 		}
 
-		log.Printf("requestID: %s, language: %s", requestID, value)
+		log.Printf("key: %s, language: %s", key, value)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
-		if err := json.NewEncoder(w).Encode(data{
+		if err := json.NewEncoder(w).Encode(response{
 			RequestID: requestID,
 			Language:  value,
+			Greeting:  greetings[value],
+			User:      key,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	})
 
-	log.Println("Flip UI available at http://localhost:8080")
+	log.Println("Flipt UI available at http://localhost:8080")
 	log.Println("Demo API available at http://localhost:8000/api")
 	log.Println("Jaeger UI available at http://localhost:16686")
-	log.Print("\n -> run `curl -v http://localhost:8000/api`\n")
+	log.Print("\n -> run `curl -v http://localhost:8000/api/greeting?user={foo}`\n")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

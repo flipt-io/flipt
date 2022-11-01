@@ -6,6 +6,7 @@ services:
     command: ["./flipt", "--force-migrate"]
     ports:
       - "8080:8080"
+      - "9000:9000"
     networks:
       - flipt_network
     environment:

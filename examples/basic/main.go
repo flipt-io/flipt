@@ -33,6 +33,7 @@ func init() {
 
 func main() {
 	flag.Parse()
+	log.SetFlags(0)
 
 	conn, err := grpc.Dial(fliptServer, grpc.WithInsecure())
 	if err != nil {
@@ -74,7 +75,7 @@ func main() {
 		}
 	})
 
-	log.Println("Flip UI available at http://localhost:8080")
+	log.Println("Flipt UI available at http://localhost:8080")
 	log.Println("Client UI available at http://localhost:8000")
 	log.Println("Jaeger UI available at http://localhost:16686")
 	log.Printf("Flag Key: %q\n", flagKey)
