@@ -6,9 +6,20 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+
+	"go.flipt.io/flipt/internal/storage"
+	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 )
 
 const decodedTokenLen = 32
+
+// ListWithMethod can be passed to storage.NewListRequest.
+// The request can then be used to predicate ListAuthentications by auth method.
+func ListWithMethod(method rpcauth.Method) storage.ListOption[storage.ListAuthenticationsPredicate] {
+	return func(r *storage.ListRequest[storage.ListAuthenticationsPredicate]) {
+		r.Predicate.Method = &method
+	}
+}
 
 // GenerateRandomToken produces a URL safe base64 encoded string of random characters
 // the data is sourced from a pseudo-random input stream

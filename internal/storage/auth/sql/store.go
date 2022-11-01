@@ -166,14 +166,6 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	return &authentication, nil
 }
 
-// ListWithMethod can be passed to storage.NewListRequest.
-// The request can then be used to predicate ListAuthentications by auth method.
-func ListWithMethod(method rpcauth.Method) storage.ListOption[storage.ListAuthenticationsPredicate] {
-	return func(r *storage.ListRequest[storage.ListAuthenticationsPredicate]) {
-		r.Predicate.Method = &method
-	}
-}
-
 // ListAuthentications lists a page of Authentications from the backing store.
 func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
 	defer func() {

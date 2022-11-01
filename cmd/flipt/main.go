@@ -34,11 +34,13 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server"
+	"go.flipt.io/flipt/internal/server/auth"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/storage"
+	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	"go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
@@ -476,16 +478,33 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
 		}
 
+		// base observability inteceptors
 		interceptors := []grpc.UnaryServerInterceptor{
 			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_zap.UnaryServerInterceptor(logger),
 			grpc_prometheus.UnaryServerInterceptor,
 			otelgrpc.UnaryServerInterceptor(),
+		}
+
+		// authentication interceptor
+		var authenticationStore storage.AuthenticationStore
+
+		// only enable enforcement middleware if authentication required
+		if cfg.Authentication.Required {
+			authenticationStore = authsql.NewStore(driver, sql.BuilderFor(db, driver), logger)
+
+			interceptors = append(interceptors, auth.UnaryInterceptor(logger, authenticationStore))
+
+			logger.Info("authentication middleware enabled")
+		}
+
+		// behaviour interceptors
+		interceptors = append(interceptors,
 			server.ErrorUnaryInterceptor,
 			server.ValidationUnaryInterceptor,
 			server.EvaluationUnaryInterceptor,
-		}
+		)
 
 		if cfg.Cache.Enabled {
 			var cacher cache.Cacher
@@ -546,12 +565,21 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		pb.RegisterFliptServer(grpcServer, srv)
 
 		// register auth service
-		if cfg.Authentication.Enabled {
-			store := authsql.NewStore(driver, sql.BuilderFor(db, driver), logger)
-			tokenServer := authtoken.NewServer(logger, store)
+		if cfg.Authentication.Methods.Token.Enabled {
+			// attempt to bootstrap authentication store
+			clientToken, err := authstorage.Bootstrap(ctx, authenticationStore)
+			if err != nil {
+				return fmt.Errorf("configuring token authentication: %w", err)
+			}
 
+			if clientToken != "" {
+				logger.Info("access token created", zap.String("client_token", clientToken))
+			}
+
+			tokenServer := authtoken.NewServer(logger, authenticationStore)
 			authrpc.RegisterAuthenticationMethodTokenServiceServer(grpcServer, tokenServer)
-			logger.Info("authentication server registered")
+
+			logger.Debug("authentication server registered")
 		}
 
 		grpc_prometheus.EnableHandlingTimeHistogram()
@@ -618,7 +646,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			return fmt.Errorf("registering grpc gateway: %w", err)
 		}
 
-		if cfg.Authentication.Enabled {
+		if cfg.Authentication.Methods.Token.Enabled {
 			if err := authrpc.RegisterAuthenticationMethodTokenServiceHandler(ctx, api, conn); err != nil {
 				return fmt.Errorf("registering auth grpc gateway: %w", err)
 			}
