@@ -28,8 +28,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/go-logr/stdr"
 )
 
 type response struct {
@@ -86,10 +84,6 @@ func tracerProvider(url string) (*tracesdk.TracerProvider, error) {
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
-
-	stdr.SetVerbosity(1)
-	logger := stdr.New(log.Default())
-	openfeature.SetLogger(logger)
 
 	tp, err := tracerProvider(jaegerServer)
 	if err != nil {
@@ -170,6 +164,6 @@ func main() {
 	log.Println("Flipt UI available at http://localhost:8080")
 	log.Println("Demo API available at http://localhost:8000/api")
 	log.Println("Jaeger UI available at http://localhost:16686")
-	log.Print("\n -> run `curl -v http://localhost:8000/api/greeting?user={foo}`\n")
+	log.Print("\n -> run 'curl http://localhost:8000/api/greeting?user=xyz'\n")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

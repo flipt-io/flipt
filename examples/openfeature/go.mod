@@ -3,7 +3,6 @@ module openfeature-example
 go 1.18
 
 require (
-	github.com/go-logr/stdr v1.2.2
 	github.com/gofrs/uuid v4.3.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/open-feature/go-sdk v1.0.0
@@ -19,6 +18,7 @@ require (
 
 require (
 	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3 // indirect
 	go.opentelemetry.io/otel/trace v1.11.1 // indirect
