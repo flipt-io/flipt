@@ -441,6 +441,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		var tracingProvider = trace.NewNoopTracerProvider()
 
 		if cfg.Tracing.Jaeger.Enabled {
+			logger.Debug("tracing enabled", zap.String("type", "jaeger"))
 			exp, err := jaeger.New(jaeger.WithAgentEndpoint(
 				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
 				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
@@ -464,15 +465,14 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		otel.SetTracerProvider(tracingProvider)
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-		{
-			// forward internal gRPC logging to zap
-			grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
-			if err != nil {
-				return fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
-			}
 
-			grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
+		// forward internal gRPC logging to zap
+		grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
+		if err != nil {
+			return fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
 		}
+
+		grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
 
 		interceptors := []grpc.UnaryServerInterceptor{
 			grpc_recovery.UnaryServerInterceptor(),
