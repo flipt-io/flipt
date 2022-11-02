@@ -60,21 +60,16 @@ func Load(path string) (*Config, error) {
 	}
 
 	var (
-		cfg    = &Config{}
-		fields = cfg.fields()
+		cfg        = &Config{}
+		validators = cfg.prepare(v)
 	)
-
-	// set viper defaults per field
-	for _, defaulter := range fields.defaulters {
-		cfg.Warnings = append(cfg.Warnings, defaulter.setDefaults(v)...)
-	}
 
 	if err := v.Unmarshal(cfg, viper.DecodeHook(decodeHooks)); err != nil {
 		return nil, err
 	}
 
 	// run any validation steps
-	for _, validator := range fields.validators {
+	for _, validator := range validators {
 		if err := validator.validate(); err != nil {
 			return nil, err
 		}
@@ -91,26 +86,65 @@ type validator interface {
 	validate() error
 }
 
-type fields struct {
-	defaulters []defaulter
-	validators []validator
-}
+func (c *Config) prepare(v *viper.Viper) (validators []validator) {
+	val := reflect.ValueOf(c).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		// search for all expected env vars since Viper cannot
+		// infer when doing Unmarshal + AutomaticEnv.
+		// see: https://github.com/spf13/viper/issues/761
+		bindEnvVars(v, "", val.Type().Field(i))
 
-func (c *Config) fields() (fields fields) {
-	structVal := reflect.ValueOf(c).Elem()
-	for i := 0; i < structVal.NumField(); i++ {
-		field := structVal.Field(i).Addr().Interface()
+		field := val.Field(i).Addr().Interface()
 
+		// for-each defaulter implementing fields we invoke
+		// setting any defaults during this prepare stage
+		// on the supplied viper.
 		if defaulter, ok := field.(defaulter); ok {
-			fields.defaulters = append(fields.defaulters, defaulter)
+			c.Warnings = append(c.Warnings, defaulter.setDefaults(v)...)
 		}
 
+		// for-each validator implementing field we collect
+		// them up and return them to be validated after
+		// unmarshalling.
 		if validator, ok := field.(validator); ok {
-			fields.validators = append(fields.validators, validator)
+			validators = append(validators, validator)
 		}
 	}
 
 	return
+}
+
+// bindEnvVars descends into the provided struct field binding any expected
+// environment variable keys it finds reflecting struct and field tags.
+func bindEnvVars(v *viper.Viper, prefix string, field reflect.StructField) {
+	tag := field.Tag.Get("mapstructure")
+	if tag == "" {
+		tag = strings.ToLower(field.Name)
+	}
+
+	var (
+		key = prefix + tag
+		typ = field.Type
+	)
+
+	// descend through pointers
+	if typ.Kind() == reflect.Pointer {
+		typ = typ.Elem()
+	}
+
+	// descend into struct fields
+	if typ.Kind() == reflect.Struct {
+		for i := 0; i < field.Type.NumField(); i++ {
+			structField := field.Type.Field(i)
+
+			// key becomes prefix for sub-fields
+			bindEnvVars(v, key+".", structField)
+		}
+
+		return
+	}
+
+	v.MustBindEnv(key)
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
