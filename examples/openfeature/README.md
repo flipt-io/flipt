@@ -12,7 +12,7 @@ This example shows how you can run Flipt, Jaeger and a example REST API which in
 
 In this example, we are leveraging Flipt to prototype a new REST API endpoint for our application. This endpoint will be used to return a greeting message to the user based on some value. We will use the OpenFeature Go SDK to integrate with Flipt and the OpenTelemetry hook to send tracing data to Jaeger.
 
-Since this is just a prototype, we will deteministically return a greeting message based on the value of `user` query param in the request. We support 5 languages: English, Spanish, French, Japanese and German, each with a 20% chance of being returned.
+Since this is just a prototype, we will deterministically return a greeting message based on the value of `user` query param in the request. We support 5 languages: English, Spanish, French, Japanese and German, each with a 20% chance of being returned.
 
 Note: The same language will always be returned for the same value of `user` query param. If no value is present one will be generated at random.
 
