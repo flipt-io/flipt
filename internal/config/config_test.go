@@ -6,12 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uber/jaeger-client-go"
+	"gopkg.in/yaml.v2"
 )
 
 func TestScheme(t *testing.T) {
@@ -236,7 +239,7 @@ func TestLoad(t *testing.T) {
 				cfg := defaultConfig()
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
-				cfg.Cache.TTL = -1
+				cfg.Cache.TTL = -time.Second
 				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled, deprecatedMsgMemoryExpiration)
 				return cfg
 			},
@@ -415,8 +418,41 @@ func TestLoad(t *testing.T) {
 			expected = tt.expected()
 		}
 
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.name+" (YAML)", func(t *testing.T) {
 			cfg, err := Load(path)
+
+			if wantErr != nil {
+				t.Log(err)
+				require.ErrorIs(t, err, wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+
+			assert.NotNil(t, cfg)
+			assert.Equal(t, expected, cfg)
+		})
+
+		t.Run(tt.name+" (ENV)", func(t *testing.T) {
+			// backup and restore environment
+			backup := os.Environ()
+			defer func() {
+				os.Clearenv()
+				for _, env := range backup {
+					key, value, _ := strings.Cut(env, "=")
+					os.Setenv(key, value)
+				}
+			}()
+
+			// read the input config file into equivalent envs
+			envs := readYAMLIntoEnv(t, path)
+			for _, env := range envs {
+				t.Logf("Setting env '%s=%s'\n", env[0], env[1])
+				os.Setenv(env[0], env[1])
+			}
+
+			// load default (empty) config
+			cfg, err := Load("./testdata/default.yml")
 
 			if wantErr != nil {
 				t.Log(err)
@@ -448,4 +484,36 @@ func TestServeHTTP(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.NotEmpty(t, body)
+}
+
+// readyYAMLIntoEnv parses the file provided at path as YAML.
+// It walks the keys and values and builds up a set of environment variables
+// compatible with viper's expectations for automatic env capability.
+func readYAMLIntoEnv(t *testing.T, path string) [][2]string {
+	t.Helper()
+
+	configFile, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	var config map[any]any
+	err = yaml.Unmarshal(configFile, &config)
+	require.NoError(t, err)
+
+	return getEnvVars("flipt", config)
+}
+
+func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
+	for key, value := range v {
+		switch v := value.(type) {
+		case map[any]any:
+			vals = append(vals, getEnvVars(fmt.Sprintf("%s_%v", prefix, key), v)...)
+		default:
+			vals = append(vals, [2]string{
+				fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(fmt.Sprintf("%v", key))),
+				fmt.Sprintf("%v", value),
+			})
+		}
+	}
+
+	return
 }
