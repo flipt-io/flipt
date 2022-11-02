@@ -4,20 +4,16 @@ on:
     branches:
       - main
     paths-ignore:
-      - "deploy/**"
       - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
-      - "**.ya?ml"
   pull_request:
     paths-ignore:
-      - "deploy/**"
       - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
-      - "**.ya?ml"
   workflow_dispatch:
 
 jobs:
@@ -34,7 +30,7 @@ jobs:
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.2.0
+        uses: golangci/golangci-lint-action@v3.3.0
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
           version: v1.49

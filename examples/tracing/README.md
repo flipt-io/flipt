@@ -1,6 +1,6 @@
 # Tracing Example
 
-This example shows how you can run Flipt with a Jaeger/Open Tracing sidecar application in Docker.
+This example shows how you can run Flipt with a Jaeger/Open Telemetry sidecar application in Docker.
 
 !['Jaeger Example'](./jaeger.png)
 
