@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/gofrs/uuid"
@@ -237,7 +236,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	return
 }
 
-func (s *Store) scanAuthentication(scanner squirrel.RowScanner, authentication *rpcauth.Authentication) error {
+func (s *Store) scanAuthentication(scanner sq.RowScanner, authentication *rpcauth.Authentication) error {
 	var (
 		expiresAt fliptsql.NullableTimestamp
 		createdAt fliptsql.Timestamp
