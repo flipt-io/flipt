@@ -36,8 +36,8 @@ func GetAuthenticationFrom(ctx context.Context) *authrpc.Authentication {
 	return auth.(*authrpc.Authentication)
 }
 
-// UnaryInterceptor is a grpc.UnaryServerInterceptor, which extracts a clientToken found
-// strored within the authorization field on the incoming request metadata.
+// UnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
+// within the authorization field on the incoming requests metadata.
 // The fields value is expected to be in the form "Bearer <clientToken>".
 func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
