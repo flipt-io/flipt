@@ -30,6 +30,33 @@ func (t *Timestamp) Value() (driver.Value, error) {
 	return t.Timestamp.AsTime(), t.Timestamp.CheckValid()
 }
 
+type NullableTimestamp Timestamp
+
+func (t *NullableTimestamp) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	if v, ok := value.(time.Time); ok {
+		val := timestamppb.New(v)
+		if err := val.CheckValid(); err != nil {
+			return err
+		}
+
+		t.Timestamp = val
+	}
+
+	return nil
+}
+
+func (t *NullableTimestamp) Value() (driver.Value, error) {
+	if t.Timestamp == nil {
+		return nil, nil
+	}
+
+	return t.Timestamp.AsTime(), t.Timestamp.CheckValid()
+}
+
 type JSONField[T any] struct {
 	T T
 }

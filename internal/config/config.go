@@ -35,15 +35,16 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 // then this will be called after unmarshalling, such that the function can emit
 // any errors derived from the resulting state of the configuration.
 type Config struct {
-	Log      LogConfig      `json:"log,omitempty" mapstructure:"log"`
-	UI       UIConfig       `json:"ui,omitempty" mapstructure:"ui"`
-	Cors     CorsConfig     `json:"cors,omitempty" mapstructure:"cors"`
-	Cache    CacheConfig    `json:"cache,omitempty" mapstructure:"cache"`
-	Server   ServerConfig   `json:"server,omitempty" mapstructure:"server"`
-	Tracing  TracingConfig  `json:"tracing,omitempty" mapstructure:"tracing"`
-	Database DatabaseConfig `json:"database,omitempty" mapstructure:"db"`
-	Meta     MetaConfig     `json:"meta,omitempty" mapstructure:"meta"`
-	Warnings []string       `json:"warnings,omitempty"`
+	Log            LogConfig            `json:"log,omitempty" mapstructure:"log"`
+	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui"`
+	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors"`
+	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache"`
+	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server"`
+	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing"`
+	Database       DatabaseConfig       `json:"database,omitempty" mapstructure:"db"`
+	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
+	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication"`
+	Warnings       []string             `json:"warnings,omitempty"`
 }
 
 func Load(path string) (*Config, error) {

@@ -34,16 +34,19 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server"
+	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/storage"
+	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	"go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.flipt.io/flipt/internal/telemetry"
 	pb "go.flipt.io/flipt/rpc/flipt"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/swagger"
 	"go.flipt.io/flipt/ui"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -542,6 +545,16 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		})
 
 		pb.RegisterFliptServer(grpcServer, srv)
+
+		// register auth service
+		if cfg.Authentication.Enabled {
+			store := authsql.NewStore(driver, sql.BuilderFor(db, driver), logger)
+			tokenServer := authtoken.NewServer(logger, store)
+
+			authrpc.RegisterAuthenticationMethodTokenServiceServer(grpcServer, tokenServer)
+			logger.Info("authentication server registered")
+		}
+
 		grpc_prometheus.EnableHandlingTimeHistogram()
 		grpc_prometheus.Register(grpcServer)
 		reflection.Register(grpcServer)
@@ -606,6 +619,12 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			return fmt.Errorf("registering grpc gateway: %w", err)
 		}
 
+		if cfg.Authentication.Enabled {
+			if err := authrpc.RegisterAuthenticationMethodTokenServiceHandler(ctx, api, conn); err != nil {
+				return fmt.Errorf("registering auth grpc gateway: %w", err)
+			}
+		}
+
 		if cfg.Cors.Enabled {
 			cors := cors.New(cors.Options{
 				AllowedOrigins:   cfg.Cors.AllowedOrigins,
@@ -637,6 +656,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		r.Use(middleware.Recoverer)
 		r.Mount("/metrics", promhttp.Handler())
 		r.Mount("/api/v1", api)
+		r.Mount("/auth/v1", api)
 		r.Mount("/debug", middleware.Profiler())
 
 		r.Route("/meta", func(r chi.Router) {

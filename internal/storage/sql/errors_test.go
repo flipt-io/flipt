@@ -9,15 +9,19 @@ import (
 	"github.com/lib/pq"
 	"github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/errors"
 )
+
+func errPtr[E error](e E) *E {
+	return &e
+}
 
 func Test_AdaptError(t *testing.T) {
 	for _, test := range []struct {
 		driver   Driver
 		inputErr error
-		// if outputErrIs nil then test will ensure input is returned
-		outputErrIs error
+		// if outputErrAs nil then test will ensure input is returned
+		outputErrAs any
 	}{
 		// No driver
 		{},
@@ -25,32 +29,32 @@ func Test_AdaptError(t *testing.T) {
 		{
 			driver:      SQLite,
 			inputErr:    sql.ErrNoRows,
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver:      SQLite,
 			inputErr:    fmt.Errorf("wrapped no rows: %w", sql.ErrNoRows),
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver:      Postgres,
 			inputErr:    sql.ErrNoRows,
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver:      Postgres,
 			inputErr:    fmt.Errorf("wrapped no rows: %w", sql.ErrNoRows),
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver:      MySQL,
 			inputErr:    sql.ErrNoRows,
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver:      MySQL,
 			inputErr:    fmt.Errorf("wrapped no rows: %w", sql.ErrNoRows),
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		// SQLite
 		// Unchanged errors
@@ -70,7 +74,7 @@ func Test_AdaptError(t *testing.T) {
 				Code:         sqlite3.ErrConstraint,
 				ExtendedCode: sqlite3.ErrConstraintCheck,
 			},
-			outputErrIs: storage.ErrInvalid,
+			outputErrAs: errPtr(errors.ErrInvalid("")),
 		},
 		{
 			driver: SQLite,
@@ -78,7 +82,7 @@ func Test_AdaptError(t *testing.T) {
 				Code:         sqlite3.ErrConstraint,
 				ExtendedCode: sqlite3.ErrConstraintForeignKey,
 			},
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver: SQLite,
@@ -86,7 +90,7 @@ func Test_AdaptError(t *testing.T) {
 				Code:         sqlite3.ErrConstraint,
 				ExtendedCode: sqlite3.ErrConstraintUnique,
 			},
-			outputErrIs: storage.ErrInvalid,
+			outputErrAs: errPtr(errors.ErrInvalid("")),
 		},
 		// Postgres
 		// Unchanged errors
@@ -104,13 +108,13 @@ func Test_AdaptError(t *testing.T) {
 			driver: Postgres,
 			// foreign_key_violation
 			inputErr:    &pq.Error{Code: pq.ErrorCode("23503")},
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver: Postgres,
 			// unique_violation
 			inputErr:    &pq.Error{Code: pq.ErrorCode("23505")},
-			outputErrIs: storage.ErrInvalid,
+			outputErrAs: errPtr(errors.ErrInvalid("")),
 		},
 		// MySQL
 		// Unchanged errors
@@ -128,20 +132,27 @@ func Test_AdaptError(t *testing.T) {
 			driver: MySQL,
 			// foreign_key_violation
 			inputErr:    &mysql.MySQLError{Number: uint16(1452)},
-			outputErrIs: storage.ErrNotFound,
+			outputErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			driver: MySQL,
 			// unique_violation
 			inputErr:    &mysql.MySQLError{Number: uint16(1062)},
-			outputErrIs: storage.ErrInvalid,
+			outputErrAs: errPtr(errors.ErrInvalid("")),
 		},
 	} {
 		test := test
-		name := fmt.Sprintf("(%v).AdaptError(%T) == %T", test.driver, test.inputErr, test.outputErrIs)
+
+		outputs := test.outputErrAs
+		if outputs == nil {
+			outputs = test.inputErr
+		}
+
+		name := fmt.Sprintf("(%v).AdaptError(%v) == %T", test.driver, test.inputErr, outputs)
+
 		t.Run(name, func(t *testing.T) {
 			err := test.driver.AdaptError(test.inputErr)
-			if test.outputErrIs == nil {
+			if test.outputErrAs == nil {
 				// given the output expectation is nil we ensure the input error
 				// is returned unchanged
 				require.Equal(t, test.inputErr, err, "input error was changed unexpectedly")
@@ -149,7 +160,7 @@ func Test_AdaptError(t *testing.T) {
 			}
 
 			// otherwise, we ensure returned error matches via errors.Is
-			require.ErrorIs(t, err, test.outputErrIs)
+			require.ErrorAs(t, err, test.outputErrAs)
 		})
 	}
 }

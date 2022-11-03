@@ -2,20 +2,11 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
-)
-
-var (
-	// ErrNotFound is returned when a resource is requested by a key identifier
-	// and it could not be found in the backing store.
-	ErrNotFound = errors.New("resource not found")
-	// ErrInvalid is returned when an invalid attempt is made to persist a resource
-	ErrInvalid = errors.New("resource is invalid")
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a

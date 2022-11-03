@@ -1,8 +1,7 @@
-package auth
+package sql
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"testing"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
@@ -54,7 +54,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 		name                   string
 		opts                   func(t *testing.T) []Option
 		req                    *storage.CreateAuthenticationRequest
-		expectedErrIs          error
+		expectedErrAs          error
 		expectedToken          string
 		expectedAuthentication *auth.Authentication
 	}{
@@ -83,6 +83,28 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			},
 		},
 		{
+			name: "successfully creates authentication (no expiration)",
+			opts: commonOpts,
+			req: &storage.CreateAuthenticationRequest{
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_all_areas",
+					"io.flipt.auth.token.description": "The keys to the castle",
+				},
+			},
+			expectedToken: "token:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
+			expectedAuthentication: &auth.Authentication{
+				Id:     "id:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
+				Method: auth.Method_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.name":        "access_all_areas",
+					"io.flipt.auth.token.description": "The keys to the castle",
+				},
+				CreatedAt: someTimestamp,
+				UpdatedAt: someTimestamp,
+			},
+		},
+		{
 			name: "fails ID uniqueness constraint",
 			opts: func(t *testing.T) []Option {
 				return []Option{
@@ -100,7 +122,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrIs: storage.ErrInvalid,
+			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 		{
 			name: "fails token uniqueness constraint",
@@ -120,7 +142,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					"io.flipt.auth.token.description": "The keys to the castle",
 				},
 			},
-			expectedErrIs: storage.ErrInvalid,
+			expectedErrAs: errPtr(errors.ErrInvalid("")),
 		},
 	} {
 		test := test
@@ -128,8 +150,8 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			store := storeFn(test.opts(t)...)
 
 			clientToken, created, err := store.CreateAuthentication(ctx, test.req)
-			if test.expectedErrIs != nil {
-				require.ErrorIs(t, err, test.expectedErrIs)
+			if test.expectedErrAs != nil {
+				require.ErrorAs(t, err, test.expectedErrAs)
 				return
 			}
 
@@ -151,13 +173,13 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	for _, test := range []struct {
 		name                   string
 		clientToken            string
-		expectedErrIs          error
+		expectedErrAs          error
 		expectedAuthentication *auth.Authentication
 	}{
 		{
 			name:          "error not found for unexpected clientToken",
 			clientToken:   "unknown",
-			expectedErrIs: storage.ErrNotFound,
+			expectedErrAs: errPtr(errors.ErrNotFound("")),
 		},
 		{
 			name:        "successfully retrieves authentication by clientToken",
@@ -177,14 +199,14 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	} {
 		var (
 			clientToken            = test.clientToken
-			expectedErrIs          = test.expectedErrIs
+			expectedErrAs          = test.expectedErrAs
 			expectedAuthentication = test.expectedAuthentication
 		)
 
 		t.Run(test.name, func(t *testing.T) {
 			retrieved, err := storeFn(commonOpts(t)...).GetAuthenticationByClientToken(ctx, clientToken)
-			if expectedErrIs != nil {
-				require.ErrorIs(t, err, expectedErrIs)
+			if expectedErrAs != nil {
+				require.ErrorAs(t, err, expectedErrAs)
 				return
 			}
 
@@ -192,27 +214,6 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 			assert.Equal(t, expectedAuthentication, retrieved)
 		})
 	}
-}
-
-func FuzzHashClientToken(f *testing.F) {
-	for _, seed := range []string{
-		"hello, world",
-		"supersecretstring",
-		"egGpvIxtdG6tI3OIJjXOrv7xZW3hRMYg/Lt/G6X/UEwC",
-	} {
-		f.Add(seed)
-	}
-	for _, seed := range [][]byte{{}, {0}, {9}, {0xa}, {0xf}, {1, 2, 3, 4}} {
-		f.Add(string(seed))
-	}
-	f.Fuzz(func(t *testing.T, token string) {
-		hashed, err := hashClientToken(token)
-		require.NoError(t, err)
-		require.NotEmpty(t, hashed, "hashed result is empty")
-
-		_, err = base64.URLEncoding.DecodeString(hashed)
-		require.NoError(t, err)
-	})
 }
 
 type authentication struct {
@@ -273,4 +274,8 @@ func newStaticGenerator(t *testing.T, purpose string) func() string {
 	return func() string {
 		return fmt.Sprintf("%s:%s", purpose, t.Name())
 	}
+}
+
+func errPtr[E error](e E) *E {
+	return &e
 }
