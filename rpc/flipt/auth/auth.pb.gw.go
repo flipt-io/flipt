@@ -71,7 +71,7 @@ func local_request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Co
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterAuthenticationMethodTokenServiceHandlerFromEndpoint instead.
 func RegisterAuthenticationMethodTokenServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server AuthenticationMethodTokenServiceServer) error {
 
-	mux.Handle("PUT", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -137,7 +137,7 @@ func RegisterAuthenticationMethodTokenServiceHandler(ctx context.Context, mux *r
 // "AuthenticationMethodTokenServiceClient" to call the correct interceptors.
 func RegisterAuthenticationMethodTokenServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client AuthenticationMethodTokenServiceClient) error {
 
-	mux.Handle("PUT", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AuthenticationMethodTokenService_CreateToken_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)

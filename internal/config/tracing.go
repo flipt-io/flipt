@@ -16,14 +16,15 @@ type JaegerTracingConfig struct {
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.
 type TracingConfig struct {
-	Jaeger JaegerTracingConfig `json:"jaeger,omitempty"`
+	Jaeger JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) []string {
 	v.SetDefault("tracing", map[string]any{
 		"jaeger": map[string]any{
-			"host": "localhost",
-			"port": 6831,
+			"enabled": false,
+			"host":    "localhost",
+			"port":    6831,
 		},
 	})
 

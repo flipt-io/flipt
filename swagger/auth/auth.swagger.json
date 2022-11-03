@@ -30,7 +30,7 @@
   ],
   "paths": {
     "/auth/v1/method/token": {
-      "put": {
+      "post": {
         "description": "Create authentication token",
         "operationId": "create",
         "responses": {

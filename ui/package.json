@@ -24,14 +24,14 @@
     "vuex": "^3.6.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.1",
-    "@babel/preset-env": "^7.19.1",
+    "@babel/core": "^7.19.6",
+    "@babel/preset-env": "^7.19.4",
     "@playwright/test": "^1.26.0",
     "babel-jest": "^28.1.2",
     "eslint": "^8.24.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-vue": "^9.5.1",
+    "eslint-plugin-vue": "^9.6.0",
     "jest": "^28.1.3",
     "prettier": "2.7.1",
     "sass": "^1.55.0",

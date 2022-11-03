@@ -19,7 +19,7 @@ import (
 //
 // Authentications are stored in a map by hashedClientToken.
 // Access to the map is protected by a mutex, meaning this is implementation
-// is sage to use concurrently.
+// is safe to use concurrently.
 type Store struct {
 	mu    sync.Mutex
 	auths map[string]*rpcauth.Authentication
