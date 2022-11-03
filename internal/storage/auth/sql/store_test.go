@@ -214,108 +214,135 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 
 func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 	ctx := context.TODO()
+
+	// increment each timestamp by 1 when seeding auths
+	var i int64
+	seedOpts := func(t *testing.T) []Option {
+		return []Option{WithNowFunc(func() *timestamppb.Timestamp {
+			i++
+			return timestamppb.New(time.Unix(i, 0))
+		})}
+	}
+
 	storeFn := newTestStore(t,
-		createAuth("token_id_one", "token_client_token_one", rpcauth.Method_TOKEN),
-		createAuth("token_id_two", "token_client_token_two", rpcauth.Method_TOKEN),
-		createAuth("token_id_three", "token_client_token_three", rpcauth.Method_TOKEN),
-		createAuth("none_id_one", "none_client_token_one", rpcauth.Method_NONE),
-		createAuth("none_id_two", "none_client_token_two", rpcauth.Method_NONE),
-		createAuth("none_id_three", "none_client_token_three", rpcauth.Method_NONE),
+		createAuth("none_id_one", "none_client_token_one", rpcauth.Method_NONE, withOpts(seedOpts)),
+		createAuth("none_id_two", "none_client_token_two", rpcauth.Method_NONE, withOpts(seedOpts)),
+		createAuth("none_id_three", "none_client_token_three", rpcauth.Method_NONE, withOpts(seedOpts)),
+		createAuth("token_id_one", "token_client_token_one", rpcauth.Method_TOKEN, withOpts(seedOpts)),
+		createAuth("token_id_two", "token_client_token_two", rpcauth.Method_TOKEN, withOpts(seedOpts)),
+		createAuth("token_id_three", "token_client_token_three", rpcauth.Method_TOKEN, withOpts(seedOpts)),
 	)
 
-	// list predicated with none auth method
-	req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_NONE))
-	noneMethod, err := storeFn().ListAuthentications(ctx, req)
-	require.NoError(t, err)
-	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
-		Results: []*rpcauth.Authentication{
-			{
-				Id:     "none_id_one",
-				Method: rpcauth.Method_NONE,
-				Metadata: map[string]string{
-					"io.flipt.auth.token.name":        "access_some_areas",
-					"io.flipt.auth.token.description": "The keys to some of the castle",
-				},
-				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
-				CreatedAt: someTimestamp,
-				UpdatedAt: someTimestamp,
-			},
-			{
-				Id:     "none_id_two",
-				Method: rpcauth.Method_NONE,
-				Metadata: map[string]string{
-					"io.flipt.auth.token.name":        "access_some_areas",
-					"io.flipt.auth.token.description": "The keys to some of the castle",
-				},
-				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
-				CreatedAt: someTimestamp,
-				UpdatedAt: someTimestamp,
-			},
-			{
-				Id:     "none_id_three",
-				Method: rpcauth.Method_NONE,
-				Metadata: map[string]string{
-					"io.flipt.auth.token.name":        "access_some_areas",
-					"io.flipt.auth.token.description": "The keys to some of the castle",
-				},
-				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
-				CreatedAt: someTimestamp,
-				UpdatedAt: someTimestamp,
-			},
-		},
-	}, noneMethod)
+	t.Run("method == none", func(t *testing.T) {
+		// list predicated with none auth method
+		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_NONE))
+		noneMethod, err := storeFn().ListAuthentications(ctx, req)
 
-	// list predicated with token auth method
-	req = storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_TOKEN))
-	tokenMethod, err := storeFn().ListAuthentications(ctx, req)
-	require.NoError(t, err)
-	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
-		Results: []*rpcauth.Authentication{
-			{
-				Id:     "token_id_one",
-				Method: rpcauth.Method_TOKEN,
-				Metadata: map[string]string{
-					"io.flipt.auth.token.name":        "access_some_areas",
-					"io.flipt.auth.token.description": "The keys to some of the castle",
+		require.NoError(t, err)
+		assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
+			Results: []*rpcauth.Authentication{
+				{
+					Id:     "none_id_one",
+					Method: rpcauth.Method_NONE,
+					Metadata: map[string]string{
+						"io.flipt.auth.token.name":        "access_some_areas",
+						"io.flipt.auth.token.description": "The keys to some of the castle",
+					},
+					ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+					CreatedAt: timestamppb.New(time.Unix(1, 0)),
+					UpdatedAt: timestamppb.New(time.Unix(1, 0)),
 				},
-				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
-				CreatedAt: someTimestamp,
-				UpdatedAt: someTimestamp,
-			},
-			{
-				Id:     "token_id_two",
-				Method: rpcauth.Method_TOKEN,
-				Metadata: map[string]string{
-					"io.flipt.auth.token.name":        "access_some_areas",
-					"io.flipt.auth.token.description": "The keys to some of the castle",
+				{
+					Id:     "none_id_two",
+					Method: rpcauth.Method_NONE,
+					Metadata: map[string]string{
+						"io.flipt.auth.token.name":        "access_some_areas",
+						"io.flipt.auth.token.description": "The keys to some of the castle",
+					},
+					ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+					CreatedAt: timestamppb.New(time.Unix(2, 0)),
+					UpdatedAt: timestamppb.New(time.Unix(2, 0)),
 				},
-				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
-				CreatedAt: someTimestamp,
-				UpdatedAt: someTimestamp,
-			},
-			{
-				Id:     "token_id_three",
-				Method: rpcauth.Method_TOKEN,
-				Metadata: map[string]string{
-					"io.flipt.auth.token.name":        "access_some_areas",
-					"io.flipt.auth.token.description": "The keys to some of the castle",
+				{
+					Id:     "none_id_three",
+					Method: rpcauth.Method_NONE,
+					Metadata: map[string]string{
+						"io.flipt.auth.token.name":        "access_some_areas",
+						"io.flipt.auth.token.description": "The keys to some of the castle",
+					},
+					ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+					CreatedAt: timestamppb.New(time.Unix(3, 0)),
+					UpdatedAt: timestamppb.New(time.Unix(3, 0)),
 				},
-				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
-				CreatedAt: someTimestamp,
-				UpdatedAt: someTimestamp,
 			},
-		},
-	}, tokenMethod)
+		}, noneMethod)
+	})
+
+	t.Run("method == token", func(t *testing.T) {
+		// list predicated with token auth method
+		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_TOKEN))
+		tokenMethod, err := storeFn().ListAuthentications(ctx, req)
+		require.NoError(t, err)
+		assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
+			Results: []*rpcauth.Authentication{
+				{
+					Id:     "token_id_one",
+					Method: rpcauth.Method_TOKEN,
+					Metadata: map[string]string{
+						"io.flipt.auth.token.name":        "access_some_areas",
+						"io.flipt.auth.token.description": "The keys to some of the castle",
+					},
+					ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+					CreatedAt: timestamppb.New(time.Unix(4, 0)),
+					UpdatedAt: timestamppb.New(time.Unix(4, 0)),
+				},
+				{
+					Id:     "token_id_two",
+					Method: rpcauth.Method_TOKEN,
+					Metadata: map[string]string{
+						"io.flipt.auth.token.name":        "access_some_areas",
+						"io.flipt.auth.token.description": "The keys to some of the castle",
+					},
+					ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+					CreatedAt: timestamppb.New(time.Unix(5, 0)),
+					UpdatedAt: timestamppb.New(time.Unix(5, 0)),
+				},
+				{
+					Id:     "token_id_three",
+					Method: rpcauth.Method_TOKEN,
+					Metadata: map[string]string{
+						"io.flipt.auth.token.name":        "access_some_areas",
+						"io.flipt.auth.token.description": "The keys to some of the castle",
+					},
+					ExpiresAt: timestamppb.New(time.Unix(2, 0)),
+					CreatedAt: timestamppb.New(time.Unix(6, 0)),
+					UpdatedAt: timestamppb.New(time.Unix(6, 0)),
+				},
+			},
+		}, tokenMethod)
+	})
 }
 
 type authentication struct {
 	id     string
 	token  string
 	method rpcauth.Method
+	optFn  func(t *testing.T) []Option
 }
 
-func createAuth(id, token string, method rpcauth.Method) authentication {
-	return authentication{id, token, method}
+func withOpts(optFn func(t *testing.T) []Option) func(*authentication) {
+	return func(a *authentication) {
+		a.optFn = optFn
+	}
+}
+
+func createAuth(id, token string, method rpcauth.Method, opts ...func(*authentication)) authentication {
+	a := authentication{id, token, method, nil}
+	for _, opt := range opts {
+		opt(&a)
+	}
+
+	return a
 }
 
 func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
@@ -342,14 +369,19 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 	// seed any authentication fixtures
 	for _, a := range seed {
 		a := a
-		store := storeFn(
+		opts := []Option{
 			WithNowFunc(func() *timestamppb.Timestamp {
 				return someTimestamp
 			}),
 			WithTokenGeneratorFunc(func() string { return a.token }),
 			WithIDGeneratorFunc(func() string { return a.id }),
-		)
-		clientToken, _, err := store.CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
+		}
+
+		if a.optFn != nil {
+			opts = append(opts, a.optFn(t)...)
+		}
+
+		clientToken, _, err := storeFn(opts...).CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
 			Method:    a.method,
 			ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 			Metadata: map[string]string{
@@ -361,6 +393,8 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 		require.Equal(t, a.token, clientToken)
 
 		logger.Debug("seeded authentication", zap.String("id", a.id))
+
+		time.Sleep(10 * time.Millisecond)
 	}
 
 	return storeFn
