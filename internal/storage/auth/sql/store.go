@@ -9,8 +9,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/internal/storage/auth"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
+	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	storagesql "go.flipt.io/flipt/internal/storage/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -20,7 +20,7 @@ import (
 // based relational database systems.
 type Store struct {
 	logger  *zap.Logger
-	driver  fliptsql.Driver
+	driver  storagesql.Driver
 	builder sq.StatementBuilderType
 
 	now func() *timestamppb.Timestamp
@@ -34,7 +34,7 @@ type Option func(*Store)
 
 // NewStore constructs and configures a new instance of *Store.
 // Queries are issued to the database via the provided statement builder.
-func NewStore(driver fliptsql.Driver, builder sq.StatementBuilderType, logger *zap.Logger, opts ...Option) *Store {
+func NewStore(driver storagesql.Driver, builder sq.StatementBuilderType, logger *zap.Logger, opts ...Option) *Store {
 	store := &Store{
 		logger:  logger,
 		driver:  driver,
@@ -43,7 +43,7 @@ func NewStore(driver fliptsql.Driver, builder sq.StatementBuilderType, logger *z
 		generateID: func() string {
 			return uuid.Must(uuid.NewV4()).String()
 		},
-		generateToken: auth.GenerateRandomToken,
+		generateToken: storageauth.GenerateRandomToken,
 	}
 
 	for _, opt := range opts {
@@ -96,7 +96,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 		}
 	)
 
-	hashedToken, err := auth.HashClientToken(clientToken)
+	hashedToken, err := storageauth.HashClientToken(clientToken)
 	if err != nil {
 		return "", nil, fmt.Errorf("creating authentication: %w", err)
 	}
@@ -115,10 +115,10 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 			&authentication.Id,
 			&hashedToken,
 			&authentication.Method,
-			&fliptsql.JSONField[map[string]string]{T: authentication.Metadata},
-			&fliptsql.NullableTimestamp{Timestamp: authentication.ExpiresAt},
-			&fliptsql.Timestamp{Timestamp: authentication.CreatedAt},
-			&fliptsql.Timestamp{Timestamp: authentication.UpdatedAt},
+			&storagesql.JSONField[map[string]string]{T: authentication.Metadata},
+			&storagesql.NullableTimestamp{Timestamp: authentication.ExpiresAt},
+			&storagesql.Timestamp{Timestamp: authentication.CreatedAt},
+			&storagesql.Timestamp{Timestamp: authentication.UpdatedAt},
 		).
 		ExecContext(ctx); err != nil {
 		return "", nil, fmt.Errorf(
@@ -136,7 +136,7 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthe
 // Given a row is present for the hash of the clientToken then materialize into an Authentication.
 // Else, given it cannot be located, a storage.ErrNotFound error is wrapped and returned instead.
 func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*rpcauth.Authentication, error) {
-	hashedToken, err := auth.HashClientToken(clientToken)
+	hashedToken, err := storageauth.HashClientToken(clientToken)
 	if err != nil {
 		return nil, fmt.Errorf("getting authentication by token: %w", err)
 	}
@@ -238,16 +238,16 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 
 func (s *Store) scanAuthentication(scanner sq.RowScanner, authentication *rpcauth.Authentication) error {
 	var (
-		expiresAt fliptsql.NullableTimestamp
-		createdAt fliptsql.Timestamp
-		updatedAt fliptsql.Timestamp
+		expiresAt storagesql.NullableTimestamp
+		createdAt storagesql.Timestamp
+		updatedAt storagesql.Timestamp
 	)
 
 	if err := scanner.
 		Scan(
 			&authentication.Id,
 			&authentication.Method,
-			&fliptsql.JSONField[*map[string]string]{T: &authentication.Metadata},
+			&storagesql.JSONField[*map[string]string]{T: &authentication.Metadata},
 			&expiresAt,
 			&createdAt,
 			&updatedAt,

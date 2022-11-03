@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
-	fliptauth "go.flipt.io/flipt/internal/storage/auth"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
-	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
+	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	storagesql "go.flipt.io/flipt/internal/storage/sql"
+	sqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
 	storagetesting "go.flipt.io/flipt/internal/storage/testing"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -224,7 +224,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 	)
 
 	// list predicated with none auth method
-	req := storage.NewListRequest(fliptauth.ListWithMethod(rpcauth.Method_NONE))
+	req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_NONE))
 	noneMethod, err := storeFn().ListAuthentications(ctx, req)
 	require.NoError(t, err)
 	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
@@ -266,7 +266,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 	}, noneMethod)
 
 	// list predicated with token auth method
-	req = storage.NewListRequest(fliptauth.ListWithMethod(rpcauth.Method_TOKEN))
+	req = storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_TOKEN))
 	tokenMethod, err := storeFn().ListAuthentications(ctx, req)
 	require.NoError(t, err)
 	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
@@ -321,7 +321,7 @@ func createAuth(id, token string, method rpcauth.Method) authentication {
 func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 	t.Helper()
 
-	db, err := fliptsqltesting.Open()
+	db, err := sqltesting.Open()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +332,7 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 		storeFn = func(opts ...Option) *Store {
 			return NewStore(
 				db.Driver,
-				fliptsql.BuilderFor(db.DB, db.Driver),
+				storagesql.BuilderFor(db.DB, db.Driver),
 				logger,
 				opts...,
 			)
