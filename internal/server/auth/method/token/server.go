@@ -16,7 +16,7 @@ const (
 
 // Server is an implementation of auth.AuthenticationMethodTokenServiceServer
 //
-// It is used to create static tokens within the backing AuthenticaitonStore.
+// It is used to create static tokens within the backing AuthenticationStore.
 type Server struct {
 	logger *zap.Logger
 	store  storage.AuthenticationStore
@@ -34,7 +34,7 @@ func NewServer(logger *zap.Logger, store storage.AuthenticationStore) *Server {
 // CreateToken adapts and delegates the token request to the backing AuthenticationStore.
 //
 // Implicitly, the Authentication created will be of type auth.Method_TOKEN.
-// Name and Description are both stored in Authenticaiton.Metadata.
+// Name and Description are both stored in Authentication.Metadata.
 // Given the token is created successfully, the generate clientToken string is returned.
 // Along with the created Authentication, which includes it's identifier and associated timestamps.
 func (s *Server) CreateToken(ctx context.Context, req *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {

@@ -21,33 +21,33 @@ type CacheConfig struct {
 
 func (c *CacheConfig) setDefaults(v *viper.Viper) (warnings []string) {
 	v.SetDefault("cache", map[string]any{
+		"enabled": false,
 		"backend": CacheMemory,
 		"ttl":     1 * time.Minute,
 		"redis": map[string]any{
-			"host": "localhost",
-			"port": 6379,
+			"host":     "localhost",
+			"port":     6379,
+			"password": "",
+			"db":       0,
 		},
 		"memory": map[string]any{
+			"enabled":           false, // deprecated (see below)
 			"eviction_interval": 5 * time.Minute,
 		},
 	})
 
-	if mem := v.Sub("cache.memory"); mem != nil {
-		mem.SetDefault("eviction_interval", 5*time.Minute)
-		// handle legacy memory structure
-		if mem.GetBool("enabled") {
-			warnings = append(warnings, deprecatedMsgMemoryEnabled)
-			// forcibly set top-level `enabled` to true
-			v.Set("cache.enabled", true)
-			// ensure ttl is mapped to the value at memory.expiration
-			v.RegisterAlias("cache.ttl", "cache.memory.expiration")
-			// ensure ttl default is set
-			v.SetDefault("cache.memory.expiration", 1*time.Minute)
-		}
+	if v.GetBool("cache.memory.enabled") {
+		warnings = append(warnings, deprecatedMsgMemoryEnabled)
+		// forcibly set top-level `enabled` to true
+		v.Set("cache.enabled", true)
+		// ensure ttl is mapped to the value at memory.expiration
+		v.RegisterAlias("cache.ttl", "cache.memory.expiration")
+		// ensure ttl default is set
+		v.SetDefault("cache.memory.expiration", 1*time.Minute)
+	}
 
-		if mem.IsSet("expiration") {
-			warnings = append(warnings, deprecatedMsgMemoryExpiration)
-		}
+	if v.IsSet("cache.memory.expiration") {
+		warnings = append(warnings, deprecatedMsgMemoryExpiration)
 	}
 
 	return

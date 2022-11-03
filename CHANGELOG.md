@@ -5,9 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- `reason` field in `EvaluationResponse` payload detailing why the request evaluated to the given result [#1099](https://github.com/flipt-io/flipt/pull/1099)
+
 ### Deprecated
 
 - Deprecated both `db.migrations.path` and `db.migrations_path` [#1096](https://github.com/flipt-io/flipt/pull/1096)
+
+### Fixed
+
+- Propogating OpenTelemetry spans through Flipt [#1112](https://github.com/flipt-io/flipt/pull/1112)
 
 ## [v1.13.0](https://github.com/markphelps/flipt/releases/tag/v1.13.0) - 2022-10-17
 
