@@ -76,5 +76,5 @@ http:
   #
   # method: token
   - selector: flipt.auth.AuthenticationMethodTokenService.CreateToken
-    put: /auth/v1/method/token
+    post: /auth/v1/method/token
     body: "*"
