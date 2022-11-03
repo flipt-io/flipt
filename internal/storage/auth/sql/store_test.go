@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
+	fliptauth "go.flipt.io/flipt/internal/storage/auth"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
 	storagetesting "go.flipt.io/flipt/internal/storage/testing"
@@ -224,7 +225,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 	)
 
 	// list predicated with none auth method
-	req := storage.NewListRequest(ListWithMethod(auth.Method_NONE))
+	req := storage.NewListRequest(fliptauth.ListWithMethod(auth.Method_NONE))
 	noneMethod, err := storeFn().ListAuthentications(ctx, req)
 	require.NoError(t, err)
 	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
@@ -266,7 +267,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 	}, noneMethod)
 
 	// list predicated with token auth method
-	req = storage.NewListRequest(ListWithMethod(auth.Method_TOKEN))
+	req = storage.NewListRequest(fliptauth.ListWithMethod(auth.Method_TOKEN))
 	tokenMethod, err := storeFn().ListAuthentications(ctx, req)
 	require.NoError(t, err)
 	assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
