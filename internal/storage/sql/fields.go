@@ -27,9 +27,7 @@ func (t *Timestamp) Scan(value interface{}) error {
 }
 
 func (t *Timestamp) Value() (driver.Value, error) {
-	// truncate timestampts to the micro-second since postgres
-	// can only support this level of precision
-	return t.Timestamp.AsTime().Truncate(time.Microsecond), t.Timestamp.CheckValid()
+	return t.Timestamp.AsTime(), t.Timestamp.CheckValid()
 }
 
 type NullableTimestamp Timestamp
@@ -56,9 +54,7 @@ func (t *NullableTimestamp) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	// truncate timestampts to the micro-second since postgres
-	// can only support this level of precision
-	return t.Timestamp.AsTime().Truncate(time.Microsecond), t.Timestamp.CheckValid()
+	return t.Timestamp.AsTime(), t.Timestamp.CheckValid()
 }
 
 type JSONField[T any] struct {

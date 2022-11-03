@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,9 +40,6 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storage.
 			_, ok := index[token]
 			require.False(t, ok, "Token already exists")
 			index[token] = i
-
-			// sleep for DBs which use ms precision
-			time.Sleep(10 * time.Millisecond)
 		}
 	})
 
