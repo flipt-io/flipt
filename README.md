@@ -196,9 +196,7 @@ For help and discussion around Flipt, feature flag best practices, and more, joi
 
 ## Feedback
 
-If you are a user of Flipt I'd really :heart: it if you could leave a testimonal on how Flipt is working for you.
-
-https://testimonial.to/flipt
+If you are a user of Flipt I'd really :heart: it if you could leave a [testimonal](https://testimonial.to/flipt) on how Flipt is working for you.
 
 ## Author
 

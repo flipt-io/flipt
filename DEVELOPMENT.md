@@ -1,6 +1,6 @@
 # Development
 
-The following are instructions for setting up your local machine for Flipt development. For info on using VSCode Remote Containers / GitHub Codespaces, see [#remote containers](#remote-containers) below.
+The following are instructions for setting up your local machine for Flipt development. For info on using VSCode Remote Containers / GitHub Codespaces, see [#cdes](#cdes) below.
 
 ## Requirements
 
@@ -28,7 +28,7 @@ Flipt is built with Go 1.18+.
 
 ## Bootstrap
 
-The `bootstrap` task will install all of the necessary tools used for development and testing. It does this using a seperate tools modules as described here: https://marcofranssen.nl/manage-go-tools-via-go-modules
+The `bootstrap` task will install all of the necessary tools used for development and testing. It does this using a seperate tools modules as described here: [https://marcofranssen.nl/manage-go-tools-via-go-modules](https://marcofranssen.nl/manage-go-tools-via-go-modules)
 
 ## Configuration
 
@@ -76,9 +76,9 @@ In development, the three ports that Flipt users are:
 
 These three ports will be forwarded to your local machine automatically if you are developing Flipt in a VSCode Remote Container or GitHub Codespace.
 
-## Remote Containers/GitHub Codespaces
+## CDEs
 
-Flipt now supports [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces).
+Flipt now supports Containerized Development Environments (CDE) [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces).
 
 These technologies allow you to quickly get setup with a Flipt development environment either locally or 'in the cloud'.
 
