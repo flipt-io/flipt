@@ -487,13 +487,10 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			otelgrpc.UnaryServerInterceptor(),
 		}
 
-		// authentication interceptor
-		var authenticationStore storage.AuthenticationStore
+		authenticationStore := authsql.NewStore(driver, sql.BuilderFor(db, driver), logger)
 
 		// only enable enforcement middleware if authentication required
 		if cfg.Authentication.Required {
-			authenticationStore = authsql.NewStore(driver, sql.BuilderFor(db, driver), logger)
-
 			interceptors = append(interceptors, auth.UnaryInterceptor(logger, authenticationStore))
 
 			logger.Info("authentication middleware enabled")
