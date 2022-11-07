@@ -433,7 +433,7 @@ Happy Halloween! Flipt goes 1.0.0 today! :jack_o_lantern:
 
 - Moved evaluation logic to be independent of datastore
 - Updated several dependencies
-- Moved documentation to https://github.com/markphelps/flipt.io
+- Moved documentation to [https://github.com/markphelps/flipt.io](https://github.com/markphelps/flipt.io)
 - Updated documentation link in UI
 
 ### Fixed

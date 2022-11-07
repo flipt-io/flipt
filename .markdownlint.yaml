@@ -1,0 +1,14 @@
+---
+line-length: false
+no-hard-tabs: false
+no-trailing-spaces: false
+no-trailing-punctuation: false
+no-inline-html: false
+first-line-heading: false
+
+# MD024/no-duplicate-heading/no-duplicate-header - Multiple headings with the same content
+MD024:
+  # Only check sibling headings
+  allow_different_nesting: true
+  # Only check sibling headings
+  siblings_only: true
