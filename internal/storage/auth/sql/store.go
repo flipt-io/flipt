@@ -182,9 +182,8 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 		}
 	}()
 
-	if err = req.QueryParams.Validate(); err != nil {
-		return
-	}
+	// adjust the query parameters within normal bounds
+	req.QueryParams.Normalize()
 
 	query := s.builder.
 		Select(
