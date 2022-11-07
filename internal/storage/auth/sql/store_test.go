@@ -43,7 +43,7 @@ func TestAuthenticationStoreHarness(t *testing.T) {
 
 func TestAuthentication_CreateAuthentication(t *testing.T) {
 	// established a store factory with a single seeded auth entry
-	storeFn := newTestStore(t, createAuth("create_auth_id", "create_auth_token", rpcauth.Method_TOKEN))
+	storeFn := newTestStore(t, createAuth("create_auth_id", "create_auth_token", rpcauth.Method_METHOD_TOKEN))
 
 	ctx := context.TODO()
 	for _, test := range []struct {
@@ -58,7 +58,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			name: "successfully creates authentication",
 			opts: commonOpts,
 			req: &storage.CreateAuthenticationRequest{
-				Method:    rpcauth.Method_TOKEN,
+				Method:    rpcauth.Method_METHOD_TOKEN,
 				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
@@ -68,7 +68,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			expectedToken: "token:TestAuthentication_CreateAuthentication/successfully_creates_authentication",
 			expectedAuthentication: &rpcauth.Authentication{
 				Id:     "id:TestAuthentication_CreateAuthentication/successfully_creates_authentication",
-				Method: rpcauth.Method_TOKEN,
+				Method: rpcauth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
 					"io.flipt.auth.token.description": "The keys to the castle",
@@ -82,7 +82,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			name: "successfully creates authentication (no expiration)",
 			opts: commonOpts,
 			req: &storage.CreateAuthenticationRequest{
-				Method: rpcauth.Method_TOKEN,
+				Method: rpcauth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
 					"io.flipt.auth.token.description": "The keys to the castle",
@@ -91,7 +91,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 			expectedToken: "token:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
 			expectedAuthentication: &rpcauth.Authentication{
 				Id:     "id:TestAuthentication_CreateAuthentication/successfully_creates_authentication_(no_expiration)",
-				Method: rpcauth.Method_TOKEN,
+				Method: rpcauth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
 					"io.flipt.auth.token.description": "The keys to the castle",
@@ -111,7 +111,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 				}
 			},
 			req: &storage.CreateAuthenticationRequest{
-				Method:    rpcauth.Method_TOKEN,
+				Method:    rpcauth.Method_METHOD_TOKEN,
 				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
@@ -131,7 +131,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 				}
 			},
 			req: &storage.CreateAuthenticationRequest{
-				Method:    rpcauth.Method_TOKEN,
+				Method:    rpcauth.Method_METHOD_TOKEN,
 				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
@@ -163,7 +163,7 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 	ctx := context.TODO()
 
 	// established a store factory with a single seeded auth entry
-	storeFn := newTestStore(t, createAuth("get_auth_id", "get_auth_token", rpcauth.Method_TOKEN))
+	storeFn := newTestStore(t, createAuth("get_auth_id", "get_auth_token", rpcauth.Method_METHOD_TOKEN))
 
 	// run table tests
 	for _, test := range []struct {
@@ -182,7 +182,7 @@ func TestAuthentication_GetAuthenticationByClientToken(t *testing.T) {
 			clientToken: "get_auth_token",
 			expectedAuthentication: &rpcauth.Authentication{
 				Id:     "get_auth_id",
-				Method: rpcauth.Method_TOKEN,
+				Method: rpcauth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_some_areas",
 					"io.flipt.auth.token.description": "The keys to some of the castle",
@@ -225,17 +225,17 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 	}
 
 	storeFn := newTestStore(t,
-		createAuth("none_id_one", "none_client_token_one", rpcauth.Method_NONE, withOpts(seedOpts)),
-		createAuth("none_id_two", "none_client_token_two", rpcauth.Method_NONE, withOpts(seedOpts)),
-		createAuth("none_id_three", "none_client_token_three", rpcauth.Method_NONE, withOpts(seedOpts)),
-		createAuth("token_id_one", "token_client_token_one", rpcauth.Method_TOKEN, withOpts(seedOpts)),
-		createAuth("token_id_two", "token_client_token_two", rpcauth.Method_TOKEN, withOpts(seedOpts)),
-		createAuth("token_id_three", "token_client_token_three", rpcauth.Method_TOKEN, withOpts(seedOpts)),
+		createAuth("none_id_one", "none_client_token_one", rpcauth.Method_METHOD_NONE, withOpts(seedOpts)),
+		createAuth("none_id_two", "none_client_token_two", rpcauth.Method_METHOD_NONE, withOpts(seedOpts)),
+		createAuth("none_id_three", "none_client_token_three", rpcauth.Method_METHOD_NONE, withOpts(seedOpts)),
+		createAuth("token_id_one", "token_client_token_one", rpcauth.Method_METHOD_TOKEN, withOpts(seedOpts)),
+		createAuth("token_id_two", "token_client_token_two", rpcauth.Method_METHOD_TOKEN, withOpts(seedOpts)),
+		createAuth("token_id_three", "token_client_token_three", rpcauth.Method_METHOD_TOKEN, withOpts(seedOpts)),
 	)
 
 	t.Run("method == none", func(t *testing.T) {
 		// list predicated with none auth method
-		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_NONE))
+		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_METHOD_NONE))
 		noneMethod, err := storeFn().ListAuthentications(ctx, req)
 
 		require.NoError(t, err)
@@ -243,7 +243,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 			Results: []*rpcauth.Authentication{
 				{
 					Id:     "none_id_one",
-					Method: rpcauth.Method_NONE,
+					Method: rpcauth.Method_METHOD_NONE,
 					Metadata: map[string]string{
 						"io.flipt.auth.token.name":        "access_some_areas",
 						"io.flipt.auth.token.description": "The keys to some of the castle",
@@ -254,7 +254,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 				},
 				{
 					Id:     "none_id_two",
-					Method: rpcauth.Method_NONE,
+					Method: rpcauth.Method_METHOD_NONE,
 					Metadata: map[string]string{
 						"io.flipt.auth.token.name":        "access_some_areas",
 						"io.flipt.auth.token.description": "The keys to some of the castle",
@@ -265,7 +265,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 				},
 				{
 					Id:     "none_id_three",
-					Method: rpcauth.Method_NONE,
+					Method: rpcauth.Method_METHOD_NONE,
 					Metadata: map[string]string{
 						"io.flipt.auth.token.name":        "access_some_areas",
 						"io.flipt.auth.token.description": "The keys to some of the castle",
@@ -280,14 +280,14 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 
 	t.Run("method == token", func(t *testing.T) {
 		// list predicated with token auth method
-		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_TOKEN))
+		req := storage.NewListRequest(storageauth.ListWithMethod(rpcauth.Method_METHOD_TOKEN))
 		tokenMethod, err := storeFn().ListAuthentications(ctx, req)
 		require.NoError(t, err)
 		assert.Equal(t, storage.ResultSet[*rpcauth.Authentication]{
 			Results: []*rpcauth.Authentication{
 				{
 					Id:     "token_id_one",
-					Method: rpcauth.Method_TOKEN,
+					Method: rpcauth.Method_METHOD_TOKEN,
 					Metadata: map[string]string{
 						"io.flipt.auth.token.name":        "access_some_areas",
 						"io.flipt.auth.token.description": "The keys to some of the castle",
@@ -298,7 +298,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 				},
 				{
 					Id:     "token_id_two",
-					Method: rpcauth.Method_TOKEN,
+					Method: rpcauth.Method_METHOD_TOKEN,
 					Metadata: map[string]string{
 						"io.flipt.auth.token.name":        "access_some_areas",
 						"io.flipt.auth.token.description": "The keys to some of the castle",
@@ -309,7 +309,7 @@ func TestAuthentication_ListAuthentications_ByMethod(t *testing.T) {
 				},
 				{
 					Id:     "token_id_three",
-					Method: rpcauth.Method_TOKEN,
+					Method: rpcauth.Method_METHOD_TOKEN,
 					Metadata: map[string]string{
 						"io.flipt.auth.token.name":        "access_some_areas",
 						"io.flipt.auth.token.description": "The keys to some of the castle",

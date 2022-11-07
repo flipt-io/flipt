@@ -39,7 +39,7 @@ func NewServer(logger *zap.Logger, store storage.AuthenticationStore) *Server {
 // Along with the created Authentication, which includes it's identifier and associated timestamps.
 func (s *Server) CreateToken(ctx context.Context, req *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
 	clientToken, authentication, err := s.store.CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
-		Method:    auth.Method_TOKEN,
+		Method:    auth.Method_METHOD_TOKEN,
 		ExpiresAt: req.ExpiresAt,
 		Metadata: map[string]string{
 			storageMetadataNameKey:        req.GetName(),

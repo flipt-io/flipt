@@ -11,7 +11,7 @@ import (
 
 const (
 	// DefaultListLimit is the default limit applied to any list operation page size when one is not provided.
-	DefaultListLimit uint64 = 10
+	DefaultListLimit uint64 = 25
 
 	// MaxListLimit is the upper limit applied to any list operation page size.
 	MaxListLimit uint64 = 100
@@ -54,16 +54,17 @@ type QueryParams struct {
 	Order     Order // not exposed to the user yet
 }
 
-func (q *QueryParams) Validate() error {
+// Normalize adjusts query parameters within the enforced boundaries.
+// For example, limit is adjusted to be in the range (0, max].
+// Given the limit is not supplied (0) it is set to the default limit.
+func (q *QueryParams) Normalize() {
 	if q.Limit == 0 {
 		q.Limit = DefaultListLimit
 	}
 
 	if q.Limit > MaxListLimit {
-		return fmt.Errorf("maximum page size limit (%d) exceeded: %d", MaxListLimit, q.Limit)
+		q.Limit = MaxListLimit
 	}
-
-	return nil
 }
 
 type QueryOption func(p *QueryParams)

@@ -40,6 +40,12 @@
               "$ref": "#/definitions/fliptBatchEvaluationResponse"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -73,6 +79,12 @@
               "$ref": "#/definitions/fliptEvaluationResponse"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -104,6 +116,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptFlagList"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -149,6 +167,12 @@
               "$ref": "#/definitions/fliptFlag"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -180,6 +204,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptRuleList"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -229,6 +259,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptRule"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -284,6 +320,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -334,6 +376,12 @@
               "$ref": "#/definitions/fliptRule"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -370,6 +418,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -403,6 +457,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptRule"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -456,6 +516,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptDistribution"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -517,6 +583,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -562,6 +634,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptDistribution"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -628,6 +706,12 @@
               "$ref": "#/definitions/fliptVariant"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -685,6 +769,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -718,6 +808,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptVariant"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -782,6 +878,12 @@
               "$ref": "#/definitions/fliptFlag"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -812,6 +914,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -839,6 +947,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptFlag"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -894,6 +1008,12 @@
               "$ref": "#/definitions/fliptSegmentList"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -937,6 +1057,12 @@
               "$ref": "#/definitions/fliptSegment"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -970,6 +1096,12 @@
               "$ref": "#/definitions/fliptSegment"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -1000,6 +1132,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -1027,6 +1165,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptSegment"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -1080,6 +1224,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptConstraint"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -1141,6 +1291,12 @@
               "properties": {}
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -1174,6 +1330,12 @@
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/fliptConstraint"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
             }
           },
           "default": {
@@ -1671,6 +1833,18 @@
       }
     }
   },
+  "securityDefinitions": {
+    "ClientTokenBearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "ClientTokenBearer": []
+    }
+  ],
   "externalDocs": {
     "description": "Flipt Docs",
     "url": "https://www.flipt.io/docs"

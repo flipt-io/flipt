@@ -40,6 +40,12 @@
               "$ref": "#/definitions/authCreateTokenResponse"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {
@@ -126,10 +132,10 @@
     "authMethod": {
       "type": "string",
       "enum": [
-        "NONE",
-        "TOKEN"
+        "METHOD_NONE",
+        "METHOD_TOKEN"
       ],
-      "default": "NONE"
+      "default": "METHOD_NONE"
     },
     "protobufAny": {
       "type": "object",
@@ -159,6 +165,18 @@
       }
     }
   },
+  "securityDefinitions": {
+    "ClientTokenBearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "ClientTokenBearer": []
+    }
+  ],
   "externalDocs": {
     "description": "Flipt Docs",
     "url": "https://www.flipt.io/docs"

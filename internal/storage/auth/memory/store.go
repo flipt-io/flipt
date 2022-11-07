@@ -130,9 +130,9 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
 	var set storage.ResultSet[*rpcauth.Authentication]
-	if err := req.QueryParams.Validate(); err != nil {
-		return set, fmt.Errorf("listing authentications: %w", err)
-	}
+
+	// adjust the query parameters within normal bounds
+	req.QueryParams.Normalize()
 
 	// copy all auths into slice
 	s.mu.Lock()
