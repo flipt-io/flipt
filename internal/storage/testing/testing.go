@@ -26,7 +26,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storage.
 	t.Run(fmt.Sprintf("Create %d authentications", authCount), func(t *testing.T) {
 		for i := 0; i < authCount; i++ {
 			token, auth, err := store.CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
-				Method: auth.Method_TOKEN,
+				Method: auth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"name":        fmt.Sprintf("foo_%d", i),
 					"description": "bar",

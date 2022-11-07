@@ -126,10 +126,10 @@
     "authMethod": {
       "type": "string",
       "enum": [
-        "NONE",
-        "TOKEN"
+        "METHOD_NONE",
+        "METHOD_TOKEN"
       ],
-      "default": "NONE"
+      "default": "METHOD_NONE"
     },
     "protobufAny": {
       "type": "object",

@@ -17,7 +17,7 @@ func TestUnaryInterceptor(t *testing.T) {
 	authenticator := memory.NewStore()
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
-		&storage.CreateAuthenticationRequest{Method: authrpc.Method_TOKEN},
+		&storage.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
 	)
 	require.NoError(t, err)
 
