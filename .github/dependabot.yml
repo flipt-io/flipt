@@ -16,6 +16,11 @@ updates:
       - dependency-name: github.com/golangci/golangci-lint
         versions:
           - "> 1.26.0"
+    labels:
+      - "dependencies"
+      - "go"
+      # Add default Kodiak `merge.automerge_label`
+      - "automerge"
 
   - package-ecosystem: gomod
     directory: "/_tools"
@@ -33,6 +38,11 @@ updates:
       - dependency-name: github.com/golangci/golangci-lint
         versions:
           - "> 1.26.0"
+    labels:
+      - "dependencies"
+      - "go"
+      # Add default Kodiak `merge.automerge_label`
+      - "automerge"
 
   - package-ecosystem: npm
     directory: "/ui"
