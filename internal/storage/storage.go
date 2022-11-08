@@ -11,7 +11,7 @@ import (
 
 const (
 	// DefaultListLimit is the default limit applied to any list operation page size when one is not provided.
-	DefaultListLimit uint64 = 10
+	DefaultListLimit uint64 = 25
 
 	// MaxListLimit is the upper limit applied to any list operation page size.
 	MaxListLimit uint64 = 100
