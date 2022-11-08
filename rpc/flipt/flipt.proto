@@ -30,6 +30,22 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   schemes: HTTPS;
   consumes: "application/json";
   produces: "application/json";
+  security_definitions: {
+    security: {
+      key: "ClientTokenBearer";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+      }
+    }
+  };
+  security: {
+    security_requirement: {
+      key: "ClientTokenBearer";
+      value: {};
+    }
+  };
 };
 
 message EvaluationRequest {

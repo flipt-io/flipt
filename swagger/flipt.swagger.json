@@ -1671,6 +1671,18 @@
       }
     }
   },
+  "securityDefinitions": {
+    "ClientTokenBearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "ClientTokenBearer": []
+    }
+  ],
   "externalDocs": {
     "description": "Flipt Docs",
     "url": "https://www.flipt.io/docs"
