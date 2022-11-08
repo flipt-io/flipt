@@ -40,3 +40,22 @@ jobs:
             .markdownlint.yaml
             **/*.md
             !**/test/**/*
+
+  proto-lint:
+    name: "Lint Proto"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: bufbuild/buf-setup-action@v1.7.0
+        with:
+          version: "latest"
+
+      - uses: bufbuild/buf-lint-action@v1
+        with:
+          input: "rpc/flipt"
+
+      - uses: bufbuild/buf-breaking-action@v1
+        with:
+          input: "rpc/flipt"
+          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
