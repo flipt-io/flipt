@@ -40,6 +40,12 @@
               "$ref": "#/definitions/authCreateTokenResponse"
             }
           },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
           "default": {
             "description": "An unexpected error response.",
             "schema": {

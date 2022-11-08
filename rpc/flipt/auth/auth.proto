@@ -45,6 +45,17 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
       value: {};
     }
   };
+  responses: {
+    key: "401";
+    value: {
+      description: "Request could not be authenticated (authentication required).";
+      schema: {
+        json_schema: {
+          ref: "#/definitions/rpcStatus";
+        };
+      };
+    };
+  };
 };
 
 enum Method {
