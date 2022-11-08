@@ -226,7 +226,9 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "mysql:8",
 			ExposedPorts: []string{"3306/tcp"},
-			WaitingFor:   wait.ForListeningPort(port),
+			WaitingFor: wait.ForSQL(port, "mysql", func(host string, port nat.Port) string {
+				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true", host, port.Port())
+			}),
 			Env: map[string]string{
 				"MYSQL_USER":                 "flipt",
 				"MYSQL_PASSWORD":             "password",
