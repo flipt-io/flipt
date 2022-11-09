@@ -41,7 +41,7 @@ func NewStore(driver storagesql.Driver, builder sq.StatementBuilderType, logger 
 		driver:  driver,
 		builder: builder,
 		now: func() *timestamppb.Timestamp {
-			// we truncate timestampts to the microsecond to support Postgres/MySQL
+			// we truncate timestamps to the microsecond to support Postgres/MySQL
 			// the lowest common denominators in terms of timestamp precision
 			now := time.Now().UTC().Truncate(time.Microsecond)
 			return timestamppb.New(now)

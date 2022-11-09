@@ -17,7 +17,7 @@ func Bootstrap(ctx context.Context, store storage.AuthenticationStore) (string, 
 		return "", fmt.Errorf("bootstrapping authentication store: %w", err)
 	}
 
-	// if at-least auth token exists we do not create one
+	// ensures we only create a token if no authentications of type token currently exist
 	if len(set.Results) > 0 {
 		return "", nil
 	}
