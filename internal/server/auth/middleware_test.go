@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -11,13 +12,26 @@ import (
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestUnaryInterceptor(t *testing.T) {
 	authenticator := memory.NewStore()
+
+	// valid auth
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
 		&storage.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
+	)
+	require.NoError(t, err)
+
+	// expired auth
+	expiredToken, _, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&storage.CreateAuthenticationRequest{
+			Method:    authrpc.Method_METHOD_TOKEN,
+			ExpiresAt: timestamppb.New(time.Now().UTC().Add(-time.Hour)),
+		},
 	)
 	require.NoError(t, err)
 
@@ -33,6 +47,13 @@ func TestUnaryInterceptor(t *testing.T) {
 				"Authorization": []string{"Bearer " + clientToken},
 			},
 			expectedAuth: storedAuth,
+		},
+		{
+			name: "token has expired",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + expiredToken},
+			},
+			expectedErr: errUnauthenticated,
 		},
 		{
 			name: "client token not found in store",

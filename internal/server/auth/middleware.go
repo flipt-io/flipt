@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"strings"
+	"time"
 
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -65,6 +66,14 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator) grpc.Unar
 			logger.Error("unauthenticated",
 				zap.String("reason", "error retrieving authentication for client token"),
 				zap.Error(err))
+			return ctx, errUnauthenticated
+		}
+
+		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
+			logger.Error("unauthenticated",
+				zap.String("reason", "authorization expired"),
+				zap.String("authentication_id", auth.Id),
+			)
 			return ctx, errUnauthenticated
 		}
 
