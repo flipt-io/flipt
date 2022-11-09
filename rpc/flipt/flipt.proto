@@ -30,6 +30,33 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   schemes: HTTPS;
   consumes: "application/json";
   produces: "application/json";
+  security_definitions: {
+    security: {
+      key: "ClientTokenBearer";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+      }
+    }
+  };
+  security: {
+    security_requirement: {
+      key: "ClientTokenBearer";
+      value: {};
+    }
+  };
+  responses: {
+    key: "401";
+    value: {
+      description: "Request could not be authenticated (authentication required).";
+      schema: {
+        json_schema: {
+          ref: "#/definitions/rpcStatus";
+        };
+      };
+    };
+  };
 };
 
 message EvaluationRequest {

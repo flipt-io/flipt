@@ -5,6 +5,16 @@ import (
 	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/auth"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+const (
+	// DefaultListLimit is the default limit applied to any list operation page size when one is not provided.
+	DefaultListLimit uint64 = 25
+
+	// MaxListLimit is the upper limit applied to any list operation page size.
+	MaxListLimit uint64 = 100
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
@@ -42,6 +52,19 @@ type QueryParams struct {
 	Offset    uint64 // deprecated
 	PageToken string
 	Order     Order // not exposed to the user yet
+}
+
+// Normalize adjusts query parameters within the enforced boundaries.
+// For example, limit is adjusted to be in the range (0, max].
+// Given the limit is not supplied (0) it is set to the default limit.
+func (q *QueryParams) Normalize() {
+	if q.Limit == 0 {
+		q.Limit = DefaultListLimit
+	}
+
+	if q.Limit > MaxListLimit {
+		q.Limit = MaxListLimit
+	}
 }
 
 type QueryOption func(p *QueryParams)
@@ -146,4 +169,63 @@ type RuleStore interface {
 	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
+}
+
+// CreateAuthenticationRequest is the argument passed when creating instances
+// of an Authentication on a target AuthenticationStore.
+type CreateAuthenticationRequest struct {
+	Method    auth.Method
+	ExpiresAt *timestamppb.Timestamp
+	Metadata  map[string]string
+}
+
+// ListRequest is a generic container for the parameters required to perform a list operation.
+// It contains a generic type T intended for a list predicate.
+// It also contains a QueryParams object containing pagination constraints.
+type ListRequest[P any] struct {
+	Predicate   P
+	QueryParams QueryParams
+}
+
+// ListOption is a function which can configure a ListRequest.
+type ListOption[T any] func(*ListRequest[T])
+
+// ListWithQueryParamOptions takes a set of functional options for QueryParam and returns a ListOption
+// which applies them in order on the provided ListRequest.
+func ListWithQueryParamOptions[T any](opts ...QueryOption) ListOption[T] {
+	return func(r *ListRequest[T]) {
+		for _, opt := range opts {
+			opt(&r.QueryParams)
+		}
+	}
+}
+
+// NewListRequest constructs a new ListRequest using the provided ListOption.
+func NewListRequest[T any](opts ...ListOption[T]) *ListRequest[T] {
+	req := &ListRequest[T]{}
+
+	for _, opt := range opts {
+		opt(req)
+	}
+
+	return req
+}
+
+// ListAuthenticationsPredicate contains the fields necessary to predicate a list operation
+// on a authentications storage backend.
+type ListAuthenticationsPredicate struct {
+	Method *auth.Method
+}
+
+// AuthenticationStore persists Authentication instances.
+type AuthenticationStore interface {
+	// CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
+	// string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
+	CreateAuthentication(context.Context, *CreateAuthenticationRequest) (string, *auth.Authentication, error)
+	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
+	// store using the provided clientToken string as the key.
+	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
+	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
+	// predicates with the supplied ListAuthenticationsRequest.
+	ListAuthentications(context.Context, *ListRequest[ListAuthenticationsPredicate]) (ResultSet[*auth.Authentication], error)
 }

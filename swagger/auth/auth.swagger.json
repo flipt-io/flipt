@@ -1,0 +1,184 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Flipt Authentication APIs",
+    "version": "latest",
+    "contact": {
+      "name": "Flipt Team",
+      "url": "https://github.com/flipt-io/flipt",
+      "email": "dev@flipt.io"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/flipt-io/flipt/blob/main/rpc/flipt/LICENSE"
+    }
+  },
+  "tags": [
+    {
+      "name": "AuthenticationMethodTokenService"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/auth/v1/method/token": {
+      "post": {
+        "description": "Create authentication token",
+        "operationId": "create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCreateTokenResponse"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authCreateTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "authentication authentication_method token"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "authAuthentication": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "method": {
+          "$ref": "#/definitions/authMethod"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "authCreateTokenRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "name",
+        "description"
+      ]
+    },
+    "authCreateTokenResponse": {
+      "type": "object",
+      "properties": {
+        "clientToken": {
+          "type": "string"
+        },
+        "authentication": {
+          "$ref": "#/definitions/authAuthentication"
+        }
+      }
+    },
+    "authMethod": {
+      "type": "string",
+      "enum": [
+        "METHOD_NONE",
+        "METHOD_TOKEN"
+      ],
+      "default": "METHOD_NONE"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "ClientTokenBearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "ClientTokenBearer": []
+    }
+  ],
+  "externalDocs": {
+    "description": "Flipt Docs",
+    "url": "https://www.flipt.io/docs"
+  }
+}

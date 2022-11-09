@@ -17,10 +17,10 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:      3,
-	Postgres:    3,
-	MySQL:       1,
-	CockroachDB: 0,
+	SQLite:      4,
+	Postgres:    4,
+	MySQL:       2,
+	CockroachDB: 1,
 }
 
 // Migrator is responsible for migrating the database schema
@@ -80,8 +80,8 @@ func (m *Migrator) Close() (source, db error) {
 	return m.migrator.Close()
 }
 
-// Run runs any pending migrations
-func (m *Migrator) Run(force bool) error {
+// Up runs any pending migrations
+func (m *Migrator) Up(force bool) error {
 	canAutoMigrate := force
 
 	// check if any migrations are pending
@@ -124,5 +124,18 @@ func (m *Migrator) Run(force bool) error {
 	}
 
 	m.logger.Debug("migrations up to date")
+	return nil
+}
+
+// Down returns the down migrations (drops the database)
+func (m *Migrator) Down() error {
+	m.logger.Debug("Running down migrations...")
+
+	if err := m.migrator.Down(); err != nil {
+		return fmt.Errorf("reverting migrations: %w", err)
+	}
+
+	m.logger.Debug("down migrations complete")
+
 	return nil
 }
