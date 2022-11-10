@@ -11,9 +11,9 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	authtesting "go.flipt.io/flipt/internal/storage/auth/testing"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
 	sqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
-	storagetesting "go.flipt.io/flipt/internal/storage/testing"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -36,7 +36,7 @@ var (
 )
 
 func TestAuthenticationStoreHarness(t *testing.T) {
-	storagetesting.TestAuthenticationStoreHarness(t, func(t *testing.T) storageauth.Store {
+	authtesting.TestAuthenticationStoreHarness(t, func(t *testing.T) storageauth.Store {
 		return newTestStore(t)()
 	})
 }

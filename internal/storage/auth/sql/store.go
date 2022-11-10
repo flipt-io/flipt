@@ -238,6 +238,10 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	return
 }
 
+func (s *Store) DeleteAuthentications(context.Context, *storageauth.DeleteAuthenticationsRequest) error {
+	return nil
+}
+
 func (s *Store) scanAuthentication(scanner sq.RowScanner, authentication *rpcauth.Authentication) error {
 	var (
 		expiresAt storagesql.NullableTimestamp

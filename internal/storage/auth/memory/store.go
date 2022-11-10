@@ -172,3 +172,7 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 
 	return set, nil
 }
+
+func (s *Store) DeleteAuthentications(context.Context, *auth.DeleteAuthenticationsRequest) error {
+	return nil
+}

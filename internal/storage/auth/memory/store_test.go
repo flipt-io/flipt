@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"go.flipt.io/flipt/internal/storage/auth"
-	storagetesting "go.flipt.io/flipt/internal/storage/testing"
+	authtesting "go.flipt.io/flipt/internal/storage/auth/testing"
 )
 
 func TestAuthenticationStoreHarness(t *testing.T) {
-	storagetesting.TestAuthenticationStoreHarness(t, func(t *testing.T) auth.Store {
+	authtesting.TestAuthenticationStoreHarness(t, func(t *testing.T) auth.Store {
 		return NewStore()
 	})
 }

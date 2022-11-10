@@ -7,7 +7,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"time"
 
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -15,6 +17,23 @@ import (
 )
 
 const decodedTokenLen = 32
+
+// Store persists Authentication instances.
+type Store interface {
+	// CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
+	// string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
+	CreateAuthentication(context.Context, *CreateAuthenticationRequest) (string, *auth.Authentication, error)
+	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
+	// store using the provided clientToken string as the key.
+	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
+	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
+	// predicates with the supplied ListAuthenticationsRequest.
+	ListAuthentications(context.Context, *storage.ListRequest[ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error)
+	// DeleteAuthentications attempts to delete one or more Authentication instances from the backing store.
+	// Use DeleteByID to construct a request to delete a single Authentication by ID string.
+	// Use DeleteByMethod to construct a request to delete 0 or more Authentications by Method and optional expired before constraint.
+	DeleteAuthentications(context.Context, *DeleteAuthenticationsRequest) error
+}
 
 // CreateAuthenticationRequest is the argument passed when creating instances
 // of an Authentication on a target AuthenticationStore.
@@ -38,17 +57,48 @@ type ListAuthenticationsPredicate struct {
 	Method *auth.Method
 }
 
-// Store persists Authentication instances.
-type Store interface {
-	// CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
-	// string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
-	CreateAuthentication(context.Context, *CreateAuthenticationRequest) (string, *auth.Authentication, error)
-	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
-	// store using the provided clientToken string as the key.
-	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
-	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
-	// predicates with the supplied ListAuthenticationsRequest.
-	ListAuthentications(context.Context, *storage.ListRequest[ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error)
+// DeleteAuthenticationsRequest is a request to delete one or more Authentication instances
+// in a backing auth.Store.
+type DeleteAuthenticationsRequest struct {
+	ID     *string
+	Method *ByMethod
+}
+
+// DeleteByID returns a *DeleteAuthenticationsRequest which identifies a single instance to be
+// deleted identified by the configured id string.
+func DeleteByID(id string) *DeleteAuthenticationsRequest {
+	return &DeleteAuthenticationsRequest{
+		ID: &id,
+	}
+}
+
+// ByMethod is a structure which contain predices used to identify a set of Authentications
+// within a backing store. Primarily it identifies a particular auth method as a predicate.
+// It also contain an optional ExpiredBefore timestamp to filter the target set.
+type ByMethod struct {
+	auth.Method
+	ExpiredBefore *time.Time
+}
+
+// ExpiredBefore is an option which sets the ExpiredBefore timestamp on a ByMethod predicate.
+func ExpiredBefore(t time.Time) containers.Option[ByMethod] {
+	return func(m *ByMethod) {
+		m.ExpiredBefore = &t
+	}
+}
+
+// DeleteByMethod constructs a DeleteAuthenticationsRequest which identifies a set of Authentication
+// instaces using the ByMethod predicate.
+func DeleteByMethod(method auth.Method, opts ...containers.Option[ByMethod]) *DeleteAuthenticationsRequest {
+	req := &DeleteAuthenticationsRequest{
+		Method: &ByMethod{
+			Method: method,
+		},
+	}
+
+	containers.ApplyAll(req.Method, opts...)
+
+	return req
 }
 
 // GenerateRandomToken produces a URL safe base64 encoded string of random characters
