@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/auth"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -171,14 +169,6 @@ type RuleStore interface {
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
 }
 
-// CreateAuthenticationRequest is the argument passed when creating instances
-// of an Authentication on a target AuthenticationStore.
-type CreateAuthenticationRequest struct {
-	Method    auth.Method
-	ExpiresAt *timestamppb.Timestamp
-	Metadata  map[string]string
-}
-
 // ListRequest is a generic container for the parameters required to perform a list operation.
 // It contains a generic type T intended for a list predicate.
 // It also contains a QueryParams object containing pagination constraints.
@@ -209,23 +199,4 @@ func NewListRequest[T any](opts ...ListOption[T]) *ListRequest[T] {
 	}
 
 	return req
-}
-
-// ListAuthenticationsPredicate contains the fields necessary to predicate a list operation
-// on a authentications storage backend.
-type ListAuthenticationsPredicate struct {
-	Method *auth.Method
-}
-
-// AuthenticationStore persists Authentication instances.
-type AuthenticationStore interface {
-	// CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
-	// string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
-	CreateAuthentication(context.Context, *CreateAuthenticationRequest) (string, *auth.Authentication, error)
-	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
-	// store using the provided clientToken string as the key.
-	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
-	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
-	// predicates with the supplied ListAuthenticationsRequest.
-	ListAuthentications(context.Context, *ListRequest[ListAuthenticationsPredicate]) (ResultSet[*auth.Authentication], error)
 }

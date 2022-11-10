@@ -88,7 +88,7 @@ func WithIDGeneratorFunc(fn func() string) Option {
 }
 
 // CreateAuthentication creates and persists an instance of an Authentication.
-func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
+func (s *Store) CreateAuthentication(ctx context.Context, r *storageauth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	var (
 		now            = s.now()
 		clientToken    = s.generateToken()
@@ -172,7 +172,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 }
 
 // ListAuthentications lists a page of Authentications from the backing store.
-func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
+func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storageauth.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf(

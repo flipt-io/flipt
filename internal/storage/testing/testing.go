@@ -8,10 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
+	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 )
 
-func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storage.AuthenticationStore) {
+func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storageauth.Store) {
 	t.Helper()
 
 	store := fn(t)
@@ -25,7 +26,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storage.
 
 	t.Run(fmt.Sprintf("Create %d authentications", authCount), func(t *testing.T) {
 		for i := 0; i < authCount; i++ {
-			token, auth, err := store.CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
+			token, auth, err := store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 				Method: auth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"name":        fmt.Sprintf("foo_%d", i),
