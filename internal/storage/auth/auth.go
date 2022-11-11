@@ -13,7 +13,6 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/auth"
-	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -46,7 +45,7 @@ type CreateAuthenticationRequest struct {
 
 // ListWithMethod can be passed to storage.NewListRequest.
 // The request can then be used to predicate ListAuthentications by auth method.
-func ListWithMethod(method rpcauth.Method) storage.ListOption[ListAuthenticationsPredicate] {
+func ListWithMethod(method auth.Method) storage.ListOption[ListAuthenticationsPredicate] {
 	return func(r *storage.ListRequest[ListAuthenticationsPredicate]) {
 		r.Predicate.Method = &method
 	}
