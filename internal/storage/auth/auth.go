@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt/auth"
@@ -62,6 +63,14 @@ type ListAuthenticationsPredicate struct {
 type DeleteAuthenticationsRequest struct {
 	ID     *string
 	Method *ByMethod
+}
+
+func (d *DeleteAuthenticationsRequest) Valid() error {
+	if d.ID == nil && d.Method == nil {
+		return errors.ErrInvalidf("delete is not predicated")
+	}
+
+	return nil
 }
 
 // DeleteByID returns a *DeleteAuthenticationsRequest which identifies a single instance to be

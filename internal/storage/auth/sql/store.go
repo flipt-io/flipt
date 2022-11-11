@@ -238,8 +238,36 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	return
 }
 
-func (s *Store) DeleteAuthentications(context.Context, *storageauth.DeleteAuthenticationsRequest) error {
-	return nil
+func (s *Store) adaptError(fmtStr string, err *error) {
+	if *err != nil {
+		*err = fmt.Errorf(fmtStr, s.driver.AdaptError(*err))
+	}
+}
+
+func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.DeleteAuthenticationsRequest) (err error) {
+	defer s.adaptError("deleting authentications: %w", &err)
+
+	if err := req.Valid(); err != nil {
+		return err
+	}
+
+	query := s.builder.
+		Delete("authentications")
+
+	if req.ID != nil {
+		query = query.Where(sq.Eq{"id": req.ID})
+	}
+
+	if req.Method != nil {
+		query = query.Where(sq.Eq{"method": req.Method.Method})
+		if req.Method.ExpiredBefore != nil {
+			query = query.Where(sq.Lt{"expires_at": req.Method.ExpiredBefore})
+		}
+	}
+
+	_, err = query.ExecContext(ctx)
+
+	return
 }
 
 func (s *Store) scanAuthentication(scanner sq.RowScanner, authentication *rpcauth.Authentication) error {

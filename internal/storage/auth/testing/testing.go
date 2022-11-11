@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storageauth.Store) {
@@ -17,17 +20,32 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 
 	store := fn(t)
 
-	const authCount = 100
+	type authTuple struct {
+		Token string
+		Auth  *auth.Authentication
+	}
+
 	var (
-		ctx   = context.TODO()
-		auths = make([]*auth.Authentication, authCount)
-		index = make(map[string]int, authCount)
+		ctx = context.TODO()
+
+		created [100]authTuple
+
+		allAuths = func(t []authTuple) (res []*auth.Authentication) {
+			res = make([]*auth.Authentication, len(t))
+			for i, a := range t {
+				res[i] = a.Auth
+			}
+			return
+		}
 	)
 
-	t.Run(fmt.Sprintf("Create %d authentications", authCount), func(t *testing.T) {
-		for i := 0; i < authCount; i++ {
+	t.Run(fmt.Sprintf("Create %d authentications", len(created)), func(t *testing.T) {
+		uniqueTokens := make(map[string]struct{}, len(created))
+		for i := 0; i < len(created); i++ {
 			token, auth, err := store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 				Method: auth.Method_METHOD_TOKEN,
+				// from t0 to t99.
+				ExpiresAt: timestamppb.New(time.Unix(int64(i), 0)),
 				Metadata: map[string]string{
 					"name":        fmt.Sprintf("foo_%d", i),
 					"description": "bar",
@@ -35,22 +53,23 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 			})
 			require.NoError(t, err)
 
-			auths[i] = auth
+			created[i].Token = token
+			created[i].Auth = auth
 
 			// ensure token does not already exists
-			_, ok := index[token]
+			_, ok := uniqueTokens[token]
 			require.False(t, ok, "Token already exists")
-			index[token] = i
+			uniqueTokens[token] = struct{}{}
 		}
 	})
 
 	t.Run("Get each authentication by ID", func(t *testing.T) {
 		// ensure each auth can be re-retrieved by the client token
-		for token, i := range index {
-			auth, err := store.GetAuthenticationByClientToken(ctx, token)
+		for i, auth := range created {
+			auth, err := store.GetAuthenticationByClientToken(ctx, auth.Token)
 			require.NoError(t, err)
 
-			assert.Equal(t, auths[i], auth)
+			assert.Equal(t, created[i].Auth, auth)
 		}
 	})
 
@@ -60,7 +79,7 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 			PerPage: 3,
 		})
 		require.NoError(t, err)
-		assert.Equal(t, auths, all)
+		assert.Equal(t, allAuths(created[:]), all)
 	})
 
 	t.Run("List all authentications (6 per page descending)", func(t *testing.T) {
@@ -70,10 +89,50 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 			Order:   storage.OrderDesc,
 		})
 		require.NoError(t, err)
-		for i := 0; i < len(auths)/2; i++ {
-			j := len(auths) - 1 - i
-			auths[i], auths[j] = auths[j], auths[i]
+
+		// expect all in reverse
+		expected := allAuths(created[:])
+		for i := 0; i < len(expected)/2; i++ {
+			j := len(expected) - 1 - i
+			expected[i], expected[j] = expected[j], expected[i]
 		}
-		assert.Equal(t, auths, all)
+		assert.Equal(t, expected, all)
+	})
+
+	t.Run("Delete must be predicated", func(t *testing.T) {
+		err := store.DeleteAuthentications(ctx, &storageauth.DeleteAuthenticationsRequest{})
+		var invalid errors.ErrInvalid
+		require.ErrorAs(t, err, &invalid)
+	})
+
+	t.Run("Delete a single instance by ID", func(t *testing.T) {
+		err := store.DeleteAuthentications(ctx, storageauth.DeleteByID(created[0].Auth.Id))
+		require.NoError(t, err)
+
+		auth, err := store.GetAuthenticationByClientToken(ctx, created[0].Token)
+		var expected errors.ErrNotFound
+		if !assert.ErrorAs(t, err, &expected, "authentication still exists in the database") {
+			t.Log("Auth still exists", auth)
+		}
+	})
+
+	t.Run("Delete by method Token with before expired constraint", func(t *testing.T) {
+		err := store.DeleteAuthentications(
+			ctx,
+			// all tokens with expiry < t50
+			storageauth.DeleteByMethod(
+				auth.Method_METHOD_TOKEN,
+				storageauth.ExpiredBefore(time.Unix(50, 0).UTC()),
+			),
+		)
+		require.NoError(t, err)
+
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
+		require.NoError(t, err)
+
+		// ensure only the most recent 50 expires_at timestamped authentications remain
+		if !assert.Equal(t, allAuths(created[50:]), all) {
+			fmt.Println("Found:", len(all))
+		}
 	})
 }

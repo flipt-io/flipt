@@ -173,6 +173,44 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	return set, nil
 }
 
-func (s *Store) DeleteAuthentications(context.Context, *auth.DeleteAuthenticationsRequest) error {
+func (s *Store) deleteMatching(fn func(*rpcauth.Authentication) bool) (count int) {
+	for hashedToken, a := range s.auths {
+		if fn(a) {
+			delete(s.auths, hashedToken)
+			count++
+		}
+	}
+
+	return
+}
+
+func (s *Store) DeleteAuthentications(_ context.Context, req *auth.DeleteAuthenticationsRequest) error {
+	if err := req.Valid(); err != nil {
+		return fmt.Errorf("deleting authentications: %w", err)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if req.ID != nil {
+		if s.deleteMatching(func(a *rpcauth.Authentication) bool {
+			return a.Id == *req.ID
+		}) > 0 {
+			return nil
+		}
+
+		return errors.ErrNotFoundf("authentication %q", *req.ID)
+	}
+
+	if req.Method != nil {
+		_ = s.deleteMatching(func(a *rpcauth.Authentication) bool {
+			return a.Method == req.Method.Method &&
+				(req.Method.ExpiredBefore == nil || a.ExpiresAt.AsTime().Before(*req.Method.ExpiredBefore))
+		})
+
+		return nil
+	}
+
+	// should not be reachable
+
 	return nil
 }
