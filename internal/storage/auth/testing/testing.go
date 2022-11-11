@@ -44,10 +44,10 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		for i := 0; i < len(created); i++ {
 			token, auth, err := store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 				Method: auth.Method_METHOD_TOKEN,
-				// from t0 to t99.
-				ExpiresAt: timestamppb.New(time.Unix(int64(i), 0)),
+				// from t1 to t100.
+				ExpiresAt: timestamppb.New(time.Unix(int64(i+1), 0)),
 				Metadata: map[string]string{
-					"name":        fmt.Sprintf("foo_%d", i),
+					"name":        fmt.Sprintf("foo_%d", i+1),
 					"description": "bar",
 				},
 			})
@@ -119,10 +119,10 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 	t.Run("Delete by method Token with before expired constraint", func(t *testing.T) {
 		err := store.DeleteAuthentications(
 			ctx,
-			// all tokens with expiry < t50
+			// all tokens with expiry [t1, t51)
 			storageauth.DeleteByMethod(
 				auth.Method_METHOD_TOKEN,
-				storageauth.ExpiredBefore(time.Unix(50, 0).UTC()),
+				storageauth.ExpiredBefore(time.Unix(51, 0).UTC()),
 			),
 		)
 		require.NoError(t, err)
