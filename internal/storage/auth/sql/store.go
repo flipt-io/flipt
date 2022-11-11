@@ -244,6 +244,9 @@ func (s *Store) adaptError(fmtStr string, err *error) {
 	}
 }
 
+// DeleteAuthentications attempts to delete one or more Authentication instances from the backing store.
+// Use auth.DeleteByID to construct a request to delete a single Authentication by ID string.
+// Use auth.DeleteByMethod to construct a request to delete 0 or more Authentications by Method and optional expired before constraint.
 func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.DeleteAuthenticationsRequest) (err error) {
 	defer s.adaptError("deleting authentications: %w", &err)
 
