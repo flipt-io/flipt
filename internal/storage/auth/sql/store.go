@@ -262,10 +262,11 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.Dele
 	}
 
 	if req.Method != nil {
-		query = query.Where(sq.Eq{"method": req.Method.Method})
-		if req.Method.ExpiredBefore != nil {
-			query = query.Where(sq.Lt{"expires_at": req.Method.ExpiredBefore})
-		}
+		query = query.Where(sq.Eq{"method": req.Method})
+	}
+
+	if req.ExpiredBefore != nil {
+		query = query.Where(sq.Lt{"expires_at": &storagesql.Timestamp{req.ExpiredBefore}})
 	}
 
 	_, err = query.ExecContext(ctx)

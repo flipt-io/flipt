@@ -60,53 +60,50 @@ type ListAuthenticationsPredicate struct {
 // DeleteAuthenticationsRequest is a request to delete one or more Authentication instances
 // in a backing auth.Store.
 type DeleteAuthenticationsRequest struct {
-	ID     *string
-	Method *ByMethod
+	ID            *string
+	Method        *auth.Method
+	ExpiredBefore *timestamppb.Timestamp
 }
 
 func (d *DeleteAuthenticationsRequest) Valid() error {
-	if d.ID == nil && d.Method == nil {
-		return errors.ErrInvalidf("delete is not predicated")
+	if d.ID == nil && d.Method == nil && d.ExpiredBefore == nil {
+		return errors.ErrInvalidf("id, method or expired-before timestamp is required")
 	}
 
 	return nil
 }
 
-// DeleteByID returns a *DeleteAuthenticationsRequest which identifies a single instance to be
-// deleted identified by the configured id string.
-func DeleteByID(id string) *DeleteAuthenticationsRequest {
-	return &DeleteAuthenticationsRequest{
-		ID: &id,
+// Delete constructs a new *DeleteAuthenticationsRequest using the provided options.
+func Delete(opts ...containers.Option[DeleteAuthenticationsRequest]) *DeleteAuthenticationsRequest {
+	req := &DeleteAuthenticationsRequest{}
+
+	for _, opt := range opts {
+		opt(req)
 	}
-}
-
-// ByMethod is a structure which contain predices used to identify a set of Authentications
-// within a backing store. Primarily it identifies a particular auth method as a predicate.
-// It also contain an optional ExpiredBefore timestamp to filter the target set.
-type ByMethod struct {
-	auth.Method
-	ExpiredBefore *time.Time
-}
-
-// ExpiredBefore is an option which sets the ExpiredBefore timestamp on a ByMethod predicate.
-func ExpiredBefore(t time.Time) containers.Option[ByMethod] {
-	return func(m *ByMethod) {
-		m.ExpiredBefore = &t
-	}
-}
-
-// DeleteByMethod constructs a DeleteAuthenticationsRequest which identifies a set of Authentication
-// instaces using the ByMethod predicate.
-func DeleteByMethod(method auth.Method, opts ...containers.Option[ByMethod]) *DeleteAuthenticationsRequest {
-	req := &DeleteAuthenticationsRequest{
-		Method: &ByMethod{
-			Method: method,
-		},
-	}
-
-	containers.ApplyAll(req.Method, opts...)
 
 	return req
+}
+
+// WithID is an option which predicates a delete with a specific authentication ID.
+func WithID(id string) containers.Option[DeleteAuthenticationsRequest] {
+	return func(r *DeleteAuthenticationsRequest) {
+		r.ID = &id
+	}
+}
+
+// WithMethod is an option which ensures a delete applies to Authentications of the provided method.
+func WithMethod(method auth.Method) containers.Option[DeleteAuthenticationsRequest] {
+	return func(r *DeleteAuthenticationsRequest) {
+		r.Method = &method
+	}
+}
+
+// WithExpiredBefore is an option which ensures a delete only applies to Auhentications
+// with an expires_at timestamp occurring before the supplied timestamp.
+func WithExpiredBefore(t time.Time) containers.Option[DeleteAuthenticationsRequest] {
+	return func(r *DeleteAuthenticationsRequest) {
+		r.ExpiredBefore = timestamppb.New(t)
+	}
 }
 
 // GenerateRandomToken produces a URL safe base64 encoded string of random characters
