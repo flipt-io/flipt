@@ -37,6 +37,11 @@ func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*
 	return nil, errUnauthenticated
 }
 
+// GetAuthentication returns the Authentication identified by the supplied id.
+func (s *Server) GetAuthentication(ctx context.Context, r *auth.GetAuthenticationRequest) (*auth.Authentication, error) {
+	return s.store.GetAuthenticationByID(ctx, r.Id)
+}
+
 // DeleteAuthentication deletes the authentication with the supplied ID.
 func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	s.logger.Debug("DeleteAuthentication", zap.String("id", req.Id))
