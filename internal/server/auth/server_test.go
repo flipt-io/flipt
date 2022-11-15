@@ -96,6 +96,19 @@ func TestServer(t *testing.T) {
 		}
 	})
 
+	t.Run("GetAuthentication", func(t *testing.T) {
+		retrievedAuth, err := client.GetAuthentication(authorize(ctx), &auth.GetAuthenticationRequest{
+			Id: authentication.Id,
+		})
+		require.NoError(t, err)
+
+		// switch to go-cmp here to do the comparisons since assert trips up
+		// on the unexported sizeCache values.
+		if diff := cmp.Diff(retrievedAuth, authentication, protocmp.Transform()); err != nil {
+			t.Errorf("-exp/+got:\n%s", diff)
+		}
+	})
+
 	t.Run("DeleteAuthentication", func(t *testing.T) {
 		ctx := authorize(ctx)
 		// delete self
