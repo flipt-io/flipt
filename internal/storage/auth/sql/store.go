@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -161,6 +162,33 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 			).
 			From("authentications").
 			Where(sq.Eq{"hashed_client_token": hashedToken}).
+			QueryRowContext(ctx), &authentication); err != nil {
+		return nil, fmt.Errorf(
+			"getting authentication by token: %w",
+			s.driver.AdaptError(err),
+		)
+	}
+
+	return &authentication, nil
+}
+
+// GetAuthenticationByID retrieves an instance of Authentication from the backing
+// store using the provided id string.
+func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
+	var authentication rpcauth.Authentication
+
+	if err := s.scanAuthentication(
+		s.builder.
+			Select(
+				"id",
+				"method",
+				"metadata",
+				"expires_at",
+				"created_at",
+				"updated_at",
+			).
+			From("authentications").
+			Where(sq.Eq{"id": id}).
 			QueryRowContext(ctx), &authentication); err != nil {
 		return nil, fmt.Errorf(
 			"getting authentication by token: %w",
