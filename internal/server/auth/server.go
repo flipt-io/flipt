@@ -41,5 +41,5 @@ func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*
 func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	s.logger.Debug("DeleteAuthentication", zap.String("id", req.Id))
 
-	return &emptypb.Empty{}, s.store.DeleteAuthentications(ctx, storageauth.DeleteByID(req.Id))
+	return &emptypb.Empty{}, s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(req.Id)))
 }
