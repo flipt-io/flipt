@@ -12,7 +12,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/rpc/flipt/auth"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -174,7 +173,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 
 // GetAuthenticationByID retrieves an instance of Authentication from the backing
 // store using the provided id string.
-func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
+func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.Authentication, error) {
 	var authentication rpcauth.Authentication
 
 	if err := s.scanAuthentication(
