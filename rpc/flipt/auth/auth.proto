@@ -70,6 +70,16 @@ message Authentication {
   map<string, string> metadata = 6;
 }
 
+message GetAuthenticationRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["id"]
+    }
+  };
+
+  string id = 1;
+}
+
 message DeleteAuthenticationRequest {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
@@ -85,6 +95,13 @@ service AuthenticationService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "get_self",
       description: "Get Authentication for current authenticated context",
+      tags: "authentication",
+    };
+  }
+  rpc GetAuthentication(GetAuthenticationRequest) returns (Authentication) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "get_authentication",
+      description: "Get Authentication by ID",
       tags: "authentication",
     };
   }

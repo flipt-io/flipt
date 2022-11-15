@@ -101,6 +101,41 @@
       }
     },
     "/auth/v1/token/{id}": {
+      "get": {
+        "description": "Get Authentication by ID",
+        "operationId": "get_authentication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAuthentication"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "authentication"
+        ]
+      },
       "delete": {
         "description": "Delete Authentication by ID",
         "operationId": "delete_authentication",

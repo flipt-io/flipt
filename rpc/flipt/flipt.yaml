@@ -75,6 +75,8 @@ http:
   # authentication
   - selector: flipt.auth.AuthenticationService.GetAuthenticationSelf
     get: /auth/v1/self
+  - selector: flipt.auth.AuthenticationService.GetAuthentication
+    get: /auth/v1/token/{id}
   - selector: flipt.auth.AuthenticationService.DeleteAuthentication
     delete: /auth/v1/token/{id}
   # authentication methods
