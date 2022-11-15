@@ -80,6 +80,17 @@ message GetAuthenticationRequest {
   string id = 1;
 }
 
+message ListAuthenticationsRequest {
+  Method method = 1;
+  int32 limit = 2;
+  string page_token = 3;
+}
+
+message ListAuthenticationsResponse {
+  repeated Authentication authentications = 1;
+  string next_page_token = 2;
+}
+
 message DeleteAuthenticationRequest {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
@@ -102,6 +113,13 @@ service AuthenticationService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "get_authentication",
       description: "Get Authentication by ID",
+      tags: "authentication",
+    };
+  }
+  rpc ListAuthentications(ListAuthenticationsRequest) returns (ListAuthenticationsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "list_authentications",
+      description: "List Authentication instances",
       tags: "authentication",
     };
   }

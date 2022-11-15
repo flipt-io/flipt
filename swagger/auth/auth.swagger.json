@@ -100,7 +100,62 @@
         ]
       }
     },
-    "/auth/v1/token/{id}": {
+    "/auth/v1/tokens": {
+      "get": {
+        "description": "List Authentication instances",
+        "operationId": "list_authentications",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListAuthenticationsResponse"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "METHOD_NONE",
+              "METHOD_TOKEN"
+            ],
+            "default": "METHOD_NONE"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/auth/v1/tokens/{id}": {
       "get": {
         "description": "Get Authentication by ID",
         "operationId": "get_authentication",
@@ -231,6 +286,20 @@
         },
         "authentication": {
           "$ref": "#/definitions/authAuthentication"
+        }
+      }
+    },
+    "authListAuthenticationsResponse": {
+      "type": "object",
+      "properties": {
+        "authentications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/authAuthentication"
+          }
+        },
+        "nextPageToken": {
+          "type": "string"
         }
       }
     },
