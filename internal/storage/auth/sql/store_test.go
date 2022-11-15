@@ -11,9 +11,9 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	authtesting "go.flipt.io/flipt/internal/storage/auth/testing"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
 	sqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
-	storagetesting "go.flipt.io/flipt/internal/storage/testing"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
@@ -36,7 +36,7 @@ var (
 )
 
 func TestAuthenticationStoreHarness(t *testing.T) {
-	storagetesting.TestAuthenticationStoreHarness(t, func(t *testing.T) storage.AuthenticationStore {
+	authtesting.TestAuthenticationStoreHarness(t, func(t *testing.T) storageauth.Store {
 		return newTestStore(t)()
 	})
 }
@@ -49,7 +49,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 	for _, test := range []struct {
 		name                   string
 		opts                   func(t *testing.T) []Option
-		req                    *storage.CreateAuthenticationRequest
+		req                    *storageauth.CreateAuthenticationRequest
 		expectedErrAs          error
 		expectedToken          string
 		expectedAuthentication *rpcauth.Authentication
@@ -57,7 +57,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 		{
 			name: "successfully creates authentication",
 			opts: commonOpts,
-			req: &storage.CreateAuthenticationRequest{
+			req: &storageauth.CreateAuthenticationRequest{
 				Method:    rpcauth.Method_METHOD_TOKEN,
 				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 				Metadata: map[string]string{
@@ -81,7 +81,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 		{
 			name: "successfully creates authentication (no expiration)",
 			opts: commonOpts,
-			req: &storage.CreateAuthenticationRequest{
+			req: &storageauth.CreateAuthenticationRequest{
 				Method: rpcauth.Method_METHOD_TOKEN,
 				Metadata: map[string]string{
 					"io.flipt.auth.token.name":        "access_all_areas",
@@ -110,7 +110,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					}),
 				}
 			},
-			req: &storage.CreateAuthenticationRequest{
+			req: &storageauth.CreateAuthenticationRequest{
 				Method:    rpcauth.Method_METHOD_TOKEN,
 				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 				Metadata: map[string]string{
@@ -130,7 +130,7 @@ func TestAuthentication_CreateAuthentication(t *testing.T) {
 					}),
 				}
 			},
-			req: &storage.CreateAuthenticationRequest{
+			req: &storageauth.CreateAuthenticationRequest{
 				Method:    rpcauth.Method_METHOD_TOKEN,
 				ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 				Metadata: map[string]string{
@@ -381,7 +381,7 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 			opts = append(opts, a.optFn(t)...)
 		}
 
-		clientToken, _, err := storeFn(opts...).CreateAuthentication(ctx, &storage.CreateAuthenticationRequest{
+		clientToken, _, err := storeFn(opts...).CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 			Method:    a.method,
 			ExpiresAt: timestamppb.New(time.Unix(2, 0)),
 			Metadata: map[string]string{

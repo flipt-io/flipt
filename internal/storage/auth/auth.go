@@ -2,22 +2,107 @@ package auth
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"time"
 
+	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage"
-	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/auth"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const decodedTokenLen = 32
 
+// Store persists Authentication instances.
+type Store interface {
+	// CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
+	// string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
+	CreateAuthentication(context.Context, *CreateAuthenticationRequest) (string, *auth.Authentication, error)
+	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
+	// store using the provided clientToken string as the key.
+	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
+	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
+	// predicates with the supplied ListAuthenticationsRequest.
+	ListAuthentications(context.Context, *storage.ListRequest[ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error)
+	// DeleteAuthentications attempts to delete one or more Authentication instances from the backing store.
+	// Use DeleteByID to construct a request to delete a single Authentication by ID string.
+	// Use DeleteByMethod to construct a request to delete 0 or more Authentications by Method and optional expired before constraint.
+	DeleteAuthentications(context.Context, *DeleteAuthenticationsRequest) error
+}
+
+// CreateAuthenticationRequest is the argument passed when creating instances
+// of an Authentication on a target AuthenticationStore.
+type CreateAuthenticationRequest struct {
+	Method    auth.Method
+	ExpiresAt *timestamppb.Timestamp
+	Metadata  map[string]string
+}
+
 // ListWithMethod can be passed to storage.NewListRequest.
 // The request can then be used to predicate ListAuthentications by auth method.
-func ListWithMethod(method rpcauth.Method) storage.ListOption[storage.ListAuthenticationsPredicate] {
-	return func(r *storage.ListRequest[storage.ListAuthenticationsPredicate]) {
+func ListWithMethod(method auth.Method) storage.ListOption[ListAuthenticationsPredicate] {
+	return func(r *storage.ListRequest[ListAuthenticationsPredicate]) {
 		r.Predicate.Method = &method
+	}
+}
+
+// ListAuthenticationsPredicate contains the fields necessary to predicate a list operation
+// on a authentications storage backend.
+type ListAuthenticationsPredicate struct {
+	Method *auth.Method
+}
+
+// DeleteAuthenticationsRequest is a request to delete one or more Authentication instances
+// in a backing auth.Store.
+type DeleteAuthenticationsRequest struct {
+	ID            *string
+	Method        *auth.Method
+	ExpiredBefore *timestamppb.Timestamp
+}
+
+func (d *DeleteAuthenticationsRequest) Valid() error {
+	if d.ID == nil && d.Method == nil && d.ExpiredBefore == nil {
+		return errors.ErrInvalidf("id, method or expired-before timestamp is required")
+	}
+
+	return nil
+}
+
+// Delete constructs a new *DeleteAuthenticationsRequest using the provided options.
+func Delete(opts ...containers.Option[DeleteAuthenticationsRequest]) *DeleteAuthenticationsRequest {
+	req := &DeleteAuthenticationsRequest{}
+
+	for _, opt := range opts {
+		opt(req)
+	}
+
+	return req
+}
+
+// WithID is an option which predicates a delete with a specific authentication ID.
+func WithID(id string) containers.Option[DeleteAuthenticationsRequest] {
+	return func(r *DeleteAuthenticationsRequest) {
+		r.ID = &id
+	}
+}
+
+// WithMethod is an option which ensures a delete applies to Authentications of the provided method.
+func WithMethod(method auth.Method) containers.Option[DeleteAuthenticationsRequest] {
+	return func(r *DeleteAuthenticationsRequest) {
+		r.Method = &method
+	}
+}
+
+// WithExpiredBefore is an option which ensures a delete only applies to Auhentications
+// with an expires_at timestamp occurring before the supplied timestamp.
+func WithExpiredBefore(t time.Time) containers.Option[DeleteAuthenticationsRequest] {
+	return func(r *DeleteAuthenticationsRequest) {
+		r.ExpiredBefore = timestamppb.New(t)
 	}
 }
 

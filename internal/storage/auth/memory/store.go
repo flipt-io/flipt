@@ -80,7 +80,7 @@ func WithIDGeneratorFunc(fn func() string) Option {
 
 // CreateAuthentication creates a new instance of an Authentication and returns a unique clientToken
 // string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
-func (s *Store) CreateAuthentication(_ context.Context, r *storage.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
+func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	if r.ExpiresAt != nil && !r.ExpiresAt.IsValid() {
 		return "", nil, errors.ErrInvalidf("invalid expiry time: %v", r.ExpiresAt)
 	}
@@ -128,7 +128,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	return authentication, nil
 }
 
-func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
+func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[auth.ListAuthenticationsPredicate]) (storage.ResultSet[*rpcauth.Authentication], error) {
 	var set storage.ResultSet[*rpcauth.Authentication]
 
 	// adjust the query parameters within normal bounds
@@ -171,4 +171,23 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	set.Results = set.Results[offset:end]
 
 	return set, nil
+}
+
+func (s *Store) DeleteAuthentications(_ context.Context, req *auth.DeleteAuthenticationsRequest) error {
+	if err := req.Valid(); err != nil {
+		return fmt.Errorf("deleting authentications: %w", err)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for hashedToken, a := range s.auths {
+		if (req.ID == nil || *req.ID == a.Id) &&
+			(req.Method == nil || *req.Method == a.Method) &&
+			(req.ExpiredBefore == nil || a.ExpiresAt.AsTime().Before(req.ExpiredBefore.AsTime())) {
+			delete(s.auths, hashedToken)
+		}
+	}
+
+	return nil
 }

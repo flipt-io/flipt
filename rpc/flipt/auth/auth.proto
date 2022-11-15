@@ -1,12 +1,12 @@
 syntax = "proto3";
 
+package flipt.auth;
+
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-package flipt.auth;
-
 option go_package = "go.flipt.io/flipt/rpc/flipt/auth";
-
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Flipt Authentication APIs";
@@ -50,9 +50,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     value: {
       description: "Request could not be authenticated (authentication required).";
       schema: {
-        json_schema: {
-          ref: "#/definitions/rpcStatus";
-        };
+        json_schema: {ref: "#/definitions/rpcStatus"};
       };
     };
   };
@@ -72,10 +70,40 @@ message Authentication {
   map<string, string> metadata = 6;
 }
 
+message DeleteAuthenticationRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["id"]
+    }
+  };
+
+  string id = 1;
+}
+
+service AuthenticationService {
+  rpc GetAuthenticationSelf(google.protobuf.Empty) returns (Authentication) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "get_self",
+      description: "Get Authentication for current authenticated context",
+      tags: "authentication",
+    };
+  }
+  rpc DeleteAuthentication(DeleteAuthenticationRequest) returns (google.protobuf.Empty) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "delete_authentication",
+      description: "Delete Authentication by ID",
+      tags: "authentication",
+    };
+  }
+}
+
 message CreateTokenRequest {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
     json_schema: {
-      required: ["name", "description"]
+      required: [
+        "name",
+        "description"
+      ]
     }
   };
 

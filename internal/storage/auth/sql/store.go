@@ -88,7 +88,7 @@ func WithIDGeneratorFunc(fn func() string) Option {
 }
 
 // CreateAuthentication creates and persists an instance of an Authentication.
-func (s *Store) CreateAuthentication(ctx context.Context, r *storage.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
+func (s *Store) CreateAuthentication(ctx context.Context, r *storageauth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	var (
 		now            = s.now()
 		clientToken    = s.generateToken()
@@ -172,7 +172,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 }
 
 // ListAuthentications lists a page of Authentications from the backing store.
-func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storage.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
+func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storageauth.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf(
@@ -234,6 +234,44 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 	if err = rows.Err(); err != nil {
 		return
 	}
+
+	return
+}
+
+func (s *Store) adaptError(fmtStr string, err *error) {
+	if *err != nil {
+		*err = fmt.Errorf(fmtStr, s.driver.AdaptError(*err))
+	}
+}
+
+// DeleteAuthentications attempts to delete one or more Authentication instances from the backing store.
+// Use auth.DeleteByID to construct a request to delete a single Authentication by ID string.
+// Use auth.DeleteByMethod to construct a request to delete 0 or more Authentications by Method and optional expired before constraint.
+func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.DeleteAuthenticationsRequest) (err error) {
+	defer s.adaptError("deleting authentications: %w", &err)
+
+	if err := req.Valid(); err != nil {
+		return err
+	}
+
+	query := s.builder.
+		Delete("authentications")
+
+	if req.ID != nil {
+		query = query.Where(sq.Eq{"id": req.ID})
+	}
+
+	if req.Method != nil {
+		query = query.Where(sq.Eq{"method": req.Method})
+	}
+
+	if req.ExpiredBefore != nil {
+		query = query.Where(sq.Lt{
+			"expires_at": &storagesql.Timestamp{Timestamp: req.ExpiredBefore},
+		})
+	}
+
+	_, err = query.ExecContext(ctx)
 
 	return
 }

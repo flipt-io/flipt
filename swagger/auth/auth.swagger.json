@@ -15,6 +15,9 @@
   },
   "tags": [
     {
+      "name": "AuthenticationService"
+    },
+    {
       "name": "AuthenticationMethodTokenService"
     }
   ],
@@ -65,6 +68,73 @@
         ],
         "tags": [
           "authentication authentication_method token"
+        ]
+      }
+    },
+    "/auth/v1/self": {
+      "get": {
+        "description": "Get Authentication for current authenticated context",
+        "operationId": "get_self",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAuthentication"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/auth/v1/token/{id}": {
+      "delete": {
+        "description": "Delete Authentication by ID",
+        "operationId": "delete_authentication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "authentication"
         ]
       }
     }
