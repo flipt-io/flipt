@@ -26,6 +26,9 @@ type Store interface {
 	// GetAuthenticationByClientToken retrieves an instance of Authentication from the backing
 	// store using the provided clientToken string as the key.
 	GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error)
+	// GetAuthenticationByID retrieves an instance of Authentication from the backing
+	// store using the provided id string.
+	GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error)
 	// ListAuthenticationsRequest retrieves a set of Authentication instances based on the provided
 	// predicates with the supplied ListAuthenticationsRequest.
 	ListAuthentications(context.Context, *storage.ListRequest[ListAuthenticationsPredicate]) (storage.ResultSet[*auth.Authentication], error)
