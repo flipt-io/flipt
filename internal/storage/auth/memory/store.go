@@ -21,8 +21,9 @@ import (
 // Access to the map is protected by a mutex, meaning this is implementation
 // is safe to use concurrently.
 type Store struct {
-	mu    sync.Mutex
-	auths map[string]*rpcauth.Authentication
+	mu      sync.Mutex
+	byID    map[string]*rpcauth.Authentication
+	byToken map[string]*rpcauth.Authentication
 
 	now           func() *timestamppb.Timestamp
 	generateID    func() string
@@ -35,8 +36,9 @@ type Option func(*Store)
 // NewStore instantiates a new in-memory implementation of storage.AuthenticationStore
 func NewStore(opts ...Option) *Store {
 	store := &Store{
-		auths: map[string]*rpcauth.Authentication{},
-		now:   timestamppb.Now,
+		byID:    map[string]*rpcauth.Authentication{},
+		byToken: map[string]*rpcauth.Authentication{},
+		now:     timestamppb.Now,
 		generateID: func() string {
 			return uuid.Must(uuid.NewV4()).String()
 		},
@@ -104,7 +106,8 @@ func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthentica
 	}
 
 	s.mu.Lock()
-	s.auths[hashedToken] = authentication
+	s.byToken[hashedToken] = authentication
+	s.byID[authentication.Id] = authentication
 	s.mu.Unlock()
 
 	return clientToken, authentication, nil
@@ -119,7 +122,20 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	}
 
 	s.mu.Lock()
-	authentication, ok := s.auths[hashedToken]
+	authentication, ok := s.byToken[hashedToken]
+	s.mu.Unlock()
+	if !ok {
+		return nil, errors.ErrNotFoundf("getting authentication by token")
+	}
+
+	return authentication, nil
+}
+
+// GetAuthenticationByID retrieves an instance of Authentication from the backing
+// store using the provided id string.
+func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.Authentication, error) {
+	s.mu.Lock()
+	authentication, ok := s.byID[id]
 	s.mu.Unlock()
 	if !ok {
 		return nil, errors.ErrNotFoundf("getting authentication by token")
@@ -136,8 +152,8 @@ func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListReques
 
 	// copy all auths into slice
 	s.mu.Lock()
-	set.Results = make([]*rpcauth.Authentication, 0, len(s.auths))
-	for _, res := range s.auths {
+	set.Results = make([]*rpcauth.Authentication, 0, len(s.byToken))
+	for _, res := range s.byToken {
 		set.Results = append(set.Results, res)
 	}
 	s.mu.Unlock()
@@ -181,11 +197,12 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *auth.DeleteAuthent
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for hashedToken, a := range s.auths {
+	for hashedToken, a := range s.byToken {
 		if (req.ID == nil || *req.ID == a.Id) &&
 			(req.Method == nil || *req.Method == a.Method) &&
 			(req.ExpiredBefore == nil || a.ExpiresAt.AsTime().Before(req.ExpiredBefore.AsTime())) {
-			delete(s.auths, hashedToken)
+			delete(s.byID, a.Id)
+			delete(s.byToken, hashedToken)
 		}
 	}
 

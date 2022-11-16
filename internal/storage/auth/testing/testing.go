@@ -63,10 +63,20 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		}
 	})
 
-	t.Run("Get each authentication by ID", func(t *testing.T) {
+	t.Run("Get each authentication by token", func(t *testing.T) {
 		// ensure each auth can be re-retrieved by the client token
 		for i, auth := range created {
 			auth, err := store.GetAuthenticationByClientToken(ctx, auth.Token)
+			require.NoError(t, err)
+
+			assert.Equal(t, created[i].Auth, auth)
+		}
+	})
+
+	t.Run("Get each authentication by ID", func(t *testing.T) {
+		// ensure each auth can be re-retrieved by ID
+		for i, auth := range created {
+			auth, err := store.GetAuthenticationByID(ctx, auth.Auth.Id)
 			require.NoError(t, err)
 
 			assert.Equal(t, created[i].Auth, auth)

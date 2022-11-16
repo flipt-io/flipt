@@ -171,6 +171,33 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	return &authentication, nil
 }
 
+// GetAuthenticationByID retrieves an instance of Authentication from the backing
+// store using the provided id string.
+func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.Authentication, error) {
+	var authentication rpcauth.Authentication
+
+	if err := s.scanAuthentication(
+		s.builder.
+			Select(
+				"id",
+				"method",
+				"metadata",
+				"expires_at",
+				"created_at",
+				"updated_at",
+			).
+			From("authentications").
+			Where(sq.Eq{"id": id}).
+			QueryRowContext(ctx), &authentication); err != nil {
+		return nil, fmt.Errorf(
+			"getting authentication by token: %w",
+			s.driver.AdaptError(err),
+		)
+	}
+
+	return &authentication, nil
+}
+
 // ListAuthentications lists a page of Authentications from the backing store.
 func (s *Store) ListAuthentications(ctx context.Context, req *storage.ListRequest[storageauth.ListAuthenticationsPredicate]) (set storage.ResultSet[*rpcauth.Authentication], err error) {
 	defer func() {

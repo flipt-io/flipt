@@ -24,6 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthenticationServiceClient interface {
 	GetAuthenticationSelf(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Authentication, error)
+	GetAuthentication(ctx context.Context, in *GetAuthenticationRequest, opts ...grpc.CallOption) (*Authentication, error)
+	ListAuthentications(ctx context.Context, in *ListAuthenticationsRequest, opts ...grpc.CallOption) (*ListAuthenticationsResponse, error)
 	DeleteAuthentication(ctx context.Context, in *DeleteAuthenticationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -44,6 +46,24 @@ func (c *authenticationServiceClient) GetAuthenticationSelf(ctx context.Context,
 	return out, nil
 }
 
+func (c *authenticationServiceClient) GetAuthentication(ctx context.Context, in *GetAuthenticationRequest, opts ...grpc.CallOption) (*Authentication, error) {
+	out := new(Authentication)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationService/GetAuthentication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authenticationServiceClient) ListAuthentications(ctx context.Context, in *ListAuthenticationsRequest, opts ...grpc.CallOption) (*ListAuthenticationsResponse, error) {
+	out := new(ListAuthenticationsResponse)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationService/ListAuthentications", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authenticationServiceClient) DeleteAuthentication(ctx context.Context, in *DeleteAuthenticationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationService/DeleteAuthentication", in, out, opts...)
@@ -58,6 +78,8 @@ func (c *authenticationServiceClient) DeleteAuthentication(ctx context.Context, 
 // for forward compatibility
 type AuthenticationServiceServer interface {
 	GetAuthenticationSelf(context.Context, *emptypb.Empty) (*Authentication, error)
+	GetAuthentication(context.Context, *GetAuthenticationRequest) (*Authentication, error)
+	ListAuthentications(context.Context, *ListAuthenticationsRequest) (*ListAuthenticationsResponse, error)
 	DeleteAuthentication(context.Context, *DeleteAuthenticationRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
@@ -68,6 +90,12 @@ type UnimplementedAuthenticationServiceServer struct {
 
 func (UnimplementedAuthenticationServiceServer) GetAuthenticationSelf(context.Context, *emptypb.Empty) (*Authentication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAuthenticationSelf not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) GetAuthentication(context.Context, *GetAuthenticationRequest) (*Authentication, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthentication not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) ListAuthentications(context.Context, *ListAuthenticationsRequest) (*ListAuthenticationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAuthentications not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) DeleteAuthentication(context.Context, *DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAuthentication not implemented")
@@ -103,6 +131,42 @@ func _AuthenticationService_GetAuthenticationSelf_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_GetAuthentication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthenticationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).GetAuthentication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.AuthenticationService/GetAuthentication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).GetAuthentication(ctx, req.(*GetAuthenticationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthenticationService_ListAuthentications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuthenticationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).ListAuthentications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.AuthenticationService/ListAuthentications",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).ListAuthentications(ctx, req.(*ListAuthenticationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthenticationService_DeleteAuthentication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteAuthenticationRequest)
 	if err := dec(in); err != nil {
@@ -131,6 +195,14 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAuthenticationSelf",
 			Handler:    _AuthenticationService_GetAuthenticationSelf_Handler,
+		},
+		{
+			MethodName: "GetAuthentication",
+			Handler:    _AuthenticationService_GetAuthentication_Handler,
+		},
+		{
+			MethodName: "ListAuthentications",
+			Handler:    _AuthenticationService_ListAuthentications_Handler,
 		},
 		{
 			MethodName: "DeleteAuthentication",

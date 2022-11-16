@@ -89,9 +89,43 @@ func TestServer(t *testing.T) {
 		retrievedAuth, err := client.GetAuthenticationSelf(authorize(ctx), &emptypb.Empty{})
 		require.NoError(t, err)
 
-		// switch to go-cmp here to do the comparisons since assert trips up
-		// on the unexported sizeCache values.
 		if diff := cmp.Diff(retrievedAuth, authentication, protocmp.Transform()); err != nil {
+			t.Errorf("-exp/+got:\n%s", diff)
+		}
+	})
+
+	t.Run("GetAuthentication", func(t *testing.T) {
+		retrievedAuth, err := client.GetAuthentication(authorize(ctx), &auth.GetAuthenticationRequest{
+			Id: authentication.Id,
+		})
+		require.NoError(t, err)
+
+		if diff := cmp.Diff(retrievedAuth, authentication, protocmp.Transform()); err != nil {
+			t.Errorf("-exp/+got:\n%s", diff)
+		}
+	})
+
+	t.Run("ListAuthentications", func(t *testing.T) {
+		expected := &auth.ListAuthenticationsResponse{
+			Authentications: []*auth.Authentication{
+				authentication,
+			},
+		}
+
+		response, err := client.ListAuthentications(authorize(ctx), &auth.ListAuthenticationsRequest{})
+		require.NoError(t, err)
+
+		if diff := cmp.Diff(response, expected, protocmp.Transform()); err != nil {
+			t.Errorf("-exp/+got:\n%s", diff)
+		}
+
+		// by method token
+		response, err = client.ListAuthentications(authorize(ctx), &auth.ListAuthenticationsRequest{
+			Method: auth.Method_METHOD_TOKEN,
+		})
+		require.NoError(t, err)
+
+		if diff := cmp.Diff(response, expected, protocmp.Transform()); err != nil {
 			t.Errorf("-exp/+got:\n%s", diff)
 		}
 	})
