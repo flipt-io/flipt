@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// fakserver is used to test skipping auth
+// fakeserver is used to test skipping auth
 var fakeserver struct{}
 
 func TestUnaryInterceptor(t *testing.T) {
