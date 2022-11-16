@@ -29,11 +29,11 @@ uuid_str()
 }
 
 _shakedown() {
-  shakedown -H "Authorization: Bearer ${FLIPT_TOKEN:-""}"
+  shakedown -H "Authorization: Bearer ${FLIPT_TOKEN:-""}" "$@"
 }
 
 _curl() {
-  curl -H "Authorization: Bearer ${FLIPT_TOKEN:-""}"
+  curl -H "Authorization: Bearer ${FLIPT_TOKEN:-""}" "$@"
 }
 
 step_1_test_health()
