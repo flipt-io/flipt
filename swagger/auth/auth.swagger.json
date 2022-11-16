@@ -19,6 +19,9 @@
     },
     {
       "name": "AuthenticationMethodTokenService"
+    },
+    {
+      "name": "AuthenticationMethodOIDCService"
     }
   ],
   "schemes": [
@@ -32,6 +35,88 @@
     "application/json"
   ],
   "paths": {
+    "/auth/v1/method/oidc/authorize": {
+      "post": {
+        "description": "Create OIDC authorize URL",
+        "operationId": "create_authorize_url",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCreateAuthorizeURLResponse"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authCreateAuthorizeURLRequest"
+            }
+          }
+        ],
+        "tags": [
+          "authentication authentication_method oidc"
+        ]
+      }
+    },
+    "/auth/v1/method/oidc/callback": {
+      "get": {
+        "description": "OIDC callback operation",
+        "operationId": "callback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCallbackResponse"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "authentication authentication_method oidc"
+        ]
+      }
+    },
     "/auth/v1/method/token": {
       "post": {
         "description": "Create authentication token",
@@ -132,7 +217,8 @@
             "type": "string",
             "enum": [
               "METHOD_NONE",
-              "METHOD_TOKEN"
+              "METHOD_TOKEN",
+              "METHOD_OIDC"
             ],
             "default": "METHOD_NONE"
           },
@@ -259,6 +345,36 @@
         }
       }
     },
+    "authCallbackResponse": {
+      "type": "object",
+      "properties": {
+        "clientToken": {
+          "type": "string"
+        },
+        "authentication": {
+          "$ref": "#/definitions/authAuthentication"
+        }
+      }
+    },
+    "authCreateAuthorizeURLRequest": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "$ref": "#/definitions/authOIDCProvider"
+        },
+        "state": {
+          "type": "string"
+        }
+      }
+    },
+    "authCreateAuthorizeURLResponse": {
+      "type": "object",
+      "properties": {
+        "authorizeURL": {
+          "type": "string"
+        }
+      }
+    },
     "authCreateTokenRequest": {
       "type": "object",
       "properties": {
@@ -307,9 +423,18 @@
       "type": "string",
       "enum": [
         "METHOD_NONE",
-        "METHOD_TOKEN"
+        "METHOD_TOKEN",
+        "METHOD_OIDC"
       ],
       "default": "METHOD_NONE"
+    },
+    "authOIDCProvider": {
+      "type": "string",
+      "enum": [
+        "OIDC_PROVIDER_NONE",
+        "OIDC_PROVIDER_GOOGLE"
+      ],
+      "default": "OIDC_PROVIDER_NONE"
     },
     "protobufAny": {
       "type": "object",

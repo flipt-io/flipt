@@ -59,6 +59,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 enum Method {
   METHOD_NONE = 0;
   METHOD_TOKEN = 1;
+  METHOD_OIDC = 2;
 }
 
 message Authentication {
@@ -158,6 +159,47 @@ service AuthenticationMethodTokenService {
       operation_id: "create",
       description: "Create authentication token",
       tags: "authentication authentication_method token",
+    };
+  }
+}
+
+enum OIDCProvider {
+  OIDC_PROVIDER_NONE = 0;
+  OIDC_PROVIDER_GOOGLE = 1;
+}
+
+message CreateAuthorizeURLRequest {
+  OIDCProvider provider = 1;
+  string state = 2;
+}
+
+message CreateAuthorizeURLResponse {
+  string authorizeURL = 1;
+}
+
+message CallbackRequest {
+  string code = 1;
+  string state = 2;
+}
+
+message CallbackResponse {
+  string client_token = 1;
+  Authentication authentication = 2;
+}
+
+service AuthenticationMethodOIDCService {
+  rpc CreateAuthorizeURL(CreateAuthorizeURLRequest) returns (CreateAuthorizeURLResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "create_authorize_url",
+      description: "Create OIDC authorize URL",
+      tags: "authentication authentication_method oidc",
+    };
+  }
+  rpc Callback(CallbackRequest) returns (CallbackResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "callback",
+      description: "OIDC callback operation",
+      tags: "authentication authentication_method oidc",
     };
   }
 }
