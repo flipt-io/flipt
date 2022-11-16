@@ -1,5 +1,12 @@
 log:
   level: DEBUG
+  encoding: json
 
 db:
   url: file:./test/flipt.db
+
+authentication:
+  required: true
+  methods:
+    token:
+      enabled: true
