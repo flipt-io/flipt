@@ -370,7 +370,7 @@
     "authCreateAuthorizeURLResponse": {
       "type": "object",
       "properties": {
-        "authorizeURL": {
+        "authorizeUrl": {
           "type": "string"
         }
       }

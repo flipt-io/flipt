@@ -174,7 +174,7 @@ message CreateAuthorizeURLRequest {
 }
 
 message CreateAuthorizeURLResponse {
-  string authorizeURL = 1;
+  string authorize_url = 1;
 }
 
 message CallbackRequest {
