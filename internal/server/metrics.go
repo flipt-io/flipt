@@ -1,16 +1,15 @@
 package server
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
+	"go.flipt.io/flipt/internal/metrics"
+	"go.opentelemetry.io/otel/metric/instrument"
 )
 
 // Prometheus metrics used throughout the server package
 var (
-	errorsTotal = promauto.NewCounter(prometheus.CounterOpts{
-		Namespace: "flipt",
-		Subsystem: "server",
-		Name:      "errors_total",
-		Help:      "The total number of server errors",
-	})
+	errorsTotal = metrics.MustSyncInt64().
+		Counter(
+			"flipt_server_errors_total",
+			instrument.WithDescription("The total number of server errors"),
+		)
 )
