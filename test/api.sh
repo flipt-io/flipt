@@ -28,7 +28,7 @@ uuid_str()
     LC_ALL=C; cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1
 }
 
-_shakedown() {
+authedShakedown() {
   shakedown "$@" -H "Authorization: Bearer ${FLIPT_TOKEN:-""}"
 }
 
@@ -38,7 +38,7 @@ _curl() {
 
 step_1_test_health()
 {
-    _shakedown GET "/health"
+    authedShakedown GET "/health"
         status 200
 }
 
@@ -48,14 +48,14 @@ step_2_test_flags_and_variants()
     flag_key=$(uuid_str)
     flag_name_1=$(uuid_str)
 
-    _shakedown POST "/api/v1/flags" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_1\",\"description\":\"description\",\"enabled\":true}"
+    authedShakedown POST "/api/v1/flags" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_1\",\"description\":\"description\",\"enabled\":true}"
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_1\""
         matches '"enabled":true'
 
     # get flag
-    _shakedown GET "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_1\""
@@ -63,13 +63,13 @@ step_2_test_flags_and_variants()
     # update flag
     flag_name_2=$(uuid_str)
 
-    _shakedown PUT "/api/v1/flags/$flag_key" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_2\",\"description\":\"description\",\"enabled\":true}"
+    authedShakedown PUT "/api/v1/flags/$flag_key" -H 'Content-Type:application/json' -d "{\"key\":\"$flag_key\",\"name\":\"$flag_name_2\",\"description\":\"description\",\"enabled\":true}"
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_2\""
 
     # list flags
-    _shakedown GET "/api/v1/flags" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/flags" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$flag_key\""
         matches "\"name\":\"$flag_name_2\""
@@ -78,11 +78,11 @@ step_2_test_flags_and_variants()
     variant_key_1=$(uuid_str)
     variant_key_2=$(uuid_str)
 
-    _shakedown POST "/api/v1/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\"}"
+    authedShakedown POST "/api/v1/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\"}"
         status 200
         matches "\"key\":\"$variant_key_1\""
 
-    _shakedown POST "/api/v1/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_2\"}"
+    authedShakedown POST "/api/v1/flags/$flag_key/variants" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_2\"}"
         status 200
         matches "\"key\":\"$variant_key_2\""
 
@@ -92,13 +92,13 @@ step_2_test_flags_and_variants()
     # update variant
     variant_name_1=$(uuid_str)
 
-    _shakedown PUT "/api/v1/flags/$flag_key/variants/$variant_id" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\",\"name\":\"$variant_name_1\"}"
+    authedShakedown PUT "/api/v1/flags/$flag_key/variants/$variant_id" -H 'Content-Type:application/json' -d "{\"key\":\"$variant_key_1\",\"name\":\"$variant_name_1\"}"
         status 200
         matches "\"key\":\"$variant_key_1\""
         matches "\"name\":\"$variant_name_1\""
 
     # get flag w/ variants
-    _shakedown GET "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$flag_key\""
         contains "$variant_key_1"
@@ -111,14 +111,14 @@ step_3_test_segments_and_constraints()
     segment_key=$(uuid_str)
     segment_name_1=$(uuid_str)
 
-    _shakedown POST "/api/v1/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_1\",\"description\":\"description\"}"
+    authedShakedown POST "/api/v1/segments" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_1\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_1\""
         matches "\"matchType\":\"ALL_MATCH_TYPE\""
 
     # get segment
-    _shakedown GET "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_1\""
@@ -127,26 +127,26 @@ step_3_test_segments_and_constraints()
     # update segment
     segment_name_2=$(uuid_str)
 
-    _shakedown PUT "/api/v1/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"matchType\":\"ANY_MATCH_TYPE\",\"description\":\"description\"}"
+    authedShakedown PUT "/api/v1/segments/$segment_key" -H 'Content-Type:application/json' -d "{\"key\":\"$segment_key\",\"name\":\"$segment_name_2\",\"matchType\":\"ANY_MATCH_TYPE\",\"description\":\"description\"}"
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_2\""
         matches "\"matchType\":\"ANY_MATCH_TYPE\""
 
     # list segments
-    _shakedown GET "/api/v1/segments" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/segments" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$segment_key\""
         matches "\"name\":\"$segment_name_2\""
 
     # create constraints
-    _shakedown POST "/api/v1/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"bar\"}"
+    authedShakedown POST "/api/v1/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"bar\"}"
         status 200
         matches "\"property\":\"foo\""
         matches "\"operator\":\"eq\""
         matches "\"value\":\"bar\""
 
-    _shakedown POST "/api/v1/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"fizz\",\"operator\":\"neq\",\"value\":\"buzz\"}"
+    authedShakedown POST "/api/v1/segments/$segment_key/constraints" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"fizz\",\"operator\":\"neq\",\"value\":\"buzz\"}"
         status 200
         matches "\"property\":\"fizz\""
         matches "\"operator\":\"neq\""
@@ -156,14 +156,14 @@ step_3_test_segments_and_constraints()
     constraint_id=$(eval echo "$constraint_id")
 
     # update constraint
-    _shakedown PUT "/api/v1/segments/$segment_key/constraints/$constraint_id" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"baz\"}"
+    authedShakedown PUT "/api/v1/segments/$segment_key/constraints/$constraint_id" -H 'Content-Type:application/json' -d "{\"type\":\"STRING_COMPARISON_TYPE\",\"property\":\"foo\",\"operator\":\"eq\",\"value\":\"baz\"}"
         status 200
         matches "\"property\":\"foo\""
         matches "\"operator\":\"eq\""
         matches "\"value\":\"baz\""
 
     # get segment w/ constraints
-    _shakedown GET "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
         matches "\"key\":\"$segment_key\""
         contains "baz"
@@ -173,14 +173,14 @@ step_3_test_segments_and_constraints()
 step_4_test_rules_and_distributions()
 {
     # create rule
-    _shakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":1}"
+    authedShakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":1}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
         matches "\"rank\":1"
 
     # list rules
-    _shakedown GET "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json'
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
@@ -190,7 +190,7 @@ step_4_test_rules_and_distributions()
     rule_id_1=$(eval echo "$rule_id_1")
 
     # get rule
-    _shakedown GET "/api/v1/flags/$flag_key/rules/$rule_id_1" -H 'Content-Type:application/json'
+    authedShakedown GET "/api/v1/flags/$flag_key/rules/$rule_id_1" -H 'Content-Type:application/json'
         status 200
         matches "\"id\":\"$rule_id_1\""
         matches "\"flagKey\":\"$flag_key\""
@@ -198,7 +198,7 @@ step_4_test_rules_and_distributions()
         matches "\"rank\":1"
 
     # create another rule
-    _shakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":2}"
+    authedShakedown POST "/api/v1/flags/$flag_key/rules" -H 'Content-Type:application/json' -d "{\"segment_key\":\"$segment_key\",\"rank\":2}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
@@ -208,11 +208,11 @@ step_4_test_rules_and_distributions()
     rule_id_2=$(eval echo "$rule_id_2")
 
     # reorder rules
-    _shakedown PUT "/api/v1/flags/$flag_key/rules/order" -H 'Content-Type:application/json' -d "{\"ruleIds\":[\"$rule_id_2\",\"$rule_id_1\"]}"
+    authedShakedown PUT "/api/v1/flags/$flag_key/rules/order" -H 'Content-Type:application/json' -d "{\"ruleIds\":[\"$rule_id_2\",\"$rule_id_1\"]}"
         status 200
 
     # create distribution
-    _shakedown POST "/api/v1/flags/$flag_key/rules/$rule_id_2/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
+    authedShakedown POST "/api/v1/flags/$flag_key/rules/$rule_id_2/distributions" -H 'Content-Type:application/json' -d "{\"variant_id\":\"$variant_id\",\"rollout\":100}"
         status 200
         matches "\"ruleId\":\"$rule_id_2\""
         matches "\"variantId\":\"$variant_id\""
@@ -222,7 +222,7 @@ step_4_test_rules_and_distributions()
 step_5_test_evaluation()
 {
     # evaluate
-    _shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}"
+    authedShakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"segmentKey\":\"$segment_key\""
@@ -231,14 +231,14 @@ step_5_test_evaluation()
         matches "\"reason\":\"MATCH_EVALUATION_REASON\""
 
     # evaluate no match
-    _shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}"
+    authedShakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
 
     # evaluate handles null value
     # re: #664
-    _shakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"cohort\":null}}"
+    authedShakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"cohort\":null}}"
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
@@ -247,7 +247,7 @@ step_5_test_evaluation()
 step_6_test_batch_evaluation()
 {
     # evaluate
-    _shakedown POST "/api/v1/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}]}"
+    authedShakedown POST "/api/v1/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"foo\":\"baz\",\"fizz\":\"bozz\"}}]}"
         status 200
         contains "\"flagKey\":\"$flag_key\""
         contains "\"segmentKey\":\"$segment_key\""
@@ -255,7 +255,7 @@ step_6_test_batch_evaluation()
         contains "\"value\":\"$variant_key_1\""
 
     # evaluate no match
-    _shakedown POST "/api/v1/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}]}"
+    authedShakedown POST "/api/v1/batch-evaluate" -H 'Content-Type:application/json' -d "{\"requests\": [{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":{\"fizz\":\"buzz\"}}]}"
         status 200
         contains "\"flagKey\":\"$flag_key\""
         contains "\"match\":false"
@@ -264,29 +264,29 @@ step_6_test_batch_evaluation()
 step_7_test_delete()
 {
     # delete rules and distributions
-    _shakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id_1" -H 'Content-Type:application/json'
+    authedShakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id_1" -H 'Content-Type:application/json'
         status 200
 
-    _shakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id_2" -H 'Content-Type:application/json'
+    authedShakedown DELETE "/api/v1/flags/$flag_key/rules/$rule_id_2" -H 'Content-Type:application/json'
         status 200
 
     # delete flag and variants
-    _shakedown DELETE "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
+    authedShakedown DELETE "/api/v1/flags/$flag_key" -H 'Content-Type:application/json'
         status 200
 
     # delete segment and constraints
-    _shakedown DELETE "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
+    authedShakedown DELETE "/api/v1/segments/$segment_key" -H 'Content-Type:application/json'
         status 200
 }
 
 step_8_test_meta()
 {
-    _shakedown GET "/meta/info"
+    authedShakedown GET "/meta/info"
         status 200
         contains "\"buildDate\""
         contains "\"goVersion\""
 
-    _shakedown GET "/meta/config"
+    authedShakedown GET "/meta/config"
         status 200
         contains "\"log\""
         contains "\"ui\""
@@ -297,7 +297,7 @@ step_8_test_meta()
 
 step_9_test_metrics()
 {
-    _shakedown GET "/metrics"
+    authedShakedown GET "/metrics"
         status 200
 }
 
