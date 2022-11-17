@@ -27,7 +27,7 @@
     "@babel/core": "^7.19.6",
     "@babel/preset-env": "^7.20.2",
     "@playwright/test": "^1.27.1",
-    "@vitejs/plugin-vue2": "^2.0.0",
+    "@vitejs/plugin-vue2": "^2.0.1",
     "babel-jest": "^28.1.2",
     "eslint": "^8.27.0",
     "eslint-config-prettier": "^8.5.0",
