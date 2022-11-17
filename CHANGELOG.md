@@ -5,6 +5,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.15.0](https://github.com/markphelps/flipt/releases/tag/v1.15.0) - 2022-11-17
+
+### Added
+
+- Token-based authentication [#1097](https://github.com/flipt-io/flipt/pull/1097)
+
+### Changed
+
+- Linting for markdown
+- Merge automation for dependabot updates
+- Dependency updates
+
+## [v1.14.0](https://github.com/markphelps/flipt/releases/tag/v1.14.0) - 2022-11-02
+
 ### Added
 
 - `reason` field in `EvaluationResponse` payload detailing why the request evaluated to the given result [#1099](https://github.com/flipt-io/flipt/pull/1099)
