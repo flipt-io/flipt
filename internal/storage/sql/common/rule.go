@@ -13,14 +13,15 @@ import (
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
 // GetRule gets an individual rule
 func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	var (
-		createdAt timestamp
-		updatedAt timestamp
+		createdAt fliptsql.Timestamp
+		updatedAt fliptsql.Timestamp
 
 		rule = &flipt.Rule{}
 
@@ -99,8 +100,8 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 	for rows.Next() {
 		var (
 			rule      flipt.Rule
-			createdAt timestamp
-			updatedAt timestamp
+			createdAt fliptsql.Timestamp
+			updatedAt fliptsql.Timestamp
 		)
 
 		if err := rows.Scan(
@@ -175,7 +176,13 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	if _, err := s.builder.
 		Insert("rules").
 		Columns("id", "flag_key", "segment_key", "\"rank\"", "created_at", "updated_at").
-		Values(rule.Id, rule.FlagKey, rule.SegmentKey, rule.Rank, &timestamp{rule.CreatedAt}, &timestamp{rule.UpdatedAt}).
+		Values(
+			rule.Id,
+			rule.FlagKey,
+			rule.SegmentKey,
+			rule.Rank,
+			&fliptsql.Timestamp{Timestamp: rule.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: rule.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -187,7 +194,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	query := s.builder.Update("rules").
 		Set("segment_key", r.SegmentKey).
-		Set("updated_at", &timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)
@@ -288,7 +295,7 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, flagKey st
 		_, err := s.builder.Update("rules").
 			RunWith(runner).
 			Set("\"rank\"", i+1).
-			Set("updated_at", &timestamp{updatedAt}).
+			Set("updated_at", &fliptsql.Timestamp{Timestamp: updatedAt}).
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"flag_key": flagKey}}).
 			ExecContext(ctx)
 		if err != nil {
@@ -316,7 +323,13 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	if _, err := s.builder.
 		Insert("distributions").
 		Columns("id", "rule_id", "variant_id", "rollout", "created_at", "updated_at").
-		Values(d.Id, d.RuleId, d.VariantId, d.Rollout, &timestamp{d.CreatedAt}, &timestamp{d.UpdatedAt}).
+		Values(
+			d.Id,
+			d.RuleId,
+			d.VariantId,
+			d.Rollout,
+			&fliptsql.Timestamp{Timestamp: d.CreatedAt},
+			&fliptsql.Timestamp{Timestamp: d.UpdatedAt}).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -328,7 +341,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	query := s.builder.Update("distributions").
 		Set("rollout", r.Rollout).
-		Set("updated_at", &timestamp{timestamppb.Now()}).
+		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}})
 
 	res, err := query.ExecContext(ctx)
@@ -346,8 +359,8 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 	}
 
 	var (
-		createdAt timestamp
-		updatedAt timestamp
+		createdAt fliptsql.Timestamp
+		updatedAt fliptsql.Timestamp
 
 		distribution = &flipt.Distribution{}
 	)
@@ -395,7 +408,7 @@ func (s *Store) distributions(ctx context.Context, rule *flipt.Rule) (err error)
 	for rows.Next() {
 		var (
 			distribution         flipt.Distribution
-			createdAt, updatedAt timestamp
+			createdAt, updatedAt fliptsql.Timestamp
 		)
 
 		if err := rows.Scan(

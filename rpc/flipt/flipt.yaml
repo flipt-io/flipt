@@ -72,3 +72,18 @@ http:
     body: "*"
   - selector: flipt.Flipt.DeleteConstraint
     delete: /api/v1/segments/{segment_key}/constraints/{id}
+  # authentication
+  - selector: flipt.auth.AuthenticationService.GetAuthenticationSelf
+    get: /auth/v1/self
+  - selector: flipt.auth.AuthenticationService.GetAuthentication
+    get: /auth/v1/tokens/{id}
+  - selector: flipt.auth.AuthenticationService.ListAuthentications
+    get: /auth/v1/tokens
+  - selector: flipt.auth.AuthenticationService.DeleteAuthentication
+    delete: /auth/v1/tokens/{id}
+  # authentication methods
+  #
+  # method: token
+  - selector: flipt.auth.AuthenticationMethodTokenService.CreateToken
+    post: /auth/v1/method/token
+    body: "*"

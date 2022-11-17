@@ -202,7 +202,9 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "postgres:11.2",
 			ExposedPorts: []string{"5432/tcp"},
-			WaitingFor:   wait.ForListeningPort(port),
+			WaitingFor: wait.ForSQL(port, "postgres", func(host string, port nat.Port) string {
+				return fmt.Sprintf("postgres://flipt:password@%s:%s/flipt_test?sslmode=disable", host, port.Port())
+			}),
 			Env: map[string]string{
 				"POSTGRES_USER":     "flipt",
 				"POSTGRES_PASSWORD": "password",

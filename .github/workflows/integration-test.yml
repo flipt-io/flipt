@@ -88,6 +88,35 @@ jobs:
           path: out.log
           retention-days: 5
 
+  api_with_auth:
+    needs: build
+    name: Test API (with authentication enabled)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: flipt
+          path: bin/
+
+      - run: chmod +x flipt
+        working-directory: bin/
+
+      - name: Run API tests
+        uses: ./.github/actions/integration-test
+        with:
+          script: ./test/api_with_auth.sh
+
+      - name: Upload the log
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-with-auth.log
+          path: out.log
+          retention-days: 5
+
   redis:
     needs: build
     name: Test Redis
