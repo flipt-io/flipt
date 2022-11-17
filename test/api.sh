@@ -38,7 +38,7 @@ _curl() {
 
 step_1_test_health()
 {
-    authedShakedown GET "/health"
+    shakedown GET "/health"
         status 200
 }
 
@@ -281,12 +281,12 @@ step_7_test_delete()
 
 step_8_test_meta()
 {
-    authedShakedown GET "/meta/info"
+    shakedown GET "/meta/info"
         status 200
         contains "\"buildDate\""
         contains "\"goVersion\""
 
-    authedShakedown GET "/meta/config"
+    shakedown GET "/meta/config"
         status 200
         contains "\"log\""
         contains "\"ui\""
@@ -297,7 +297,7 @@ step_8_test_meta()
 
 step_9_test_metrics()
 {
-    authedShakedown GET "/metrics"
+    shakedown GET "/metrics"
         status 200
 }
 
