@@ -38,7 +38,10 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 		sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 	}
 
-	registerMetrics(driver, sql)
+	otelsql.RegisterDBStatsMetrics(sql,
+		otelsql.WithAttributes(
+			attribute.Key("driver").String(driver.String()),
+		))
 
 	return sql, driver, nil
 }
