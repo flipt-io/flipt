@@ -2,39 +2,32 @@ package memory
 
 import (
 	"context"
-	"sync/atomic"
 
 	gocache "github.com/patrickmn/go-cache"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/cache"
 )
 
+const cacheType = "memory"
+
 // Cache wraps gocache.Cache in order to implement Cacher
 type Cache struct {
-	c         *gocache.Cache
-	missTotal uint64
-	hitTotal  uint64
+	c *gocache.Cache
 }
 
 // NewCache creates a new in memory cache with the provided cache config
 func NewCache(cfg config.CacheConfig) *Cache {
-	var (
-		gc = gocache.New(cfg.TTL, cfg.Memory.EvictionInterval)
-		c  = &Cache{c: gc}
-	)
-
-	cache.RegisterMetrics(c)
-	return c
+	return &Cache{c: gocache.New(cfg.TTL, cfg.Memory.EvictionInterval)}
 }
 
-func (c *Cache) Get(_ context.Context, key string) ([]byte, bool, error) {
+func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
 	v, ok := c.c.Get(key)
 	if !ok {
-		atomic.AddUint64(&c.missTotal, 1)
+		cache.Observe(ctx, cacheType, cache.Miss)
 		return nil, false, nil
 	}
 
-	atomic.AddUint64(&c.hitTotal, 1)
+	cache.Observe(ctx, cacheType, cache.Hit)
 	return v.([]byte), true, nil
 }
 
@@ -49,13 +42,5 @@ func (c *Cache) Delete(_ context.Context, key string) error {
 }
 
 func (c *Cache) String() string {
-	return "memory"
-}
-
-func (c *Cache) Stats() cache.Stats {
-	return cache.Stats{
-		MissTotal:  c.missTotal,
-		HitTotal:   c.hitTotal,
-		ErrorTotal: 0,
-	}
+	return cacheType
 }
