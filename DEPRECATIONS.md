@@ -34,20 +34,20 @@ Description.
 
 ### API ListFlagRequest, ListSegmentRequest, ListRuleRequest offset
 
-> since [v1.13.0](https://github.com/markphelps/flipt/releases/tag/v1.13.0)
+> since [v1.13.0](https://github.com/flipt-io/flipt/releases/tag/v1.13.0)
 
 `offset` has been deprecated in favor of `page_token`/`next_page_token` for `ListFlagRequest`, `ListSegmentRequest` and `ListRuleRequest`. See: [#936](https://github.com/flipt-io/flipt/issues/936).
 
 ### db.migrations.path and db.migrations_path
 
-> since [v1.14.0](https://github.com/markphelps/flipt/releases/tag/v1.10.0)
+> since [v1.14.0](https://github.com/flipt-io/flipt/releases/tag/v1.10.0)
 
 These options are no longer considered during Flipt execution.
 Database migrations are embedded directly within the Flipt binary.
 
 ### cache.memory.enabled
 
-> since [v1.10.0](https://github.com/markphelps/flipt/releases/tag/v1.10.0)
+> since [v1.10.0](https://github.com/flipt-io/flipt/releases/tag/v1.10.0)
 
 Enabling in-memory cache via `cache.memory` is deprecated in favor of setting the `cache.backend` to `memory` and `cache.enabled` to `true`.
 
@@ -69,7 +69,7 @@ Enabling in-memory cache via `cache.memory` is deprecated in favor of setting th
 
 ### cache.memory.expiration
 
-> since [v1.10.0](https://github.com/markphelps/flipt/releases/tag/v1.10.0)
+> since [v1.10.0](https://github.com/flipt-io/flipt/releases/tag/v1.10.0)
 
 Setting cache expiration via `cache.memory` is deprecated in favor of setting the `cache.backend` to `memory` and `cache.ttl` to the desired duration.
 
