@@ -5,10 +5,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    reviewers:
-      - markphelps
-    assignees:
-      - markphelps
     ignore:
       - dependency-name: "*"
         update-types:
@@ -19,7 +15,7 @@ updates:
     labels:
       - "dependencies"
       - "go"
-      # Add default Kodiak `merge.automerge_label`
+      # kodiak `merge.automerge_label`
       - "automerge"
 
   - package-ecosystem: gomod
@@ -27,10 +23,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    reviewers:
-      - markphelps
-    assignees:
-      - markphelps
     ignore:
       - dependency-name: "*"
         update-types:
@@ -41,7 +33,7 @@ updates:
     labels:
       - "dependencies"
       - "go"
-      # Add default Kodiak `merge.automerge_label`
+      # kodiak `merge.automerge_label`
       - "automerge"
 
   - package-ecosystem: npm
@@ -49,10 +41,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    reviewers:
-      - markphelps
-    assignees:
-      - markphelps
     ignore:
       - dependency-name: "*"
         update-types:
@@ -65,17 +53,19 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    reviewers:
-      - markphelps
-    assignees:
-      - markphelps
+    labels:
+      - "dependencies"
+      - "github_actions"
+      # kodiak `merge.automerge_label`
+      - "automerge"
 
   - package-ecosystem: "docker"
     directory: "/build"
     schedule:
       interval: daily
     open-pull-requests-limit: 5
-    reviewers:
-      - markphelps
-    assignees:
-      - markphelps
+    labels:
+      - "dependencies"
+      - "docker"
+      # kodiak `merge.automerge_label`
+      - "automerge"
