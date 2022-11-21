@@ -666,6 +666,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		r.Use(middleware.RequestID)
 		r.Use(middleware.RealIP)
+		r.Use(server.StripSlashes)
 		r.Use(middleware.Heartbeat("/health"))
 		r.Use(func(h http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
