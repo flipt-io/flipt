@@ -14,5 +14,4 @@ type Cacher interface {
 	// Delete removes a value from the cache
 	Delete(ctx context.Context, key string) error
 	fmt.Stringer
-	statsGetter
 }
