@@ -9,7 +9,7 @@ fi
 
 cd "$(dirname "$0")/.." || exit
 
-export SHAKEDOWN_URL="http://127.0.0.1:8080"
+export SHAKEDOWN_URL="http://0.0.0.0:8080"
 
 source ./test/helpers/shakedown/shakedown.sh
 
@@ -25,7 +25,7 @@ trap finish EXIT
 
 uuid_str()
 {
-    LC_ALL=C; cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1
+    uuidgen
 }
 
 authedShakedown() {
@@ -316,7 +316,7 @@ run()
     echo -e "\e[32mStart testing $SHAKEDOWN_URL\e[0m"
     echo -e "\e[32m===========================================\e[0m"
 
-    ./test/helpers/wait-for-it/wait-for-it.sh "127.0.0.1:8080" -t 30
+    ./test/helpers/wait-for-it/wait-for-it.sh "0.0.0.0:8080" -t 30
 
     # allows api with auth to extract FLIPT_TOKEN from out log
     [[ $(type -t _api_test_hook) == function ]] && _api_test_hook

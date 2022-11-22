@@ -7,8 +7,10 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -60,15 +62,38 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	return &res, nil
 }
 
-func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	var (
-		resp = &flipt.EvaluationResponse{
-			RequestId:      r.RequestId,
-			EntityId:       r.EntityId,
-			RequestContext: r.Context,
-			FlagKey:        r.FlagKey,
-		}
+		startTime = time.Now().UTC()
+		flagAttr  = metrics.AttributeFlag.String(r.FlagKey)
 	)
+	metrics.EvaluationsTotal.Add(ctx, 1, flagAttr)
+	defer func() {
+		if err == nil {
+			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				flagAttr,
+				metrics.AttributeMatch.Bool(resp.Match),
+				metrics.AttributeSegment.String(resp.SegmentKey),
+				metrics.AttributeReason.String(resp.Reason.String()),
+				metrics.AttributeValue.String(resp.Value),
+			)
+		} else {
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, flagAttr)
+		}
+
+		metrics.EvaluationLatency.Record(
+			ctx,
+			float64(time.Since(startTime).Nanoseconds())/1e6,
+			flagAttr,
+		)
+	}()
+
+	resp = &flipt.EvaluationResponse{
+		RequestId:      r.RequestId,
+		EntityId:       r.EntityId,
+		RequestContext: r.Context,
+		FlagKey:        r.FlagKey,
+	}
 
 	flag, err := s.store.GetFlag(ctx, r.FlagKey)
 	if err != nil {
