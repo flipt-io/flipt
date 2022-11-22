@@ -169,7 +169,6 @@ jobs:
         working-directory: bin/
 
       - name: Run API tests
-        uses: ./.github/actions/integration-test
         run: ./test/api.sh 'redis.yml'
 
       - name: Upload the log
