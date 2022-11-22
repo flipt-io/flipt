@@ -39,6 +39,8 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
+	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
+	middlewarehttp "go.flipt.io/flipt/internal/server/middleware/http"
 	"go.flipt.io/flipt/internal/storage"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
@@ -499,9 +501,9 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		// behaviour interceptors
 		interceptors = append(interceptors,
-			server.ErrorUnaryInterceptor,
-			server.ValidationUnaryInterceptor,
-			server.EvaluationUnaryInterceptor,
+			middlewaregrpc.ErrorUnaryInterceptor,
+			middlewaregrpc.ValidationUnaryInterceptor,
+			middlewaregrpc.EvaluationUnaryInterceptor,
 		)
 
 		if cfg.Cache.Enabled {
@@ -533,7 +535,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 				}))
 			}
 
-			interceptors = append(interceptors, server.CacheUnaryInterceptor(cacher, logger))
+			interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
 
 			logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 		}
@@ -666,7 +668,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		r.Use(middleware.RequestID)
 		r.Use(middleware.RealIP)
-		r.Use(server.StripSlashes)
+		r.Use(middlewarehttp.StripSlashes)
 		r.Use(middleware.Heartbeat("/health"))
 		r.Use(func(h http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

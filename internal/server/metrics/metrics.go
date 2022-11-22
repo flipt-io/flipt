@@ -1,4 +1,4 @@
-package server
+package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
@@ -13,7 +13,7 @@ const (
 
 // Prometheus metrics used throughout the server package
 var (
-	errorsTotal = metrics.MustSyncInt64().
+	ErrorsTotal = metrics.MustSyncInt64().
 		Counter(
 			prometheus.BuildFQName(namespace, subsystem, "errors_total"),
 			instrument.WithDescription("The total number of server errors"),

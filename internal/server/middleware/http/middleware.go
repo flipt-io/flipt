@@ -1,4 +1,4 @@
-package server
+package http_middleware
 
 import "net/http"
 

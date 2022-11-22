@@ -1,4 +1,4 @@
-package server
+package grpc_middleware
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -289,11 +290,8 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
-		req = &flipt.GetFlagRequest{Key: "foo"}
+		s        = server.New(logger, store)
+		req      = &flipt.GetFlagRequest{Key: "foo"}
 	)
 
 	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
@@ -340,11 +338,8 @@ func TestCacheUnaryInterceptor_UpdateFlag(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
-		req = &flipt.UpdateFlagRequest{
+		s        = server.New(logger, store)
+		req      = &flipt.UpdateFlagRequest{
 			Key:         "key",
 			Name:        "name",
 			Description: "desc",
@@ -387,11 +382,8 @@ func TestCacheUnaryInterceptor_DeleteFlag(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
-		req = &flipt.DeleteFlagRequest{
+		s        = server.New(logger, store)
+		req      = &flipt.DeleteFlagRequest{
 			Key: "key",
 		}
 	)
@@ -426,11 +418,8 @@ func TestCacheUnaryInterceptor_CreateVariant(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
-		req = &flipt.CreateVariantRequest{
+		s        = server.New(logger, store)
+		req      = &flipt.CreateVariantRequest{
 			FlagKey:     "flagKey",
 			Key:         "key",
 			Name:        "name",
@@ -475,11 +464,8 @@ func TestCacheUnaryInterceptor_UpdateVariant(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
-		req = &flipt.UpdateVariantRequest{
+		s        = server.New(logger, store)
+		req      = &flipt.UpdateVariantRequest{
 			Id:          "1",
 			FlagKey:     "flagKey",
 			Key:         "key",
@@ -525,11 +511,8 @@ func TestCacheUnaryInterceptor_DeleteVariant(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
-		req = &flipt.DeleteVariantRequest{
+		s        = server.New(logger, store)
+		req      = &flipt.DeleteVariantRequest{
 			Id: "1",
 		}
 	)
@@ -564,13 +547,13 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 		})
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
-		s        = &Server{
-			logger: logger,
-			store:  store,
-		}
+		s        = server.New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
+	}, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
