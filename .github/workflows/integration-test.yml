@@ -60,6 +60,7 @@ jobs:
           retention-days: 1
 
   api:
+    needs: build
     name: Test API
     runs-on: ubuntu-latest
     env:
