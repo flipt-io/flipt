@@ -73,7 +73,7 @@ jobs:
           echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg
+          tzdata bats curl wget jq gnupg uuid-runtime
 
       - uses: actions/checkout@v3
 
@@ -111,7 +111,7 @@ jobs:
           echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg
+          tzdata bats curl wget jq gnupg uuid-runtime
 
       - uses: actions/checkout@v3
 
@@ -157,7 +157,7 @@ jobs:
           echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg
+          tzdata bats curl wget jq gnupg uuid-runtime
 
       - uses: actions/checkout@v3
 
@@ -195,7 +195,7 @@ jobs:
           echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg
+          tzdata bats curl wget jq gnupg uuid-runtime
 
       - uses: actions/checkout@v3
 
@@ -225,7 +225,7 @@ jobs:
           echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg && \
+          tzdata bats curl wget jq gnupg uuid-runtime && \
           curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && \
           sudo apt-get update && \
           sudo apt-get install -y nodejs
