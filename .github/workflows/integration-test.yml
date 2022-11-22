@@ -91,6 +91,7 @@ jobs:
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
+        if: ${{ always() }}
         with:
           name: api.log
           path: out.log
@@ -129,6 +130,7 @@ jobs:
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
+        if: ${{ always() }}
         with:
           name: api-with-auth.log
           path: out.log
@@ -175,6 +177,7 @@ jobs:
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
+        if: ${{ always() }}
         with:
           name: redis.log
           path: out.log
