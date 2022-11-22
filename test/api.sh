@@ -19,7 +19,6 @@ FLIPT_PID="/tmp/flipt.api.pid"
 finish() {
   _finish # shakedown trap that sets exit code correctly
   [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
-  cat out.log
 }
 
 trap finish EXIT

@@ -171,7 +171,7 @@ jobs:
         working-directory: bin/
 
       - name: Run API tests
-        run: ./test/api.sh 'redis.yml'
+        run: ./test/api.sh redis.yml
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
