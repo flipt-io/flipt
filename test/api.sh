@@ -9,7 +9,7 @@ fi
 
 cd "$(dirname "$0")/.." || exit
 
-export SHAKEDOWN_URL="http://127.0.0.1:8080"
+export SHAKEDOWN_URL="http://0.0.0.0:8080"
 
 source ./test/helpers/shakedown/shakedown.sh
 
@@ -19,6 +19,7 @@ FLIPT_PID="/tmp/flipt.api.pid"
 finish() {
   _finish # shakedown trap that sets exit code correctly
   [[ -f "$FLIPT_PID" ]] && kill -9 `cat $FLIPT_PID`
+  cat out.log
 }
 
 trap finish EXIT
@@ -316,7 +317,7 @@ run()
     echo -e "\e[32mStart testing $SHAKEDOWN_URL\e[0m"
     echo -e "\e[32m===========================================\e[0m"
 
-    ./test/helpers/wait-for-it/wait-for-it.sh "127.0.0.1:8080" -t 30
+    ./test/helpers/wait-for-it/wait-for-it.sh "0.0.0.0:8080" -t 30
 
     # allows api with auth to extract FLIPT_TOKEN from out log
     [[ $(type -t _api_test_hook) == function ]] && _api_test_hook
