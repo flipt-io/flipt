@@ -60,11 +60,23 @@ jobs:
           retention-days: 1
 
   api:
-    needs: build
     name: Test API
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          apt-get update && \
+          apt-get install -y \
+          sudo tzdata bats curl wget jq gnupg && \
+          curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+          apt-get update && \
+          apt-get install -y nodejs
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -92,8 +104,21 @@ jobs:
     needs: build
     name: Test API (with authentication enabled)
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          apt-get update && \
+          apt-get install -y \
+          sudo tzdata bats curl wget jq gnupg && \
+          curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+          apt-get update && \
+          apt-get install -y nodejs
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -121,7 +146,8 @@ jobs:
     needs: build
     name: Test Redis
     runs-on: ubuntu-latest
-
+    env:
+      DEBIAN_FRONTEND: noninteractive
     services:
       redis:
         image: redis
@@ -132,6 +158,17 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          apt-get update && \
+          apt-get install -y \
+          sudo tzdata bats curl wget jq gnupg && \
+          curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+          apt-get update && \
+          apt-get install -y nodejs
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -160,8 +197,21 @@ jobs:
     needs: build
     name: Test CLI
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          apt-get update && \
+          apt-get install -y \
+          sudo tzdata bats curl wget jq gnupg && \
+          curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+          apt-get update && \
+          apt-get install -y nodejs
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -181,8 +231,25 @@ jobs:
     needs: build
     name: Test UI
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          apt-get update && \
+          apt-get install -y \
+          sudo tzdata bats curl wget jq gnupg && \
+          curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+          apt-get update && \
+          apt-get install -y nodejs
+
+      - name: Install playwright
+        run: |
+          npx playwright install chromium --with-deps
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
