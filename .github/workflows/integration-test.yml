@@ -87,9 +87,7 @@ jobs:
         working-directory: bin/
 
       - name: Run API tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/api.sh
+        run: ./test/api.sh
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
@@ -126,9 +124,7 @@ jobs:
         working-directory: bin/
 
       - name: Run API tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/api_with_auth.sh
+        run: ./test/api_with_auth.sh
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
@@ -174,9 +170,7 @@ jobs:
 
       - name: Run API tests
         uses: ./.github/actions/integration-test
-        with:
-          script: ./test/api.sh
-          config: "redis.yml"
+        run: ./test/api.sh 'redis.yml'
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
@@ -212,9 +206,7 @@ jobs:
         working-directory: bin/
 
       - name: Run CLI tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/cli.bats
+        run: ./test/cli.bats
 
   ui:
     needs: build
@@ -250,6 +242,4 @@ jobs:
         working-directory: bin/
 
       - name: Run UI tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/ui.sh
+        run: ./test/ui.sh
