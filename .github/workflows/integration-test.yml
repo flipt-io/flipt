@@ -20,7 +20,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-
     timeout-minutes: 20
 
     steps:
@@ -63,8 +62,19 @@ jobs:
     needs: build
     name: Test API
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | sudo  debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg uuid-runtime
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -77,12 +87,11 @@ jobs:
         working-directory: bin/
 
       - name: Run API tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/api.sh
+        run: ./test/api.sh
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
+        if: ${{ always() }}
         with:
           name: api.log
           path: out.log
@@ -92,8 +101,19 @@ jobs:
     needs: build
     name: Test API (with authentication enabled)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg uuid-runtime
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -106,53 +126,13 @@ jobs:
         working-directory: bin/
 
       - name: Run API tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/api_with_auth.sh
+        run: ./test/api_with_auth.sh
 
       - name: Upload the log
         uses: actions/upload-artifact@v3
+        if: ${{ always() }}
         with:
           name: api-with-auth.log
-          path: out.log
-          retention-days: 5
-
-  redis:
-    needs: build
-    name: Test Redis
-    runs-on: ubuntu-latest
-
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/download-artifact@v3
-        id: download
-        with:
-          name: flipt
-          path: bin/
-
-      - run: chmod +x flipt
-        working-directory: bin/
-
-      - name: Run API tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/api.sh
-          config: "redis.yml"
-
-      - name: Upload the log
-        uses: actions/upload-artifact@v3
-        with:
-          name: redis.log
           path: out.log
           retention-days: 5
 
@@ -160,8 +140,19 @@ jobs:
     needs: build
     name: Test CLI
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg uuid-runtime
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -173,16 +164,32 @@ jobs:
         working-directory: bin/
 
       - name: Run CLI tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/cli.bats
+        run: ./test/cli.bats
 
   ui:
     needs: build
     name: Test UI
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
+      - name: Install dependencies
+        run: |
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg uuid-runtime && \
+          curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && \
+          sudo apt-get update && \
+          sudo apt-get install -y nodejs
+
+      - name: Install playwright
+        run: |
+          npx playwright install chromium --with-deps
+
       - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v3
@@ -194,6 +201,4 @@ jobs:
         working-directory: bin/
 
       - name: Run UI tests
-        uses: ./.github/actions/integration-test
-        with:
-          script: ./test/ui.sh
+        run: ./test/ui.sh
