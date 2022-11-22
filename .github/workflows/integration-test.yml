@@ -68,11 +68,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
-          apt-get update && \
-          apt-get install -y \
-          sudo tzdata bats curl wget jq gnupg
+          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg
 
       - uses: actions/checkout@v3
 
@@ -107,11 +107,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
-          apt-get update && \
-          apt-get install -y \
-          sudo tzdata bats curl wget jq gnupg
+          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg
 
       - uses: actions/checkout@v3
 
@@ -154,11 +154,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
-          apt-get update && \
-          apt-get install -y \
-          sudo tzdata bats curl wget jq gnupg
+          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg
 
       - uses: actions/checkout@v3
 
@@ -194,11 +194,11 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
-          apt-get update && \
-          apt-get install -y \
-          sudo tzdata bats curl wget jq gnupg
+          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg
 
       - uses: actions/checkout@v3
 
@@ -225,14 +225,14 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
-          apt-get update && \
-          apt-get install -y \
-          sudo tzdata bats curl wget jq gnupg && \
+          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          sudo apt-get update && \
+          sudo apt-get install -y \
+          tzdata bats curl wget jq gnupg && \
           curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
-          apt-get update && \
-          apt-get install -y nodejs
+          sudo apt-get update && \
+          sudo apt-get install -y nodejs
 
       - name: Install playwright
         run: |
