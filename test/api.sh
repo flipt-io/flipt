@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 if [[ -z "$CI" ]]; then
     echo "This script is meant to run in CI only" 1>&2
