@@ -69,8 +69,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          echo 'tzdata tzdata/Areas select Etc' | sudo  debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
           tzdata bats curl wget jq gnupg
@@ -108,8 +108,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
           tzdata bats curl wget jq gnupg
@@ -155,8 +155,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
           tzdata bats curl wget jq gnupg
@@ -195,8 +195,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
           tzdata bats curl wget jq gnupg
@@ -226,8 +226,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
-          sudo echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
           sudo apt-get update && \
           sudo apt-get install -y \
           tzdata bats curl wget jq gnupg && \
