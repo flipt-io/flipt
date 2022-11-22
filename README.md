@@ -118,7 +118,7 @@ Some of the companies depending on Flipt in production.
         <img src="logos/users/rokt.svg" alt="Rokt" width="200"/>
     </a>
     <a href="https://asphaltbot.com">
-        <img src="logos/users/asphaltbot.png" alt="Asphalt" />
+        <img src="./logos/users/asphaltlogo.png" alt="Asphalt" />
     </a>
 </p>
 
