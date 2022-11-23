@@ -3,26 +3,22 @@ package redis
 import (
 	"context"
 	"errors"
-	"sync/atomic"
 
 	redis "github.com/go-redis/cache/v8"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/cache"
 )
 
+const cacheType = "redis"
+
 type Cache struct {
-	c         *redis.Cache
-	cfg       config.CacheConfig
-	missTotal uint64
-	hitTotal  uint64
-	errTotal  uint64
+	c   *redis.Cache
+	cfg config.CacheConfig
 }
 
 // NewCache creates a new redis cache with the provided cache config
 func NewCache(cfg config.CacheConfig, r *redis.Cache) *Cache {
-	c := &Cache{cfg: cfg, c: r}
-	cache.RegisterMetrics(c)
-	return c
+	return &Cache{cfg: cfg, c: r}
 }
 
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
@@ -30,15 +26,15 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
 
 	if err := c.c.Get(ctx, key, &value); err != nil {
 		if errors.Is(err, redis.ErrCacheMiss) {
-			atomic.AddUint64(&c.missTotal, 1)
+			cache.Observe(ctx, cacheType, cache.Miss)
 			return nil, false, nil
 		}
 
-		atomic.AddUint64(&c.errTotal, 1)
+		cache.Observe(ctx, cacheType, cache.Error)
 		return nil, false, err
 	}
 
-	atomic.AddUint64(&c.hitTotal, 1)
+	cache.Observe(ctx, cacheType, cache.Hit)
 	return value, true, nil
 }
 
@@ -49,7 +45,7 @@ func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
 		Value: value,
 		TTL:   c.cfg.TTL,
 	}); err != nil {
-		atomic.AddUint64(&c.errTotal, 1)
+		cache.Observe(ctx, cacheType, cache.Error)
 		return err
 	}
 
@@ -58,7 +54,7 @@ func (c *Cache) Set(ctx context.Context, key string, value []byte) error {
 
 func (c *Cache) Delete(ctx context.Context, key string) error {
 	if err := c.c.Delete(ctx, key); err != nil {
-		atomic.AddUint64(&c.errTotal, 1)
+		cache.Observe(ctx, cacheType, cache.Error)
 		return err
 	}
 
@@ -66,13 +62,5 @@ func (c *Cache) Delete(ctx context.Context, key string) error {
 }
 
 func (c *Cache) String() string {
-	return "redis"
-}
-
-func (c *Cache) Stats() cache.Stats {
-	return cache.Stats{
-		MissTotal:  c.missTotal,
-		HitTotal:   c.hitTotal,
-		ErrorTotal: c.errTotal,
-	}
+	return cacheType
 }

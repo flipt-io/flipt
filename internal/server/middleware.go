@@ -38,7 +38,7 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		return resp, nil
 	}
 
-	errorsTotal.Inc()
+	errorsTotal.Add(ctx, 1)
 
 	var errnf errs.ErrNotFound
 	if errors.As(err, &errnf) {

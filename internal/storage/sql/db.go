@@ -38,9 +38,12 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 		sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 	}
 
-	registerMetrics(driver, sql)
+	err = otelsql.RegisterDBStatsMetrics(sql,
+		otelsql.WithAttributes(
+			attribute.Key("driver").String(driver.String()),
+		))
 
-	return sql, driver, nil
+	return sql, driver, err
 }
 
 // BuilderFor returns a squirrel statement builder which decorates
