@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage/auth"
-	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
@@ -25,7 +24,7 @@ func TestUnaryInterceptor(t *testing.T) {
 	authenticator := memory.NewStore()
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
-		&storageauth.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
+		&auth.CreateAuthenticationRequest{Method: authrpc.Method_METHOD_TOKEN},
 	)
 	require.NoError(t, err)
 
