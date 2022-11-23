@@ -40,7 +40,6 @@ import (
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
-	middlewarehttp "go.flipt.io/flipt/internal/server/middleware/http"
 	"go.flipt.io/flipt/internal/storage"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
@@ -668,7 +667,6 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		r.Use(middleware.RequestID)
 		r.Use(middleware.RealIP)
-		r.Use(middlewarehttp.StripSlashes)
 		r.Use(middleware.Heartbeat("/health"))
 		r.Use(func(h http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
