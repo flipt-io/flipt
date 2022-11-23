@@ -27,6 +27,9 @@ builds:
           - CGO_ENABLED=1
           - CC=aarch64-linux-gnu-gcc
 
+release:
+  prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
+
 sboms:
   - artifacts: archive
 
