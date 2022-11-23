@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage/oplock"
 	"golang.org/x/sync/errgroup"
-	"gotest.tools/assert"
 )
 
 // Harness is a test harness for all implementations of oplock.Service.

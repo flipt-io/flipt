@@ -48,7 +48,6 @@ require (
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools v2.2.0+incompatible
 )
 
 require (
