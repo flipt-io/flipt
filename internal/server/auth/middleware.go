@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"go.flipt.io/flipt/internal/containers"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
@@ -102,6 +103,14 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 			logger.Error("unauthenticated",
 				zap.String("reason", "error retrieving authentication for client token"),
 				zap.Error(err))
+			return ctx, errUnauthenticated
+		}
+
+		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
+			logger.Error("unauthenticated",
+				zap.String("reason", "authorization expired"),
+				zap.String("authentication_id", auth.Id),
+			)
 			return ctx, errUnauthenticated
 		}
 
