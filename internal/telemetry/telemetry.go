@@ -85,8 +85,6 @@ func (r *Reporter) Run(ctx context.Context) {
 
 	defer ticker.Stop()
 
-	// start telemetry if enabled
-
 	r.logger.Debug("starting telemetry reporter")
 	if err := r.report(ctx); err != nil {
 		r.logger.Debug("reporting telemetry", zap.Error(err))
@@ -97,11 +95,13 @@ func (r *Reporter) Run(ctx context.Context) {
 		case <-ticker.C:
 			if err := r.report(ctx); err != nil {
 				r.logger.Debug("reporting telemetry", zap.Error(err))
-				failures++
-				if failures >= maxFailures {
+
+				if failures++; failures >= maxFailures {
 					r.logger.Debug("telemetry reporting failure threshold reached, shutting down")
 					return
 				}
+			} else {
+				failures = 0
 			}
 		case <-r.shutdown:
 			ticker.Stop()
