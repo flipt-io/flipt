@@ -37,25 +37,16 @@ func TestGet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, ok)
 	assert.Equal(t, []byte("value"), v)
-	assert.Equal(t, uint64(1), c.Stats().HitTotal)
-	assert.Equal(t, uint64(0), c.Stats().MissTotal)
-	assert.Equal(t, uint64(0), c.Stats().ErrorTotal)
 
 	v, ok, err = c.Get(ctx, "foo")
 	assert.NoError(t, err)
 	assert.False(t, ok)
 	assert.Nil(t, v)
-	assert.Equal(t, uint64(1), c.Stats().HitTotal)
-	assert.Equal(t, uint64(1), c.Stats().MissTotal)
-	assert.Equal(t, uint64(0), c.Stats().ErrorTotal)
 
 	v, ok, err = c.Get(ctx, "key")
 	assert.NoError(t, err)
 	assert.True(t, ok)
 	assert.Equal(t, []byte("value"), v)
-	assert.Equal(t, uint64(2), c.Stats().HitTotal)
-	assert.Equal(t, uint64(1), c.Stats().MissTotal)
-	assert.Equal(t, uint64(0), c.Stats().ErrorTotal)
 }
 
 func TestDelete(t *testing.T) {
@@ -71,9 +62,6 @@ func TestDelete(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, ok)
 	assert.Equal(t, []byte("value"), v)
-	assert.Equal(t, uint64(1), c.Stats().HitTotal)
-	assert.Equal(t, uint64(0), c.Stats().MissTotal)
-	assert.Equal(t, uint64(0), c.Stats().ErrorTotal)
 
 	err = c.Delete(ctx, "key")
 	assert.NoError(t, err)
@@ -82,7 +70,4 @@ func TestDelete(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, ok)
 	assert.Nil(t, v)
-	assert.Equal(t, uint64(1), c.Stats().HitTotal)
-	assert.Equal(t, uint64(1), c.Stats().MissTotal)
-	assert.Equal(t, uint64(0), c.Stats().ErrorTotal)
 }
