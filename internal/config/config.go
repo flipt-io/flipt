@@ -19,6 +19,7 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 	stringToEnumHookFunc(stringToCacheBackend),
 	stringToEnumHookFunc(stringToScheme),
 	stringToEnumHookFunc(stringToDatabaseProtocol),
+	stringToEnumHookFunc(stringToAuthMethod),
 )
 
 // Config contains all of Flipts configuration needs.

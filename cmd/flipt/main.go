@@ -31,6 +31,7 @@ import (
 	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
+	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/server"
@@ -42,6 +43,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
+	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
 	"go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
@@ -488,7 +490,21 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			otelgrpc.UnaryServerInterceptor(),
 		}
 
-		authenticationStore := authsql.NewStore(driver, sql.BuilderFor(db, driver), logger)
+		var (
+			sqlBuilder           = sql.BuilderFor(db, driver)
+			authenticationStore  = authsql.NewStore(driver, sqlBuilder, logger)
+			operationLockService = oplocksql.New(logger, driver, sqlBuilder)
+		)
+
+		if len(cfg.Authentication.Cleanup) > 0 {
+			cleanupAuthService := cleanup.NewAuthenticationService(logger, operationLockService, authenticationStore, cfg.Authentication.Cleanup)
+			cleanupAuthService.Run(ctx)
+
+			shutdownFuncs = append(shutdownFuncs, func(context.Context) {
+				_ = cleanupAuthService.Stop()
+				logger.Info("cleanup service has been shutdown")
+			})
+		}
 
 		// only enable enforcement middleware if authentication required
 		if cfg.Authentication.Required {
