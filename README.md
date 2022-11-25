@@ -110,7 +110,7 @@ For more permanent methods of running Flipt, see the [Installation](https://flip
 
 Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built every day.
 
-```
+```bash
 docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 ```
 
