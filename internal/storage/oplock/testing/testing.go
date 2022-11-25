@@ -35,7 +35,7 @@ func Harness(t *testing.T, s oplock.Service) {
 				default:
 				}
 
-				acquired, entry, err := s.TryAcquire(ctx, op, 1*time.Second)
+				acquired, entry, err := s.TryAcquire(ctx, op, 2*time.Second)
 				require.NoError(t, err)
 
 				if acquired {
@@ -47,7 +47,7 @@ func Harness(t *testing.T, s oplock.Service) {
 		})
 	}
 
-	<-time.After(5 * time.Second)
+	<-time.After(10 * time.Second)
 
 	cancel()
 
