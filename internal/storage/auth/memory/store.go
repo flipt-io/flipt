@@ -200,7 +200,8 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *auth.DeleteAuthent
 	for hashedToken, a := range s.byToken {
 		if (req.ID == nil || *req.ID == a.Id) &&
 			(req.Method == nil || *req.Method == a.Method) &&
-			(req.ExpiredBefore == nil || a.ExpiresAt.AsTime().Before(req.ExpiredBefore.AsTime())) {
+			(req.ExpiredBefore == nil ||
+				(a.ExpiresAt != nil && a.ExpiresAt.AsTime().Before(req.ExpiredBefore.AsTime()))) {
 			delete(s.byID, a.Id)
 			delete(s.byToken, hashedToken)
 		}
