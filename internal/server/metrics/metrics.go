@@ -1,4 +1,4 @@
-package server
+package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
@@ -16,44 +16,53 @@ const (
 )
 
 // Prometheus metrics used throughout the server package
-var errorsTotal = metrics.MustSyncInt64().
-	Counter(
-		prometheus.BuildFQName(namespace, serverSubsystem, "errors"),
-		instrument.WithDescription("The total number of server errors"),
-	)
+var (
+	// ErrorsTotal is the total number of errors in the server
+	ErrorsTotal = metrics.MustSyncInt64().
+		Counter(
+			prometheus.BuildFQName(namespace, serverSubsystem, "errors"),
+			instrument.WithDescription("The total number of server errors"),
+		)
+)
 
 // Evaluation specific metrics
 var (
-	evaluationsTotal = metrics.MustSyncInt64().
+	// EvaluationsTotal is the total number of evaluation requests
+	EvaluationsTotal = metrics.MustSyncInt64().
 				Counter(
 			prometheus.BuildFQName(namespace, evaluationsSubsystem, "requests"),
 			instrument.WithDescription("The total number of requested evaluations"),
 		)
 
-	evaluationErrorsTotal = metrics.MustSyncInt64().
+	// EvaluationErrorsTotal is the total number of evaluation errors
+	EvaluationErrorsTotal = metrics.MustSyncInt64().
 				Counter(
 			prometheus.BuildFQName(namespace, evaluationsSubsystem, "errors"),
 			instrument.WithDescription("The total number of requested evaluations"),
 		)
 
-	evaluationResultsTotal = metrics.MustSyncInt64().
+	// EvaluationResultsTotal is the total number of evaluation results
+	EvaluationResultsTotal = metrics.MustSyncInt64().
 				Counter(
 			prometheus.BuildFQName(namespace, evaluationsSubsystem, "results"),
 			instrument.WithDescription("Count of results including match, flag, segment, reason and value attributes"),
 		)
 
-	evaluationLatency syncfloat64.Histogram
+	// EvaluationLatency is the latency of individual evaluations
+	EvaluationLatency syncfloat64.Histogram
 
-	attributeMatch   = attribute.Key("match")
-	attributeFlag    = attribute.Key("flag")
-	attributeSegment = attribute.Key("segment")
-	attributeReason  = attribute.Key("reason")
-	attributeValue   = attribute.Key("value")
+	// Attributes used in evaluation metrics
+	//nolint
+	AttributeMatch   = attribute.Key("match")
+	AttributeFlag    = attribute.Key("flag")
+	AttributeSegment = attribute.Key("segment")
+	AttributeReason  = attribute.Key("reason")
+	AttributeValue   = attribute.Key("value")
 )
 
 func init() {
 	var err error
-	evaluationLatency, err = metrics.Meter.SyncFloat64().Histogram(
+	EvaluationLatency, err = metrics.Meter.SyncFloat64().Histogram(
 		prometheus.BuildFQName(namespace, evaluationsSubsystem, "latency"),
 		instrument.WithDescription("The latency of inidividual evaluations in milliseconds"),
 		instrument.WithUnit(unit.Milliseconds),

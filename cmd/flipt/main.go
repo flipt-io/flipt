@@ -39,6 +39,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
+	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
@@ -499,9 +500,9 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		// behaviour interceptors
 		interceptors = append(interceptors,
-			server.ErrorUnaryInterceptor,
-			server.ValidationUnaryInterceptor,
-			server.EvaluationUnaryInterceptor,
+			middlewaregrpc.ErrorUnaryInterceptor,
+			middlewaregrpc.ValidationUnaryInterceptor,
+			middlewaregrpc.EvaluationUnaryInterceptor,
 		)
 
 		if cfg.Cache.Enabled {
@@ -533,7 +534,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 				}))
 			}
 
-			interceptors = append(interceptors, server.CacheUnaryInterceptor(cacher, logger))
+			interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
 
 			logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 		}
