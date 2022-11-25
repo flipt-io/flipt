@@ -3,5 +3,5 @@ CREATE TABLE IF NOT EXISTS operation_lock (
   version INTEGER DEFAULT 0 NOT NULL,
   last_acquired_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6),
   acquired_until TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6),
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`operation`)
 );
