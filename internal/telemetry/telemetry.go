@@ -123,7 +123,7 @@ type file interface {
 	Truncate(int64) error
 }
 
-// Report sends a ping event to the analytics service.
+// report sends a ping event to the analytics service.
 func (r *Reporter) report(ctx context.Context) (err error) {
 	f, err := os.OpenFile(filepath.Join(r.cfg.Meta.StateDirectory, filename), os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
