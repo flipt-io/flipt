@@ -41,7 +41,9 @@ func Harness(t *testing.T, s oplock.Service) {
 				}
 
 				acquired, entry, err := s.TryAcquire(ctx, op, interval)
-				require.NoError(t, err)
+				if err != nil {
+					return err
+				}
 
 				if acquired {
 					acquiredAt <- entry.LastAcquired
@@ -71,7 +73,10 @@ func Harness(t *testing.T, s oplock.Service) {
 
 	cancel()
 
-	require.NoError(t, errgroup.Wait())
+	if err := errgroup.Wait(); err != nil {
+		// only acceptable error is that the context was cancelled
+		require.ErrorIs(t, err, context.Canceled)
+	}
 
 	close(acquiredAt)
 
