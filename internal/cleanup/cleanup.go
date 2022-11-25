@@ -49,7 +49,7 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 
 		s.errgroup.Go(func() error {
 			// on the first attempt to run the cleanup authentication service
-			// we attempt to obtain the lock imediately. If the lock is already
+			// we attempt to obtain the lock immediately. If the lock is already
 			// held the service should return false and return the current acquired
 			// current timestamp
 			acquiredUntil := time.Now().UTC()
