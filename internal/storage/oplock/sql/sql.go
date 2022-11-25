@@ -2,12 +2,11 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	flipterrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage/oplock"
 	storagesql "go.flipt.io/flipt/internal/storage/sql"
 	"go.uber.org/zap"
@@ -37,13 +36,11 @@ func New(logger *zap.Logger, driver storagesql.Driver, builder sq.StatementBuild
 func (s *Service) TryAcquire(ctx context.Context, operation oplock.Operation, duration time.Duration) (acquired bool, entry oplock.LockEntry, err error) {
 	entry, err = s.readEntry(ctx, operation)
 	if err != nil {
-		var errnf flipterrors.ErrNotFound
-		if errors.As(err, &errnf) {
+		if _, match := errors.As[errors.ErrNotFound](err); match {
 			// entry does not exist so we try and create one
 			entry, err := s.insertEntry(ctx, operation, duration)
 			if err != nil {
-				var errinvalid flipterrors.ErrInvalid
-				if errors.As(err, &errinvalid) {
+				if _, match := errors.As[errors.ErrInvalid](err); match {
 					// check if the entry is invalid due to
 					// uniqueness constraint violation
 					// if so re-read the current entry and return that

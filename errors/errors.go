@@ -5,6 +5,12 @@ import (
 	"fmt"
 )
 
+// As is a utility for one-lining errors.As statements.
+// e.g. cerr, match := errors.As[MyCustomError](err).
+func As[E error](err error) (e E, _ bool) {
+	return e, errors.As(err, &e)
+}
+
 // New creates a new error with errors.New
 func New(s string) error {
 	return errors.New(s)
