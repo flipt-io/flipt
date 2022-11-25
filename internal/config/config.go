@@ -135,8 +135,8 @@ func bindEnvVars(v *viper.Viper, prefix string, field reflect.StructField) {
 
 	// descend into struct fields
 	if typ.Kind() == reflect.Struct {
-		for i := 0; i < field.Type.NumField(); i++ {
-			structField := field.Type.Field(i)
+		for i := 0; i < typ.NumField(); i++ {
+			structField := typ.Field(i)
 
 			// key becomes prefix for sub-fields
 			bindEnvVars(v, key+".", structField)

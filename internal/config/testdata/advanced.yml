@@ -39,3 +39,13 @@ db:
 meta:
   check_for_updates: false
   telemetry_enabled: false
+
+authentication:
+  required: true
+  cleanup:
+    token:
+      interval: 2h
+      grace_period: 48h
+  methods:
+    token:
+      enabled: true

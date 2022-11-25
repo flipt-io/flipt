@@ -402,6 +402,20 @@ func TestLoad(t *testing.T) {
 					CheckForUpdates:  false,
 					TelemetryEnabled: false,
 				}
+				cfg.Authentication = AuthenticationConfig{
+					Required: true,
+					Methods: AuthenticationMethods{
+						Token: AuthenticationMethodTokenConfig{
+							Enabled: true,
+						},
+					},
+					Cleanup: AuthenticationCleanupSchedules{
+						Token: &AuthenticationCleanupSchedule{
+							Interval:    2 * time.Hour,
+							GracePeriod: 48 * time.Hour,
+						},
+					},
+				}
 				return cfg
 			},
 		},

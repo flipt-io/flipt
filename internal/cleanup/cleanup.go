@@ -8,6 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/oplock"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -17,30 +18,40 @@ const minCleanupInterval = 5 * time.Minute
 // AuthenticationService is configured to run background goroutines which
 // will clear out expired authentication tokens.
 type AuthenticationService struct {
-	logger    *zap.Logger
-	lock      oplock.Service
-	store     authstorage.Store
-	schedules config.AuthenticationCleanupSchedules
+	logger *zap.Logger
+	lock   oplock.Service
+	store  authstorage.Store
+	config config.AuthenticationCleanupSchedules
 
 	errgroup errgroup.Group
 	cancel   func()
 }
 
 // NewAuthenticationService constructs and configures a new instance of authentication service.
-func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store authstorage.Store, schedules config.AuthenticationCleanupSchedules) *AuthenticationService {
+func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store authstorage.Store, config config.AuthenticationCleanupSchedules) *AuthenticationService {
 	return &AuthenticationService{
-		logger:    logger,
-		lock:      lock,
-		store:     store,
-		schedules: schedules,
-		cancel:    func() {},
+		logger: logger,
+		lock:   lock,
+		store:  store,
+		config: config,
+		cancel: func() {},
 	}
+}
+
+func (s *AuthenticationService) schedules() map[auth.Method]config.AuthenticationCleanupSchedule {
+	schedules := map[auth.Method]config.AuthenticationCleanupSchedule{}
+	if s.config.Token != nil {
+		schedules[auth.Method_METHOD_TOKEN] = *s.config.Token
+	}
+
+	return schedules
 }
 
 // Run starts up a background goroutine per configure authentication method schedule.
 func (s *AuthenticationService) Run(ctx context.Context) {
 	ctx, s.cancel = context.WithCancel(ctx)
-	for method, schedule := range s.schedules {
+
+	for method, schedule := range s.schedules() {
 		var (
 			method    = method
 			schedule  = schedule

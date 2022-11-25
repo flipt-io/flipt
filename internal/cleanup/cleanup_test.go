@@ -23,7 +23,7 @@ func TestCleanup(t *testing.T) {
 		authstore     = inmemauth.NewStore()
 		lock          = inmemoplock.New()
 		cleanupConfig = config.AuthenticationCleanupSchedules{
-			auth.Method_METHOD_TOKEN: config.AuthenticationCleanupSchedule{
+			Token: &config.AuthenticationCleanupSchedule{
 				Interval:    time.Second,
 				GracePeriod: 5 * time.Second,
 			},

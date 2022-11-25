@@ -33,24 +33,11 @@ type AuthenticationConfig struct {
 
 	Cleanup AuthenticationCleanupSchedules `json:"cleanup,omitempty" mapstructure:"cleanup"`
 
-	Methods struct {
-		Token AuthenticationMethodTokenConfig `json:"token,omitempty" mapstructure:"token"`
-	} `json:"methods,omitempty" mapstructure:"methods"`
+	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`
 }
 
 func (a *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 	cleanup := map[string]any{}
-
-	v.SetDefault("authentication", map[string]any{
-		"required": false,
-		"cleanup":  cleanup,
-		"methods": map[string]any{
-			"token": map[string]any{
-				"enabled": false,
-			},
-		},
-	})
-
 	if v.GetBool("authentication.methods.token.enabled") {
 		cleanup["token"] = map[string]any{
 			"interval":     time.Hour,
@@ -58,7 +45,28 @@ func (a *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 		}
 	}
 
+	defaults := map[string]any{
+		"required": false,
+		"methods": map[string]any{
+			"token": map[string]any{
+				"enabled": false,
+			},
+		},
+	}
+
+	if len(cleanup) > 0 {
+		defaults["cleanup"] = cleanup
+	}
+
+	v.SetDefault("authentication", defaults)
+
 	return nil
+}
+
+// AuthenticationMethods is a set of configuration for each authentication
+// method available for use within Flipt.
+type AuthenticationMethods struct {
+	Token AuthenticationMethodTokenConfig `json:"token,omitempty" mapstructure:"token"`
 }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
@@ -72,7 +80,15 @@ type AuthenticationMethodTokenConfig struct {
 }
 
 // AuthenticationCleanupSchedules is a map of method to schedule
-type AuthenticationCleanupSchedules map[auth.Method]AuthenticationCleanupSchedule
+type AuthenticationCleanupSchedules struct {
+	Token *AuthenticationCleanupSchedule `json:"token,omitempty" mapstructure:"token"`
+}
+
+// ShouldRun returns true if the cleanup background process should be started.
+// It returns true given at-least 1 schedule has been configured (not-nil).
+func (a AuthenticationCleanupSchedules) ShouldRun() bool {
+	return a.Token != nil
+}
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.
 type AuthenticationCleanupSchedule struct {
