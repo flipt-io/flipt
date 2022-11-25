@@ -2,6 +2,8 @@ package testing
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -75,7 +77,16 @@ func Harness(t *testing.T, s oplock.Service) {
 
 	if err := errgroup.Wait(); err != nil {
 		// only acceptable error is that the context was cancelled
-		require.ErrorIs(t, err, context.Canceled)
+		// there are a couple acceptable errors here (context.Canceled and "operation was canceled")
+		// stdlib net package can adapt context.Canceled into an unexported errCanceled
+		// https://github.com/golang/go/blob/6b45863e47ad1a27ba3051ce0407f0bdc7b46113/src/net/net.go#L428-L439
+		cerr := errors.Unwrap(err)
+		switch {
+		case cerr == context.Canceled:
+		case strings.Contains(cerr.Error(), "operation was canceled"):
+		default:
+			require.FailNowf(t, "error not as expected", "%v", err)
+		}
 	}
 
 	close(acquiredAt)
