@@ -614,6 +614,10 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			return fmt.Errorf("registering grpc gateway: %w", err)
 		}
 
+		if err := authrpc.RegisterAuthenticationServiceHandler(ctx, api, conn); err != nil {
+			return fmt.Errorf("registering auth grpc gateway: %w", err)
+		}
+
 		if cfg.Authentication.Methods.Token.Enabled {
 			if err := authrpc.RegisterAuthenticationMethodTokenServiceHandler(ctx, api, conn); err != nil {
 				return fmt.Errorf("registering auth grpc gateway: %w", err)
