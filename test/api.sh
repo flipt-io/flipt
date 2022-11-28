@@ -23,6 +23,10 @@ finish() {
 
 trap finish EXIT
 
+authRequired() {
+  [ -n "${TEST_FLIPT_API_AUTH_REQUIRED:-}" ]
+}
+
 uuid_str()
 {
     uuidgen
@@ -323,8 +327,13 @@ step_10_test_auths()
 
     # getting self using token returns expected ID
     authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
+    if [ $(authRequired) ]; then
         status 200
         matches "\"id\":\"${tokenID}\""
+    else
+        # there is no self when authentication is disabled
+        status 403
+    fi
 }
 
 run()
