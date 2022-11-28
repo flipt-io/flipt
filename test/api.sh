@@ -309,7 +309,7 @@ step_10_test_auths()
 
     # replace FLIPT_TOKEN with created token
     FLIPT_TOKEN=$(echo "${tokenPayload}" | jq '.clientToken')
-    export $FLIPT_TOKEN
+    export FLIPT_TOKEN
 
     # token should succeed when used via authorization header to list flags
     # (both when auth is required and not)
