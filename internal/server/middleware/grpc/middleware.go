@@ -1,4 +1,4 @@
-package server
+package grpc_middleware
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/cache"
+	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -38,7 +39,7 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		return resp, nil
 	}
 
-	errorsTotal.Add(ctx, 1)
+	metrics.ErrorsTotal.Add(ctx, 1)
 
 	var errnf errs.ErrNotFound
 	if errors.As(err, &errnf) {

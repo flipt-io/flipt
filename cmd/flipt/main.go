@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -40,6 +38,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
+	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
@@ -69,7 +68,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
-	"gopkg.in/segmentio/analytics-go.v3"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
@@ -329,60 +327,29 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 	g, ctx := errgroup.WithContext(ctx)
 
+	if err := initLocalState(); err != nil {
+		logger.Debug("disabling telemetry, state directory not accessible", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
+		cfg.Meta.TelemetryEnabled = false
+	} else {
+		logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
+	}
+
 	if cfg.Meta.TelemetryEnabled && isRelease {
-		if err := initLocalState(); err != nil {
-			logger.Warn("error getting local state directory, disabling telemetry", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
-			cfg.Meta.TelemetryEnabled = false
-		} else {
-			logger.Debug("local state directory exists", zap.String("path", cfg.Meta.StateDirectory))
-		}
+		logger := logger.With(zap.String("component", "telemetry"))
 
-		var (
-			reportInterval = 4 * time.Hour
-			ticker         = time.NewTicker(reportInterval)
-		)
-
-		defer ticker.Stop()
-
-		// start telemetry if enabled
 		g.Go(func() error {
-			logger := logger.With(zap.String("component", "telemetry"))
-
-			// don't log from analytics package
-			analyticsLogger := func() analytics.Logger {
-				stdLogger := log.Default()
-				stdLogger.SetOutput(ioutil.Discard)
-				return analytics.StdLogger(stdLogger)
-			}
-
-			client, err := analytics.NewWithConfig(analyticsKey, analytics.Config{
-				BatchSize: 1,
-				Logger:    analyticsLogger(),
-			})
+			reporter, err := telemetry.NewReporter(*cfg, logger, analyticsKey, info)
 			if err != nil {
-				logger.Warn("error initializing telemetry client", zap.Error(err))
+				logger.Debug("initializing telemetry reporter", zap.Error(err))
 				return nil
 			}
 
-			telemetry := telemetry.NewReporter(*cfg, logger, client)
-			defer telemetry.Close()
+			defer func() {
+				_ = reporter.Shutdown()
+			}()
 
-			logger.Debug("starting telemetry reporter")
-			if err := telemetry.Report(ctx, info); err != nil {
-				logger.Warn("reporting telemetry", zap.Error(err))
-			}
-
-			for {
-				select {
-				case <-ticker.C:
-					if err := telemetry.Report(ctx, info); err != nil {
-						logger.Warn("reporting telemetry", zap.Error(err))
-					}
-				case <-ctx.Done():
-					ticker.Stop()
-					return nil
-				}
-			}
+			reporter.Run(ctx)
+			return nil
 		})
 	}
 
@@ -515,9 +482,9 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 		// behaviour interceptors
 		interceptors = append(interceptors,
-			server.ErrorUnaryInterceptor,
-			server.ValidationUnaryInterceptor,
-			server.EvaluationUnaryInterceptor,
+			middlewaregrpc.ErrorUnaryInterceptor,
+			middlewaregrpc.ValidationUnaryInterceptor,
+			middlewaregrpc.EvaluationUnaryInterceptor,
 		)
 
 		if cfg.Cache.Enabled {
@@ -549,7 +516,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 				}))
 			}
 
-			interceptors = append(interceptors, server.CacheUnaryInterceptor(cacher, logger))
+			interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
 
 			logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 		}

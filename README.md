@@ -99,12 +99,20 @@ Try the latest version of Flipt out for yourself.
 ### Docker
 
 ```bash
-❯ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
 ```
 
 Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
+
+### Nightly Build
+
+Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
+```
 
 ## Logos
 
@@ -126,7 +134,7 @@ Using Flipt at your company? Open a PR and add your logo here!
 
 ## Office Hours
 
-Join us on [Discord](https://discord.gg/TKmC2qT8ta) :keyboard: and/or [Whereby](https://whereby.com/flipt) :video_camera: for office hours every Wednesday at 10am ET to chat about anything Flipt related or just to say hi.
+Join us on [Discord](https://www.flipt.io/discord) :keyboard: and/or [Whereby](https://whereby.com/flipt) :video_camera: for office hours every Wednesday at 10am ET to chat about anything Flipt related or just to say hi.
 
 ## Integration
 
