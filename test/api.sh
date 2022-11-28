@@ -301,6 +301,32 @@ step_9_test_metrics()
         status 200
 }
 
+step_10_test_auths()
+{
+    # create a new token for the purpose of this test
+    tokenPayload=$(_curl -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer ${FLIPT_TOKEN}" -sS "$SHAKEDOWN_URL/auth/v1/method/token" -d '{"name":"token","description":"an access token"}')
+    tokenID=$(cat "${tokenPayload}" | jq '.authentication.id')
+
+    # replace FLIPT_TOKEN with created token
+    FLIPT_TOKEN=$(cat "${tokenPayload}" | jq '.clientToken')
+    export $FLIPT_TOKEN
+
+    # token should succeed when used via authorization header to list flags
+    # (both when auth is required and not)
+    authedShakedown -H 'Content-Type: application/json' GET '/api/v1/flags'
+        status 200
+
+    # listing tokens includes the created token
+    authedShakedown -H 'Content-Type: application/json' GET "/auth/v1/tokens"
+        status 200
+        matches "\"id\":\"${tokenID}\""
+
+    # getting self using token returns expected ID
+    authedShakedown -H 'Content-Type: application/json' GET '/auth/v1/self'
+        status 200
+        matches "\"id\":\"${tokenID}\""
+}
+
 run()
 {
     # run any pending db migrations
@@ -330,6 +356,7 @@ run()
     step_7_test_delete
     step_8_test_meta
     step_9_test_metrics
+    step_10_test_auths
 }
 
 run

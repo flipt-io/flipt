@@ -530,6 +530,9 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		pb.RegisterFliptServer(grpcServer, srv)
 
 		// register auth service
+		authServer := auth.NewServer(logger, authenticationStore)
+		authrpc.RegisterAuthenticationServiceServer(grpcServer, authServer)
+		// register auth method token service
 		if cfg.Authentication.Methods.Token.Enabled {
 			// attempt to bootstrap authentication store
 			clientToken, err := authstorage.Bootstrap(ctx, authenticationStore)
