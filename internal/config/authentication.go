@@ -35,9 +35,10 @@ type AuthenticationConfig struct {
 }
 
 // ShouldRunCleanup returns true if the cleanup background process should be started.
-// It returns true given at-least 1 schedule has been configured (not-nil).
+// It returns true given at-least 1 method is enabled and it's associated schedule
+// has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() bool {
-	return c.Methods.Token.Cleanup != nil
+	return (c.Methods.Token.Enabled && c.Methods.Token.Cleanup != nil)
 }
 
 func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
