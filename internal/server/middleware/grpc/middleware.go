@@ -46,6 +46,11 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		return
 	}
 
+	// given already a *status.Error then forward unchanged
+	if _, ok := status.FromError(err); ok {
+		return
+	}
+
 	var errnf errs.ErrNotFound
 	if errors.As(err, &errnf) {
 		err = status.Error(codes.NotFound, err.Error())
