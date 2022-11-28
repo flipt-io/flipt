@@ -368,7 +368,7 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
-					AllowedOrigins: []string{"foo.com"},
+					AllowedOrigins: []string{"foo.com", "bar.com"},
 				}
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
