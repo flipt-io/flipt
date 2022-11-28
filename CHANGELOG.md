@@ -5,6 +5,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.15.1](https://github.com/markphelps/flipt/releases/tag/v1.15.1) - 2022-11-28
+
+### Fixed
+
+- Authentication API read operations have been appropriately mounted and no longer return 404.
+
 ## [v1.15.0](https://github.com/markphelps/flipt/releases/tag/v1.15.0) - 2022-11-17
 
 ### Added

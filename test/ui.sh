@@ -27,7 +27,7 @@ run()
 
     sleep 5
 
-    flipt_host="127.0.0.1:${port}"
+    flipt_host="0.0.0.0:${port}"
 
     echo -e "\e[32m                \e[0m"
     echo -e "\e[32m===========================================\e[0m"
