@@ -313,16 +313,16 @@ step_10_test_auths()
 
     # token should succeed when used via authorization header to list flags
     # (both when auth is required and not)
-    authedShakedown -H 'Content-Type: application/json' GET '/api/v1/flags'
+    authedShakedown GET '/api/v1/flags' -H 'Content-Type: application/json'
         status 200
 
     # listing tokens includes the created token
-    authedShakedown -H 'Content-Type: application/json' GET "/auth/v1/tokens"
+    authedShakedown GET "/auth/v1/tokens" -H 'Content-Type: application/json'
         status 200
         matches "\"id\":\"${tokenID}\""
 
     # getting self using token returns expected ID
-    authedShakedown -H 'Content-Type: application/json' GET '/auth/v1/self'
+    authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
         status 200
         matches "\"id\":\"${tokenID}\""
 }
