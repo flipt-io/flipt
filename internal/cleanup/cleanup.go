@@ -21,14 +21,14 @@ type AuthenticationService struct {
 	logger *zap.Logger
 	lock   oplock.Service
 	store  authstorage.Store
-	config config.AuthenticationCleanupSchedules
+	config config.AuthenticationConfig
 
 	errgroup errgroup.Group
 	cancel   func()
 }
 
 // NewAuthenticationService constructs and configures a new instance of authentication service.
-func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store authstorage.Store, config config.AuthenticationCleanupSchedules) *AuthenticationService {
+func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store authstorage.Store, config config.AuthenticationConfig) *AuthenticationService {
 	return &AuthenticationService{
 		logger: logger,
 		lock:   lock,
@@ -40,8 +40,8 @@ func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store aut
 
 func (s *AuthenticationService) schedules() map[auth.Method]config.AuthenticationCleanupSchedule {
 	schedules := map[auth.Method]config.AuthenticationCleanupSchedule{}
-	if s.config.Token != nil {
-		schedules[auth.Method_METHOD_TOKEN] = *s.config.Token
+	if s.config.Methods.Token.Cleanup != nil {
+		schedules[auth.Method_METHOD_TOKEN] = *s.config.Methods.Token.Cleanup
 	}
 
 	return schedules

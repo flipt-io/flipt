@@ -18,14 +18,19 @@ import (
 
 func TestCleanup(t *testing.T) {
 	var (
-		ctx           = context.Background()
-		logger        = zaptest.NewLogger(t)
-		authstore     = inmemauth.NewStore()
-		lock          = inmemoplock.New()
-		cleanupConfig = config.AuthenticationCleanupSchedules{
-			Token: &config.AuthenticationCleanupSchedule{
-				Interval:    time.Second,
-				GracePeriod: 5 * time.Second,
+		ctx        = context.Background()
+		logger     = zaptest.NewLogger(t)
+		authstore  = inmemauth.NewStore()
+		lock       = inmemoplock.New()
+		authConfig = config.AuthenticationConfig{
+			Methods: config.AuthenticationMethods{
+				Token: config.AuthenticationMethodTokenConfig{
+					Enabled: true,
+					Cleanup: &config.AuthenticationCleanupSchedule{
+						Interval:    time.Second,
+						GracePeriod: 5 * time.Second,
+					},
+				},
 			},
 		}
 	)
@@ -40,7 +45,7 @@ func TestCleanup(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		// run five instances of service
 		// it should be a safe operation given they share the same lock service
-		service := NewAuthenticationService(logger, lock, authstore, cleanupConfig)
+		service := NewAuthenticationService(logger, lock, authstore, authConfig)
 		service.Run(ctx)
 		defer func() {
 			require.NoError(t, service.Stop())

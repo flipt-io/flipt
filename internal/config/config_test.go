@@ -407,12 +407,10 @@ func TestLoad(t *testing.T) {
 					Methods: AuthenticationMethods{
 						Token: AuthenticationMethodTokenConfig{
 							Enabled: true,
-						},
-					},
-					Cleanup: AuthenticationCleanupSchedules{
-						Token: &AuthenticationCleanupSchedule{
-							Interval:    2 * time.Hour,
-							GracePeriod: 48 * time.Hour,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
 						},
 					},
 				}

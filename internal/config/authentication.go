@@ -31,34 +31,33 @@ type AuthenticationConfig struct {
 	// Else, authentication is not required and Flipt's APIs are not secured.
 	Required bool `json:"required,omitempty" mapstructure:"required"`
 
-	Cleanup AuthenticationCleanupSchedules `json:"cleanup,omitempty" mapstructure:"cleanup"`
-
 	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`
 }
 
-func (a *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
-	cleanup := map[string]any{}
+// ShouldRunCleanup returns true if the cleanup background process should be started.
+// It returns true given at-least 1 schedule has been configured (not-nil).
+func (c AuthenticationConfig) ShouldRunCleanup() bool {
+	return c.Methods.Token.Cleanup != nil
+}
+
+func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
+	token := map[string]any{
+		"enabled": false,
+	}
+
 	if v.GetBool("authentication.methods.token.enabled") {
-		cleanup["token"] = map[string]any{
+		token["cleanup"] = map[string]any{
 			"interval":     time.Hour,
 			"grace_period": 30 * time.Minute,
 		}
 	}
 
-	defaults := map[string]any{
+	v.SetDefault("authentication", map[string]any{
 		"required": false,
 		"methods": map[string]any{
-			"token": map[string]any{
-				"enabled": false,
-			},
+			"token": token,
 		},
-	}
-
-	if len(cleanup) > 0 {
-		defaults["cleanup"] = cleanup
-	}
-
-	v.SetDefault("authentication", defaults)
+	})
 
 	return nil
 }
@@ -76,18 +75,8 @@ type AuthenticationMethods struct {
 type AuthenticationMethodTokenConfig struct {
 	// Enabled designates whether or not static token authentication is enabled
 	// and whether Flipt will mount the "token" method APIs.
-	Enabled bool `json:"enabled,omitempty" mapstructure:"enabled"`
-}
-
-// AuthenticationCleanupSchedules is a map of method to schedule
-type AuthenticationCleanupSchedules struct {
-	Token *AuthenticationCleanupSchedule `json:"token,omitempty" mapstructure:"token"`
-}
-
-// ShouldRun returns true if the cleanup background process should be started.
-// It returns true given at-least 1 schedule has been configured (not-nil).
-func (a AuthenticationCleanupSchedules) ShouldRun() bool {
-	return a.Token != nil
+	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`
+	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.

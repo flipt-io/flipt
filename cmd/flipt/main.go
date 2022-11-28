@@ -496,8 +496,8 @@ func run(ctx context.Context, logger *zap.Logger) error {
 			operationLockService = oplocksql.New(logger, driver, sqlBuilder)
 		)
 
-		if cfg.Authentication.Cleanup.ShouldRun() {
-			cleanupAuthService := cleanup.NewAuthenticationService(logger, operationLockService, authenticationStore, cfg.Authentication.Cleanup)
+		if cfg.Authentication.ShouldRunCleanup() {
+			cleanupAuthService := cleanup.NewAuthenticationService(logger, operationLockService, authenticationStore, cfg.Authentication)
 			cleanupAuthService.Run(ctx)
 
 			shutdownFuncs = append(shutdownFuncs, func(context.Context) {

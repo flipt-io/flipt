@@ -42,10 +42,9 @@ meta:
 
 authentication:
   required: true
-  cleanup:
-    token:
-      interval: 2h
-      grace_period: 48h
   methods:
     token:
       enabled: true
+      cleanup:
+         interval: 2h
+         grace_period: 48h
