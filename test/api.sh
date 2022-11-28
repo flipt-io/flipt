@@ -305,10 +305,10 @@ step_10_test_auths()
 {
     # create a new token for the purpose of this test
     tokenPayload=$(_curl -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer ${FLIPT_TOKEN:-''}" -sS "$SHAKEDOWN_URL/auth/v1/method/token" -d '{"name":"token","description":"an access token"}')
-    tokenID=$(cat "${tokenPayload}" | jq '.authentication.id')
+    tokenID=$(echo "${tokenPayload}" | jq '.authentication.id')
 
     # replace FLIPT_TOKEN with created token
-    FLIPT_TOKEN=$(cat "${tokenPayload}" | jq '.clientToken')
+    FLIPT_TOKEN=$(echo "${tokenPayload}" | jq '.clientToken')
     export $FLIPT_TOKEN
 
     # token should succeed when used via authorization header to list flags
