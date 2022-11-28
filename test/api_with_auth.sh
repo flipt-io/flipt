@@ -10,6 +10,8 @@ fi
 _api_test_hook() {
   FLIPT_TOKEN=$(cat out.log | jq -r '. | select(.M=="access token created") | .client_token')
   export FLIPT_TOKEN
+
+  export TEST_FLIPT_API_AUTH_REQUIRED='true'
 }
 
 run() {
