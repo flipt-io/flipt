@@ -5,6 +5,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.15.2](https://github.com/markphelps/flipt/releases/tag/v1.15.2) - 2022-11-29
+
+### Fixed
+
+- Fix configuration unmarshalling from `string` to `[]string` to delimit on `" "` vs `","` [#1179](https://github.com/flipt-io/flipt/pull/1179)
+
 ## [v1.15.1](https://github.com/markphelps/flipt/releases/tag/v1.15.1) - 2022-11-28
 
 ### Fixed
