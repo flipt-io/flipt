@@ -8,7 +8,7 @@ ui:
 
 cors:
   enabled: true
-  allowed_origins: "foo.com"
+  allowed_origins: "foo.com,bar.com"
 
 cache:
   enabled: true

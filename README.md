@@ -99,12 +99,20 @@ Try the latest version of Flipt out for yourself.
 ### Docker
 
 ```bash
-❯ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
 ```
 
 Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
 
 For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
+
+### Nightly Build
+
+Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
+```
 
 ## Logos
 
@@ -126,7 +134,7 @@ Using Flipt at your company? Open a PR and add your logo here!
 
 ## Office Hours
 
-Join us on [Discord](https://discord.gg/TKmC2qT8ta) :keyboard: and/or [Whereby](https://whereby.com/flipt) :video_camera: for office hours every Wednesday at 10am ET to chat about anything Flipt related or just to say hi.
+Join us on [Discord](https://www.flipt.io/discord) :keyboard: and/or [Whereby](https://whereby.com/flipt) :video_camera: for office hours every Wednesday at 10am ET to chat about anything Flipt related or just to say hi.
 
 ## Integration
 
@@ -248,6 +256,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/jalaziz"><img src="https://avatars.githubusercontent.com/u/247849?v=4?s=100" width="100px;" alt="Jameel Al-Aziz"/><br /><sub><b>Jameel Al-Aziz</b></sub></a><br /><a href="#platform-jalaziz" title="Packaging/porting to new platform">📦</a></td>
       <td align="center"><a href="https://george.macro.re"><img src="https://avatars.githubusercontent.com/u/1253326?v=4?s=100" width="100px;" alt="George"/><br /><sub><b>George</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=GeorgeMac" title="Code">💻</a></td>
       <td align="center"><a href="https://syntaqx.com"><img src="https://avatars.githubusercontent.com/u/6037730?v=4?s=100" width="100px;" alt="Chase Pierce"/><br /><sub><b>Chase Pierce</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=syntaqx" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="http://showwin.asia"><img src="https://avatars.githubusercontent.com/u/1732016?v=4?s=100" width="100px;" alt="ITO Shogo"/><br /><sub><b>ITO Shogo</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=showwin" title="Tests">⚠️</a></td>
     </tr>
   </tbody>
 </table>
