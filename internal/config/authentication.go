@@ -63,6 +63,41 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 	return nil
 }
 
+func (c *AuthenticationConfig) validate() error {
+	validateCleanup := func(field string, cleanup *AuthenticationCleanupSchedule) error {
+		if cleanup.Interval <= 0 {
+			return errFieldWrap(field+".cleanup.interval", errPositiveNonZeroDuration)
+		}
+
+		if cleanup.GracePeriod <= 0 {
+			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
+		}
+
+		return nil
+	}
+
+	for _, cleanup := range []struct {
+		name     string
+		schedule *AuthenticationCleanupSchedule
+	}{
+		// add additional schedules as token methods are created
+		{"token", c.Methods.Token.Cleanup},
+	} {
+		if cleanup.schedule == nil {
+			continue
+		}
+
+		if err := validateCleanup(
+			"authentication.methods."+cleanup.name,
+			cleanup.schedule,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // AuthenticationMethods is a set of configuration for each authentication
 // method available for use within Flipt.
 type AuthenticationMethods struct {

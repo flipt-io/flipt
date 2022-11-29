@@ -353,6 +353,16 @@ func TestLoad(t *testing.T) {
 			wantErr: errValidationRequired,
 		},
 		{
+			name:    "authentication - negative interval",
+			path:    "./testdata/authentication/negative_interval.yml",
+			wantErr: errPositiveNonZeroDuration,
+		},
+		{
+			name:    "authentication - zero grace_period",
+			path:    "./testdata/authentication/zero_grace_period.yml",
+			wantErr: errPositiveNonZeroDuration,
+		},
+		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {

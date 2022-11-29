@@ -1,0 +1,5 @@
+authentication:
+  methods:
+    token:
+      cleanup:
+        grace_period: 0
