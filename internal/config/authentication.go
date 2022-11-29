@@ -64,18 +64,6 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 }
 
 func (c *AuthenticationConfig) validate() error {
-	validateCleanup := func(field string, cleanup *AuthenticationCleanupSchedule) error {
-		if cleanup.Interval <= 0 {
-			return errFieldWrap(field+".cleanup.interval", errPositiveNonZeroDuration)
-		}
-
-		if cleanup.GracePeriod <= 0 {
-			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
-		}
-
-		return nil
-	}
-
 	for _, cleanup := range []struct {
 		name     string
 		schedule *AuthenticationCleanupSchedule
@@ -87,11 +75,13 @@ func (c *AuthenticationConfig) validate() error {
 			continue
 		}
 
-		if err := validateCleanup(
-			"authentication.methods."+cleanup.name,
-			cleanup.schedule,
-		); err != nil {
-			return err
+		field := "authentication.method" + cleanup.name
+		if cleanup.schedule.Interval <= 0 {
+			return errFieldWrap(field+".cleanup.interval", errPositiveNonZeroDuration)
+		}
+
+		if cleanup.schedule.GracePeriod <= 0 {
+			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
 		}
 	}
 
