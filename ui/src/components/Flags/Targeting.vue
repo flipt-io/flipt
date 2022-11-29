@@ -356,10 +356,15 @@ export default {
             .then((response) => {
               this.flag = response.data;
 
-              Api.get("/flags/" + key + "/rules").then((response) => {
-                this.rules = map(response.data.rules, (r) => {
+              Api.get("/flags/" + key + "/rules")
+	      	.then((response) => {
+                  this.rules = map(response.data.rules, (r) => {
                   return this.processRule(r);
-                });
+                })
+		.catch(() => {
+		  this.notifyError("Error loading flag with key: " + key);
+		  this.$router.push("/flags");
+		});
               });
             })
             .catch(() => {
@@ -410,7 +415,15 @@ export default {
               });
               distribution.variantKey = variant.key;
               rule.distributions.push(distribution);
-            });
+            })
+	    .catch((error) => {
+	      if (error.response && error.response.data) {
+		this.notifyError(capitalize(error.response.data.message));
+	      } else {
+		this.notifyError("Error creating distribution.");
+		console.error(error);
+	      }
+	    });
           });
 
           this.rules.push(rule);
