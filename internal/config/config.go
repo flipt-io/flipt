@@ -14,7 +14,7 @@ import (
 
 var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 	mapstructure.StringToTimeDurationHookFunc(),
-	mapstructure.StringToSliceHookFunc(","),
+	stringToSliceHookFunc(),
 	stringToEnumHookFunc(stringToLogEncoding),
 	stringToEnumHookFunc(stringToCacheBackend),
 	stringToEnumHookFunc(stringToScheme),
@@ -185,5 +185,25 @@ func stringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstruc
 		enum := mappings[data.(string)]
 
 		return enum, nil
+	}
+}
+
+// stringToSliceHookFunc returns a DecodeHookFunc that converts
+// string to []string by splitting using strings.Fields().
+func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Kind,
+		t reflect.Kind,
+		data interface{}) (interface{}, error) {
+		if f != reflect.String || t != reflect.Slice {
+			return data, nil
+		}
+
+		raw := data.(string)
+		if raw == "" {
+			return []string{}, nil
+		}
+
+		return strings.Fields(raw), nil
 	}
 }
