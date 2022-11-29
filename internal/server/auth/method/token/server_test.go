@@ -9,7 +9,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/server"
+	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
@@ -28,7 +28,7 @@ func TestServer(t *testing.T) {
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc_middleware.WithUnaryServerChain(
-				server.ErrorUnaryInterceptor,
+				middleware.ErrorUnaryInterceptor,
 			),
 		)
 		errC     = make(chan error)
