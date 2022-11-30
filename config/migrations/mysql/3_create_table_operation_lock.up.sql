@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS operation_lock (
+  operation VARCHAR(255) UNIQUE NOT NULL,
+  version INTEGER DEFAULT 0 NOT NULL,
+  last_acquired_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6),
+  acquired_until TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`operation`)
+);

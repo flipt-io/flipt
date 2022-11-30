@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/golang-migrate/migrate/v4"
@@ -177,6 +178,16 @@ func Open() (*Database, error) {
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
 			return nil, fmt.Errorf("enabling foreign key checks: %w", err)
 		}
+	}
+
+	db.SetConnMaxLifetime(2 * time.Minute)
+	db.SetConnMaxIdleTime(time.Minute)
+
+	// 2 minute timeout attempting to establish first connection
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		return nil, err
 	}
 
 	return &Database{

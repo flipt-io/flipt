@@ -42,10 +42,16 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 	t.Run(fmt.Sprintf("Create %d authentications", len(created)), func(t *testing.T) {
 		uniqueTokens := make(map[string]struct{}, len(created))
 		for i := 0; i < len(created); i++ {
+			// the first token will have a null expiration
+			var expires *timestamppb.Timestamp
+			if i > 0 {
+				expires = timestamppb.New(time.Unix(int64(i+1), 0))
+			}
+
 			token, auth, err := store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 				Method: auth.Method_METHOD_TOKEN,
 				// from t1 to t100.
-				ExpiresAt: timestamppb.New(time.Unix(int64(i+1), 0)),
+				ExpiresAt: expires,
 				Metadata: map[string]string{
 					"name":        fmt.Sprintf("foo_%d", i+1),
 					"description": "bar",
@@ -116,11 +122,11 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 	})
 
 	t.Run("Delete a single instance by ID", func(t *testing.T) {
-		req := storageauth.Delete(storageauth.WithID(created[0].Auth.Id))
+		req := storageauth.Delete(storageauth.WithID(created[99].Auth.Id))
 		err := store.DeleteAuthentications(ctx, req)
 		require.NoError(t, err)
 
-		auth, err := store.GetAuthenticationByClientToken(ctx, created[0].Token)
+		auth, err := store.GetAuthenticationByClientToken(ctx, created[99].Token)
 		var expected errors.ErrNotFound
 		if !assert.ErrorAs(t, err, &expected, "authentication still exists in the database") {
 			t.Log("Auth still exists", auth)
@@ -143,8 +149,9 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
 		require.NoError(t, err)
 
-		// ensure only the most recent 50 expires_at timestamped authentications remain
-		if !assert.Equal(t, allAuths(created[50:]), all) {
+		// ensure only the most recent 49 expires_at timestamped authentications remain
+		// along with the first authentication without an expiry
+		if !assert.Equal(t, allAuths(append(created[:1], created[50:99]...)), all) {
 			fmt.Println("Found:", len(all))
 		}
 	})
@@ -165,7 +172,28 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 		require.NoError(t, err)
 
 		// ensure only the most recent 25 expires_at timestamped authentications remain
-		if !assert.Equal(t, allAuths(created[75:]), all) {
+		if !assert.Equal(t, allAuths(append(created[:1], created[75:99]...)), all) {
+			fmt.Println("Found:", len(all))
+		}
+	})
+
+	t.Run("Delete the rest of the tokens with an expiration", func(t *testing.T) {
+		// all tokens with expiry before t76
+		req := storageauth.Delete(
+			storageauth.WithExpiredBefore(time.Unix(101, 0).UTC()),
+		)
+
+		err := store.DeleteAuthentications(
+			ctx,
+			req,
+		)
+		require.NoError(t, err)
+
+		all, err := storage.ListAll(ctx, store.ListAuthentications, storage.ListAllParams{})
+		require.NoError(t, err)
+
+		// ensure only the the first token with no expiry exists
+		if !assert.Equal(t, allAuths(created[:1]), all) {
 			fmt.Println("Found:", len(all))
 		}
 	})
