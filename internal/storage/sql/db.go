@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"net/url"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/XSAM/otelsql"
@@ -117,6 +118,9 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	if err != nil {
 		return nil, 0, fmt.Errorf("opening db for driver: %s %w", d, err)
 	}
+
+	db.SetConnMaxLifetime(2 * time.Minute)
+	db.SetConnMaxIdleTime(time.Minute)
 
 	return db, d, nil
 }
