@@ -183,6 +183,13 @@ func Open() (*Database, error) {
 	db.SetConnMaxLifetime(2 * time.Minute)
 	db.SetConnMaxIdleTime(time.Minute)
 
+	// 2 minute timeout attempting to establish first connection
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		return nil, err
+	}
+
 	return &Database{
 		DB:        db,
 		Driver:    driver,
