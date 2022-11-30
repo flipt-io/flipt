@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+includes:
+  - from_file:
+      path: .goreleaser.yml
+
+docker_manifests:
+  - name_template: "flipt/flipt:nightly"
+    image_templates:
+      - "flipt/flipt:{{ incpatch .Version }}-nightly-amd64"
+      - "flipt/flipt:{{ incpatch .Version }}-nightly-arm64"
+
+  - name_template: "markphelps/flipt:nightly"
+    image_templates:
+      - "flipt/flipt:{{ incpatch .Version }}-nightly-amd64"
+      - "flipt/flipt:{{ incpatch .Version }}-nightly-arm64"
+
+  - name_template: "ghcr.io/flipt-io/flipt:nightly"
+    image_templates:
+      - "ghcr.io/flipt-io/flipt:{{ incpatch .Version }}-nightly-amd64"
+      - "ghcr.io/flipt-io/flipt:{{ incpatch .Version }}-nightly-arm64"
