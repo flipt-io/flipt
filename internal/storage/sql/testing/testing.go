@@ -216,7 +216,9 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "cockroachdb/cockroach:latest-v21.2",
 			ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-			WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
+			WaitingFor: wait.ForSQL(port, "postgres", func(host string, port nat.Port) string {
+				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port.Port())
+			}),
 			Env: map[string]string{
 				"COCKROACH_USER":     "root",
 				"COCKROACH_DATABASE": "defaultdb",
