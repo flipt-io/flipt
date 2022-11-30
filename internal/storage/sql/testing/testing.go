@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/docker/go-connections/nat"
@@ -38,6 +39,7 @@ func (d *Database) Shutdown(ctx context.Context) {
 	}
 
 	if d.Container != nil {
+		_ = d.Container.StopLogProducer()
 		_ = d.Container.Terminate(ctx)
 	}
 }
@@ -216,7 +218,9 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		req = testcontainers.ContainerRequest{
 			Image:        "cockroachdb/cockroach:latest-v21.2",
 			ExposedPorts: []string{"26257/tcp", "8080/tcp"},
-			WaitingFor:   wait.ForHTTP("/health").WithPort("8080"),
+			WaitingFor: wait.ForSQL(port, "postgres", func(host string, port nat.Port) string {
+				return fmt.Sprintf("postgres://root@%s:%s/defaultdb?sslmode=disable", host, port.Port())
+			}),
 			Env: map[string]string{
 				"COCKROACH_USER":     "root",
 				"COCKROACH_DATABASE": "defaultdb",
@@ -248,6 +252,13 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		return nil, err
 	}
 
+	if err := container.StartLogProducer(ctx); err != nil {
+		return nil, err
+	}
+
+	var logger testContainerLogger
+	container.FollowOutput(&logger)
+
 	mappedPort, err := container.MappedPort(ctx, port)
 	if err != nil {
 		return nil, err
@@ -259,4 +270,10 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 	}
 
 	return &DBContainer{Container: container, Host: hostIP, Port: mappedPort.Int()}, nil
+}
+
+type testContainerLogger struct{}
+
+func (t testContainerLogger) Accept(entry testcontainers.Log) {
+	log.Println(entry.LogType, ":", string(entry.Content))
 }
