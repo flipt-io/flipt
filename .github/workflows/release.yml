@@ -71,7 +71,7 @@ jobs:
         env:
           TAG: ${{ github.ref }}
         run: |
-          if [[ $(git tag -l --sort=-version:refname | head -n 1) == $TAG ]]; then
+          if [[ $TAG =~ $(git tag -l --sort=-version:refname | head -n 1) ]]; then
             docker tag flipt/flipt:$TAG flipt/flipt:latest
             docker tag markphelps/flipt:$TAG markphelps/flipt:latest
             docker tag ghcr.io/flipt-io/flipt:$TAG ghcr.io/flipt-io/flipt:latest
