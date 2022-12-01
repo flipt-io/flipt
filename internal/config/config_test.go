@@ -218,6 +218,13 @@ func defaultConfig() *Config {
 			TelemetryEnabled: true,
 			StateDirectory:   "",
 		},
+
+		Authentication: AuthenticationConfig{
+			Session: AuthenticationSession{
+				TokenLifetime: 24 * time.Hour,
+				StateLifetime: 10 * time.Minute,
+			},
+		},
 	}
 }
 
@@ -420,9 +427,30 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
+					Session: AuthenticationSession{
+						Domain:        "auth.flipt.io",
+						Secure:        true,
+						TokenLifetime: 24 * time.Hour,
+						StateLifetime: 10 * time.Minute,
+					},
 					Methods: AuthenticationMethods{
 						Token: AuthenticationMethodTokenConfig{
 							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						OIDC: AuthenticationMethodOIDCConfig{
+							Enabled: true,
+							Providers: AuthenticationMethodOIDCProviders{
+								Google: &AuthenticationMethodOIDCProviderGoogle{
+									IssuerURL:       "http://accounts.google.com",
+									ClientID:        "abcdefg",
+									ClientSecret:    "bcdefgh",
+									RedirectAddress: "http://auth.flipt.io",
+								},
+							},
 							Cleanup: &AuthenticationCleanupSchedule{
 								Interval:    2 * time.Hour,
 								GracePeriod: 48 * time.Hour,

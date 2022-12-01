@@ -1,0 +1,191 @@
+package oidc
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/coreos/go-oidc/v3/oidc"
+	capoidc "github.com/hashicorp/cap/oidc"
+	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/config"
+	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+const (
+	storageMetadataOIDCProviderKey = "io.flipt.auth.oidc.provider"
+	storageMetadataIDEmailKey      = "io.flipt.auth.id.email"
+)
+
+// errProviderNotFound is returned when a provider is requested which
+// was not configured
+var errProviderNotFound = errors.ErrNotFound("provider not found")
+
+type Server struct {
+	logger *zap.Logger
+	store  storageauth.Store
+	config config.AuthenticationConfig
+
+	auth.UnimplementedAuthenticationMethodOIDCServiceServer
+}
+
+func NewServer(
+	logger *zap.Logger,
+	store storageauth.Store,
+	config config.AuthenticationConfig,
+) *Server {
+	return &Server{
+		logger: logger,
+		store:  store,
+		config: config,
+	}
+}
+
+// RegisterGRPC registers the server as an Server on the provided grpc server.
+func (s *Server) RegisterGRPC(server *grpc.Server) {
+	auth.RegisterAuthenticationMethodOIDCServiceServer(server, s)
+}
+
+// AuthorizeURL constructs and returns a URL directed at the requested OIDC provider
+// based on our internal oauth2 client configuration.
+// The operation is configured to return a URL which ultimately redirects to the
+// callback operation below.
+func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
+	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
+	if err != nil {
+		return nil, fmt.Errorf("authorize: %w", err)
+	}
+
+	// Create an auth URL
+	authURL, err := provider.AuthURL(context.Background(), oidcRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.AuthorizeURLResponse{AuthorizeUrl: authURL}, nil
+}
+
+// Callback attempts to authenticate a callback request from a delegated authorization service.
+// The supplied state metadata compared with the request state and ensured to be equal.
+// The provided code is exchanged with the associated provider for an "id_token".
+// We verify the retrieved "id_token" is valid and for our client.
+// Once verified we extract the users associated email address.
+// Given all this completes successfully then we established an associated clientToken in
+// the backing authentication store with the identity information retrieved as metadata.
+func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *auth.CallbackResponse, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("handling OIDC callback: %w", err)
+		}
+	}()
+
+	if req.State != "" {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, errors.New("missing metadata")
+		}
+
+		state, ok := md["flipt_client_state"]
+		if !ok || len(state) < 1 {
+			return nil, errors.New("missing state")
+		}
+
+		if req.State != state[0] {
+			return nil, errors.New("unexpected state")
+		}
+	}
+
+	provider, oidcRequest, err := s.providerFor(req.Provider, req.State)
+	if err != nil {
+		return nil, err
+	}
+
+	responseToken, err := provider.Exchange(ctx, oidcRequest, req.State, req.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract custom claims
+	var claims struct {
+		Email    string `json:"email"`
+		Verified bool   `json:"email_verified"`
+	}
+	if err := responseToken.IDToken().Claims(&claims); err != nil {
+		return nil, err
+	}
+
+	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
+		Method:    auth.Method_METHOD_OIDC,
+		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
+		Metadata: map[string]string{
+			storageMetadataIDEmailKey:      claims.Email,
+			storageMetadataOIDCProviderKey: req.Provider.String(),
+		},
+	})
+	if err != nil {
+		return nil, err
+
+	}
+
+	return &auth.CallbackResponse{
+		ClientToken:    clientToken,
+		Authentication: a,
+	}, nil
+}
+
+func callbackURL(host, provider string) string {
+	return host + "/auth/v1/method/oidc/" + provider + "/callback"
+}
+
+func (s *Server) providerFor(provider auth.OIDCProvider, state string) (*capoidc.Provider, *capoidc.Req, error) {
+	var (
+		providerConfig = s.config.Methods.OIDC.Providers
+		config         *capoidc.Config
+		callback       string
+		scopes         []string
+	)
+
+	switch provider {
+	case auth.OIDCProvider_OIDC_PROVIDER_GOOGLE:
+		// Create a new provider config
+		google := providerConfig.Google
+
+		callback = callbackURL(google.RedirectAddress, "google")
+		scopes = []string{"profile", "email"}
+
+		var err error
+		config, err = capoidc.NewConfig(
+			google.IssuerURL,
+			google.ClientID,
+			capoidc.ClientSecret(google.ClientSecret),
+			[]capoidc.Alg{oidc.RS256},
+			[]string{callback},
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+	default:
+		return nil, nil, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
+	}
+
+	p, err := capoidc.NewProvider(config)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := capoidc.NewRequest(2*time.Minute, callback,
+		capoidc.WithState(state),
+		capoidc.WithScopes(scopes...),
+		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return p, req, nil
+}

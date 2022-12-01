@@ -42,9 +42,23 @@ meta:
 
 authentication:
   required: true
+  session:
+    domain: "auth.flipt.io"
+    secure: true
   methods:
     token:
       enabled: true
+      cleanup:
+         interval: 2h
+         grace_period: 48h
+    oidc:
+      enabled: true
+      providers:
+        google:
+          issuer_url: "http://accounts.google.com"
+          client_id: "abcdefg"
+          client_secret: "bcdefgh"
+          redirect_address: "http://auth.flipt.io"
       cleanup:
          interval: 2h
          grace_period: 48h
