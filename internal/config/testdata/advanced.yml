@@ -8,7 +8,7 @@ ui:
 
 cors:
   enabled: true
-  allowed_origins: "foo.com,bar.com"
+  allowed_origins: "foo.com bar.com  baz.com"
 
 cache:
   enabled: true
@@ -39,3 +39,12 @@ db:
 meta:
   check_for_updates: false
   telemetry_enabled: false
+
+authentication:
+  required: true
+  methods:
+    token:
+      enabled: true
+      cleanup:
+         interval: 2h
+         grace_period: 48h

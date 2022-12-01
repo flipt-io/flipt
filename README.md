@@ -146,18 +146,25 @@ Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is com
 
 The [Flipt REST API](https://flipt.io/docs/api/) can also be used with any language that can make HTTP requests.
 
-:exclamation: Offical generated REST clients coming soon.
+### Official REST Client Libraries
+
+- [Node/TypeScript](https://github.com/flipt-io/flipt-node)
+- [Java](https://github.com/flipt-io/flipt-java)
+
+:exclamation: Offical REST clients in more languages coming soon.
 
 ### Official GRPC Client Libraries
 
 - [Go](https://github.com/flipt-io/flipt-grpc-go)
 - [Ruby](https://github.com/flipt-io/flipt-grpc-ruby)
 
-:exclamation: Offical GRPC clients in other languages coming soon.
+:exclamation: Offical GRPC clients in more languages coming soon.
 
 ### Third-Party Client Libraries
 
-Client libraries built by awesome people from the Open Source community:
+Client libraries built by awesome people from the Open Source community.
+
+Note: These libraries are not maintained by the Flipt team and may not be up to date with the latest version of Flipt. Please open an issue or pull request on the library’s repository if you find any issues.
 
 | Library                                                             | Language   | Author                                                   | Desc                                                                                            |
 | ------------------------------------------------------------------- | ---------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |

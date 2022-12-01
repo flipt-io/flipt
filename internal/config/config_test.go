@@ -353,6 +353,16 @@ func TestLoad(t *testing.T) {
 			wantErr: errValidationRequired,
 		},
 		{
+			name:    "authentication - negative interval",
+			path:    "./testdata/authentication/negative_interval.yml",
+			wantErr: errPositiveNonZeroDuration,
+		},
+		{
+			name:    "authentication - zero grace_period",
+			path:    "./testdata/authentication/zero_grace_period.yml",
+			wantErr: errPositiveNonZeroDuration,
+		},
+		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
@@ -368,7 +378,7 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
-					AllowedOrigins: []string{"foo.com", "bar.com"},
+					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
 				}
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
@@ -401,6 +411,18 @@ func TestLoad(t *testing.T) {
 				cfg.Meta = MetaConfig{
 					CheckForUpdates:  false,
 					TelemetryEnabled: false,
+				}
+				cfg.Authentication = AuthenticationConfig{
+					Required: true,
+					Methods: AuthenticationMethods{
+						Token: AuthenticationMethodTokenConfig{
+							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+					},
 				}
 				return cfg
 			},

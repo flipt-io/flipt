@@ -14,11 +14,12 @@ import (
 
 var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 	mapstructure.StringToTimeDurationHookFunc(),
-	mapstructure.StringToSliceHookFunc(","),
+	stringToSliceHookFunc(),
 	stringToEnumHookFunc(stringToLogEncoding),
 	stringToEnumHookFunc(stringToCacheBackend),
 	stringToEnumHookFunc(stringToScheme),
 	stringToEnumHookFunc(stringToDatabaseProtocol),
+	stringToEnumHookFunc(stringToAuthMethod),
 )
 
 // Config contains all of Flipts configuration needs.
@@ -134,8 +135,8 @@ func bindEnvVars(v *viper.Viper, prefix string, field reflect.StructField) {
 
 	// descend into struct fields
 	if typ.Kind() == reflect.Struct {
-		for i := 0; i < field.Type.NumField(); i++ {
-			structField := field.Type.Field(i)
+		for i := 0; i < typ.NumField(); i++ {
+			structField := typ.Field(i)
 
 			// key becomes prefix for sub-fields
 			bindEnvVars(v, key+".", structField)
@@ -186,5 +187,25 @@ func stringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstruc
 		enum := mappings[data.(string)]
 
 		return enum, nil
+	}
+}
+
+// stringToSliceHookFunc returns a DecodeHookFunc that converts
+// string to []string by splitting using strings.Fields().
+func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Kind,
+		t reflect.Kind,
+		data interface{}) (interface{}, error) {
+		if f != reflect.String || t != reflect.Slice {
+			return data, nil
+		}
+
+		raw := data.(string)
+		if raw == "" {
+			return []string{}, nil
+		}
+
+		return strings.Fields(raw), nil
 	}
 }
