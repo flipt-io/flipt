@@ -40,7 +40,7 @@ jobs:
       - name: GoReleaser (Snapshot)
         uses: goreleaser/goreleaser-action@v3
         with:
-          distribution: goreleaser
+          distribution: goreleaser-pro
           version: latest
           args: release --rm-dist --snapshot
         env:

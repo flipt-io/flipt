@@ -5,9 +5,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [v1.16.0](https://github.com/flipt-io/flipt/releases/tag/v1.16.0) - 2022-11-30
+
+### Added
+
+- Automatic authentication background cleanup process [#1161](https://github.com/flipt-io/flipt/pull/1161).
+
+### Fixed
+
+- Fix configuration unmarshalling from `string` to `[]string` to delimit on `" "` vs `","` [#1179](https://github.com/flipt-io/flipt/pull/1179)
+- Dont log warnings when telemetry cannot report [#1156](https://github.com/flipt-io/flipt/pull/1156)
+
 ### Changed
 
 - Switched to use otel abstractions for recording metrics [#1147](https://github.com/flipt-io/flipt/pull/1147).
+- Dependency updates
 
 ## [v1.15.1](https://github.com/flipt-io/flipt/releases/tag/v1.15.1) - 2022-11-28
 
