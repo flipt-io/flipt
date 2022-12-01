@@ -361,9 +361,6 @@
       "properties": {
         "provider": {
           "$ref": "#/definitions/authOIDCProvider"
-        },
-        "state": {
-          "type": "string"
         }
       }
     },

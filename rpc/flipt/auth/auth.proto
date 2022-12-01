@@ -170,7 +170,6 @@ enum OIDCProvider {
 
 message CreateAuthorizeURLRequest {
   OIDCProvider provider = 1;
-  string state = 2;
 }
 
 message CreateAuthorizeURLResponse {
