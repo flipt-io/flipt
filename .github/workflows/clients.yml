@@ -7,7 +7,7 @@ on:
 
 name: Release Updates to GRPC Clients
 jobs:
-  release_client:
+  clients:
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
