@@ -1,44 +1,44 @@
-# log:
-#   level: INFO
-#   file:
-#   encoding: console
-#   grpc_level: ERROR
+# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/json-schema/config/flipt.schema.json
 
-# ui:
-#   enabled: true
+log:
+  level: INFO
+  encoding: console
+  grpc_level: ERROR
 
-# cors:
-#   enabled: false
-#   allowed_origins: "*"
+cors:
+  enabled: false
+  allowed_origins: "*"
 
-# cache:
-#   enabled: false
-#   backend: memory
-#   ttl: 60s
-#   redis:
-#     host: localhost
-#     port: 6379
-#   memory:
-#     eviction_interval: 5m # Evict Expired Items Every 5m
+cache:
+  enabled: false
+  backend: memory
+  ttl: 60s
+  redis:
+    host: localhost
+    port: 6379
 
-# server:
-#   protocol: http
-#   host: 0.0.0.0
-#   https_port: 443
-#   http_port: 8080
-#   grpc_port: 9000
+  memory:
+    eviction_interval: 5m # Evict Expired Items Every 5m
 
-# db:
-#   url: file:/var/opt/flipt/flipt.db
-#   max_idle_conn: 2
-#   max_open_conn: 0 # unlimited
-#   conn_max_lifetime: 0 # unlimited
+server:
+  protocol: http
+  host: 0.0.0.0
+  https_port: 443
+  http_port: 8080
+  grpc_port: 9000
 
-# tracing:
-#   jaeger:
-#     enabled: false
-#     host: localhost
-#     port: 6831
+db:
+  url: file:/var/opt/flipt/flipt.db
+  max_idle_conn: 2
+  max_open_conn: 0 # unlimited
+  conn_max_lifetime: 0 # unlimited
+  protocol: sqlite
 
-# meta:
-#   check_for_updates: true
+tracing:
+  jaeger:
+    enabled: false
+    host: localhost
+    port: 6831
+
+meta:
+  check_for_updates: true
