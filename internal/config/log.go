@@ -15,7 +15,7 @@ type LogConfig struct {
 	Level     string      `json:"level,omitempty" mapstructure:"level"`
 	File      string      `json:"file,omitempty" mapstructure:"file"`
 	Encoding  LogEncoding `json:"encoding,omitempty" mapstructure:"encoding"`
-	GRPCLevel string      `json:"grpc_level,omitempty" mapstructure:"grpc_level"`
+	GRPCLevel string      `json:"grpcLevel,omitempty" mapstructure:"grpc_level"`
 }
 
 func (c *LogConfig) setDefaults(v *viper.Viper) []string {

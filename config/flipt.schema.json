@@ -3,7 +3,6 @@
   "$ref": "#/definitions/FliptConfig",
   "definitions": {
     "FliptConfig": {
-      "$id": "flipt-config",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -16,8 +15,8 @@
         "cors": {
           "$ref": "#/definitions/cors"
         },
-        "db": {
-          "$ref": "#/definitions/db"
+        "database": {
+          "$ref": "#/definitions/database"
         },
         "log": {
           "$ref": "#/definitions/log"
@@ -39,7 +38,6 @@
       "title": "Flipt Config"
     },
     "authentication": {
-      "$id": "authentication",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -48,7 +46,6 @@
           "default": false
         },
         "methods": {
-          "$id": "authentication-methods",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -73,7 +70,6 @@
       },
       "required": [],
       "title": "Authentication",
-
       "definitions": {
         "cleanup": {
           "$id": "authentication-cleanup",
@@ -81,11 +77,27 @@
           "additionalProperties": false,
           "properties": {
             "interval": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
               "default": "1h"
             },
-            "grace_period": {
-              "type": "string",
+            "gracePeriod": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
               "default": "30m"
             }
           },
@@ -95,7 +107,6 @@
       }
     },
     "cache": {
-      "$id": "cache",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -109,11 +120,18 @@
           "default": "memory"
         },
         "ttl": {
-          "type": "string",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+            },
+            {
+              "type": "integer"
+            }
+          ],
           "default": "60s"
         },
         "redis": {
-          "$id": "cache-redis",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -137,12 +155,19 @@
           "title": "Redis"
         },
         "memory": {
-          "$id": "cache-memory",
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "eviction_interval": {
-              "type": "string",
+            "evictionInterval": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
               "default": "5m"
             }
           },
@@ -154,7 +179,6 @@
       "title": "Cache"
     },
     "cors": {
-      "$id": "cors",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -162,16 +186,15 @@
           "type": "boolean",
           "default": false
         },
-        "allowed_origins": {
-          "type": "string",
-          "default": "*"
+        "allowedOrigins": {
+          "type": "array",
+          "default": ["*"]
         }
       },
       "required": [],
       "title": "Cors"
     },
-    "db": {
-      "$id": "db",
+    "database": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -205,14 +228,14 @@
         "password": {
           "type": "string"
         },
-        "max_idle_conn": {
+        "maxIdleConn": {
           "type": "integer",
           "default": 2
         },
-        "max_open_conn": {
+        "maxOpenConn": {
           "type": "integer"
         },
-        "conn_max_lifetime": {
+        "connMaxLifetime": {
           "type": "integer"
         }
       },
@@ -220,7 +243,6 @@
       "title": "DB"
     },
     "log": {
-      "$id": "log",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -233,11 +255,10 @@
           "default": "console"
         },
         "level": { "$ref": "log-level" },
-        "grpc_level": { "$ref": "log-level" }
+        "grpcLevel": { "$ref": "log-level" }
       },
       "required": [],
       "title": "Log",
-
       "definitions": {
         "level": {
           "$id": "log-level",
@@ -262,19 +283,18 @@
       }
     },
     "meta": {
-      "$id": "meta",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "check_for_updates": {
+        "checkForUpdates": {
           "type": "boolean",
           "default": true
         },
-        "telemetry_enabled": {
+        "telemetryEnabled": {
           "type": "boolean",
           "default": true
         },
-        "state_directory": {
+        "stateDirectory": {
           "type": "string",
           "default": "$HOME/.config/flipt"
         }
@@ -283,7 +303,6 @@
       "title": "Meta"
     },
     "server": {
-      "$id": "server",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -296,22 +315,22 @@
           "type": "string",
           "default": "0.0.0.0"
         },
-        "https_port": {
+        "httpsPort": {
           "type": "integer",
           "default": 443
         },
-        "http_port": {
+        "httpPort": {
           "type": "integer",
           "default": 8080
         },
-        "grpc_port": {
+        "grpcPort": {
           "type": "integer",
           "default": 9000
         },
-        "cert_file": {
+        "certFile": {
           "type": "string"
         },
-        "cert_key": {
+        "certKey": {
           "type": "string"
         }
       },
@@ -319,12 +338,10 @@
       "title": "Server"
     },
     "tracing": {
-      "$id": "tracing",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "jaeger": {
-          "$id": "tracing-jaeger",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -347,7 +364,6 @@
       "title": "Tracing"
     },
     "ui": {
-      "$id": "ui",
       "type": "object",
       "additionalProperties": false,
       "properties": {
