@@ -5,7 +5,7 @@ on:
         description: Flipt release version tag to generate
         required: true
 
-name: Release Updates to GRPC Clients
+name: Update gRPC Client Repositories
 jobs:
   clients:
     runs-on: ubuntu-latest
