@@ -1,42 +1,41 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/FliptConfig",
-  "definitions": {
-    "FliptConfig": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "authentication": {
-          "$ref": "#/definitions/authentication"
-        },
-        "cache": {
-          "$ref": "#/definitions/cache"
-        },
-        "cors": {
-          "$ref": "#/definitions/cors"
-        },
-        "db": {
-          "$ref": "#/definitions/db"
-        },
-        "log": {
-          "$ref": "#/definitions/log"
-        },
-        "meta": {
-          "$ref": "#/definitions/meta"
-        },
-        "server": {
-          "$ref": "#/definitions/server"
-        },
-        "tracing": {
-          "$ref": "#/definitions/tracing"
-        },
-        "ui": {
-          "$ref": "#/definitions/ui"
-        }
-      },
-      "required": [],
-      "title": "Flipt Config"
+  "$schema": "http://json-schema.org/draft/2019-09/schema#",
+  "id": "flipt.schema.json",
+  "type": "object",
+  "title": "Flipt Configuration Specification",
+  "description": "Flipt config file is a YAML file defining how to configure the Flipt application.",
+
+  "properties": {
+    "authentication": {
+      "$ref": "#/definitions/authentication"
     },
+    "cache": {
+      "$ref": "#/definitions/cache"
+    },
+    "cors": {
+      "$ref": "#/definitions/cors"
+    },
+    "db": {
+      "$ref": "#/definitions/db"
+    },
+    "log": {
+      "$ref": "#/definitions/log"
+    },
+    "meta": {
+      "$ref": "#/definitions/meta"
+    },
+    "server": {
+      "$ref": "#/definitions/server"
+    },
+    "tracing": {
+      "$ref": "#/definitions/tracing"
+    },
+    "ui": {
+      "$ref": "#/definitions/ui"
+    }
+  },
+
+  "definitions": {
     "authentication": {
       "type": "object",
       "additionalProperties": false,
@@ -57,7 +56,7 @@
                   "default": false
                 },
                 "cleanup": {
-                  "$ref": "authentication_cleanup"
+                  "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
                 }
               },
               "required": [],
@@ -70,14 +69,14 @@
       },
       "required": [],
       "title": "Authentication",
-      "definitions": {
+      "$defs": {
         "authentication_cleanup": {
           "$id": "authentication_cleanup",
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "interval": {
-              "anyOf": [
+              "oneOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
@@ -89,7 +88,7 @@
               "default": "1h"
             },
             "grace_period": {
-              "anyOf": [
+              "oneOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
@@ -120,7 +119,7 @@
           "default": "memory"
         },
         "ttl": {
-          "anyOf": [
+          "oneOf": [
             {
               "type": "string",
               "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
@@ -159,7 +158,7 @@
           "additionalProperties": false,
           "properties": {
             "eviction_interval": {
-              "anyOf": [
+              "oneOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
@@ -254,14 +253,19 @@
           "enum": ["json", "console"],
           "default": "console"
         },
-        "level": { "$ref": "log_level" },
-        "grpc_level": { "$ref": "log_level" }
+        "level": {
+          "$ref": "#/definitions/log/$defs/log_level",
+          "type": "string"
+        },
+        "grpc_level": {
+          "$ref": "#/definitions/log/$defs/log_level",
+          "type": "string"
+        }
       },
       "required": [],
       "title": "Log",
-      "definitions": {
+      "$defs": {
         "log_level": {
-          "$id": "log_level",
           "type": "string",
           "enum": [
             "debug",
