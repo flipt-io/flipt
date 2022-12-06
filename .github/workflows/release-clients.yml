@@ -20,14 +20,15 @@ jobs:
           private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
           installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
       - name: Trigger Workflow (Dispatch)
-        if: ${{ github.event.name == "workflow_dispatch" }}
+        if: ${{ github.event_name == "workflow_dispatch" }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${{ inputs.tag }}"
       - name: Trigger Workflow (Release)
-        if: ${{ github.event.name == "release" }}
+        if: ${{ github.event_name == "release" }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${{ inputs.tag }}"
+          tag=$(echo $GITHUB_REF | sed 's#refs/tags/##')
+          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${tag}"
