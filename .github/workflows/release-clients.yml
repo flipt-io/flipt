@@ -21,4 +21,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          gh workflow run proto-update.yml -R flipt-io/flipt-grpc-go -f tag="${{ inputs.tag }}"
+          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${{ inputs.tag }}"
