@@ -57,7 +57,7 @@
                   "default": false
                 },
                 "cleanup": {
-                  "$ref": "authentication-cleanup"
+                  "$ref": "authentication_cleanup"
                 }
               },
               "required": [],
@@ -71,8 +71,8 @@
       "required": [],
       "title": "Authentication",
       "definitions": {
-        "authentication-cleanup": {
-          "$id": "authentication-cleanup",
+        "authentication_cleanup": {
+          "$id": "authentication_cleanup",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -254,14 +254,14 @@
           "enum": ["json", "console"],
           "default": "console"
         },
-        "level": { "$ref": "log-level" },
-        "grpc_level": { "$ref": "log-level" }
+        "level": { "$ref": "log_level" },
+        "grpc_level": { "$ref": "log_level" }
       },
       "required": [],
       "title": "Log",
       "definitions": {
-        "log-level": {
-          "$id": "log-level",
+        "log_level": {
+          "$id": "log_level",
           "type": "string",
           "enum": [
             "debug",
