@@ -51,22 +51,6 @@
       "title": "Authentication",
 
       "$defs": {
-        "cleanup": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "interval": {
-              "type": "string",
-              "default": "1h"
-            },
-            "grace_period": {
-              "type": "string",
-              "default": "30m"
-            }
-          },
-          "required": [],
-          "title": "Cleanup"
-        },
         "methods": {
           "type": "object",
           "additionalProperties": false,
@@ -92,6 +76,22 @@
           },
           "required": [],
           "title": "Token"
+        },
+        "cleanup": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "interval": {
+              "type": "string",
+              "default": "1h"
+            },
+            "grace_period": {
+              "type": "string",
+              "default": "30m"
+            }
+          },
+          "required": [],
+          "title": "Cleanup"
         }
       }
     },
