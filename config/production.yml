@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/json-schema/config/flipt.schema.json
-
 log:
   level: WARN
   encoding: json
