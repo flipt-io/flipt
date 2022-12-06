@@ -6,35 +6,96 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "authentication": {
+          "$ref": "#/definitions/authentication"
+        },
         "cache": {
-          "$ref": "#/definitions/Cache"
+          "$ref": "#/definitions/cache"
         },
         "cors": {
-          "$ref": "#/definitions/Cors"
+          "$ref": "#/definitions/cors"
         },
         "db": {
-          "$ref": "#/definitions/DB"
+          "$ref": "#/definitions/db"
         },
         "log": {
-          "$ref": "#/definitions/Log"
+          "$ref": "#/definitions/log"
         },
         "meta": {
-          "$ref": "#/definitions/Meta"
+          "$ref": "#/definitions/meta"
         },
         "server": {
-          "$ref": "#/definitions/Server"
+          "$ref": "#/definitions/server"
         },
         "tracing": {
-          "$ref": "#/definitions/Tracing"
+          "$ref": "#/definitions/tracing"
         },
         "ui": {
-          "$ref": "#/definitions/UI"
+          "$ref": "#/definitions/ui"
         }
       },
       "required": [],
       "title": "Flipt Config"
     },
-    "Cache": {
+    "authentication": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "methods": { "$ref": "#/$defs/methods" }
+      },
+      "required": [],
+      "title": "Authentication",
+
+      "$defs": {
+        "cleanup": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "interval": {
+              "type": "string",
+              "default": "1h"
+            },
+            "grace_period": {
+              "type": "string",
+              "default": "30m"
+            }
+          },
+          "required": [],
+          "title": "Cleanup"
+        },
+        "methods": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "token": {
+              "$ref": "#/$defs/token"
+            }
+          },
+          "required": [],
+          "title": "Methods"
+        },
+        "token": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "cleanup": {
+              "$ref": "#/$defs/cleanup"
+            }
+          },
+          "required": [],
+          "title": "Token"
+        }
+      }
+    },
+    "cache": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -52,51 +113,54 @@
           "default": "60s"
         },
         "redis": {
-          "$ref": "#/definitions/Redis"
+          "$ref": "#/$defs/redis"
         },
         "memory": {
-          "$ref": "#/definitions/Memory"
+          "$ref": "#/$defs/memory"
         }
       },
       "required": [],
-      "title": "Cache"
-    },
-    "Memory": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "eviction_interval": {
-          "type": "string",
-          "default": "5m"
+      "title": "Cache",
+
+      "$defs": {
+        "memory": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "eviction_interval": {
+              "type": "string",
+              "default": "5m"
+            }
+          },
+          "required": [],
+          "title": "Memory"
+        },
+        "redis": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "host": {
+              "type": "string",
+              "default": "localhost"
+            },
+            "port": {
+              "type": "integer",
+              "default": 6379
+            },
+            "db": {
+              "type": "integer",
+              "default": 0
+            },
+            "password": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "title": "Redis"
         }
-      },
-      "required": [],
-      "title": "Memory"
+      }
     },
-    "Redis": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "host": {
-          "type": "string",
-          "default": "localhost"
-        },
-        "port": {
-          "type": "integer",
-          "default": 6379
-        },
-        "db": {
-          "type": "integer",
-          "default": 0
-        },
-        "password": {
-          "type": "string"
-        }
-      },
-      "required": [],
-      "title": "Redis"
-    },
-    "Cors": {
+    "cors": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -112,12 +176,13 @@
       "required": [],
       "title": "Cors"
     },
-    "DB": {
+    "db": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "url": {
-          "type": "string"
+          "type": "string",
+          "default": "file:/var/opt/flipt/flipt.db"
         },
         "protocol": {
           "type": "string",
@@ -146,7 +211,8 @@
           "type": "string"
         },
         "max_idle_conn": {
-          "type": "integer"
+          "type": "integer",
+          "default": 2
         },
         "max_open_conn": {
           "type": "integer"
@@ -158,7 +224,7 @@
       "required": [],
       "title": "DB"
     },
-    "Log": {
+    "log": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -170,14 +236,14 @@
           "enum": ["json", "console"],
           "default": "console"
         },
-        "level": { "$ref": "#/defs/Level", "default": "INFO" },
-        "grpc_level": { "$ref": "#/defs/Level", "default": "ERROR" }
+        "level": { "$ref": "#/$defs/level", "default": "INFO" },
+        "grpc_level": { "$ref": "#/$defs/level", "default": "ERROR" }
       },
       "required": [],
       "title": "Log",
 
       "$defs": {
-        "Level": {
+        "level": {
           "type": "string",
           "enum": [
             "debug",
@@ -198,7 +264,7 @@
         }
       }
     },
-    "Meta": {
+    "meta": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -218,7 +284,7 @@
       "required": [],
       "title": "Meta"
     },
-    "Server": {
+    "server": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -253,36 +319,39 @@
       "required": [],
       "title": "Server"
     },
-    "Tracing": {
+    "tracing": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "jaeger": {
-          "$ref": "#/definitions/Jaeger"
+          "$ref": "#/$defs/jaeger"
         }
       },
-      "title": "Tracing"
-    },
-    "Jaeger": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false
-        },
-        "host": {
-          "type": "string",
-          "default": "localhost"
-        },
-        "port": {
-          "type": "integer",
-          "default": 6831
+      "title": "Tracing",
+
+      "$defs": {
+        "jaeger": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "host": {
+              "type": "string",
+              "default": "localhost"
+            },
+            "port": {
+              "type": "integer",
+              "default": 6831
+            }
+          },
+          "title": "Jaeger"
         }
-      },
-      "title": "Jaeger"
+      }
     },
-    "UI": {
+    "ui": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
