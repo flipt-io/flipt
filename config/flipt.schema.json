@@ -39,14 +39,17 @@
       "additionalProperties": false,
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "backend": {
           "type": "string",
-          "enum": ["memory", "redis"]
+          "enum": ["memory", "redis"],
+          "default": "memory"
         },
         "ttl": {
-          "type": "string"
+          "type": "string",
+          "default": "60s"
         },
         "redis": {
           "$ref": "#/definitions/Redis"
@@ -63,7 +66,8 @@
       "additionalProperties": false,
       "properties": {
         "eviction_interval": {
-          "type": "string"
+          "type": "string",
+          "default": "5m"
         }
       },
       "required": [],
@@ -74,13 +78,16 @@
       "additionalProperties": false,
       "properties": {
         "host": {
-          "type": "string"
+          "type": "string",
+          "default": "localhost"
         },
         "port": {
-          "type": "integer"
+          "type": "integer",
+          "default": 6379
         },
         "db": {
-          "type": "integer"
+          "type": "integer",
+          "default": 0
         },
         "password": {
           "type": "string"
@@ -94,10 +101,12 @@
       "additionalProperties": false,
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "allowed_origins": {
-          "type": "string"
+          "type": "string",
+          "default": "*"
         }
       },
       "required": [],
@@ -112,7 +121,14 @@
         },
         "protocol": {
           "type": "string",
-          "enum": ["sqlite", "cockroachdb", "postgres", "mysql"]
+          "enum": [
+            "cockroach",
+            "cockroachdb",
+            "file",
+            "mysql",
+            "postgres",
+            "sqlite"
+          ]
         },
         "host": {
           "type": "string"
@@ -137,9 +153,6 @@
         },
         "conn_max_lifetime": {
           "type": "integer"
-        },
-        "migrations_path": {
-          "type": "string"
         }
       },
       "required": [],
@@ -149,37 +162,57 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "level": {
-          "type": "string",
-          "enum": ["trace", "debug", "info", "warn", "error", "fatal", "panic"]
-        },
         "file": {
           "type": "string"
         },
         "encoding": {
           "type": "string",
-          "enum": ["json", "console"]
+          "enum": ["json", "console"],
+          "default": "console"
         },
-        "grpc_level": {
-          "type": "string",
-          "enum": ["trace", "debug", "info", "warn", "error", "fatal", "panic"]
-        }
+        "level": { "$ref": "#/defs/Level", "default": "INFO" },
+        "grpc_level": { "$ref": "#/defs/Level", "default": "ERROR" }
       },
       "required": [],
-      "title": "Log"
+      "title": "Log",
+
+      "$defs": {
+        "Level": {
+          "type": "string",
+          "enum": [
+            "debug",
+            "DEBUG",
+            "error",
+            "ERROR",
+            "fatal",
+            "FATAL",
+            "info",
+            "INFO",
+            "PANIC",
+            "panic",
+            "trace",
+            "TRACE",
+            "warn",
+            "WARN"
+          ]
+        }
+      }
     },
     "Meta": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "check_for_updates": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "telemetry_enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "state_directory": {
-          "type": "string"
+          "type": "string",
+          "default": "$HOME/.config/flipt"
         }
       },
       "required": [],
@@ -191,19 +224,24 @@
       "properties": {
         "protocol": {
           "type": "string",
-          "enum": ["http", "https"]
+          "enum": ["http", "https"],
+          "default": "http"
         },
         "host": {
-          "type": "string"
+          "type": "string",
+          "default": "0.0.0.0"
         },
         "https_port": {
-          "type": "integer"
+          "type": "integer",
+          "default": 443
         },
         "http_port": {
-          "type": "integer"
+          "type": "integer",
+          "default": 8080
         },
         "grpc_port": {
-          "type": "integer"
+          "type": "integer",
+          "default": 9000
         },
         "cert_file": {
           "type": "string"
@@ -230,13 +268,16 @@
       "additionalProperties": false,
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false
         },
         "host": {
-          "type": "string"
+          "type": "string",
+          "default": "localhost"
         },
         "port": {
-          "type": "integer"
+          "type": "integer",
+          "default": 6831
         }
       },
       "title": "Jaeger"
@@ -246,7 +287,8 @@
       "additionalProperties": false,
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         }
       },
       "title": "UI"
