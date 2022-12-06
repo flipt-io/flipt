@@ -3,6 +3,7 @@
   "$ref": "#/definitions/FliptConfig",
   "definitions": {
     "FliptConfig": {
+      "$id": "flipt-config",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -38,6 +39,7 @@
       "title": "Flipt Config"
     },
     "authentication": {
+      "$id": "authentication",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -45,39 +47,36 @@
           "type": "boolean",
           "default": false
         },
-        "methods": { "$ref": "#/$defs/methods" }
-      },
-      "required": [],
-      "title": "Authentication",
-
-      "$defs": {
         "methods": {
+          "$id": "authentication-methods",
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "token": {
-              "$ref": "#/$defs/token"
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "cleanup": {
+                  "$ref": "authentication-cleanup"
+                }
+              },
+              "required": [],
+              "title": "Token"
             }
           },
           "required": [],
           "title": "Methods"
-        },
-        "token": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": false
-            },
-            "cleanup": {
-              "$ref": "#/$defs/cleanup"
-            }
-          },
-          "required": [],
-          "title": "Token"
-        },
+        }
+      },
+      "required": [],
+      "title": "Authentication",
+
+      "definitions": {
         "cleanup": {
+          "$id": "authentication-cleanup",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -96,6 +95,7 @@
       }
     },
     "cache": {
+      "$id": "cache",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -113,29 +113,7 @@
           "default": "60s"
         },
         "redis": {
-          "$ref": "#/$defs/redis"
-        },
-        "memory": {
-          "$ref": "#/$defs/memory"
-        }
-      },
-      "required": [],
-      "title": "Cache",
-
-      "$defs": {
-        "memory": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "eviction_interval": {
-              "type": "string",
-              "default": "5m"
-            }
-          },
-          "required": [],
-          "title": "Memory"
-        },
-        "redis": {
+          "$id": "cache-redis",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -157,10 +135,26 @@
           },
           "required": [],
           "title": "Redis"
+        },
+        "memory": {
+          "$id": "cache-memory",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "eviction_interval": {
+              "type": "string",
+              "default": "5m"
+            }
+          },
+          "required": [],
+          "title": "Memory"
         }
-      }
+      },
+      "required": [],
+      "title": "Cache"
     },
     "cors": {
+      "$id": "cors",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -177,6 +171,7 @@
       "title": "Cors"
     },
     "db": {
+      "$id": "db",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -225,6 +220,7 @@
       "title": "DB"
     },
     "log": {
+      "$id": "log",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -236,14 +232,15 @@
           "enum": ["json", "console"],
           "default": "console"
         },
-        "level": { "$ref": "#/$defs/level", "default": "INFO" },
-        "grpc_level": { "$ref": "#/$defs/level", "default": "ERROR" }
+        "level": { "$ref": "log-level" },
+        "grpc_level": { "$ref": "log-level" }
       },
       "required": [],
       "title": "Log",
 
-      "$defs": {
+      "definitions": {
         "level": {
+          "$id": "log-level",
           "type": "string",
           "enum": [
             "debug",
@@ -265,6 +262,7 @@
       }
     },
     "meta": {
+      "$id": "meta",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -285,6 +283,7 @@
       "title": "Meta"
     },
     "server": {
+      "$id": "server",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -320,17 +319,12 @@
       "title": "Server"
     },
     "tracing": {
+      "$id": "tracing",
       "type": "object",
       "additionalProperties": false,
       "properties": {
         "jaeger": {
-          "$ref": "#/$defs/jaeger"
-        }
-      },
-      "title": "Tracing",
-
-      "$defs": {
-        "jaeger": {
+          "$id": "tracing-jaeger",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -349,9 +343,11 @@
           },
           "title": "Jaeger"
         }
-      }
+      },
+      "title": "Tracing"
     },
     "ui": {
+      "$id": "ui",
       "type": "object",
       "additionalProperties": false,
       "properties": {

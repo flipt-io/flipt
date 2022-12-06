@@ -11,11 +11,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/santhosh-tekuri/jsonschema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uber/jaeger-client-go"
 	"gopkg.in/yaml.v2"
 )
+
+func TestJSONSchema(t *testing.T) {
+	_, err := jsonschema.Compile("../../config/flipt.schema.json")
+	require.NoError(t, err)
+
+}
 
 func TestScheme(t *testing.T) {
 	tests := []struct {
