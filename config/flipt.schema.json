@@ -15,8 +15,8 @@
         "cors": {
           "$ref": "#/definitions/cors"
         },
-        "database": {
-          "$ref": "#/definitions/database"
+        "db": {
+          "$ref": "#/definitions/db"
         },
         "log": {
           "$ref": "#/definitions/log"
@@ -88,7 +88,7 @@
               ],
               "default": "1h"
             },
-            "gracePeriod": {
+            "grace_period": {
               "anyOf": [
                 {
                   "type": "string",
@@ -158,7 +158,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "evictionInterval": {
+            "eviction_interval": {
               "anyOf": [
                 {
                   "type": "string",
@@ -186,7 +186,7 @@
           "type": "boolean",
           "default": false
         },
-        "allowedOrigins": {
+        "allowed_origins": {
           "type": "array",
           "default": ["*"]
         }
@@ -194,7 +194,7 @@
       "required": [],
       "title": "Cors"
     },
-    "database": {
+    "db": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -228,14 +228,14 @@
         "password": {
           "type": "string"
         },
-        "maxIdleConn": {
+        "max_idle_conn": {
           "type": "integer",
           "default": 2
         },
-        "maxOpenConn": {
+        "max_open_conn": {
           "type": "integer"
         },
-        "connMaxLifetime": {
+        "conn_max_lifetime": {
           "type": "integer"
         }
       },
@@ -255,7 +255,7 @@
           "default": "console"
         },
         "level": { "$ref": "log-level" },
-        "grpcLevel": { "$ref": "log-level" }
+        "grpc_level": { "$ref": "log-level" }
       },
       "required": [],
       "title": "Log",
@@ -286,15 +286,15 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "checkForUpdates": {
+        "check_for_updates": {
           "type": "boolean",
           "default": true
         },
-        "telemetryEnabled": {
+        "telemetry_enabled": {
           "type": "boolean",
           "default": true
         },
-        "stateDirectory": {
+        "state_directory": {
           "type": "string",
           "default": "$HOME/.config/flipt"
         }
@@ -315,22 +315,22 @@
           "type": "string",
           "default": "0.0.0.0"
         },
-        "httpsPort": {
+        "https_port": {
           "type": "integer",
           "default": 443
         },
-        "httpPort": {
+        "http_port": {
           "type": "integer",
           "default": 8080
         },
-        "grpcPort": {
+        "grpc_port": {
           "type": "integer",
           "default": 9000
         },
-        "certFile": {
+        "cert_file": {
           "type": "string"
         },
-        "certKey": {
+        "cert_key": {
           "type": "string"
         }
       },

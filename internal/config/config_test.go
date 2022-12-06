@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -20,19 +19,8 @@ import (
 )
 
 func TestJSONSchema(t *testing.T) {
-	schema, err := jsonschema.Compile("../../config/flipt.schema.json")
+	_, err := jsonschema.Compile("../../config/flipt.schema.json")
 	require.NoError(t, err)
-
-	cfg := defaultConfig()
-	out, err := json.Marshal(cfg)
-	require.NoError(t, err)
-
-	var v interface{}
-	err = json.Unmarshal(out, &v)
-	require.NoError(t, err)
-
-	err = schema.Validate(v)
-	assert.NoError(t, err, "default config or schema is invalid/out of date")
 }
 
 func TestScheme(t *testing.T) {
