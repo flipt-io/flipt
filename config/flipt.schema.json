@@ -71,7 +71,7 @@
       "required": [],
       "title": "Authentication",
       "definitions": {
-        "cleanup": {
+        "authentication-cleanup": {
           "$id": "authentication-cleanup",
           "type": "object",
           "additionalProperties": false,
