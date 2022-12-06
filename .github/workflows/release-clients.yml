@@ -1,4 +1,3 @@
-name: Release Update GRPC Clients
 on:
   workflow_dispatch:
     inputs:
@@ -6,6 +5,7 @@ on:
         description: Flipt release version tag to generate
         required: true
 
+name: Release Updates to GRPC Clients
 jobs:
   release_client:
     runs-on: ubuntu-latest
