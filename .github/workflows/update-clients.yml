@@ -7,7 +7,7 @@ on:
 
 name: Update gRPC Client Repositories
 jobs:
-  clients:
+  update_clients:
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
