@@ -6,33 +6,33 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "log": {
-          "$ref": "#/definitions/Log"
-        },
-        "ui": {
-          "$ref": "#/definitions/UI"
+        "cache": {
+          "$ref": "#/definitions/Cache"
         },
         "cors": {
           "$ref": "#/definitions/Cors"
         },
-        "cache": {
-          "$ref": "#/definitions/Cache"
+        "db": {
+          "$ref": "#/definitions/DB"
+        },
+        "log": {
+          "$ref": "#/definitions/Log"
+        },
+        "meta": {
+          "$ref": "#/definitions/Meta"
         },
         "server": {
           "$ref": "#/definitions/Server"
         },
-        "db": {
-          "$ref": "#/definitions/DB"
-        },
         "tracing": {
           "$ref": "#/definitions/Tracing"
         },
-        "meta": {
-          "$ref": "#/definitions/Meta"
+        "ui": {
+          "$ref": "#/definitions/UI"
         }
       },
       "required": [],
-      "title": "FliptConfig"
+      "title": "Flipt Config"
     },
     "Cache": {
       "type": "object",
