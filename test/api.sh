@@ -292,7 +292,7 @@ step_8_test_meta()
         contains "\"ui\""
         contains "\"cache\""
         contains "\"server\""
-        contains "\"database\""
+        contains "\"db\""
 }
 
 step_9_test_metrics()
