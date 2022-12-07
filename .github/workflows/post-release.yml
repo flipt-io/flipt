@@ -1,0 +1,22 @@
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+name: Various Updates Post Release
+jobs:
+  release_client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
+      - name: Deploy try.flipt.io
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          gh workflow run deploy.yml -R flipt-io/try.flipt.io
