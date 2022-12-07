@@ -1,7 +1,7 @@
 package flipt
 
 #FliptSpec: {
-	// Flipt Configuration Specification
+	// Flipt Configuration
 	//
 	// Flipt config file is a YAML file defining how to configure the
 	// Flipt application.
@@ -25,21 +25,20 @@ package flipt
 			token?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
-				...
 			}
 		}
 
 		#authentication_cleanup: {
 			@jsonschema(id="authentication_cleanup")
-			interval?:     =~"^[0-9]+(ns|us|µs|ms|s|m|h)$" | int | *"1h"
-			grace_period?: =~"^[0-9]+(ns|us|µs|ms|s|m|h)$" | int | *"30m"
+			interval?:     #duration | *"1h"
+			grace_period?: #duration | *"30m"
 		}
 	}
 
 	#cache: {
 		enabled?: bool | *false
 		backend?: "memory" | "redis" | *"memory"
-		ttl?:     =~"^[0-9]+(ns|us|µs|ms|s|m|h)$" | int | *"60s"
+		ttl?:     #duration | *"60s"
 
 		// Redis
 		redis?: {
@@ -51,7 +50,7 @@ package flipt
 
 		// Memory
 		memory?: {
-			eviction_interval?: =~"^[0-9]+(ns|us|µs|ms|s|m|h)$" | int | *"5m"
+			eviction_interval?: #duration | *"5m"
 		}
 	}
 
@@ -108,5 +107,6 @@ package flipt
 	}
 
 	#ui: enabled?: bool | *true
-	...
+
+	#duration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
 }
