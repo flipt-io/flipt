@@ -79,7 +79,7 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
                 },
                 {
                   "type": "integer"
@@ -91,7 +91,7 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
                 },
                 {
                   "type": "integer"
@@ -122,7 +122,7 @@
           "oneOf": [
             {
               "type": "string",
-              "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+              "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
             },
             {
               "type": "integer"
@@ -161,7 +161,7 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "pattern": "^[0-9]+(ns|us|µs|ms|s|m|h)$"
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
                 },
                 {
                   "type": "integer"
