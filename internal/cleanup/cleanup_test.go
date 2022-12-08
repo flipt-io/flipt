@@ -12,6 +12,7 @@ import (
 	inmemauth "go.flipt.io/flipt/internal/storage/auth/memory"
 	inmemoplock "go.flipt.io/flipt/internal/storage/oplock/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -19,7 +20,7 @@ import (
 func TestCleanup(t *testing.T) {
 	var (
 		ctx        = context.Background()
-		logger     = zaptest.NewLogger(t)
+		logger     = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		authstore  = inmemauth.NewStore()
 		lock       = inmemoplock.New()
 		authConfig = config.AuthenticationConfig{

@@ -355,7 +355,7 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 
 	var (
 		ctx     = context.TODO()
-		logger  = zaptest.NewLogger(t)
+		logger  = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		storeFn = func(opts ...Option) *Store {
 			return NewStore(
 				db.Driver,

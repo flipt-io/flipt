@@ -10,13 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
 func TestGetFlag(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -40,7 +41,7 @@ func TestGetFlag(t *testing.T) {
 func TestListFlags_PaginationOffset(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -83,7 +84,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 func TestListFlags_PaginationNextPageToken(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -127,7 +128,7 @@ func TestListFlags_PaginationNextPageToken(t *testing.T) {
 func TestCreateFlag(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -156,7 +157,7 @@ func TestCreateFlag(t *testing.T) {
 func TestUpdateFlag(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -185,7 +186,7 @@ func TestUpdateFlag(t *testing.T) {
 func TestDeleteFlag(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -206,7 +207,7 @@ func TestDeleteFlag(t *testing.T) {
 func TestCreateVariant(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -237,7 +238,7 @@ func TestCreateVariant(t *testing.T) {
 func TestUpdateVariant(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -269,7 +270,7 @@ func TestUpdateVariant(t *testing.T) {
 func TestDeleteVariant(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,

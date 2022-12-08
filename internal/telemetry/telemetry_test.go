@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"gopkg.in/segmentio/analytics-go.v3"
@@ -57,7 +58,7 @@ func TestNewReporter(t *testing.T) {
 			},
 		}
 
-		logger        = zaptest.NewLogger(t)
+		logger        = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		reporter, err = NewReporter(cfg, logger, "foo", info.Flipt{})
 	)
 	assert.NoError(t, err)
@@ -66,7 +67,7 @@ func TestNewReporter(t *testing.T) {
 
 func TestShutdown(t *testing.T) {
 	var (
-		logger        = zaptest.NewLogger(t)
+		logger        = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -89,7 +90,7 @@ func TestShutdown(t *testing.T) {
 
 func TestPing(t *testing.T) {
 	var (
-		logger        = zaptest.NewLogger(t)
+		logger        = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -129,7 +130,7 @@ func TestPing(t *testing.T) {
 
 func TestPing_Existing(t *testing.T) {
 	var (
-		logger        = zaptest.NewLogger(t)
+		logger        = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -170,7 +171,7 @@ func TestPing_Existing(t *testing.T) {
 
 func TestPing_Disabled(t *testing.T) {
 	var (
-		logger        = zaptest.NewLogger(t)
+		logger        = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		mockAnalytics = &mockAnalytics{}
 
 		reporter = &Reporter{
@@ -195,7 +196,7 @@ func TestPing_Disabled(t *testing.T) {
 
 func TestPing_SpecifyStateDir(t *testing.T) {
 	var (
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		tmpDir = os.TempDir()
 
 		mockAnalytics = &mockAnalytics{}

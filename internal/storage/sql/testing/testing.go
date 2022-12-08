@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -263,13 +262,6 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		return nil, err
 	}
 
-	if err := container.StartLogProducer(ctx); err != nil {
-		return nil, err
-	}
-
-	var logger testContainerLogger
-	container.FollowOutput(&logger)
-
 	mappedPort, err := container.MappedPort(ctx, port)
 	if err != nil {
 		return nil, err
@@ -281,10 +273,4 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 	}
 
 	return &DBContainer{Container: container, Host: hostIP, Port: mappedPort.Int()}, nil
-}
-
-type testContainerLogger struct{}
-
-func (t testContainerLogger) Accept(entry testcontainers.Log) {
-	log.Println(entry.LogType, ":", string(entry.Content))
 }

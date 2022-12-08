@@ -10,6 +10,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -90,7 +91,7 @@ func TestUnaryInterceptor(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			var (
-				logger = zaptest.NewLogger(t)
+				logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 
 				ctx          = context.Background()
 				retrievedCtx = ctx

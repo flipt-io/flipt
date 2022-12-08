@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -120,7 +121,7 @@ func TestMain(m *testing.M) {
 
 func (s *DBTestSuite) SetupSuite() {
 	setup := func() error {
-		logger := zaptest.NewLogger(s.T())
+		logger := zaptest.NewLogger(s.T(), zaptest.Level(zap.WarnLevel))
 
 		db, err := fliptsqltesting.Open()
 		if err != nil {

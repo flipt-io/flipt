@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/stretchr/testify/assert"
@@ -289,7 +290,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 		req      = &flipt.GetFlagRequest{Key: "foo"}
 	)
@@ -337,7 +338,7 @@ func TestCacheUnaryInterceptor_UpdateFlag(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 		req      = &flipt.UpdateFlagRequest{
 			Key:         "key",
@@ -381,7 +382,7 @@ func TestCacheUnaryInterceptor_DeleteFlag(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 		req      = &flipt.DeleteFlagRequest{
 			Key: "key",
@@ -417,7 +418,7 @@ func TestCacheUnaryInterceptor_CreateVariant(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 		req      = &flipt.CreateVariantRequest{
 			FlagKey:     "flagKey",
@@ -463,7 +464,7 @@ func TestCacheUnaryInterceptor_UpdateVariant(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 		req      = &flipt.UpdateVariantRequest{
 			Id:          "1",
@@ -510,7 +511,7 @@ func TestCacheUnaryInterceptor_DeleteVariant(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 		req      = &flipt.DeleteVariantRequest{
 			Id: "1",
@@ -546,7 +547,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 			Backend: config.CacheMemory,
 		})
 		cacheSpy = newCacheSpy(cache)
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s        = server.New(logger, store)
 	)
 

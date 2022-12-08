@@ -11,6 +11,7 @@ import (
 	stubSource "github.com/golang-migrate/migrate/v4/source/stub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -33,7 +34,7 @@ func TestMigratorRun(t *testing.T) {
 	require.NoError(t, err)
 
 	var (
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		migrator = Migrator{
 			migrator: m,
 			logger:   logger,
@@ -68,7 +69,7 @@ func TestMigratorRun_NoChange(t *testing.T) {
 	require.NoError(t, err)
 
 	var (
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		migrator = Migrator{
 			migrator: m,
 			logger:   logger,

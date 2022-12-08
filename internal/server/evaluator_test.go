@@ -12,6 +12,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -29,7 +30,7 @@ var (
 func TestBatchEvaluate(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -71,7 +72,7 @@ func TestBatchEvaluate(t *testing.T) {
 func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -119,7 +120,7 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -165,7 +166,7 @@ func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 func TestEvaluate_FlagNotFound(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -191,7 +192,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 func TestEvaluate_FlagDisabled(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -216,7 +217,7 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 func TestEvaluate_FlagNoRules(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -243,7 +244,7 @@ func TestEvaluate_FlagNoRules(t *testing.T) {
 func TestEvaluate_ErrorGettingRules(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -270,7 +271,7 @@ func TestEvaluate_ErrorGettingRules(t *testing.T) {
 func TestEvaluate_RulesOutOfOrder(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -332,7 +333,7 @@ func TestEvaluate_RulesOutOfOrder(t *testing.T) {
 func TestEvaluate_ErrorGettingDistributions(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -380,7 +381,7 @@ func TestEvaluate_ErrorGettingDistributions(t *testing.T) {
 func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -469,7 +470,7 @@ func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -599,7 +600,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -720,7 +721,7 @@ func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -795,7 +796,7 @@ func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -906,7 +907,7 @@ func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
 func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -995,7 +996,7 @@ func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -1157,7 +1158,7 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -1278,7 +1279,7 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -1353,7 +1354,7 @@ func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -1464,7 +1465,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,
@@ -1564,7 +1565,7 @@ func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
 func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
 	var (
 		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
+		logger = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		s      = &Server{
 			logger: logger,
 			store:  store,

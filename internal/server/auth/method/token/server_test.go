@@ -12,6 +12,7 @@ import (
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -23,7 +24,7 @@ import (
 
 func TestServer(t *testing.T) {
 	var (
-		logger   = zaptest.NewLogger(t)
+		logger   = zaptest.NewLogger(t, zaptest.Level(zap.WarnLevel))
 		store    = memory.NewStore()
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
