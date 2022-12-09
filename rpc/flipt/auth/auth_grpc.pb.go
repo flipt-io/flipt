@@ -304,7 +304,7 @@ var AuthenticationMethodTokenService_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthenticationMethodOIDCServiceClient interface {
-	CreateAuthorizeURL(ctx context.Context, in *CreateAuthorizeURLRequest, opts ...grpc.CallOption) (*CreateAuthorizeURLResponse, error)
+	AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
 	Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error)
 }
 
@@ -316,9 +316,9 @@ func NewAuthenticationMethodOIDCServiceClient(cc grpc.ClientConnInterface) Authe
 	return &authenticationMethodOIDCServiceClient{cc}
 }
 
-func (c *authenticationMethodOIDCServiceClient) CreateAuthorizeURL(ctx context.Context, in *CreateAuthorizeURLRequest, opts ...grpc.CallOption) (*CreateAuthorizeURLResponse, error) {
-	out := new(CreateAuthorizeURLResponse)
-	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationMethodOIDCService/CreateAuthorizeURL", in, out, opts...)
+func (c *authenticationMethodOIDCServiceClient) AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error) {
+	out := new(AuthorizeURLResponse)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -338,7 +338,7 @@ func (c *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, in
 // All implementations must embed UnimplementedAuthenticationMethodOIDCServiceServer
 // for forward compatibility
 type AuthenticationMethodOIDCServiceServer interface {
-	CreateAuthorizeURL(context.Context, *CreateAuthorizeURLRequest) (*CreateAuthorizeURLResponse, error)
+	AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error)
 	Callback(context.Context, *CallbackRequest) (*CallbackResponse, error)
 	mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer()
 }
@@ -347,8 +347,8 @@ type AuthenticationMethodOIDCServiceServer interface {
 type UnimplementedAuthenticationMethodOIDCServiceServer struct {
 }
 
-func (UnimplementedAuthenticationMethodOIDCServiceServer) CreateAuthorizeURL(context.Context, *CreateAuthorizeURLRequest) (*CreateAuthorizeURLResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAuthorizeURL not implemented")
+func (UnimplementedAuthenticationMethodOIDCServiceServer) AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeURL not implemented")
 }
 func (UnimplementedAuthenticationMethodOIDCServiceServer) Callback(context.Context, *CallbackRequest) (*CallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Callback not implemented")
@@ -367,20 +367,20 @@ func RegisterAuthenticationMethodOIDCServiceServer(s grpc.ServiceRegistrar, srv 
 	s.RegisterService(&AuthenticationMethodOIDCService_ServiceDesc, srv)
 }
 
-func _AuthenticationMethodOIDCService_CreateAuthorizeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAuthorizeURLRequest)
+func _AuthenticationMethodOIDCService_AuthorizeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeURLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthenticationMethodOIDCServiceServer).CreateAuthorizeURL(ctx, in)
+		return srv.(AuthenticationMethodOIDCServiceServer).AuthorizeURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/flipt.auth.AuthenticationMethodOIDCService/CreateAuthorizeURL",
+		FullMethod: "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationMethodOIDCServiceServer).CreateAuthorizeURL(ctx, req.(*CreateAuthorizeURLRequest))
+		return srv.(AuthenticationMethodOIDCServiceServer).AuthorizeURL(ctx, req.(*AuthorizeURLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -411,8 +411,8 @@ var AuthenticationMethodOIDCService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthenticationMethodOIDCServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateAuthorizeURL",
-			Handler:    _AuthenticationMethodOIDCService_CreateAuthorizeURL_Handler,
+			MethodName: "AuthorizeURL",
+			Handler:    _AuthenticationMethodOIDCService_AuthorizeURL_Handler,
 		},
 		{
 			MethodName: "Callback",

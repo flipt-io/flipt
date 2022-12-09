@@ -35,15 +35,15 @@
     "application/json"
   ],
   "paths": {
-    "/auth/v1/method/oidc/authorize": {
-      "post": {
-        "description": "Create OIDC authorize URL",
-        "operationId": "create_authorize_url",
+    "/auth/v1/method/oidc/{provider}/authorize": {
+      "get": {
+        "description": "Generate OIDC authorize URL",
+        "operationId": "ate_authorize_url",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreateAuthorizeURLResponse"
+              "$ref": "#/definitions/authAuthorizeURLResponse"
             }
           },
           "401": {
@@ -61,12 +61,20 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "provider",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/authCreateAuthorizeURLRequest"
-            }
+            "type": "string",
+            "enum": [
+              "OIDC_PROVIDER_NONE",
+              "OIDC_PROVIDER_GOOGLE"
+            ]
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -74,7 +82,7 @@
         ]
       }
     },
-    "/auth/v1/method/oidc/callback": {
+    "/auth/v1/method/oidc/{provider}/callback": {
       "get": {
         "description": "OIDC callback operation",
         "operationId": "callback",
@@ -99,6 +107,16 @@
           }
         },
         "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "OIDC_PROVIDER_NONE",
+              "OIDC_PROVIDER_GOOGLE"
+            ]
+          },
           {
             "name": "code",
             "in": "query",
@@ -345,6 +363,14 @@
         }
       }
     },
+    "authAuthorizeURLResponse": {
+      "type": "object",
+      "properties": {
+        "authorizeUrl": {
+          "type": "string"
+        }
+      }
+    },
     "authCallbackResponse": {
       "type": "object",
       "properties": {
@@ -353,22 +379,6 @@
         },
         "authentication": {
           "$ref": "#/definitions/authAuthentication"
-        }
-      }
-    },
-    "authCreateAuthorizeURLRequest": {
-      "type": "object",
-      "properties": {
-        "provider": {
-          "$ref": "#/definitions/authOIDCProvider"
-        }
-      }
-    },
-    "authCreateAuthorizeURLResponse": {
-      "type": "object",
-      "properties": {
-        "authorizeUrl": {
-          "type": "string"
         }
       }
     },

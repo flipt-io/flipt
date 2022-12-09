@@ -168,17 +168,19 @@ enum OIDCProvider {
   OIDC_PROVIDER_GOOGLE = 1;
 }
 
-message CreateAuthorizeURLRequest {
+message AuthorizeURLRequest {
   OIDCProvider provider = 1;
+  string state = 2;
 }
 
-message CreateAuthorizeURLResponse {
+message AuthorizeURLResponse {
   string authorize_url = 1;
 }
 
 message CallbackRequest {
-  string code = 1;
-  string state = 2;
+  OIDCProvider provider = 1;
+  string code = 2;
+  string state = 3;
 }
 
 message CallbackResponse {
@@ -187,10 +189,10 @@ message CallbackResponse {
 }
 
 service AuthenticationMethodOIDCService {
-  rpc CreateAuthorizeURL(CreateAuthorizeURLRequest) returns (CreateAuthorizeURLResponse) {
+  rpc AuthorizeURL(AuthorizeURLRequest) returns (AuthorizeURLResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "create_authorize_url",
-      description: "Create OIDC authorize URL",
+      operation_id: "ate_authorize_url",
+      description: "Generate OIDC authorize URL",
       tags: "authentication authentication_method oidc",
     };
   }
