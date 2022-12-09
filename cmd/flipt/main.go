@@ -3,17 +3,13 @@ package main
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/fs"
-	"net"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -22,64 +18,18 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/fatih/color"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 	"github.com/google/go-github/v32/github"
-	"github.com/phyber/negroni-gzip/gzip"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
-	"go.flipt.io/flipt/internal/cleanup"
+	"go.flipt.io/flipt/internal/cmd"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
-	"go.flipt.io/flipt/internal/server"
-	"go.flipt.io/flipt/internal/server/auth"
-	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
-	"go.flipt.io/flipt/internal/server/cache"
-	"go.flipt.io/flipt/internal/server/cache/memory"
-	"go.flipt.io/flipt/internal/server/cache/redis"
-	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
-	"go.flipt.io/flipt/internal/storage"
-	authstorage "go.flipt.io/flipt/internal/storage/auth"
-	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
-	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
 	"go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/internal/storage/sql/mysql"
-	"go.flipt.io/flipt/internal/storage/sql/postgres"
-	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.flipt.io/flipt/internal/telemetry"
-	pb "go.flipt.io/flipt/rpc/flipt"
-	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
-	"go.flipt.io/flipt/swagger"
-	"go.flipt.io/flipt/ui"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/jaeger"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/encoding/protojson"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	grpc_gateway "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-
-	goredis_cache "github.com/go-redis/cache/v8"
-	goredis "github.com/go-redis/redis/v8"
 )
 
 const devVersion = "dev"
@@ -361,407 +311,27 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		})
 	}
 
-	var (
-		grpcServer *grpc.Server
-		httpServer *http.Server
-
-		shutdownFuncs = []func(context.Context){}
-	)
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, forceMigrate, cfg)
+	if err != nil {
+		return err
+	}
 
 	// starts grpc server
-	g.Go(func() error {
-		logger := logger.With(zap.String("server", "grpc"))
+	g.Go(grpcServer.Run)
 
-		migrator, err := sql.NewMigrator(*cfg, logger)
-		if err != nil {
-			return err
-		}
+	// retrieve client connection to associated running gRPC server.
+	conn, err := grpcServer.ClientConn(ctx)
+	if err != nil {
+		return err
+	}
 
-		defer migrator.Close()
-
-		if err := migrator.Up(forceMigrate); err != nil {
-			return err
-		}
-
-		migrator.Close()
-
-		lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
-		if err != nil {
-			return fmt.Errorf("creating grpc listener: %w", err)
-		}
-
-		defer func() {
-			_ = lis.Close()
-		}()
-
-		db, driver, err := sql.Open(*cfg)
-		if err != nil {
-			return fmt.Errorf("opening db: %w", err)
-		}
-
-		defer db.Close()
-
-		if err := db.PingContext(ctx); err != nil {
-			return fmt.Errorf("pinging db: %w", err)
-		}
-
-		var store storage.Store
-
-		switch driver {
-		case sql.SQLite:
-			store = sqlite.NewStore(db, logger)
-		case sql.Postgres, sql.CockroachDB:
-			store = postgres.NewStore(db, logger)
-		case sql.MySQL:
-			store = mysql.NewStore(db, logger)
-		default:
-			return fmt.Errorf("unsupported driver: %s", driver)
-		}
-
-		logger.Debug("store enabled", zap.Stringer("driver", driver))
-
-		var tracingProvider = trace.NewNoopTracerProvider()
-
-		if cfg.Tracing.Jaeger.Enabled {
-			logger.Debug("tracing enabled", zap.String("type", "jaeger"))
-			exp, err := jaeger.New(jaeger.WithAgentEndpoint(
-				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
-				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
-			))
-			if err != nil {
-				return err
-			}
-
-			tracingProvider = tracesdk.NewTracerProvider(
-				tracesdk.WithBatcher(
-					exp,
-					tracesdk.WithBatchTimeout(1*time.Second),
-				),
-				tracesdk.WithResource(resource.NewWithAttributes(
-					semconv.SchemaURL,
-					semconv.ServiceNameKey.String("flipt"),
-				)),
-				tracesdk.WithSampler(tracesdk.AlwaysSample()),
-			)
-		}
-
-		otel.SetTracerProvider(tracingProvider)
-		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-
-		// forward internal gRPC logging to zap
-		grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
-		if err != nil {
-			return fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
-		}
-
-		grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
-
-		// base observability inteceptors
-		interceptors := []grpc.UnaryServerInterceptor{
-			grpc_recovery.UnaryServerInterceptor(),
-			grpc_ctxtags.UnaryServerInterceptor(),
-			grpc_zap.UnaryServerInterceptor(logger),
-			grpc_prometheus.UnaryServerInterceptor,
-			otelgrpc.UnaryServerInterceptor(),
-		}
-
-		var (
-			sqlBuilder           = sql.BuilderFor(db, driver)
-			authenticationStore  = authsql.NewStore(driver, sqlBuilder, logger)
-			operationLockService = oplocksql.New(logger, driver, sqlBuilder)
-		)
-
-		if cfg.Authentication.ShouldRunCleanup() {
-			cleanupAuthService := cleanup.NewAuthenticationService(logger, operationLockService, authenticationStore, cfg.Authentication)
-			cleanupAuthService.Run(ctx)
-
-			shutdownFuncs = append(shutdownFuncs, func(context.Context) {
-				_ = cleanupAuthService.Stop()
-				logger.Info("cleanup service has been shutdown")
-			})
-		}
-
-		// only enable enforcement middleware if authentication required
-		if cfg.Authentication.Required {
-			interceptors = append(interceptors, auth.UnaryInterceptor(logger, authenticationStore))
-
-			logger.Info("authentication middleware enabled")
-		}
-
-		// behaviour interceptors
-		interceptors = append(interceptors,
-			middlewaregrpc.ErrorUnaryInterceptor,
-			middlewaregrpc.ValidationUnaryInterceptor,
-			middlewaregrpc.EvaluationUnaryInterceptor,
-		)
-
-		if cfg.Cache.Enabled {
-			var cacher cache.Cacher
-
-			switch cfg.Cache.Backend {
-			case config.CacheMemory:
-				cacher = memory.NewCache(cfg.Cache)
-			case config.CacheRedis:
-				rdb := goredis.NewClient(&goredis.Options{
-					Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
-					Password: cfg.Cache.Redis.Password,
-					DB:       cfg.Cache.Redis.DB,
-				})
-
-				shutdownFuncs = append(shutdownFuncs, func(ctx context.Context) { _ = rdb.Shutdown(ctx) })
-
-				status := rdb.Ping(ctx)
-				if status == nil {
-					return errors.New("connecting to redis: no status")
-				}
-
-				if status.Err() != nil {
-					return fmt.Errorf("connecting to redis: %w", status.Err())
-				}
-
-				cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
-					Redis: rdb,
-				}))
-			}
-
-			interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
-
-			logger.Debug("cache enabled", zap.Stringer("backend", cacher))
-		}
-
-		grpcOpts := []grpc.ServerOption{grpc_middleware.WithUnaryServerChain(interceptors...)}
-
-		if cfg.Server.Protocol == config.HTTPS {
-			creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
-			if err != nil {
-				return fmt.Errorf("loading TLS credentials: %w", err)
-			}
-
-			grpcOpts = append(grpcOpts, grpc.Creds(creds))
-		}
-
-		// initialize server
-		srv := server.New(logger, store)
-		// initialize grpc server
-		grpcServer = grpc.NewServer(grpcOpts...)
-
-		// register grpcServer graceful stop on shutdown
-		shutdownFuncs = append(shutdownFuncs, func(context.Context) {
-			grpcServer.GracefulStop()
-			logger.Info("grpc server shutdown gracefully")
-		})
-
-		pb.RegisterFliptServer(grpcServer, srv)
-
-		// register auth service
-		authServer := auth.NewServer(logger, authenticationStore)
-		authrpc.RegisterAuthenticationServiceServer(grpcServer, authServer)
-		// register auth method token service
-		if cfg.Authentication.Methods.Token.Enabled {
-			// attempt to bootstrap authentication store
-			clientToken, err := authstorage.Bootstrap(ctx, authenticationStore)
-			if err != nil {
-				return fmt.Errorf("configuring token authentication: %w", err)
-			}
-
-			if clientToken != "" {
-				logger.Info("access token created", zap.String("client_token", clientToken))
-			}
-
-			tokenServer := authtoken.NewServer(logger, authenticationStore)
-			authrpc.RegisterAuthenticationMethodTokenServiceServer(grpcServer, tokenServer)
-
-			logger.Debug("authentication server registered")
-		}
-
-		grpc_prometheus.EnableHandlingTimeHistogram()
-		grpc_prometheus.Register(grpcServer)
-		reflection.Register(grpcServer)
-
-		logger.Debug("starting grpc server")
-		return grpcServer.Serve(lis)
-	})
+	httpServer, err := cmd.NewHTTPServer(ctx, logger, cfg, conn, info)
+	if err != nil {
+		return err
+	}
 
 	// starts REST http(s) server
-	g.Go(func() error {
-		logger := logger.With(zap.Stringer("server", cfg.Server.Protocol))
-
-		var (
-			// This is required to fix a backwards compatibility issue with the v2 marshaller where `null` map values
-			// cause an error because they are not allowed by the proto spec, but they were handled by the v1 marshaller.
-			//
-			// See: rpc/flipt/marshal.go
-			//
-			// See: https://github.com/flipt-io/flipt/issues/664
-			muxOpts = []grpc_gateway.ServeMuxOption{
-				grpc_gateway.WithMarshalerOption(grpc_gateway.MIMEWildcard, pb.NewV1toV2MarshallerAdapter()),
-				grpc_gateway.WithMarshalerOption("application/json+pretty", &grpc_gateway.JSONPb{
-					MarshalOptions: protojson.MarshalOptions{
-						Indent:    "  ",
-						Multiline: true, // Optional, implied by presence of "Indent".
-					},
-					UnmarshalOptions: protojson.UnmarshalOptions{
-						DiscardUnknown: true,
-					},
-				}),
-			}
-
-			r        = chi.NewRouter()
-			api      = grpc_gateway.NewServeMux(muxOpts...)
-			opts     = []grpc.DialOption{grpc.WithBlock()}
-			httpPort int
-		)
-
-		switch cfg.Server.Protocol {
-		case config.HTTPS:
-			creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")
-			if err != nil {
-				return fmt.Errorf("loading TLS credentials: %w", err)
-			}
-
-			opts = append(opts, grpc.WithTransportCredentials(creds))
-			httpPort = cfg.Server.HTTPSPort
-		case config.HTTP:
-			opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			httpPort = cfg.Server.HTTPPort
-		}
-
-		dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
-		defer dialCancel()
-
-		conn, err := grpc.DialContext(dialCtx, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts...)
-		if err != nil {
-			return fmt.Errorf("connecting to grpc server: %w", err)
-		}
-
-		if err := pb.RegisterFliptHandler(ctx, api, conn); err != nil {
-			return fmt.Errorf("registering grpc gateway: %w", err)
-		}
-
-		if err := authrpc.RegisterAuthenticationServiceHandler(ctx, api, conn); err != nil {
-			return fmt.Errorf("registering auth grpc gateway: %w", err)
-		}
-
-		if cfg.Authentication.Methods.Token.Enabled {
-			if err := authrpc.RegisterAuthenticationMethodTokenServiceHandler(ctx, api, conn); err != nil {
-				return fmt.Errorf("registering auth grpc gateway: %w", err)
-			}
-		}
-
-		if cfg.Cors.Enabled {
-			cors := cors.New(cors.Options{
-				AllowedOrigins:   cfg.Cors.AllowedOrigins,
-				AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-				AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-				ExposedHeaders:   []string{"Link"},
-				AllowCredentials: true,
-				MaxAge:           300,
-			})
-
-			r.Use(cors.Handler)
-			logger.Info("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
-		}
-
-		r.Use(middleware.RequestID)
-		r.Use(middleware.RealIP)
-		r.Use(middleware.Heartbeat("/health"))
-		r.Use(func(h http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// checking Values as map[string][]string also catches ?pretty and ?pretty=
-				// r.URL.Query().Get("pretty") would not.
-				if _, ok := r.URL.Query()["pretty"]; ok {
-					r.Header.Set("Accept", "application/json+pretty")
-				}
-				h.ServeHTTP(w, r)
-			})
-		})
-		r.Use(middleware.Compress(gzip.DefaultCompression))
-		r.Use(middleware.Recoverer)
-		r.Mount("/metrics", promhttp.Handler())
-		r.Mount("/api/v1", api)
-		r.Mount("/auth/v1", api)
-		r.Mount("/debug", middleware.Profiler())
-
-		r.Route("/meta", func(r chi.Router) {
-			r.Use(middleware.SetHeader("Content-Type", "application/json"))
-			r.Handle("/info", info)
-			r.Handle("/config", cfg)
-		})
-
-		if cfg.UI.Enabled {
-			s := http.FS(swagger.Docs)
-			r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(s)))
-
-			u, err := fs.Sub(ui.UI, "dist")
-			if err != nil {
-				return fmt.Errorf("mounting UI: %w", err)
-			}
-
-			r.Mount("/", http.FileServer(http.FS(u)))
-		}
-
-		httpServer = &http.Server{
-			Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
-			Handler:        r,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   30 * time.Second,
-			MaxHeaderBytes: 1 << 20,
-		}
-
-		// register httpServer graceful stop on shutdown
-		shutdownFuncs = append(shutdownFuncs, func(ctx context.Context) {
-			_ = httpServer.Shutdown(ctx)
-			logger.Info("http server shutdown gracefully")
-		})
-
-		logger.Debug("starting http server")
-
-		var (
-			apiAddr = fmt.Sprintf("%s://%s:%d/api/v1", cfg.Server.Protocol, cfg.Server.Host, httpPort)
-			uiAddr  = fmt.Sprintf("%s://%s:%d", cfg.Server.Protocol, cfg.Server.Host, httpPort)
-		)
-
-		if isConsole {
-			color.Green("\nAPI: %s", apiAddr)
-
-			if cfg.UI.Enabled {
-				color.Green("UI: %s", uiAddr)
-			}
-
-			fmt.Println()
-		} else {
-			logger.Info("api available", zap.String("address", apiAddr))
-
-			if cfg.UI.Enabled {
-				logger.Info("ui available", zap.String("address", uiAddr))
-			}
-		}
-
-		if cfg.Server.Protocol == config.HTTPS {
-			httpServer.TLSConfig = &tls.Config{
-				MinVersion:               tls.VersionTLS12,
-				PreferServerCipherSuites: true,
-				CipherSuites: []uint16{
-					tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-					tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-					tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-					tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-				},
-			}
-
-			httpServer.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
-
-			err = httpServer.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.CertKey)
-		} else {
-			err = httpServer.ListenAndServe()
-		}
-
-		if !errors.Is(err, http.ErrServerClosed) {
-			return fmt.Errorf("http server: %w", err)
-		}
-
-		return nil
-	})
+	g.Go(httpServer.Run)
 
 	select {
 	case <-interrupt:
@@ -777,9 +347,8 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 
-	for _, shutdown := range shutdownFuncs {
-		shutdown(shutdownCtx)
-	}
+	_ = httpServer.Shutdown(shutdownCtx)
+	_ = grpcServer.Shutdown(shutdownCtx)
 
 	return g.Wait()
 }

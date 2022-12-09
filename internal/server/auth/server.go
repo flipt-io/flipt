@@ -8,6 +8,7 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -26,6 +27,11 @@ func NewServer(logger *zap.Logger, store storageauth.Store) *Server {
 		logger: logger,
 		store:  store,
 	}
+}
+
+// RegisterGRPC registers the server as an Server on the provided grpc server.
+func (s *Server) RegisterGRPC(server *grpc.Server) {
+	auth.RegisterAuthenticationServiceServer(server, s)
 }
 
 // GetAuthenticationSelf returns the Authentication which was derived from the request context.

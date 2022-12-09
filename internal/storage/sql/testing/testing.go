@@ -26,12 +26,14 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-const defaultTestDBURL = "file:../../flipt_test.db"
+const defaultTestDBPrefix = "flipt_*.db"
 
 type Database struct {
 	DB        *sql.DB
 	Driver    fliptsql.Driver
 	Container *DBContainer
+
+	dbfile *string
 }
 
 func (d *Database) Shutdown(ctx context.Context) {
@@ -42,6 +44,10 @@ func (d *Database) Shutdown(ctx context.Context) {
 	if d.Container != nil {
 		_ = d.Container.StopLogProducer()
 		_ = d.Container.Terminate(ctx)
+	}
+
+	if d.dbfile != nil {
+		os.Remove(*d.dbfile)
 	}
 }
 
@@ -62,7 +68,7 @@ func Open() (*Database, error) {
 	cfg := config.Config{
 		Database: config.DatabaseConfig{
 			Protocol: proto,
-			URL:      defaultTestDBURL,
+			URL:      createTempDBPath(),
 		},
 	}
 
@@ -287,4 +293,13 @@ type testContainerLogger struct{}
 
 func (t testContainerLogger) Accept(entry testcontainers.Log) {
 	log.Println(entry.LogType, ":", string(entry.Content))
+}
+
+func createTempDBPath() string {
+	fi, err := os.CreateTemp("", defaultTestDBPrefix)
+	if err != nil {
+		panic(err)
+	}
+	_ = fi.Close()
+	return "file:" + fi.Name()
 }
