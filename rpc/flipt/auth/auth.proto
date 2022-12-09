@@ -191,7 +191,7 @@ message CallbackResponse {
 service AuthenticationMethodOIDCService {
   rpc AuthorizeURL(AuthorizeURLRequest) returns (AuthorizeURLResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "ate_authorize_url",
+      operation_id: "authorize_url",
       description: "Generate OIDC authorize URL",
       tags: "authentication authentication_method oidc",
     };

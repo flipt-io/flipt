@@ -38,7 +38,7 @@
     "/auth/v1/method/oidc/{provider}/authorize": {
       "get": {
         "description": "Generate OIDC authorize URL",
-        "operationId": "ate_authorize_url",
+        "operationId": "authorize_url",
         "responses": {
           "200": {
             "description": "A successful response.",
