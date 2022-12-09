@@ -23,7 +23,7 @@ New functionality must have accompanying tests. We aim to keep the total test co
 
 By submitting a Pull Request, you disavow any rights or claims to any changes
 submitted to the Flipt project and assign the copyright of
-those changes to Mark Phelps.
+those changes to Flipt Software Inc.
 
 If you cannot or do not want to reassign those rights (your employment
 contract for your employer may not allow this), you should not submit a PR.

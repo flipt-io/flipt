@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: DavidAnson/markdownlint-cli2-action@v7
+      - uses: DavidAnson/markdownlint-cli2-action@v8
         with:
           command: config
           globs: |
