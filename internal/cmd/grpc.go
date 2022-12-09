@@ -46,17 +46,17 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 )
 
-type GRPCRegisterer interface {
+type grpcRegister interface {
 	RegisterGRPC(*grpc.Server)
 }
 
-type GRPCRegisterers []GRPCRegisterer
+type grpcRegisterers []grpcRegister
 
-func (g *GRPCRegisterers) Add(r GRPCRegisterer) {
+func (g *grpcRegisterers) Add(r grpcRegister) {
 	*g = append(*g, r)
 }
 
-func (g GRPCRegisterers) RegisterGRPC(s *grpc.Server) {
+func (g grpcRegisterers) RegisterGRPC(s *grpc.Server) {
 	for _, register := range g {
 		register.RegisterGRPC(s)
 	}

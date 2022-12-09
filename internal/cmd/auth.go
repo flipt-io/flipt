@@ -25,9 +25,9 @@ func authenticationGRPC(
 	cfg config.AuthenticationConfig,
 	store storageauth.Store,
 	oplock storageoplock.Service,
-) (GRPCRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
+) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 	var (
-		register = GRPCRegisterers{
+		register = grpcRegisterers{
 			auth.NewServer(logger, store),
 		}
 		interceptors []grpc.UnaryServerInterceptor
