@@ -56,7 +56,7 @@ func TestUnaryInterceptor(t *testing.T) {
 		{
 			name: "successful authentication (cookie header)",
 			metadata: metadata.MD{
-				"cookie": []string{"flipt_client_token=" + clientToken},
+				"grpcgateway-cookie": []string{"flipt_client_token=" + clientToken},
 			},
 			expectedAuth: storedAuth,
 		},
@@ -99,7 +99,7 @@ func TestUnaryInterceptor(t *testing.T) {
 		{
 			name: "cookie header with no flipt_client_token",
 			metadata: metadata.MD{
-				"Cookie": []string{"blah"},
+				"grcpgateway-cookie": []string{"blah"},
 			},
 			expectedErr: errUnauthenticated,
 		},

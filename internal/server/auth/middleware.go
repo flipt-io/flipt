@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -18,8 +17,11 @@ import (
 
 const (
 	authenticationHeaderKey = "authorization"
-	cookieHeaderKey         = "cookie"
-	cookieKey               = "flipt_client_token"
+	cookieHeaderKey         = "grpcgateway-cookie"
+
+	// tokenCookieKey is the key used when storing the flipt client token
+	// as a http cookie.
+	tokenCookieKey = "flipt_client_token"
 )
 
 var errUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
@@ -123,11 +125,12 @@ func clientTokenFromMetadata(md metadata.MD) (string, error) {
 		return clientTokenFromAuthorization(authenticationHeader[0])
 	}
 
-	if cookieHeader := md.Get(cookieHeaderKey); len(cookieHeader) > 0 {
-		return clientTokenFromCookie(cookieHeader[0])
+	cookie, err := cookieFromMetadata(md, tokenCookieKey)
+	if err != nil {
+		return "", err
 	}
 
-	return "", errUnauthenticated
+	return cookie.Value, nil
 }
 
 func clientTokenFromAuthorization(auth string) (string, error) {
@@ -139,17 +142,12 @@ func clientTokenFromAuthorization(auth string) (string, error) {
 	return "", errUnauthenticated
 }
 
-func clientTokenFromCookie(v string) (string, error) {
+func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {
 	// sadly net/http does not expose cookie parsing
 	// outside of http.Request.
 	// so instead we fabricate a request around the cookie
 	// in order to extract it appropriately.
-	cookie, err := (&http.Request{
-		Header: http.Header{"Cookie": []string{v}},
-	}).Cookie(cookieKey)
-	if err != nil {
-		return "", fmt.Errorf("parsing cookie %q: %w", err.Error(), errUnauthenticated)
-	}
-
-	return cookie.Value, nil
+	return (&http.Request{
+		Header: http.Header{"Cookie": md.Get(cookieHeaderKey)},
+	}).Cookie(key)
 }
