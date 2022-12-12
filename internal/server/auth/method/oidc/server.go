@@ -146,7 +146,6 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	})
 	if err != nil {
 		return nil, err
-
 	}
 
 	return &auth.CallbackResponse{
