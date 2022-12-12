@@ -33,7 +33,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -107,7 +106,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("creating grpc listener: %w", err)
 	}
 
-	server.pushShutdown(func(context.Context) error {
+	server.onShutdown(func(context.Context) error {
 		return server.ln.Close()
 	})
 
@@ -116,7 +115,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	server.pushShutdown(func(context.Context) error {
+	server.onShutdown(func(context.Context) error {
 		return db.Close()
 	})
 
@@ -184,7 +183,7 @@ func NewGRPCServer(
 		return nil, err
 	}
 
-	server.pushShutdown(authShutdown)
+	server.onShutdown(authShutdown)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -222,7 +221,7 @@ func NewGRPCServer(
 				DB:       cfg.Cache.Redis.DB,
 			})
 
-			server.pushShutdown(func(ctx context.Context) error {
+			server.onShutdown(func(ctx context.Context) error {
 				return rdb.Shutdown(ctx).Err()
 			})
 
@@ -263,7 +262,7 @@ func NewGRPCServer(
 	server.Server = grpc.NewServer(grpcOpts...)
 
 	// register grpcServer graceful stop on shutdown
-	server.pushShutdown(func(context.Context) error {
+	server.onShutdown(func(context.Context) error {
 		logger.Info("shutting down grpc server...")
 
 		server.Server.GracefulStop()
@@ -279,28 +278,6 @@ func NewGRPCServer(
 	reflection.Register(server.Server)
 
 	return server, nil
-}
-
-// ClientConn constructs and configures a client connection to the underlying gRPC server.
-func (s *GRPCServer) ClientConn(ctx context.Context) (*grpc.ClientConn, error) {
-	opts := []grpc.DialOption{grpc.WithBlock()}
-	switch s.cfg.Server.Protocol {
-	case config.HTTPS:
-		creds, err := credentials.NewClientTLSFromFile(s.cfg.Server.CertFile, "")
-		if err != nil {
-			return nil, fmt.Errorf("loading TLS credentials: %w", err)
-		}
-
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	case config.HTTP:
-		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	}
-
-	dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
-	defer dialCancel()
-
-	return grpc.DialContext(dialCtx,
-		fmt.Sprintf("%s:%d", s.cfg.Server.Host, s.cfg.Server.GRPCPort), opts...)
 }
 
 // Run begins serving gRPC requests.
@@ -325,6 +302,6 @@ func (s *GRPCServer) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *GRPCServer) pushShutdown(fn func(context.Context) error) {
+func (s *GRPCServer) onShutdown(fn func(context.Context) error) {
 	s.shutdownFuncs = append(s.shutdownFuncs, fn)
 }

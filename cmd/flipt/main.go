@@ -28,6 +28,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -320,7 +323,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	g.Go(grpcServer.Run)
 
 	// retrieve client connection to associated running gRPC server.
-	conn, err := grpcServer.ClientConn(ctx)
+	conn, err := clientConn(ctx, cfg)
 	if err != nil {
 		return err
 	}
@@ -398,4 +401,26 @@ func initLocalState() error {
 
 	// assume state directory exists and is a directory
 	return nil
+}
+
+// clientConn constructs and configures a client connection to the underlying gRPC server.
+func clientConn(ctx context.Context, cfg *config.Config) (*grpc.ClientConn, error) {
+	opts := []grpc.DialOption{grpc.WithBlock()}
+	switch cfg.Server.Protocol {
+	case config.HTTPS:
+		creds, err := credentials.NewClientTLSFromFile(cfg.Server.CertFile, "")
+		if err != nil {
+			return nil, fmt.Errorf("loading TLS credentials: %w", err)
+		}
+
+		opts = append(opts, grpc.WithTransportCredentials(creds))
+	case config.HTTP:
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	dialCtx, dialCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer dialCancel()
+
+	return grpc.DialContext(dialCtx,
+		fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort), opts...)
 }
