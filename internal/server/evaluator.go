@@ -130,7 +130,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 	for _, rule := range rules {
 		if rule.Rank < lastRank {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-			return resp, errs.ErrInvalidf("rule rank: %d detected out of order", rule.Rank)
+			return resp, errs.NewErrorf[errs.ErrInvalid]("rule rank: %d detected out of order", rule.Rank)
 		}
 
 		lastRank = rule.Rank
@@ -333,13 +333,13 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	n, err := strconv.ParseFloat(v, 64)
 	if err != nil {
-		return false, errs.ErrInvalidf("parsing number from %q", v)
+		return false, errs.NewErrorf[errs.ErrInvalid]("parsing number from %q", v)
 	}
 
 	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
 	value, err := strconv.ParseFloat(c.Value, 64)
 	if err != nil {
-		return false, errs.ErrInvalidf("parsing number from %q", c.Value)
+		return false, errs.NewErrorf[errs.ErrInvalid]("parsing number from %q", c.Value)
 	}
 
 	switch c.Operator {
@@ -375,7 +375,7 @@ func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
 
 	value, err := strconv.ParseBool(v)
 	if err != nil {
-		return false, errs.ErrInvalidf("parsing boolean from %q", v)
+		return false, errs.NewErrorf[errs.ErrInvalid]("parsing boolean from %q", v)
 	}
 
 	switch c.Operator {

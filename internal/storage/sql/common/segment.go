@@ -40,7 +40,7 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("segment %q", key)
+			return nil, errs.NewErrorf[errs.ErrNotFound]("segment %q", key)
 		}
 
 		return nil, err
@@ -215,7 +215,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("segment %q", r.Key)
+		return nil, errs.NewErrorf[errs.ErrNotFound]("segment %q", r.Key)
 	}
 
 	return s.GetSegment(ctx, r.Key)
@@ -297,7 +297,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("constraint %q", r.Id)
+		return nil, errs.NewErrorf[errs.ErrNotFound]("constraint %q", r.Id)
 	}
 
 	var (

@@ -378,18 +378,18 @@ func (req *CreateConstraintRequest) Validate() error {
 	switch req.Type {
 	case ComparisonType_STRING_COMPARISON_TYPE:
 		if _, ok := StringOperators[operator]; !ok {
-			return errors.ErrInvalidf("constraint operator %q is not valid for type string", req.Operator)
+			return errors.NewErrorf[errors.ErrInvalid]("constraint operator %q is not valid for type string", req.Operator)
 		}
 	case ComparisonType_NUMBER_COMPARISON_TYPE:
 		if _, ok := NumberOperators[operator]; !ok {
-			return errors.ErrInvalidf("constraint operator %q is not valid for type number", req.Operator)
+			return errors.NewErrorf[errors.ErrInvalid]("constraint operator %q is not valid for type number", req.Operator)
 		}
 	case ComparisonType_BOOLEAN_COMPARISON_TYPE:
 		if _, ok := BooleanOperators[operator]; !ok {
-			return errors.ErrInvalidf("constraint operator %q is not valid for type boolean", req.Operator)
+			return errors.NewErrorf[errors.ErrInvalid]("constraint operator %q is not valid for type boolean", req.Operator)
 		}
 	default:
-		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
+		return errors.NewErrorf[errors.ErrInvalid]("invalid constraint type: %q", req.Type.String())
 	}
 
 	if req.Value == "" {
@@ -424,18 +424,18 @@ func (req *UpdateConstraintRequest) Validate() error {
 	switch req.Type {
 	case ComparisonType_STRING_COMPARISON_TYPE:
 		if _, ok := StringOperators[operator]; !ok {
-			return errors.ErrInvalidf("constraint operator %q is not valid for type string", req.Operator)
+			return errors.NewErrorf[errors.ErrInvalid]("constraint operator %q is not valid for type string", req.Operator)
 		}
 	case ComparisonType_NUMBER_COMPARISON_TYPE:
 		if _, ok := NumberOperators[operator]; !ok {
-			return errors.ErrInvalidf("constraint operator %q is not valid for type number", req.Operator)
+			return errors.NewErrorf[errors.ErrInvalid]("constraint operator %q is not valid for type number", req.Operator)
 		}
 	case ComparisonType_BOOLEAN_COMPARISON_TYPE:
 		if _, ok := BooleanOperators[operator]; !ok {
-			return errors.ErrInvalidf("constraint operator %q is not valid for type boolean", req.Operator)
+			return errors.NewErrorf[errors.ErrInvalid]("constraint operator %q is not valid for type boolean", req.Operator)
 		}
 	default:
-		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
+		return errors.NewErrorf[errors.ErrInvalid]("invalid constraint type: %q", req.Type.String())
 	}
 
 	if req.Value == "" {

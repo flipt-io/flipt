@@ -16,13 +16,13 @@ func New(s string) error {
 	return errors.New(s)
 }
 
+// NewErrorf is a generic utility for formatting a string into a target error type E.
+func NewErrorf[E StringError](format string, args ...any) error {
+	return E(fmt.Sprintf(format, args...))
+}
+
 // ErrNotFound represents a not found error
 type ErrNotFound string
-
-// ErrNotFoundf creates an ErrNotFound using a custom format
-func ErrNotFoundf(format string, args ...interface{}) error {
-	return ErrNotFound(fmt.Sprintf(format, args...))
-}
 
 func (e ErrNotFound) Error() string {
 	return fmt.Sprintf("%s not found", string(e))
@@ -30,11 +30,6 @@ func (e ErrNotFound) Error() string {
 
 // ErrInvalid represents an invalid error
 type ErrInvalid string
-
-// ErrInvalidf creates an ErrInvalid using a custom format
-func ErrInvalidf(format string, args ...interface{}) error {
-	return ErrInvalid(fmt.Sprintf(format, args...))
-}
 
 func (e ErrInvalid) Error() string {
 	return string(e)
@@ -58,4 +53,19 @@ func InvalidFieldError(field, reason string) error {
 // EmptyFieldError creates an ErrInvalidField for an empty field
 func EmptyFieldError(field string) error {
 	return InvalidFieldError(field, "must not be empty")
+}
+
+// ErrForbidding is returned when an operation is attempted which is forbidden
+// for the identified caller.
+type ErrForbidden string
+
+// Error() returns the underlying string of the error.
+func (e ErrForbidden) Error() string {
+	return string(e)
+}
+
+// StringError is any error that also happens to have an underlying type of string.
+type StringError interface {
+	error
+	~string
 }

@@ -56,7 +56,7 @@ func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("flag %q", key)
+			return nil, errs.NewErrorf[errs.ErrNotFound]("flag %q", key)
 		}
 
 		return nil, err
@@ -231,7 +231,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("flag %q", r.Key)
+		return nil, errs.NewErrorf[errs.ErrNotFound]("flag %q", r.Key)
 	}
 
 	return s.GetFlag(ctx, r.Key)
@@ -311,7 +311,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("variant %q", r.Key)
+		return nil, errs.NewErrorf[errs.ErrNotFound]("variant %q", r.Key)
 	}
 
 	var (

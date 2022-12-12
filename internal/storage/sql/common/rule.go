@@ -34,7 +34,7 @@ func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("rule %q", id)
+			return nil, errs.NewErrorf[errs.ErrNotFound]("rule %q", id)
 		}
 
 		return nil, err
@@ -208,7 +208,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("rule %q", r.Id)
+		return nil, errs.NewErrorf[errs.ErrNotFound]("rule %q", r.Id)
 	}
 
 	return s.GetRule(ctx, r.Id)
@@ -355,7 +355,7 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("distribution %q", r.Id)
+		return nil, errs.NewErrorf[errs.ErrNotFound]("distribution %q", r.Id)
 	}
 
 	var (
