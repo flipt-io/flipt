@@ -52,6 +52,13 @@ func (e ErrValidation) Error() string {
 	return fmt.Sprintf("invalid field %s: %s", e.field, e.reason)
 }
 
+// ErrCanceled is returned when an operation has been prematurely canceled by the requester.
+type ErrCanceled string
+
+func (e ErrCanceled) Error() string {
+	return string(e)
+}
+
 // InvalidFieldError creates an ErrInvalidField for a specific field and reason
 func InvalidFieldError(field, reason string) error {
 	return ErrValidation{field, reason}
