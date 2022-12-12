@@ -7,6 +7,7 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -29,6 +30,11 @@ func NewServer(logger *zap.Logger, store storageauth.Store) *Server {
 		logger: logger,
 		store:  store,
 	}
+}
+
+// RegisterGRPC registers the server as an Server on the provided grpc server.
+func (s *Server) RegisterGRPC(server *grpc.Server) {
+	auth.RegisterAuthenticationMethodTokenServiceServer(server, s)
 }
 
 // CreateToken adapts and delegates the token request to the backing AuthenticationStore.

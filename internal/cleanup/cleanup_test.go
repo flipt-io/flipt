@@ -48,7 +48,7 @@ func TestCleanup(t *testing.T) {
 		service := NewAuthenticationService(logger, lock, authstore, authConfig)
 		service.Run(ctx)
 		defer func() {
-			require.NoError(t, service.Stop())
+			require.NoError(t, service.Shutdown(context.TODO()))
 		}()
 	}
 

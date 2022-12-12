@@ -15,6 +15,7 @@ var (
 	errConstraintViolated = flipterrors.ErrInvalid("contraint violated")
 	errNotUnique          = flipterrors.ErrInvalid("not unique")
 	errForeignKeyNotFound = flipterrors.ErrNotFound("associated resource not found")
+	errCanceled           = flipterrors.ErrCanceled("query canceled")
 )
 
 // AdaptError converts specific known-driver errors into wrapped storage errors.
@@ -62,6 +63,7 @@ func adaptPostgresError(err error) error {
 	const (
 		constraintForeignKeyErr = "foreign_key_violation"
 		constraintUniqueErr     = "unique_violation"
+		queryCanceled           = "query_canceled"
 	)
 
 	var perr *pq.Error
@@ -72,6 +74,8 @@ func adaptPostgresError(err error) error {
 			return errNotUnique
 		case constraintForeignKeyErr:
 			return errForeignKeyNotFound
+		case queryCanceled:
+			return errCanceled
 		}
 	}
 
