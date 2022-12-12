@@ -33,7 +33,7 @@ type Database struct {
 	Driver    fliptsql.Driver
 	Container *DBContainer
 
-	dbfile *string
+	cleanup func()
 }
 
 func (d *Database) Shutdown(ctx context.Context) {
@@ -46,8 +46,8 @@ func (d *Database) Shutdown(ctx context.Context) {
 		_ = d.Container.Terminate(ctx)
 	}
 
-	if d.dbfile != nil {
-		os.Remove(*d.dbfile)
+	if d.cleanup != nil {
+		d.cleanup()
 	}
 }
 
@@ -68,28 +68,41 @@ func Open() (*Database, error) {
 	cfg := config.Config{
 		Database: config.DatabaseConfig{
 			Protocol: proto,
-			URL:      createTempDBPath(),
 		},
 	}
 
 	var (
 		username, password, dbName string
 		useTestContainer           bool
+		cleanup                    func()
 	)
 
-	switch proto {
-	case config.DatabaseSQLite:
-		// no-op
-	case config.DatabaseCockroachDB:
-		useTestContainer = true
-		username = "root"
-		password = ""
-		dbName = "defaultdb"
-	default:
-		useTestContainer = true
-		username = "flipt"
-		password = "password"
-		dbName = "flipt_test"
+	if url := os.Getenv("FLIPT_TEST_DB_URL"); len(url) > 0 {
+		// FLIPT_TEST_DB_URL takes precedent if set.
+		// It assumes the database is already running at the target URL.
+		// It does not attempt to create an instance of the DB or do any cleanup.
+		cfg.Database.URL = url
+	} else {
+		// Otherwise, depending on the value of FLIPT_TEST_DATABASE_PROTOCOL a test database
+		// is created and destroyed for the lifecycle of the test.
+		switch proto {
+		case config.DatabaseSQLite:
+			dbPath := createTempDBPath()
+			cfg.Database.URL = "file:" + dbPath
+			cleanup = func() {
+				_ = os.Remove(dbPath)
+			}
+		case config.DatabaseCockroachDB:
+			useTestContainer = true
+			username = "root"
+			password = ""
+			dbName = "defaultdb"
+		default:
+			useTestContainer = true
+			username = "flipt"
+			password = "password"
+			dbName = "flipt_test"
+		}
 	}
 
 	var (
@@ -200,6 +213,7 @@ func Open() (*Database, error) {
 		DB:        db,
 		Driver:    driver,
 		Container: container,
+		cleanup:   cleanup,
 	}, nil
 }
 
@@ -301,5 +315,5 @@ func createTempDBPath() string {
 		panic(err)
 	}
 	_ = fi.Close()
-	return "file:" + fi.Name()
+	return fi.Name()
 }
