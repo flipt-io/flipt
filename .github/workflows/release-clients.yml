@@ -25,6 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${{ inputs.tag }}"
+          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-ruby -f tag="${{ inputs.tag }}"
       - name: Trigger Workflow (Release)
         if: ${{ github.event_name == "release" }}
         env:
@@ -32,3 +33,4 @@ jobs:
         run: |
           tag=$(echo $GITHUB_REF | sed 's#refs/tags/##')
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${tag}"
+          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-ruby -f tag="${tag}"

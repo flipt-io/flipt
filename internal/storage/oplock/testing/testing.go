@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage/oplock"
 	"golang.org/x/sync/errgroup"
 )
@@ -76,10 +77,13 @@ func Harness(t *testing.T, s oplock.Service) {
 	cancel()
 
 	if err := errgroup.Wait(); err != nil {
-		// there are a couple acceptable errors here (context.Canceled and "operation was canceled")
+		// there are a few acceptable errors here (e.g. context.Canceled / "operation was canceled")
 		// stdlib net package can adapt context.Canceled into an unexported errCanceled
 		// https://github.com/golang/go/blob/6b45863e47ad1a27ba3051ce0407f0bdc7b46113/src/net/net.go#L428-L439
+		// Postgres reports this as a "query_canceled" error code name.
+		_, isCanceled := errs.As[errs.ErrCanceled](err)
 		switch {
+		case isCanceled:
 		case errors.Is(err, context.Canceled):
 		case strings.Contains(err.Error(), "operation was canceled"):
 		default:

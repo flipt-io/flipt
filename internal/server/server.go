@@ -4,6 +4,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 var _ flipt.FliptServer = &Server{}
@@ -21,4 +22,9 @@ func New(logger *zap.Logger, store storage.Store) *Server {
 		logger: logger,
 		store:  store,
 	}
+}
+
+// RegisterGRPC registers the *Server onto the provided grpc Server.
+func (s *Server) RegisterGRPC(server *grpc.Server) {
+	flipt.RegisterFliptServer(server, s)
 }
