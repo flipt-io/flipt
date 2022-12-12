@@ -87,3 +87,8 @@ http:
   - selector: flipt.auth.AuthenticationMethodTokenService.CreateToken
     post: /auth/v1/method/token
     body: "*"
+  # method: oidc
+  - selector: flipt.auth.AuthenticationMethodOIDCService.AuthorizeURL
+    get: /auth/v1/method/oidc/{provider}/authorize
+  - selector: flipt.auth.AuthenticationMethodOIDCService.Callback
+    get: /auth/v1/method/oidc/{provider}/callback
