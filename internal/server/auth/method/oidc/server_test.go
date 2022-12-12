@@ -187,12 +187,32 @@ func Test_Server(t *testing.T) {
 		location = resp.Header.Get("Location")
 	})
 
-	t.Log("Redirecting to callback URL:", location)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
+	require.NoError(t, err)
 
-	t.Run("Callback", func(t *testing.T) {
+	t.Run("Callback (missing state)", func(t *testing.T) {
+		// using the default client which has no state cookie
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("Callback (invalid state)", func(t *testing.T) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, location, nil)
 		require.NoError(t, err)
 
+		req.Header.Set("Cookie", "flipt_client_state=abcdef")
+		// using the default client which has no state cookie
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("Callback", func(t *testing.T) {
 		resp, err := client.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()

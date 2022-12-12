@@ -26,6 +26,21 @@ const (
 // was not configured
 var errProviderNotFound = errors.ErrNotFound("provider not found")
 
+// Server is the core OIDC server implementation for Flipt.
+// It supports two primary operations:
+// - AuthorizeURL
+// - Callback
+// These are two legs of the OIDC/OAuth flow.
+// Step 1 is Flipt establishes a URL directed at the delegated authentication service (e.g. Google).
+// The URL is configured using the client ID configured for the provided, a state parameter used to
+// prevent CSRF attacks and a callback URL directing back to the Callback operation.
+// Step 2 the user-agent navigates to the authorizer and establishes authenticity with them.
+// Once established they're redirected to the Callback operation with an authenticity code.
+// Step 3 the Callback operation uses this "code" and exchanges with the authorization service
+// for an ID Token. The validity of the response is checked (signature verified) and then the identity
+// details contained in this response are used to create a temporary Flipt client token.
+// This client token can be used to access the rest of the Flipt API.
+// Given the user-agent is requestin using HTTP the token is instead established as an HTTP cookie.
 type Server struct {
 	logger *zap.Logger
 	store  storageauth.Store
@@ -71,8 +86,10 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 }
 
 // Callback attempts to authenticate a callback request from a delegated authorization service.
-// The supplied state metadata compared with the request state and ensured to be equal.
-// The provided code is exchanged with the associated provider for an "id_token".
+// Given the request includes a "state" parameter then the requests metadata is interrogated
+// for the "flipt_client_state" metadata key.
+// This entry must exist and the value match the request state.
+// The provided code is exchanged with the associated authorization service provider for an "id_token".
 // We verify the retrieved "id_token" is valid and for our client.
 // Once verified we extract the users associated email address.
 // Given all this completes successfully then we established an associated clientToken in
@@ -87,16 +104,16 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	if req.State != "" {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, errors.New("missing metadata")
+			return nil, errors.NewErrorf[errors.ErrUnauthenticated]("missing state parameter")
 		}
 
 		state, ok := md["flipt_client_state"]
 		if !ok || len(state) < 1 {
-			return nil, errors.New("missing state")
+			return nil, errors.NewErrorf[errors.ErrUnauthenticated]("missing state parameter")
 		}
 
 		if req.State != state[0] {
-			return nil, errors.New("unexpected state")
+			return nil, errors.NewErrorf[errors.ErrUnauthenticated]("unexpected state parameter")
 		}
 	}
 

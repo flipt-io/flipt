@@ -11,6 +11,13 @@ func As[E error](err error) (e E, _ bool) {
 	return e, errors.As(err, &e)
 }
 
+// AsMatch is the same as As but it returns just a boolean to represent
+// whether or not the wrapped type matches the type parameter.
+func AsMatch[E error](err error) (match bool) {
+	_, match = As[E](err)
+	return
+}
+
 // New creates a new error with errors.New
 func New(s string) error {
 	return errors.New(s)
@@ -55,12 +62,12 @@ func EmptyFieldError(field string) error {
 	return InvalidFieldError(field, "must not be empty")
 }
 
-// ErrForbidding is returned when an operation is attempted which is forbidden
-// for the identified caller.
-type ErrForbidden string
+// ErrUnauthenticated is returned when an operation is attempted by an unauthenticated
+// client in an authenticated context.
+type ErrUnauthenticated string
 
 // Error() returns the underlying string of the error.
-func (e ErrForbidden) Error() string {
+func (e ErrUnauthenticated) Error() string {
 	return string(e)
 }
 

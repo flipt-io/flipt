@@ -99,6 +99,11 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 			wantCode: codes.InvalidArgument,
 		},
 		{
+			name:     "unauthenticated error",
+			wantErr:  errors.NewErrorf[errors.ErrUnauthenticated]("user %q not found", "foo"),
+			wantCode: codes.Unauthenticated,
+		},
+		{
 			name:     "other error",
 			wantErr:  errors.New("foo"),
 			wantCode: codes.Internal,
