@@ -21,17 +21,25 @@ var (
 	tokenCookieKey = "flipt_client_token"
 )
 
+// Middleware contains various extensions for appropriate integration of the OIDC services
+// behind gRPC gateway. This includes forwarding cookies as gRPC metadata, adapting callback
+// responses to http cookies, and establishing appropriate state parameters for csrf provention
+// during the oauth/oidc flow.
 type Middleware struct {
 	Config config.AuthenticationSession
 }
 
+// NewHTTPMiddleware constructs and configures a new oidc HTTP middleware from the supplied
+// authentication configuration struct.
 func NewHTTPMiddleware(config config.AuthenticationSession) Middleware {
 	return Middleware{
 		Config: config,
 	}
 }
 
-// ForwardCookies forwards oidc specific cookie values onto the grpc metadata.
+// ForwardCookies parses particular http cookies (Flipts state and client token) and
+// forwards them as grpc metadata entries. This allows us to abstract away http
+// constructs from the internal gRPC implementation.
 func ForwardCookies(ctx context.Context, req *http.Request) metadata.MD {
 	md := metadata.MD{}
 	for _, key := range []string{stateCookieKey, tokenCookieKey} {
@@ -43,6 +51,12 @@ func ForwardCookies(ctx context.Context, req *http.Request) metadata.MD {
 	return md
 }
 
+// ForwardResponseOption is a grpc gateway forward response option function implementation.
+// The purpose of which is to intercept outgoing Callback operation responses.
+// When intercepted the resulting clientToken is stripped from the response payload and instead
+// added to a response header cookie (Set-Cookie).
+// This ensures a secure browser session can be established.
+// The user-agent is then redirected to the root of the domain.
 func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 	r, ok := resp.(*auth.CallbackResponse)
 	if ok {
