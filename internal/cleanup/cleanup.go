@@ -107,7 +107,7 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 }
 
 // Stop signals for the cleanup goroutines to cancel and waits for them to finish.
-func (s *AuthenticationService) Stop() error {
+func (s *AuthenticationService) Shutdown(ctx context.Context) error {
 	s.cancel()
 
 	return s.errgroup.Wait()

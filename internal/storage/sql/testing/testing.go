@@ -25,12 +25,14 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-const defaultTestDBURL = "file:../../flipt_test.db"
+const defaultTestDBPrefix = "flipt_*.db"
 
 type Database struct {
 	DB        *sql.DB
 	Driver    fliptsql.Driver
 	Container *DBContainer
+
+	cleanup func()
 }
 
 func (d *Database) Shutdown(ctx context.Context) {
@@ -41,6 +43,10 @@ func (d *Database) Shutdown(ctx context.Context) {
 	if d.Container != nil {
 		_ = d.Container.StopLogProducer()
 		_ = d.Container.Terminate(ctx)
+	}
+
+	if d.cleanup != nil {
+		d.cleanup()
 	}
 }
 
@@ -61,28 +67,41 @@ func Open() (*Database, error) {
 	cfg := config.Config{
 		Database: config.DatabaseConfig{
 			Protocol: proto,
-			URL:      defaultTestDBURL,
 		},
 	}
 
 	var (
 		username, password, dbName string
 		useTestContainer           bool
+		cleanup                    func()
 	)
 
-	switch proto {
-	case config.DatabaseSQLite:
-		// no-op
-	case config.DatabaseCockroachDB:
-		useTestContainer = true
-		username = "root"
-		password = ""
-		dbName = "defaultdb"
-	default:
-		useTestContainer = true
-		username = "flipt"
-		password = "password"
-		dbName = "flipt_test"
+	if url := os.Getenv("FLIPT_TEST_DB_URL"); len(url) > 0 {
+		// FLIPT_TEST_DB_URL takes precedent if set.
+		// It assumes the database is already running at the target URL.
+		// It does not attempt to create an instance of the DB or do any cleanup.
+		cfg.Database.URL = url
+	} else {
+		// Otherwise, depending on the value of FLIPT_TEST_DATABASE_PROTOCOL a test database
+		// is created and destroyed for the lifecycle of the test.
+		switch proto {
+		case config.DatabaseSQLite:
+			dbPath := createTempDBPath()
+			cfg.Database.URL = "file:" + dbPath
+			cleanup = func() {
+				_ = os.Remove(dbPath)
+			}
+		case config.DatabaseCockroachDB:
+			useTestContainer = true
+			username = "root"
+			password = ""
+			dbName = "defaultdb"
+		default:
+			useTestContainer = true
+			username = "flipt"
+			password = "password"
+			dbName = "flipt_test"
+		}
 	}
 
 	var (
@@ -109,42 +128,28 @@ func Open() (*Database, error) {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	var (
-		dr   database.Driver
-		stmt string
-
-		tables = []string{"distributions", "rules", "constraints", "variants", "segments", "flags", "authentications"}
-	)
+	var dr database.Driver
 
 	switch driver {
 	case fliptsql.SQLite:
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		stmt = "DELETE FROM %s"
 	case fliptsql.Postgres:
 		dr, err = pg.WithInstance(db, &pg.Config{})
-		stmt = "TRUNCATE TABLE %s CASCADE"
 	case fliptsql.CockroachDB:
 		dr, err = cockroachdb.WithInstance(db, &cockroachdb.Config{})
-		stmt = "TRUNCATE TABLE %s CASCADE"
 	case fliptsql.MySQL:
 		dr, err = ms.WithInstance(db, &ms.Config{})
-		stmt = "TRUNCATE TABLE %s"
 
 		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
 		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
 			return nil, fmt.Errorf("disabling foreign key checks: %w", err)
 		}
-
 	default:
 		return nil, fmt.Errorf("unknown driver: %s", proto)
 	}
 
 	if err != nil {
 		return nil, fmt.Errorf("creating driver: %w", err)
-	}
-
-	for _, t := range tables {
-		_, _ = db.Exec(fmt.Sprintf(stmt, t))
 	}
 
 	// source migrations from embedded config/migrations package
@@ -157,6 +162,11 @@ func Open() (*Database, error) {
 	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate instance: %w", err)
+	}
+
+	// run down migrations to clear target DB (incase we're reusing)
+	if err := mm.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("running down migrations: %w", err)
 	}
 
 	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
@@ -193,6 +203,7 @@ func Open() (*Database, error) {
 		DB:        db,
 		Driver:    driver,
 		Container: container,
+		cleanup:   cleanup,
 	}, nil
 }
 
@@ -273,4 +284,13 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 	}
 
 	return &DBContainer{Container: container, Host: hostIP, Port: mappedPort.Int()}, nil
+}
+
+func createTempDBPath() string {
+	fi, err := os.CreateTemp("", defaultTestDBPrefix)
+	if err != nil {
+		panic(err)
+	}
+	_ = fi.Close()
+	return fi.Name()
 }

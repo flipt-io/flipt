@@ -299,3 +299,126 @@ var AuthenticationMethodTokenService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "auth/auth.proto",
 }
+
+// AuthenticationMethodOIDCServiceClient is the client API for AuthenticationMethodOIDCService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AuthenticationMethodOIDCServiceClient interface {
+	AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
+	Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error)
+}
+
+type authenticationMethodOIDCServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAuthenticationMethodOIDCServiceClient(cc grpc.ClientConnInterface) AuthenticationMethodOIDCServiceClient {
+	return &authenticationMethodOIDCServiceClient{cc}
+}
+
+func (c *authenticationMethodOIDCServiceClient) AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error) {
+	out := new(AuthorizeURLResponse)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error) {
+	out := new(CallbackResponse)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationMethodOIDCService/Callback", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthenticationMethodOIDCServiceServer is the server API for AuthenticationMethodOIDCService service.
+// All implementations must embed UnimplementedAuthenticationMethodOIDCServiceServer
+// for forward compatibility
+type AuthenticationMethodOIDCServiceServer interface {
+	AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error)
+	Callback(context.Context, *CallbackRequest) (*CallbackResponse, error)
+	mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer()
+}
+
+// UnimplementedAuthenticationMethodOIDCServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthenticationMethodOIDCServiceServer struct {
+}
+
+func (UnimplementedAuthenticationMethodOIDCServiceServer) AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeURL not implemented")
+}
+func (UnimplementedAuthenticationMethodOIDCServiceServer) Callback(context.Context, *CallbackRequest) (*CallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Callback not implemented")
+}
+func (UnimplementedAuthenticationMethodOIDCServiceServer) mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer() {
+}
+
+// UnsafeAuthenticationMethodOIDCServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthenticationMethodOIDCServiceServer will
+// result in compilation errors.
+type UnsafeAuthenticationMethodOIDCServiceServer interface {
+	mustEmbedUnimplementedAuthenticationMethodOIDCServiceServer()
+}
+
+func RegisterAuthenticationMethodOIDCServiceServer(s grpc.ServiceRegistrar, srv AuthenticationMethodOIDCServiceServer) {
+	s.RegisterService(&AuthenticationMethodOIDCService_ServiceDesc, srv)
+}
+
+func _AuthenticationMethodOIDCService_AuthorizeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodOIDCServiceServer).AuthorizeURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.AuthenticationMethodOIDCService/AuthorizeURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodOIDCServiceServer).AuthorizeURL(ctx, req.(*AuthorizeURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthenticationMethodOIDCService_Callback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodOIDCServiceServer).Callback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.AuthenticationMethodOIDCService/Callback",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodOIDCServiceServer).Callback(ctx, req.(*CallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AuthenticationMethodOIDCService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodOIDCService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AuthenticationMethodOIDCService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.auth.AuthenticationMethodOIDCService",
+	HandlerType: (*AuthenticationMethodOIDCServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AuthorizeURL",
+			Handler:    _AuthenticationMethodOIDCService_AuthorizeURL_Handler,
+		},
+		{
+			MethodName: "Callback",
+			Handler:    _AuthenticationMethodOIDCService_Callback_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "auth/auth.proto",
+}
