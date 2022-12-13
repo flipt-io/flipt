@@ -114,6 +114,7 @@ func authenticationHTTPMount(
 		oidcmiddleware := authoidc.NewHTTPMiddleware(cfg.Session)
 
 		muxOpts = append(muxOpts,
+			runtime.WithMetadata(authoidc.ForwardCookies),
 			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption))
 		middleware = oidcmiddleware.Handler
 	}
@@ -126,6 +127,12 @@ func authenticationHTTPMount(
 
 	if cfg.Methods.Token.Enabled {
 		if err := rpcauth.RegisterAuthenticationMethodTokenServiceHandler(ctx, mux, conn); err != nil {
+			return fmt.Errorf("registering auth grpc gateway: %w", err)
+		}
+	}
+
+	if cfg.Methods.OIDC.Enabled {
+		if err := rpcauth.RegisterAuthenticationMethodOIDCServiceHandler(ctx, mux, conn); err != nil {
 			return fmt.Errorf("registering auth grpc gateway: %w", err)
 		}
 	}
