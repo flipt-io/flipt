@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 
@@ -93,7 +94,8 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 		// search for all expected env vars since Viper cannot
 		// infer when doing Unmarshal + AutomaticEnv.
 		// see: https://github.com/spf13/viper/issues/761
-		bindEnvVars(v, "", val.Type().Field(i))
+		structField := val.Type().Field(i)
+		bindEnvVars(v, getEnvVarTrie(), fieldKey(structField), structField.Type)
 
 		field := val.Field(i).Addr().Interface()
 
@@ -114,38 +116,48 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 
 	return
 }
+func fieldKey(field reflect.StructField) string {
+	if tag := field.Tag.Get("mapstructure"); tag != "" {
+		return tag
+	}
+
+	return strings.ToLower(field.Name)
+}
 
 // bindEnvVars descends into the provided struct field binding any expected
 // environment variable keys it finds reflecting struct and field tags.
-func bindEnvVars(v *viper.Viper, prefix string, field reflect.StructField) {
-	tag := field.Tag.Get("mapstructure")
-	if tag == "" {
-		tag = strings.ToLower(field.Name)
-	}
-
-	var (
-		key = prefix + tag
-		typ = field.Type
-	)
-
+func bindEnvVars(v *viper.Viper, prefixes trie, prefix string, typ reflect.Type) {
 	// descend through pointers
 	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 
 	// descend into struct fields
-	if typ.Kind() == reflect.Struct {
+	switch typ.Kind() {
+	case reflect.Map:
+		// use the environment to pre-emptively bind env vars for map keys
+		parts := strings.Split(strings.ReplaceAll(strings.ToUpper(prefix), "_", "."), ".")
+		if trie, ok := prefixes.getPrefix(parts...); ok {
+			for k := range trie {
+				prefix = prefix + "." + strings.ToLower(k)
+				bindEnvVars(v, prefixes, prefix, typ.Elem())
+			}
+		}
+
+		return
+	case reflect.Struct:
 		for i := 0; i < typ.NumField(); i++ {
 			structField := typ.Field(i)
 
 			// key becomes prefix for sub-fields
-			bindEnvVars(v, key+".", structField)
+			prefix = prefix + "." + fieldKey(structField)
+			bindEnvVars(v, prefixes, prefix, structField.Type)
 		}
 
 		return
 	}
 
-	v.MustBindEnv(key)
+	v.MustBindEnv(prefix)
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -208,4 +220,45 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 
 		return strings.Fields(raw), nil
 	}
+}
+
+// trie is a prefix trie used to create a map of potential
+// key paths from the current environment.
+// This is used to support pre-emptively binding env vars
+// for the keys of map[string]T which we don't know aheaad of
+// time.
+type trie map[string]trie
+
+func (t trie) getPrefix(parts ...string) (trie, bool) {
+	if len(parts) == 0 {
+		return t, true
+	}
+
+	return t[parts[0]].getPrefix(parts[1:]...)
+}
+
+func getEnvVarTrie() trie {
+	const envPrefix = "FLIPT_"
+	root := trie{}
+
+	for _, env := range os.Environ() {
+		if !strings.HasPrefix(env, envPrefix) {
+			continue
+		}
+
+		env = strings.SplitN(env[len(envPrefix):], "=", 2)[0]
+
+		node := root
+		for _, part := range strings.Split(strings.ToUpper(env), "_") {
+			if n, ok := node[part]; ok {
+				node = n
+				continue
+			}
+
+			node[part] = trie{}
+			node = node[part]
+		}
+	}
+
+	return root
 }

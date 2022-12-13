@@ -443,8 +443,8 @@ func TestLoad(t *testing.T) {
 						},
 						OIDC: AuthenticationMethodOIDCConfig{
 							Enabled: true,
-							Providers: AuthenticationMethodOIDCProviders{
-								Google: &AuthenticationMethodOIDCProviderGoogle{
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
 									IssuerURL:       "http://accounts.google.com",
 									ClientID:        "abcdefg",
 									ClientSecret:    "bcdefgh",

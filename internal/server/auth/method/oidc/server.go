@@ -141,7 +141,7 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
 		Metadata: map[string]string{
 			storageMetadataIDEmailKey:      claims.Email,
-			storageMetadataOIDCProviderKey: req.Provider.String(),
+			storageMetadataOIDCProviderKey: req.Provider,
 		},
 	})
 	if err != nil {
@@ -158,35 +158,29 @@ func callbackURL(host, provider string) string {
 	return host + "/auth/v1/method/oidc/" + provider + "/callback"
 }
 
-func (s *Server) providerFor(provider auth.OIDCProvider, state string) (*capoidc.Provider, *capoidc.Req, error) {
+func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, *capoidc.Req, error) {
 	var (
-		providerConfig = s.config.Methods.OIDC.Providers
-		config         *capoidc.Config
-		callback       string
-		scopes         []string
+		config   *capoidc.Config
+		callback string
 	)
 
-	switch provider {
-	case auth.OIDCProvider_OIDC_PROVIDER_GOOGLE:
-		// Create a new provider config
-		google := providerConfig.Google
-
-		callback = callbackURL(google.RedirectAddress, "google")
-		scopes = []string{"profile", "email"}
-
-		var err error
-		config, err = capoidc.NewConfig(
-			google.IssuerURL,
-			google.ClientID,
-			capoidc.ClientSecret(google.ClientSecret),
-			[]capoidc.Alg{oidc.RS256},
-			[]string{callback},
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-	default:
+	pConfig, ok := s.config.Methods.OIDC.Providers[provider]
+	if !ok {
 		return nil, nil, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
+	}
+
+	callback = callbackURL(pConfig.RedirectAddress, provider)
+
+	var err error
+	config, err = capoidc.NewConfig(
+		pConfig.IssuerURL,
+		pConfig.ClientID,
+		capoidc.ClientSecret(pConfig.ClientSecret),
+		[]capoidc.Alg{oidc.RS256},
+		[]string{callback},
+	)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	p, err := capoidc.NewProvider(config)
@@ -196,7 +190,7 @@ func (s *Server) providerFor(provider auth.OIDCProvider, state string) (*capoidc
 
 	req, err := capoidc.NewRequest(2*time.Minute, callback,
 		capoidc.WithState(state),
-		capoidc.WithScopes(scopes...),
+		capoidc.WithScopes(pConfig.Scopes...),
 		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
 	)
 	if err != nil {

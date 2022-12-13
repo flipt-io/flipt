@@ -103,8 +103,8 @@ func Test_Server(t *testing.T) {
 			Methods: config.AuthenticationMethods{
 				OIDC: config.AuthenticationMethodOIDCConfig{
 					Enabled: true,
-					Providers: config.AuthenticationMethodOIDCProviders{
-						Google: &config.AuthenticationMethodOIDCProviderGoogle{
+					Providers: map[string]config.AuthenticationMethodOIDCProvider{
+						"google": {
 							IssuerURL:       tp.Addr(),
 							ClientID:        id,
 							ClientSecret:    secret,
@@ -230,7 +230,7 @@ func Test_Server(t *testing.T) {
 		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
 		assert.Equal(t, map[string]string{
 			"io.flipt.auth.id.email":      "mark@flipt.io",
-			"io.flipt.auth.oidc.provider": "OIDC_PROVIDER_GOOGLE",
+			"io.flipt.auth.oidc.provider": "google",
 		}, response.Authentication.Metadata)
 
 		// ensure expiry is set

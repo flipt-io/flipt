@@ -163,13 +163,8 @@ service AuthenticationMethodTokenService {
   }
 }
 
-enum OIDCProvider {
-  OIDC_PROVIDER_NONE = 0;
-  OIDC_PROVIDER_GOOGLE = 1;
-}
-
 message AuthorizeURLRequest {
-  OIDCProvider provider = 1;
+  string provider = 1;
   string state = 2;
 }
 
@@ -178,7 +173,7 @@ message AuthorizeURLResponse {
 }
 
 message CallbackRequest {
-  OIDCProvider provider = 1;
+  string provider = 1;
   string code = 2;
   string state = 3;
 }
