@@ -117,13 +117,6 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 	return
 }
 
-func structKeys(typ reflect.Type) (keys []string) {
-	for i := 0; i < typ.NumField(); i++ {
-		keys = append(keys, fieldKey(typ.Field(i)))
-	}
-	return
-}
-
 func fieldKey(field reflect.StructField) string {
 	if tag := field.Tag.Get("mapstructure"); tag != "" {
 		return tag
@@ -196,6 +189,7 @@ func bind(env, prefixes []string, next string, fn func([]string)) {
 	copy(p, prefixes[:len(prefixes)-1])
 
 	var (
+		// nolint https://github.com/ashanbrown/makezero/issues/12
 		prefix = strings.ToUpper(strings.Join(append(p, ""), "_"))
 		keys   = strippedKeys(env, prefix, strings.ToUpper(next))
 	)

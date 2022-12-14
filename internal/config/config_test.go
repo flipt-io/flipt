@@ -678,6 +678,7 @@ func Test_mustBindEnv(t *testing.T) {
 			},
 		},
 	} {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			binder := sliceEnvBinder{}
 
