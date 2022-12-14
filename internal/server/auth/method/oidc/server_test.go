@@ -229,8 +229,9 @@ func Test_Server(t *testing.T) {
 		assert.Empty(t, response.ClientToken) // middleware moves it to cookie
 		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
 		assert.Equal(t, map[string]string{
-			"io.flipt.auth.id.email":      "mark@flipt.io",
 			"io.flipt.auth.oidc.provider": "google",
+			"io.flipt.auth.oidc.email":    "mark@flipt.io",
+			"io.flipt.auth.oidc.name":     "Mark Phelps",
 		}, response.Authentication.Metadata)
 
 		// ensure expiry is set

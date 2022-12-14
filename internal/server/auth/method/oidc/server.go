@@ -18,8 +18,12 @@ import (
 )
 
 const (
-	storageMetadataOIDCProviderKey = "io.flipt.auth.oidc.provider"
-	storageMetadataIDEmailKey      = "io.flipt.auth.id.email"
+	storageMetadataOIDCProviderKey    = "io.flipt.auth.oidc.provider"
+	storageMetadataIDEmailKey         = "io.flipt.auth.oidc.email"
+	storageMetadataIDEmailVerifiedKey = "io.flipt.auth.oidc.email_verified"
+	storageMetadataIDNameKey          = "io.flipt.auth.oidc.name"
+	storageMetadataIDProfileKey       = "io.flipt.auth.oidc.profile"
+	storageMetadataIDPictureKey       = "io.flipt.auth.oidc.picture"
 )
 
 // errProviderNotFound is returned when a provider is requested which
@@ -127,22 +131,21 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		return nil, err
 	}
 
-	// Extract custom claims
-	var claims struct {
-		Email    string `json:"email"`
-		Verified bool   `json:"email_verified"`
+	metadata := map[string]string{
+		storageMetadataOIDCProviderKey: req.Provider,
 	}
+
+	// Extract custom claims
+	var claims claims
 	if err := responseToken.IDToken().Claims(&claims); err != nil {
 		return nil, err
 	}
+	claims.addToMetadata(metadata)
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_OIDC,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
-		Metadata: map[string]string{
-			storageMetadataIDEmailKey:      claims.Email,
-			storageMetadataOIDCProviderKey: req.Provider,
-		},
+		Metadata:  metadata,
 	})
 	if err != nil {
 		return nil, err
@@ -198,4 +201,31 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 	}
 
 	return p, req, nil
+}
+
+type claims struct {
+	Email    *string `json:"email"`
+	Verified *bool   `json:"email_verified"`
+	Name     *string `json:"name"`
+	Profile  *string `json:"profile"`
+	Picture  *string `json:"picture"`
+}
+
+func (c claims) addToMetadata(m map[string]string) {
+	set := func(key string, s *string) {
+		if s != nil && *s != "" {
+			m[key] = *s
+		}
+	}
+
+	set(storageMetadataIDEmailKey, c.Email)
+	set(storageMetadataIDNameKey, c.Name)
+	set(storageMetadataIDProfileKey, c.Profile)
+	set(storageMetadataIDPictureKey, c.Picture)
+
+	if c.Verified != nil {
+		m[storageMetadataIDEmailVerifiedKey] = fmt.Sprintf("%v", *c.Verified)
+	}
+
+	return
 }
