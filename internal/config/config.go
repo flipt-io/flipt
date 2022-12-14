@@ -95,7 +95,7 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 		// infer when doing Unmarshal + AutomaticEnv.
 		// see: https://github.com/spf13/viper/issues/761
 		structField := val.Type().Field(i)
-		bindEnvVars(v, getEnvVarTrie(), fieldKey(structField), structField.Type)
+		bindEnvVars(v, getFliptEnvs(), []string{fieldKey(structField)}, structField.Type)
 
 		field := val.Field(i).Addr().Interface()
 
@@ -116,6 +116,14 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 
 	return
 }
+
+func structKeys(typ reflect.Type) (keys []string) {
+	for i := 0; i < typ.NumField(); i++ {
+		keys = append(keys, fieldKey(typ.Field(i)))
+	}
+	return
+}
+
 func fieldKey(field reflect.StructField) string {
 	if tag := field.Tag.Get("mapstructure"); tag != "" {
 		return tag
@@ -124,40 +132,124 @@ func fieldKey(field reflect.StructField) string {
 	return strings.ToLower(field.Name)
 }
 
+type envBinder interface {
+	MustBindEnv(...string)
+}
+
 // bindEnvVars descends into the provided struct field binding any expected
 // environment variable keys it finds reflecting struct and field tags.
-func bindEnvVars(v *viper.Viper, prefixes trie, prefix string, typ reflect.Type) {
+func bindEnvVars(v envBinder, env, prefixes []string, typ reflect.Type) {
 	// descend through pointers
 	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 
-	// descend into struct fields
 	switch typ.Kind() {
 	case reflect.Map:
-		// use the environment to pre-emptively bind env vars for map keys
-		parts := strings.Split(strings.ReplaceAll(strings.ToUpper(prefix), "_", "."), ".")
-		if trie, ok := prefixes.getPrefix(parts...); ok {
-			for k := range trie {
-				prefix = prefix + "." + strings.ToLower(k)
-				bindEnvVars(v, prefixes, prefix, typ.Elem())
-			}
-		}
+		// recurse into bindEnvVars while signifying that the last
+		// key was unbound using the wildcard "*".
+		bindEnvVars(v, env, append(prefixes, "*"), typ.Elem())
 
 		return
 	case reflect.Struct:
 		for i := 0; i < typ.NumField(); i++ {
 			structField := typ.Field(i)
 
-			// key becomes prefix for sub-fields
-			prefix = prefix + "." + fieldKey(structField)
-			bindEnvVars(v, prefixes, prefix, structField.Type)
+			key := fieldKey(structField)
+			bind(env, prefixes, key, func(prefixes []string) {
+				bindEnvVars(v, env, prefixes, structField.Type)
+			})
 		}
 
 		return
 	}
 
-	v.MustBindEnv(prefix)
+	bind(env, prefixes, "", func(prefixes []string) {
+		v.MustBindEnv(strings.Join(prefixes, "."))
+	})
+}
+
+const wildcard = "*"
+
+func appendIfNotEmpty(s []string, v ...string) []string {
+	for _, vs := range v {
+		if vs != "" {
+			s = append(s, vs)
+		}
+	}
+
+	return s
+}
+
+// bind invokes the supplied function "fn" with each possible set of
+// for the supplied prefixes and the next next
+func bind(env, prefixes []string, next string, fn func([]string)) {
+	// given the previous entry is non-existent or not the wildcard
+	if len(prefixes) < 1 || prefixes[len(prefixes)-1] != wildcard {
+		fn(appendIfNotEmpty(prefixes, next))
+		return
+	}
+
+	// drop the wildcard and derive all the possible keys from
+	// existing environment variables.
+	p := make([]string, len(prefixes)-1)
+	copy(p, prefixes[:len(prefixes)-1])
+
+	var (
+		prefix = strings.ToUpper(strings.Join(append(p, ""), "_"))
+		keys   = strippedKeys(env, prefix, strings.ToUpper(next))
+	)
+
+	for _, key := range keys {
+		fn(appendIfNotEmpty(p, strings.ToLower(key), next))
+	}
+}
+
+// strippedKeys returns a set of keys derived from a list of env var keys.
+// It starts by filtering and stripping each key with a matching prefix.
+// Given a child delimiter string is supplied it also trims the delimeter string
+// and any remaining characters after this suffix.
+//
+// e.g strippedKeys(["A_B_C_D", "A_B_F_D", "A_B_E_D_G"], "A_B", "D")
+// returns ["c", "f", "e"]
+//
+// It's purpose is to extract the parts of env vars which are likely
+// keys in an arbitrary map type.
+func strippedKeys(envs []string, prefix, delim string) (keys []string) {
+	for _, env := range envs {
+		if strings.HasPrefix(env, prefix) {
+			env = env[len(prefix):]
+			if env == "" {
+				continue
+			}
+
+			if delim == "" {
+				keys = append(keys, env)
+				continue
+			}
+
+			// cut the string on the child key and take the left hand component
+			if left, _, ok := strings.Cut(env, "_"+delim); ok {
+				keys = append(keys, left)
+			}
+		}
+	}
+	return
+}
+
+// getFliptEnvs returns all environment variables which have FLIPT_
+// as a prefix. It also strips this prefix before appending them to the
+// resulting set.
+func getFliptEnvs() (envs []string) {
+	const prefix = "FLIPT_"
+	for _, e := range os.Environ() {
+		key, _, ok := strings.Cut(e, "=")
+		if ok && strings.HasPrefix(key, prefix) {
+			// strip FLIPT_ off env vars for convenience
+			envs = append(envs, key[len(prefix):])
+		}
+	}
+	return envs
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -220,45 +312,4 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 
 		return strings.Fields(raw), nil
 	}
-}
-
-// trie is a prefix trie used to create a map of potential
-// key paths from the current environment.
-// This is used to support pre-emptively binding env vars
-// for the keys of map[string]T which we don't know aheaad of
-// time.
-type trie map[string]trie
-
-func (t trie) getPrefix(parts ...string) (trie, bool) {
-	if len(parts) == 0 {
-		return t, true
-	}
-
-	return t[parts[0]].getPrefix(parts[1:]...)
-}
-
-func getEnvVarTrie() trie {
-	const envPrefix = "FLIPT_"
-	root := trie{}
-
-	for _, env := range os.Environ() {
-		if !strings.HasPrefix(env, envPrefix) {
-			continue
-		}
-
-		env = strings.SplitN(env[len(envPrefix):], "=", 2)[0]
-
-		node := root
-		for _, part := range strings.Split(strings.ToUpper(env), "_") {
-			if n, ok := node[part]; ok {
-				node = n
-				continue
-			}
-
-			node[part] = trie{}
-			node = node[part]
-		}
-	}
-
-	return root
 }
