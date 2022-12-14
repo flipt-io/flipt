@@ -18,8 +18,12 @@ import (
 )
 
 const (
-	storageMetadataOIDCProviderKey = "io.flipt.auth.oidc.provider"
-	storageMetadataIDEmailKey      = "io.flipt.auth.id.email"
+	storageMetadataOIDCProviderKey    = "io.flipt.auth.oidc.provider"
+	storageMetadataIDEmailKey         = "io.flipt.auth.oidc.email"
+	storageMetadataIDEmailVerifiedKey = "io.flipt.auth.oidc.email_verified"
+	storageMetadataIDNameKey          = "io.flipt.auth.oidc.name"
+	storageMetadataIDProfileKey       = "io.flipt.auth.oidc.profile"
+	storageMetadataIDPictureKey       = "io.flipt.auth.oidc.picture"
 )
 
 // errProviderNotFound is returned when a provider is requested which
@@ -127,22 +131,21 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 		return nil, err
 	}
 
-	// Extract custom claims
-	var claims struct {
-		Email    string `json:"email"`
-		Verified bool   `json:"email_verified"`
+	metadata := map[string]string{
+		storageMetadataOIDCProviderKey: req.Provider,
 	}
+
+	// Extract custom claims
+	var claims claims
 	if err := responseToken.IDToken().Claims(&claims); err != nil {
 		return nil, err
 	}
+	claims.addToMetadata(metadata)
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
 		Method:    auth.Method_METHOD_OIDC,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
-		Metadata: map[string]string{
-			storageMetadataIDEmailKey:      claims.Email,
-			storageMetadataOIDCProviderKey: req.Provider.String(),
-		},
+		Metadata:  metadata,
 	})
 	if err != nil {
 		return nil, err
@@ -158,35 +161,29 @@ func callbackURL(host, provider string) string {
 	return host + "/auth/v1/method/oidc/" + provider + "/callback"
 }
 
-func (s *Server) providerFor(provider auth.OIDCProvider, state string) (*capoidc.Provider, *capoidc.Req, error) {
+func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, *capoidc.Req, error) {
 	var (
-		providerConfig = s.config.Methods.OIDC.Providers
-		config         *capoidc.Config
-		callback       string
-		scopes         []string
+		config   *capoidc.Config
+		callback string
 	)
 
-	switch provider {
-	case auth.OIDCProvider_OIDC_PROVIDER_GOOGLE:
-		// Create a new provider config
-		google := providerConfig.Google
-
-		callback = callbackURL(google.RedirectAddress, "google")
-		scopes = []string{"profile", "email"}
-
-		var err error
-		config, err = capoidc.NewConfig(
-			google.IssuerURL,
-			google.ClientID,
-			capoidc.ClientSecret(google.ClientSecret),
-			[]capoidc.Alg{oidc.RS256},
-			[]string{callback},
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-	default:
+	pConfig, ok := s.config.Methods.OIDC.Providers[provider]
+	if !ok {
 		return nil, nil, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
+	}
+
+	callback = callbackURL(pConfig.RedirectAddress, provider)
+
+	var err error
+	config, err = capoidc.NewConfig(
+		pConfig.IssuerURL,
+		pConfig.ClientID,
+		capoidc.ClientSecret(pConfig.ClientSecret),
+		[]capoidc.Alg{oidc.RS256},
+		[]string{callback},
+	)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	p, err := capoidc.NewProvider(config)
@@ -196,7 +193,7 @@ func (s *Server) providerFor(provider auth.OIDCProvider, state string) (*capoidc
 
 	req, err := capoidc.NewRequest(2*time.Minute, callback,
 		capoidc.WithState(state),
-		capoidc.WithScopes(scopes...),
+		capoidc.WithScopes(pConfig.Scopes...),
 		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
 	)
 	if err != nil {
@@ -204,4 +201,29 @@ func (s *Server) providerFor(provider auth.OIDCProvider, state string) (*capoidc
 	}
 
 	return p, req, nil
+}
+
+type claims struct {
+	Email    *string `json:"email"`
+	Verified *bool   `json:"email_verified"`
+	Name     *string `json:"name"`
+	Profile  *string `json:"profile"`
+	Picture  *string `json:"picture"`
+}
+
+func (c claims) addToMetadata(m map[string]string) {
+	set := func(key string, s *string) {
+		if s != nil && *s != "" {
+			m[key] = *s
+		}
+	}
+
+	set(storageMetadataIDEmailKey, c.Email)
+	set(storageMetadataIDNameKey, c.Name)
+	set(storageMetadataIDProfileKey, c.Profile)
+	set(storageMetadataIDPictureKey, c.Picture)
+
+	if c.Verified != nil {
+		m[storageMetadataIDEmailVerifiedKey] = fmt.Sprintf("%v", *c.Verified)
+	}
 }

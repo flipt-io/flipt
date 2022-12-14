@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -95,12 +94,6 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 		if !match {
 			next.ServeHTTP(w, r)
 			return
-		}
-
-		// rewrite URL paths for friendlier URL support
-		enumName := "OIDC_PROVIDER_" + strings.ToUpper(provider)
-		if _, ok := auth.OIDCProvider_value[enumName]; ok {
-			r.URL.Path = fmt.Sprintf("/auth/v1/method/oidc/%s/%s", enumName, method)
 		}
 
 		if method == "authorize" {

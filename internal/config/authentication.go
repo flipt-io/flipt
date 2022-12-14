@@ -55,7 +55,8 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 		method := map[string]any{"enabled": false}
 		// if the method has been enabled then set the defaults
 		// for its cleanup strategy
-		if v.GetBool(fmt.Sprintf("authentication.methods.%s.enabled", k)) {
+		prefix := fmt.Sprintf("authentication.methods.%s", k)
+		if v.GetBool(prefix + ".enabled") {
 			method["cleanup"] = map[string]any{
 				"interval":     time.Hour,
 				"grace_period": 30 * time.Minute,
@@ -148,22 +149,18 @@ type AuthenticationMethodTokenConfig struct {
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	Enabled   bool                              `json:"enabled,omitempty" mapstructure:"enabled"`
-	Providers AuthenticationMethodOIDCProviders `json:"providers,omitempty" mapstructure:"providers"`
-	Cleanup   *AuthenticationCleanupSchedule    `json:"cleanup,omitempty" mapstructure:"cleanup"`
+	Enabled   bool                                        `json:"enabled,omitempty" mapstructure:"enabled"`
+	Providers map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
+	Cleanup   *AuthenticationCleanupSchedule              `json:"cleanup,omitempty" mapstructure:"cleanup"`
 }
 
-// AuthenticationMethodOIDCProviders contains a set of providers for the OIDC authentication method.
-type AuthenticationMethodOIDCProviders struct {
-	Google *AuthenticationMethodOIDCProviderGoogle `json:"google,omitempty" mapstructure:"google"`
-}
-
-// AuthenticationOIDCProviderGoogle configures the Google OIDC provider credentials
-type AuthenticationMethodOIDCProviderGoogle struct {
-	IssuerURL       string `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
-	ClientID        string `json:"clientID,omitempty" mapstructure:"client_id"`
-	ClientSecret    string `json:"clientSecret,omitempty" mapstructure:"client_secret"`
-	RedirectAddress string `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
+// AuthenticationOIDCProvider configures provider credentials
+type AuthenticationMethodOIDCProvider struct {
+	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
+	ClientID        string   `json:"clientID,omitempty" mapstructure:"client_id"`
+	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
+	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
+	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.

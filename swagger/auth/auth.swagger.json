@@ -64,11 +64,7 @@
             "name": "provider",
             "in": "path",
             "required": true,
-            "type": "string",
-            "enum": [
-              "OIDC_PROVIDER_NONE",
-              "OIDC_PROVIDER_GOOGLE"
-            ]
+            "type": "string"
           },
           {
             "name": "state",
@@ -111,11 +107,7 @@
             "name": "provider",
             "in": "path",
             "required": true,
-            "type": "string",
-            "enum": [
-              "OIDC_PROVIDER_NONE",
-              "OIDC_PROVIDER_GOOGLE"
-            ]
+            "type": "string"
           },
           {
             "name": "code",
@@ -434,14 +426,6 @@
         "METHOD_OIDC"
       ],
       "default": "METHOD_NONE"
-    },
-    "authOIDCProvider": {
-      "type": "string",
-      "enum": [
-        "OIDC_PROVIDER_NONE",
-        "OIDC_PROVIDER_GOOGLE"
-      ],
-      "default": "OIDC_PROVIDER_NONE"
     },
     "protobufAny": {
       "type": "object",
