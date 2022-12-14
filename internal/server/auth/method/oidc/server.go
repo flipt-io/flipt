@@ -226,6 +226,4 @@ func (c claims) addToMetadata(m map[string]string) {
 	if c.Verified != nil {
 		m[storageMetadataIDEmailVerifiedKey] = fmt.Sprintf("%v", *c.Verified)
 	}
-
-	return
 }
