@@ -175,7 +175,10 @@ func appendIfNotEmpty(s []string, v ...string) []string {
 }
 
 // bind invokes the supplied function "fn" with each possible set of
-// for the supplied prefixes and the next next
+// prefixes for the next prefix ("next").
+// If the last prefix is "*" then we must search the current environment
+// for matching env vars to obtain the potential keys which populate
+// the unbound map keys.
 func bind(env, prefixes []string, next string, fn func([]string)) {
 	// given the previous entry is non-existent or not the wildcard
 	if len(prefixes) < 1 || prefixes[len(prefixes)-1] != wildcard {
@@ -189,6 +192,7 @@ func bind(env, prefixes []string, next string, fn func([]string)) {
 	copy(p, prefixes[:len(prefixes)-1])
 
 	var (
+		// makezero linter doesn't take note of subsequent copy
 		// nolint https://github.com/ashanbrown/makezero/issues/12
 		prefix = strings.ToUpper(strings.Join(append(p, ""), "_"))
 		keys   = strippedKeys(env, prefix, strings.ToUpper(next))
