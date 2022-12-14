@@ -154,7 +154,7 @@ type AuthenticationMethodOIDCConfig struct {
 	Cleanup   *AuthenticationCleanupSchedule              `json:"cleanup,omitempty" mapstructure:"cleanup"`
 }
 
-// AuthenticationOIDCProviderGoogle configures the Google OIDC provider credentials
+// AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
 	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
 	ClientID        string   `json:"clientID,omitempty" mapstructure:"client_id"`
