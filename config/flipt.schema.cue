@@ -6,6 +6,7 @@ package flipt
 	// Flipt config file is a YAML file defining how to configure the
 	// Flipt application.
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
+	version?: string | *"1.0"
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
