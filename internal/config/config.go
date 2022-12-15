@@ -101,6 +101,18 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 
 		field := val.Field(i).Addr().Interface()
 
+		// for-each deprecator implementing field we collect
+		// the messages as warnings.
+		// we do this before setting defaults so that we can
+		// warn about deprecated fields that are being set by the user.
+		if deprecator, ok := field.(deprecator); ok {
+			for _, d := range deprecator.deprecations(v) {
+				if msg := d.String(); msg != "" {
+					c.Warnings = append(c.Warnings, msg)
+				}
+			}
+		}
+
 		// for-each defaulter implementing fields we invoke
 		// setting any defaults during this prepare stage
 		// on the supplied viper.
@@ -113,16 +125,6 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 		// unmarshalling.
 		if validator, ok := field.(validator); ok {
 			validators = append(validators, validator)
-		}
-
-		// for-each deprecator implementing field we collect
-		// the messages as warnings.
-		if deprecator, ok := field.(deprecator); ok {
-			for _, d := range deprecator.deprecations(v) {
-				if msg := d.String(); msg != "" {
-					c.Warnings = append(c.Warnings, msg)
-				}
-			}
 		}
 	}
 
