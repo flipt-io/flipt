@@ -80,11 +80,15 @@ func Load(path string) (*Config, error) {
 }
 
 type defaulter interface {
-	setDefaults(v *viper.Viper) []string
+	setDefaults(v *viper.Viper)
 }
 
 type validator interface {
 	validate() error
+}
+
+type deprecator interface {
+	deprecations(v *viper.Viper) []deprecation
 }
 
 func (c *Config) prepare(v *viper.Viper) (validators []validator) {
@@ -101,7 +105,7 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 		// setting any defaults during this prepare stage
 		// on the supplied viper.
 		if defaulter, ok := field.(defaulter); ok {
-			c.Warnings = append(c.Warnings, defaulter.setDefaults(v)...)
+			defaulter.setDefaults(v)
 		}
 
 		// for-each validator implementing field we collect
@@ -109,6 +113,16 @@ func (c *Config) prepare(v *viper.Viper) (validators []validator) {
 		// unmarshalling.
 		if validator, ok := field.(validator); ok {
 			validators = append(validators, validator)
+		}
+
+		// for-each deprecator implementing field we collect
+		// the messages as warnings.
+		if deprecator, ok := field.(deprecator); ok {
+			for _, d := range deprecator.deprecations(v) {
+				if msg := d.String(); msg != "" {
+					c.Warnings = append(c.Warnings, msg)
+				}
+			}
 		}
 	}
 

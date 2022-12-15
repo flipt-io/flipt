@@ -19,7 +19,7 @@ type TracingConfig struct {
 	Jaeger JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
 }
 
-func (c *TracingConfig) setDefaults(v *viper.Viper) []string {
+func (c *TracingConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("tracing", map[string]any{
 		"jaeger": map[string]any{
 			"enabled": false,
@@ -27,6 +27,4 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) []string {
 			"port":    6831,
 		},
 	})
-
-	return nil
 }
