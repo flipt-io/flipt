@@ -1,6 +1,9 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	// additional deprecation messages
@@ -13,10 +16,10 @@ const (
 type deprecation struct {
 	// the deprecated option
 	option string
-	// the additionalMessage to display
+	// the (optional) additionalMessage to display
 	additionalMessage string
 }
 
 func (d deprecation) String() string {
-	return fmt.Sprintf("%q is deprecated and will be removed in a future version. %s", d.option, d.additionalMessage)
+	return strings.Trim(fmt.Sprintf("%q is deprecated and will be removed in a future version. %s", d.option, d.additionalMessage))
 }
