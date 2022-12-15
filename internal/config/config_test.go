@@ -246,7 +246,10 @@ func TestLoad(t *testing.T) {
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = -time.Second
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled, deprecatedMsgMemoryExpiration)
+				cfg.Warnings = []string{
+					"\"cache.memory.enabled\" is deprecated and will be removed in a future version. Please use 'cache.backend' and 'cache.enabled' instead.",
+					"\"cache.memory.expiration\" is deprecated and will be removed in a future version. Please use 'cache.ttl' instead.",
+				}
 				return cfg
 			},
 		},
@@ -255,7 +258,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/deprecated/database_migrations_path.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgDatabaseMigrations)
+				cfg.Warnings = []string{"\"db.migrations.path\" is deprecated and will be removed in a future version. Migrations are now embedded within Flipt and are no longer required on disk."}
 				return cfg
 			},
 		},
@@ -264,7 +267,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/deprecated/database_migrations_path_legacy.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgDatabaseMigrations)
+				cfg.Warnings = []string{"\"db.migrations.path\" is deprecated and will be removed in a future version. Migrations are now embedded within Flipt and are no longer required on disk."}
 				return cfg
 			},
 		},

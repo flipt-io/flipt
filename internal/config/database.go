@@ -39,7 +39,7 @@ type DatabaseConfig struct {
 	Protocol        DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol"`
 }
 
-func (c *DatabaseConfig) setDefaults(v *viper.Viper) []string {
+func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("db", map[string]any{
 		"max_idle_conn": 2,
 	})
@@ -54,12 +54,19 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) []string {
 	if setDefaultURL {
 		v.SetDefault("db.url", "file:/var/opt/flipt/flipt.db")
 	}
+}
+
+func (c *DatabaseConfig) deprecations(v *viper.Viper) []deprecation {
+	var deprecations []deprecation
 
 	if v.IsSet("db.migrations.path") || v.IsSet("db.migrations_path") {
-		return []string{deprecatedMsgDatabaseMigrations}
+		deprecations = append(deprecations, deprecation{
+			option:            "db.migrations.path",
+			additionalMessage: deprecatedMsgDatabaseMigrations,
+		})
 	}
 
-	return nil
+	return deprecations
 }
 
 func (c *DatabaseConfig) validate() (err error) {
