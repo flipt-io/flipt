@@ -21,5 +21,5 @@ type deprecation struct {
 }
 
 func (d deprecation) String() string {
-	return strings.Trim(fmt.Sprintf("%q is deprecated and will be removed in a future version. %s", d.option, d.additionalMessage))
+	return strings.TrimSpace(fmt.Sprintf("%q is deprecated and will be removed in a future version. %s", d.option, d.additionalMessage))
 }
