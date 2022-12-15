@@ -314,7 +314,19 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		})
 	}
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, forceMigrate, cfg)
+	migrator, err := sql.NewMigrator(*cfg, logger)
+	if err != nil {
+		return err
+	}
+
+	if err := migrator.Up(forceMigrate); err != nil {
+		migrator.Close()
+		return err
+	}
+
+	migrator.Close()
+
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg)
 	if err != nil {
 		return err
 	}
