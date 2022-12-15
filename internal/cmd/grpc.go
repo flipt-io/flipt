@@ -80,7 +80,6 @@ type GRPCServer struct {
 func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
-	forceMigrate bool,
 	cfg *config.Config,
 ) (*GRPCServer, error) {
 	logger = logger.With(zap.String("server", "grpc"))
@@ -89,18 +88,7 @@ func NewGRPCServer(
 		cfg:    cfg,
 	}
 
-	migrator, err := sql.NewMigrator(*cfg, logger)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := migrator.Up(forceMigrate); err != nil {
-		migrator.Close()
-		return nil, err
-	}
-
-	migrator.Close()
-
+	var err error
 	server.ln, err = net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.GRPCPort))
 	if err != nil {
 		return nil, fmt.Errorf("creating grpc listener: %w", err)
