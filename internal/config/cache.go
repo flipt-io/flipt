@@ -19,7 +19,7 @@ type CacheConfig struct {
 	Redis   RedisCacheConfig  `json:"redis,omitempty" mapstructure:"redis"`
 }
 
-func (c *CacheConfig) setDefaults(v *viper.Viper) (warnings []string) {
+func (c *CacheConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("cache", map[string]any{
 		"enabled": false,
 		"backend": CacheMemory,
@@ -37,7 +37,6 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) (warnings []string) {
 	})
 
 	if v.GetBool("cache.memory.enabled") {
-		warnings = append(warnings, deprecatedMsgMemoryEnabled)
 		// forcibly set top-level `enabled` to true
 		v.Set("cache.enabled", true)
 		// ensure ttl is mapped to the value at memory.expiration
@@ -45,12 +44,27 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) (warnings []string) {
 		// ensure ttl default is set
 		v.SetDefault("cache.memory.expiration", 1*time.Minute)
 	}
+}
 
-	if v.IsSet("cache.memory.expiration") {
-		warnings = append(warnings, deprecatedMsgMemoryExpiration)
+func (c *CacheConfig) deprecations(v *viper.Viper) []deprecation {
+	var deprecations []deprecation
+
+	if v.GetBool("cache.memory.enabled") {
+		deprecations = append(deprecations, deprecation{
+
+			option:            "cache.memory.enabled",
+			additionalMessage: deprecatedMsgMemoryEnabled,
+		})
 	}
 
-	return
+	if v.IsSet("cache.memory.expiration") {
+		deprecations = append(deprecations, deprecation{
+			option:            "cache.memory.expiration",
+			additionalMessage: deprecatedMsgMemoryExpiration,
+		})
+	}
+
+	return deprecations
 }
 
 // CacheBackend is either memory or redis
