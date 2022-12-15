@@ -20,7 +20,7 @@ func (c *UIConfig) setDefaults(v *viper.Viper) {
 func (c *UIConfig) deprecations(v *viper.Viper) []deprecation {
 	var deprecations []deprecation
 
-	if v.GetBool("ui.enabled") {
+	if v.InConfig("ui.enabled") {
 		deprecations = append(deprecations, deprecation{
 			option: "ui.enabled",
 		})
