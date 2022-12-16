@@ -41,7 +41,7 @@ func (c AuthenticationConfig) ShouldRunCleanup() bool {
 	return (c.Methods.Token.Enabled && c.Methods.Token.Cleanup != nil)
 }
 
-func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
+func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 	token := map[string]any{
 		"enabled": false,
 	}
@@ -59,8 +59,6 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 			"token": token,
 		},
 	})
-
-	return nil
 }
 
 func (c *AuthenticationConfig) validate() error {

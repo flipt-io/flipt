@@ -3,9 +3,6 @@ log:
   file: "testLogFile.txt"
   encoding: "json"
 
-ui:
-  enabled: false
-
 cors:
   enabled: true
   allowed_origins: "foo.com bar.com  baz.com"
@@ -46,5 +43,5 @@ authentication:
     token:
       enabled: true
       cleanup:
-         interval: 2h
-         grace_period: 48h
+        interval: 2h
+        grace_period: 48h
