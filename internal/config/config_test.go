@@ -481,7 +481,7 @@ func TestLoad(t *testing.T) {
 				} else if err.Error() == wantErr.Error() {
 					match = true
 				}
-				require.True(t, match, "expected error to match: %v", wantErr)
+				require.True(t, match, "expected error %v to match: %v", err, wantErr)
 				return
 			}
 
@@ -521,7 +521,7 @@ func TestLoad(t *testing.T) {
 				} else if err.Error() == wantErr.Error() {
 					match = true
 				}
-				require.True(t, match, "expected error to match: %v", wantErr)
+				require.True(t, match, "expected error %v to match: %v", err, wantErr)
 				return
 			}
 
