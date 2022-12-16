@@ -6,6 +6,7 @@ import (
 
 	"dagger.io/dagger"
 	"go.flipt.io/flipt/build/internal"
+	"go.flipt.io/flipt/build/internal/test"
 )
 
 func main() {
@@ -42,8 +43,7 @@ func main() {
 		panic(err)
 	}
 
-	_, err = flipt.Directory("./bin").Export(ctx, "./bin")
-	if err != nil {
+	if err := test.Test(ctx, client, flipt); err != nil {
 		panic(err)
 	}
 }

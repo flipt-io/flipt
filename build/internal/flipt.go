@@ -132,6 +132,9 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 		},
 	})
 
+	golang = golang.WithEnvVariable("CGO_ENABLED", "1").
+		WithMountedDirectory(".", project)
+
 	// fetch and add ui/embed.go on its own
 	embed := client.Host().Directory(".", dagger.HostDirectoryOpts{
 		Include: []string{
@@ -139,14 +142,20 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 		},
 	})
 
-	cmd := fmt.Sprintf("go build -trimpath -tags assets,netgo -o %s -ldflags='-s -w -linkmode external -extldflags -static' ./...", target)
+	var (
+		ldflags    = "-s -w -linkmode external -extldflags -static"
+		goBuildCmd = fmt.Sprintf(
+			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
+			target,
+			ldflags,
+		)
+	)
+
 	golang = golang.
-		WithEnvVariable("CGO_ENABLED", "1").
-		WithMountedDirectory(".", project).
 		WithMountedFile("./ui/embed.go", embed.File("./ui/embed.go")).
 		WithMountedDirectory("./ui/dist", req.ui).
 		WithExec([]string{"mkdir", "-p", target}).
-		WithExec([]string{"sh", "-c", cmd})
+		WithExec([]string{"sh", "-c", goBuildCmd})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
