@@ -343,7 +343,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		break
 	}
 
-	logger.Info("shutting down.....")
+	logger.Info("shutting down...")
 
 	cancel()
 

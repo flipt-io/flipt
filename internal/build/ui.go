@@ -23,23 +23,9 @@ func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
 
 	cache := client.CacheVolume(fmt.Sprintf("node-modules-%s", id))
 
-	node := client.Container().From("node:18-alpine3.16").
+	return client.Container().From("node:18-alpine3.16").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("./ui/node_modules", cache).
-		WithExec([]string{"npm", "ci"})
-
-	stdout, err := node.Stdout(ctx)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(stdout)
-
-	node = node.WithExec([]string{"npm", "run", "build"})
-	stdout, err = node.Stdout(ctx)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(stdout)
-
-	return node, nil
+		WithExec([]string{"npm", "ci"}).
+		WithExec([]string{"npm", "run", "build"}), nil
 }

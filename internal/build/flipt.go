@@ -7,9 +7,41 @@ import (
 	"strings"
 
 	"dagger.io/dagger"
+	"github.com/containerd/containerd/platforms"
+	specs "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-func Flipt(ctx context.Context, client *dagger.Client, ui *dagger.Container) (*dagger.Container, error) {
+type FliptRequest struct {
+	ui     *dagger.Directory
+	build  specs.Platform
+	target specs.Platform
+}
+
+type Option func(*FliptRequest)
+
+func WithTarget(platform dagger.Platform) Option {
+	return func(r *FliptRequest) {
+		r.target = platforms.MustParse(string(platform))
+	}
+}
+
+func NewFliptRequest(ui *dagger.Directory, build dagger.Platform, opts ...Option) FliptRequest {
+	platform := platforms.MustParse(string(build))
+	req := FliptRequest{
+		ui:    ui,
+		build: platform,
+		// default target platform == build platform
+		target: platform,
+	}
+
+	for _, opt := range opts {
+		opt(&req)
+	}
+
+	return req
+}
+
+func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger.Container, error) {
 	// add base dependencies to intialize project with
 	src := client.Host().Directory(".", dagger.HostDirectoryOpts{
 		Include: []string{
@@ -20,35 +52,57 @@ func Flipt(ctx context.Context, client *dagger.Client, ui *dagger.Container) (*d
 		},
 	})
 
-	golang := client.Container().From("golang:1.18-alpine3.16").
-		WithMountedDirectory("/src", src).WithWorkdir("/src").
+	golang := client.Container(dagger.ContainerOpts{
+		Platform: dagger.Platform(platforms.Format(req.build)),
+	}).
+		From("golang:1.18-alpine3.16").
+		WithMountedDirectory("/src", src).
+		WithWorkdir("/src").
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
 
-	platform, err := golang.Platform(ctx)
+	target := fmt.Sprintf("./bin/%s", platforms.Format(req.target))
+
+	goBuildCachePath, err := golang.WithExec([]string{"go", "env", "GOCACHE"}).Stdout(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	target := fmt.Sprintf("./bin/%s", platform)
+	goModCachePath, err := golang.WithExec([]string{"go", "env", "GOMODCACHE"}).Stdout(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sumID, err := src.File("go.sum").ID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		cacheGoBuild = client.CacheVolume(fmt.Sprintf("go-build-%s", sumID))
+		cacheGoMod   = client.CacheVolume(fmt.Sprintf("go-mod-%s", sumID))
+	)
+
+	golang = golang.WithEnvVariable("GOOS", req.target.OS).
+		WithEnvVariable("GOARCH", req.target.Architecture).
+		// sanitize output as it returns with a \n on the end
+		// and that breaks the mount silently
+		WithMountedCache(strings.TrimSpace(goBuildCachePath), cacheGoBuild).
+		WithMountedCache(strings.TrimSpace(goModCachePath), cacheGoMod)
 
 	golang = golang.WithExec([]string{"go", "mod", "download"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
-
 	golang = golang.WithExec([]string{"./script/bootstrap"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
 
+	// use go list to get the minimal subset of dirs needed to build Flipt.
 	dirCMD := exec.Command("sh", "-c", "go list ./... | awk -F/ '{ print $3 }' | sort | uniq")
-	if err != nil {
-		return nil, err
-	}
-
 	out, err := dirCMD.Output()
 	if err != nil {
 		return nil, err
@@ -84,36 +138,12 @@ func Flipt(ctx context.Context, client *dagger.Client, ui *dagger.Container) (*d
 		},
 	})
 
-	goBuildCachePath, err := golang.WithExec([]string{"go", "env", "GOCACHE"}).Stdout(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	goModCachePath, err := golang.WithExec([]string{"go", "env", "GOMODCACHE"}).Stdout(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	sumID, err := src.File("go.sum").ID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		cacheGoBuild = client.CacheVolume(fmt.Sprintf("go-build-%s", sumID))
-		cacheGoMod   = client.CacheVolume(fmt.Sprintf("go-mod-%s", sumID))
-	)
-
-	goBuildCachePath = strings.TrimSpace(goBuildCachePath)
-	goModCachePath = strings.TrimSpace(goModCachePath)
-
-	cmd := fmt.Sprintf("go build -trimpath -tags assets -o %s ./...", target)
+	cmd := fmt.Sprintf("go build -trimpath -tags assets,netgo -o %s -ldflags='-s -w -linkmode external -extldflags -static' ./...", target)
 	golang = golang.
-		WithMountedCache(goBuildCachePath, cacheGoBuild).
-		WithMountedCache(goModCachePath, cacheGoMod).
+		WithEnvVariable("CGO_ENABLED", "1").
 		WithMountedDirectory(".", project).
 		WithMountedFile("./ui/embed.go", embed.File("./ui/embed.go")).
-		WithMountedDirectory("./ui/dist", ui.Directory("./dist")).
+		WithMountedDirectory("./ui/dist", req.ui).
 		WithExec([]string{"mkdir", "-p", target}).
 		WithExec([]string{"sh", "-c", cmd})
 	if _, err := golang.ExitCode(ctx); err != nil {

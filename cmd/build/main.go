@@ -25,12 +25,19 @@ func main() {
 	}
 
 	// write contents of container dist/ directory to the host
-	_, err = ui.Directory("./dist").Export(ctx, "./ui/dist")
+	dist := ui.Directory("./dist")
+	_, err = dist.Export(ctx, "./ui/dist")
 	if err != nil {
 		panic(err)
 	}
 
-	flipt, err := build.Flipt(ctx, client, ui)
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	req := build.NewFliptRequest(dist, platform)
+	flipt, err := build.Flipt(ctx, client, req)
 	if err != nil {
 		panic(err)
 	}
