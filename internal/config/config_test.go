@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -441,6 +442,20 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name: "version - v1",
+			path: "./testdata/version/v1.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Version = "1.0"
+				return cfg
+			},
+		},
+		{
+			name:    "version - invalid",
+			path:    "./testdata/version/invalid.yml",
+			wantErr: errors.New("invalid version: 2.0"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -460,7 +475,13 @@ func TestLoad(t *testing.T) {
 
 			if wantErr != nil {
 				t.Log(err)
-				require.ErrorIs(t, err, wantErr)
+				match := false
+				if errors.Is(err, wantErr) {
+					match = true
+				} else if err.Error() == wantErr.Error() {
+					match = true
+				}
+				require.True(t, match, "expected error to match: %v", wantErr)
 				return
 			}
 
@@ -494,7 +515,13 @@ func TestLoad(t *testing.T) {
 
 			if wantErr != nil {
 				t.Log(err)
-				require.ErrorIs(t, err, wantErr)
+				match := false
+				if errors.Is(err, wantErr) {
+					match = true
+				} else if err.Error() == wantErr.Error() {
+					match = true
+				}
+				require.True(t, match, "expected error to match: %v", wantErr)
 				return
 			}
 

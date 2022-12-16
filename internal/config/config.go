@@ -72,15 +72,7 @@ func Load(path string) (*Result, error) {
 		validators  []validator
 	)
 
-	val := reflect.ValueOf(cfg).Elem()
-	for i := 0; i < val.NumField(); i++ {
-		// search for all expected env vars since Viper cannot
-		// infer when doing Unmarshal + AutomaticEnv.
-		// see: https://github.com/spf13/viper/issues/761
-		bindEnvVars(v, "", val.Type().Field(i))
-
-		field := val.Field(i).Addr().Interface()
-
+	f := func(field any) {
 		// for-each deprecator implementing field we collect
 		// them up and return them to be run before unmarshalling and before setting defaults.
 		if deprecator, ok := field.(deprecator); ok {
@@ -100,6 +92,21 @@ func Load(path string) (*Result, error) {
 		if validator, ok := field.(validator); ok {
 			validators = append(validators, validator)
 		}
+	}
+
+	// invoke the field visitor on the root config firsts
+	root := reflect.ValueOf(cfg).Interface()
+	f(root)
+
+	val := reflect.ValueOf(cfg).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		// search for all expected env vars since Viper cannot
+		// infer when doing Unmarshal + AutomaticEnv.
+		// see: https://github.com/spf13/viper/issues/761
+		bindEnvVars(v, "", val.Type().Field(i))
+
+		field := val.Field(i).Addr().Interface()
+		f(field)
 	}
 
 	// run any deprecations checks
@@ -172,6 +179,15 @@ func bindEnvVars(v *viper.Viper, prefix string, field reflect.StructField) {
 	}
 
 	v.MustBindEnv(key)
+}
+
+func (c *Config) validate() (err error) {
+	if c.Version != "" {
+		if strings.TrimSpace(c.Version) != "1.0" {
+			return fmt.Errorf("invalid version: %s", c.Version)
+		}
+	}
+	return nil
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {
