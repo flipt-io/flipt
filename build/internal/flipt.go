@@ -1,4 +1,4 @@
-package build
+package internal
 
 import (
 	"context"
@@ -96,6 +96,7 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
+
 	golang = golang.WithExec([]string{"./script/bootstrap"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
@@ -103,6 +104,7 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 
 	// use go list to get the minimal subset of dirs needed to build Flipt.
 	dirCMD := exec.Command("sh", "-c", "go list ./... | awk -F/ '{ print $3 }' | sort | uniq")
+	dirCMD.Dir = ".."
 	out, err := dirCMD.Output()
 	if err != nil {
 		return nil, err
@@ -122,18 +124,17 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 			"go.sum",
 		),
 		Exclude: []string{
-			// exclude the build project
-			"./cmd/build/",
-			"./internal/build/",
+			// The UI contains mostly the JS frontend.
+			// However, it does contain a single go package,
+			// which is used to embed the built frontend
+			// distribution directory.
 			"./ui/",
-			"./bin/",
 		},
 	})
 
-	// fetch ui/embed.go on its own
+	// fetch and add ui/embed.go on its own
 	embed := client.Host().Directory(".", dagger.HostDirectoryOpts{
 		Include: []string{
-			// exclude the build project
 			"./ui/embed.go",
 		},
 	})

@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"dagger.io/dagger"
-	"go.flipt.io/flipt/internal/build"
+	"go.flipt.io/flipt/build/internal"
 )
 
 func main() {
 	ctx := context.Background()
 	client, err := dagger.Connect(ctx,
-		dagger.WithWorkdir("."),
+		dagger.WithWorkdir(".."),
 		dagger.WithLogOutput(os.Stdout),
 	)
 	if err != nil {
@@ -19,7 +19,7 @@ func main() {
 	}
 	defer client.Close()
 
-	ui, err := build.UI(ctx, client)
+	ui, err := internal.UI(ctx, client)
 	if err != nil {
 		panic(err)
 	}
@@ -36,8 +36,8 @@ func main() {
 		panic(err)
 	}
 
-	req := build.NewFliptRequest(dist, platform)
-	flipt, err := build.Flipt(ctx, client, req)
+	req := internal.NewFliptRequest(dist, platform)
+	flipt, err := internal.Flipt(ctx, client, req)
 	if err != nil {
 		panic(err)
 	}
