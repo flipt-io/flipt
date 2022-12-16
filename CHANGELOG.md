@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Deprecated
+
+- Deprecates `ui.enabled` in favor of always enabling the UI
+
 ## [v1.16.0](https://github.com/flipt-io/flipt/releases/tag/v1.16.0) - 2022-11-30
 
 ### Added
