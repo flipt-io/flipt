@@ -22,7 +22,7 @@ type ServerConfig struct {
 	CertKey   string `json:"certKey,omitempty" mapstructure:"cert_key"`
 }
 
-func (c *ServerConfig) setDefaults(v *viper.Viper) []string {
+func (c *ServerConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("server", map[string]any{
 		"host":       "0.0.0.0",
 		"protocol":   HTTP,
@@ -30,8 +30,6 @@ func (c *ServerConfig) setDefaults(v *viper.Viper) []string {
 		"https_port": 443,
 		"grpc_port":  9000,
 	})
-
-	return nil
 }
 
 func (c *ServerConfig) validate() (err error) {
