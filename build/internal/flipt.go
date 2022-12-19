@@ -63,7 +63,7 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 		return nil, err
 	}
 
-	target := fmt.Sprintf("./bin/%s", platforms.Format(req.target))
+	target := fmt.Sprintf("/bin/%s", platforms.Format(req.target))
 
 	goBuildCachePath, err := golang.WithExec([]string{"go", "env", "GOCACHE"}).Stdout(ctx)
 	if err != nil {
@@ -151,14 +151,21 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 		)
 	)
 
+	// build the Flipt target binary
 	golang = golang.
 		WithMountedFile("./ui/embed.go", embed.File("./ui/embed.go")).
 		WithMountedDirectory("./ui/dist", req.ui).
 		WithExec([]string{"mkdir", "-p", target}).
 		WithExec([]string{"sh", "-c", goBuildCmd})
-	if _, err := golang.ExitCode(ctx); err != nil {
-		return nil, err
-	}
 
-	return golang, nil
+		// build container with just Flipt + config
+	return client.Container().From("alpine:3.16").
+		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
+		WithFile("/bin/flipt",
+			golang.Directory(target).File("flipt")).
+		WithFile("/etc/flipt/config/default.yml",
+			golang.Directory("/src/config").File("default.yml")).
+		WithDefaultArgs(dagger.ContainerWithDefaultArgsOpts{
+			Args: []string{"/bin/flipt"},
+		}), nil
 }

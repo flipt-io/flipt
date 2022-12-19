@@ -34,6 +34,7 @@ profile
 site
 tmp
 __debug_bin
+*.tar
 
 Brewfile.lock.json
 *.key
