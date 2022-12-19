@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/squirrel v1.5.3
-	github.com/XSAM/otelsql v0.17.0
+	github.com/XSAM/otelsql v0.17.1
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/go-connections v0.4.0
 	github.com/fatih/color v1.13.0
