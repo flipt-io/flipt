@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"dagger.io/dagger"
 	"go.flipt.io/flipt/build/internal"
+	"go.flipt.io/flipt/build/internal/publish"
 	"golang.org/x/mod/modfile"
 )
 
@@ -17,12 +17,14 @@ var (
 	uiVersion        int
 	uiRepositoryPath string
 	uiExport         bool
+	publishImage     string
 )
 
 func main() {
 	flag.IntVar(&uiVersion, "ui-version", 1, "Version of the UI to build")
 	flag.StringVar(&uiRepositoryPath, "ui-path", "git://git@github.com:flipt-io/flipt-ui.git", "Path to UI V2 repository (file:// and git:// both supported)")
 	flag.BoolVar(&uiExport, "ui-export", false, "Export the generated UI contents to ui/dist.")
+	flag.StringVar(&publishImage, "publish", "", "Publish image to remote or local image repository (docker:// or docker-local://)")
 	flag.Parse()
 
 	curDir, err := os.Getwd()
@@ -80,14 +82,18 @@ func main() {
 		panic(err)
 	}
 
-	req := internal.NewFliptRequest(dist, platform)
+	req := internal.NewFliptRequest(dist, platform, internal.WithWorkDir(workDir))
 	flipt, err := internal.Flipt(ctx, client, req)
 	if err != nil {
 		panic(err)
 	}
 
-	out := fmt.Sprintf("flipt-%s.tar", strings.ReplaceAll(string(platform), "/", "-"))
-	if _, err := flipt.Export(ctx, out); err != nil {
-		panic(err)
+	if publishImage != "" {
+		ref, err := publish.Publish(ctx, publishImage, flipt)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println("Image Published:", ref)
 	}
 }

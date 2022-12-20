@@ -12,12 +12,19 @@ import (
 )
 
 type FliptRequest struct {
+	dir    string
 	ui     *dagger.Directory
 	build  specs.Platform
 	target specs.Platform
 }
 
 type Option func(*FliptRequest)
+
+func WithWorkDir(dir string) Option {
+	return func(r *FliptRequest) {
+		r.dir = dir
+	}
+}
 
 func WithTarget(platform dagger.Platform) Option {
 	return func(r *FliptRequest) {
@@ -28,6 +35,7 @@ func WithTarget(platform dagger.Platform) Option {
 func NewFliptRequest(ui *dagger.Directory, build dagger.Platform, opts ...Option) FliptRequest {
 	platform := platforms.MustParse(string(build))
 	req := FliptRequest{
+		dir:   ".",
 		ui:    ui,
 		build: platform,
 		// default target platform == build platform
@@ -104,7 +112,7 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 
 	// use go list to get the minimal subset of dirs needed to build Flipt.
 	dirCMD := exec.Command("sh", "-c", "go list ./... | awk -F/ '{ print $3 }' | sort | uniq")
-	dirCMD.Dir = ".."
+	dirCMD.Dir = req.dir
 	out, err := dirCMD.Output()
 	if err != nil {
 		return nil, err
