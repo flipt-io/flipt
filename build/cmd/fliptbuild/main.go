@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"dagger.io/dagger"
 	"go.flipt.io/flipt/build/internal"
+	"golang.org/x/mod/modfile"
 )
 
 var (
@@ -23,9 +25,24 @@ func main() {
 	flag.BoolVar(&uiExport, "ui-export", false, "Export the generated UI contents to ui/dist.")
 	flag.Parse()
 
+	curDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	mod, err := os.ReadFile(path.Join(curDir, "go.mod"))
+	if err != nil {
+		panic(err)
+	}
+
+	workDir := "."
+	if modfile.ModulePath(mod) == "go.flipt.io/flipt/build" {
+		workDir = ".."
+	}
+
 	ctx := context.Background()
 	client, err := dagger.Connect(ctx,
-		dagger.WithWorkdir(".."),
+		dagger.WithWorkdir(workDir),
 		dagger.WithLogOutput(os.Stdout),
 	)
 	if err != nil {
