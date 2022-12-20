@@ -167,12 +167,17 @@ func Flipt(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagge
 		WithExec([]string{"sh", "-c", goBuildCmd})
 
 		// build container with just Flipt + config
-	return client.Container().From("alpine:3.16").
+	return client.Container().From("alpine:3.17").
+		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
 		WithFile("/bin/flipt",
 			golang.Directory(target).File("flipt")).
 		WithFile("/etc/flipt/config/default.yml",
 			golang.Directory("/src/config").File("default.yml")).
+		WithExec([]string{"addgroup", "flipt"}).
+		WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
+		WithExec([]string{"chown", "-R", "flipt:flipt", "/etc/flipt", "/var/opt/flipt"}).
+		WithUser("flipt").
 		WithDefaultArgs(dagger.ContainerWithDefaultArgsOpts{
 			Args: []string{"/bin/flipt"},
 		}), nil
