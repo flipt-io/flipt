@@ -2,10 +2,15 @@
   "$schema": "http://json-schema.org/draft/2019-09/schema#",
   "id": "flipt.schema.json",
   "type": "object",
-  "title": "Flipt Configuration Specification",
+  "title": "flipt-schema-v1",
   "description": "Flipt config file is a YAML file defining how to configure the Flipt application.",
 
   "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "default": "1.0"
+    },
     "authentication": {
       "$ref": "#/definitions/authentication"
     },
