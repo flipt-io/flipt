@@ -88,7 +88,7 @@ func local(ctx context.Context, path string, container *dagger.Container) (strin
 }
 
 func remote(ctx context.Context, path string, container *dagger.Container) (string, error) {
-	return "", nil
+	return container.Publish(ctx, path)
 }
 
 func tempFile() (string, error) {
