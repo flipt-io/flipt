@@ -70,7 +70,7 @@ type DeleteAuthenticationsRequest struct {
 
 func (d *DeleteAuthenticationsRequest) Valid() error {
 	if d.ID == nil && d.Method == nil && d.ExpiredBefore == nil {
-		return errors.NewErrorf[errors.ErrInvalid]("id, method or expired-before timestamp is required")
+		return errors.ErrInvalidf("id, method or expired-before timestamp is required")
 	}
 
 	return nil

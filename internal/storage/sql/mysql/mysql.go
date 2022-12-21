@@ -45,7 +45,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.NewErrorf[errs.ErrInvalid]("flag %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -63,9 +63,9 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		if errors.As(err, &merr) {
 			switch merr.Number {
 			case constraintForeignKeyErrCode:
-				return nil, errs.NewErrorf[errs.ErrNotFound]("flag %q", r.FlagKey)
+				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
 			case constraintUniqueErrCode:
-				return nil, errs.NewErrorf[errs.ErrInvalid]("variant %q is not unique", r.Key)
+				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 			}
 		}
 
@@ -82,7 +82,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.NewErrorf[errs.ErrInvalid]("variant %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -98,7 +98,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.NewErrorf[errs.ErrInvalid]("segment %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -114,7 +114,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
-			return nil, errs.NewErrorf[errs.ErrNotFound]("segment %q", r.SegmentKey)
+			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
 		}
 
 		return nil, err
@@ -130,7 +130,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
-			return nil, errs.NewErrorf[errs.ErrNotFound]("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 		}
 
 		return nil, err
@@ -146,7 +146,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
-			return nil, errs.NewErrorf[errs.ErrNotFound]("rule %q", r.RuleId)
+			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 		}
 
 		return nil, err

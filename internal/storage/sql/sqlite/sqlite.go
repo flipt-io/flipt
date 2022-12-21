@@ -42,7 +42,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.NewErrorf[errs.ErrInvalid]("flag %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -60,9 +60,9 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		if errors.As(err, &serr) {
 			switch serr.ExtendedCode {
 			case sqlite3.ErrConstraintForeignKey:
-				return nil, errs.NewErrorf[errs.ErrNotFound]("flag %q", r.FlagKey)
+				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
 			case sqlite3.ErrConstraintUnique:
-				return nil, errs.NewErrorf[errs.ErrInvalid]("variant %q is not unique", r.Key)
+				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 			}
 		}
 
@@ -79,7 +79,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.NewErrorf[errs.ErrInvalid]("variant %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -95,7 +95,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.NewErrorf[errs.ErrInvalid]("segment %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
 		}
 
 		return nil, err
@@ -111,7 +111,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.NewErrorf[errs.ErrNotFound]("segment %q", r.SegmentKey)
+			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
 		}
 
 		return nil, err
@@ -127,7 +127,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.NewErrorf[errs.ErrNotFound]("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
 		}
 
 		return nil, err
@@ -143,7 +143,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.NewErrorf[errs.ErrNotFound]("rule %q", r.RuleId)
+			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
 		}
 
 		return nil, err

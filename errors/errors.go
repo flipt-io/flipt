@@ -31,12 +31,18 @@ func NewErrorf[E StringError](format string, args ...any) error {
 // ErrNotFound represents a not found error
 type ErrNotFound string
 
+// ErrNotFoundf is a convience function for producing ErrNotFound.
+var ErrNotFoundf = NewErrorf[ErrNotFound]
+
 func (e ErrNotFound) Error() string {
 	return fmt.Sprintf("%s not found", string(e))
 }
 
 // ErrInvalid represents an invalid error
 type ErrInvalid string
+
+// ErrInvalidf is a convience function for producing ErrInvalid.
+var ErrInvalidf = NewErrorf[ErrInvalid]
 
 func (e ErrInvalid) Error() string {
 	return string(e)
@@ -55,6 +61,9 @@ func (e ErrValidation) Error() string {
 // ErrCanceled is returned when an operation has been prematurely canceled by the requester.
 type ErrCanceled string
 
+// ErrCanceledf is a convience function for producing ErrCanceled.
+var ErrCanceledf = NewErrorf[ErrCanceled]
+
 func (e ErrCanceled) Error() string {
 	return string(e)
 }
@@ -72,6 +81,9 @@ func EmptyFieldError(field string) error {
 // ErrUnauthenticated is returned when an operation is attempted by an unauthenticated
 // client in an authenticated context.
 type ErrUnauthenticated string
+
+// ErrUnauthenticatedf is a convience function for producing ErrUnauthenticated.
+var ErrUnauthenticatedf = NewErrorf[ErrUnauthenticated]
 
 // Error() returns the underlying string of the error.
 func (e ErrUnauthenticated) Error() string {

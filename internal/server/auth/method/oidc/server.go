@@ -108,16 +108,16 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	if req.State != "" {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, errors.NewErrorf[errors.ErrUnauthenticated]("missing state parameter")
+			return nil, errors.ErrUnauthenticatedf("missing state parameter")
 		}
 
 		state, ok := md["flipt_client_state"]
 		if !ok || len(state) < 1 {
-			return nil, errors.NewErrorf[errors.ErrUnauthenticated]("missing state parameter")
+			return nil, errors.ErrUnauthenticatedf("missing state parameter")
 		}
 
 		if req.State != state[0] {
-			return nil, errors.NewErrorf[errors.ErrUnauthenticated]("unexpected state parameter")
+			return nil, errors.ErrUnauthenticatedf("unexpected state parameter")
 		}
 	}
 
