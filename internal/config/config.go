@@ -25,8 +25,7 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 
 // Config contains all of Flipts configuration needs.
 //
-// The root of this structure contains a collection of sub-configuration categories,
-// along with a set of warnings derived once the configuration has been loaded.
+// The root of this structure contains a collection of sub-configuration categories.
 //
 // Each sub-configuration (e.g. LogConfig) optionally implements either or both of
 // the defaulter or validator interfaces.
@@ -37,6 +36,7 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 // then this will be called after unmarshalling, such that the function can emit
 // any errors derived from the resulting state of the configuration.
 type Config struct {
+	Version        string               `json:"version,omitempty"`
 	Log            LogConfig            `json:"log,omitempty" mapstructure:"log"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors"`
@@ -46,10 +46,14 @@ type Config struct {
 	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db"`
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
 	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication"`
-	Warnings       []string             `json:"warnings,omitempty"`
 }
 
-func Load(path string) (*Config, error) {
+type Result struct {
+	Config   *Config
+	Warnings []string
+}
+
+func Load(path string) (*Result, error) {
 	v := viper.New()
 	v.SetEnvPrefix("FLIPT")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -62,9 +66,63 @@ func Load(path string) (*Config, error) {
 	}
 
 	var (
-		cfg        = &Config{}
-		validators = cfg.prepare(v)
+		cfg         = &Config{}
+		result      = &Result{Config: cfg}
+		deprecators []deprecator
+		defaulters  []defaulter
+		validators  []validator
 	)
+
+	f := func(field any) {
+		// for-each deprecator implementing field we collect
+		// them up and return them to be run before unmarshalling and before setting defaults.
+		if deprecator, ok := field.(deprecator); ok {
+			deprecators = append(deprecators, deprecator)
+		}
+
+		// for-each defaulter implementing fields we invoke
+		// setting any defaults during this prepare stage
+		// on the supplied viper.
+		if defaulter, ok := field.(defaulter); ok {
+			defaulters = append(defaulters, defaulter)
+		}
+
+		// for-each validator implementing field we collect
+		// them up and return them to be validated after
+		// unmarshalling.
+		if validator, ok := field.(validator); ok {
+			validators = append(validators, validator)
+		}
+	}
+
+	// invoke the field visitor on the root config firsts
+	root := reflect.ValueOf(cfg).Interface()
+	f(root)
+
+	val := reflect.ValueOf(cfg).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		// search for all expected env vars since Viper cannot
+		// infer when doing Unmarshal + AutomaticEnv.
+		// see: https://github.com/spf13/viper/issues/761
+		structField := val.Type().Field(i)
+		bindEnvVars(v, getFliptEnvs(), []string{fieldKey(structField)}, structField.Type)
+
+		field := val.Field(i).Addr().Interface()
+		f(field)
+	}
+
+	// run any deprecations checks
+	for _, deprecator := range deprecators {
+		warnings := deprecator.deprecations(v)
+		for _, warning := range warnings {
+			result.Warnings = append(result.Warnings, warning.String())
+		}
+	}
+
+	// run any defaulters
+	for _, defaulter := range defaulters {
+		defaulter.setDefaults(v)
+	}
 
 	if err := v.Unmarshal(cfg, viper.DecodeHook(decodeHooks)); err != nil {
 		return nil, err
@@ -77,44 +135,19 @@ func Load(path string) (*Config, error) {
 		}
 	}
 
-	return cfg, nil
+	return result, nil
 }
 
 type defaulter interface {
-	setDefaults(v *viper.Viper) []string
+	setDefaults(v *viper.Viper)
 }
 
 type validator interface {
 	validate() error
 }
 
-func (c *Config) prepare(v *viper.Viper) (validators []validator) {
-	val := reflect.ValueOf(c).Elem()
-	for i := 0; i < val.NumField(); i++ {
-		// search for all expected env vars since Viper cannot
-		// infer when doing Unmarshal + AutomaticEnv.
-		// see: https://github.com/spf13/viper/issues/761
-		structField := val.Type().Field(i)
-		bindEnvVars(v, getFliptEnvs(), []string{fieldKey(structField)}, structField.Type)
-
-		field := val.Field(i).Addr().Interface()
-
-		// for-each defaulter implementing fields we invoke
-		// setting any defaults during this prepare stage
-		// on the supplied viper.
-		if defaulter, ok := field.(defaulter); ok {
-			c.Warnings = append(c.Warnings, defaulter.setDefaults(v)...)
-		}
-
-		// for-each validator implementing field we collect
-		// them up and return them to be validated after
-		// unmarshalling.
-		if validator, ok := field.(validator); ok {
-			validators = append(validators, validator)
-		}
-	}
-
-	return
+type deprecator interface {
+	deprecations(v *viper.Viper) []deprecation
 }
 
 func fieldKey(field reflect.StructField) string {
@@ -248,6 +281,15 @@ func getFliptEnvs() (envs []string) {
 		}
 	}
 	return envs
+}
+
+func (c *Config) validate() (err error) {
+	if c.Version != "" {
+		if strings.TrimSpace(c.Version) != "1.0" {
+			return fmt.Errorf("invalid version: %s", c.Version)
+		}
+	}
+	return nil
 }
 
 func (c *Config) ServeHTTP(w http.ResponseWriter, r *http.Request) {

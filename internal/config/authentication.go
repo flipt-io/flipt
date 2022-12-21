@@ -44,7 +44,7 @@ func (c AuthenticationConfig) ShouldRunCleanup() bool {
 		(c.Methods.OIDC.Enabled && c.Methods.OIDC.Cleanup != nil)
 }
 
-func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
+func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 	methods := map[string]any{
 		"token": nil,
 		"oidc":  nil,
@@ -74,8 +74,6 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) []string {
 		},
 		"methods": methods,
 	})
-
-	return nil
 }
 
 func (c *AuthenticationConfig) validate() error {
