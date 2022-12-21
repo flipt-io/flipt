@@ -84,7 +84,7 @@ func WithIDGeneratorFunc(fn func() string) Option {
 // string which can be used to retrieve the Authentication again via GetAuthenticationByClientToken.
 func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	if r.ExpiresAt != nil && !r.ExpiresAt.IsValid() {
-		return "", nil, errors.NewErrorf[errors.ErrInvalid]("invalid expiry time: %v", r.ExpiresAt)
+		return "", nil, errors.ErrInvalidf("invalid expiry time: %v", r.ExpiresAt)
 	}
 
 	var (
@@ -125,7 +125,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, clientToken 
 	authentication, ok := s.byToken[hashedToken]
 	s.mu.Unlock()
 	if !ok {
-		return nil, errors.NewErrorf[errors.ErrNotFound]("getting authentication by token")
+		return nil, errors.ErrNotFoundf("getting authentication by token")
 	}
 
 	return authentication, nil
@@ -138,7 +138,7 @@ func (s *Store) GetAuthenticationByID(ctx context.Context, id string) (*rpcauth.
 	authentication, ok := s.byID[id]
 	s.mu.Unlock()
 	if !ok {
-		return nil, errors.NewErrorf[errors.ErrNotFound]("getting authentication by token")
+		return nil, errors.ErrNotFoundf("getting authentication by token")
 	}
 
 	return authentication, nil

@@ -84,7 +84,7 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
 	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.NewErrorf[errs.ErrNotFound]("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -132,7 +132,7 @@ func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 	}
 	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
 	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.NewErrorf[errs.ErrNotFound]("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -172,7 +172,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errs.NewErrorf[errs.ErrNotFound]("flag %q", "foo"))
+	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "foo"))
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
