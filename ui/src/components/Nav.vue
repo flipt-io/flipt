@@ -47,7 +47,7 @@
         <a
           class="navbar-item has-text-weight-semibold"
           target="_blank"
-          href="/docs/"
+          href="https://www.flipt.io/docs/reference/overview?utm_source=app"
           >API</a
         >
         <a

@@ -19,7 +19,6 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/swagger"
 	"go.flipt.io/flipt/ui"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -109,9 +108,6 @@ func NewHTTPServer(
 	})
 
 	if cfg.UI.Enabled {
-		s := http.FS(swagger.Docs)
-		r.Mount("/docs", http.StripPrefix("/docs/", http.FileServer(s)))
-
 		u, err := fs.Sub(ui.UI, "dist")
 		if err != nil {
 			return nil, fmt.Errorf("mounting UI: %w", err)
