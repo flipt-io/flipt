@@ -15,14 +15,18 @@ var (
 )
 
 func init() {
-	for method, v := range auth.Method_value {
-		if auth.Method(v) == auth.Method_METHOD_NONE {
+	for _, v := range auth.Method_value {
+		method := auth.Method(v)
+		if method == auth.Method_METHOD_NONE {
 			continue
 		}
 
-		name := strings.ToLower(strings.TrimPrefix(method, "METHOD_"))
-		stringToAuthMethod[name] = auth.Method(v)
+		stringToAuthMethod[methodName(method)] = method
 	}
+}
+
+func methodName(method auth.Method) string {
+	return strings.ToLower(strings.TrimPrefix(auth.Method_name[int32(method)], "METHOD_"))
 }
 
 // AuthenticationConfig configures Flipts authentication mechanisms
@@ -39,23 +43,23 @@ type AuthenticationConfig struct {
 // ShouldRunCleanup returns true if the cleanup background process should be started.
 // It returns true given at-least 1 method is enabled and it's associated schedule
 // has been configured (non-nil).
-func (c AuthenticationConfig) ShouldRunCleanup() bool {
-	return (c.Methods.Token.Enabled && c.Methods.Token.Cleanup != nil) ||
-		(c.Methods.OIDC.Enabled && c.Methods.OIDC.Cleanup != nil)
+func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
+	for _, info := range c.Methods.AllMethods() {
+		shouldCleanup = shouldCleanup || (info.Enabled && info.Cleanup != nil)
+	}
+
+	return
 }
 
 func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
-	methods := map[string]any{
-		"token": nil,
-		"oidc":  nil,
-	}
+	methods := map[string]any{}
 
 	// set default for each methods
-	for k := range methods {
+	for _, info := range c.Methods.AllMethods() {
 		method := map[string]any{"enabled": false}
 		// if the method has been enabled then set the defaults
 		// for its cleanup strategy
-		prefix := fmt.Sprintf("authentication.methods.%s", k)
+		prefix := fmt.Sprintf("authentication.methods.%s", info.Name())
 		if v.GetBool(prefix + ".enabled") {
 			method["cleanup"] = map[string]any{
 				"interval":     time.Hour,
@@ -63,7 +67,7 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 			}
 		}
 
-		methods[k] = method
+		methods[info.Name()] = method
 	}
 
 	v.SetDefault("authentication", map[string]any{
@@ -77,24 +81,19 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 }
 
 func (c *AuthenticationConfig) validate() error {
-	for _, cleanup := range []struct {
-		name     string
-		schedule *AuthenticationCleanupSchedule
-	}{
-		// add additional schedules as token methods are created
-		{"token", c.Methods.Token.Cleanup},
-		{"oidc", c.Methods.OIDC.Cleanup},
-	} {
-		if cleanup.schedule == nil {
+	var sessionEnabled bool
+	for _, info := range c.Methods.AllMethods() {
+		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
+		if info.Cleanup == nil {
 			continue
 		}
 
-		field := "authentication.method" + cleanup.name
-		if cleanup.schedule.Interval <= 0 {
+		field := "authentication.method" + info.Name()
+		if info.Cleanup.Interval <= 0 {
 			return errFieldWrap(field+".cleanup.interval", errPositiveNonZeroDuration)
 		}
 
-		if cleanup.schedule.GracePeriod <= 0 {
+		if info.Cleanup.GracePeriod <= 0 {
 			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
 		}
 	}
@@ -102,7 +101,7 @@ func (c *AuthenticationConfig) validate() error {
 	// ensure that when a session compatible authentication method has been
 	// enabled that the session cookie domain has been configured with a non
 	// empty value.
-	if c.Methods.OIDC.Enabled {
+	if sessionEnabled {
 		if c.Session.Domain == "" {
 			err := errFieldWrap("authentication.session.domain", errValidationRequired)
 			return fmt.Errorf("when session compatible auth method enabled: %w", err)
@@ -129,27 +128,91 @@ type AuthenticationSession struct {
 // AuthenticationMethods is a set of configuration for each authentication
 // method available for use within Flipt.
 type AuthenticationMethods struct {
-	Token AuthenticationMethodTokenConfig `json:"token,omitempty" mapstructure:"token"`
-	OIDC  AuthenticationMethodOIDCConfig  `json:"oidc,omitempty" mapstructure:"oidc"`
+	Token AuthenticationMethod[AuthenticationMethodTokenConfig] `json:"token,omitempty" mapstructure:"token"`
+	OIDC  AuthenticationMethod[AuthenticationMethodOIDCConfig]  `json:"oidc,omitempty" mapstructure:"oidc"`
+}
+
+// AllMethods returns all the AuthenticationMethod instances available.
+func (a AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
+	return []StaticAuthenticationMethodInfo{
+		a.Token.Info(),
+		a.OIDC.Info(),
+	}
+}
+
+// StaticAuthenticationMethodInfo embeds an AuthenticationMethodInfo alongside
+// the other properties of an AuthenticationMethod.
+type StaticAuthenticationMethodInfo struct {
+	AuthenticationMethodInfo
+	Enabled bool
+	Cleanup *AuthenticationCleanupSchedule
+}
+
+// AuthenticationMethodInfo is a structure which describes properties
+// of a particular authentication method.
+// i.e. the name and whether or not the method is session compatible.
+type AuthenticationMethodInfo struct {
+	Method            auth.Method
+	SessionCompatible bool
+}
+
+// Name returns the friendly lower-case name for the authentication method.
+func (a AuthenticationMethodInfo) Name() string {
+	return methodName(a.Method)
+}
+
+// AuthenticationMethodInfoProvider is a type with a single method Info
+// which returns an AuthenticationMethodInfo describing the underlying
+// methods properties.
+type AuthenticationMethodInfoProvider interface {
+	Info() AuthenticationMethodInfo
+}
+
+// AuthenticationMethod is a container for authentication methods.
+// It describes the common properties of all authentication methods.
+// Along with leaving a generic slot for the particular method to declare
+// its own structural fields. This generic field (Method) must implement
+// the AuthenticationMethodInfoProvider to be valid at compile time.
+type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
+	Method  C                              `mapstructure:",squash"`
+	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`
+	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
+}
+
+func (a AuthenticationMethod[C]) Info() StaticAuthenticationMethodInfo {
+	return StaticAuthenticationMethodInfo{
+		AuthenticationMethodInfo: a.Method.Info(),
+		Enabled:                  a.Enabled,
+		Cleanup:                  a.Cleanup,
+	}
 }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
 // method "token".
 // This authentication method supports the ability to create static tokens via the
 // /auth/v1/method/token prefix of endpoints.
-type AuthenticationMethodTokenConfig struct {
-	// Enabled designates whether or not static token authentication is enabled
-	// and whether Flipt will mount the "token" method APIs.
-	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`
-	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
+type AuthenticationMethodTokenConfig struct{}
+
+// Info describes properties of the authentication method "token".
+func (a AuthenticationMethodTokenConfig) Info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_TOKEN,
+		SessionCompatible: false,
+	}
 }
 
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	Enabled   bool                                        `json:"enabled,omitempty" mapstructure:"enabled"`
 	Providers map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
-	Cleanup   *AuthenticationCleanupSchedule              `json:"cleanup,omitempty" mapstructure:"cleanup"`
+}
+
+// Info describes properties of the authentication method "oidc".
+func (a AuthenticationMethodOIDCConfig) Info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_OIDC,
+		SessionCompatible: true,
+	}
 }
 
 // AuthenticationOIDCProvider configures provider credentials

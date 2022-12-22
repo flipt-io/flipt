@@ -104,8 +104,12 @@ func Load(path string) (*Result, error) {
 		// search for all expected env vars since Viper cannot
 		// infer when doing Unmarshal + AutomaticEnv.
 		// see: https://github.com/spf13/viper/issues/761
-		structField := val.Type().Field(i)
-		bindEnvVars(v, getFliptEnvs(), []string{fieldKey(structField)}, structField.Type)
+		var (
+			structField = val.Type().Field(i)
+			key         = fieldKey(structField)
+		)
+
+		bindEnvVars(v, getFliptEnvs(), []string{key}, structField.Type)
 
 		field := val.Field(i).Addr().Interface()
 		f(field)
@@ -150,9 +154,15 @@ type deprecator interface {
 	deprecations(v *viper.Viper) []deprecation
 }
 
+// fieldKey returns the name to be used when deriving a fields env var key.
+// If marked as squash the key will be the empty string.
+// Otherwise, it is derived from the lowercase name of the field.
 func fieldKey(field reflect.StructField) string {
 	if tag := field.Tag.Get("mapstructure"); tag != "" {
-		return tag
+		tag, attr, ok := strings.Cut(tag, ",")
+		if !ok || attr == "squash" {
+			return tag
+		}
 	}
 
 	return strings.ToLower(field.Name)
@@ -174,14 +184,16 @@ func bindEnvVars(v envBinder, env, prefixes []string, typ reflect.Type) {
 	case reflect.Map:
 		// recurse into bindEnvVars while signifying that the last
 		// key was unbound using the wildcard "*".
-		bindEnvVars(v, env, append(prefixes, "*"), typ.Elem())
+		bindEnvVars(v, env, append(prefixes, wildcard), typ.Elem())
 
 		return
 	case reflect.Struct:
 		for i := 0; i < typ.NumField(); i++ {
-			structField := typ.Field(i)
+			var (
+				structField = typ.Field(i)
+				key         = fieldKey(structField)
+			)
 
-			key := fieldKey(structField)
 			bind(env, prefixes, key, func(prefixes []string) {
 				bindEnvVars(v, env, prefixes, structField.Type)
 			})

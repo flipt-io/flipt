@@ -101,14 +101,16 @@ func Test_Server(t *testing.T) {
 				StateLifetime: 10 * time.Minute,
 			},
 			Methods: config.AuthenticationMethods{
-				OIDC: config.AuthenticationMethodOIDCConfig{
+				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
 					Enabled: true,
-					Providers: map[string]config.AuthenticationMethodOIDCProvider{
-						"google": {
-							IssuerURL:       tp.Addr(),
-							ClientID:        id,
-							ClientSecret:    secret,
-							RedirectAddress: clientAddress,
+					Method: config.AuthenticationMethodOIDCConfig{
+						Providers: map[string]config.AuthenticationMethodOIDCProvider{
+							"google": {
+								IssuerURL:       tp.Addr(),
+								ClientID:        id,
+								ClientSecret:    secret,
+								RedirectAddress: clientAddress,
+							},
 						},
 					},
 				},

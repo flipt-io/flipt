@@ -311,6 +311,10 @@ step_10_test_auths()
     FLIPT_TOKEN=$(echo "${tokenPayload}" | jq -r '.clientToken')
     export FLIPT_TOKEN
 
+    # /auth/v1/method is always public
+    shakedown GET '/auth/v1/method' -H 'Content-Type: application/json'
+        status 200
+
     # token should succeed when used via authorization header to list flags
     # (both when auth is required and not)
     authedShakedown GET '/api/v1/flags' -H 'Content-Type: application/json'
@@ -321,13 +325,19 @@ step_10_test_auths()
         status 200
         matches "\"id\":\"${tokenID}\""
 
-    # getting self using token returns expected ID
-    authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
     if [ -n "${TEST_FLIPT_API_AUTH_REQUIRED:-}" ]; then
+        # getting self using token returns expected ID
+        authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
+        status 200
+        matches "\"id\":\"${tokenID}\""
+
+        # cookie based auth is configured and should also work
+        shakedown GET '/auth/v1/self' -H 'Content-Type: application/json' -H "Cookie: flipt_client_token=${FLIPT_TOKEN}"
         status 200
         matches "\"id\":\"${tokenID}\""
     else
         # there is no self when authentication is disabled
+        authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
         status 401
     fi
 }

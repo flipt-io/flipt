@@ -14,6 +14,7 @@ import (
 	"go.flipt.io/flipt/internal/server/auth"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
+	"go.flipt.io/flipt/internal/server/auth/public"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	storageoplock "go.flipt.io/flipt/internal/storage/oplock"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -29,8 +30,13 @@ func authenticationGRPC(
 	oplock storageoplock.Service,
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 	var (
+		public   = public.NewServer(logger, cfg)
 		register = grpcRegisterers{
+			public,
 			auth.NewServer(logger, store),
+		}
+		authOpts = []containers.Option[auth.InterceptorOptions]{
+			auth.WithServerSkipsAuthentication(public),
 		}
 		interceptors []grpc.UnaryServerInterceptor
 		shutdown     = func(context.Context) error {
@@ -55,7 +61,6 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"token\" server registered")
 	}
 
-	var authOpts []containers.Option[auth.InterceptorOptions]
 	// register auth method oidc service
 	if cfg.Methods.OIDC.Enabled {
 		oidcServer := authoidc.NewServer(logger, store, cfg)
@@ -96,52 +101,47 @@ func authenticationGRPC(
 	return register, interceptors, shutdown, nil
 }
 
+func registerFunc(ctx context.Context, conn *grpc.ClientConn, fn func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error) runtime.ServeMuxOption {
+	return func(mux *runtime.ServeMux) {
+		if err := fn(ctx, mux, conn); err != nil {
+			panic(err)
+		}
+	}
+}
+
 func authenticationHTTPMount(
 	ctx context.Context,
 	cfg config.AuthenticationConfig,
 	r chi.Router,
 	conn *grpc.ClientConn,
-) error {
+) {
 	var (
-		muxOpts    []runtime.ServeMuxOption
+		muxOpts = []runtime.ServeMuxOption{
+			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
+			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
+		}
 		middleware = func(next http.Handler) http.Handler {
 			return next
 		}
 	)
 
-	// register OIDC middleware if method is enabled
+	if cfg.Methods.Token.Enabled {
+		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodTokenServiceHandler))
+	}
+
 	if cfg.Methods.OIDC.Enabled {
 		oidcmiddleware := authoidc.NewHTTPMiddleware(cfg.Session)
-
 		muxOpts = append(muxOpts,
 			runtime.WithMetadata(authoidc.ForwardCookies),
-			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption))
+			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
+			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
+
 		middleware = oidcmiddleware.Handler
-	}
-
-	mux := gateway.NewGatewayServeMux(muxOpts...)
-
-	if err := rpcauth.RegisterAuthenticationServiceHandler(ctx, mux, conn); err != nil {
-		return fmt.Errorf("registering auth grpc gateway: %w", err)
-	}
-
-	if cfg.Methods.Token.Enabled {
-		if err := rpcauth.RegisterAuthenticationMethodTokenServiceHandler(ctx, mux, conn); err != nil {
-			return fmt.Errorf("registering auth grpc gateway: %w", err)
-		}
-	}
-
-	if cfg.Methods.OIDC.Enabled {
-		if err := rpcauth.RegisterAuthenticationMethodOIDCServiceHandler(ctx, mux, conn); err != nil {
-			return fmt.Errorf("registering auth grpc gateway: %w", err)
-		}
 	}
 
 	r.Group(func(r chi.Router) {
 		r.Use(middleware)
 
-		r.Mount("/auth/v1", mux)
+		r.Mount("/auth/v1", gateway.NewGatewayServeMux(muxOpts...))
 	})
-
-	return nil
 }
