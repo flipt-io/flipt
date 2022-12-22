@@ -312,7 +312,7 @@ step_10_test_auths()
     export FLIPT_TOKEN
 
     # /auth/v1/method is always public
-    shakedown GET '/api/v1/method' -H 'Content-Type: application/json'
+    shakedown GET '/auth/v1/method' -H 'Content-Type: application/json'
         status 200
 
     # token should succeed when used via authorization header to list flags
