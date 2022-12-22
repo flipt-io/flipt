@@ -234,7 +234,6 @@ func request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Context,
 
 	var (
 		val string
-		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -245,12 +244,10 @@ func request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Context,
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
 
-	e, err = runtime.Enum(val, OIDCProvider_value)
+	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
-	protoReq.Provider = OIDCProvider(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -270,7 +267,6 @@ func local_request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Co
 
 	var (
 		val string
-		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -281,12 +277,10 @@ func local_request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Co
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
 
-	e, err = runtime.Enum(val, OIDCProvider_value)
+	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
-	protoReq.Provider = OIDCProvider(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -310,7 +304,6 @@ func request_AuthenticationMethodOIDCService_Callback_0(ctx context.Context, mar
 
 	var (
 		val string
-		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -321,12 +314,10 @@ func request_AuthenticationMethodOIDCService_Callback_0(ctx context.Context, mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
 
-	e, err = runtime.Enum(val, OIDCProvider_value)
+	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
-	protoReq.Provider = OIDCProvider(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -346,7 +337,6 @@ func local_request_AuthenticationMethodOIDCService_Callback_0(ctx context.Contex
 
 	var (
 		val string
-		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -357,12 +347,10 @@ func local_request_AuthenticationMethodOIDCService_Callback_0(ctx context.Contex
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "provider")
 	}
 
-	e, err = runtime.Enum(val, OIDCProvider_value)
+	protoReq.Provider, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "provider", err)
 	}
-
-	protoReq.Provider = OIDCProvider(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)

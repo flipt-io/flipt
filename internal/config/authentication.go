@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -31,6 +32,7 @@ type AuthenticationConfig struct {
 	// Else, authentication is not required and Flipt's APIs are not secured.
 	Required bool `json:"required,omitempty" mapstructure:"required"`
 
+	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session"`
 	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`
 }
 
@@ -38,26 +40,39 @@ type AuthenticationConfig struct {
 // It returns true given at-least 1 method is enabled and it's associated schedule
 // has been configured (non-nil).
 func (c AuthenticationConfig) ShouldRunCleanup() bool {
-	return (c.Methods.Token.Enabled && c.Methods.Token.Cleanup != nil)
+	return (c.Methods.Token.Enabled && c.Methods.Token.Cleanup != nil) ||
+		(c.Methods.OIDC.Enabled && c.Methods.OIDC.Cleanup != nil)
 }
 
 func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
-	token := map[string]any{
-		"enabled": false,
+	methods := map[string]any{
+		"token": nil,
+		"oidc":  nil,
 	}
 
-	if v.GetBool("authentication.methods.token.enabled") {
-		token["cleanup"] = map[string]any{
-			"interval":     time.Hour,
-			"grace_period": 30 * time.Minute,
+	// set default for each methods
+	for k := range methods {
+		method := map[string]any{"enabled": false}
+		// if the method has been enabled then set the defaults
+		// for its cleanup strategy
+		prefix := fmt.Sprintf("authentication.methods.%s", k)
+		if v.GetBool(prefix + ".enabled") {
+			method["cleanup"] = map[string]any{
+				"interval":     time.Hour,
+				"grace_period": 30 * time.Minute,
+			}
 		}
+
+		methods[k] = method
 	}
 
 	v.SetDefault("authentication", map[string]any{
 		"required": false,
-		"methods": map[string]any{
-			"token": token,
+		"session": map[string]any{
+			"token_lifetime": "24h",
+			"state_lifetime": "10m",
 		},
+		"methods": methods,
 	})
 }
 
@@ -68,6 +83,7 @@ func (c *AuthenticationConfig) validate() error {
 	}{
 		// add additional schedules as token methods are created
 		{"token", c.Methods.Token.Cleanup},
+		{"oidc", c.Methods.OIDC.Cleanup},
 	} {
 		if cleanup.schedule == nil {
 			continue
@@ -83,13 +99,38 @@ func (c *AuthenticationConfig) validate() error {
 		}
 	}
 
+	// ensure that when a session compatible authentication method has been
+	// enabled that the session cookie domain has been configured with a non
+	// empty value.
+	if c.Methods.OIDC.Enabled {
+		if c.Session.Domain == "" {
+			err := errFieldWrap("authentication.session.domain", errValidationRequired)
+			return fmt.Errorf("when session compatible auth method enabled: %w", err)
+		}
+	}
+
 	return nil
+}
+
+// AuthenticationSession configures the session produced for browsers when
+// establishing authentication via HTTP.
+type AuthenticationSession struct {
+	// Domain is the domain on which to register session cookies.
+	Domain string `json:"domain,omitempty" mapstructure:"domain"`
+	// Secure sets the secure property (i.e. HTTPS only) on both the state and token cookies.
+	Secure bool `json:"secure" mapstructure:"secure"`
+	// TokenLifetime is the duration of the flipt client token generated once
+	// authentication has been established via a session compatible method.
+	TokenLifetime time.Duration `json:"tokenLifetime,omitempty" mapstructure:"token_lifetime"`
+	// StateLifetime is the lifetime duration of the state cookie.
+	StateLifetime time.Duration `json:"stateLifetime,omitempty" mapstructure:"state_lifetime"`
 }
 
 // AuthenticationMethods is a set of configuration for each authentication
 // method available for use within Flipt.
 type AuthenticationMethods struct {
 	Token AuthenticationMethodTokenConfig `json:"token,omitempty" mapstructure:"token"`
+	OIDC  AuthenticationMethodOIDCConfig  `json:"oidc,omitempty" mapstructure:"oidc"`
 }
 
 // AuthenticationMethodTokenConfig contains fields used to configure the authentication
@@ -101,6 +142,23 @@ type AuthenticationMethodTokenConfig struct {
 	// and whether Flipt will mount the "token" method APIs.
 	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`
 	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
+}
+
+// AuthenticationMethodOIDCConfig configures the OIDC authentication method.
+// This method can be used to establish browser based sessions.
+type AuthenticationMethodOIDCConfig struct {
+	Enabled   bool                                        `json:"enabled,omitempty" mapstructure:"enabled"`
+	Providers map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
+	Cleanup   *AuthenticationCleanupSchedule              `json:"cleanup,omitempty" mapstructure:"cleanup"`
+}
+
+// AuthenticationOIDCProvider configures provider credentials
+type AuthenticationMethodOIDCProvider struct {
+	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
+	ClientID        string   `json:"clientID,omitempty" mapstructure:"client_id"`
+	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
+	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
+	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.

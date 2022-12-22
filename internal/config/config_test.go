@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -219,6 +220,13 @@ func defaultConfig() *Config {
 			TelemetryEnabled: true,
 			StateDirectory:   "",
 		},
+
+		Authentication: AuthenticationConfig{
+			Session: AuthenticationSession{
+				TokenLifetime: 24 * time.Hour,
+				StateLifetime: 10 * time.Minute,
+			},
+		},
 	}
 }
 
@@ -429,9 +437,30 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
+					Session: AuthenticationSession{
+						Domain:        "auth.flipt.io",
+						Secure:        true,
+						TokenLifetime: 24 * time.Hour,
+						StateLifetime: 10 * time.Minute,
+					},
 					Methods: AuthenticationMethods{
 						Token: AuthenticationMethodTokenConfig{
 							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						OIDC: AuthenticationMethodOIDCConfig{
+							Enabled: true,
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
+									IssuerURL:       "http://accounts.google.com",
+									ClientID:        "abcdefg",
+									ClientSecret:    "bcdefgh",
+									RedirectAddress: "http://auth.flipt.io",
+								},
+							},
 							Cleanup: &AuthenticationCleanupSchedule{
 								Interval:    2 * time.Hour,
 								GracePeriod: 48 * time.Hour,
@@ -581,4 +610,119 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 	}
 
 	return
+}
+
+type sliceEnvBinder []string
+
+func (s *sliceEnvBinder) MustBindEnv(v ...string) {
+	*s = append(*s, v...)
+}
+
+func Test_mustBindEnv(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		// inputs
+		env []string
+		typ any
+		// expected outputs
+		bound []string
+	}{
+		{
+			name: "simple struct",
+			env:  []string{},
+			typ: struct {
+				A string `mapstructure:"a"`
+				B string `mapstructure:"b"`
+				C string `mapstructure:"c"`
+			}{},
+			bound: []string{"a", "b", "c"},
+		},
+		{
+			name: "nested structs with pointers",
+			env:  []string{},
+			typ: struct {
+				A string `mapstructure:"a"`
+				B struct {
+					C *struct {
+						D int
+					} `mapstructure:"c"`
+					E []string `mapstructure:"e"`
+				} `mapstructure:"b"`
+			}{},
+			bound: []string{"a", "b.c.d", "b.e"},
+		},
+		{
+			name: "structs with maps and no environment variables",
+			env:  []string{},
+			typ: struct {
+				A struct {
+					B map[string]string `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			// no environment variable to direct mappings
+			bound: []string{},
+		},
+		{
+			name: "structs with maps with env",
+			env:  []string{"A_B_FOO", "A_B_BAR", "A_B_BAZ"},
+			typ: struct {
+				A struct {
+					B map[string]string `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			// no environment variable to direct mappings
+			bound: []string{"a.b.foo", "a.b.bar", "a.b.baz"},
+		},
+		{
+			name: "structs with maps of structs (env not specific enough)",
+			env:  []string{"A_B_FOO", "A_B_BAR"},
+			typ: struct {
+				A struct {
+					B map[string]struct {
+						C string `mapstructure:"c"`
+						D struct {
+							E int `mapstructure:"e"`
+						} `mapstructure:"d"`
+					} `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			// no environment variable to direct mappings
+			bound: []string{},
+		},
+		{
+			name: "structs with maps of structs",
+			env: []string{
+				"A_B_FOO_C",
+				"A_B_FOO_D",
+				"A_B_BAR_BAZ_C",
+				"A_B_BAR_BAZ_D",
+			},
+			typ: struct {
+				A struct {
+					B map[string]struct {
+						C string `mapstructure:"c"`
+						D struct {
+							E int `mapstructure:"e"`
+						} `mapstructure:"d"`
+					} `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			bound: []string{
+				"a.b.foo.c",
+				"a.b.bar_baz.c",
+				"a.b.foo.d.e",
+				"a.b.bar_baz.d.e",
+			},
+		},
+	} {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			binder := sliceEnvBinder{}
+
+			typ := reflect.TypeOf(test.typ)
+			bindEnvVars(&binder, test.env, []string{}, typ)
+
+			assert.Equal(t, test.bound, []string(binder))
+		})
+	}
 }

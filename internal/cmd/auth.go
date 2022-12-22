@@ -9,8 +9,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
+	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	storageoplock "go.flipt.io/flipt/internal/storage/oplock"
@@ -53,11 +55,23 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"token\" server registered")
 	}
 
+	var authOpts []containers.Option[auth.InterceptorOptions]
+	// register auth method oidc service
+	if cfg.Methods.OIDC.Enabled {
+		oidcServer := authoidc.NewServer(logger, store, cfg)
+		register.Add(oidcServer)
+		// OIDC server exposes unauthenticated endpoints
+		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oidcServer))
+
+		logger.Debug("authentication method \"oidc\" server registered")
+	}
+
 	// only enable enforcement middleware if authentication required
 	if cfg.Required {
 		interceptors = append(interceptors, auth.UnaryInterceptor(
 			logger,
 			store,
+			authOpts...,
 		))
 
 		logger.Info("authentication middleware enabled")
@@ -95,6 +109,16 @@ func authenticationHTTPMount(
 		}
 	)
 
+	// register OIDC middleware if method is enabled
+	if cfg.Methods.OIDC.Enabled {
+		oidcmiddleware := authoidc.NewHTTPMiddleware(cfg.Session)
+
+		muxOpts = append(muxOpts,
+			runtime.WithMetadata(authoidc.ForwardCookies),
+			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption))
+		middleware = oidcmiddleware.Handler
+	}
+
 	mux := gateway.NewGatewayServeMux(muxOpts...)
 
 	if err := rpcauth.RegisterAuthenticationServiceHandler(ctx, mux, conn); err != nil {
@@ -103,6 +127,12 @@ func authenticationHTTPMount(
 
 	if cfg.Methods.Token.Enabled {
 		if err := rpcauth.RegisterAuthenticationMethodTokenServiceHandler(ctx, mux, conn); err != nil {
+			return fmt.Errorf("registering auth grpc gateway: %w", err)
+		}
+	}
+
+	if cfg.Methods.OIDC.Enabled {
+		if err := rpcauth.RegisterAuthenticationMethodOIDCServiceHandler(ctx, mux, conn); err != nil {
 			return fmt.Errorf("registering auth grpc gateway: %w", err)
 		}
 	}
