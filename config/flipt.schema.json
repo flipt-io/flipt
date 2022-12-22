@@ -49,6 +49,14 @@
           "type": "boolean",
           "default": false
         },
+        "session": {
+          "type": "object",
+          "properties": {
+            "domain": { "type": "string" },
+            "secure": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
         "methods": {
           "type": "object",
           "additionalProperties": false,
@@ -62,6 +70,29 @@
                 },
                 "cleanup": {
                   "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
+                }
+              },
+              "required": [],
+              "title": "Token"
+            },
+            "oidc": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "cleanup": {
+                  "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
+                },
+                "providers": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^.*$": {
+                      "$ref": "#/definitions/authentication/$defs/authentication_oidc_provider"
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "required": [],
@@ -107,6 +138,17 @@
           },
           "required": [],
           "title": "Cleanup"
+        },
+        "authentication_oidc_provider": {
+          "$id": "authentication_oidc_provider",
+          "type": "object",
+          "properties": {
+            "issuer_url": { "type": "string" },
+            "client_id": { "type": "string" },
+            "client_secret": { "type": "string" },
+            "redirect_address": { "type": "string" }
+          },
+          "additionalProperties": false
         }
       }
     },
