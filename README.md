@@ -205,13 +205,9 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
-## Sponsors
-
-If you use Flipt at your company, please consider [becoming a sponsor](https://github.com/sponsors/markphelps) today.
-
 ## Community
 
-For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/kRhEqG2TEZ).
+For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
 
 ## Feedback
 
