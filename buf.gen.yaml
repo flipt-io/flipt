@@ -17,8 +17,3 @@ plugins:
       - paths=source_relative
       - grpc_api_configuration=rpc/flipt/flipt.yaml
     strategy: all
-  - name: openapiv2
-    out: swagger
-    opt:
-      - grpc_api_configuration=rpc/flipt/flipt.yaml
-    strategy: all

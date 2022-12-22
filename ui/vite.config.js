@@ -32,7 +32,6 @@ export default defineConfig(({ mode }) => {
         "/api": `http://${host}:${port}`,
         "/auth": `http://${host}:${port}`,
         "/meta": `http://${host}:${port}`,
-        "/docs": `http://${host}:${port}`,
       },
     },
   };

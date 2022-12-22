@@ -37,7 +37,7 @@
 
 <div align="center">
     <h4>
-        <a href="https://flipt.io/docs/getting_started/">Documentation</a> |
+        <a href="https://www.flipt.io/docs/introduction">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
         <a href="#integration">Integration</a> |
@@ -144,12 +144,13 @@ Checkout the [integration docs](https://flipt.io/docs/integration/) for more inf
 
 Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
 
-The [Flipt REST API](https://flipt.io/docs/api/) can also be used with any language that can make HTTP requests.
+The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
 ### Official REST Client Libraries
 
 - [Node/TypeScript](https://github.com/flipt-io/flipt-node)
 - [Java](https://github.com/flipt-io/flipt-java)
+- [Rust](https://github.com/flipt-io/flipt-rust)
 
 :exclamation: Offical REST clients in more languages coming soon.
 
@@ -204,13 +205,9 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
-## Sponsors
-
-If you use Flipt at your company, please consider [becoming a sponsor](https://github.com/sponsors/markphelps) today.
-
 ## Community
 
-For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://discord.gg/kRhEqG2TEZ).
+For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
 
 ## Feedback
 
