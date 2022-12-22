@@ -15,6 +15,9 @@
   },
   "tags": [
     {
+      "name": "PublicAuthenticationService"
+    },
+    {
       "name": "AuthenticationService"
     },
     {
@@ -35,6 +38,35 @@
     "application/json"
   ],
   "paths": {
+    "/auth/v1/method": {
+      "get": {
+        "description": "List all available authentication methods",
+        "operationId": "list_authentication_methods",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListAuthenticationMethodsResponse"
+            }
+          },
+          "401": {
+            "description": "Request could not be authenticated (authentication required).",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/auth/v1/method/oidc/{provider}/authorize": {
       "get": {
         "description": "Generate OIDC authorize URL",
@@ -404,6 +436,17 @@
         }
       }
     },
+    "authListAuthenticationMethodsResponse": {
+      "type": "object",
+      "properties": {
+        "methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/authMethodInfo"
+          }
+        }
+      }
+    },
     "authListAuthenticationsResponse": {
       "type": "object",
       "properties": {
@@ -426,6 +469,20 @@
         "METHOD_OIDC"
       ],
       "default": "METHOD_NONE"
+    },
+    "authMethodInfo": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/definitions/authMethod"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "sessionCompatible": {
+          "type": "boolean"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",

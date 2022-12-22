@@ -32,6 +32,24 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
+func request_PublicAuthenticationService_ListAuthenticationMethods_0(ctx context.Context, marshaler runtime.Marshaler, client PublicAuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.ListAuthenticationMethods(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_PublicAuthenticationService_ListAuthenticationMethods_0(ctx context.Context, marshaler runtime.Marshaler, server PublicAuthenticationServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.ListAuthenticationMethods(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_AuthenticationService_GetAuthenticationSelf_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
@@ -364,6 +382,40 @@ func local_request_AuthenticationMethodOIDCService_Callback_0(ctx context.Contex
 
 }
 
+// RegisterPublicAuthenticationServiceHandlerServer registers the http handlers for service PublicAuthenticationService to "mux".
+// UnaryRPC     :call PublicAuthenticationServiceServer directly.
+// StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
+// Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterPublicAuthenticationServiceHandlerFromEndpoint instead.
+func RegisterPublicAuthenticationServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server PublicAuthenticationServiceServer) error {
+
+	mux.Handle("GET", pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", runtime.WithHTTPPathPattern("/auth/v1/method"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_PublicAuthenticationService_ListAuthenticationMethods_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_PublicAuthenticationService_ListAuthenticationMethods_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
 // RegisterAuthenticationServiceHandlerServer registers the http handlers for service AuthenticationService to "mux".
 // UnaryRPC     :call AuthenticationServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -565,6 +617,77 @@ func RegisterAuthenticationMethodOIDCServiceHandlerServer(ctx context.Context, m
 
 	return nil
 }
+
+// RegisterPublicAuthenticationServiceHandlerFromEndpoint is same as RegisterPublicAuthenticationServiceHandler but
+// automatically dials to "endpoint" and closes the connection when "ctx" gets done.
+func RegisterPublicAuthenticationServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
+	conn, err := grpc.Dial(endpoint, opts...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+			return
+		}
+		go func() {
+			<-ctx.Done()
+			if cerr := conn.Close(); cerr != nil {
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+			}
+		}()
+	}()
+
+	return RegisterPublicAuthenticationServiceHandler(ctx, mux, conn)
+}
+
+// RegisterPublicAuthenticationServiceHandler registers the http handlers for service PublicAuthenticationService to "mux".
+// The handlers forward requests to the grpc endpoint over "conn".
+func RegisterPublicAuthenticationServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return RegisterPublicAuthenticationServiceHandlerClient(ctx, mux, NewPublicAuthenticationServiceClient(conn))
+}
+
+// RegisterPublicAuthenticationServiceHandlerClient registers the http handlers for service PublicAuthenticationService
+// to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "PublicAuthenticationServiceClient".
+// Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "PublicAuthenticationServiceClient"
+// doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
+// "PublicAuthenticationServiceClient" to call the correct interceptors.
+func RegisterPublicAuthenticationServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client PublicAuthenticationServiceClient) error {
+
+	mux.Handle("GET", pattern_PublicAuthenticationService_ListAuthenticationMethods_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", runtime.WithHTTPPathPattern("/auth/v1/method"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_PublicAuthenticationService_ListAuthenticationMethods_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_PublicAuthenticationService_ListAuthenticationMethods_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	return nil
+}
+
+var (
+	pattern_PublicAuthenticationService_ListAuthenticationMethods_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "method"}, ""))
+)
+
+var (
+	forward_PublicAuthenticationService_ListAuthenticationMethods_0 = runtime.ForwardResponseMessage
+)
 
 // RegisterAuthenticationServiceHandlerFromEndpoint is same as RegisterAuthenticationServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.

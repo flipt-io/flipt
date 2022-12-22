@@ -15,14 +15,18 @@ var (
 )
 
 func init() {
-	for method, v := range auth.Method_value {
-		if auth.Method(v) == auth.Method_METHOD_NONE {
+	for _, v := range auth.Method_value {
+		method := auth.Method(v)
+		if method == auth.Method_METHOD_NONE {
 			continue
 		}
 
-		name := strings.ToLower(strings.TrimPrefix(method, "METHOD_"))
-		stringToAuthMethod[name] = auth.Method(v)
+		stringToAuthMethod[methodName(method)] = method
 	}
+}
+
+func methodName(method auth.Method) string {
+	return strings.ToLower(strings.TrimPrefix(auth.Method_name[int32(method)], "METHOD_"))
 }
 
 // AuthenticationConfig configures Flipts authentication mechanisms
@@ -55,7 +59,7 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 		method := map[string]any{"enabled": false}
 		// if the method has been enabled then set the defaults
 		// for its cleanup strategy
-		prefix := fmt.Sprintf("authentication.methods.%s", info.Name)
+		prefix := fmt.Sprintf("authentication.methods.%s", info.Name())
 		if v.GetBool(prefix + ".enabled") {
 			method["cleanup"] = map[string]any{
 				"interval":     time.Hour,
@@ -63,7 +67,7 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 			}
 		}
 
-		methods[info.Name] = method
+		methods[info.Name()] = method
 	}
 
 	v.SetDefault("authentication", map[string]any{
@@ -84,7 +88,7 @@ func (c *AuthenticationConfig) validate() error {
 			continue
 		}
 
-		field := "authentication.method" + info.Name
+		field := "authentication.method" + info.Name()
 		if info.Cleanup.Interval <= 0 {
 			return errFieldWrap(field+".cleanup.interval", errPositiveNonZeroDuration)
 		}
@@ -148,8 +152,13 @@ type StaticAuthenticationMethodInfo struct {
 // of a particular authentication method.
 // i.e. the name and whether or not the method is session compatible.
 type AuthenticationMethodInfo struct {
-	Name              string
+	Method            auth.Method
 	SessionCompatible bool
+}
+
+// Name returns the friendly lower-case name for the authentication method.
+func (a AuthenticationMethodInfo) Name() string {
+	return methodName(a.Method)
 }
 
 // AuthenticationMethodInfoProvider is a type with a single method Info
@@ -187,7 +196,7 @@ type AuthenticationMethodTokenConfig struct{}
 // Info describes properties of the authentication method "token".
 func (a AuthenticationMethodTokenConfig) Info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
-		Name:              "token",
+		Method:            auth.Method_METHOD_TOKEN,
 		SessionCompatible: false,
 	}
 }
@@ -201,7 +210,7 @@ type AuthenticationMethodOIDCConfig struct {
 // Info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) Info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
-		Name:              "oidc",
+		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
 	}
 }

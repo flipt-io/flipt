@@ -62,6 +62,26 @@ enum Method {
   METHOD_OIDC = 2;
 }
 
+message MethodInfo {
+  Method method = 1;
+  bool enabled = 2;
+  bool session_compatible = 3;
+}
+
+message ListAuthenticationMethodsResponse {
+  repeated MethodInfo methods = 1;
+}
+
+service PublicAuthenticationService {
+  rpc ListAuthenticationMethods(google.protobuf.Empty) returns (ListAuthenticationMethodsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "list_authentication_methods",
+      description: "List all available authentication methods",
+      tags: "authentication",
+    };
+  }
+}
+
 message Authentication {
   string id = 1;
   Method method = 2;

@@ -1,3 +1,4 @@
+
 type: google.api.Service
 config_version: 3
 
@@ -72,6 +73,9 @@ http:
     body: "*"
   - selector: flipt.Flipt.DeleteConstraint
     delete: /api/v1/segments/{segment_key}/constraints/{id}
+  # authentication public routes
+  - selector: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods
+    get: /auth/v1/method
   # authentication
   - selector: flipt.auth.AuthenticationService.GetAuthenticationSelf
     get: /auth/v1/self
