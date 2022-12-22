@@ -154,6 +154,7 @@ type StaticAuthenticationMethodInfo struct {
 type AuthenticationMethodInfo struct {
 	Method            auth.Method
 	SessionCompatible bool
+	Metadata          map[string]string
 }
 
 // Name returns the friendly lower-case name for the authentication method.
@@ -209,10 +210,21 @@ type AuthenticationMethodOIDCConfig struct {
 
 // Info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) Info() AuthenticationMethodInfo {
-	return AuthenticationMethodInfo{
+	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
+		Metadata:          map[string]string{},
 	}
+
+	// this ensures we expose the authorize and callback URL endpoint
+	// to the UI via the /auth/v1/method endpoint
+	for provider := range a.Providers {
+		key := fmt.Sprintf("io.flipt.auth.method.oidc.provider.%s", provider)
+		info.Metadata[key+".authorize_url"] = fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider)
+		info.Metadata[key+".callback_url"] = fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider)
+	}
+
+	return info
 }
 
 // AuthenticationOIDCProvider configures provider credentials
