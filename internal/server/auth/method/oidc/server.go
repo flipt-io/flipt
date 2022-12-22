@@ -167,7 +167,7 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		callback string
 	)
 
-	pConfig, ok := s.config.Methods.OIDC.Providers[provider]
+	pConfig, ok := s.config.Methods.OIDC.Method.Providers[provider]
 	if !ok {
 		return nil, nil, fmt.Errorf("requested provider %q: %w", provider, errProviderNotFound)
 	}

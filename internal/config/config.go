@@ -104,8 +104,12 @@ func Load(path string) (*Result, error) {
 		// search for all expected env vars since Viper cannot
 		// infer when doing Unmarshal + AutomaticEnv.
 		// see: https://github.com/spf13/viper/issues/761
-		structField := val.Type().Field(i)
-		bindEnvVars(v, getFliptEnvs(), []string{fieldKey(structField)}, structField.Type)
+		var (
+			structField = val.Type().Field(i)
+			key, _      = fieldKey(structField)
+		)
+
+		bindEnvVars(v, getFliptEnvs(), []string{key}, structField.Type)
 
 		field := val.Field(i).Addr().Interface()
 		f(field)
@@ -150,12 +154,18 @@ type deprecator interface {
 	deprecations(v *viper.Viper) []deprecation
 }
 
-func fieldKey(field reflect.StructField) string {
+// fieldKey returns the name to be used when deriving a fields
+// env var key. The second return argument designates whether or
+// not the field has been tagged as squashed in mapstructure.
+func fieldKey(field reflect.StructField) (string, bool) {
 	if tag := field.Tag.Get("mapstructure"); tag != "" {
-		return tag
+		if tag, attr, ok := strings.Cut(tag, ","); ok {
+			return tag, attr == "squash"
+		}
+		return tag, false
 	}
 
-	return strings.ToLower(field.Name)
+	return strings.ToLower(field.Name), false
 }
 
 type envBinder interface {
@@ -174,14 +184,16 @@ func bindEnvVars(v envBinder, env, prefixes []string, typ reflect.Type) {
 	case reflect.Map:
 		// recurse into bindEnvVars while signifying that the last
 		// key was unbound using the wildcard "*".
-		bindEnvVars(v, env, append(prefixes, "*"), typ.Elem())
+		bindEnvVars(v, env, append(prefixes, wildcard), typ.Elem())
 
 		return
 	case reflect.Struct:
 		for i := 0; i < typ.NumField(); i++ {
-			structField := typ.Field(i)
+			var (
+				structField = typ.Field(i)
+				key, _      = fieldKey(structField)
+			)
 
-			key := fieldKey(structField)
 			bind(env, prefixes, key, func(prefixes []string) {
 				bindEnvVars(v, env, prefixes, structField.Type)
 			})

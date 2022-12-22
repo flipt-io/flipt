@@ -444,23 +444,25 @@ func TestLoad(t *testing.T) {
 						StateLifetime: 10 * time.Minute,
 					},
 					Methods: AuthenticationMethods{
-						Token: AuthenticationMethodTokenConfig{
+						Token: AuthenticationMethod[AuthenticationMethodTokenConfig]{
 							Enabled: true,
 							Cleanup: &AuthenticationCleanupSchedule{
 								Interval:    2 * time.Hour,
 								GracePeriod: 48 * time.Hour,
 							},
 						},
-						OIDC: AuthenticationMethodOIDCConfig{
-							Enabled: true,
-							Providers: map[string]AuthenticationMethodOIDCProvider{
-								"google": {
-									IssuerURL:       "http://accounts.google.com",
-									ClientID:        "abcdefg",
-									ClientSecret:    "bcdefgh",
-									RedirectAddress: "http://auth.flipt.io",
+						OIDC: AuthenticationMethod[AuthenticationMethodOIDCConfig]{
+							Method: AuthenticationMethodOIDCConfig{
+								Providers: map[string]AuthenticationMethodOIDCProvider{
+									"google": {
+										IssuerURL:       "http://accounts.google.com",
+										ClientID:        "abcdefg",
+										ClientSecret:    "bcdefgh",
+										RedirectAddress: "http://auth.flipt.io",
+									},
 								},
 							},
+							Enabled: true,
 							Cleanup: &AuthenticationCleanupSchedule{
 								Interval:    2 * time.Hour,
 								GracePeriod: 48 * time.Hour,
