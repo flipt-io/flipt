@@ -1,12 +1,12 @@
 package flipt
 
 #FliptSpec: {
-	// Flipt Configuration
+	// flipt-schema-v1
 	//
 	// Flipt config file is a YAML file defining how to configure the
 	// Flipt application.
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
-	version?: string | *"1.0"
+	version?:        "1.0" | *"1.0"
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
@@ -19,6 +19,10 @@ package flipt
 
 	#authentication: {
 		required?: bool | *false
+		session?: {
+			domain?: string
+			secure?: bool
+		}
 
 		// Methods
 		methods?: {
@@ -27,19 +31,36 @@ package flipt
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
 			}
+
+			// OIDC
+			oidc?: {
+				enabled?: bool | *false
+				cleanup?: #authentication.#authentication_cleanup
+				providers?: {
+					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
+				}
+			}
 		}
 
 		#authentication_cleanup: {
 			@jsonschema(id="authentication_cleanup")
-			interval?:     #duration | *"1h"
-			grace_period?: #duration | *"30m"
+			interval?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"1h"
+			grace_period?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"30m"
+		}
+
+		#authentication_oidc_provider: {
+			@jsonschema(id="authentication_oidc_provider")
+			issuer_url?:       string
+			client_id?:        string
+			client_secret?:    string
+			redirect_address?: string
 		}
 	}
 
 	#cache: {
 		enabled?: bool | *false
 		backend?: "memory" | "redis" | *"memory"
-		ttl?:     #duration | *"60s"
+		ttl?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
 
 		// Redis
 		redis?: {
@@ -51,7 +72,7 @@ package flipt
 
 		// Memory
 		memory?: {
-			eviction_interval?: #duration | *"5m"
+			eviction_interval?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"5m"
 		}
 	}
 
@@ -108,6 +129,5 @@ package flipt
 	}
 
 	#ui: enabled?: bool | *true
-
-	#duration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
+	...
 }
