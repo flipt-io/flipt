@@ -19,6 +19,93 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
+// PublicAuthenticationServiceClient is the client API for PublicAuthenticationService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PublicAuthenticationServiceClient interface {
+	ListAuthenticationMethods(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListAuthenticationMethodsResponse, error)
+}
+
+type publicAuthenticationServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPublicAuthenticationServiceClient(cc grpc.ClientConnInterface) PublicAuthenticationServiceClient {
+	return &publicAuthenticationServiceClient{cc}
+}
+
+func (c *publicAuthenticationServiceClient) ListAuthenticationMethods(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListAuthenticationMethodsResponse, error) {
+	out := new(ListAuthenticationMethodsResponse)
+	err := c.cc.Invoke(ctx, "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PublicAuthenticationServiceServer is the server API for PublicAuthenticationService service.
+// All implementations must embed UnimplementedPublicAuthenticationServiceServer
+// for forward compatibility
+type PublicAuthenticationServiceServer interface {
+	ListAuthenticationMethods(context.Context, *emptypb.Empty) (*ListAuthenticationMethodsResponse, error)
+	mustEmbedUnimplementedPublicAuthenticationServiceServer()
+}
+
+// UnimplementedPublicAuthenticationServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedPublicAuthenticationServiceServer struct {
+}
+
+func (UnimplementedPublicAuthenticationServiceServer) ListAuthenticationMethods(context.Context, *emptypb.Empty) (*ListAuthenticationMethodsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAuthenticationMethods not implemented")
+}
+func (UnimplementedPublicAuthenticationServiceServer) mustEmbedUnimplementedPublicAuthenticationServiceServer() {
+}
+
+// UnsafePublicAuthenticationServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PublicAuthenticationServiceServer will
+// result in compilation errors.
+type UnsafePublicAuthenticationServiceServer interface {
+	mustEmbedUnimplementedPublicAuthenticationServiceServer()
+}
+
+func RegisterPublicAuthenticationServiceServer(s grpc.ServiceRegistrar, srv PublicAuthenticationServiceServer) {
+	s.RegisterService(&PublicAuthenticationService_ServiceDesc, srv)
+}
+
+func _PublicAuthenticationService_ListAuthenticationMethods_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PublicAuthenticationServiceServer).ListAuthenticationMethods(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.PublicAuthenticationService/ListAuthenticationMethods",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PublicAuthenticationServiceServer).ListAuthenticationMethods(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PublicAuthenticationService_ServiceDesc is the grpc.ServiceDesc for PublicAuthenticationService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var PublicAuthenticationService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.auth.PublicAuthenticationService",
+	HandlerType: (*PublicAuthenticationServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListAuthenticationMethods",
+			Handler:    _PublicAuthenticationService_ListAuthenticationMethods_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "auth/auth.proto",
+}
+
 // AuthenticationServiceClient is the client API for AuthenticationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.

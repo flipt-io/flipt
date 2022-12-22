@@ -98,9 +98,9 @@ func NewHTTPServer(
 	r.Mount("/metrics", promhttp.Handler())
 	r.Mount("/api/v1", api)
 
-	if err := authenticationHTTPMount(ctx, cfg.Authentication, r, conn); err != nil {
-		return nil, err
-	}
+	// mount all authentication related HTTP components
+	// to the chi router.
+	authenticationHTTPMount(ctx, cfg.Authentication, r, conn)
 
 	r.Route("/meta", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))

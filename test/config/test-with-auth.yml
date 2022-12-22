@@ -7,6 +7,10 @@ db:
 
 authentication:
   required: true
+  session:
+    domain: "localhost"
   methods:
     token:
+      enabled: true
+    oidc:
       enabled: true
