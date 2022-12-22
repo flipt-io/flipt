@@ -66,6 +66,7 @@ message MethodInfo {
   Method method = 1;
   bool enabled = 2;
   bool session_compatible = 3;
+  map<string, string> metadata = 4;
 }
 
 message ListAuthenticationMethodsResponse {
