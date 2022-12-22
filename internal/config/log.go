@@ -18,14 +18,12 @@ type LogConfig struct {
 	GRPCLevel string      `json:"grpcLevel,omitempty" mapstructure:"grpc_level"`
 }
 
-func (c *LogConfig) setDefaults(v *viper.Viper) []string {
+func (c *LogConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("log", map[string]any{
 		"level":      "INFO",
 		"encoding":   "console",
 		"grpc_level": "ERROR",
 	})
-
-	return nil
 }
 
 var (

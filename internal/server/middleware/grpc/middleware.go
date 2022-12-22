@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -51,25 +50,18 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		return
 	}
 
-	var errnf errs.ErrNotFound
-	if errors.As(err, &errnf) {
-		err = status.Error(codes.NotFound, err.Error())
-		return
+	code := codes.Internal
+	switch {
+	case errs.AsMatch[errs.ErrNotFound](err):
+		code = codes.NotFound
+	case errs.AsMatch[errs.ErrInvalid](err),
+		errs.AsMatch[errs.ErrValidation](err):
+		code = codes.InvalidArgument
+	case errs.AsMatch[errs.ErrUnauthenticated](err):
+		code = codes.Unauthenticated
 	}
 
-	var errin errs.ErrInvalid
-	if errors.As(err, &errin) {
-		err = status.Error(codes.InvalidArgument, err.Error())
-		return
-	}
-
-	var errv errs.ErrValidation
-	if errors.As(err, &errv) {
-		err = status.Error(codes.InvalidArgument, err.Error())
-		return
-	}
-
-	err = status.Error(codes.Internal, err.Error())
+	err = status.Error(code, err.Error())
 	return
 }
 

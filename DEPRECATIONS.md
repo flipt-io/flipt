@@ -32,18 +32,25 @@ Description.
 
 -->
 
+### ui.enabled
+
+> since [unreleased](TODO)
+
+An upcoming release will enable the UI always and this option will be removed.
+There will be a new version of Flipt (headless) that will run Flipt without the UI and only include the API.
+
+### db.migrations.path and db.migrations_path
+
+> since [v1.14.0](https://github.com/flipt-io/flipt/releases/tag/v1.14.0)
+
+These options are no longer considered during Flipt execution.
+Database migrations are embedded directly within the Flipt binary.
+
 ### API ListFlagRequest, ListSegmentRequest, ListRuleRequest offset
 
 > since [v1.13.0](https://github.com/flipt-io/flipt/releases/tag/v1.13.0)
 
 `offset` has been deprecated in favor of `page_token`/`next_page_token` for `ListFlagRequest`, `ListSegmentRequest` and `ListRuleRequest`. See: [#936](https://github.com/flipt-io/flipt/issues/936).
-
-### db.migrations.path and db.migrations_path
-
-> since [v1.14.0](https://github.com/flipt-io/flipt/releases/tag/v1.10.0)
-
-These options are no longer considered during Flipt execution.
-Database migrations are embedded directly within the Flipt binary.
 
 ### cache.memory.enabled
 

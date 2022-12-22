@@ -1,12 +1,14 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -218,6 +220,13 @@ func defaultConfig() *Config {
 			TelemetryEnabled: true,
 			StateDirectory:   "",
 		},
+
+		Authentication: AuthenticationConfig{
+			Session: AuthenticationSession{
+				TokenLifetime: 24 * time.Hour,
+				StateLifetime: 10 * time.Minute,
+			},
+		},
 	}
 }
 
@@ -227,6 +236,7 @@ func TestLoad(t *testing.T) {
 		path     string
 		wantErr  error
 		expected func() *Config
+		warnings []string
 	}{
 		{
 			name:     "defaults",
@@ -237,6 +247,9 @@ func TestLoad(t *testing.T) {
 			name:     "deprecated - cache memory items defaults",
 			path:     "./testdata/deprecated/cache_memory_items.yml",
 			expected: defaultConfig,
+			warnings: []string{
+				"\"cache.memory.enabled\" is deprecated and will be removed in a future version. Please use 'cache.backend' and 'cache.enabled' instead.",
+			},
 		},
 		{
 			name: "deprecated - cache memory enabled",
@@ -246,27 +259,34 @@ func TestLoad(t *testing.T) {
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
 				cfg.Cache.TTL = -time.Second
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgMemoryEnabled, deprecatedMsgMemoryExpiration)
 				return cfg
+			},
+			warnings: []string{
+				"\"cache.memory.enabled\" is deprecated and will be removed in a future version. Please use 'cache.backend' and 'cache.enabled' instead.",
+				"\"cache.memory.expiration\" is deprecated and will be removed in a future version. Please use 'cache.ttl' instead.",
 			},
 		},
 		{
-			name: "deprecated - database migrations path",
-			path: "./testdata/deprecated/database_migrations_path.yml",
-			expected: func() *Config {
-				cfg := defaultConfig()
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgDatabaseMigrations)
-				return cfg
-			},
+			name:     "deprecated - database migrations path",
+			path:     "./testdata/deprecated/database_migrations_path.yml",
+			expected: defaultConfig,
+			warnings: []string{"\"db.migrations.path\" is deprecated and will be removed in a future version. Migrations are now embedded within Flipt and are no longer required on disk."},
 		},
 		{
-			name: "deprecated - database migrations path legacy",
-			path: "./testdata/deprecated/database_migrations_path_legacy.yml",
+			name:     "deprecated - database migrations path legacy",
+			path:     "./testdata/deprecated/database_migrations_path_legacy.yml",
+			expected: defaultConfig,
+			warnings: []string{"\"db.migrations.path\" is deprecated and will be removed in a future version. Migrations are now embedded within Flipt and are no longer required on disk."},
+		},
+		{
+			name: "deprecated - ui disabled",
+			path: "./testdata/deprecated/ui_disabled.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
-				cfg.Warnings = append(cfg.Warnings, deprecatedMsgDatabaseMigrations)
+				cfg.UI.Enabled = false
 				return cfg
 			},
+			warnings: []string{"\"ui.enabled\" is deprecated and will be removed in a future version."},
 		},
 		{
 			name: "cache - no backend set",
@@ -379,9 +399,6 @@ func TestLoad(t *testing.T) {
 					Encoding:  LogEncodingJSON,
 					GRPCLevel: "ERROR",
 				}
-				cfg.UI = UIConfig{
-					Enabled: false,
-				}
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
@@ -420,9 +437,30 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Authentication = AuthenticationConfig{
 					Required: true,
+					Session: AuthenticationSession{
+						Domain:        "auth.flipt.io",
+						Secure:        true,
+						TokenLifetime: 24 * time.Hour,
+						StateLifetime: 10 * time.Minute,
+					},
 					Methods: AuthenticationMethods{
 						Token: AuthenticationMethodTokenConfig{
 							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						OIDC: AuthenticationMethodOIDCConfig{
+							Enabled: true,
+							Providers: map[string]AuthenticationMethodOIDCProvider{
+								"google": {
+									IssuerURL:       "http://accounts.google.com",
+									ClientID:        "abcdefg",
+									ClientSecret:    "bcdefgh",
+									RedirectAddress: "http://auth.flipt.io",
+								},
+							},
 							Cleanup: &AuthenticationCleanupSchedule{
 								Interval:    2 * time.Hour,
 								GracePeriod: 48 * time.Hour,
@@ -433,6 +471,20 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name: "version - v1",
+			path: "./testdata/version/v1.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Version = "1.0"
+				return cfg
+			},
+		},
+		{
+			name:    "version - invalid",
+			path:    "./testdata/version/invalid.yml",
+			wantErr: errors.New("invalid version: 2.0"),
+		},
 	}
 
 	for _, tt := range tests {
@@ -440,6 +492,7 @@ func TestLoad(t *testing.T) {
 			path     = tt.path
 			wantErr  = tt.wantErr
 			expected *Config
+			warnings = tt.warnings
 		)
 
 		if tt.expected != nil {
@@ -447,18 +500,25 @@ func TestLoad(t *testing.T) {
 		}
 
 		t.Run(tt.name+" (YAML)", func(t *testing.T) {
-			cfg, err := Load(path)
+			res, err := Load(path)
 
 			if wantErr != nil {
 				t.Log(err)
-				require.ErrorIs(t, err, wantErr)
+				match := false
+				if errors.Is(err, wantErr) {
+					match = true
+				} else if err.Error() == wantErr.Error() {
+					match = true
+				}
+				require.True(t, match, "expected error %v to match: %v", err, wantErr)
 				return
 			}
 
 			require.NoError(t, err)
 
-			assert.NotNil(t, cfg)
-			assert.Equal(t, expected, cfg)
+			assert.NotNil(t, res)
+			assert.Equal(t, expected, res.Config)
+			assert.Equal(t, warnings, res.Warnings)
 		})
 
 		t.Run(tt.name+" (ENV)", func(t *testing.T) {
@@ -480,18 +540,24 @@ func TestLoad(t *testing.T) {
 			}
 
 			// load default (empty) config
-			cfg, err := Load("./testdata/default.yml")
+			res, err := Load("./testdata/default.yml")
 
 			if wantErr != nil {
 				t.Log(err)
-				require.ErrorIs(t, err, wantErr)
+				match := false
+				if errors.Is(err, wantErr) {
+					match = true
+				} else if err.Error() == wantErr.Error() {
+					match = true
+				}
+				require.True(t, match, "expected error %v to match: %v", err, wantErr)
 				return
 			}
 
 			require.NoError(t, err)
 
-			assert.NotNil(t, cfg)
-			assert.Equal(t, expected, cfg)
+			assert.NotNil(t, res)
+			assert.Equal(t, expected, res.Config)
 		})
 	}
 }
@@ -544,4 +610,119 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 	}
 
 	return
+}
+
+type sliceEnvBinder []string
+
+func (s *sliceEnvBinder) MustBindEnv(v ...string) {
+	*s = append(*s, v...)
+}
+
+func Test_mustBindEnv(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		// inputs
+		env []string
+		typ any
+		// expected outputs
+		bound []string
+	}{
+		{
+			name: "simple struct",
+			env:  []string{},
+			typ: struct {
+				A string `mapstructure:"a"`
+				B string `mapstructure:"b"`
+				C string `mapstructure:"c"`
+			}{},
+			bound: []string{"a", "b", "c"},
+		},
+		{
+			name: "nested structs with pointers",
+			env:  []string{},
+			typ: struct {
+				A string `mapstructure:"a"`
+				B struct {
+					C *struct {
+						D int
+					} `mapstructure:"c"`
+					E []string `mapstructure:"e"`
+				} `mapstructure:"b"`
+			}{},
+			bound: []string{"a", "b.c.d", "b.e"},
+		},
+		{
+			name: "structs with maps and no environment variables",
+			env:  []string{},
+			typ: struct {
+				A struct {
+					B map[string]string `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			// no environment variable to direct mappings
+			bound: []string{},
+		},
+		{
+			name: "structs with maps with env",
+			env:  []string{"A_B_FOO", "A_B_BAR", "A_B_BAZ"},
+			typ: struct {
+				A struct {
+					B map[string]string `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			// no environment variable to direct mappings
+			bound: []string{"a.b.foo", "a.b.bar", "a.b.baz"},
+		},
+		{
+			name: "structs with maps of structs (env not specific enough)",
+			env:  []string{"A_B_FOO", "A_B_BAR"},
+			typ: struct {
+				A struct {
+					B map[string]struct {
+						C string `mapstructure:"c"`
+						D struct {
+							E int `mapstructure:"e"`
+						} `mapstructure:"d"`
+					} `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			// no environment variable to direct mappings
+			bound: []string{},
+		},
+		{
+			name: "structs with maps of structs",
+			env: []string{
+				"A_B_FOO_C",
+				"A_B_FOO_D",
+				"A_B_BAR_BAZ_C",
+				"A_B_BAR_BAZ_D",
+			},
+			typ: struct {
+				A struct {
+					B map[string]struct {
+						C string `mapstructure:"c"`
+						D struct {
+							E int `mapstructure:"e"`
+						} `mapstructure:"d"`
+					} `mapstructure:"b"`
+				} `mapstructure:"a"`
+			}{},
+			bound: []string{
+				"a.b.foo.c",
+				"a.b.bar_baz.c",
+				"a.b.foo.d.e",
+				"a.b.bar_baz.d.e",
+			},
+		},
+	} {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			binder := sliceEnvBinder{}
+
+			typ := reflect.TypeOf(test.typ)
+			bindEnvVars(&binder, test.env, []string{}, typ)
+
+			assert.Equal(t, test.bound, []string(binder))
+		})
+	}
 }

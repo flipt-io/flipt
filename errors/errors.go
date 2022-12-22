@@ -11,18 +11,28 @@ func As[E error](err error) (e E, _ bool) {
 	return e, errors.As(err, &e)
 }
 
+// AsMatch is the same as As but it returns just a boolean to represent
+// whether or not the wrapped type matches the type parameter.
+func AsMatch[E error](err error) (match bool) {
+	_, match = As[E](err)
+	return
+}
+
 // New creates a new error with errors.New
 func New(s string) error {
 	return errors.New(s)
 }
 
+// NewErrorf is a generic utility for formatting a string into a target error type E.
+func NewErrorf[E StringError](format string, args ...any) error {
+	return E(fmt.Sprintf(format, args...))
+}
+
 // ErrNotFound represents a not found error
 type ErrNotFound string
 
-// ErrNotFoundf creates an ErrNotFound using a custom format
-func ErrNotFoundf(format string, args ...interface{}) error {
-	return ErrNotFound(fmt.Sprintf(format, args...))
-}
+// ErrNotFoundf is a convience function for producing ErrNotFound.
+var ErrNotFoundf = NewErrorf[ErrNotFound]
 
 func (e ErrNotFound) Error() string {
 	return fmt.Sprintf("%s not found", string(e))
@@ -31,10 +41,8 @@ func (e ErrNotFound) Error() string {
 // ErrInvalid represents an invalid error
 type ErrInvalid string
 
-// ErrInvalidf creates an ErrInvalid using a custom format
-func ErrInvalidf(format string, args ...interface{}) error {
-	return ErrInvalid(fmt.Sprintf(format, args...))
-}
+// ErrInvalidf is a convience function for producing ErrInvalid.
+var ErrInvalidf = NewErrorf[ErrInvalid]
 
 func (e ErrInvalid) Error() string {
 	return string(e)
@@ -53,6 +61,9 @@ func (e ErrValidation) Error() string {
 // ErrCanceled is returned when an operation has been prematurely canceled by the requester.
 type ErrCanceled string
 
+// ErrCanceledf is a convience function for producing ErrCanceled.
+var ErrCanceledf = NewErrorf[ErrCanceled]
+
 func (e ErrCanceled) Error() string {
 	return string(e)
 }
@@ -65,4 +76,22 @@ func InvalidFieldError(field, reason string) error {
 // EmptyFieldError creates an ErrInvalidField for an empty field
 func EmptyFieldError(field string) error {
 	return InvalidFieldError(field, "must not be empty")
+}
+
+// ErrUnauthenticated is returned when an operation is attempted by an unauthenticated
+// client in an authenticated context.
+type ErrUnauthenticated string
+
+// ErrUnauthenticatedf is a convience function for producing ErrUnauthenticated.
+var ErrUnauthenticatedf = NewErrorf[ErrUnauthenticated]
+
+// Error() returns the underlying string of the error.
+func (e ErrUnauthenticated) Error() string {
+	return string(e)
+}
+
+// StringError is any error that also happens to have an underlying type of string.
+type StringError interface {
+	error
+	~string
 }
