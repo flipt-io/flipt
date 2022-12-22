@@ -30,17 +30,15 @@ package flipt
 			token?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
-				...
 			}
 
-			// Token
+			// OIDC
 			oidc?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
 				providers?: {
 					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
 				}
-				...
 			}
 		}
 

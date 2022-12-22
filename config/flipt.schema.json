@@ -73,7 +73,8 @@
                 }
               },
               "required": [],
-              "title": "Token"
+              "title": "Token",
+              "additionalProperties": false
             },
             "oidc": {
               "type": "object",
@@ -96,7 +97,8 @@
                 }
               },
               "required": [],
-              "title": "Token"
+              "title": "OIDC",
+              "additionalProperties": false
             }
           },
           "required": [],
