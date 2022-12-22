@@ -219,7 +219,7 @@ func (a AuthenticationMethodOIDCConfig) Info() AuthenticationMethodInfo {
 	// this ensures we expose the authorize and callback URL endpoint
 	// to the UI via the /auth/v1/method endpoint
 	for provider := range a.Providers {
-		key := fmt.Sprintf("io.flipt.auth.method.oidc.provider.%s", provider)
+		key := fmt.Sprintf("provider.%s", provider)
 		info.Metadata[key+".authorize_url"] = fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider)
 		info.Metadata[key+".callback_url"] = fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider)
 	}
