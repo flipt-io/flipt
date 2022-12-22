@@ -24,7 +24,7 @@ func TestCleanup(t *testing.T) {
 		lock       = inmemoplock.New()
 		authConfig = config.AuthenticationConfig{
 			Methods: config.AuthenticationMethods{
-				Token: config.AuthenticationMethodTokenConfig{
+				Token: config.AuthenticationMethod[config.AuthenticationMethodTokenConfig]{
 					Enabled: true,
 					Cleanup: &config.AuthenticationCleanupSchedule{
 						Interval:    time.Second,

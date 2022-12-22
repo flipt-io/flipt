@@ -106,7 +106,7 @@ func Load(path string) (*Result, error) {
 		// see: https://github.com/spf13/viper/issues/761
 		var (
 			structField = val.Type().Field(i)
-			key, _      = fieldKey(structField)
+			key         = fieldKey(structField)
 		)
 
 		bindEnvVars(v, getFliptEnvs(), []string{key}, structField.Type)
@@ -154,18 +154,18 @@ type deprecator interface {
 	deprecations(v *viper.Viper) []deprecation
 }
 
-// fieldKey returns the name to be used when deriving a fields
-// env var key. The second return argument designates whether or
-// not the field has been tagged as squashed in mapstructure.
-func fieldKey(field reflect.StructField) (string, bool) {
+// fieldKey returns the name to be used when deriving a fields env var key.
+// If marked as squash the key will be the empty string.
+// Otherwise, it is derived from the lowercase name of the field.
+func fieldKey(field reflect.StructField) string {
 	if tag := field.Tag.Get("mapstructure"); tag != "" {
-		if tag, attr, ok := strings.Cut(tag, ","); ok {
-			return tag, attr == "squash"
+		tag, attr, ok := strings.Cut(tag, ",")
+		if !ok || attr == "squash" {
+			return tag
 		}
-		return tag, false
 	}
 
-	return strings.ToLower(field.Name), false
+	return strings.ToLower(field.Name)
 }
 
 type envBinder interface {
@@ -191,7 +191,7 @@ func bindEnvVars(v envBinder, env, prefixes []string, typ reflect.Type) {
 		for i := 0; i < typ.NumField(); i++ {
 			var (
 				structField = typ.Field(i)
-				key, _      = fieldKey(structField)
+				key         = fieldKey(structField)
 			)
 
 			bind(env, prefixes, key, func(prefixes []string) {

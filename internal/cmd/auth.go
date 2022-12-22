@@ -114,7 +114,7 @@ func authenticationHTTPMount(
 	cfg config.AuthenticationConfig,
 	r chi.Router,
 	conn *grpc.ClientConn,
-) error {
+) {
 	var (
 		muxOpts = []runtime.ServeMuxOption{
 			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
@@ -144,6 +144,4 @@ func authenticationHTTPMount(
 
 		r.Mount("/auth/v1", gateway.NewGatewayServeMux(muxOpts...))
 	})
-
-	return nil
 }
