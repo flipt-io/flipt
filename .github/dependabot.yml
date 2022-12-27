@@ -36,16 +36,6 @@ updates:
       # kodiak `merge.automerge_label`
       - "automerge"
 
-  - package-ecosystem: npm
-    directory: "/ui"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
-
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
     # default location of `.github/workflows`
