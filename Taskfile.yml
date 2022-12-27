@@ -4,7 +4,7 @@ version: 3
 vars:
   PROJECT: flipt
   SOURCE_FILES: ./...
-  UI: ui
+  UI: ui-next
   COVERAGE_FILE: coverage.txt
 
 tasks:
@@ -43,6 +43,7 @@ tasks:
     dir: "{{.UI}}"
     cmds:
       - npm run build
+      - npx next export -o ../ui/dist
 
   assets:clone:
     desc: Clone the UI

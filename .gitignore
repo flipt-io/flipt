@@ -35,7 +35,7 @@ site
 tmp
 __debug_bin
 
-ui
+ui-next
 
 Brewfile.lock.json
 *.key
