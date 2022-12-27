@@ -43,22 +43,19 @@ tasks:
     dir: "{{.UI}}"
     cmds:
       - npm run build
-    sources:
-      - ./{{.UI}}/static/*
-      - ./{{.UI}}/src/**/*
-      - ./{{.UI}}/src/**/**/*
-      - ./{{.UI}}/index.html
-      - ./{{.UI}}/package.json
-    method: checksum
+
+  assets:clone:
+    desc: Clone the UI
+    cmds:
+      - rm -rf ./{{.UI}}
+      - git clone --depth 1 https://github.com/flipt-io/flipt-ui.git ./{{.UI}}
 
   assets:deps:
+    deps: [assets:clone]
     desc: Install UI dependencies
     dir: "{{.UI}}"
     cmds:
       - npm ci
-    sources:
-      - ./{{.UI}}/package-lock.json
-    method: checksum
 
   assets:dev:
     desc: Run the UI dev server

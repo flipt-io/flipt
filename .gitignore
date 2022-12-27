@@ -35,6 +35,8 @@ site
 tmp
 __debug_bin
 
+ui
+
 Brewfile.lock.json
 *.key
 .task/
