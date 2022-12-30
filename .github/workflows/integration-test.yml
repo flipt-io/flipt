@@ -41,8 +41,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "18"
-          cache: "npm"
-          cache-dependency-path: ui/package-lock.json
+          # cache: "npm"
+          # cache-dependency-path: ui/package-lock.json
 
       - uses: arduino/setup-task@v1
 
@@ -166,39 +166,39 @@ jobs:
       - name: Run CLI tests
         run: ./test/cli.bats
 
-  ui:
-    needs: build
-    name: Test UI
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      DEBIAN_FRONTEND: noninteractive
+  # ui:
+  #   needs: build
+  #   name: Test UI
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 10
+  #   env:
+  #     DEBIAN_FRONTEND: noninteractive
 
-    steps:
-      - name: Install dependencies
-        run: |
-          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
-          sudo apt-get update && \
-          sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg uuid-runtime && \
-          curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && \
-          sudo apt-get update && \
-          sudo apt-get install -y nodejs
+  #   steps:
+  #     - name: Install dependencies
+  #       run: |
+  #         echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
+  #         echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
+  #         sudo apt-get update && \
+  #         sudo apt-get install -y \
+  #         tzdata bats curl wget jq gnupg uuid-runtime && \
+  #         curl -sL https://deb.nodesource.com/setup_18.x | sudo bash - && \
+  #         sudo apt-get update && \
+  #         sudo apt-get install -y nodejs
 
-      - name: Install playwright
-        run: |
-          npx playwright install chromium --with-deps
+  #     - name: Install playwright
+  #       run: |
+  #         npx playwright install chromium --with-deps
 
-      - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v3
-        with:
-          name: flipt
-          path: bin/
+  #     - uses: actions/download-artifact@v3
+  #       with:
+  #         name: flipt
+  #         path: bin/
 
-      - run: chmod +x flipt
-        working-directory: bin/
+  #     - run: chmod +x flipt
+  #       working-directory: bin/
 
-      - name: Run UI tests
-        run: ./test/ui.sh
+  #     - name: Run UI tests
+  #       run: ./test/ui.sh
