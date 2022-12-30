@@ -70,9 +70,9 @@ jobs:
 
       - name: Tag and Push latest
         env:
-          TAG: ${{ github.ref }}
+          TAG: ${{ github.ref_name }}
         run: |
-          if [[ $TAG =~ $(git tag -l --sort=-version:refname | head -n 1) ]]; then
+          if [[ $TAG == $(cat version.txt) ]]; then
             docker tag flipt/flipt:$TAG flipt/flipt:latest
             docker tag markphelps/flipt:$TAG markphelps/flipt:latest
             docker tag ghcr.io/flipt-io/flipt:$TAG ghcr.io/flipt-io/flipt:latest

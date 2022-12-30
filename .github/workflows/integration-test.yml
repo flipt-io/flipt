@@ -56,7 +56,6 @@ jobs:
         with:
           repository: flipt-io/flipt-ui
           path: ui-next
-          depth: 1
           token: ${{ steps.generate_token.outputs.token }}
 
       - uses: arduino/setup-task@v1

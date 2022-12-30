@@ -31,6 +31,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          tag=$(echo $GITHUB_REF | sed 's#refs/tags/##')
+          tag=$(echo $GITHUB_REF_NAME)
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${tag}"
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-ruby -f tag="${tag}"
