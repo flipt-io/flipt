@@ -58,7 +58,7 @@ jobs:
         run: |
           task
         env:
-          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3

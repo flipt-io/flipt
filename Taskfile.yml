@@ -52,7 +52,7 @@ tasks:
       - gh repo clone 'flipt-io/flipt-ui' ./{{.UI}} -- --depth 1
       - rm -rf ./{{.UI}}/.git
     env:
-      GH_TOKEN: "{{.GH_TOKEN}}"
+      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
 
   assets:deps:
     deps: [assets:clone]
