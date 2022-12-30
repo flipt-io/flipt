@@ -49,8 +49,10 @@ tasks:
     desc: Clone the UI
     cmds:
       - rm -rf ./{{.UI}}
-      - gh repo clone flipt-io/flipt-ui ./{{.UI}} -- --depth 1
+      - gh repo clone 'flipt-io/flipt-ui' ./{{.UI}} -- --depth 1
       - rm -rf ./{{.UI}}/.git
+    env:
+      GH_TOKEN: "{{.GH_TOKEN}}"
 
   assets:deps:
     deps: [assets:clone]
