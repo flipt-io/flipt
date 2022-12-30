@@ -107,14 +107,12 @@ func NewHTTPServer(
 		r.Handle("/config", cfg)
 	})
 
-	if cfg.UI.Enabled {
-		u, err := fs.Sub(ui.UI, "dist")
-		if err != nil {
-			return nil, fmt.Errorf("mounting UI: %w", err)
-		}
-
-		r.Mount("/", http.FileServer(http.FS(u)))
+	u, err := fs.Sub(ui.UI, "dist")
+	if err != nil {
+		return nil, fmt.Errorf("mounting UI: %w", err)
 	}
+
+	r.Mount("/", http.FileServer(http.FS(u)))
 
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
