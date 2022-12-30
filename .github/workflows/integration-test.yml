@@ -52,13 +52,18 @@ jobs:
           # cache: "npm"
           # cache-dependency-path: ui/package-lock.json
 
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: ui-next
+          depth: 1
+          token: ${{ steps.generate_token.outputs.token }}
+
       - uses: arduino/setup-task@v1
 
       - name: Build the binary
         run: |
           task
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3

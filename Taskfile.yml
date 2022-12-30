@@ -45,17 +45,7 @@ tasks:
       - npm run build
       - npx next export -o ../ui/dist
 
-  assets:clone:
-    desc: Clone the UI
-    cmds:
-      - rm -rf ./{{.UI}}
-      - gh repo clone 'flipt-io/flipt-ui' ./{{.UI}} -- --depth 1
-      - rm -rf ./{{.UI}}/.git
-    env:
-      GITHUB_TOKEN: "{{.GITHUB_TOKEN}}"
-
   assets:deps:
-    deps: [assets:clone]
     desc: Install UI dependencies
     dir: "{{.UI}}"
     cmds:
