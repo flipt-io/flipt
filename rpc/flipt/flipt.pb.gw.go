@@ -642,7 +642,7 @@ func local_request_Flipt_GetRule_0(ctx context.Context, marshaler runtime.Marsha
 }
 
 var (
-	filter_Flipt_ListRules_0 = &utilities.DoubleArray{Encoding: map[string]int{"flag_key": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Flipt_ListRules_0 = &utilities.DoubleArray{Encoding: map[string]int{"flag_key": 0, "flagKey": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
 )
 
 func request_Flipt_ListRules_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -1204,7 +1204,7 @@ func local_request_Flipt_UpdateDistribution_0(ctx context.Context, marshaler run
 }
 
 var (
-	filter_Flipt_DeleteDistribution_0 = &utilities.DoubleArray{Encoding: map[string]int{"flag_key": 0, "rule_id": 1, "id": 2}, Base: []int{1, 1, 2, 3, 0, 0, 0}, Check: []int{0, 1, 1, 1, 2, 3, 4}}
+	filter_Flipt_DeleteDistribution_0 = &utilities.DoubleArray{Encoding: map[string]int{"flag_key": 0, "flagKey": 1, "rule_id": 2, "ruleId": 3, "id": 4}, Base: []int{1, 1, 2, 3, 4, 6, 0, 0, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 6}}
 )
 
 func request_Flipt_DeleteDistribution_0(ctx context.Context, marshaler runtime.Marshaler, client FliptClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
