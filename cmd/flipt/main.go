@@ -328,7 +328,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 	migrator.Close()
 
-	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg)
+	grpcServer, err := cmd.NewGRPCServer(ctx, logger, cfg, info)
 	if err != nil {
 		return err
 	}
