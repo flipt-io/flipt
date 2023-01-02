@@ -57,14 +57,11 @@ func response(ctx context.Context, v any) (*httpbody.HttpBody, error) {
 }
 
 func marshal(ctx context.Context, v any) ([]byte, error) {
-	var pretty bool
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		accept := md.Get("grpcgateway-accept")
-		pretty = len(accept) > 0 && accept[0] == "application/json+pretty"
-	}
-
-	if pretty {
-		return json.MarshalIndent(v, "", "  ")
+		if len(accept) > 0 && accept[0] == "application/json+pretty" {
+			return json.MarshalIndent(v, "", "  ")
+		}
 	}
 
 	return json.Marshal(v)
