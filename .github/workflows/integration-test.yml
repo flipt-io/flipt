@@ -57,6 +57,8 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
 
       - uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ steps.generate_token.outputs.token }}
 
       - name: Build the binary
         run: |
