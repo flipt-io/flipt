@@ -384,7 +384,7 @@ func isRelease() bool {
 	if version == "" || version == devVersion {
 		return false
 	}
-	if strings.HasSuffix(version, "-snapshot") {
+	if strings.HasSuffix(version, "-snapshot") || strings.Contains(version, "-rc") {
 		return false
 	}
 	return true
