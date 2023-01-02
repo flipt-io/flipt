@@ -103,6 +103,20 @@ func NewHTTPServer(
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
 
+			// skip csrf if the request does not set the origin header
+			// for a potentially mutating http method.
+			// This allows us to forgo CSRF for non-browser based clients.
+			r.Use(func(handler http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if r.Method != http.MethodGet &&
+						r.Method != http.MethodHead &&
+						r.Header.Get("origin") == "" {
+						r = csrf.UnsafeSkipCheck(r)
+					}
+
+					handler.ServeHTTP(w, r)
+				})
+			})
 			r.Use(csrf.Protect([]byte(key), csrf.Path("/")))
 		}
 
