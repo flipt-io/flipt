@@ -28,6 +28,7 @@ builds:
 
 release:
   prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
+  target_commitish: "{{ .Commit }}"
 
 snapshot:
   name_template: "{{ .ShortCommit }}-snapshot"
