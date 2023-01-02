@@ -1,9 +1,10 @@
 name: Release
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Flipt release version tag to generate
+        required: true
 
 permissions:
   contents: write
@@ -13,15 +14,41 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          if [[ "${{ github.event.inputs.tag }}" != *"-rc"* ]]; then
+            echo "Tag must end in rc"
+            exit 1
+          fi
+
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
+
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - run: git tag ${{ github.event.inputs.tag }}
 
       - uses: actions/setup-go@v3
         with:
           go-version: "1.18"
           check-latest: true
           cache: true
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: ui-next
+          token: ${{ steps.generate_token.outputs.token }}
 
       - uses: arduino/setup-task@v1
 
@@ -68,15 +95,15 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
-      - name: Tag and Push latest
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          if [[ $TAG == $(cat version.txt) ]]; then
-            docker tag flipt/flipt:$TAG flipt/flipt:latest
-            docker tag markphelps/flipt:$TAG markphelps/flipt:latest
-            docker tag ghcr.io/flipt-io/flipt:$TAG ghcr.io/flipt-io/flipt:latest
-            docker push flipt/flipt:latest
-            docker push markphelps/flipt:latest
-            docker push ghcr.io/flipt-io/flipt:latest
-          fi
+      # - name: Tag and Push latest
+      #   env:
+      #     TAG: ${{ github.ref_name }}
+      #   run: |
+      #     if [[ $TAG == $(cat version.txt) ]]; then
+      #       docker tag flipt/flipt:$TAG flipt/flipt:latest
+      #       docker tag markphelps/flipt:$TAG markphelps/flipt:latest
+      #       docker tag ghcr.io/flipt-io/flipt:$TAG ghcr.io/flipt-io/flipt:latest
+      #       docker push flipt/flipt:latest
+      #       docker push markphelps/flipt:latest
+      #       docker push ghcr.io/flipt-io/flipt:latest
+      #     fi
