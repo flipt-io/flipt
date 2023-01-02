@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/gorilla/csrf"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.flipt.io/flipt/internal/config"
@@ -97,22 +98,41 @@ func NewHTTPServer(
 	r.Use(middleware.Recoverer)
 	r.Mount("/debug", middleware.Profiler())
 	r.Mount("/metrics", promhttp.Handler())
-	r.Mount("/api/v1", api)
 
-	// mount all authentication related HTTP components
-	// to the chi router.
-	authenticationHTTPMount(ctx, cfg.Authentication, r, conn)
+	r.Group(func(r chi.Router) {
+		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
+			logger.Debug("enabling CSRF prevention")
 
-	// mount the metadata service to the chi router under /meta.
-	r.Mount("/meta", runtime.NewServeMux(
-		runtime.WithMarshalerOption("application/json", &runtime.HTTPBodyMarshaler{}),
-		runtime.WithMarshalerOption("application/json+pretty", &runtime.HTTPBodyMarshaler{}),
-		registerFunc(
-			ctx,
-			conn,
-			meta.RegisterMetadataServiceHandler,
-		),
-	))
+			r.Use(csrf.Protect([]byte(key), csrf.Path("/")))
+		}
+
+		r.Mount("/api/v1", api)
+
+		// mount all authentication related HTTP components
+		// to the chi router.
+		authenticationHTTPMount(ctx, cfg.Authentication, r, conn)
+
+		r.Group(func(r chi.Router) {
+			r.Use(func(handler http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("X-CSRF-Token", csrf.Token(r))
+
+					handler.ServeHTTP(w, r)
+				})
+			})
+
+			// mount the metadata service to the chi router under /meta.
+			r.Mount("/meta", runtime.NewServeMux(
+				runtime.WithMarshalerOption("application/json", &runtime.HTTPBodyMarshaler{}),
+				runtime.WithMarshalerOption("application/json+pretty", &runtime.HTTPBodyMarshaler{}),
+				registerFunc(
+					ctx,
+					conn,
+					meta.RegisterMetadataServiceHandler,
+				),
+			))
+		})
+	})
 
 	if cfg.UI.Enabled {
 		u, err := fs.Sub(ui.UI, "dist")

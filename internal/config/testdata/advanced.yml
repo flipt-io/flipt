@@ -42,6 +42,8 @@ authentication:
   session:
     domain: "auth.flipt.io"
     secure: true
+    csrf:
+      key: "abcdefghijklmnopqrstuvwxyz1234567890"
   methods:
     token:
       enabled: true
