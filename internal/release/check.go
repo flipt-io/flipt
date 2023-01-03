@@ -49,6 +49,11 @@ var (
 // the current version, latest version, if the current version is a release, and
 // if an update is available.
 func Check(ctx context.Context, version string) (Info, error) {
+	return check(ctx, defaultReleaseChecker, version)
+}
+
+// visible for testing
+func check(ctx context.Context, rc releaseChecker, version string) (Info, error) {
 	i := Info{
 		CurrentVersion: version,
 	}
@@ -58,7 +63,7 @@ func Check(ctx context.Context, version string) (Info, error) {
 		return i, fmt.Errorf("parsing current version: %w", err)
 	}
 
-	release, err := defaultReleaseChecker.getLatestRelease(ctx)
+	release, err := rc.getLatestRelease(ctx)
 	if err != nil {
 		return i, fmt.Errorf("checking for latest release: %w", err)
 	}
@@ -72,10 +77,8 @@ func Check(ctx context.Context, version string) (Info, error) {
 
 		i.LatestVersion = lv.String()
 
-		switch cv.Compare(lv) {
-		case 0:
-			i.UpdateAvailable = false
-		case -1:
+		// if current version is less than latest version, an update is available
+		if cv.Compare(lv) < 0 {
 			i.UpdateAvailable = true
 			i.LatestVersionURL = release.GetHTMLURL()
 		}
