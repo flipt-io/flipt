@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
+	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
@@ -81,6 +83,7 @@ func NewGRPCServer(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg *config.Config,
+	info info.Flipt,
 ) (*GRPCServer, error) {
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
@@ -245,6 +248,7 @@ func NewGRPCServer(
 
 	// initialize server
 	register.Add(fliptserver.New(logger, store))
+	register.Add(metadata.NewServer(cfg, info))
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)

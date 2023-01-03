@@ -243,7 +243,7 @@ func local_request_AuthenticationMethodTokenService_CreateToken_0(ctx context.Co
 }
 
 var (
-	filter_AuthenticationMethodOIDCService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_AuthenticationMethodOIDCService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
 )
 
 func request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -313,7 +313,7 @@ func local_request_AuthenticationMethodOIDCService_AuthorizeURL_0(ctx context.Co
 }
 
 var (
-	filter_AuthenticationMethodOIDCService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_AuthenticationMethodOIDCService_Callback_0 = &utilities.DoubleArray{Encoding: map[string]int{"provider": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
 )
 
 func request_AuthenticationMethodOIDCService_Callback_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOIDCServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {

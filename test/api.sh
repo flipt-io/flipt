@@ -281,12 +281,12 @@ step_7_test_delete()
 
 step_8_test_meta()
 {
-    shakedown GET "/meta/info"
+    authedShakedown GET "/meta/info"
         status 200
         contains "\"buildDate\""
         contains "\"goVersion\""
 
-    shakedown GET "/meta/config"
+    authedShakedown GET "/meta/config"
         status 200
         contains "\"log\""
         contains "\"ui\""

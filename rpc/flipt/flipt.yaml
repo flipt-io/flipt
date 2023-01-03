@@ -73,6 +73,11 @@ http:
     body: "*"
   - selector: flipt.Flipt.DeleteConstraint
     delete: /api/v1/segments/{segment_key}/constraints/{id}
+  # metadata
+  - selector: flipt.meta.MetadataService.GetConfiguration
+    get: /meta/config
+  - selector: flipt.meta.MetadataService.GetInfo
+    get: /meta/info
   # authentication public routes
   - selector: flipt.auth.PublicAuthenticationService.ListAuthenticationMethods
     get: /auth/v1/method
