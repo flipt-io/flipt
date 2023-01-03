@@ -1,0 +1,30 @@
+log:
+  level: DEBUG
+
+db:
+  url: file:/var/opt/flipt/flipt.db
+
+authentication:
+  required: true
+  session:
+    domain: "localhost:8080"
+    secure: false
+    csrf:
+      key: "abcdef1234567890"
+  methods:
+    token:
+      enabled: true
+      cleanup:
+         interval: 2h
+         grace_period: 48h
+    oidc:
+      enabled: true
+      providers:
+        dex:
+          issuer_url: "http://dex:5556/dex"
+          client_id: "flipt"
+          client_secret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
+          redirect_address: "http://localhost:8080"
+      cleanup:
+         interval: 2h
+         grace_period: 48h
