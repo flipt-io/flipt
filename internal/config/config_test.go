@@ -443,7 +443,7 @@ func TestLoad(t *testing.T) {
 						TokenLifetime: 24 * time.Hour,
 						StateLifetime: 10 * time.Minute,
 						CSRF: AuthenticationSessionCSRF{
-							Key: "abcdefghijklmnopqrstuvwxyz1234567890",
+							Key: "abcdefghijklmnopqrstuvwxyz1234567890", //gitleaks:allow
 						},
 					},
 					Methods: AuthenticationMethods{

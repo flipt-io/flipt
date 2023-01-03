@@ -43,7 +43,7 @@ authentication:
     domain: "auth.flipt.io"
     secure: true
     csrf:
-      key: "abcdefghijklmnopqrstuvwxyz1234567890"
+      key: "abcdefghijklmnopqrstuvwxyz1234567890" #gitleaks:allow
   methods:
     token:
       enabled: true
