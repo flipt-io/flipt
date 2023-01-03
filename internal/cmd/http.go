@@ -14,11 +14,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/meta"
 	"go.flipt.io/flipt/ui"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -101,11 +103,16 @@ func NewHTTPServer(
 	// to the chi router.
 	authenticationHTTPMount(ctx, cfg.Authentication, r, conn)
 
-	r.Route("/meta", func(r chi.Router) {
-		r.Use(middleware.SetHeader("Content-Type", "application/json"))
-		r.Handle("/info", info)
-		r.Handle("/config", cfg)
-	})
+	// mount the metadata service to the chi router under /meta.
+	r.Mount("/meta", runtime.NewServeMux(
+		runtime.WithMarshalerOption("application/json", &runtime.HTTPBodyMarshaler{}),
+		runtime.WithMarshalerOption("application/json+pretty", &runtime.HTTPBodyMarshaler{}),
+		registerFunc(
+			ctx,
+			conn,
+			meta.RegisterMetadataServiceHandler,
+		),
+	))
 
 	if cfg.UI.Enabled {
 		u, err := fs.Sub(ui.UI, "dist")
