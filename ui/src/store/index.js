@@ -8,11 +8,13 @@ Vue.use(Vuex);
 //to handle state
 const state = {
   info: {},
+  csrfToken: "",
 };
 
 //to handle state
 const getters = {
   info: (state) => state.info,
+  csrfToken: (state) => state.csrfToken,
 };
 
 //to handle actions
@@ -22,6 +24,11 @@ const actions = {
       .get("/meta/info")
       .then((response) => {
         commit("SET_INFO", response.data);
+
+        const token = response.headers['x-csrf-token'];
+        if (token != null) {
+          commit("SET_CSRF_TOKEN", token);
+        }
       })
       .catch((e) => {
         console.log(e);
@@ -39,6 +46,9 @@ const mutations = {
     if (info.latestVersion) {
       state.info.latestVersion = "v" + info.latestVersion;
     }
+  },
+  SET_CSRF_TOKEN(state, token) {
+    state.csrfToken = token;
   },
 };
 
