@@ -52,8 +52,16 @@ tasks:
     status:
       - test -d {{.UI}}/.git
 
-  assets:deps:
+  assets:sync:
+    desc: Sync the UI repo
     deps: [assets:clone]
+    dir: "{{.UI}}"
+    cmds:
+      - git fetch --all
+      - git reset --hard origin/main
+
+  assets:deps:
+    deps: [assets:sync]
     desc: Install UI dependencies
     dir: "{{.UI}}"
     cmds:
