@@ -9,6 +9,8 @@ authentication:
   required: true
   session:
     domain: "localhost"
+    csrf:
+      key: "abcdefghijkl"
   methods:
     token:
       enabled: true
