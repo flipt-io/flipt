@@ -49,8 +49,8 @@ header_matches() {
 # shakedown doesn't appear to support the negative
 # cases out of the box.
 does_not_contain() {
-  MSG="contains \"${1}\""
-  grep -Fq "${1}" "${print_body}" && _fail "${MSG}" || _pass "${MSG}"
+  MSG="does not contain \"${1}\""
+  print_body | grep -Fq "${1}" && _fail "${MSG}" || _pass "${MSG}"
 }
 
 step_1_test_health()
@@ -314,7 +314,7 @@ step_8_test_meta()
     # in the authentication enabled case we check that
     # the returned config does not contain the CSRF key
     if [ -n "${TEST_FLIPT_API_AUTH_REQUIRED:-}" ]; then
-      key=$(yq eval '.authentication.session.csrf.key' ./config/test-with-auth.yml | tr -d '\r\n')
+      key=$(yq eval '.authentication.session.csrf.key' ./test/config/test-with-auth.yml | tr -d '\r\n')
       does_not_contain "${key}"
 
       # ensure CSRF cookie is present
