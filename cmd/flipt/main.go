@@ -209,11 +209,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(interrupt)
 
-	var (
-		isConsole   = cfg.Log.Encoding == config.LogEncodingConsole
-		isRelease   = release.Is(version)
-		releaseInfo = release.Info{}
-	)
+	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
 	if isConsole {
 		color.Cyan("%s\n", banner)
@@ -226,7 +222,12 @@ func run(ctx context.Context, logger *zap.Logger) error {
 		logger.Warn("configuration warning", zap.String("message", warning))
 	}
 
-	var err error
+	var (
+		isRelease   = release.Is(version)
+		releaseInfo release.Info
+		err         error
+	)
+
 	if cfg.Meta.CheckForUpdates && isRelease {
 		logger.Debug("checking for updates")
 
@@ -258,7 +259,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	}
 
 	if !isRelease {
-		logger.Debug("not a release, disabling telemetry")
+		logger.Debug("not a release version, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
 
