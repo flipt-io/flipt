@@ -16,7 +16,12 @@ func uiHandler() (http.Handler, error) {
 		return nil, fmt.Errorf("mounting UI: %w", err)
 	}
 
-	return http.FileServer(http.FS(newNextFS(u))), nil
+	fs, err := newNextFS(u)
+	if err != nil {
+		return nil, fmt.Errorf("mounting UI: %w", err)
+	}
+
+	return http.FileServer(http.FS(fs)), nil
 }
 
 type nextFS struct {
@@ -25,10 +30,10 @@ type nextFS struct {
 	root node
 }
 
-func newNextFS(filesystem fs.FS) fs.FS {
+func newNextFS(filesystem fs.FS) (fs.FS, error) {
 	n := &nextFS{FS: filesystem}
 
-	fs.WalkDir(filesystem, ".", func(path string, _ fs.DirEntry, err error) error {
+	if err := fs.WalkDir(filesystem, ".", func(path string, _ fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -36,9 +41,11 @@ func newNextFS(filesystem fs.FS) fs.FS {
 		n.root.insert(path)
 
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
 
-	return n
+	return n, nil
 }
 
 // Open opens the named file.

@@ -18,7 +18,8 @@ func Test_newNextFS(t *testing.T) {
 	testdata, err := fs.Sub(data, "testdata")
 	require.NoError(t, err)
 
-	wrapped := newNextFS(testdata)
+	wrapped, err := newNextFS(testdata)
+	require.NoError(t, err)
 
 	for _, test := range []struct {
 		path         string
@@ -48,6 +49,7 @@ func Test_newNextFS(t *testing.T) {
 			expectedFile: []byte("<html><title>[pid]</title></html>\n"),
 		},
 	} {
+		test := test
 		t.Run(fmt.Sprintf("Open(%s)", test.path), func(t *testing.T) {
 			fi, err := wrapped.Open(test.path)
 			if test.expectedErr != nil {
