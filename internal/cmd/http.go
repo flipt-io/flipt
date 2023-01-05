@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"time"
 
@@ -22,7 +21,6 @@ import (
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/meta"
-	"go.flipt.io/flipt/ui"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -148,12 +146,12 @@ func NewHTTPServer(
 		})
 	})
 
-	u, err := fs.Sub(ui.UI, "dist")
+	handler, err := uiHandler()
 	if err != nil {
-		return nil, fmt.Errorf("mounting UI: %w", err)
+		return nil, err
 	}
 
-	r.Mount("/", http.FileServer(http.FS(u)))
+	r.Mount("/", handler)
 
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
