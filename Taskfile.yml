@@ -78,14 +78,6 @@ tasks:
     cmds:
       - ./script/bootstrap
 
-  build:
-    desc: Run Go build
-    cmds:
-      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
-    vars:
-      GIT_COMMIT:
-        sh: set -e && git rev-parse --verify HEAD || ""
-
   build:clients:
     desc: Generate Ruby and Go proto clients
     deps: [proto]
