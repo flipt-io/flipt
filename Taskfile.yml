@@ -43,7 +43,7 @@ tasks:
     dir: "{{.UI}}"
     cmds:
       - npm run build
-      - npx next export -o ../ui/dist
+      - mv dist ../ui
 
   assets:clone:
     desc: Clone the UI repo
