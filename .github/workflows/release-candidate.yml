@@ -42,6 +42,16 @@ jobs:
           check-latest: true
           cache: true
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: ui-next
+          token: ${{ steps.generate_token.outputs.token }}
+
       - uses: arduino/setup-task@v1
         with:
           repo-token: ${{ steps.generate_token.outputs.token }}
