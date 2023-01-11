@@ -14,6 +14,7 @@
 .github/
 .vscode/
 .task/
+.build/
 Dockerfile*
 LICENSE
 bin/
@@ -21,4 +22,3 @@ examples/
 ui/dist/
 ui/node_modules/
 logos/
-ui-next/
