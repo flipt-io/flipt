@@ -4,6 +4,9 @@ includes:
   - from_file:
       path: .goreleaser.yml
 
+changelog:
+  skip: true
+
 docker_manifests:
   - name_template: "flipt/flipt:nightly"
     image_templates:
