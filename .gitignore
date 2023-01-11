@@ -35,9 +35,8 @@ site
 tmp
 __debug_bin
 
-ui-next
-
 Brewfile.lock.json
 *.key
 .task/
+.build/
 examples/cockroachdb/data

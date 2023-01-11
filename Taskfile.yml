@@ -4,7 +4,7 @@ version: 3
 vars:
   PROJECT: flipt
   SOURCE_FILES: ./...
-  UI: ui-next
+  BUILD_DIR: .build
   COVERAGE_FILE: coverage.txt
 
 tasks:
@@ -40,22 +40,22 @@ tasks:
   assets:
     desc: Build the UI
     deps: [assets:deps]
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm run build
-      - mv dist ../ui
+      - mv dist ../../ui
 
   assets:clone:
     desc: Clone the UI repo
     cmds:
-      - git clone https://github.com/flipt-io/flipt-ui.git {{.UI}} --depth 1
+      - git clone https://github.com/flipt-io/flipt-ui.git {{.BUILD_DIR}}/ui --depth 1
     status:
-      - test -d {{.UI}}/.git
+      - test -d {{.BUILD_DIR}}/ui/.git
 
   assets:sync:
     desc: Sync the UI repo
     deps: [assets:clone]
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - git fetch --all
       - git reset --hard origin/main
@@ -63,13 +63,13 @@ tasks:
   assets:deps:
     deps: [assets:sync]
     desc: Install UI dependencies
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm ci
 
   assets:dev:
     desc: Run the UI dev server
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm run dev
 

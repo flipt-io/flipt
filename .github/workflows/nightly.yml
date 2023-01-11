@@ -30,6 +30,23 @@ jobs:
           check-latest: true
           cache: true
 
+      - uses: actions/cache@v3
+        with:
+          path: _tools/
+          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tools-
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: .build/ui
+          token: ${{ steps.generate_token.outputs.token }}
+
       - uses: arduino/setup-task@v1
         with:
           repo-token: ${{ steps.generate_token.outputs.token }}
