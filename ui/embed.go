@@ -5,5 +5,5 @@ package ui
 
 import "embed"
 
-//go:embed all:dist/*
+//go:embed dist/*
 var UI embed.FS

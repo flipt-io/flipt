@@ -148,12 +148,15 @@ func NewHTTPServer(
 		})
 	})
 
-	u, err := fs.Sub(ui.UI, "dist")
-	if err != nil {
-		return nil, fmt.Errorf("mounting UI: %w", err)
-	}
+	// TODO: remove (deprecated as of 1.17)
+	if cfg.UI.Enabled {
+		u, err := fs.Sub(ui.UI, "dist")
+		if err != nil {
+			return nil, fmt.Errorf("mounting UI: %w", err)
+		}
 
-	r.Mount("/", http.FileServer(http.FS(u)))
+		r.Mount("/", http.FileServer(http.FS(u)))
+	}
 
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
