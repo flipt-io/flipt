@@ -34,7 +34,7 @@ Description.
 
 ### ui.enabled
 
-> since [unreleased](TODO)
+> since [v1.17.0](https://github.com/flipt-io/flipt/releases/tag/v1.17.0)
 
 An upcoming release will enable the UI always and this option will be removed.
 There will be a new version of Flipt (headless) that will run Flipt without the UI and only include the API.
