@@ -123,7 +123,7 @@ Some of the companies depending on Flipt in production.
         <img src="./logos/users/paradigm.png" alt="Paradigm" />
     </a>
     <a href="https://rokt.com">
-        <img src="logos/users/rokt.svg" alt="Rokt" width="200"/>
+        <img src="./logos/users/rokt.svg" alt="Rokt" width="200"/>
     </a>
     <a href="https://asphaltbot.com">
         <img src="./logos/users/asphaltlogo.png" alt="Asphalt" />
@@ -211,7 +211,7 @@ For help and discussion around Flipt, feature flag best practices, and more, joi
 
 ## Feedback
 
-If you are a user of Flipt I'd really :heart: it if you could leave a [testimonal](https://testimonial.to/flipt) on how Flipt is working for you.
+If you are a user of Flipt we'd really :heart: it if you could leave a [testimonal](https://testimonial.to/flipt) on how Flipt is working for you.
 
 ## Author
 
@@ -221,7 +221,7 @@ If you are a user of Flipt I'd really :heart: it if you could leave a [testimona
 
 ## Contributing
 
-I would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing.md) guide.
+We would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing.md) guide.
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
