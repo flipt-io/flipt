@@ -49,7 +49,7 @@ require (
 	golang.org/x/net v0.5.0
 	golang.org/x/sync v0.1.0
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37
-	google.golang.org/grpc v1.51.0
+	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
