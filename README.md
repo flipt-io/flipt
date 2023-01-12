@@ -6,7 +6,9 @@
 
 <hr />
 
-![Flipt](demo.gif)
+<p align="center">
+    <img src=".github/images/flags.png" alt="Flipt Dashboard" width=600 />
+</p>
 
 <div align="center">
     <a href="https://github.com/flipt-io/flipt/releases">
@@ -46,6 +48,8 @@
     </h4>
 </div>
 
+<br clear="both"/>
+
 Flipt is an open source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
@@ -56,7 +60,11 @@ Flipt supports use cases such as:
 - Rolling out features to a percentage of your customers
 - Using advanced segmentation to target and serve users based on custom properties that you define
 
+<br clear="both"/>
+
 ## Features
+
+<img align="right" src=".github/images/console.png" alt="Flipt Console" width=40% />
 
 - Fast. Written in Go. Optimized for performance
 - Stand alone, easy to run and configure
@@ -64,9 +72,11 @@ Flipt supports use cases such as:
 - Native [GRPC](https://grpc.io/) client SDKs to integrate with your existing applications easily
 - Powerful REST API
 - Modern, mobile friendly 📱 UI and debug console
-- Support for multiple databases (Postgres, MySQL, SQLite)
+- Support for multiple databases (Postgres, MySQL, SQLite, CockroachDB)
 - Data import and export to allow storing your data as code
 - Cloud ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without.
+
+<br clear="both"/>
 
 ## Values
 
@@ -75,15 +85,17 @@ Flipt supports use cases such as:
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis.. Flipt supports it all.
 
+<br clear="both"/>
+
 ## Works With
 
 <p align="center">
-    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 alt="SQLite" />
-    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 alt="MySQL" />
-    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 alt="Postgres" />
-    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 alt="CockroachDB" />
-    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 alt="Redis" />
-    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 alt="Prometheus" />
+    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 />
+    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
+    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
+    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
 </p>
 
 ## Try It
@@ -114,27 +126,7 @@ Like to live on the edge? Can't wait for the next release? Our nightly builds in
 docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 ```
 
-## Logos
-
-Some of the companies depending on Flipt in production.
-
-<p>
-    <a href="https://paradigm.co">
-        <img src="./logos/users/paradigm.png" alt="Paradigm" />
-    </a>
-    <a href="https://rokt.com">
-        <img src="./logos/users/rokt.svg" alt="Rokt" width="200"/>
-    </a>
-    <a href="https://asphaltbot.com">
-        <img src="./logos/users/asphaltlogo.png" alt="Asphalt" />
-    </a>
-</p>
-
-Using Flipt at your company? Open a PR and add your logo here!
-
-## Office Hours
-
-Join us on [Discord](https://www.flipt.io/discord) :keyboard: and/or [Whereby](https://whereby.com/flipt) :video_camera: for office hours every Wednesday at 10am ET to chat about anything Flipt related or just to say hi.
+<br clear="both"/>
 
 ## Integration
 
@@ -178,11 +170,15 @@ Note: These libraries are not maintained by the Flipt team and may not be up to 
 
 If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
 
+<br clear="both"/>
+
 ## Examples
 
 Check out the [examples](/examples) to see how Flipt works.
 
 Here's a [basic one](https://github.com/flipt-io/flipt/tree/main/examples/basic) to get started!
+
+<br clear="both"/>
 
 ## Licensing
 
@@ -205,25 +201,47 @@ The server code is licensed under the [GPL 3.0 License](https://spdx.org/license
 
 See [LICENSE](LICENSE).
 
+<br clear="both"/>
+
+## Logos
+
+Some of the companies depending on Flipt in production.
+
+<p>
+    <a href="https://paradigm.co">
+        <img src="./logos/users/paradigm.png" alt="Paradigm" />
+    </a>
+    <a href="https://rokt.com">
+        <img src="./logos/users/rokt.svg" alt="Rokt" width="200"/>
+    </a>
+    <a href="https://asphaltbot.com">
+        <img src="./logos/users/asphaltlogo.png" alt="Asphalt" />
+    </a>
+</p>
+
+Using Flipt at your company? Open a PR and add your logo here!
+
+<br clear="both"/>
+
 ## Community
 
 For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
+
+<br clear="both"/>
 
 ## Feedback
 
 If you are a user of Flipt we'd really :heart: it if you could leave a [testimonal](https://testimonial.to/flipt) on how Flipt is working for you.
 
-## Author
-
-| [![twitter/mark_a_phelps](https://secure.gravatar.com/avatar/274e2d4b1bbb9f86b454aebabad2cba1)](https://twitter.com/intent/user?screen_name=mark_a_phelps "Follow @mark_a_phelps on Twitter") |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Mark Phelps](https://markphelps.me/)                                                                                                                                                         |
+<br clear="both"/>
 
 ## Contributing
 
 We would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing.md) guide.
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
+
+<br clear="both"/>
 
 ## Contributors ✨
 
