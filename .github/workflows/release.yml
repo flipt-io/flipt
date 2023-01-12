@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -30,6 +29,23 @@ jobs:
           go-version: "1.18"
           check-latest: true
           cache: true
+
+      - uses: actions/cache@v3
+        with:
+          path: _tools/
+          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tools-
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: .build/ui
+          token: ${{ steps.generate_token.outputs.token }}
 
       - uses: arduino/setup-task@v1
         with:
@@ -80,9 +96,9 @@ jobs:
 
       - name: Tag and Push latest
         env:
-          TAG: ${{ github.ref }}
+          TAG: ${{ github.ref_name }}
         run: |
-          if [[ $TAG =~ $(git tag -l --sort=-version:refname | head -n 1) ]]; then
+          if [[ $TAG == $(cat version.txt) ]]; then
             docker tag flipt/flipt:$TAG flipt/flipt:latest
             docker tag markphelps/flipt:$TAG markphelps/flipt:latest
             docker tag ghcr.io/flipt-io/flipt:$TAG ghcr.io/flipt-io/flipt:latest

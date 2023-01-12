@@ -4,7 +4,7 @@ version: 3
 vars:
   PROJECT: flipt
   SOURCE_FILES: ./...
-  UI: ui
+  BUILD_DIR: .build
   COVERAGE_FILE: coverage.txt
 
 tasks:
@@ -40,29 +40,36 @@ tasks:
   assets:
     desc: Build the UI
     deps: [assets:deps]
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm run build
-    sources:
-      - ./{{.UI}}/static/*
-      - ./{{.UI}}/src/**/*
-      - ./{{.UI}}/src/**/**/*
-      - ./{{.UI}}/index.html
-      - ./{{.UI}}/package.json
-    method: checksum
+      - mv dist ../../ui
+
+  assets:clone:
+    desc: Clone the UI repo
+    cmds:
+      - git clone https://github.com/flipt-io/flipt-ui.git {{.BUILD_DIR}}/ui --depth 1
+    status:
+      - test -d {{.BUILD_DIR}}/ui/.git
+
+  assets:sync:
+    desc: Sync the UI repo
+    deps: [assets:clone]
+    dir: "{{.BUILD_DIR}}/ui"
+    cmds:
+      - git fetch --all
+      - git reset --hard origin/main
 
   assets:deps:
+    deps: [assets:sync]
     desc: Install UI dependencies
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm ci
-    sources:
-      - ./{{.UI}}/package-lock.json
-    method: checksum
 
   assets:dev:
     desc: Run the UI dev server
-    dir: "{{.UI}}"
+    dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm run dev
 
@@ -70,14 +77,6 @@ tasks:
     desc: Install necessary development tools
     cmds:
       - ./script/bootstrap
-
-  build:
-    desc: Run Go build
-    cmds:
-      - go build -trimpath -tags assets -ldflags "-X main.commit={{.GIT_COMMIT}}" -o ./bin/{{.PROJECT}} ./cmd/{{.PROJECT}}/.
-    vars:
-      GIT_COMMIT:
-        sh: set -e && git rev-parse --verify HEAD || ""
 
   build:clients:
     desc: Generate Ruby and Go proto clients
@@ -115,6 +114,7 @@ tasks:
       - rm -rf dist/*
       - rm -rf pkg/*
       - rm -rf bin/*
+      - rm -rf ui/dist
 
   cover:
     desc: Run test coverage

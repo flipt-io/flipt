@@ -148,6 +148,7 @@ func NewHTTPServer(
 		})
 	})
 
+	// TODO: remove (deprecated as of 1.17)
 	if cfg.UI.Enabled {
 		u, err := fs.Sub(ui.UI, "dist")
 		if err != nil {
