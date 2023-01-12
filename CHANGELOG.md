@@ -3,11 +3,32 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.17.0](https://github.com/flipt-io/flipt/releases/tag/v1.17.0) - 2023-01-12
+
+### Added
+
+- Brand new UI / UX :tada:
+- JSON/CUE schema [#1196](https://github.com/flipt-io/flipt/pull/1196)
+- Support config file versioning [#1225](https://github.com/flipt-io/flipt/pull/1225)
+- OIDC Auth Methods [#1197](https://github.com/flipt-io/flipt/pull/1197)
+- List API for Auth Methods [#1240](https://github.com/flipt-io/flipt/pull/1240)
+
+### Changed
+
+- Move `/meta` API endpoints behind authentication [#1250](https://github.com/flipt-io/flipt/pull/1250)
+- Dependency updates
 
 ### Deprecated
 
 - Deprecates `ui.enabled` in favor of always enabling the UI
+
+### Fixed
+
+- Don't print to stdout with color when using JSON log format [#1188](https://github.com/flipt-io/flipt/pull/1188) 
+
+### Removed
+
+- Embedded swagger/openapiv2 API docs in favor of hosted / openapiv3 API docs [#1241](https://github.com/flipt-io/flipt/pull/1241)
 
 ## [v1.16.0](https://github.com/flipt-io/flipt/releases/tag/v1.16.0) - 2022-11-30
 
