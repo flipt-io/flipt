@@ -66,6 +66,9 @@ tasks:
     dir: "{{.BUILD_DIR}}/ui"
     cmds:
       - npm ci
+    sources:
+      - package.json
+      - package-lock.json
 
   assets:dev:
     desc: Run the UI dev server
