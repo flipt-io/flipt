@@ -3,6 +3,16 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.17.1](https://github.com/flipt-io/flipt/releases/tag/v1.17.0) - 2023-01-13
+
+### Fixed
+
+- UI: Fix useEffect warnings from eslint [ui #21](https://github.com/flipt-io/flipt-ui/pull/21)
+- UI: Show info about creating rule with no variants [ui #22](https://github.com/flipt-io/flipt-ui/pull/22)
+- UI: Fix issue where key was changing when updating flag/segment name [ui #25](https://github.com/flipt-io/flipt-ui/pull/25)
+- UI: Fixed issue where segment form would reset when changing matchType [ui #26](https://github.com/flipt-io/flipt-ui/pull/26)
+- UI: Fixed auto key generation from name weirdness [ui #27](https://github.com/flipt-io/flipt-ui/pull/27)
+
 ## [v1.17.0](https://github.com/flipt-io/flipt/releases/tag/v1.17.0) - 2023-01-12
 
 ### Added
