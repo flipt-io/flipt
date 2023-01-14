@@ -27,9 +27,9 @@ var (
 	}
 )
 
-// Bootstrap
+// Bootstrap installs tools
 func Bootstrap() error {
-	fmt.Println("Bootstrapping deps...")
+	fmt.Println("Bootstrapping tools...")
 	if err := os.Chdir("_tools"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
@@ -49,13 +49,22 @@ func Bootstrap() error {
 // Proto generates protobuf files
 func Proto() error {
 	fmt.Println("Generating proto files...")
-	return sh.RunV("buf", "generate")
+	if err := sh.RunV("buf", "generate"); err != nil {
+		return fmt.Errorf("failed to generate proto files: %w", err)
+	}
+	return Fmt()
 }
 
 // Clean up built files
 func Clean() error {
 	fmt.Println("Cleaning...")
-	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist/*"}
+	if err := sh.Run("go", "mod", "tidy"); err != nil {
+		return fmt.Errorf("failed to tidy go.mod: %w", err)
+	}
+	if err := sh.Run("go", "clean", "-i", "./..."); err != nil {
+		return fmt.Errorf("failed to clean cache: %w", err)
+	}
+	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
 	for _, dir := range clean {
 		if err := os.RemoveAll(dir); err != nil {
 			return fmt.Errorf("failed to remove dir %q: %w", dir, err)
@@ -64,17 +73,27 @@ func Clean() error {
 	return nil
 }
 
+// Fmt formats code
 func Fmt() error {
 	fmt.Println("Formatting...")
 	return sh.RunV("goimports", "-w", ".")
 }
 
+// Lint runs the linters
 func Lint() error {
 	fmt.Println("Linting...")
 	if err := sh.Run("golangci-lint", "run"); err != nil {
 		return fmt.Errorf("failed to lint: %w", err)
 	}
 	return sh.Run("buf", "lint")
+}
+
+func Prep() error {
+	fmt.Println("Preparing...")
+	mg.Deps(Clean)
+	mg.Deps(Proto)
+	mg.Deps(UI.Build)
+	return nil
 }
 
 type UI mg.Namespace
@@ -107,7 +126,7 @@ func (u UI) Clone() error {
 
 // Sync syncs the UI repo
 func (u UI) Sync() error {
-	mg.SerialDeps(u.Clone)
+	mg.Deps(u.Clone)
 	fmt.Println("Syncing UI repo...")
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
@@ -124,7 +143,7 @@ func (u UI) Sync() error {
 // Deps installs UI deps
 // TODO: only install if package.json has changed
 func (u UI) Deps() error {
-	mg.SerialDeps(u.Clone)
+	mg.Deps(u.Clone)
 	fmt.Println("Installing UI deps...")
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
