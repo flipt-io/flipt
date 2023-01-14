@@ -25,6 +25,8 @@ var (
 		"google.golang.org/grpc/cmd/protoc-gen-go-grpc",
 		"google.golang.org/protobuf/cmd/protoc-gen-go",
 	}
+
+	Default = Build
 )
 
 // Bootstrap installs tools
@@ -46,22 +48,29 @@ func Bootstrap() error {
 	return goInstall(tools...)
 }
 
-// Proto generates protobuf files
-func Proto() error {
-	fmt.Println("Generating proto files...")
-	if err := sh.RunV("buf", "generate"); err != nil {
-		return fmt.Errorf("failed to generate proto files: %w", err)
+// Build builds the project
+func Build() error {
+	fmt.Println("Building...")
+	mg.Deps(Prep)
+
+	buildDate, err := sh.Output("date", "-u", "+%Y-%m-%dT%H:%M:%SZ")
+	if err != nil {
+		return fmt.Errorf("failed to get build date: %w", err)
 	}
-	return Fmt()
+	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
+	if err != nil {
+		return fmt.Errorf("failed to get git commit: %w", err)
+	}
+	return sh.RunV("go", "build", "-trimpath", "-tags", "assets", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate), "-o", "./bin/flipt", "./cmd/flipt/")
 }
 
 // Clean up built files
 func Clean() error {
 	fmt.Println("Cleaning...")
-	if err := sh.Run("go", "mod", "tidy"); err != nil {
+	if err := sh.RunV("go", "mod", "tidy"); err != nil {
 		return fmt.Errorf("failed to tidy go.mod: %w", err)
 	}
-	if err := sh.Run("go", "clean", "-i", "./..."); err != nil {
+	if err := sh.RunV("go", "clean", "-i", "./..."); err != nil {
 		return fmt.Errorf("failed to clean cache: %w", err)
 	}
 	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
@@ -73,6 +82,13 @@ func Clean() error {
 	return nil
 }
 
+// Cover runs the tests and generates a coverage report
+func Cover() error {
+	mg.Deps(Test)
+	fmt.Println("Running coverage...")
+	return sh.RunV("go", "tool", "cover", "-html=coverage.txt")
+}
+
 // Fmt formats code
 func Fmt() error {
 	fmt.Println("Formatting...")
@@ -82,18 +98,40 @@ func Fmt() error {
 // Lint runs the linters
 func Lint() error {
 	fmt.Println("Linting...")
-	if err := sh.Run("golangci-lint", "run"); err != nil {
+	if err := sh.RunV("golangci-lint", "run"); err != nil {
 		return fmt.Errorf("failed to lint: %w", err)
 	}
-	return sh.Run("buf", "lint")
+	return sh.RunV("buf", "lint")
 }
 
+// Prep prepares the project for building
 func Prep() error {
 	fmt.Println("Preparing...")
 	mg.Deps(Clean)
 	mg.Deps(Proto)
 	mg.Deps(UI.Build)
 	return nil
+}
+
+// Proto generates protobuf files and then runs fmt
+func Proto() error {
+	fmt.Println("Generating proto files...")
+	if err := sh.RunV("buf", "generate"); err != nil {
+		return fmt.Errorf("failed to generate proto files: %w", err)
+	}
+	return Fmt()
+}
+
+// Test runs the tests
+func Test() error {
+	fmt.Println("Testing...")
+	env := map[string]string{
+		"FLIPT_TEST_DATABASE_PROTOCOL": "sqlite3",
+	}
+	if os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL") != "" {
+		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
+	}
+	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
 }
 
 type UI mg.Namespace
@@ -104,6 +142,7 @@ func (u UI) Build() error {
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
+	defer os.Chdir("../..")
 	if err := sh.RunV("npm", "run", "build"); err != nil {
 		return err
 	}
@@ -117,6 +156,9 @@ func (u UI) Clone() error {
 		if err := os.Chdir(".build"); err != nil {
 			return fmt.Errorf("failed to change dir: %w", err)
 		}
+
+		defer os.Chdir("..")
+
 		if err := sh.RunV("git", "clone", "https://github.com/flipt-io/flipt-ui.git", "ui", "--depth=1"); err != nil {
 			return fmt.Errorf("failed to clone UI repo: %w", err)
 		}
@@ -131,6 +173,9 @@ func (u UI) Sync() error {
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
+
+	defer os.Chdir("..")
+
 	if err := sh.RunV("git", "fetch", "--all"); err != nil {
 		return fmt.Errorf("failed to fetch UI repo: %w", err)
 	}
@@ -148,5 +193,6 @@ func (u UI) Deps() error {
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
+	defer os.Chdir("../..")
 	return sh.RunV("npm", "ci")
 }
