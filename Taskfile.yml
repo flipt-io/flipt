@@ -76,10 +76,10 @@ tasks:
     cmds:
       - npm run dev
 
-  bootstrap:
-    desc: Install necessary development tools
-    cmds:
-      - ./script/bootstrap
+  # bootstrap:
+  #   desc: Install necessary development tools
+  #   cmds:
+  #     - ./script/bootstrap
 
   build:clients:
     desc: Generate Ruby and Go proto clients
@@ -93,11 +93,11 @@ tasks:
       - sh: "[ -d ../flipt-grpc-ruby ]"
         msg: "⚠️  clone https://github.com/flipt-io/flipt-grpc-ruby to ../flipt-grpc-ruby first ⚠️"
 
-  proto:
-    desc: Generate protobuf files from .protos
-    deps: [bootstrap]
-    cmds:
-      - buf generate
+  # proto:
+  #   desc: Generate protobuf files from .protos
+  #   deps: [bootstrap]
+  #   cmds:
+  #     - buf generate
 
   dev:
     desc: Run the server and UI in development mode
