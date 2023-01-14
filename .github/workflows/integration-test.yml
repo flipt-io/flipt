@@ -23,14 +23,6 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
-          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
-          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
-
       - uses: actions/checkout@v3
 
       - uses: actions/setup-go@v3
@@ -54,15 +46,14 @@ jobs:
         with:
           repository: flipt-io/flipt-ui
           path: .build/ui
-          token: ${{ steps.generate_token.outputs.token }}
 
-      - uses: arduino/setup-task@v1
+      - uses: magefile/mage-action@v2
         with:
-          repo-token: ${{ steps.generate_token.outputs.token }}
+          version: latest
 
       - name: Build the binary
         run: |
-          task
+          mage
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3
