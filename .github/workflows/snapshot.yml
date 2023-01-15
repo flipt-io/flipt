@@ -30,15 +30,6 @@ jobs:
         with:
           node-version: "18"
 
-      - uses: actions/checkout@v3
-        with:
-          repository: flipt-io/flipt-ui
-          path: .build/ui
-
-      - uses: magefile/mage-action@v2
-        with:
-          version: latest
-
       - uses: docker/setup-qemu-action@v2
 
       - uses: docker/setup-buildx-action@v2
@@ -52,9 +43,15 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Prepare for release
-        run: |
-          mage prep
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: .build/ui
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: prep
 
       - name: GoReleaser (Snapshot)
         uses: goreleaser/goreleaser-action@v4

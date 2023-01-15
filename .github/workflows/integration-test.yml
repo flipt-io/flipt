@@ -51,10 +51,6 @@ jobs:
         with:
           version: latest
 
-      - name: Build the binary
-        run: |
-          mage
-
       - name: Upload the binary
         uses: actions/upload-artifact@v3
         with:
