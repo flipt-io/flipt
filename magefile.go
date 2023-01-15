@@ -57,28 +57,34 @@ func Build() error {
 	if err != nil {
 		return fmt.Errorf("failed to get build date: %w", err)
 	}
+
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
 	if err != nil {
 		return fmt.Errorf("failed to get git commit: %w", err)
 	}
+
 	return sh.RunV("go", "build", "-trimpath", "-tags", "assets", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate), "-o", "./bin/flipt", "./cmd/flipt/")
 }
 
 // Clean up built files
 func Clean() error {
 	fmt.Println("Cleaning...")
+
 	if err := sh.RunV("go", "mod", "tidy"); err != nil {
 		return fmt.Errorf("failed to tidy go.mod: %w", err)
 	}
+
 	if err := sh.RunV("go", "clean", "-i", "./..."); err != nil {
 		return fmt.Errorf("failed to clean cache: %w", err)
 	}
+
 	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
 	for _, dir := range clean {
 		if err := os.RemoveAll(dir); err != nil {
 			return fmt.Errorf("failed to remove dir %q: %w", dir, err)
 		}
 	}
+
 	return nil
 }
 
@@ -98,9 +104,11 @@ func Fmt() error {
 // Lint runs the linters
 func Lint() error {
 	fmt.Println("Linting...")
+
 	if err := sh.RunV("golangci-lint", "run"); err != nil {
 		return fmt.Errorf("failed to lint: %w", err)
 	}
+
 	return sh.RunV("buf", "lint")
 }
 
@@ -108,29 +116,28 @@ func Lint() error {
 func Prep() error {
 	fmt.Println("Preparing...")
 	mg.Deps(Clean)
-	mg.Deps(Proto)
 	mg.Deps(UI.Build)
 	return nil
 }
 
-// Proto generates protobuf files and then runs fmt
+// Proto generates protobuf files and gRPC stubs
 func Proto() error {
 	fmt.Println("Generating proto files...")
-	if err := sh.RunV("buf", "generate"); err != nil {
-		return fmt.Errorf("failed to generate proto files: %w", err)
-	}
-	return Fmt()
+	return sh.RunV("buf", "generate")
 }
 
 // Test runs the tests
 func Test() error {
 	fmt.Println("Testing...")
+
 	env := map[string]string{
 		"FLIPT_TEST_DATABASE_PROTOCOL": "sqlite3",
 	}
+
 	if os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL") != "" {
 		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	}
+
 	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
 }
 
@@ -138,14 +145,19 @@ type UI mg.Namespace
 
 // Build generates UI assets
 func (u UI) Build() error {
+	mg.Deps(u.Deps)
 	fmt.Println("Generating assets...")
+
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
+
 	defer os.Chdir("../..")
+
 	if err := sh.RunV("npm", "run", "build"); err != nil {
 		return err
 	}
+
 	return sh.RunV("mv", "dist", "../../ui")
 }
 
@@ -163,6 +175,7 @@ func (u UI) Clone() error {
 			return fmt.Errorf("failed to clone UI repo: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -170,11 +183,11 @@ func (u UI) Clone() error {
 func (u UI) Sync() error {
 	mg.Deps(u.Clone)
 	fmt.Println("Syncing UI repo...")
+
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
-
-	defer os.Chdir("..")
+	defer os.Chdir("../..")
 
 	if err := sh.RunV("git", "fetch", "--all"); err != nil {
 		return fmt.Errorf("failed to fetch UI repo: %w", err)
@@ -182,17 +195,20 @@ func (u UI) Sync() error {
 	if err := sh.RunV("git", "reset", "--hard", "origin/main"); err != nil {
 		return fmt.Errorf("failed to reset UI repo: %w", err)
 	}
+
 	return nil
 }
 
 // Deps installs UI deps
 // TODO: only install if package.json has changed
 func (u UI) Deps() error {
-	mg.Deps(u.Clone)
+	mg.Deps(u.Sync)
 	fmt.Println("Installing UI deps...")
+
 	if err := os.Chdir(".build/ui"); err != nil {
 		return fmt.Errorf("failed to change dir: %w", err)
 	}
+
 	defer os.Chdir("../..")
 	return sh.RunV("npm", "ci")
 }

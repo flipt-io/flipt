@@ -1,12 +1,12 @@
-# https://goreleaser.com/docker/
-
 FROM golang:1.18-alpine3.16 AS build
 
 WORKDIR /home/flipt
 
 RUN apk add npm git bash gcc build-base binutils-gold
 
-RUN npm install -g @go-task/cli
+RUN git clone https://github.com/magefile/mage && \
+    cd mage && \
+    go run bootstrap.go
 
 COPY go.mod .
 COPY go.sum .
@@ -17,7 +17,10 @@ COPY . /home/flipt
 
 ENV CGO_ENABLED=1
 
-RUN task
+RUN mkdir .build
+
+RUN mage bootstrap && \
+    mage build
 
 FROM alpine:3.16.2
 
