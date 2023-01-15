@@ -30,7 +30,7 @@ var (
 	Default = Build
 )
 
-// Bootstrap installs tools
+// Bootstrap installs tools required for development
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
 	if err := os.Chdir("_tools"); err != nil {
@@ -67,7 +67,7 @@ func Build() error {
 	return sh.RunV("go", "build", "-trimpath", "-tags", "assets", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate), "-o", "./bin/flipt", "./cmd/flipt/")
 }
 
-// Clean up built files
+// Clean cleans up built files
 func Clean() error {
 	fmt.Println("Cleaning...")
 
@@ -173,6 +173,10 @@ func (u UI) Build() error {
 
 // Clone clones the UI repo
 func (u UI) Clone() error {
+	if err := os.MkdirAll(".build", 0755); err != nil {
+		return fmt.Errorf("failed to create dir: %w", err)
+	}
+
 	if _, err := os.Stat(".build/ui/.git"); os.IsNotExist(err) {
 		fmt.Println("Cloning UI repo...")
 		if err := os.Chdir(".build"); err != nil {
@@ -210,7 +214,6 @@ func (u UI) Sync() error {
 }
 
 // Deps installs UI deps
-// TODO: only install if package.json has changed
 func (u UI) Deps() error {
 	mg.Deps(u.Sync)
 	fmt.Println("Installing UI deps...")
@@ -220,6 +223,7 @@ func (u UI) Deps() error {
 	}
 
 	defer os.Chdir("../..")
+	// TODO: only install if package.json has changed
 	return sh.RunV("npm", "ci")
 }
 

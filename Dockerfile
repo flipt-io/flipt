@@ -17,8 +17,6 @@ COPY . /home/flipt
 
 ENV CGO_ENABLED=1
 
-RUN mkdir .build
-
 RUN mage bootstrap && \
     mage build
 
