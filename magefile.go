@@ -51,8 +51,8 @@ func Bootstrap() error {
 
 // Build builds the project
 func Build() error {
-	fmt.Println("Building...")
 	mg.Deps(Prep)
+	fmt.Println("Building...")
 
 	buildDate, err := sh.Output("date", "-u", "+%Y-%m-%dT%H:%M:%SZ")
 	if err != nil {
