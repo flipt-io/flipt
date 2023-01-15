@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -98,7 +99,16 @@ func Cover() error {
 // Fmt formats code
 func Fmt() error {
 	fmt.Println("Formatting...")
-	return sh.RunV("goimports", "-w", ".")
+	files, err := findFilesRecursive(func(path string, _ os.FileInfo) bool {
+		// ignore go files in /rpc
+		return filepath.Ext(path) == ".go" && !filepath.HasPrefix(path, "rpc/")
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find files: %w", err)
+	}
+
+	args := append([]string{"-w"}, files...)
+	return sh.RunV("goimports", args...)
 }
 
 // Lint runs the linters
@@ -211,4 +221,32 @@ func (u UI) Deps() error {
 
 	defer os.Chdir("../..")
 	return sh.RunV("npm", "ci")
+}
+
+// findFilesRecursive recursively traverses from the CWD and invokes the given
+// match function on each regular file to determine if the given path should be
+// returned as a match. It ignores files in .git directories.
+func findFilesRecursive(match func(path string, info os.FileInfo) bool) ([]string, error) {
+	var matches []string
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Don't look for files in git directories
+		if info.Mode().IsDir() && filepath.Base(path) == ".git" {
+			return filepath.SkipDir
+		}
+
+		if !info.Mode().IsRegular() {
+			// continue
+			return nil
+		}
+
+		if match(filepath.ToSlash(path), info) {
+			matches = append(matches, path)
+		}
+		return nil
+	})
+	return matches, err
 }
