@@ -29,6 +29,7 @@ func NewServer(logger *zap.Logger, conf config.AuthenticationConfig) *Server {
 	for _, info := range conf.Methods.AllMethods() {
 		server.resp.Methods = append(server.resp.Methods, &auth.MethodInfo{
 			Method:            info.AuthenticationMethodInfo.Method,
+			Enabled:           info.Enabled,
 			SessionCompatible: info.AuthenticationMethodInfo.SessionCompatible,
 			Metadata:          info.AuthenticationMethodInfo.Metadata,
 		})
