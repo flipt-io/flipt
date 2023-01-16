@@ -135,6 +135,9 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 				SameSite: http.SameSiteLaxMode,
 			}
 
+			// domains must have at least two dots to be considered valid, so we
+			// `localhost` is not a valid domain. See:
+			// https://curl.se/rfc/cookie_spec.html
 			if m.Config.Domain != "localhost" {
 				cookie.Domain = m.Config.Domain
 			}

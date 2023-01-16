@@ -107,7 +107,7 @@ func (c *AuthenticationConfig) validate() error {
 			err := errFieldWrap("authentication.session.domain", errValidationRequired)
 			return fmt.Errorf("when session compatible auth method enabled: %w", err)
 		}
-		fmt.Println("session domain: ", c.Session.Domain)
+
 		host, err := getHostname(c.Session.Domain)
 		if err != nil {
 			return fmt.Errorf("invalid domain: %w", err)

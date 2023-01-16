@@ -1,0 +1,10 @@
+authentication:
+  required: true
+  session:
+    domain: "http://localhost:8080"
+    secure: false
+  methods:
+    token:
+      enabled: true
+    oidc:
+      enabled: true
