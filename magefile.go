@@ -199,6 +199,15 @@ func (u UI) Sync() error {
 		return fmt.Errorf("failed to fetch UI repo: %w", err)
 	}
 
+	cmd = exec.Command("git", "checkout", "main")
+	cmd.Dir = ".build/ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to checkout main branch in UI repo: %w", err)
+	}
+
 	cmd = exec.Command("git", "reset", "--hard", "origin/main")
 	cmd.Dir = ".build/ui"
 	cmd.Stdout = os.Stdout
