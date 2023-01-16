@@ -9,14 +9,6 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
-          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
-          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
-
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -38,16 +30,6 @@ jobs:
         with:
           node-version: "18"
 
-      - uses: actions/checkout@v3
-        with:
-          repository: flipt-io/flipt-ui
-          path: .build/ui
-          token: ${{ steps.generate_token.outputs.token }}
-
-      - uses: arduino/setup-task@v1
-        with:
-          repo-token: ${{ steps.generate_token.outputs.token }}
-
       - uses: docker/setup-qemu-action@v2
 
       - uses: docker/setup-buildx-action@v2
@@ -61,9 +43,15 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Prepare for release
-        run: |
-          task prep
+      - uses: actions/checkout@v3
+        with:
+          repository: flipt-io/flipt-ui
+          path: .build/ui
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: prep
 
       - name: GoReleaser (Snapshot)
         uses: goreleaser/goreleaser-action@v4
