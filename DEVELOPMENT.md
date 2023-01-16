@@ -41,11 +41,7 @@ Changing certain types of files such as the proto or ui files require re-buildin
 
 ### Updating .proto Files
 
-After changing `flipt.proto`, you'll need to run `mage proto`. This will regenerate the following files:
-
-- `rpc/flipt/flipt.pb.go`
-- `rpc/flipt/flipt_grpc.pb.go`
-- `rpc/flipt/flipt.pb.gw.go`
+After changing `flipt.proto`, you'll need to run `mage proto`. This will regenerate the necessary files in the `rpc` directory.
 
 ## UI
 

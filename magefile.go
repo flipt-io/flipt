@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -33,13 +34,15 @@ var (
 // Bootstrap installs tools required for development
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
-	if err := os.Chdir("_tools"); err != nil {
-		return fmt.Errorf("failed to change dir: %w", err)
+	if err := os.MkdirAll("_tools", 0755); err != nil {
+		return fmt.Errorf("failed to create dir: %w", err)
 	}
 
 	// create module if go.mod doesnt exist
-	if _, err := os.Stat("go.mod"); os.IsNotExist(err) {
+	if _, err := os.Stat("_tools/go.mod"); os.IsNotExist(err) {
 		cmd := exec.Command("go", "mod", "init", "tools")
+		cmd.Dir = "_tools"
+		cmd.Stdout = os.Stdout
 		if err := cmd.Run(); err != nil {
 			return err
 		}
@@ -54,10 +57,7 @@ func Build() error {
 	mg.Deps(Prep)
 	fmt.Println("Building...")
 
-	buildDate, err := sh.Output("date", "-u", "+%Y-%m-%dT%H:%M:%SZ")
-	if err != nil {
-		return fmt.Errorf("failed to get build date: %w", err)
-	}
+	buildDate := time.Now().UTC().Format(time.RFC3339)
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
 	if err != nil {
@@ -100,7 +100,7 @@ func Cover() error {
 func Fmt() error {
 	fmt.Println("Formatting...")
 	files, err := findFilesRecursive(func(path string, _ os.FileInfo) bool {
-		// ignore go files in /rpc
+		// only go files, ignoring generated files in rpc/
 		return filepath.Ext(path) == ".go" && !filepath.HasPrefix(path, "rpc/")
 	})
 	if err != nil {
@@ -158,17 +158,16 @@ func (u UI) Build() error {
 	mg.Deps(u.Deps)
 	fmt.Println("Generating assets...")
 
-	if err := os.Chdir(".build/ui"); err != nil {
-		return fmt.Errorf("failed to change dir: %w", err)
+	cmd := exec.Command("npm", "run", "build")
+	cmd.Dir = ".build/ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to build UI: %w", err)
 	}
 
-	defer os.Chdir("../..")
-
-	if err := sh.RunV("npm", "run", "build"); err != nil {
-		return err
-	}
-
-	return sh.RunV("mv", "dist", "../../ui")
+	return sh.RunV("mv", ".build/ui/dist", "ui")
 }
 
 // Clone clones the UI repo
@@ -178,14 +177,7 @@ func (u UI) Clone() error {
 	}
 
 	if _, err := os.Stat(".build/ui/.git"); os.IsNotExist(err) {
-		fmt.Println("Cloning UI repo...")
-		if err := os.Chdir(".build"); err != nil {
-			return fmt.Errorf("failed to change dir: %w", err)
-		}
-
-		defer os.Chdir("..")
-
-		if err := sh.RunV("git", "clone", "https://github.com/flipt-io/flipt-ui.git", "ui", "--depth=1"); err != nil {
+		if err := sh.RunV("git", "clone", "https://github.com/flipt-io/flipt-ui.git", ".build/ui", "--depth=1"); err != nil {
 			return fmt.Errorf("failed to clone UI repo: %w", err)
 		}
 	}
@@ -198,19 +190,20 @@ func (u UI) Sync() error {
 	mg.Deps(u.Clone)
 	fmt.Println("Syncing UI repo...")
 
-	if err := os.Chdir(".build/ui"); err != nil {
-		return fmt.Errorf("failed to change dir: %w", err)
-	}
-	defer os.Chdir("../..")
+	cmd := exec.Command("git", "fetch", "--all")
+	cmd.Dir = ".build/ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	if err := sh.RunV("git", "fetch", "--all"); err != nil {
+	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to fetch UI repo: %w", err)
 	}
-	if err := sh.RunV("git", "reset", "--hard", "origin/main"); err != nil {
-		return fmt.Errorf("failed to reset UI repo: %w", err)
-	}
 
-	return nil
+	cmd = exec.Command("git", "reset", "--hard", "origin/main")
+	cmd.Dir = ".build/ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // Deps installs UI deps
@@ -218,13 +211,12 @@ func (u UI) Deps() error {
 	mg.Deps(u.Sync)
 	fmt.Println("Installing UI deps...")
 
-	if err := os.Chdir(".build/ui"); err != nil {
-		return fmt.Errorf("failed to change dir: %w", err)
-	}
-
-	defer os.Chdir("../..")
 	// TODO: only install if package.json has changed
-	return sh.RunV("npm", "ci")
+	cmd := exec.Command("npm", "ci")
+	cmd.Dir = ".build/ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given
