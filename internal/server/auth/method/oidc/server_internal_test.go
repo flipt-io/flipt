@@ -13,6 +13,11 @@ func TestCallbackURL(t *testing.T) {
 		want string
 	}{
 		{
+			name: "plain",
+			host: "localhost",
+			want: "localhost/auth/v1/method/oidc/foo/callback",
+		},
+		{
 			name: "no trailing slash",
 			host: "localhost:8080",
 			want: "localhost:8080/auth/v1/method/oidc/foo/callback",
