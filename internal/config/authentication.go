@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/viper"
 	"go.flipt.io/flipt/rpc/flipt/auth"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var (
@@ -184,7 +185,7 @@ type StaticAuthenticationMethodInfo struct {
 type AuthenticationMethodInfo struct {
 	Method            auth.Method
 	SessionCompatible bool
-	Metadata          map[string]string
+	Metadata          *structpb.Struct
 }
 
 // Name returns the friendly lower-case name for the authentication method.
@@ -243,17 +244,24 @@ func (a AuthenticationMethodOIDCConfig) Info() AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
-		Metadata:          map[string]string{},
 	}
+
+	var (
+		metadata  = make(map[string]any)
+		providers = make(map[string]any, len(a.Providers))
+	)
 
 	// this ensures we expose the authorize and callback URL endpoint
 	// to the UI via the /auth/v1/method endpoint
 	for provider := range a.Providers {
-		key := fmt.Sprintf("provider.%s", provider)
-		info.Metadata[key+".authorize_url"] = fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider)
-		info.Metadata[key+".callback_url"] = fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider)
+		providers[provider] = map[string]any{
+			"authorize_url": fmt.Sprintf("/auth/v1/method/oidc/%s/authorize", provider),
+			"callback_url":  fmt.Sprintf("/auth/v1/method/oidc/%s/callback", provider),
+		}
 	}
 
+	metadata["providers"] = providers
+	info.Metadata, _ = structpb.NewStruct(metadata)
 	return info
 }
 
