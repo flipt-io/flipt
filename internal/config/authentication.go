@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -107,9 +108,30 @@ func (c *AuthenticationConfig) validate() error {
 			err := errFieldWrap("authentication.session.domain", errValidationRequired)
 			return fmt.Errorf("when session compatible auth method enabled: %w", err)
 		}
+
+		host, err := getHostname(c.Session.Domain)
+		if err != nil {
+			return fmt.Errorf("invalid domain: %w", err)
+		}
+
+		// strip scheme and port from domain
+		// domain cookies are not allowed to have a scheme or port
+		// https://github.com/golang/go/issues/28297
+		c.Session.Domain = host
 	}
 
 	return nil
+}
+
+func getHostname(rawurl string) (string, error) {
+	if !strings.Contains(rawurl, "://") {
+		rawurl = "http://" + rawurl
+	}
+	u, err := url.Parse(rawurl)
+	if err != nil {
+		return "", err
+	}
+	return strings.Split(u.Host, ":")[0], nil
 }
 
 // AuthenticationSession configures the session produced for browsers when
