@@ -52,9 +52,18 @@ func Bootstrap() error {
 	return goInstall(tools...)
 }
 
-// Build builds the project
+// Build builds the project similar to a release build
 func Build() error {
 	mg.Deps(Prep)
+	return build("")
+}
+
+func Dev() error {
+	mg.Deps(Clean)
+	return build("dev")
+}
+
+func build(mode string) error {
 	fmt.Println("Building...")
 
 	buildDate := time.Now().UTC().Format(time.RFC3339)
@@ -64,7 +73,13 @@ func Build() error {
 		return fmt.Errorf("failed to get git commit: %w", err)
 	}
 
-	return sh.RunV("go", "build", "-trimpath", "-tags", "assets", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate), "-o", "./bin/flipt", "./cmd/flipt/")
+	args := []string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate), "-o", "./bin/flipt", "./cmd/flipt/"}
+
+	if mode != "dev" {
+		args = append(args, "-tags", "assets")
+	}
+
+	return sh.RunV("go", args...)
 }
 
 // Clean cleans up built files
