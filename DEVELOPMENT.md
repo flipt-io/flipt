@@ -47,19 +47,24 @@ After changing `flipt.proto`, you'll need to run `mage proto`. This will regener
 
 The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.dev/) and is also statically compiled into the Flipt binary using [go:embed](https://golang.org/pkg/embed/).
 
-The UI code has been migrated to it's own repository: [flipt-ui](https://github.com/flipt-io/flipt-ui).
+The UI code has been migrated to it's own repository: [flipt-ui](https://github.com/flipt-io/flipt-ui), clone it somewhere on your machine and follow the instructions in the README to get started.
 
-TODO (WIP): More info on how to develop the UI within this repository.
+To develop the project with the UI also in development mode (with hot reloading):
+
+1. Run `npm run dev` where you have the `flipt-ui` repository checked out. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
+2. Run `mage dev` from the this repository. This will create a dev build that will serve the UI from the development server, while still making it accessible on port `8080`.
+3. Run the binary with the local config: `./bin/flipt --config ./config/local.yml`. This will enable CORS with the correct configuration and start the server on port `8080`.
+4. Visit `http://localhost:8080` to see the UI.
+5. Any changes made in the `flipt-ui` repository will be picked up by the development server and the UI will be reloaded.
 
 ### Ports
 
-In development, the three ports that Flipt users are:
+In development, the two ports that Flipt users are:
 
 - `8080`: The port for the Flipt REST API
-- `8081`: The port for the Flipt UI (via `npm run dev`)
 - `9000`: The port for the Flipt GRPC Server
 
-These three ports will be forwarded to your local machine automatically if you are developing Flipt in a VSCode Remote Container or GitHub Codespace.
+These ports will be forwarded to your local machine automatically if you are developing Flipt in a VSCode Remote Container or GitHub Codespace.
 
 ## CDEs
 

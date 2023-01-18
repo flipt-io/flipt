@@ -19,7 +19,6 @@
   "extensions": [
     "golang.Go",
     "dbaeumer.vscode-eslint",
-    "octref.vetur",
     "zxh404.vscode-proto3",
     "esbenp.prettier-vscode"
   ],
@@ -28,10 +27,6 @@
   "portsAttributes": {
     "8080": {
       "label": "HTTP Port",
-      "onAutoForward": "notify"
-    },
-    "8081": {
-      "label": "UI Dev Port",
       "onAutoForward": "notify"
     },
     "9000": {
