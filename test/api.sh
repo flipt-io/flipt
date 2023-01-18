@@ -319,6 +319,13 @@ step_8_test_meta()
 
       # ensure CSRF cookie is present
       header_matches "Set-Cookie" "_gorilla_csrf"
+
+      # ensure unauthenticated request returns 401
+      shakedown GET "/meta/info"
+        status 401
+
+      shakedown GET "/meta/config"
+        status 401
     fi
 }
 
