@@ -321,10 +321,10 @@ step_8_test_meta()
       header_matches "Set-Cookie" "_gorilla_csrf"
 
       # ensure unauthenticated request returns 401
-      shakedown GET "/meta/info"
+      shakedown GET "/meta/info" -H 'Accept: application/json'
         status 401
 
-      shakedown GET "/meta/config"
+      shakedown GET "/meta/config" -H 'Accept: application/json'
         status 401
     fi
 }
