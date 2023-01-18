@@ -5,4 +5,8 @@ package ui
 
 import "embed"
 
-var UI embed.FS
+var (
+	//go:embed index.html
+	UI    embed.FS
+	Mount = "."
+)

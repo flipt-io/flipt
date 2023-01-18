@@ -7,9 +7,9 @@ log:
 # ui:
 #   enabled: true
 
-# cors:
-#   enabled: false
-#   allowed_origins: "*"
+cors:
+  enabled: true
+  allowed_origins: ["*"]
 
 # cache:
 #   enabled: false

@@ -52,11 +52,35 @@ func Bootstrap() error {
 	return goInstall(tools...)
 }
 
-// Build builds the project
+// Build builds the project similar to a release build
 func Build() error {
 	mg.Deps(Prep)
 	fmt.Println("Building...")
 
+	if err := build([]string{"-tags", "assets"}...); err != nil {
+		return err
+	}
+
+	fmt.Println("Done.")
+	fmt.Println("Run `./bin/flipt [--config config/local.yml]` to start Flipt")
+	return nil
+}
+
+// Dev builds the project for development, without bundling assets
+func Dev() error {
+	mg.Deps(Clean)
+	fmt.Println("Building...")
+
+	if err := build(); err != nil {
+		return err
+	}
+
+	fmt.Println("Done.")
+	fmt.Println("Run `./bin/flipt [--config config/local.yml]` to start Flipt")
+	return nil
+}
+
+func build(args ...string) error {
 	buildDate := time.Now().UTC().Format(time.RFC3339)
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
@@ -64,7 +88,10 @@ func Build() error {
 		return fmt.Errorf("failed to get git commit: %w", err)
 	}
 
-	return sh.RunV("go", "build", "-trimpath", "-tags", "assets", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate), "-o", "./bin/flipt", "./cmd/flipt/")
+	buildArgs := append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, args...)
+	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
+
+	return sh.RunV("go", buildArgs...)
 }
 
 // Clean cleans up built files

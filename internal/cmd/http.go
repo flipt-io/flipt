@@ -148,7 +148,7 @@ func NewHTTPServer(
 
 	// TODO: remove (deprecated as of 1.17)
 	if cfg.UI.Enabled {
-		u, err := fs.Sub(ui.UI, "dist")
+		u, err := fs.Sub(ui.UI, ui.Mount)
 		if err != nil {
 			return nil, fmt.Errorf("mounting UI: %w", err)
 		}

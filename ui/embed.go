@@ -5,5 +5,8 @@ package ui
 
 import "embed"
 
-//go:embed dist/*
-var UI embed.FS
+var (
+	//go:embed dist/*
+	UI    embed.FS
+	Mount = "dist"
+)
