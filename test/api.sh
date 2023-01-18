@@ -28,8 +28,12 @@ uuid_str()
     uuidgen
 }
 
+shakedownJSON() {
+  shakedown "$@" -H "Accept: application/json"
+}
+
 authedShakedown() {
-  shakedown "$@" -H "Authorization: Bearer ${FLIPT_TOKEN:-""}"
+  shakedownJSON "$@" -H "Authorization: Bearer ${FLIPT_TOKEN:-""}"
 }
 
 _curl() {
@@ -319,6 +323,13 @@ step_8_test_meta()
 
       # ensure CSRF cookie is present
       header_matches "Set-Cookie" "_gorilla_csrf"
+
+      # ensure unauthenticated request returns 401
+      shakedownJSON GET "/meta/info"
+        status 401
+
+      shakedownJSON GET "/meta/config"
+        status 401
     fi
 }
 
@@ -339,32 +350,32 @@ step_10_test_auths()
     export FLIPT_TOKEN
 
     # /auth/v1/method is always public
-    shakedown GET '/auth/v1/method' -H 'Content-Type: application/json'
+    shakedownJSON GET '/auth/v1/method'
         status 200
 
     # token should succeed when used via authorization header to list flags
     # (both when auth is required and not)
-    authedShakedown GET '/api/v1/flags' -H 'Content-Type: application/json'
+    authedShakedown GET '/api/v1/flags'
         status 200
 
     # listing tokens includes the created token
-    authedShakedown GET "/auth/v1/tokens" -H 'Content-Type: application/json'
+    authedShakedown GET "/auth/v1/tokens"
         status 200
         matches "\"id\":\"${tokenID}\""
 
     if [ -n "${TEST_FLIPT_API_AUTH_REQUIRED:-}" ]; then
         # getting self using token returns expected ID
-        authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
+        authedShakedown GET '/auth/v1/self'
         status 200
         matches "\"id\":\"${tokenID}\""
 
         # cookie based auth is configured and should also work
-        shakedown GET '/auth/v1/self' -H 'Content-Type: application/json' -H "Cookie: flipt_client_token=${FLIPT_TOKEN}"
+        shakedownJSON GET '/auth/v1/self' -H "Cookie: flipt_client_token=${FLIPT_TOKEN}"
         status 200
         matches "\"id\":\"${tokenID}\""
     else
         # there is no self when authentication is disabled
-        authedShakedown GET '/auth/v1/self' -H 'Content-Type: application/json'
+        authedShakedown GET '/auth/v1/self'
         status 401
     fi
 }

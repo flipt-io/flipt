@@ -137,8 +137,6 @@ func NewHTTPServer(
 
 			// mount the metadata service to the chi router under /meta.
 			r.Mount("/meta", runtime.NewServeMux(
-				runtime.WithMarshalerOption("application/json", &runtime.HTTPBodyMarshaler{}),
-				runtime.WithMarshalerOption("application/json+pretty", &runtime.HTTPBodyMarshaler{}),
 				registerFunc(
 					ctx,
 					conn,
