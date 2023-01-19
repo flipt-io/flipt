@@ -93,11 +93,11 @@ func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireA
 	if auth := GetAuthenticationFrom(ctx); auth != nil {
 		s.logger.Debug("ExpireAuthentication", zap.String("id", auth.Id))
 
-		if req.ExpireAt == nil || !req.ExpireAt.IsValid() {
-			req.ExpireAt = timestamppb.Now()
+		if req.ExpiresAt == nil || !req.ExpiresAt.IsValid() {
+			req.ExpiresAt = timestamppb.Now()
 		}
 
-		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpireAt)
+		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)
 	}
 
 	return nil, errUnauthenticated

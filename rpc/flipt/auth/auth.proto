@@ -125,7 +125,7 @@ message DeleteAuthenticationRequest {
 }
 
 message ExpireAuthenticationSelfRequest {
-  optional google.protobuf.Timestamp expire_at = 1;
+  optional google.protobuf.Timestamp expires_at = 1;
 }
 
 service AuthenticationService {
