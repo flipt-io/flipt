@@ -373,6 +373,14 @@ step_10_test_auths()
         shakedownJSON GET '/auth/v1/self' -H "Cookie: flipt_client_token=${FLIPT_TOKEN}"
         status 200
         matches "\"id\":\"${tokenID}\""
+
+        # expiring self token should return 200
+        authedShakedown PUT "/auth/v1/self/expire"
+        status 200
+
+        # getting self using expired token should return 401
+        authedShakedown GET '/auth/v1/self'
+        status 401
     else
         # there is no self when authentication is disabled
         authedShakedown GET '/auth/v1/self'
