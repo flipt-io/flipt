@@ -149,9 +149,25 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("ExpireAuthenticationSelf", func(t *testing.T) {
-		ctx := authorize(ctx)
+		// create new authentication
+		req := &storageauth.CreateAuthenticationRequest{
+			Method:    auth.Method_METHOD_TOKEN,
+			ExpiresAt: timestamppb.New(time.Now().Add(time.Hour).UTC()),
+		}
+
+		ctx := context.TODO()
+
+		clientToken, _, err := store.CreateAuthentication(ctx, req)
+		require.NoError(t, err)
+
+		ctx = metadata.AppendToOutgoingContext(
+			ctx,
+			"authorization",
+			"Bearer "+clientToken,
+		)
+
 		// get self with authenticated context not unauthorized
-		_, err := client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
+		_, err = client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
 		require.NoError(t, err)
 
 		// expire self
