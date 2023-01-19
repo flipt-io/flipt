@@ -147,4 +147,19 @@ func TestServer(t *testing.T) {
 		var notFound errors.ErrNotFound
 		require.ErrorAs(t, err, &notFound)
 	})
+
+	t.Run("ExpireAuthenticationSelf", func(t *testing.T) {
+		ctx := authorize(ctx)
+		// get self with authenticated context not unauthorized
+		_, err := client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
+		require.NoError(t, err)
+
+		// expire self
+		_, err = client.ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{})
+		require.NoError(t, err)
+
+		// get self with authenticated context now unauthorized
+		_, err = client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
+		require.ErrorIs(t, err, errUnauthenticated)
+	})
 }

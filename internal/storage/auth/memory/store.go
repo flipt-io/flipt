@@ -209,3 +209,16 @@ func (s *Store) DeleteAuthentications(_ context.Context, req *auth.DeleteAuthent
 
 	return nil
 }
+
+// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
+func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
+	s.mu.Lock()
+	authentication, ok := s.byID[id]
+	s.mu.Unlock()
+	if !ok {
+		return errors.ErrNotFoundf("getting authentication by token")
+	}
+
+	authentication.ExpiresAt = expireAt
+	return nil
+}
