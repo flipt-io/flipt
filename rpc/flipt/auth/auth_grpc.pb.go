@@ -114,6 +114,7 @@ type AuthenticationServiceClient interface {
 	GetAuthentication(ctx context.Context, in *GetAuthenticationRequest, opts ...grpc.CallOption) (*Authentication, error)
 	ListAuthentications(ctx context.Context, in *ListAuthenticationsRequest, opts ...grpc.CallOption) (*ListAuthenticationsResponse, error)
 	DeleteAuthentication(ctx context.Context, in *DeleteAuthenticationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ExpireAuthenticationSelf(ctx context.Context, in *ExpireAuthenticationSelfRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type authenticationServiceClient struct {
@@ -160,6 +161,15 @@ func (c *authenticationServiceClient) DeleteAuthentication(ctx context.Context, 
 	return out, nil
 }
 
+func (c *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Context, in *ExpireAuthenticationSelfRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthenticationServiceServer is the server API for AuthenticationService service.
 // All implementations must embed UnimplementedAuthenticationServiceServer
 // for forward compatibility
@@ -168,6 +178,7 @@ type AuthenticationServiceServer interface {
 	GetAuthentication(context.Context, *GetAuthenticationRequest) (*Authentication, error)
 	ListAuthentications(context.Context, *ListAuthenticationsRequest) (*ListAuthenticationsResponse, error)
 	DeleteAuthentication(context.Context, *DeleteAuthenticationRequest) (*emptypb.Empty, error)
+	ExpireAuthenticationSelf(context.Context, *ExpireAuthenticationSelfRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedAuthenticationServiceServer()
 }
 
@@ -186,6 +197,9 @@ func (UnimplementedAuthenticationServiceServer) ListAuthentications(context.Cont
 }
 func (UnimplementedAuthenticationServiceServer) DeleteAuthentication(context.Context, *DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAuthentication not implemented")
+}
+func (UnimplementedAuthenticationServiceServer) ExpireAuthenticationSelf(context.Context, *ExpireAuthenticationSelfRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExpireAuthenticationSelf not implemented")
 }
 func (UnimplementedAuthenticationServiceServer) mustEmbedUnimplementedAuthenticationServiceServer() {}
 
@@ -272,6 +286,24 @@ func _AuthenticationService_DeleteAuthentication_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthenticationService_ExpireAuthenticationSelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExpireAuthenticationSelfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationServiceServer).ExpireAuthenticationSelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.AuthenticationService/ExpireAuthenticationSelf",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationServiceServer).ExpireAuthenticationSelf(ctx, req.(*ExpireAuthenticationSelfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthenticationService_ServiceDesc is the grpc.ServiceDesc for AuthenticationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -294,6 +326,10 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAuthentication",
 			Handler:    _AuthenticationService_DeleteAuthentication_Handler,
+		},
+		{
+			MethodName: "ExpireAuthenticationSelf",
+			Handler:    _AuthenticationService_ExpireAuthenticationSelf_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

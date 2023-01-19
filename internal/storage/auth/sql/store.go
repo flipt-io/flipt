@@ -303,6 +303,19 @@ func (s *Store) DeleteAuthentications(ctx context.Context, req *storageauth.Dele
 	return
 }
 
+// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
+func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) (err error) {
+	defer s.adaptError("expiring authentication by id: %w", &err)
+
+	_, err = s.builder.
+		Update("authentications").
+		Set("expires_at", &storagesql.Timestamp{Timestamp: expireAt}).
+		Where(sq.Eq{"id": id}).
+		ExecContext(ctx)
+
+	return
+}
+
 func (s *Store) scanAuthentication(scanner sq.RowScanner, authentication *rpcauth.Authentication) error {
 	var (
 		expiresAt storagesql.NullableTimestamp

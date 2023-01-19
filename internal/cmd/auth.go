@@ -120,9 +120,8 @@ func authenticationHTTPMount(
 			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
 		}
-		middleware = func(next http.Handler) http.Handler {
-			return next
-		}
+		authmiddleware = auth.NewHTTPMiddleware()
+		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
 	)
 
 	if cfg.Methods.Token.Enabled {
@@ -136,11 +135,11 @@ func authenticationHTTPMount(
 			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
 
-		middleware = oidcmiddleware.Handler
+		middleware = append(middleware, oidcmiddleware.Handler)
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Use(middleware)
+		r.Use(middleware...)
 
 		r.Mount("/auth/v1", gateway.NewGatewayServeMux(muxOpts...))
 	})

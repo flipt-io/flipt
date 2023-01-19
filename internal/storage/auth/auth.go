@@ -36,6 +36,8 @@ type Store interface {
 	// Use DeleteByID to construct a request to delete a single Authentication by ID string.
 	// Use DeleteByMethod to construct a request to delete 0 or more Authentications by Method and optional expired before constraint.
 	DeleteAuthentications(context.Context, *DeleteAuthenticationsRequest) error
+	// ExpireAuthenticationByID attempts to expire an Authentication by ID string and the provided expiry time.
+	ExpireAuthenticationByID(context.Context, string, *timestamppb.Timestamp) error
 }
 
 // CreateAuthenticationRequest is the argument passed when creating instances
