@@ -84,6 +84,8 @@ http:
   # authentication
   - selector: flipt.auth.AuthenticationService.GetAuthenticationSelf
     get: /auth/v1/self
+  - selector: flipt.auth.AuthenticationService.ExpireAuthenticationSelf
+    put: /auth/v1/self/expire
   - selector: flipt.auth.AuthenticationService.GetAuthentication
     get: /auth/v1/tokens/{id}
   - selector: flipt.auth.AuthenticationService.ListAuthentications

@@ -10,7 +10,10 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var _ auth.AuthenticationServiceServer = &Server{}
 
 // Server is the core AuthenticationServiceServer implementations.
 //
@@ -81,4 +84,21 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 	s.logger.Debug("DeleteAuthentication", zap.String("id", req.Id))
 
 	return &emptypb.Empty{}, s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(req.Id)))
+}
+
+// ExpireAuthenticationSelf expires the Authentication which was derived from the request context.
+// If no expire_at is provided, the current time is used. This is useful for logging out a user.
+// If the expire_at is greater than the current expiry time, the expiry time is extended.
+func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireAuthenticationSelfRequest) (*emptypb.Empty, error) {
+	if auth := GetAuthenticationFrom(ctx); auth != nil {
+		s.logger.Debug("ExpireAuthentication", zap.String("id", auth.Id))
+
+		if req.ExpiresAt == nil || !req.ExpiresAt.IsValid() {
+			req.ExpiresAt = timestamppb.Now()
+		}
+
+		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)
+	}
+
+	return nil, errUnauthenticated
 }

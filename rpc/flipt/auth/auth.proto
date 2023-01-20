@@ -124,6 +124,10 @@ message DeleteAuthenticationRequest {
   string id = 1;
 }
 
+message ExpireAuthenticationSelfRequest {
+  optional google.protobuf.Timestamp expires_at = 1;
+}
+
 service AuthenticationService {
   rpc GetAuthenticationSelf(google.protobuf.Empty) returns (Authentication) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -150,6 +154,13 @@ service AuthenticationService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       operation_id: "delete_authentication",
       description: "Delete Authentication by ID",
+      tags: "authentication",
+    };
+  }
+  rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "expire_self",
+      description: "Expire Authentication for current authenticated context",
       tags: "authentication",
     };
   }

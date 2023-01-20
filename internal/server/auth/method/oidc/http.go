@@ -25,14 +25,14 @@ var (
 // responses to http cookies, and establishing appropriate state parameters for csrf provention
 // during the oauth/oidc flow.
 type Middleware struct {
-	Config config.AuthenticationSession
+	config config.AuthenticationSession
 }
 
 // NewHTTPMiddleware constructs and configures a new oidc HTTP middleware from the supplied
 // authentication configuration struct.
 func NewHTTPMiddleware(config config.AuthenticationSession) Middleware {
 	return Middleware{
-		Config: config,
+		config: config,
 	}
 }
 
@@ -62,10 +62,10 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 		cookie := &http.Cookie{
 			Name:     tokenCookieKey,
 			Value:    r.ClientToken,
-			Domain:   m.Config.Domain,
+			Domain:   m.config.Domain,
 			Path:     "/",
-			Expires:  time.Now().Add(m.Config.TokenLifetime),
-			Secure:   m.Config.Secure,
+			Expires:  time.Now().Add(m.config.TokenLifetime),
+			Secure:   m.config.Secure,
 			HttpOnly: true,
 			SameSite: http.SameSiteStrictMode,
 		}
@@ -127,8 +127,8 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 				Value: encoded,
 				// bind state cookie to provider callback
 				Path:     "/auth/v1/method/oidc/" + provider + "/callback",
-				Expires:  time.Now().Add(m.Config.StateLifetime),
-				Secure:   m.Config.Secure,
+				Expires:  time.Now().Add(m.config.StateLifetime),
+				Secure:   m.config.Secure,
 				HttpOnly: true,
 				// we need to support cookie forwarding when user
 				// is being navigated from authorizing server
@@ -138,8 +138,8 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 			// domains must have at least two dots to be considered valid, so we
 			// `localhost` is not a valid domain. See:
 			// https://curl.se/rfc/cookie_spec.html
-			if m.Config.Domain != "localhost" {
-				cookie.Domain = m.Config.Domain
+			if m.config.Domain != "localhost" {
+				cookie.Domain = m.config.Domain
 			}
 
 			http.SetCookie(w, cookie)

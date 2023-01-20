@@ -197,4 +197,15 @@ func TestAuthenticationStoreHarness(t *testing.T, fn func(t *testing.T) storagea
 			fmt.Println("Found:", len(all))
 		}
 	})
+
+	t.Run("Expire a single instance by ID", func(t *testing.T) {
+		expiresAt := timestamppb.New(time.Now().UTC().Add(-time.Hour))
+		// expire the first token
+		err := store.ExpireAuthenticationByID(ctx, created[0].Auth.Id, expiresAt)
+		require.NoError(t, err)
+
+		auth, err := store.GetAuthenticationByClientToken(ctx, created[0].Token)
+		require.NoError(t, err)
+		assert.True(t, auth.ExpiresAt.AsTime().Before(time.Now().UTC()))
+	})
 }
