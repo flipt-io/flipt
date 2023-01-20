@@ -21,12 +21,15 @@ func TestHandler(t *testing.T) {
 	srv := middleware.Handler(http.HandlerFunc(handler))
 
 	req := httptest.NewRequest(http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
-	res := httptest.NewRecorder()
+	w := httptest.NewRecorder()
 
-	srv.ServeHTTP(res, req)
+	srv.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
 
-	assert.Equal(t, http.StatusOK, res.Code)
-	cookies := res.Result().Cookies()
+	res := w.Result()
+	defer res.Body.Close()
+
+	cookies := res.Cookies()
 	assert.Len(t, cookies, 2)
 
 	cookiesMap := make(map[string]*http.Cookie)
