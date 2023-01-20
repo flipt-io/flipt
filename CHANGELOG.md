@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- New `auth.ExpireAuthenticationSelf` endpoint to expire a user's own authentication [#1279](https://github.com/flipt-io/flipt/pull/1279)
+
+### Fixed
+
+- Setting Authentication cookies on localhost [#1274](https://github.com/flipt-io/flipt/pull/1274)
+- Panic in `/meta` endpoints when Authentication was required but not present [#1277](https://github.com/flipt-io/flipt/pull/1277)
+- Don't set empty CSRF cookie [#1280](https://github.com/flipt-io/flipt/pull/1280)
+- Bootstrapping command in mage [#1281](https://github.com/flipt-io/flipt/pull/1281)
+
+### Changed
+
+- Dev: Switched from Task to Mage [#1273](https://github.com/flipt-io/flipt/pull/1273)
+- Authentication metadata structure changed to JSON object [#1275](https://github.com/flipt-io/flipt/pull/1275)
+- Dev: Make developing the UI easier by proxying `:8080` to vite [#1278](https://github.com/flipt-io/flipt/pull/1278)
+
 ## [v1.17.1](https://github.com/flipt-io/flipt/releases/tag/v1.17.0) - 2023-01-13
 
 ### Fixed
