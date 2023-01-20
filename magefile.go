@@ -43,13 +43,20 @@ func Bootstrap() error {
 		cmd := exec.Command("go", "mod", "init", "tools")
 		cmd.Dir = "_tools"
 		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
 			return err
 		}
 	}
 
-	goInstall := sh.RunCmd("go", "install", "-v")
-	return goInstall(tools...)
+	install := []string{"install", "-v"}
+	install = append(install, tools...)
+
+	cmd := exec.Command("go", install...)
+	cmd.Dir = "_tools"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // Build builds the project similar to a release build
