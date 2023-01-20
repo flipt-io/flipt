@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- UI: Login via OIDC [ui #41](https://github.com/flipt-io/flipt-ui/pull/41)
+- UI: Validate distribution percentages [ui #37](https://github.com/flipt-io/flipt-ui/pull/37)
 - New `auth.ExpireAuthenticationSelf` endpoint to expire a user's own authentication [#1279](https://github.com/flipt-io/flipt/pull/1279)
 
 ### Fixed
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dev: Switched from Task to Mage [#1273](https://github.com/flipt-io/flipt/pull/1273)
 - Authentication metadata structure changed to JSON object [#1275](https://github.com/flipt-io/flipt/pull/1275)
 - Dev: Make developing the UI easier by proxying `:8080` to vite [#1278](https://github.com/flipt-io/flipt/pull/1278)
+- Dependency updates
 
 ## [v1.17.1](https://github.com/flipt-io/flipt/releases/tag/v1.17.0) - 2023-01-13
 
