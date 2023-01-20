@@ -129,7 +129,9 @@ func NewHTTPServer(
 		r.Group(func(r chi.Router) {
 			r.Use(func(handler http.Handler) http.Handler {
 				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Set("X-CSRF-Token", csrf.Token(r))
+					if cfg.Authentication.Session.CSRF.Key != "" {
+						w.Header().Set("X-CSRF-Token", csrf.Token(r))
+					}
 
 					handler.ServeHTTP(w, r)
 				})
