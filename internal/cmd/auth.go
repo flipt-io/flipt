@@ -120,7 +120,7 @@ func authenticationHTTPMount(
 			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
 		}
-		authmiddleware = auth.NewHTTPMiddleware()
+		authmiddleware = auth.NewHTTPMiddleware(cfg.Session)
 		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
 	)
 
