@@ -24,9 +24,9 @@ To run this example application you'll need:
     e.g. `sudo sh -c 'echo "127.0.0.1 dex" >> /etc/hosts'`.
 
 1. Run `docker-compose up` from this directory.
-2. Navigate to [Flipt in your browser](http://localhost:8080).
-3. Click 'Login With Dex'
-4. Login using email: `admin@example.com` and password: `password`.
-5. Select `Grant Access`.
+1. Navigate to [Flipt in your browser](http://localhost:8080).
+1. Click 'Login With Dex'
+1. Login using email: `admin@example.com` and password: `password`.
+1. Select `Grant Access`.
 
 From here you should be navigated back to Flipt and an authenticated session should be established.
