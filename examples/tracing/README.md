@@ -2,7 +2,7 @@
 
 This example shows how you can run Flipt with a Jaeger/Open Telemetry sidecar application in Docker.
 
-!['Jaeger Example'](./jaeger.png)
+!['Jaeger Example'](../images/jaeger.png)
 
 ## Requirements
 

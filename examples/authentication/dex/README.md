@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="../../images/dex.png" alt="Dex Login" />
+</p>
+
 # OIDC Authentication with Dex
 
 This is a demonstration of using Flipt + Dex as an OIDC provider for authentication.
