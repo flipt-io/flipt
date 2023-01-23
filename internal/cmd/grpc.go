@@ -255,10 +255,7 @@ func NewGRPCServer(
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
-		logger.Info("shutting down grpc server...")
-
 		server.Server.GracefulStop()
-
 		return nil
 	})
 
