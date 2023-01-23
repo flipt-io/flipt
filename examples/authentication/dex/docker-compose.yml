@@ -11,7 +11,7 @@ services:
     networks:
       - flipt_network
   flipt:
-    image: flipt/flipt:v1.18-rc1
+    image: flipt/flipt:latest
     ports:
       - "8080:8080"
     volumes:
