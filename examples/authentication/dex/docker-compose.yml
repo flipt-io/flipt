@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  dex:
+    image: dexidp/dex:latest
+    command: dex serve /etc/dex/config.yaml
+    ports:
+      - "5556:5556"
+    volumes:
+      - ./dex-config.yaml:/etc/dex/config.yaml
+    networks:
+      - flipt_network
+  flipt:
+    image: flipt/flipt:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/etc/flipt/config/default.yml
+    networks:
+      - flipt_network
+
+networks:
+  flipt_network:

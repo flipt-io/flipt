@@ -1,14 +1,6 @@
-# Authentication Example
+# Reverse Proxy Authentication Example
 
-This example shows how you can secure your Flipt instance using HTTP Basic Authentication.
-
-It is important to note that Flipt currently has no built in authentication, authorization or encryption as Flipt was designed to work inside your trusted architecture and not be exposed publicly.
-
-That being said, if you do want to expose the Flipt dashboard and REST API publicly using HTTP Basic Authentication, you can do so by using a reverse proxy. This example uses the [Caddy](https://caddyserver.com/) web server to accomplish this task.
-
-## Limitations
-
-Currently there is no way provided in Flipt to configure authentication with the GRPC API if exposed publicly. Thus, if you choose this approach is is important to **not expose the GRPC port publicly!** as anyone would be able to access your resources over GRPC without authenticating.
+This example shows how you can secure your Flipt instance using HTTP Basic Authentication behind a reverse proxy using [Caddy](https://caddyserver.com/).
 
 ## Requirements
 
