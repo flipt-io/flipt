@@ -1,10 +1,10 @@
 <p align="center">
-    <img src="../../logos/redis.svg" alt="Redis" width=250 height=250 />
+    <img src="../images/redis.svg" alt="Redis" width=250 height=250 />
 </p>
 
 # Redis Example
 
-This example shows how you can run Flipt with a Redis cache for caching flag and evaluation responses.
+This example shows how you can run Flipt with a Redis cache for caching flags and evaluation responses.
 
 This works by setting the following environment variables to configure Redis in the container:
 

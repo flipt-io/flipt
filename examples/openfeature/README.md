@@ -1,12 +1,12 @@
 <p align="center">
-    <img src="../../logos/openfeature.svg" alt="OpenFeature" width=250 height=250 />
+    <img src="../images/openfeature.svg" alt="OpenFeature" width=250 height=250 />
 </p>
 
 # OpenFeature/OpenTelemetry Example
 
-This example shows how you can run Flipt, Jaeger and a example REST API which integrates with Flipt using the [Flipt OpenFeature Provider](https://github.com/flipt-io/flipt-openfeature-provider-go) + [OpenFeature Client SDK](https://github.com/open-feature/go-sdk) + [OpenTelemetry hook](https://github.com/open-feature/go-sdk-contrib/tree/main/hooks/open-telemetry).
+This example shows how you can run Flipt, Jaeger and an example REST API which integrates with Flipt using the [Flipt OpenFeature Provider](https://github.com/flipt-io/flipt-openfeature-provider-go) + [OpenFeature Client SDK](https://github.com/open-feature/go-sdk) + [OpenTelemetry hook](https://github.com/open-feature/go-sdk-contrib/tree/main/hooks/open-telemetry).
 
-!['Jaeger Example'](./jaeger.jpg)
+!['Jaeger Example'](../images/jaeger.jpg)
 
 ## Example
 
@@ -36,7 +36,7 @@ To run this example application you'll need:
 1. Click 'Find Traces'
 1. You should see a list of client traces to explore that show the client request and response back from Flipt.
 
-!['Jaeger OpenFeature/OTEL Example'](./jaeger-openfeature-otel.jpg)
+!['Jaeger OpenFeature/OTEL Example'](../images/jaeger-openfeature-otel.jpg)
 
 Note that the OpenFeature SDK added some additional tags to the span, including:
 

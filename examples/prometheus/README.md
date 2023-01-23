@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../../logos/prometheus.svg" alt="Prometheus" width=250 height=250 />
+    <img src="../images/prometheus.svg" alt="Prometheus" width=250 height=250 />
 </p>
 
 # Prometheus Example
