@@ -3,7 +3,7 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.18.0](https://github.com/flipt-io/flipt/releases/tag/v1.18.0) - 2023-01-23
 
 ### Added
 
@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Panic in `/meta` endpoints when Authentication was required but not present [#1277](https://github.com/flipt-io/flipt/pull/1277)
 - Don't set empty CSRF cookie [#1280](https://github.com/flipt-io/flipt/pull/1280)
 - Bootstrapping command in mage [#1281](https://github.com/flipt-io/flipt/pull/1281)
+- Removed duplicate shutdown log [#1282](https://github.com/flipt-io/flipt/pull/1282)
 
 ### Changed
 
