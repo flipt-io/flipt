@@ -18,8 +18,9 @@ jobs:
           private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
           installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
 
-      - name: Deploy try.flipt.io
+      - name: Trigger Post Release Workflows
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
           gh workflow run deploy.yml -R flipt-io/try.flipt.io
+          gh workflow run update.yml -R flipt-io/helm-charts
