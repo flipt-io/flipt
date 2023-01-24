@@ -42,6 +42,11 @@ jobs:
           sudo apt-get update &&
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
+      - name: Install Skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install skopeo
+
       - name: Install Syft
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
@@ -81,3 +86,18 @@ jobs:
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+
+      - name: Tag and Push latest
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ $TAG == $(cat version.txt) ]]; then
+            docker pull flipt/flipt:$TAG
+            skopeo copy --all docker://flipt/flipt:$TAG docker://flipt/flipt:latest
+
+            docker pull markphelps/flipt:$TAG
+            skopeo copy --all docker://markphelps/flipt:$TAG docker://markphelps/flipt:latest
+
+            docker pull ghcr.io/flipt-io/flipt:$TAG
+            skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
+          fi
