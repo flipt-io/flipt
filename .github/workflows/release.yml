@@ -42,6 +42,11 @@ jobs:
           sudo apt-get update &&
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
+      - name: Install Skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install skopeo
+
       - name: Install Syft
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
@@ -88,15 +93,11 @@ jobs:
         run: |
           if [[ $TAG == $(cat version.txt) ]]; then
             docker pull flipt/flipt:$TAG
-            docker tag flipt/flipt:$TAG flipt/flipt:latest
+            skopeo copy --all docker://flipt/flipt:$TAG docker://flipt/flipt:latest
 
             docker pull markphelps/flipt:$TAG
-            docker tag markphelps/flipt:$TAG markphelps/flipt:latest
+            skopeo copy --all docker://markphelps/flipt:$TAG docker://markphelps/flipt:latest
 
             docker pull ghcr.io/flipt-io/flipt:$TAG
-            docker tag ghcr.io/flipt-io/flipt:$TAG ghcr.io/flipt-io/flipt:latest
-
-            docker push flipt/flipt:latest
-            docker push markphelps/flipt:latest
-            docker push ghcr.io/flipt-io/flipt:latest
+            skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
           fi
