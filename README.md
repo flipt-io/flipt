@@ -53,7 +53,7 @@
 
 <br clear="both"/>
 
-Flipt is an open source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
+Flipt is an open-source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
@@ -74,19 +74,19 @@ Flipt supports use cases such as:
 - Ability to create advanced distribution rules to target segments of users
 - Native [GRPC](https://grpc.io/) client SDKs to integrate with your existing applications easily
 - Powerful REST API
-- Modern, mobile friendly 📱 UI and debug console
+- Modern, mobile-friendly 📱 UI and debug console
 - Support for multiple databases (Postgres, MySQL, SQLite, CockroachDB)
 - Data import and export to allow storing your data as code
-- Cloud ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without.
+- Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without.
 
 <br clear="both"/>
 
 ## Values
 
-- :lock: **Security** - HTTPS support. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+- :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis.. Flipt supports it all.
+- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis... Flipt supports it all.
 
 <br clear="both"/>
 
@@ -99,11 +99,12 @@ Flipt supports use cases such as:
     <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
     <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
     <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
+    <img src="./logos/openid.svg" alt="OpenID" width=144 height=144 />
 </p>
 
 ## Try It
 
-Try the latest version of Flipt out for yourself.
+Try the latest version of Flipt for yourself.
 
 ### Sandbox
 
@@ -171,7 +172,7 @@ Note: These libraries are not maintained by the Flipt team and may not be up to 
 
 ### Generate Your Own
 
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples on how to generate GRPC clients in each supported language.
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples of how to generate GRPC clients in each supported language.
 
 <br clear="both"/>
 
@@ -234,7 +235,7 @@ For help and discussion around Flipt, feature flag best practices, and more, joi
 
 ## Feedback
 
-If you are a user of Flipt we'd really :heart: it if you could leave a [testimonal](https://testimonial.to/flipt) on how Flipt is working for you.
+If you are a user of Flipt we'd really :heart: it if you could leave a [testimonial](https://testimonial.to/flipt) on how Flipt is working for you.
 
 <br clear="both"/>
 
