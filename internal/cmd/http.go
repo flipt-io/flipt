@@ -82,7 +82,7 @@ func NewHTTPServer(
 	}
 
 	r.Use(middleware.SetHeader("X-Content-Type-Options", "nosniff"))
-	r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src *;"))
+	r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src * data:;"))
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
