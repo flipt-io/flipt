@@ -81,6 +81,9 @@ func NewHTTPServer(
 		logger.Info("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 
+	r.Use(middleware.SetHeader("X-Content-Type-Options", "nosniff"))
+	r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src *;"))
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Heartbeat("/health"))
