@@ -38,6 +38,9 @@
     <a href="https://discord.gg/kRhEqG2TEZ">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
     </a>
+    <a href="https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=">
+        <img alt="Public Roadmap" src="https://img.shields.io/badge/Volta-Public%20Roadmap-black">
+    </a>
 </div>
 
 <div align="center">
@@ -134,7 +137,7 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 
 ## Integration
 
-Checkout the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing application.
+Check out the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing application.
 
 ### REST API
 
@@ -244,6 +247,8 @@ If you are a user of Flipt we'd really :heart: it if you could leave a [testimon
 We would love your help! Before submitting a PR, please read over the [Contributing](.github/contributing.md) guide.
 
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
+
+Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
 
 <br clear="both"/>
 
