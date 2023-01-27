@@ -16,6 +16,13 @@ type LogConfig struct {
 	File      string      `json:"file,omitempty" mapstructure:"file"`
 	Encoding  LogEncoding `json:"encoding,omitempty" mapstructure:"encoding"`
 	GRPCLevel string      `json:"grpcLevel,omitempty" mapstructure:"grpc_level"`
+	Keys      LogKeys     `json:"keys" mapstructure:"keys"`
+}
+
+type LogKeys struct {
+	Time    string `json:"time" mapstructure:"time"`
+	Level   string `json:"level" mapstructure:"level"`
+	Message string `json:"message" mapstructure:"message"`
 }
 
 func (c *LogConfig) setDefaults(v *viper.Viper) {
@@ -23,6 +30,11 @@ func (c *LogConfig) setDefaults(v *viper.Viper) {
 		"level":      "INFO",
 		"encoding":   "console",
 		"grpc_level": "ERROR",
+		"keys": map[string]any{
+			"time":    "T",
+			"level":   "L",
+			"message": "M",
+		},
 	})
 }
 

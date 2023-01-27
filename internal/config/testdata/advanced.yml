@@ -2,6 +2,10 @@ log:
   level: WARN
   file: "testLogFile.txt"
   encoding: "json"
+  keys:
+    time: "time"
+    level: "level"
+    message: "msg"
 
 cors:
   enabled: true

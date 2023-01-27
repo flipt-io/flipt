@@ -168,6 +168,11 @@ func defaultConfig() *Config {
 			Level:     "INFO",
 			Encoding:  LogEncodingConsole,
 			GRPCLevel: "ERROR",
+			Keys: LogKeys{
+				Time:    "T",
+				Level:   "L",
+				Message: "M",
+			},
 		},
 
 		UI: UIConfig{
@@ -424,6 +429,11 @@ func TestLoad(t *testing.T) {
 					File:      "testLogFile.txt",
 					Encoding:  LogEncodingJSON,
 					GRPCLevel: "ERROR",
+					Keys: LogKeys{
+						Time:    "time",
+						Level:   "level",
+						Message: "msg",
+					},
 				}
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
