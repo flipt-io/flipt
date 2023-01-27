@@ -31,9 +31,12 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 
 	sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
 
-	if cfg.Database.MaxOpenConn > 0 {
+	if driver == SQLite {
+		sql.SetMaxOpenConns(2)
+	} else if cfg.Database.MaxOpenConn > 0 {
 		sql.SetMaxOpenConns(cfg.Database.MaxOpenConn)
 	}
+
 	if cfg.Database.ConnMaxLifetime > 0 {
 		sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 	}
@@ -216,6 +219,7 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 	case SQLite:
 		v := url.Query()
 		v.Set("cache", "shared")
+		v.Set("mode", "rwc")
 		v.Set("_fk", "true")
 		url.RawQuery = v.Encode()
 
