@@ -32,7 +32,7 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 	sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
 
 	if driver == SQLite {
-		sql.SetMaxOpenConns(2)
+		sql.SetMaxOpenConns(1)
 	} else if cfg.Database.MaxOpenConn > 0 {
 		sql.SetMaxOpenConns(cfg.Database.MaxOpenConn)
 	}
