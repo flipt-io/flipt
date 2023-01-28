@@ -130,7 +130,8 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 		}
 	}()
 
-	seenFlags := make(map[string][]*flipt.Variant)
+	// keep track of flags we've seen so we don't append duplicates because of the join
+	uniqueFlags := make(map[string][]*flipt.Variant)
 
 	for rows.Next() {
 		var (
@@ -162,10 +163,12 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 		f.CreatedAt = fCreatedAt.Timestamp
 		f.UpdatedAt = fUpdatedAt.Timestamp
 
-		if _, ok := seenFlags[f.Key]; !ok {
+		// append flag to output results if we haven't seen it yet
+		if _, ok := uniqueFlags[f.Key]; !ok {
 			flags = append(flags, f)
 		}
 
+		// append variant to flag if it exists (not null)
 		if v.Id.Valid {
 			variant := &flipt.Variant{
 				Id: v.Id.String,
@@ -196,7 +199,7 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 				variant.UpdatedAt = v.UpdatedAt.Timestamp
 			}
 
-			seenFlags[f.Key] = append(seenFlags[f.Key], variant)
+			uniqueFlags[f.Key] = append(uniqueFlags[f.Key], variant)
 		}
 	}
 
@@ -208,8 +211,9 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 		return results, err
 	}
 
+	// set variants on flags before returning results
 	for _, f := range flags {
-		f.Variants = seenFlags[f.Key]
+		f.Variants = uniqueFlags[f.Key]
 	}
 
 	var next *flipt.Flag
