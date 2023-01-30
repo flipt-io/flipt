@@ -15,6 +15,10 @@ type Flipt struct {
 	IsRelease       bool   `json:"isRelease"`
 }
 
+func (f Flipt) IsDevelopment() bool {
+	return f.Version == "dev" && !f.IsRelease
+}
+
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
 		out []byte
