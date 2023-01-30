@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 
+	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	empty "google.golang.org/protobuf/types/known/emptypb"
 )
@@ -14,6 +17,19 @@ import (
 func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.Debug("get flag", zap.Stringer("request", r))
 	flag, err := s.store.GetFlag(ctx, r.Key)
+
+	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeFlag.String(r.Key),
+	}
+
+	if flag != nil {
+		spanAttrs = append(spanAttrs, fliptotel.AttributeFlagEnabled.Bool(flag.Enabled))
+	}
+
+	// add otel attributes to span
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(spanAttrs...)
+
 	s.logger.Debug("get flag", zap.Stringer("response", flag))
 	return flag, err
 }
