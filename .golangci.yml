@@ -14,9 +14,11 @@ run:
     - "bin"
     - "_tools"
     - "dist"
-    - "rpc"
-    - "swagger"
+    - "rpc/flipt"
     - "ui"
+
+  skip-files:
+    - ".*pb.go"
 
   # which files to skip: they will be analyzed, but issues from them
   # won't be reported. Default value is empty list, but there is
@@ -30,7 +32,6 @@ linters:
     - errcheck
     - goconst
     - gocritic
-    - goimports
     - gosec
     - gosimple
     - govet
@@ -39,12 +40,12 @@ linters:
     - misspell
     - staticcheck
     - stylecheck
+    - sqlclosecheck
     - unconvert
     - unparam
   disable:
     - contextcheck
     - exhaustive
-    - rowserrcheck
   enable-all: false
   presets:
     - bugs
@@ -68,6 +69,10 @@ linters-settings:
     checks:
       - all
       - "-SA1019" # exclude staticcheck messages from github.com/golang/protobuf
+  stylecheck:
+    checks:
+      - all
+      - "-ST1003" # exclude underscores
   gosec:
     excludes: # exclude gosec messages about weak crypto
       - "G501"
