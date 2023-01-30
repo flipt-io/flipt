@@ -6,9 +6,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-var (
-	_ trace.SpanExporter = (*noopSpanExporter)(nil)
-)
+var _ trace.SpanExporter = (*noopSpanExporter)(nil)
 
 type noopSpanExporter struct{}
 
