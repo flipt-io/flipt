@@ -11,6 +11,7 @@ import (
 
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/metrics"
+	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,24 +28,24 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		attribute.String("flipt.flag_key", r.FlagKey),
-		attribute.String("flipt.entity_id", r.EntityId),
-		attribute.String("flipt.request_id", r.RequestId),
+		fliptotel.AttributeFlag.String(r.FlagKey),
+		fliptotel.AttributeEntityID.String(r.EntityId),
+		fliptotel.AttributeRequestID.String(r.RequestId),
 	}
 
 	if resp != nil {
 		spanAttrs = append(spanAttrs,
-			attribute.Bool("flipt.match", resp.Match),
-			attribute.String("flipt.segment_key", resp.SegmentKey),
-			attribute.String("flipt.value", resp.Value),
-			attribute.String("flipt.reason", resp.Reason.String()),
-			attribute.Float64("flipt.duration_ms", resp.RequestDurationMillis),
+			fliptotel.AttributeMatch.Bool(resp.Match),
+			fliptotel.AttributeSegment.String(resp.SegmentKey),
+			fliptotel.AttributeValue.String(resp.Value),
+			fliptotel.AttributeReason.String(resp.Reason.String()),
+			fliptotel.AttributeDurationMS.Float64(resp.RequestDurationMillis),
 		)
 	}
 
 	// add otel attributes to span
 	span := trace.SpanFromContext(ctx)
-	span.AddEvent("flipt.evaluate", trace.WithAttributes(spanAttrs...))
+	span.SetAttributes(spanAttrs...)
 
 	s.logger.Debug("evaluate", zap.Stringer("response", resp))
 	return resp, nil
