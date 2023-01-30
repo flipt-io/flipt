@@ -164,6 +164,9 @@ func main() {
 		cfg = res.Config
 		cfgWarnings = res.Warnings
 
+		loggerConfig.EncoderConfig.TimeKey = cfg.Log.Keys.Time
+		loggerConfig.EncoderConfig.LevelKey = cfg.Log.Keys.Level
+		loggerConfig.EncoderConfig.MessageKey = cfg.Log.Keys.Message
 		// log to file if enabled
 		if cfg.Log.File != "" {
 			loggerConfig.OutputPaths = []string{cfg.Log.File}
