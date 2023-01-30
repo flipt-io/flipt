@@ -11,5 +11,4 @@ var (
 	AttributeValue       = attribute.Key("flipt.value")
 	AttributeEntityID    = attribute.Key("flipt.entity_id")
 	AttributeRequestID   = attribute.Key("flipt.request_id")
-	AttributeDurationMS  = attribute.Key("flipt.duration_ms")
 )

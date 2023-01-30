@@ -39,7 +39,6 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 			fliptotel.AttributeSegment.String(resp.SegmentKey),
 			fliptotel.AttributeValue.String(resp.Value),
 			fliptotel.AttributeReason.String(resp.Reason.String()),
-			fliptotel.AttributeDurationMS.Float64(resp.RequestDurationMillis),
 		)
 	}
 
