@@ -33,15 +33,13 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-const devVersion = "dev"
-
 var (
 	cfg         *config.Config
 	cfgWarnings []string
 
 	cfgPath      string
 	forceMigrate bool
-	version      = devVersion
+	version      = "dev"
 	commit       string
 	date         string
 	goVersion    = runtime.Version()
