@@ -21,7 +21,7 @@ services:
       - "COLLECTOR_OTLP_ENABLED=true"
 
   flipt:
-    image: flipt/flipt:latest 
+    image: flipt/flipt:latest
     depends_on:
       - jaeger
     ports:
@@ -30,7 +30,6 @@ services:
       - flipt_network
     environment:
       - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_TRACING_ENABLED=true"
       - "FLIPT_TRACING_JAEGER_ENABLED=true"
       - "FLIPT_TRACING_JAEGER_HOST=jaeger"
 
