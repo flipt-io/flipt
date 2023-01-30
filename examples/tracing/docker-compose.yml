@@ -21,7 +21,7 @@ services:
       - "COLLECTOR_OTLP_ENABLED=true"
 
   flipt:
-    image: flipt/flipt:dev 
+    image: flipt/flipt:latest 
     depends_on:
       - jaeger
     ports:
