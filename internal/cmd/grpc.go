@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
+	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
@@ -131,14 +132,23 @@ func NewGRPCServer(
 
 	var tracingProvider = trace.NewNoopTracerProvider()
 
-	if cfg.Tracing.Jaeger.Enabled {
-		logger.Debug("tracing enabled", zap.String("type", "jaeger"))
-		exp, err := jaeger.New(jaeger.WithAgentEndpoint(
-			jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
-			jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
-		))
-		if err != nil {
-			return nil, err
+	if cfg.Tracing.Enabled {
+		logger.Debug("otel tracing enabled")
+
+		var (
+			exp = fliptotel.NewNoopSpanExporter()
+			err error
+		)
+
+		if cfg.Tracing.Jaeger.Enabled {
+			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
+				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
+				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
+			))
+			if err != nil {
+				return nil, err
+			}
+			logger.Debug("otel tracing exporter configured", zap.String("type", "jaeger"))
 		}
 
 		tracingProvider = tracesdk.NewTracerProvider(
@@ -149,6 +159,7 @@ func NewGRPCServer(
 			tracesdk.WithResource(resource.NewWithAttributes(
 				semconv.SchemaURL,
 				semconv.ServiceNameKey.String("flipt"),
+				semconv.ServiceVersionKey.String(info.Version),
 			)),
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)

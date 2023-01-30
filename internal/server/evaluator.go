@@ -13,6 +13,8 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -23,6 +25,27 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	if err != nil {
 		return resp, err
 	}
+
+	spanAttrs := []attribute.KeyValue{
+		attribute.String("flipt.flag_key", r.FlagKey),
+		attribute.String("flipt.entity_id", r.EntityId),
+		attribute.String("flipt.request_id", r.RequestId),
+	}
+
+	if resp != nil {
+		spanAttrs = append(spanAttrs,
+			attribute.Bool("flipt.match", resp.Match),
+			attribute.String("flipt.segment_key", resp.SegmentKey),
+			attribute.String("flipt.value", resp.Value),
+			attribute.String("flipt.reason", resp.Reason.String()),
+			attribute.Float64("flipt.duration_ms", resp.RequestDurationMillis),
+		)
+	}
+
+	// add otel attributes to span
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent("flipt.evaluate", trace.WithAttributes(spanAttrs...))
+
 	s.logger.Debug("evaluate", zap.Stringer("response", resp))
 	return resp, nil
 }
