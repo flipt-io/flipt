@@ -81,7 +81,8 @@ func NewHTTPServer(
 		logger.Info("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 
-	if info.IsRelease {
+	// TODO: replace with more robust 'mode' detection
+	if !info.IsDevelopment() {
 		r.Use(middleware.SetHeader("X-Content-Type-Options", "nosniff"))
 		r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src * data:;"))
 	}
