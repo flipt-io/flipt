@@ -16,8 +16,7 @@ type JaegerTracingConfig struct {
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.
 type TracingConfig struct {
-	Enabled bool                `json:"enabled,omitempty" mapstructure:"enabled"`
-	Jaeger  JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
+	Jaeger JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) {
