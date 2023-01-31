@@ -644,11 +644,31 @@ func BenchmarkListSegments(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		flags, err := s.store.ListSegments(context.TODO())
-		require.NoError(t, err)
-		assert.NotEmpty(t, flags)
+	b.Run("no-pagination", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			segments, err := s.store.ListSegments(context.TODO())
+			require.NoError(t, err)
+			assert.NotEmpty(t, segments)
+		}
+	})
+
+	for _, pageSize := range []uint64{10, 25, 100, 500} {
+		b.Run(fmt.Sprintf("pagination-limit-%d", pageSize), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				segments, err := s.store.ListSegments(context.TODO(), storage.WithLimit(pageSize))
+				require.NoError(t, err)
+				assert.NotEmpty(t, segments)
+			}
+		})
 	}
+
+	b.Run("pagination", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			segments, err := s.store.ListSegments(context.TODO(), storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
+			require.NoError(t, err)
+			assert.NotEmpty(t, segments)
+		}
+	})
 
 	s.TearDownSuite()
 }
