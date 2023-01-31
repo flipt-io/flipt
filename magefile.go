@@ -34,7 +34,7 @@ var (
 func Bench() error {
 	fmt.Println("Running benchmarks...")
 
-	if err := sh.RunV("go", "test", "./...", "-run", "XXX", "-bench", ".", "-benchmem", "-short"); err != nil {
+	if err := sh.RunV("go", "test", "-run", "XXX", "-bench", ".", "-benchmem", "-short", "./..."); err != nil {
 		return err
 	}
 
