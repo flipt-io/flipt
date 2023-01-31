@@ -3,6 +3,8 @@ package sql_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"testing"
 	"time"
 
 	"go.flipt.io/flipt/internal/storage"
@@ -604,4 +606,49 @@ func (s *DBTestSuite) TestDeleteConstraint_NotFound() {
 	})
 
 	require.NoError(t, err)
+}
+
+func BenchmarkListSegments(b *testing.B) {
+	s := new(DBTestSuite)
+	t := &testing.T{}
+	s.SetT(t)
+	s.SetupSuite()
+
+	for i := 0; i < 1000; i++ {
+		reqs := []*flipt.CreateSegmentRequest{
+			{
+				Key:  uuid.Must(uuid.NewV4()).String(),
+				Name: fmt.Sprintf("foo_%d", i),
+			},
+		}
+
+		for _, req := range reqs {
+			ss, err := s.store.CreateSegment(context.TODO(), req)
+			require.NoError(t, err)
+			assert.NotNil(t, ss)
+
+			for j := 0; j < 10; j++ {
+				v, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+					SegmentKey: ss.Key,
+					Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					Property:   fmt.Sprintf("foo_%d", j),
+					Operator:   "EQ",
+					Value:      fmt.Sprintf("bar_%d", j),
+				})
+
+				require.NoError(t, err)
+				assert.NotNil(t, v)
+			}
+		}
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		flags, err := s.store.ListSegments(context.TODO())
+		require.NoError(t, err)
+		assert.NotEmpty(t, flags)
+	}
+
+	s.TearDownSuite()
 }

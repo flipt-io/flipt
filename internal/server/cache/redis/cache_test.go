@@ -115,7 +115,7 @@ func newCache(t *testing.T, ctx context.Context) (*Cache, func()) {
 	t.Helper()
 
 	if testing.Short() {
-		t.Skip("skipping redis test in short mode")
+		t.Skip("skipping test in short mode")
 	}
 
 	redisContainer, err := setupRedis(ctx)

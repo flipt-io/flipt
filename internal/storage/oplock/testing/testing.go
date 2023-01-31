@@ -23,6 +23,10 @@ import (
 // Also that acquisitions occurred in ascending timestamp order with a delta
 // between each tick of at-least the configured interval.
 func Harness(t *testing.T, s oplock.Service) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	var (
 		acquiredAt  = make(chan time.Time, 1)
 		interval    = 2 * time.Second
