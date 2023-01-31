@@ -17,6 +17,10 @@ import (
 )
 
 func TestCleanup(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	var (
 		ctx        = context.Background()
 		logger     = zaptest.NewLogger(t)

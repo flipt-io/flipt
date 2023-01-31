@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"testing"
 	"time"
 
 	"go.flipt.io/flipt/internal/storage"
@@ -751,4 +752,69 @@ func (s *DBTestSuite) TestDeleteVariant_NotFound() {
 	})
 
 	require.NoError(t, err)
+}
+
+func BenchmarkListFlags(b *testing.B) {
+	s := new(DBTestSuite)
+	t := &testing.T{}
+	s.SetT(t)
+	s.SetupSuite()
+
+	for i := 0; i < 1000; i++ {
+		reqs := []*flipt.CreateFlagRequest{
+			{
+				Key:     uuid.Must(uuid.NewV4()).String(),
+				Name:    fmt.Sprintf("foo_%d", i),
+				Enabled: true,
+			},
+		}
+
+		for _, req := range reqs {
+			f, err := s.store.CreateFlag(context.TODO(), req)
+			require.NoError(t, err)
+			assert.NotNil(t, f)
+
+			for j := 0; j < 10; j++ {
+				v, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+					FlagKey: f.Key,
+					Key:     uuid.Must(uuid.NewV4()).String(),
+					Name:    fmt.Sprintf("variant_%d", j),
+				})
+
+				require.NoError(t, err)
+				assert.NotNil(t, v)
+			}
+		}
+	}
+
+	b.ResetTimer()
+
+	b.Run("no-pagination", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			flags, err := s.store.ListFlags(context.TODO())
+			require.NoError(t, err)
+			assert.NotEmpty(t, flags)
+		}
+	})
+
+	for _, pageSize := range []uint64{10, 25, 100, 500} {
+		pageSize := pageSize
+		b.Run(fmt.Sprintf("pagination-limit-%d", pageSize), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				flags, err := s.store.ListFlags(context.TODO(), storage.WithLimit(pageSize))
+				require.NoError(t, err)
+				assert.NotEmpty(t, flags)
+			}
+		})
+	}
+
+	b.Run("pagination", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			flags, err := s.store.ListFlags(context.TODO(), storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
+			require.NoError(t, err)
+			assert.NotEmpty(t, flags)
+		}
+	})
+
+	s.TearDownSuite()
 }

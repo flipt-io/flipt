@@ -31,6 +31,17 @@ var (
 	Default = Build
 )
 
+func Bench() error {
+	fmt.Println("Running benchmarks...")
+
+	if err := sh.RunV("go", "test", "-run", "XXX", "-bench", ".", "-benchmem", "-short", "./..."); err != nil {
+		return err
+	}
+
+	fmt.Println("Done.")
+	return nil
+}
+
 // Bootstrap installs tools required for development
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
