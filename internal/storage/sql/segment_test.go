@@ -653,6 +653,7 @@ func BenchmarkListSegments(b *testing.B) {
 	})
 
 	for _, pageSize := range []uint64{10, 25, 100, 500} {
+		pageSize := pageSize
 		b.Run(fmt.Sprintf("pagination-limit-%d", pageSize), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				segments, err := s.store.ListSegments(context.TODO(), storage.WithLimit(pageSize))
