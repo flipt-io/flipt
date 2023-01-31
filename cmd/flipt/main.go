@@ -274,13 +274,14 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	}
 
 	info := info.Flipt{
-		Commit:          commit,
-		BuildDate:       date,
-		GoVersion:       goVersion,
-		Version:         version,
-		LatestVersion:   releaseInfo.LatestVersion,
-		IsRelease:       isRelease,
-		UpdateAvailable: releaseInfo.UpdateAvailable,
+		Commit:           commit,
+		BuildDate:        date,
+		GoVersion:        goVersion,
+		Version:          version,
+		LatestVersion:    releaseInfo.LatestVersion,
+		LatestVersionURL: releaseInfo.LatestVersionURL,
+		IsRelease:        isRelease,
+		UpdateAvailable:  releaseInfo.UpdateAvailable,
 	}
 
 	if cfg.Meta.TelemetryEnabled {

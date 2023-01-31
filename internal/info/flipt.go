@@ -6,17 +6,18 @@ import (
 )
 
 type Flipt struct {
-	Version         string `json:"version,omitempty"`
-	LatestVersion   string `json:"latestVersion,omitempty"`
-	Commit          string `json:"commit,omitempty"`
-	BuildDate       string `json:"buildDate,omitempty"`
-	GoVersion       string `json:"goVersion,omitempty"`
-	UpdateAvailable bool   `json:"updateAvailable"`
-	IsRelease       bool   `json:"isRelease"`
+	Version          string `json:"version,omitempty"`
+	LatestVersion    string `json:"latestVersion,omitempty"`
+	LatestVersionURL string `json:"latestVersionURL,omitempty"`
+	Commit           string `json:"commit,omitempty"`
+	BuildDate        string `json:"buildDate,omitempty"`
+	GoVersion        string `json:"goVersion,omitempty"`
+	UpdateAvailable  bool   `json:"updateAvailable"`
+	IsRelease        bool   `json:"isRelease"`
 }
 
 func (f Flipt) IsDevelopment() bool {
-	return f.Version == "dev" && !f.IsRelease
+	return f.Version == "dev"
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
