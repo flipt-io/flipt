@@ -106,6 +106,10 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
+	if driver == sql.SQLite && cfg.Database.MaxOpenConn > 1 {
+		logger.Warn("ignoring config.db.max_open_conn due to driver limitation (sqlite)", zap.Int("attempted_max_conn", cfg.Database.MaxOpenConn))
+	}
+
 	server.onShutdown(func(context.Context) error {
 		return db.Close()
 	})

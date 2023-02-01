@@ -9,14 +9,6 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-type optionalConstraint struct {
-	ID       sql.NullString
-	Type     sql.NullInt64
-	Property sql.NullString
-	Operator sql.NullString
-	Value    sql.NullString
-}
-
 func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
 	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.flag_key, r.segment_key, s.match_type, r.\"rank\", c.id, c.type, c.property, c.operator, c.value").
@@ -38,8 +30,8 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 	}()
 
 	var (
-		seenRules = make(map[string]*storage.EvaluationRule)
-		rules     = []*storage.EvaluationRule{}
+		uniqueRules = make(map[string]*storage.EvaluationRule)
+		rules       = []*storage.EvaluationRule{}
 	)
 
 	for rows.Next() {
@@ -48,16 +40,26 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 			optionalConstraint optionalConstraint
 		)
 
-		if err := rows.Scan(&tempRule.ID, &tempRule.FlagKey, &tempRule.SegmentKey, &tempRule.SegmentMatchType, &tempRule.Rank, &optionalConstraint.ID, &optionalConstraint.Type, &optionalConstraint.Property, &optionalConstraint.Operator, &optionalConstraint.Value); err != nil {
-			return nil, err
+		if err := rows.Scan(
+			&tempRule.ID,
+			&tempRule.FlagKey,
+			&tempRule.SegmentKey,
+			&tempRule.SegmentMatchType,
+			&tempRule.Rank,
+			&optionalConstraint.Id,
+			&optionalConstraint.Type,
+			&optionalConstraint.Property,
+			&optionalConstraint.Operator,
+			&optionalConstraint.Value); err != nil {
+			return rules, err
 		}
 
-		if existingRule, ok := seenRules[tempRule.ID]; ok {
+		if existingRule, ok := uniqueRules[tempRule.ID]; ok {
 			// current rule we know about
-			if optionalConstraint.ID.Valid {
+			if optionalConstraint.Id.Valid {
 				constraint := storage.EvaluationConstraint{
-					ID:       optionalConstraint.ID.String,
-					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
+					ID:       optionalConstraint.Id.String,
+					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
@@ -74,10 +76,10 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 				Rank:             tempRule.Rank,
 			}
 
-			if optionalConstraint.ID.Valid {
+			if optionalConstraint.Id.Valid {
 				constraint := storage.EvaluationConstraint{
-					ID:       optionalConstraint.ID.String,
-					Type:     flipt.ComparisonType(optionalConstraint.Type.Int64),
+					ID:       optionalConstraint.Id.String,
+					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
@@ -85,13 +87,17 @@ func (s *Store) GetEvaluationRules(ctx context.Context, flagKey string) ([]*stor
 				newRule.Constraints = append(newRule.Constraints, constraint)
 			}
 
-			seenRules[newRule.ID] = newRule
+			uniqueRules[newRule.ID] = newRule
 			rules = append(rules, newRule)
 		}
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return rules, err
+	}
+
+	if err := rows.Close(); err != nil {
+		return rules, err
 	}
 
 	return rules, nil
@@ -125,13 +131,13 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 		if err := rows.Scan(
 			&d.ID, &d.RuleID, &d.VariantID, &d.Rollout, &d.VariantKey, &attachment,
 		); err != nil {
-			return nil, err
+			return distributions, err
 		}
 
 		if attachment.Valid {
 			attachmentString, err := compactJSONString(attachment.String)
 			if err != nil {
-				return nil, err
+				return distributions, err
 			}
 			d.VariantAttachment = attachmentString
 		}
@@ -140,7 +146,11 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return distributions, err
+	}
+
+	if err := rows.Close(); err != nil {
+		return distributions, err
 	}
 
 	return distributions, nil

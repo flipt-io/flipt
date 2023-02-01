@@ -16,7 +16,7 @@ type Flipt struct {
 }
 
 func (f Flipt) IsDevelopment() bool {
-	return f.Version == "dev" && !f.IsRelease
+	return f.Version == "dev"
 }
 
 func (f Flipt) ServeHTTP(w http.ResponseWriter, r *http.Request) {
