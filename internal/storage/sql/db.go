@@ -31,7 +31,7 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 
 	sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
 
-	var maxOpenConn int 
+	var maxOpenConn int
 	if cfg.Database.MaxOpenConn > 0 {
 		maxOpenConn = cfg.Database.MaxOpenConn
 	}
@@ -39,13 +39,9 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 	// if we're using sqlite, we need to set always set the max open connections to 1
 	// see: https://github.com/mattn/go-sqlite3/issues/274
 	if driver == SQLite {
-		if maxOpenConn > 1 {
-			log.Warning("Ignoring config.db.max_open_conn due to driver limitation (sqlite)", zap.String("attempted_max_conn", maxOpenConn))
-		}
-		
 		maxOpenConn = 1
 	}
-	
+
 	sql.SetMaxOpenConns(maxOpenConn)
 
 	if cfg.Database.ConnMaxLifetime > 0 {
