@@ -12,8 +12,8 @@ import (
 type Info struct {
 	CurrentVersion   string
 	LatestVersion    string
-	UpdateAvailable  bool
 	LatestVersionURL string
+	UpdateAvailable  bool
 }
 
 type releaseChecker interface {
