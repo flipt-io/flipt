@@ -33,7 +33,7 @@ func emptyAsNil(str string) *string {
 	return &str
 }
 
-// GetFlag gets a flag
+// GetFlag gets a flag with variants by key
 func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	var (
 		createdAt fliptsql.Timestamp
@@ -41,11 +41,9 @@ func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 
 		flag = &flipt.Flag{}
 
-		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
+		err = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			Where(sq.Eq{"\"key\"": key})
-
-		err = query.QueryRowContext(ctx).Scan(
+			Where(sq.Eq{"\"key\"": key}).QueryRowContext(ctx).Scan(
 			&flag.Key,
 			&flag.Name,
 			&flag.Description,
@@ -65,14 +63,69 @@ func (s *Store) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
 	flag.CreatedAt = createdAt.Timestamp
 	flag.UpdatedAt = updatedAt.Timestamp
 
-	if err := s.variants(ctx, flag); err != nil {
-		return nil, err
+	query := s.builder.Select("id, flag_key, \"key\", name, description, attachment, created_at, updated_at").
+		From("variants").
+		Where(sq.Eq{"flag_key": flag.Key}).
+		OrderBy("created_at ASC")
+
+	rows, err := query.QueryContext(ctx)
+	if err != nil {
+		return flag, err
 	}
 
-	return flag, nil
+	defer func() {
+		if cerr := rows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	for rows.Next() {
+		var (
+			variant              flipt.Variant
+			createdAt, updatedAt fliptsql.Timestamp
+			attachment           sql.NullString
+		)
+
+		if err := rows.Scan(
+			&variant.Id,
+			&variant.FlagKey,
+			&variant.Key,
+			&variant.Name,
+			&variant.Description,
+			&attachment,
+			&createdAt,
+			&updatedAt); err != nil {
+			return flag, err
+		}
+
+		variant.CreatedAt = createdAt.Timestamp
+		variant.UpdatedAt = updatedAt.Timestamp
+		if attachment.Valid {
+			compactedAttachment, err := compactJSONString(attachment.String)
+			if err != nil {
+				return flag, err
+			}
+			variant.Attachment = compactedAttachment
+		}
+
+		flag.Variants = append(flag.Variants, &variant)
+	}
+
+	return flag, rows.Err()
 }
 
-// ListFlags lists all flags
+type optionalVariant struct {
+	Id          sql.NullString
+	Key         sql.NullString
+	FlagKey     sql.NullString
+	Name        sql.NullString
+	Description sql.NullString
+	Attachment  sql.NullString
+	CreatedAt   fliptsql.NullableTimestamp
+	UpdatedAt   fliptsql.NullableTimestamp
+}
+
+// ListFlags lists all flags with variants
 func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
 	params := &storage.QueryParams{}
 
@@ -84,9 +137,10 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 		flags   []*flipt.Flag
 		results = storage.ResultSet[*flipt.Flag]{}
 
-		query = s.builder.Select("\"key\", name, description, enabled, created_at, updated_at").
-			From("flags").
-			OrderBy(fmt.Sprintf("created_at %s", params.Order))
+		query = s.builder.Select("f.key, f.name, f.description, f.enabled, f.created_at, f.updated_at, v.id, v.key, v.flag_key, v.name, v.description, v.attachment, v.created_at, v.updated_at").
+			From("flags f").
+			LeftJoin("variants v ON v.flag_key = f.key").
+			OrderBy(fmt.Sprintf("f.created_at %s", params.Order))
 	)
 
 	if params.Limit > 0 {
@@ -97,9 +151,11 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 
 	if params.PageToken != "" {
 		var token PageToken
+
 		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
+
 		offset = token.Offset
 		query = query.Offset(offset)
 	} else if params.Offset > 0 {
@@ -118,11 +174,16 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 		}
 	}()
 
+	// keep track of flags we've seen so we don't append duplicates because of the join
+	uniqueFlags := make(map[string][]*flipt.Variant)
+
 	for rows.Next() {
 		var (
-			flag      = &flipt.Flag{}
-			createdAt fliptsql.Timestamp
-			updatedAt fliptsql.Timestamp
+			flag = &flipt.Flag{}
+			v    = &optionalVariant{}
+
+			fCreatedAt fliptsql.Timestamp
+			fUpdatedAt fliptsql.Timestamp
 		)
 
 		if err := rows.Scan(
@@ -130,23 +191,73 @@ func (s *Store) ListFlags(ctx context.Context, opts ...storage.QueryOption) (sto
 			&flag.Name,
 			&flag.Description,
 			&flag.Enabled,
-			&createdAt,
-			&updatedAt); err != nil {
+			&fCreatedAt,
+			&fUpdatedAt,
+			&v.Id,
+			&v.Key,
+			&v.FlagKey,
+			&v.Name,
+			&v.Description,
+			&v.Attachment,
+			&v.CreatedAt,
+			&v.UpdatedAt); err != nil {
 			return results, err
 		}
 
-		flag.CreatedAt = createdAt.Timestamp
-		flag.UpdatedAt = updatedAt.Timestamp
+		flag.CreatedAt = fCreatedAt.Timestamp
+		flag.UpdatedAt = fUpdatedAt.Timestamp
 
-		if err := s.variants(ctx, flag); err != nil {
-			return results, err
+		// append flag to output results if we haven't seen it yet, to maintain order
+		if _, ok := uniqueFlags[flag.Key]; !ok {
+			flags = append(flags, flag)
 		}
 
-		flags = append(flags, flag)
+		// append variant to flag if it exists (not null)
+		if v.Id.Valid {
+			variant := &flipt.Variant{
+				Id: v.Id.String,
+			}
+			if v.Key.Valid {
+				variant.Key = v.Key.String
+			}
+			if v.FlagKey.Valid {
+				variant.FlagKey = v.FlagKey.String
+			}
+			if v.Name.Valid {
+				variant.Name = v.Name.String
+			}
+			if v.Description.Valid {
+				variant.Description = v.Description.String
+			}
+			if v.Attachment.Valid {
+				compactedAttachment, err := compactJSONString(v.Attachment.String)
+				if err != nil {
+					return results, err
+				}
+				variant.Attachment = compactedAttachment
+			}
+			if v.CreatedAt.IsValid() {
+				variant.CreatedAt = v.CreatedAt.Timestamp
+			}
+			if v.UpdatedAt.IsValid() {
+				variant.UpdatedAt = v.UpdatedAt.Timestamp
+			}
+
+			uniqueFlags[flag.Key] = append(uniqueFlags[flag.Key], variant)
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return results, err
+	}
+
+	if err := rows.Close(); err != nil {
+		return results, err
+	}
+
+	// set variants on flags before returning results
+	for _, f := range flags {
+		f.Variants = uniqueFlags[f.Key]
 	}
 
 	var next *flipt.Flag
@@ -350,56 +461,4 @@ func (s *Store) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest
 		ExecContext(ctx)
 
 	return err
-}
-
-func (s *Store) variants(ctx context.Context, flag *flipt.Flag) (err error) {
-	query := s.builder.Select("id, flag_key, \"key\", name, description, attachment, created_at, updated_at").
-		From("variants").
-		Where(sq.Eq{"flag_key": flag.Key}).
-		OrderBy("created_at ASC")
-
-	rows, err := query.QueryContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if cerr := rows.Close(); cerr != nil && err == nil {
-			err = cerr
-		}
-	}()
-
-	for rows.Next() {
-		var (
-			variant              flipt.Variant
-			createdAt, updatedAt fliptsql.Timestamp
-			attachment           sql.NullString
-		)
-
-		if err := rows.Scan(
-			&variant.Id,
-			&variant.FlagKey,
-			&variant.Key,
-			&variant.Name,
-			&variant.Description,
-			&attachment,
-			&createdAt,
-			&updatedAt); err != nil {
-			return err
-		}
-
-		variant.CreatedAt = createdAt.Timestamp
-		variant.UpdatedAt = updatedAt.Timestamp
-		if attachment.Valid {
-			compactedAttachment, err := compactJSONString(attachment.String)
-			if err != nil {
-				return err
-			}
-			variant.Attachment = compactedAttachment
-		}
-
-		flag.Variants = append(flag.Variants, &variant)
-	}
-
-	return rows.Err()
 }

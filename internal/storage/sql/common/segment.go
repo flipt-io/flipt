@@ -49,11 +49,57 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 	segment.CreatedAt = createdAt.Timestamp
 	segment.UpdatedAt = updatedAt.Timestamp
 
-	if err := s.constraints(ctx, segment); err != nil {
+	query := s.builder.Select("id, segment_key, type, property, operator, value, created_at, updated_at").
+		From("constraints").
+		Where(sq.Eq{"segment_key": segment.Key}).
+		OrderBy("created_at ASC")
+
+	rows, err := query.QueryContext(ctx)
+	if err != nil {
 		return segment, err
 	}
 
-	return segment, nil
+	defer func() {
+		if cerr := rows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	for rows.Next() {
+		var (
+			constraint           flipt.Constraint
+			createdAt, updatedAt fliptsql.Timestamp
+		)
+
+		if err := rows.Scan(
+			&constraint.Id,
+			&constraint.SegmentKey,
+			&constraint.Type,
+			&constraint.Property,
+			&constraint.Operator,
+			&constraint.Value,
+			&createdAt,
+			&updatedAt); err != nil {
+			return segment, err
+		}
+
+		constraint.CreatedAt = createdAt.Timestamp
+		constraint.UpdatedAt = updatedAt.Timestamp
+		segment.Constraints = append(segment.Constraints, &constraint)
+	}
+
+	return segment, rows.Err()
+}
+
+type optionalConstraint struct {
+	Id         sql.NullString
+	SegmentKey sql.NullString
+	Type       sql.NullInt32
+	Property   sql.NullString
+	Operator   sql.NullString
+	Value      sql.NullString
+	CreatedAt  fliptsql.NullableTimestamp
+	UpdatedAt  fliptsql.NullableTimestamp
 }
 
 // ListSegments lists all segments
@@ -68,9 +114,10 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		segments []*flipt.Segment
 		results  = storage.ResultSet[*flipt.Segment]{}
 
-		query = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
-			From("segments").
-			OrderBy(fmt.Sprintf("created_at %s", params.Order))
+		query = s.builder.Select("s.key, s.name, s.description, s.match_type, s.created_at, s.updated_at, c.id, c.segment_key, c.type, c.property, c.operator, c.value, c.created_at, c.updated_at").
+			From("segments s").
+			LeftJoin("constraints c ON s.key = c.segment_key").
+			OrderBy(fmt.Sprintf("s.created_at %s", params.Order))
 	)
 
 	if params.Limit > 0 {
@@ -81,6 +128,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 
 	if params.PageToken != "" {
 		var token PageToken
+
 		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
@@ -103,11 +151,16 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		}
 	}()
 
+	// keep track of segments we've seen so we don't append duplicates because of the join
+	uniqueSegments := make(map[string][]*flipt.Constraint)
+
 	for rows.Next() {
 		var (
-			segment   = &flipt.Segment{}
-			createdAt fliptsql.Timestamp
-			updatedAt fliptsql.Timestamp
+			segment = &flipt.Segment{}
+			c       = &optionalConstraint{}
+
+			sCreatedAt fliptsql.Timestamp
+			sUpdatedAt fliptsql.Timestamp
 		)
 
 		if err := rows.Scan(
@@ -115,23 +168,69 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 			&segment.Name,
 			&segment.Description,
 			&segment.MatchType,
-			&createdAt,
-			&updatedAt); err != nil {
+			&sCreatedAt,
+			&sUpdatedAt,
+			&c.Id,
+			&c.SegmentKey,
+			&c.Type,
+			&c.Property,
+			&c.Operator,
+			&c.Value,
+			&c.CreatedAt,
+			&c.UpdatedAt); err != nil {
 			return results, err
 		}
 
-		segment.CreatedAt = createdAt.Timestamp
-		segment.UpdatedAt = updatedAt.Timestamp
+		segment.CreatedAt = sCreatedAt.Timestamp
+		segment.UpdatedAt = sUpdatedAt.Timestamp
 
-		if err := s.constraints(ctx, segment); err != nil {
-			return results, err
+		// append segment to output results if we haven't seen it yet, to maintain order
+		if _, ok := uniqueSegments[segment.Key]; !ok {
+			segments = append(segments, segment)
 		}
 
-		segments = append(segments, segment)
+		// append constraint to segment if it exists (not null)
+		if c.Id.Valid {
+			constraint := &flipt.Constraint{
+				Id: c.Id.String,
+			}
+			if c.SegmentKey.Valid {
+				constraint.SegmentKey = c.SegmentKey.String
+			}
+			if c.Type.Valid {
+				constraint.Type = flipt.ComparisonType(c.Type.Int32)
+			}
+			if c.Property.Valid {
+				constraint.Property = c.Property.String
+			}
+			if c.Operator.Valid {
+				constraint.Operator = c.Operator.String
+			}
+			if c.Value.Valid {
+				constraint.Value = c.Value.String
+			}
+			if c.CreatedAt.IsValid() {
+				constraint.CreatedAt = c.CreatedAt.Timestamp
+			}
+			if c.UpdatedAt.IsValid() {
+				constraint.UpdatedAt = c.UpdatedAt.Timestamp
+			}
+
+			uniqueSegments[segment.Key] = append(uniqueSegments[segment.Key], constraint)
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return results, err
+	}
+
+	if err := rows.Close(); err != nil {
+		return results, err
+	}
+
+	// set constraints on segments before returning results
+	for _, s := range segments {
+		s.Constraints = uniqueSegments[s.Key]
 	}
 
 	var next *flipt.Segment
@@ -151,7 +250,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		results.NextPageToken = string(out)
 	}
 
-	return results, rows.Err()
+	return results, nil
 }
 
 // CountSegments counts all segments
@@ -328,47 +427,4 @@ func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintR
 		ExecContext(ctx)
 
 	return err
-}
-
-func (s *Store) constraints(ctx context.Context, segment *flipt.Segment) error {
-	query := s.builder.Select("id, segment_key, type, property, operator, value, created_at, updated_at").
-		From("constraints").
-		Where(sq.Eq{"segment_key": segment.Key}).
-		OrderBy("created_at ASC")
-
-	rows, err := query.QueryContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if cerr := rows.Close(); cerr != nil && err == nil {
-			err = cerr
-		}
-	}()
-
-	for rows.Next() {
-		var (
-			constraint           flipt.Constraint
-			createdAt, updatedAt fliptsql.Timestamp
-		)
-
-		if err := rows.Scan(
-			&constraint.Id,
-			&constraint.SegmentKey,
-			&constraint.Type,
-			&constraint.Property,
-			&constraint.Operator,
-			&constraint.Value,
-			&createdAt,
-			&updatedAt); err != nil {
-			return err
-		}
-
-		constraint.CreatedAt = createdAt.Timestamp
-		constraint.UpdatedAt = updatedAt.Timestamp
-		segment.Constraints = append(segment.Constraints, &constraint)
-	}
-
-	return rows.Err()
 }

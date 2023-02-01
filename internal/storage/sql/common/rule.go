@@ -17,7 +17,7 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-// GetRule gets an individual rule
+// GetRule gets an individual rule with distributions by ID
 func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	var (
 		createdAt fliptsql.Timestamp
@@ -43,14 +43,57 @@ func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
 	rule.CreatedAt = createdAt.Timestamp
 	rule.UpdatedAt = updatedAt.Timestamp
 
-	if err := s.distributions(ctx, rule); err != nil {
-		return nil, err
+	query := s.builder.Select("id", "rule_id", "variant_id", "rollout", "created_at", "updated_at").
+		From("distributions").
+		Where(sq.Eq{"rule_id": rule.Id}).
+		OrderBy("created_at ASC")
+
+	rows, err := query.QueryContext(ctx)
+	if err != nil {
+		return rule, err
 	}
 
-	return rule, nil
+	defer func() {
+		if cerr := rows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	for rows.Next() {
+		var (
+			distribution         flipt.Distribution
+			createdAt, updatedAt fliptsql.Timestamp
+		)
+
+		if err := rows.Scan(
+			&distribution.Id,
+			&distribution.RuleId,
+			&distribution.VariantId,
+			&distribution.Rollout,
+			&createdAt,
+			&updatedAt); err != nil {
+			return rule, err
+		}
+
+		distribution.CreatedAt = createdAt.Timestamp
+		distribution.UpdatedAt = updatedAt.Timestamp
+
+		rule.Distributions = append(rule.Distributions, &distribution)
+	}
+
+	return rule, rows.Err()
 }
 
-// ListRules gets all rules for a flag
+type optionalDistribution struct {
+	Id        sql.NullString
+	RuleId    sql.NullString
+	VariantId sql.NullString
+	Rollout   sql.NullFloat64
+	CreatedAt fliptsql.NullableTimestamp
+	UpdatedAt fliptsql.NullableTimestamp
+}
+
+// ListRules gets all rules for a flag with distributions
 func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
 	params := &storage.QueryParams{}
 
@@ -62,10 +105,11 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		rules   []*flipt.Rule
 		results = storage.ResultSet[*flipt.Rule]{}
 
-		query = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
-			From("rules").
-			Where(sq.Eq{"flag_key": flagKey}).
-			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
+		query = s.builder.Select("r.id, r.flag_key, r.segment_key, r.rank, r.created_at, r.updated_at, d.id, d.rule_id, d.variant_id, d.rollout, d.created_at, d.updated_at").
+			From("rules r").
+			LeftJoin("distributions d ON d.rule_id = r.id").
+			Where(sq.Eq{"r.flag_key": flagKey}).
+			OrderBy(fmt.Sprintf("r.rank %s", params.Order))
 	)
 
 	if params.Limit > 0 {
@@ -73,8 +117,10 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 	}
 
 	var offset uint64
+
 	if params.PageToken != "" {
 		var token PageToken
+
 		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
 			return results, fmt.Errorf("decoding page token %w", err)
 		}
@@ -97,11 +143,16 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		}
 	}()
 
+	// keep track of rules we've seen so we don't append duplicates because of the join
+	uniqueRules := make(map[string][]*flipt.Distribution)
+
 	for rows.Next() {
 		var (
-			rule      flipt.Rule
-			createdAt fliptsql.Timestamp
-			updatedAt fliptsql.Timestamp
+			rule = &flipt.Rule{}
+			d    = &optionalDistribution{}
+
+			rCreatedAt fliptsql.Timestamp
+			rUpdatedAt fliptsql.Timestamp
 		)
 
 		if err := rows.Scan(
@@ -109,23 +160,61 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 			&rule.FlagKey,
 			&rule.SegmentKey,
 			&rule.Rank,
-			&createdAt,
-			&updatedAt); err != nil {
+			&rCreatedAt,
+			&rUpdatedAt,
+			&d.Id,
+			&d.RuleId,
+			&d.VariantId,
+			&d.Rollout,
+			&d.CreatedAt,
+			&d.UpdatedAt); err != nil {
 			return results, err
 		}
 
-		rule.CreatedAt = createdAt.Timestamp
-		rule.UpdatedAt = updatedAt.Timestamp
+		rule.CreatedAt = rCreatedAt.Timestamp
+		rule.UpdatedAt = rUpdatedAt.Timestamp
 
-		if err := s.distributions(ctx, &rule); err != nil {
-			return results, err
+		// append rule to output results if we haven't seen it yet, to maintain order
+		if _, ok := uniqueRules[rule.Id]; !ok {
+			rules = append(rules, rule)
 		}
 
-		rules = append(rules, &rule)
+		// append distribution to rule if it exists
+		if d.Id.Valid {
+			distribution := &flipt.Distribution{
+				Id: d.Id.String,
+			}
+			if d.RuleId.Valid {
+				distribution.RuleId = d.RuleId.String
+			}
+			if d.VariantId.Valid {
+				distribution.VariantId = d.VariantId.String
+			}
+			if d.Rollout.Valid {
+				distribution.Rollout = float32(d.Rollout.Float64)
+			}
+			if d.CreatedAt.IsValid() {
+				distribution.CreatedAt = d.CreatedAt.Timestamp
+			}
+			if d.UpdatedAt.IsValid() {
+				distribution.UpdatedAt = d.UpdatedAt.Timestamp
+			}
+
+			uniqueRules[rule.Id] = append(uniqueRules[rule.Id], distribution)
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return results, err
+	}
+
+	if err := rows.Close(); err != nil {
+		return results, err
+	}
+
+	// set distributions on rules before returning results
+	for _, r := range rules {
+		r.Distributions = uniqueRules[r.Id]
 	}
 
 	var next *flipt.Rule
@@ -145,7 +234,7 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		results.NextPageToken = string(out)
 	}
 
-	return results, rows.Err()
+	return results, nil
 }
 
 // CountRules counts all rules
@@ -386,46 +475,4 @@ func (s *Store) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistribut
 		ExecContext(ctx)
 
 	return err
-}
-
-func (s *Store) distributions(ctx context.Context, rule *flipt.Rule) (err error) {
-	query := s.builder.Select("id", "rule_id", "variant_id", "rollout", "created_at", "updated_at").
-		From("distributions").
-		Where(sq.Eq{"rule_id": rule.Id}).
-		OrderBy("created_at ASC")
-
-	rows, err := query.QueryContext(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if cerr := rows.Close(); cerr != nil && err == nil {
-			err = cerr
-		}
-	}()
-
-	for rows.Next() {
-		var (
-			distribution         flipt.Distribution
-			createdAt, updatedAt fliptsql.Timestamp
-		)
-
-		if err := rows.Scan(
-			&distribution.Id,
-			&distribution.RuleId,
-			&distribution.VariantId,
-			&distribution.Rollout,
-			&createdAt,
-			&updatedAt); err != nil {
-			return err
-		}
-
-		distribution.CreatedAt = createdAt.Timestamp
-		distribution.UpdatedAt = updatedAt.Timestamp
-
-		rule.Distributions = append(rule.Distributions, &distribution)
-	}
-
-	return rows.Err()
 }

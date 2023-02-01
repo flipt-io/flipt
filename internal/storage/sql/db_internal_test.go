@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 				URL: "file:flipt.db",
 			},
 			driver: SQLite,
-			dsn:    "flipt.db?_fk=true&cache=shared",
+			dsn:    "flipt.db?_fk=true&cache=shared&mode=rwc",
 		},
 		{
 			name: "sqlite",
@@ -32,7 +32,7 @@ func TestParse(t *testing.T) {
 				Host:     "flipt.db",
 			},
 			driver: SQLite,
-			dsn:    "flipt.db?_fk=true&cache=shared",
+			dsn:    "flipt.db?_fk=true&cache=shared&mode=rwc",
 		},
 		{
 			name: "postgres url",
