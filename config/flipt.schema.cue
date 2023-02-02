@@ -96,8 +96,8 @@ import "strings"
 		conn_max_lifetime?: int
 	}
 
-	#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
-	#all: #lower + [ for x in #lower {strings.ToUpper(x)}]
+	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
+	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string
 		encoding?:   "json" | "console" | *"console"
