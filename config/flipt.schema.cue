@@ -138,5 +138,4 @@ import "strings"
 	}
 
 	#ui: enabled?: bool | *true
-	...
 }
