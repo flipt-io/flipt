@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -31,7 +32,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 	if r.PageToken != "" {
 		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
 		if err != nil {
-			return nil, err
+			return nil, errors.ErrInvalidf("page_token is not valid: %s", r.PageToken)
 		}
 
 		opts = append(opts, storage.WithPageToken(string(tok)))

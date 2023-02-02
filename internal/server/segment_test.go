@@ -77,7 +77,7 @@ func TestListSegments_PaginationOffset(t *testing.T) {
 	assert.Equal(t, int32(1), got.TotalCount)
 }
 
-func TestListSegments_PaginationNextPageToken(t *testing.T) {
+func TestListSegments_PaginationPageToken(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		logger = zaptest.NewLogger(t)
@@ -119,6 +119,28 @@ func TestListSegments_PaginationNextPageToken(t *testing.T) {
 	assert.NotEmpty(t, got.Segments)
 	assert.Equal(t, "YmFy", got.NextPageToken)
 	assert.Equal(t, int32(1), got.TotalCount)
+}
+
+func TestListSegments_PaginationInvalidPageToken(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	defer store.AssertExpectations(t)
+
+	store.AssertNotCalled(t, "ListSegments")
+
+	_, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
+		PageToken: "Invalid string",
+		Offset:    10,
+	})
+
+	assert.EqualError(t, err, "page_token is not valid: Invalid string")
 }
 
 func TestCreateSegment(t *testing.T) {
