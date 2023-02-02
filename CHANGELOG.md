@@ -3,6 +3,26 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.18.1](https://github.com/flipt-io/flipt/releases/tag/v1.18.1) - 2023-02-02
+
+### Added
+
+- Set Content-Security-Policy and `X-Content-Type-Options` headers [#1293](https://github.com/flipt-io/flipt/pull/1293)
+- Ability to customize log keys/format [#1295](https://github.com/flipt-io/flipt/pull/1295)
+- Additional OpenTelemetry annotations for `GetFlag` and `Evaluate` calls [#1306](https://github.com/flipt-io/flipt/pull/1306)
+- UI: Visual indicator on submitting + success message [ui #52](https://github.com/flipt-io/flipt-ui/pull/52)
+
+### Changed
+
+- Dependency updates
+- UI: Clear session on logout, change session storage format [ui #64](https://github.com/flipt-io/flipt-ui/pull/64)
+
+### Fixed
+
+- ListX calls could potentially lock the DB if running in SQLite. Also a nice performance boost [#1297](https://github.com/flipt-io/flipt/pull/1297)
+- UI: Bug where editing constraint values did not pre-populate with existing values [ui #67](https://github.com/flipt-io/flipt-ui/pull/67)
+- UI: Regression where we weren't showing help text when creating rule with no variants [ui #58](https://github.com/flipt-io/flipt-ui/pull/58)
+
 ## [v1.18.0](https://github.com/flipt-io/flipt/releases/tag/v1.18.0) - 2023-01-23
 
 ### Added
@@ -11,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Validate distribution percentages [ui #37](https://github.com/flipt-io/flipt-ui/pull/37)
 - New `auth.ExpireAuthenticationSelf` endpoint to expire a user's own authentication [#1279](https://github.com/flipt-io/flipt/pull/1279)
 
+### Changed
+
+- Dev: Switched from Task to Mage [#1273](https://github.com/flipt-io/flipt/pull/1273)
+- Authentication metadata structure changed to JSON object [#1275](https://github.com/flipt-io/flipt/pull/1275)
+- Dev: Make developing the UI easier by proxying `:8080` to vite [#1278](https://github.com/flipt-io/flipt/pull/1278)
+- Dependency updates
+
 ### Fixed
 
 - Setting Authentication cookies on localhost [#1274](https://github.com/flipt-io/flipt/pull/1274)
@@ -18,13 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't set empty CSRF cookie [#1280](https://github.com/flipt-io/flipt/pull/1280)
 - Bootstrapping command in mage [#1281](https://github.com/flipt-io/flipt/pull/1281)
 - Removed duplicate shutdown log [#1282](https://github.com/flipt-io/flipt/pull/1282)
-
-### Changed
-
-- Dev: Switched from Task to Mage [#1273](https://github.com/flipt-io/flipt/pull/1273)
-- Authentication metadata structure changed to JSON object [#1275](https://github.com/flipt-io/flipt/pull/1275)
-- Dev: Make developing the UI easier by proxying `:8080` to vite [#1278](https://github.com/flipt-io/flipt/pull/1278)
-- Dependency updates
 
 ## [v1.17.1](https://github.com/flipt-io/flipt/releases/tag/v1.17.0) - 2023-01-13
 
