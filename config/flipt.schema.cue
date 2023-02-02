@@ -1,5 +1,7 @@
 package flipt
 
+import "strings"
+
 #FliptSpec: {
 	// flipt-schema-v1
 	//
@@ -94,13 +96,20 @@ package flipt
 		conn_max_lifetime?: int
 	}
 
+	#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
+	#all: #lower + [ for x in #lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string
 		encoding?:   "json" | "console" | *"console"
 		level?:      #log.#log_level
 		grpc_level?: #log.#log_level
+		keys?: {
+			time?:   string | *"T"
+			level?:  string | *"L"
+			message?: string | *"M"
+		}
 
-		#log_level: "debug" | "DEBUG" | "error" | "ERROR" | "fatal" | "FATAL" | "info" | "INFO" | "PANIC" | "panic" | "trace" | "TRACE" | "warn" | "WARN"
+		#log_level: or(#all)
 	}
 
 	#meta: {
