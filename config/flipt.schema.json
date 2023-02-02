@@ -309,6 +309,10 @@
         "grpc_level": {
           "$ref": "#/definitions/log/$defs/log_level",
           "type": "string"
+        },
+        "keys": {
+          "$ref": "#/definitions/log/$defs/log_keys",
+          "type": "object"
         }
       },
       "required": [],
@@ -332,6 +336,25 @@
             "warn",
             "WARN"
           ]
+        },
+        "log_keys": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "level": {
+              "type": "string",
+              "default": "L"
+            },
+            "time": {
+              "type": "string",
+              "default": "T"
+            },
+            "message": {
+              "type": "string",
+              "default": "M"
+            }
+          },
+          "required": []
         }
       }
     },
