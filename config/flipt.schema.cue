@@ -109,7 +109,7 @@ import "strings"
 			message?: string | *"M"
 		}
 
-		#log_level: or(#all)
+		#log_level: or(_#all)
 	}
 
 	#meta: {
