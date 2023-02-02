@@ -140,7 +140,7 @@ func TestListSegments_PaginationInvalidPageToken(t *testing.T) {
 		Offset:    10,
 	})
 
-	assert.EqualError(t, err, "page_token is not valid: Invalid string")
+	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
 }
 
 func TestCreateSegment(t *testing.T) {

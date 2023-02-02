@@ -32,7 +32,7 @@ func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) 
 	if r.PageToken != "" {
 		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
 		if err != nil {
-			return nil, errors.ErrInvalidf("page_token is not valid: %s", r.PageToken)
+			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
 		}
 
 		opts = append(opts, storage.WithPageToken(string(tok)))
