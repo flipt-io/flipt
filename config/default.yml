@@ -38,8 +38,9 @@
 #   conn_max_lifetime: 0 # unlimited
 
 # tracing:
+#   enabled: false
+#   exporter: jaeger
 #   jaeger:
-#     enabled: false
 #     host: localhost
 #     port: 6831
 
