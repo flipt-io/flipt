@@ -100,9 +100,12 @@ Flipt supports use cases such as:
     <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
     <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
     <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
+</p>
+<p align="center">
     <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
     <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
-    <img src="./logos/openid.svg" alt="OpenID" width=144 height=144 />
+    <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
+    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
 </p>
 
 ## Try It
