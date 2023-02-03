@@ -13,11 +13,9 @@ services:
       - "14250:14250"
       - "14268:14268"
       - "14269:14269"
-      - "9411:9411"
     networks:
       - flipt_network
     environment:
-      - "COLLECTOR_ZIPKIN_HOST_PORT=:9411"
       - "COLLECTOR_OTLP_ENABLED=true"
 
   flipt:
@@ -30,7 +28,8 @@ services:
       - flipt_network
     environment:
       - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_TRACING_JAEGER_ENABLED=true"
+      - "FLIPT_TRACING_ENABLED=true"
+      - "FLIPT_TRACING_EXPORTER=jaeger"
       - "FLIPT_TRACING_JAEGER_HOST=jaeger"
 
 networks:

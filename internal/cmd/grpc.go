@@ -26,6 +26,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
@@ -135,11 +136,19 @@ func NewGRPCServer(
 
 	var tracingProvider = trace.NewNoopTracerProvider()
 
-	if cfg.Tracing.Enabled && cfg.Tracing.Exporter == config.TracingJaeger {
-		exp, err := jaeger.New(jaeger.WithAgentEndpoint(
-			jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
-			jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
-		))
+	if cfg.Tracing.Enabled {
+		var exp tracesdk.SpanExporter
+
+		switch cfg.Tracing.Exporter {
+		case config.TracingJaeger:
+			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
+				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
+				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
+			))
+		case config.TracingZipkin:
+			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +166,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("exporter", "jaeger"))
+		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
 	otel.SetTracerProvider(tracingProvider)
