@@ -28,8 +28,8 @@ server:
   cert_key: "./testdata/ssl_key.pem"
 
 tracing:
-  jaeger:
-    enabled: true
+  enabled: true
+  backend: jaeger
 
 db:
   url: postgres://postgres@localhost:5432/flipt?sslmode=disable
@@ -52,8 +52,8 @@ authentication:
     token:
       enabled: true
       cleanup:
-         interval: 2h
-         grace_period: 48h
+        interval: 2h
+        grace_period: 48h
     oidc:
       enabled: true
       providers:
@@ -63,5 +63,5 @@ authentication:
           client_secret: "bcdefgh"
           redirect_address: "http://auth.flipt.io"
       cleanup:
-         interval: 2h
-         grace_period: 48h
+        interval: 2h
+        grace_period: 48h

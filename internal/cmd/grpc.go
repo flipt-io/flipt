@@ -135,9 +135,7 @@ func NewGRPCServer(
 
 	var tracingProvider = trace.NewNoopTracerProvider()
 
-	if cfg.Tracing.Jaeger.Enabled {
-		logger.Debug("otel tracing enabled")
-
+	if cfg.Tracing.Enabled && cfg.Tracing.Exporter == config.TracingJaeger {
 		exp, err := jaeger.New(jaeger.WithAgentEndpoint(
 			jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
 			jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
@@ -159,7 +157,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing exporter configured", zap.String("type", "jaeger"))
+		logger.Debug("otel tracing enabled", zap.String("exporter", "jaeger"))
 	}
 
 	otel.SetTracerProvider(tracingProvider)
