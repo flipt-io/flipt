@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
+	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
@@ -31,7 +32,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -134,7 +134,7 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("driver", driver))
 
-	var tracingProvider = trace.NewNoopTracerProvider()
+	var tracingProvider = fliptotel.NewNoopProvider()
 
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
@@ -167,6 +167,9 @@ func NewGRPCServer(
 		)
 
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
+		server.onShutdown(func(ctx context.Context) error {
+			return tracingProvider.Shutdown(ctx)
+		})
 	}
 
 	otel.SetTracerProvider(tracingProvider)
