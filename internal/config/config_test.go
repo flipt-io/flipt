@@ -91,6 +91,39 @@ func TestCacheBackend(t *testing.T) {
 	}
 }
 
+func TestTracingBackend(t *testing.T) {
+	tests := []struct {
+		name    string
+		backend TracingBackend
+		want    string
+	}{
+		{
+			name:    "jaeger",
+			backend: TracingJaeger,
+			want:    "jaeger",
+		},
+		{
+			name:    "zipkin",
+			backend: TracingZipkin,
+			want:    "zipkin",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			backend = tt.backend
+			want    = tt.want
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, want, backend.String())
+			json, err := backend.MarshalJSON()
+			assert.NoError(t, err)
+			assert.JSONEq(t, fmt.Sprintf("%q", want), string(json))
+		})
+	}
+}
+
 func TestDatabaseProtocol(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -213,6 +246,9 @@ func defaultConfig() *Config {
 			Jaeger: JaegerTracingConfig{
 				Host: jaeger.DefaultUDPSpanServerHost,
 				Port: jaeger.DefaultUDPSpanServerPort,
+			},
+			Zipkin: ZipkinTracingConfig{
+				Endpoint: "http://localhost:9411/api/v2/spans",
 			},
 		},
 
@@ -346,6 +382,17 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "tracing - zipkin",
+			path: "./testdata/tracing/zipkin.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Tracing.Enabled = true
+				cfg.Tracing.Backend = TracingZipkin
+				cfg.Tracing.Zipkin.Endpoint = "http://localhost:9999/api/v2/spans"
+				return cfg
+			},
+		},
+		{
 			name: "database key/value",
 			path: "./testdata/database.yml",
 			expected: func() *Config {
@@ -474,6 +521,9 @@ func TestLoad(t *testing.T) {
 					Jaeger: JaegerTracingConfig{
 						Host: "localhost",
 						Port: 6831,
+					},
+					Zipkin: ZipkinTracingConfig{
+						Endpoint: "http://localhost:9411/api/v2/spans",
 					},
 				}
 				cfg.Database = DatabaseConfig{
