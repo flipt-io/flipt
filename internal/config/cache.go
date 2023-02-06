@@ -57,7 +57,7 @@ func (c *CacheConfig) deprecations(v *viper.Viper) []deprecation {
 		deprecations = append(deprecations, deprecation{
 
 			option:            "cache.memory.enabled",
-			additionalMessage: deprecatedMsgCaceMemoryEnabled,
+			additionalMessage: deprecatedMsgCacheMemoryEnabled,
 		})
 	}
 
