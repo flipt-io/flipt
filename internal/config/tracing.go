@@ -16,6 +16,7 @@ type TracingConfig struct {
 	Backend TracingBackend      `json:"backend,omitempty" mapstructure:"backend"`
 	Jaeger  JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
 	Zipkin  ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin"`
+	OTLP    OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) {
@@ -29,6 +30,9 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) {
 		},
 		"zipkin": map[string]any{
 			"endpoint": "http://localhost:9411/api/v2/spans",
+		},
+		"otlp": map[string]any{
+			"endpoint": "localhost:4317",
 		},
 	})
 
@@ -69,17 +73,21 @@ const (
 	TracingJaeger
 	// TracingZipkin ...
 	TracingZipkin
+	// TracingOTLP ...
+	TracingOTLP
 )
 
 var (
 	tracingBackendToString = map[TracingBackend]string{
 		TracingJaeger: "jaeger",
 		TracingZipkin: "zipkin",
+		TracingOTLP:   "otlp",
 	}
 
 	stringToTracingBackend = map[string]TracingBackend{
 		"jaeger": TracingJaeger,
 		"zipkin": TracingZipkin,
+		"otlp":   TracingOTLP,
 	}
 )
 
@@ -93,5 +101,11 @@ type JaegerTracingConfig struct {
 // ZipkinTracingConfig contains fields, which configure
 // Zipkin span and tracing output destination.
 type ZipkinTracingConfig struct {
+	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint"`
+}
+
+// OTLPTracingConfig contains fields, which configure
+// OTLP span and tracing output destination.
+type OTLPTracingConfig struct {
 	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint"`
 }

@@ -27,6 +27,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -147,6 +149,12 @@ func NewGRPCServer(
 			))
 		case config.TracingZipkin:
 			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
+		case config.TracingOTLP:
+			// TODO: support additional options
+			client := otlptracegrpc.NewClient(
+				otlptracegrpc.WithEndpoint(cfg.Tracing.OTLP.Endpoint),
+				otlptracegrpc.WithInsecure()) // TODO: support TLS
+			exp, err = otlptrace.New(ctx, client)
 		}
 
 		if err != nil {
