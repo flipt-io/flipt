@@ -29,7 +29,7 @@ services:
     environment:
       - "FLIPT_LOG_LEVEL=debug"
       - "FLIPT_TRACING_ENABLED=true"
-      - "FLIPT_TRACING_EXPORTER=jaeger"
+      - "FLIPT_TRACING_BACKEND=jaeger"
       - "FLIPT_TRACING_JAEGER_HOST=jaeger"
 
 networks:
