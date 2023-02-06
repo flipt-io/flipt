@@ -42,6 +42,7 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) {
 	if v.GetBool("cache.memory.enabled") {
 		// forcibly set top-level `enabled` to true
 		v.Set("cache.enabled", true)
+		v.Set("cache.backend", CacheMemory)
 		// ensure ttl is mapped to the value at memory.expiration
 		v.RegisterAlias("cache.ttl", "cache.memory.expiration")
 		// ensure ttl default is set
@@ -56,14 +57,14 @@ func (c *CacheConfig) deprecations(v *viper.Viper) []deprecation {
 		deprecations = append(deprecations, deprecation{
 
 			option:            "cache.memory.enabled",
-			additionalMessage: deprecatedMsgMemoryEnabled,
+			additionalMessage: deprecatedMsgCacheMemoryEnabled,
 		})
 	}
 
 	if v.InConfig("cache.memory.expiration") {
 		deprecations = append(deprecations, deprecation{
 			option:            "cache.memory.expiration",
-			additionalMessage: deprecatedMsgMemoryExpiration,
+			additionalMessage: deprecatedMsgCacheMemoryExpiration,
 		})
 	}
 

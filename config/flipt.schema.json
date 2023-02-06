@@ -206,6 +206,11 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "deprecated": true
+            },
             "eviction_interval": {
               "oneOf": [
                 {
@@ -217,6 +222,19 @@
                 }
               ],
               "default": "5m"
+            },
+            "expiration": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": "60s",
+              "deprecated": true
             }
           },
           "required": [],
@@ -417,13 +435,23 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "backend": {
+          "type": "string",
+          "enum": ["jaeger"],
+          "default": "jaeger"
+        },
         "jaeger": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
-              "default": false
+              "default": false,
+              "deprecated": true
             },
             "host": {
               "type": "string",
@@ -445,7 +473,8 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "deprecated": true
         }
       },
       "title": "UI"

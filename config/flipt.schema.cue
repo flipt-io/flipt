@@ -74,7 +74,9 @@ import "strings"
 
 		// Memory
 		memory?: {
+			enabled?: bool | *false
 			eviction_interval?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"5m"
+			expiration?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
 		}
 	}
 
@@ -129,6 +131,9 @@ import "strings"
 	}
 
 	#tracing: {
+		enabled?: bool | *false
+		backend?: "jaeger" | *"jaeger"
+
 		// Jaeger
 		jaeger?: {
 			enabled?: bool | *false

@@ -32,6 +32,28 @@ Description.
 
 -->
 
+### tracing.jaeger.enabled
+
+> since [UNRELEASED]()
+
+Enabling OpenTelemetry tracing with the Jaeger expoerter via `tracing.jaeger` is deprecated in favor of setting the `tracing.backend` to `jaeger` and `tracing.enabled` to `true`.
+
+=== Before
+
+    ``` yaml
+    tracing:
+      jaeger:
+        enabled: true
+    ```
+
+=== After
+
+    ``` yaml
+    tracing:
+      enabled: true
+      backend: jaeger
+    ```
+
 ### ui.enabled
 
 > since [v1.17.0](https://github.com/flipt-io/flipt/releases/tag/v1.17.0)

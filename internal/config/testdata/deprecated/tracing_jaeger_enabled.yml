@@ -1,0 +1,3 @@
+tracing:
+  jaeger:
+    enabled: true
