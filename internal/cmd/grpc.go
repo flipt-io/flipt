@@ -139,7 +139,7 @@ func NewGRPCServer(
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
 
-		switch cfg.Tracing.Exporter {
+		switch cfg.Tracing.Backend {
 		case config.TracingJaeger:
 			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
 				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
@@ -150,7 +150,7 @@ func NewGRPCServer(
 		}
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("creating exporter: %w", err)
 		}
 
 		tracingProvider = tracesdk.NewTracerProvider(
@@ -166,7 +166,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
+		logger.Debug("otel tracing enabled", zap.String("backend", cfg.Tracing.Backend.String()))
 		server.onShutdown(func(ctx context.Context) error {
 			return tracingProvider.Shutdown(ctx)
 		})

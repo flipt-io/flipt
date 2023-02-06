@@ -18,7 +18,7 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 	stringToSliceHookFunc(),
 	stringToEnumHookFunc(stringToLogEncoding),
 	stringToEnumHookFunc(stringToCacheBackend),
-	stringToEnumHookFunc(stringToTracingExporter),
+	stringToEnumHookFunc(stringToTracingBackend),
 	stringToEnumHookFunc(stringToScheme),
 	stringToEnumHookFunc(stringToDatabaseProtocol),
 	stringToEnumHookFunc(stringToAuthMethod),
