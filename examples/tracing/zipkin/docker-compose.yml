@@ -9,7 +9,7 @@ services:
       - flipt_network
 
   flipt:
-    image: flipt/flipt:dev
+    build: ../../..
     depends_on:
       - zipkin
     ports:
