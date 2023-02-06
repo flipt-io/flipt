@@ -157,7 +157,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("exporter", "jaeger"))
+		logger.Debug("otel tracing enabled", zap.String("backend", "jaeger"))
 	}
 
 	otel.SetTracerProvider(tracingProvider)
