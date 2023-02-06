@@ -259,7 +259,7 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 			warnings: []string{
-				"\"tracing.jaeger.enabled\" is deprecated and will be removed in a future version. Please use 'tracing.enabled' and 'tracing.exporter' instead.",
+				"\"tracing.jaeger.enabled\" is deprecated and will be removed in a future version. Please use 'tracing.enabled' and 'tracing.backend' instead.",
 			},
 		},
 		{
