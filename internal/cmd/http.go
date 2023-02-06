@@ -84,7 +84,7 @@ func NewHTTPServer(
 	// TODO: replace with more robust 'mode' detection
 	if !info.IsDevelopment() {
 		r.Use(middleware.SetHeader("X-Content-Type-Options", "nosniff"))
-		r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src * data:;"))
+		r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src * data:; frame-ancestors 'none';"))
 	}
 
 	r.Use(middleware.RequestID)
