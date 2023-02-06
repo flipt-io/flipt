@@ -135,7 +135,7 @@ func NewGRPCServer(
 
 	var tracingProvider = trace.NewNoopTracerProvider()
 
-	if cfg.Tracing.Enabled && cfg.Tracing.Exporter == config.TracingJaeger {
+	if cfg.Tracing.Enabled && cfg.Tracing.Backend == config.TracingJaeger {
 		exp, err := jaeger.New(jaeger.WithAgentEndpoint(
 			jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
 			jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),

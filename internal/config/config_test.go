@@ -208,8 +208,8 @@ func defaultConfig() *Config {
 		},
 
 		Tracing: TracingConfig{
-			Enabled:  false,
-			Exporter: TracingJaeger,
+			Enabled: false,
+			Backend: TracingJaeger,
 			Jaeger: JaegerTracingConfig{
 				Host: jaeger.DefaultUDPSpanServerHost,
 				Port: jaeger.DefaultUDPSpanServerPort,
@@ -255,7 +255,7 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := defaultConfig()
 				cfg.Tracing.Enabled = true
-				cfg.Tracing.Exporter = TracingJaeger
+				cfg.Tracing.Backend = TracingJaeger
 				return cfg
 			},
 			warnings: []string{
@@ -469,8 +469,8 @@ func TestLoad(t *testing.T) {
 					CertKey:   "./testdata/ssl_key.pem",
 				}
 				cfg.Tracing = TracingConfig{
-					Enabled:  true,
-					Exporter: TracingJaeger,
+					Enabled: true,
+					Backend: TracingJaeger,
 					Jaeger: JaegerTracingConfig{
 						Host: "localhost",
 						Port: 6831,
