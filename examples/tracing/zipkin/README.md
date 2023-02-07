@@ -1,6 +1,6 @@
 # Zipkin Example
 
-This example shows how you can run Flipt with a Zipkin sidecar application in Docker.
+This example shows how you can run Flipt with a Zipkin application in Docker.
 
 !['Zipkin Example'](../../images/zipkin.png)
 
