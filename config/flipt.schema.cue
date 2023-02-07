@@ -132,7 +132,7 @@ import "strings"
 
 	#tracing: {
 		enabled?: bool | *false
-		backend?: "jaeger" | "zipkin" | *"jaeger"
+		exporter?: "jaeger" | "zipkin" | "otlp" | *"jaeger"
 
 		// Jaeger
 		jaeger?: {

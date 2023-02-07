@@ -439,9 +439,9 @@
           "type": "boolean",
           "default": false
         },
-        "backend": {
+        "exporter": {
           "type": "string",
-          "enum": ["jaeger", "zipkin"],
+          "enum": ["jaeger", "zipkin", "otlp"],
           "default": "jaeger"
         },
         "jaeger": {

@@ -39,7 +39,7 @@
 
 # tracing:
 #   enabled: false
-#   backend: jaeger
+#   exporter: jaeger
 #   jaeger:
 #     host: localhost
 #     port: 6831

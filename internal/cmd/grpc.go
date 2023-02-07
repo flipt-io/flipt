@@ -141,7 +141,7 @@ func NewGRPCServer(
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
 
-		switch cfg.Tracing.Backend {
+		switch cfg.Tracing.Exporter {
 		case config.TracingJaeger:
 			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
 				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
@@ -150,10 +150,11 @@ func NewGRPCServer(
 		case config.TracingZipkin:
 			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
 		case config.TracingOTLP:
-			// TODO: support additional options
+			// TODO: support additional configuration options
 			client := otlptracegrpc.NewClient(
 				otlptracegrpc.WithEndpoint(cfg.Tracing.OTLP.Endpoint),
-				otlptracegrpc.WithInsecure()) // TODO: support TLS
+				// TODO: support TLS
+				otlptracegrpc.WithInsecure())
 			exp, err = otlptrace.New(ctx, client)
 		}
 
@@ -174,7 +175,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("backend", cfg.Tracing.Backend.String()))
+		logger.Debug("otel tracing enabled", zap.String("backend", cfg.Tracing.Exporter.String()))
 		server.onShutdown(func(ctx context.Context) error {
 			return tracingProvider.Shutdown(ctx)
 		})

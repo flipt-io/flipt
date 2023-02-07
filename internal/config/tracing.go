@@ -12,17 +12,17 @@ var _ defaulter = (*TracingConfig)(nil)
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.
 type TracingConfig struct {
-	Enabled bool                `json:"enabled,omitempty" mapstructure:"enabled"`
-	Backend TracingBackend      `json:"backend,omitempty" mapstructure:"backend"`
-	Jaeger  JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
-	Zipkin  ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin"`
-	OTLP    OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp"`
+	Enabled  bool                `json:"enabled,omitempty" mapstructure:"enabled"`
+	Exporter TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter"`
+	Jaeger   JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
+	Zipkin   ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin"`
+	OTLP     OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("tracing", map[string]any{
-		"enabled": false,
-		"backend": TracingJaeger,
+		"enabled":  false,
+		"exporter": TracingJaeger,
 		"jaeger": map[string]any{
 			"enabled": false, // deprecated (see below)
 			"host":    "localhost",
@@ -39,7 +39,7 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) {
 	if v.GetBool("tracing.jaeger.enabled") {
 		// forcibly set top-level `enabled` to true
 		v.Set("tracing.enabled", true)
-		v.Set("tracing.backend", TracingJaeger)
+		v.Set("tracing.exporter", TracingJaeger)
 	}
 }
 
@@ -56,19 +56,19 @@ func (c *TracingConfig) deprecations(v *viper.Viper) []deprecation {
 	return deprecations
 }
 
-// TracingBackend represents the supported tracing backends
-type TracingBackend uint8
+// TracingExporter represents the supported tracing exporters.
+type TracingExporter uint8
 
-func (e TracingBackend) String() string {
-	return tracingBackendToString[e]
+func (e TracingExporter) String() string {
+	return tracingExporterToString[e]
 }
 
-func (e TracingBackend) MarshalJSON() ([]byte, error) {
+func (e TracingExporter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
 const (
-	_ TracingBackend = iota
+	_ TracingExporter = iota
 	// TracingJaeger ...
 	TracingJaeger
 	// TracingZipkin ...
@@ -78,13 +78,13 @@ const (
 )
 
 var (
-	tracingBackendToString = map[TracingBackend]string{
+	tracingExporterToString = map[TracingExporter]string{
 		TracingJaeger: "jaeger",
 		TracingZipkin: "zipkin",
 		TracingOTLP:   "otlp",
 	}
 
-	stringToTracingBackend = map[string]TracingBackend{
+	stringToTracingExporter = map[string]TracingExporter{
 		"jaeger": TracingJaeger,
 		"zipkin": TracingZipkin,
 		"otlp":   TracingOTLP,

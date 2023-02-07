@@ -7,7 +7,7 @@ import (
 
 const (
 	// additional deprecation messages
-	deprecatedMsgTracingJaegerEnabled  = `Please use 'tracing.enabled' and 'tracing.backend' instead.`
+	deprecatedMsgTracingJaegerEnabled  = `Please use 'tracing.enabled' and 'tracing.exporter' instead.`
 	deprecatedMsgCacheMemoryEnabled    = `Please use 'cache.enabled' and 'cache.backend' instead.`
 	deprecatedMsgCacheMemoryExpiration = `Please use 'cache.ttl' instead.`
 	deprecatedMsgDatabaseMigrations    = `Migrations are now embedded within Flipt and are no longer required on disk.`
