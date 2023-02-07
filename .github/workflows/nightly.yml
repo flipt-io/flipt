@@ -98,6 +98,6 @@ jobs:
           curl -s -o openapi.yaml https://raw.githubusercontent.com/flipt-io/flipt-openapi/main/openapi.yml
 
       - name: Run HawkScan
-        uses: stackhawk/hawkscan-action@v2
+        uses: stackhawk/hawkscan-action@v2.0.1
         with:
           apiKey: ${{ secrets.HAWK_API_KEY }}
