@@ -1,0 +1,18 @@
+# -- stackhawk configuration for Flipt --
+app:
+  applicationId: 5ee57432-1f9f-44fb-9e65-c17c65a4ade6 # (required)
+  env: Development # (required)
+  host: http://localhost:8080 # (required)
+  openApiConf:
+    filePath: openapi.yml # (required)
+
+# -- Customized Configuration for GraphQL/SOAP/OpenAPI, add here --
+# Configuration Docs: https://docs.stackhawk.com/hawkscan/configuration/
+
+# -- If Authenticated Scanning is needed, add here --
+# Authenticated Scanning Docs: https://docs.stackhawk.com/hawkscan/authenticated-scanning.html
+# Authenticated Scanning Repo: https://github.com/kaakaww/scan-configuration/tree/main/Authentication
+
+# -- Help Section --
+# Docs: https://docs.stackhawk.com/
+# Contact Support: support@stackhawk.com

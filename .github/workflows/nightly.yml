@@ -79,3 +79,25 @@ jobs:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
+
+  stackhawk:
+    name: HawkScan
+    runs-on: ubuntu-latest
+    needs: release
+    services:
+      flipt:
+        image: flipt/flipt:nightly # <-- this is the image name from the previous job
+        ports:
+          - 8080:8080
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download OpenAPI Spec
+        run: |
+          curl -s -o openapi.yaml https://raw.githubusercontent.com/flipt-io/flipt-openapi/main/openapi.yml
+
+      - name: Run HawkScan
+        uses: stackhawk/hawkscan-action@v2
+        with:
+          apiKey: ${{ secrets.HAWK_API_KEY }}
