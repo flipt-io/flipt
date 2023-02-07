@@ -175,7 +175,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("backend", cfg.Tracing.Exporter.String()))
+		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 		server.onShutdown(func(ctx context.Context) error {
 			return tracingProvider.Shutdown(ctx)
 		})
