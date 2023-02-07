@@ -145,6 +145,11 @@ import "strings"
 		zipkin?: {
 			endpoint?:    string | *"http://localhost:9411/api/v2/spans"
 		}
+
+		// OTLP
+		otlp?: {
+			endpoint?:    string | *"localhost:4317"
+		}
 	}
 
 	#ui: enabled?: bool | *true
