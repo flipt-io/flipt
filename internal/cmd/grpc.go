@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
+	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
@@ -26,11 +27,11 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -133,15 +134,23 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("driver", driver))
 
-	var tracingProvider = trace.NewNoopTracerProvider()
+	var tracingProvider = fliptotel.NewNoopProvider()
 
-	if cfg.Tracing.Enabled && cfg.Tracing.Backend == config.TracingJaeger {
-		exp, err := jaeger.New(jaeger.WithAgentEndpoint(
-			jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
-			jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
-		))
+	if cfg.Tracing.Enabled {
+		var exp tracesdk.SpanExporter
+
+		switch cfg.Tracing.Backend {
+		case config.TracingJaeger:
+			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
+				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
+				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
+			))
+		case config.TracingZipkin:
+			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
+		}
+
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("creating exporter: %w", err)
 		}
 
 		tracingProvider = tracesdk.NewTracerProvider(
@@ -157,7 +166,10 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("backend", "jaeger"))
+		logger.Debug("otel tracing enabled", zap.String("backend", cfg.Tracing.Backend.String()))
+		server.onShutdown(func(ctx context.Context) error {
+			return tracingProvider.Shutdown(ctx)
+		})
 	}
 
 	otel.SetTracerProvider(tracingProvider)

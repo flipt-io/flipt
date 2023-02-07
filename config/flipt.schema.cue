@@ -132,13 +132,18 @@ import "strings"
 
 	#tracing: {
 		enabled?: bool | *false
-		backend?: "jaeger" | *"jaeger"
+		backend?: "jaeger" | "zipkin" | *"jaeger"
 
 		// Jaeger
 		jaeger?: {
 			enabled?: bool | *false
 			host?:    string | *"localhost"
 			port?:    int | *6831
+		}
+
+		// Zipkin
+		zipkin?: {
+			endpoint?:    string | *"http://localhost:9411/api/v2/spans"
 		}
 	}
 

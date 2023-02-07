@@ -90,6 +90,7 @@ Flipt supports use cases such as:
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis... Flipt supports it all.
+- :eyes: **Observability** - Flipt integrates with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) to provide metrics and tracing. We support sending trace data to [Jaeger](https://www.jaegertracing.io/) and [Zipkin](https://zipkin.io/) backends.
 
 <br clear="both"/>
 

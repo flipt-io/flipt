@@ -15,6 +15,7 @@ type TracingConfig struct {
 	Enabled bool                `json:"enabled,omitempty" mapstructure:"enabled"`
 	Backend TracingBackend      `json:"backend,omitempty" mapstructure:"backend"`
 	Jaeger  JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
+	Zipkin  ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) {
@@ -25,6 +26,9 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) {
 			"enabled": false, // deprecated (see below)
 			"host":    "localhost",
 			"port":    6831,
+		},
+		"zipkin": map[string]any{
+			"endpoint": "http://localhost:9411/api/v2/spans",
 		},
 	})
 
@@ -63,21 +67,31 @@ const (
 	_ TracingBackend = iota
 	// TracingJaeger ...
 	TracingJaeger
+	// TracingZipkin ...
+	TracingZipkin
 )
 
 var (
 	tracingBackendToString = map[TracingBackend]string{
 		TracingJaeger: "jaeger",
+		TracingZipkin: "zipkin",
 	}
 
 	stringToTracingBackend = map[string]TracingBackend{
 		"jaeger": TracingJaeger,
+		"zipkin": TracingZipkin,
 	}
 )
 
-// JaegerTracingConfig contains fields, which configure specifically
+// JaegerTracingConfig contains fields, which configure
 // Jaeger span and tracing output destination.
 type JaegerTracingConfig struct {
 	Host string `json:"host,omitempty" mapstructure:"host"`
 	Port int    `json:"port,omitempty" mapstructure:"port"`
+}
+
+// ZipkinTracingConfig contains fields, which configure
+// Zipkin span and tracing output destination.
+type ZipkinTracingConfig struct {
+	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint"`
 }

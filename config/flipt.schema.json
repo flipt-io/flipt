@@ -441,7 +441,7 @@
         },
         "backend": {
           "type": "string",
-          "enum": ["jaeger"],
+          "enum": ["jaeger", "zipkin"],
           "default": "jaeger"
         },
         "jaeger": {
@@ -463,6 +463,17 @@
             }
           },
           "title": "Jaeger"
+        },
+        "zipkin": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "default": "http://localhost:9411/api/v2/spans"
+            }
+          },
+          "title": "Zipkin"
         }
       },
       "title": "Tracing"
