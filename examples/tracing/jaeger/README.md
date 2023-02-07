@@ -1,6 +1,6 @@
 # Jaeger Example
 
-This example shows how you can run Flipt with a Jaeger sidecar application in Docker.
+This example shows how you can run Flipt with a Jaeger application in Docker.
 
 !['Jaeger Example'](../../images/jaeger.jpg)
 
