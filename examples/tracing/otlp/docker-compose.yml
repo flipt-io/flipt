@@ -35,6 +35,7 @@ services:
 
   flipt:
     build: ../../..
+    command: ["./flipt", "--force-migrate"]
     depends_on:
       - otel
     ports:

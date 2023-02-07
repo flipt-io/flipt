@@ -22,7 +22,7 @@ services:
     environment:
       - FLIPT_DB_URL=cockroach://root@crdb:26257/defaultdb?sslmode=disable
       - FLIPT_LOG_LEVEL=debug
-    command: ["./tmp/wait-for-it.sh", "crdb:26257", "--", "./flipt"]
+    command: ["./tmp/wait-for-it.sh", "crdb:26257", "--", "./flipt", "--force-migrate"]
 
 networks:
   flipt_network:

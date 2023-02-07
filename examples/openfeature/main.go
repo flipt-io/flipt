@@ -164,6 +164,6 @@ func main() {
 	log.Println("Flipt UI available at http://localhost:8080")
 	log.Println("Demo API available at http://localhost:8000/api")
 	log.Println("Jaeger UI available at http://localhost:16686")
-	log.Print("\n -> run 'curl http://localhost:8000/api/greeting?user=xyz'\n")
+	log.Print("\n -> run 'curl \"http://localhost:8000/api/greeting?user=xyz\"'\n")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
