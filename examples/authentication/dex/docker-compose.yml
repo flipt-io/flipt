@@ -12,6 +12,7 @@ services:
       - flipt_network
   flipt:
     image: flipt/flipt:latest
+    command: ["./flipt", "--force-migrate"]
     ports:
       - "8080:8080"
     volumes:

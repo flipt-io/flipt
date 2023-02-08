@@ -10,6 +10,7 @@ services:
 
   flipt:
     build: ../../..
+    command: ["./flipt", "--force-migrate"]
     depends_on:
       - zipkin
     ports:
@@ -19,7 +20,7 @@ services:
     environment:
       - "FLIPT_LOG_LEVEL=debug"
       - "FLIPT_TRACING_ENABLED=true"
-      - "FLIPT_TRACING_BACKEND=zipkin"
+      - "FLIPT_TRACING_EXPORTER=zipkin"
       - "FLIPT_TRACING_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans"
 
 networks:

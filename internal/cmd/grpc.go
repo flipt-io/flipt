@@ -27,6 +27,8 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -139,7 +141,7 @@ func NewGRPCServer(
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
 
-		switch cfg.Tracing.Backend {
+		switch cfg.Tracing.Exporter {
 		case config.TracingJaeger:
 			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
 				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
@@ -147,6 +149,13 @@ func NewGRPCServer(
 			))
 		case config.TracingZipkin:
 			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
+		case config.TracingOTLP:
+			// TODO: support additional configuration options
+			client := otlptracegrpc.NewClient(
+				otlptracegrpc.WithEndpoint(cfg.Tracing.OTLP.Endpoint),
+				// TODO: support TLS
+				otlptracegrpc.WithInsecure())
+			exp, err = otlptrace.New(ctx, client)
 		}
 
 		if err != nil {
@@ -166,7 +175,7 @@ func NewGRPCServer(
 			tracesdk.WithSampler(tracesdk.AlwaysSample()),
 		)
 
-		logger.Debug("otel tracing enabled", zap.String("backend", cfg.Tracing.Backend.String()))
+		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 		server.onShutdown(func(ctx context.Context) error {
 			return tracingProvider.Shutdown(ctx)
 		})

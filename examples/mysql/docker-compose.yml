@@ -22,7 +22,7 @@ services:
     environment:
       - FLIPT_DB_URL=mysql://mysql:password@mysql:3306/flipt
       - FLIPT_LOG_LEVEL=debug
-    command: ["./tmp/wait-for-it.sh", "mysql:3306", "--", "./flipt"]
+    command: ["./tmp/wait-for-it.sh", "mysql:3306", "--", "./flipt", "--force-migrate"]
 
 networks:
   flipt_network:

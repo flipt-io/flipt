@@ -439,9 +439,9 @@
           "type": "boolean",
           "default": false
         },
-        "backend": {
+        "exporter": {
           "type": "string",
-          "enum": ["jaeger", "zipkin"],
+          "enum": ["jaeger", "zipkin", "otlp"],
           "default": "jaeger"
         },
         "jaeger": {
@@ -474,6 +474,17 @@
             }
           },
           "title": "Zipkin"
+        },
+        "otlp": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "default": "localhost:4317"
+            }
+          },
+          "title": "OTLP"
         }
       },
       "title": "Tracing"

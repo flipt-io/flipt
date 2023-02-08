@@ -12,6 +12,7 @@ services:
 
   flipt:
     image: flipt/flipt:latest
+    command: ["./flipt", "--force-migrate"]
     depends_on:
       - prometheus
     ports:
