@@ -97,6 +97,11 @@ jobs:
         run: |
           curl -s -o openapi.yml https://raw.githubusercontent.com/flipt-io/flipt-openapi/main/openapi.yml
 
+      - name: Update HawkScan Configuration
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.app.env = "Nightly"' stackhawk.yml
+
       - name: Run HawkScan
         uses: stackhawk/hawkscan-action@v2.0.1
         with:
