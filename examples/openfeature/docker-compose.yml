@@ -21,7 +21,6 @@ services:
       - flipt_network
     environment:
       - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_TELMETRY_ENABLED=false"
       - "FLIPT_TRACING_ENABLED=true"
       - "FLIPT_TRACING_EXPORTER=jaeger"
       - "FLIPT_TRACING_JAEGER_HOST=jaeger"

@@ -61,7 +61,7 @@ import "strings"
 
 	#cache: {
 		enabled?: bool | *false
-		backend?: "memory" | "redis" | *"memory"
+		backend?: *"memory" | "redis"
 		ttl?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
 
 		// Redis
@@ -74,9 +74,9 @@ import "strings"
 
 		// Memory
 		memory?: {
-			enabled?: bool | *false
+			enabled?:           bool | *false
 			eviction_interval?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"5m"
-			expiration?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
+			expiration?:        =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
 		}
 	}
 
@@ -87,7 +87,7 @@ import "strings"
 
 	#db: {
 		url?:               string | *"file:/var/opt/flipt/flipt.db"
-		protocol?:          "cockroach" | "cockroachdb" | "file" | "mysql" | "postgres" | "sqlite"
+		protocol?:          *"sqlite" | "cockroach" | "cockroachdb" | "file" | "mysql" | "postgres"
 		host?:              string
 		port?:              int
 		name?:              string
@@ -102,12 +102,12 @@ import "strings"
 	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
 	#log: {
 		file?:       string
-		encoding?:   "json" | "console" | *"console"
+		encoding?:   *"console" | "json"
 		level?:      #log.#log_level
 		grpc_level?: #log.#log_level
 		keys?: {
-			time?:   string | *"T"
-			level?:  string | *"L"
+			time?:    string | *"T"
+			level?:   string | *"L"
 			message?: string | *"M"
 		}
 
@@ -121,7 +121,7 @@ import "strings"
 	}
 
 	#server: {
-		protocol?:   "http" | "https" | *"http"
+		protocol?:   *"http" | "https"
 		host?:       string | *"0.0.0.0"
 		https_port?: int | *443
 		http_port?:  int | *8080
@@ -131,7 +131,7 @@ import "strings"
 	}
 
 	#tracing: {
-		enabled?: bool | *false
+		enabled?:  bool | *false
 		exporter?: *"jaeger" | "zipkin" | "otlp"
 
 		// Jaeger
@@ -143,12 +143,12 @@ import "strings"
 
 		// Zipkin
 		zipkin?: {
-			endpoint?:    string | *"http://localhost:9411/api/v2/spans"
+			endpoint?: string | *"http://localhost:9411/api/v2/spans"
 		}
 
 		// OTLP
 		otlp?: {
-			endpoint?:    string | *"localhost:4317"
+			endpoint?: string | *"localhost:4317"
 		}
 	}
 
