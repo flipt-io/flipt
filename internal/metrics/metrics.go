@@ -36,7 +36,7 @@ func MustInt64() MustInt64Meter {
 // MustInt64Meter is a meter/Meter which panics if it cannot successfully build the
 // requestd counter, upDownCounter or histogram.
 type MustInt64Meter interface {
-	// ounter returns a new instrument identified by name and configured
+	// Counter returns a new instrument identified by name and configured
 	// with options. The instrument is used to synchronously record increasing
 	// int64 measurements during a computational operation.
 	Counter(name string, options ...instrument.Int64Option) instrument.Int64Counter
@@ -92,7 +92,7 @@ func MustFloat64() MustFloat64Meter {
 // MustFloat64Meter is a meter/Meter which panics if it cannot successfully build the
 // requestd counter, upDownCounter or histogram.
 type MustFloat64Meter interface {
-	// ounter returns a new instrument identified by name and configured
+	// Counter returns a new instrument identified by name and configured
 	// with options. The instrument is used to synchronously record increasing
 	// float64 measurements during a computational operation.
 	Counter(name string, options ...instrument.Float64Option) instrument.Float64Counter
