@@ -65,6 +65,7 @@ func TestCleanup(t *testing.T) {
 	})
 
 	for _, info := range authConfig.Methods.AllMethods() {
+		info := info
 		t.Run(fmt.Sprintf("Authentication Method %q", info.Method), func(t *testing.T) {
 			t.Run("create an expiring token and ensure it exists", func(t *testing.T) {
 				clientToken, storedAuth, err = authstore.CreateAuthentication(
