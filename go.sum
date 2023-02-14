@@ -119,8 +119,8 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=
-github.com/XSAM/otelsql v0.18.0 h1:n9PcapiW6W801A4QgYG2ArfY2JwnWduXorRlZqucVhM=
-github.com/XSAM/otelsql v0.18.0/go.mod h1:M0w5PR/rB7GdEBiHsJ9C91NEKkD2uWFcKj+l5xj8K+c=
+github.com/XSAM/otelsql v0.19.0 h1:ggoHKrQMT7nBg3zQBDmASeytVp56BpG2yx7T8SXQFYc=
+github.com/XSAM/otelsql v0.19.0/go.mod h1:YlF8cCdVv0Pol37Nsf1UFneWqNOdqK5X1azLJN6c8zA=
 github.com/ajstarks/svgo v0.0.0-20180226025133-644b8db467af/go.mod h1:K08gAheRH3/J6wwsYMMT4xOr94bZjxIelGM0+d/wbFw=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
