@@ -186,13 +186,13 @@ type StaticAuthenticationMethodInfo struct {
 }
 
 // Enable can only be called in a testing scenario.
-// It us used to enable a target method without having the concrete reference.
+// It is used to enable a target method without having a concrete reference.
 func (s StaticAuthenticationMethodInfo) Enable(t *testing.T) {
 	s.setEnabled()
 }
 
 // SetCleanup can only be called in a testing scenario.
-// It us used to configure cleanup for a target method without having the concrete reference.
+// It is used to configure cleanup for a target method without having a concrete reference.
 func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c AuthenticationCleanupSchedule) {
 	s.setCleanup(c)
 }

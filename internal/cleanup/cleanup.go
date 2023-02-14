@@ -44,7 +44,7 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 	for _, info := range s.config.Methods.AllMethods() {
 		logger := s.logger.With(zap.Stringer("method", info.Method))
 		if info.Cleanup == nil {
-			logger.Info("Cleanup for auth method not defined (skipping)")
+			logger.Debug("Cleanup for auth method not defined (skipping)")
 			continue
 		}
 
@@ -85,7 +85,7 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 				acquiredUntil = entry.AcquiredUntil
 
 				if !acquired {
-					logger.Info("cleanup process not acquired", zap.Time("next_attempt", entry.AcquiredUntil))
+					logger.Debug("cleanup process not acquired", zap.Time("next_attempt", entry.AcquiredUntil))
 					continue
 				}
 
