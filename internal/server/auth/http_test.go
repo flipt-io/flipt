@@ -48,7 +48,7 @@ func TestErrorHandler(t *testing.T) {
 	)
 
 	middleware.defaultErrHandler = func(ctx context.Context, sm *runtime.ServeMux, m runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
-		w.Write([]byte(defaultResponseBody))
+		_, _ = w.Write([]byte(defaultResponseBody))
 	}
 
 	req := httptest.NewRequest(http.MethodPut, "http://www.your-domain.com/auth/v1/self/expire", nil)
