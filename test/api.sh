@@ -376,7 +376,7 @@ step_10_test_auths()
 
         # expiring self token should return 200
         authedShakedown PUT "/auth/v1/self/expire"
-        header_matches "Set-Cookie" "flipt_client_token=.*Max-Age=-1"
+        header_matches "Set-Cookie" "flipt_client_token=.*Max-Age=0"
         status 200
 
         # getting self using expired token should return 401
@@ -386,7 +386,7 @@ step_10_test_auths()
         # all attempts to use an expired cookie cause the cookie to be cleared
         # via Set-Cookie
         shakedownJSON GET '/auth/v1/self' -H "Cookie: flipt_client_token=${FLIPT_TOKEN}"
-        header_matches "Set-Cookie" "flipt_client_token=.*Max-Age=-1"
+        header_matches "Set-Cookie" "flipt_client_token=.*Max-Age=0"
         status 401
     else
         # there is no self when authentication is disabled
