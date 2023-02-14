@@ -8,7 +8,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	authstorage "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/oplock"
-	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -38,23 +37,20 @@ func NewAuthenticationService(logger *zap.Logger, lock oplock.Service, store aut
 	}
 }
 
-func (s *AuthenticationService) schedules() map[auth.Method]config.AuthenticationCleanupSchedule {
-	schedules := map[auth.Method]config.AuthenticationCleanupSchedule{}
-	if s.config.Methods.Token.Cleanup != nil {
-		schedules[auth.Method_METHOD_TOKEN] = *s.config.Methods.Token.Cleanup
-	}
-
-	return schedules
-}
-
 // Run starts up a background goroutine per configure authentication method schedule.
 func (s *AuthenticationService) Run(ctx context.Context) {
 	ctx, s.cancel = context.WithCancel(ctx)
 
-	for method, schedule := range s.schedules() {
+	for _, info := range s.config.Methods.AllMethods() {
+		logger := s.logger.With(zap.Stringer("method", info.Method))
+		if info.Cleanup == nil {
+			logger.Info("Cleanup for auth method not defined (skipping)")
+			continue
+		}
+
 		var (
-			method    = method
-			schedule  = schedule
+			method    = info.Method
+			schedule  = info.Cleanup
 			operation = oplock.Operation(fmt.Sprintf("cleanup_auth_%s", method))
 		)
 
@@ -81,7 +77,7 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 						acquiredUntil = now.Add(minCleanupInterval)
 					}
 
-					s.logger.Warn("attempting to acquire lock", zap.Error(err))
+					logger.Warn("attempting to acquire lock", zap.Error(err))
 					continue
 				}
 
@@ -89,17 +85,17 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 				acquiredUntil = entry.AcquiredUntil
 
 				if !acquired {
-					s.logger.Info("cleanup process not acquired", zap.Time("next_attempt", entry.AcquiredUntil))
+					logger.Info("cleanup process not acquired", zap.Time("next_attempt", entry.AcquiredUntil))
 					continue
 				}
 
 				expiredBefore := time.Now().UTC().Add(-schedule.GracePeriod)
-				s.logger.Info("cleanup process deleting authentications", zap.Time("expired_before", expiredBefore))
+				logger.Info("cleanup process deleting authentications", zap.Time("expired_before", expiredBefore))
 				if err := s.store.DeleteAuthentications(ctx, authstorage.Delete(
 					authstorage.WithMethod(method),
 					authstorage.WithExpiredBefore(expiredBefore),
 				)); err != nil {
-					s.logger.Error("attempting to delete expired authentications", zap.Error(err))
+					logger.Error("attempting to delete expired authentications", zap.Error(err))
 				}
 			}
 		})
