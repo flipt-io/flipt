@@ -116,12 +116,13 @@ func authenticationHTTPMount(
 	conn *grpc.ClientConn,
 ) {
 	var (
-		muxOpts = []runtime.ServeMuxOption{
-			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
-		}
 		authmiddleware = auth.NewHTTPMiddleware(cfg.Session)
 		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
+		muxOpts        = []runtime.ServeMuxOption{
+			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),
+			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationServiceHandler),
+			runtime.WithErrorHandler(authmiddleware.ErrorHandler),
+		}
 	)
 
 	if cfg.Methods.Token.Enabled {

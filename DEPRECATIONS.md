@@ -34,7 +34,7 @@ Description.
 
 ### tracing.jaeger.enabled
 
-> since [UNRELEASED]()
+> since [v1.18.2](https://github.com/flipt-io/flipt/releases/tag/v1.18.2)
 
 Enabling OpenTelemetry tracing with the Jaeger expoerter via `tracing.jaeger` is deprecated in favor of setting the `tracing.exporter` to `jaeger` and `tracing.enabled` to `true`.
 

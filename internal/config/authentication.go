@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/spf13/viper"
@@ -164,7 +165,7 @@ type AuthenticationMethods struct {
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
-func (a AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 	return []StaticAuthenticationMethodInfo{
 		a.Token.Info(),
 		a.OIDC.Info(),
@@ -177,6 +178,23 @@ type StaticAuthenticationMethodInfo struct {
 	AuthenticationMethodInfo
 	Enabled bool
 	Cleanup *AuthenticationCleanupSchedule
+
+	// used for testing purposes to ensure all methods
+	// are appropriately cleaned up via the background process.
+	setEnabled func()
+	setCleanup func(AuthenticationCleanupSchedule)
+}
+
+// Enable can only be called in a testing scenario.
+// It is used to enable a target method without having a concrete reference.
+func (s StaticAuthenticationMethodInfo) Enable(t *testing.T) {
+	s.setEnabled()
+}
+
+// SetCleanup can only be called in a testing scenario.
+// It is used to configure cleanup for a target method without having a concrete reference.
+func (s StaticAuthenticationMethodInfo) SetCleanup(t *testing.T, c AuthenticationCleanupSchedule) {
+	s.setCleanup(c)
 }
 
 // AuthenticationMethodInfo is a structure which describes properties
@@ -211,11 +229,18 @@ type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
 	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
 }
 
-func (a AuthenticationMethod[C]) Info() StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethod[C]) Info() StaticAuthenticationMethodInfo {
 	return StaticAuthenticationMethodInfo{
 		AuthenticationMethodInfo: a.Method.Info(),
 		Enabled:                  a.Enabled,
 		Cleanup:                  a.Cleanup,
+
+		setEnabled: func() {
+			a.Enabled = true
+		},
+		setCleanup: func(c AuthenticationCleanupSchedule) {
+			a.Cleanup = &c
+		},
 	}
 }
 

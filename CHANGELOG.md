@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.18.2](https://github.com/flipt-io/flipt/releases/tag/v1.18.2) - 2023-02-14 :heart:
+
+### Added
+
+- OpenTelemetry: support for Zipkin exporter [#1323](https://github.com/flipt-io/flipt/pull/1323)
+- OpenTelemetry: support for OTLP exporter [#1324](https://github.com/flipt-io/flipt/pull/1324)
+
+### Changed
+
+- Deprecated `tracing.jaeger.enabled` [#1316](https://github.com/flipt-io/flipt/pull/1316)
+- Added `frame-ancestors` directive to `Content-Security-Policy` header [#1317](https://github.com/flipt-io/flipt/pull/1317)
+
+### Fixed
+
+- UI: Clear session if 401 is returned from server [ui #88](https://github.com/flipt-io/flipt-ui/pull/88)
+- Ensure all authentication methods are being cleaned up [#1337](https://github.com/flipt-io/flipt/pull/1337)
+- Ensure failed cookie auth attempt clears cookies [#1336](https://github.com/flipt-io/flipt/pull/1336)
+- 500 error when providing invalid base64 encoded page token [#1314](https://github.com/flipt-io/flipt/pull/1314)
+
 ## [v1.18.1](https://github.com/flipt-io/flipt/releases/tag/v1.18.1) - 2023-02-02
 
 ### Added

@@ -2,6 +2,7 @@ package cleanup
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -27,17 +28,18 @@ func TestCleanup(t *testing.T) {
 		authstore  = inmemauth.NewStore()
 		lock       = inmemoplock.New()
 		authConfig = config.AuthenticationConfig{
-			Methods: config.AuthenticationMethods{
-				Token: config.AuthenticationMethod[config.AuthenticationMethodTokenConfig]{
-					Enabled: true,
-					Cleanup: &config.AuthenticationCleanupSchedule{
-						Interval:    time.Second,
-						GracePeriod: 5 * time.Second,
-					},
-				},
-			},
+			Methods: config.AuthenticationMethods{},
 		}
 	)
+
+	// enable all methods and set their cleanup configuration
+	for _, info := range authConfig.Methods.AllMethods() {
+		info.Enable(t)
+		info.SetCleanup(t, config.AuthenticationCleanupSchedule{
+			Interval:    time.Second,
+			GracePeriod: 5 * time.Second,
+		})
+	}
 
 	// create an initial non-expiring token
 	clientToken, storedAuth, err := authstore.CreateAuthentication(
@@ -62,38 +64,43 @@ func TestCleanup(t *testing.T) {
 		assert.Equal(t, storedAuth, retrievedAuth)
 	})
 
-	t.Run("create an expiring token and ensure it exists", func(t *testing.T) {
-		clientToken, storedAuth, err = authstore.CreateAuthentication(
-			ctx,
-			&authstorage.CreateAuthenticationRequest{
-				Method:    auth.Method_METHOD_TOKEN,
-				ExpiresAt: timestamppb.New(time.Now().UTC().Add(5 * time.Second)),
-			},
-		)
-		require.NoError(t, err)
+	for _, info := range authConfig.Methods.AllMethods() {
+		info := info
+		t.Run(fmt.Sprintf("Authentication Method %q", info.Method), func(t *testing.T) {
+			t.Run("create an expiring token and ensure it exists", func(t *testing.T) {
+				clientToken, storedAuth, err = authstore.CreateAuthentication(
+					ctx,
+					&authstorage.CreateAuthenticationRequest{
+						Method:    info.Method,
+						ExpiresAt: timestamppb.New(time.Now().UTC().Add(5 * time.Second)),
+					},
+				)
+				require.NoError(t, err)
 
-		retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
-		require.NoError(t, err)
-		assert.Equal(t, storedAuth, retrievedAuth)
-	})
+				retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
+				require.NoError(t, err)
+				assert.Equal(t, storedAuth, retrievedAuth)
+			})
 
-	t.Run("ensure grace period protects token from being deleted", func(t *testing.T) {
-		// token should still exist as it wont be deleted until
-		// expiry + grace period (5s + 5s == 10s)
-		time.Sleep(5 * time.Second)
+			t.Run("ensure grace period protects token from being deleted", func(t *testing.T) {
+				// token should still exist as it wont be deleted until
+				// expiry + grace period (5s + 5s == 10s)
+				time.Sleep(5 * time.Second)
 
-		retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
-		require.NoError(t, err)
-		assert.Equal(t, storedAuth, retrievedAuth)
+				retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
+				require.NoError(t, err)
+				assert.Equal(t, storedAuth, retrievedAuth)
 
-		// ensure authentication is expired but still persisted
-		assert.True(t, retrievedAuth.ExpiresAt.AsTime().Before(time.Now().UTC()))
-	})
+				// ensure authentication is expired but still persisted
+				assert.True(t, retrievedAuth.ExpiresAt.AsTime().Before(time.Now().UTC()))
+			})
 
-	t.Run("once expiry and grace period ellapses ensure token is deleted", func(t *testing.T) {
-		time.Sleep(10 * time.Second)
+			t.Run("once expiry and grace period ellapses ensure token is deleted", func(t *testing.T) {
+				time.Sleep(10 * time.Second)
 
-		_, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
-		require.Error(t, err, "resource not found")
-	})
+				_, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
+				require.Error(t, err, "resource not found")
+			})
+		})
+	}
 }
