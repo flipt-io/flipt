@@ -3,8 +3,8 @@ syntax = "proto3";
 package flipt.auth;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/auth";
@@ -230,6 +230,25 @@ service AuthenticationMethodOIDCService {
       operation_id: "callback",
       description: "OIDC callback operation",
       tags: "authentication authentication_method oidc",
+    };
+  }
+}
+
+message VerifyServiceAccountRequest {
+  string service_account_token = 1;
+}
+
+message VerifyServiceAccountResponse {
+  string client_token = 1;
+  Authentication authentication = 2;
+}
+
+service AuthenticationMethodKubernetesService {
+  rpc VerifyServiceAccount(VerifyServiceAccountRequest) returns (VerifyServiceAccountResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "verify_service_account",
+      description: "Verify service account token and exchange for client token",
+      tags: "authentication authentication_method kubernetes",
     };
   }
 }
