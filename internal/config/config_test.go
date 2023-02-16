@@ -489,6 +489,28 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "authentication kubernetes defaults when enabled",
+			path: "./testdata/authentication/kubernetes.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Authentication.Methods = AuthenticationMethods{
+					Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
+						Enabled: true,
+						Method: AuthenticationMethodKubernetesConfig{
+							IssuerURL:               "https://kubernetes.default.svc",
+							CAPath:                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert",
+							ServiceAccountTokenPath: "/var/run/secrets/kubernetes.io/serviceaccount/token",
+						},
+						Cleanup: &AuthenticationCleanupSchedule{
+							Interval:    time.Hour,
+							GracePeriod: 30 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
 			name: "advanced",
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
@@ -578,6 +600,18 @@ func TestLoad(t *testing.T) {
 								},
 							},
 							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
+						Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
+							Enabled: true,
+							Method: AuthenticationMethodKubernetesConfig{
+								IssuerURL:               "https://some-other-k8s.namespace.svc",
+								CAPath:                  "/path/to/ca/certificate/ca.pem",
+								ServiceAccountTokenPath: "/path/to/sa/token",
+							},
 							Cleanup: &AuthenticationCleanupSchedule{
 								Interval:    2 * time.Hour,
 								GracePeriod: 48 * time.Hour,

@@ -65,3 +65,11 @@ authentication:
       cleanup:
         interval: 2h
         grace_period: 48h
+    kubernetes:
+      enabled: true
+      issuer_url: "https://some-other-k8s.namespace.svc"
+      ca_path: "/path/to/ca/certificate/ca.pem"
+      service_account_token_path: "/path/to/sa/token"
+      cleanup:
+        interval: 2h
+        grace_period: 48h
