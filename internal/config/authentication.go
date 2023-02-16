@@ -247,7 +247,7 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 		Enabled:                  a.Enabled,
 		Cleanup:                  a.Cleanup,
 
-		setDefaults: a.Method.setDefaults,
+		setDefaults: a.setDefaults,
 		setEnabled: func() {
 			a.Enabled = true
 		},
