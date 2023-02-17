@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hashicorp/cap/oidc"
@@ -24,8 +25,6 @@ import (
 )
 
 func Test_Server(t *testing.T) {
-	t.Skip("Skipping until tokenVerifier has been implemented (FLI-210)")
-
 	var (
 		router = chi.NewRouter()
 		// httpServer is the test server used for hosting
@@ -58,8 +57,27 @@ func Test_Server(t *testing.T) {
 	// write CA certification to temporary file
 	caPath := writeStringToTemp(t, "ca-*.cert", tp.CACert())
 
-	fliptServiceAccountToken := oidc.TestSignJWT(t, priv, string(oidc.RS256), nil, nil)
+	t.Log("CA Path", caPath)
+
+	fliptServiceAccountToken := oidc.TestSignJWT(t, priv, string(oidc.RS256),
+		map[string]any{
+			"exp": time.Now().Add(24 * time.Hour).Unix(),
+			"iss": tp.Addr(),
+			"kubernetes.io": map[string]any{
+				"namespace": "flipt",
+				"pod": map[string]any{
+					"name": "flipt-7d26f049-kdurb",
+					"uid":  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+				},
+				"serviceaccount": map[string]any{
+					"name": "flipt",
+					"uid":  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+				},
+			},
+		}, nil)
 	fliptServiceAccountTokenPath := writeStringToTemp(t, "token-*", fliptServiceAccountToken)
+
+	t.Log("SA Path", fliptServiceAccountTokenPath)
 
 	var (
 		authConfig = config.AuthenticationConfig{
@@ -91,6 +109,8 @@ func Test_Server(t *testing.T) {
 					priv,
 					string(oidc.RS256),
 					map[string]any{
+						"exp": time.Now().Add(24 * time.Hour).Unix(),
+						"iss": tp.Addr(),
 						"kubernetes.io": map[string]any{
 							"namespace": "applications",
 							"pod": map[string]any{
@@ -118,14 +138,17 @@ func Test_Server(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
+		respData, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
 		var response auth.CallbackResponse
-		if !assert.NoError(t, protojson.Unmarshal(data, &response)) {
-			t.Log("Unexpected response", string(data))
+		if !assert.NoError(t, protojson.Unmarshal(respData, &response)) {
+			t.Log("Unexpected response", string(respData))
 			t.FailNow()
 		}
 
 		assert.NotEmpty(t, response.ClientToken)
-		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
+		assert.Equal(t, auth.Method_METHOD_KUBERNETES, response.Authentication.Method)
 		assert.Equal(t, map[string]string{
 			"io.flipt.auth.k8s.namespace":           "applications",
 			"io.flipt.auth.k8s.pod.name":            "booking-7d26f049-kdurb",

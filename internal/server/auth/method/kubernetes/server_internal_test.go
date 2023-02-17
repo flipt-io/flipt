@@ -84,6 +84,7 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 			},
 		},
 	} {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
 			var (
 				store = memory.NewStore(
@@ -91,12 +92,16 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 					memory.WithTokenGeneratorFunc(func() string { return staticToken }),
 					memory.WithNowFunc(func() *timestamppb.Timestamp { return staticTime }),
 				)
-				conf   = config.AuthenticationConfig{}
-				server = NewServer(logger, store, conf)
+				conf = config.AuthenticationConfig{}
 			)
 
-			// override token verifier for unit test
-			server.verifier = test.verifier
+			server := &Server{
+				logger: logger,
+				store:  store,
+				config: conf,
+				// override token verifier for unit test
+				verifier: test.verifier,
+			}
 
 			resp, err := server.VerifyServiceAccount(ctx, test.req)
 			if test.expectedErrIs != nil {
@@ -112,7 +117,7 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 
 type mockTokenVerifier map[string]claims
 
-func (m mockTokenVerifier) verify(jwt string) (claims, error) {
+func (m mockTokenVerifier) verify(_ context.Context, jwt string) (claims, error) {
 	claims, ok := m[jwt]
 	if !ok {
 		return claims, errVerify

@@ -48,19 +48,21 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 		}
 	)
 
-	auth.RegisterAuthenticationMethodKubernetesServiceServer(server, kubernetes.NewServer(logger, store, conf))
+	srv, err := kubernetes.NewServer(logger, store, conf)
+	if err != nil {
+		panic(err)
+	}
+
+	auth.RegisterAuthenticationMethodKubernetesServiceServer(server, srv)
 
 	go func() {
 		defer close(grpcServer.errc)
 		grpcServer.errc <- server.Serve(listener)
 	}()
 
-	var (
-		err    error
-		dialer = func(context.Context, string) (net.Conn, error) {
-			return listener.Dial()
-		}
-	)
+	dialer := func(context.Context, string) (net.Conn, error) {
+		return listener.Dial()
+	}
 
 	grpcServer.ClientConn, err = grpc.DialContext(ctx, "", grpc.WithInsecure(), grpc.WithContextDialer(dialer))
 	require.NoError(t, err)

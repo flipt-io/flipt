@@ -38,7 +38,7 @@ type identity struct {
 }
 
 type tokenVerifier interface {
-	verify(jwt string) (claims, error)
+	verify(ctx context.Context, jwt string) (claims, error)
 }
 
 // Server is the core server-side implementation of the "kubernetes" authentication method.
@@ -53,17 +53,21 @@ type Server struct {
 }
 
 // NewServer constructs a new Server instance based on the provided logger, store and configuration.
-func NewServer(logger *zap.Logger, store storageauth.Store, config config.AuthenticationConfig) *Server {
-	return &Server{
-		logger:   logger,
-		store:    store,
-		config:   config,
-		verifier: noopTokenVerifier{},
+func NewServer(logger *zap.Logger, store storageauth.Store, config config.AuthenticationConfig) (*Server, error) {
+	s := &Server{
+		logger: logger,
+		store:  store,
+		config: config,
 	}
+
+	var err error
+	s.verifier, err = newKubernetesOIDCVerifier(logger, config.Methods.Kubernetes.Method)
+
+	return s, err
 }
 
 func (s *Server) VerifyServiceAccount(ctx context.Context, req *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error) {
-	claims, err := s.verifier.verify(req.ServiceAccountToken)
+	claims, err := s.verifier.verify(ctx, req.ServiceAccountToken)
 	if err != nil {
 		return nil, fmt.Errorf("verifying service account: %w", err)
 	}
@@ -94,6 +98,6 @@ func (s *Server) VerifyServiceAccount(ctx context.Context, req *auth.VerifyServi
 
 type noopTokenVerifier struct{}
 
-func (n noopTokenVerifier) verify(string) (claims, error) {
+func (n noopTokenVerifier) verify(context.Context, string) (claims, error) {
 	return claims{}, errors.New("invalid token")
 }
