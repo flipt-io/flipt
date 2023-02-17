@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	goredis_cache "github.com/go-redis/cache/v8"
-	goredis "github.com/go-redis/redis/v8"
+	goredis_cache "github.com/go-redis/cache/v9"
+	goredis "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
