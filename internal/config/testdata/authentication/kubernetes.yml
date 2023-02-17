@@ -1,0 +1,4 @@
+authentication:
+  methods:
+    kubernetes:
+      enabled: true

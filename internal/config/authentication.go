@@ -64,6 +64,9 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 		// for its cleanup strategy
 		prefix := fmt.Sprintf("authentication.methods.%s", info.Name())
 		if v.GetBool(prefix + ".enabled") {
+			// apply any method specific defaults
+			info.setDefaults(method)
+			// set default cleanup
 			method["cleanup"] = map[string]any{
 				"interval":     time.Hour,
 				"grace_period": 30 * time.Minute,
@@ -160,15 +163,17 @@ type AuthenticationSessionCSRF struct {
 // AuthenticationMethods is a set of configuration for each authentication
 // method available for use within Flipt.
 type AuthenticationMethods struct {
-	Token AuthenticationMethod[AuthenticationMethodTokenConfig] `json:"token,omitempty" mapstructure:"token"`
-	OIDC  AuthenticationMethod[AuthenticationMethodOIDCConfig]  `json:"oidc,omitempty" mapstructure:"oidc"`
+	Token      AuthenticationMethod[AuthenticationMethodTokenConfig]      `json:"token,omitempty" mapstructure:"token"`
+	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc"`
+	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
 func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 	return []StaticAuthenticationMethodInfo{
-		a.Token.Info(),
-		a.OIDC.Info(),
+		a.Token.info(),
+		a.OIDC.info(),
+		a.Kubernetes.info(),
 	}
 }
 
@@ -179,6 +184,8 @@ type StaticAuthenticationMethodInfo struct {
 	Enabled bool
 	Cleanup *AuthenticationCleanupSchedule
 
+	// used for bootstrapping defaults
+	setDefaults func(map[string]any)
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
 	setEnabled func()
@@ -215,7 +222,8 @@ func (a AuthenticationMethodInfo) Name() string {
 // which returns an AuthenticationMethodInfo describing the underlying
 // methods properties.
 type AuthenticationMethodInfoProvider interface {
-	Info() AuthenticationMethodInfo
+	setDefaults(map[string]any)
+	info() AuthenticationMethodInfo
 }
 
 // AuthenticationMethod is a container for authentication methods.
@@ -229,12 +237,17 @@ type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
 	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
 }
 
-func (a *AuthenticationMethod[C]) Info() StaticAuthenticationMethodInfo {
+func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {
+	a.Method.setDefaults(defaults)
+}
+
+func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 	return StaticAuthenticationMethodInfo{
-		AuthenticationMethodInfo: a.Method.Info(),
+		AuthenticationMethodInfo: a.Method.info(),
 		Enabled:                  a.Enabled,
 		Cleanup:                  a.Cleanup,
 
+		setDefaults: a.setDefaults,
 		setEnabled: func() {
 			a.Enabled = true
 		},
@@ -250,8 +263,10 @@ func (a *AuthenticationMethod[C]) Info() StaticAuthenticationMethodInfo {
 // /auth/v1/method/token prefix of endpoints.
 type AuthenticationMethodTokenConfig struct{}
 
-// Info describes properties of the authentication method "token".
-func (a AuthenticationMethodTokenConfig) Info() AuthenticationMethodInfo {
+func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "token".
+func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_TOKEN,
 		SessionCompatible: false,
@@ -264,8 +279,10 @@ type AuthenticationMethodOIDCConfig struct {
 	Providers map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
 }
 
-// Info describes properties of the authentication method "oidc".
-func (a AuthenticationMethodOIDCConfig) Info() AuthenticationMethodInfo {
+func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
+
+// info describes properties of the authentication method "oidc".
+func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	info := AuthenticationMethodInfo{
 		Method:            auth.Method_METHOD_OIDC,
 		SessionCompatible: true,
@@ -303,4 +320,33 @@ type AuthenticationMethodOIDCProvider struct {
 type AuthenticationCleanupSchedule struct {
 	Interval    time.Duration `json:"interval,omitempty" mapstructure:"interval"`
 	GracePeriod time.Duration `json:"gracePeriod,omitempty" mapstructure:"grace_period"`
+}
+
+// AuthenticationMethodKubernetesConfig contains the fields necessary for the Kubernetes authentication
+// method to be performed. This method supports Flipt being deployed in a Kubernetes environment
+// and allowing it to exchange client tokens for valid service account tokens presented via this method.
+type AuthenticationMethodKubernetesConfig struct {
+	// IssuerURL is the URL to the local Kubernetes cluster.
+	// The URL is used to fetch the OIDC configuration and subsequently the public key chain.
+	IssuerURL string `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
+	// CAPath is the path on disk to the trusted certificate authority certificate for validating
+	// HTTPS requests to the issuer.
+	CAPath string `json:"caPath,omitempty" mapstructure:"ca_path"`
+	// ServiceAccountTokenPath is the location on disk to the Flipt instances service account token.
+	// This should be the token issued for the service account associated with Flipt in the environment.
+	ServiceAccountTokenPath string `json:"serviceAccountTokenPath,omitempty" mapstructure:"service_account_token_path"`
+}
+
+func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
+	defaults["issuer_url"] = "https://kubernetes.default.svc"
+	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert"
+	defaults["service_account_token_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+}
+
+// info describes properties of the authentication method "kubernetes".
+func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
+	return AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_KUBERNETES,
+		SessionCompatible: false,
+	}
 }
