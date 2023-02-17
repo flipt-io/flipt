@@ -16,9 +16,10 @@ import (
 )
 
 var (
-	staticID    = "staticID"
-	staticToken = "staticToken"
-	staticTime  = timestamppb.New(time.Date(2023, 2, 17, 10, 0, 0, 0, time.UTC))
+	staticID         = "staticID"
+	staticToken      = "staticToken"
+	staticTime       = timestamppb.New(time.Date(2023, 2, 17, 8, 0, 0, 0, time.UTC))
+	staticExpiration = timestamppb.New(time.Date(2023, 2, 17, 12, 0, 0, 0, time.UTC))
 )
 
 func Test_Server_VerifyServiceAccount(t *testing.T) {
@@ -38,14 +39,17 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 			name: "valid client token",
 			verifier: mockTokenVerifier{
 				"somevalidtoken": claims{
-					Namespace: "applications",
-					Pod: resource{
-						Name: "booking-7d26f049-kdurb",
-						UID:  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
-					},
-					ServiceAccount: resource{
-						Name: "booking",
-						UID:  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+					Expiration: staticExpiration.AsTime().Unix(),
+					Identity: identity{
+						Namespace: "applications",
+						Pod: resource{
+							Name: "booking-7d26f049-kdurb",
+							UID:  "bd8299f9-c50f-4b76-af33-9d8e3ef2b850",
+						},
+						ServiceAccount: resource{
+							Name: "booking",
+							UID:  "4f18914e-f276-44b2-aebd-27db1d8f8def",
+						},
 					},
 				},
 			},
@@ -57,7 +61,7 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 				Authentication: &auth.Authentication{
 					Id:        staticID,
 					Method:    auth.Method_METHOD_KUBERNETES,
-					ExpiresAt: staticTime,
+					ExpiresAt: staticExpiration,
 					CreatedAt: staticTime,
 					UpdatedAt: staticTime,
 					Metadata: map[string]string{
