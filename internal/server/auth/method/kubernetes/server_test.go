@@ -124,7 +124,7 @@ func Test_Server(t *testing.T) {
 			t.FailNow()
 		}
 
-		assert.Empty(t, response.ClientToken) // middleware moves it to cookie
+		assert.NotEmpty(t, response.ClientToken)
 		assert.Equal(t, auth.Method_METHOD_OIDC, response.Authentication.Method)
 		assert.Equal(t, map[string]string{
 			"io.flipt.auth.k8s.namespace":           "applications",
