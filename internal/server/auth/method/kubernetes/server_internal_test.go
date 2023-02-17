@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	errVerify        = errors.New("token invalid")
 	staticID         = "staticID"
 	staticToken      = "staticToken"
 	staticTime       = timestamppb.New(time.Date(2023, 2, 17, 8, 0, 0, 0, time.UTC))
@@ -29,14 +30,22 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 	)
 
 	for _, test := range []struct {
-		name         string
-		verifier     mockTokenVerifier
-		req          *auth.VerifyServiceAccountRequest
-		expectedResp *auth.VerifyServiceAccountResponse
-		expectedErr  error
+		name          string
+		verifier      mockTokenVerifier
+		req           *auth.VerifyServiceAccountRequest
+		expectedResp  *auth.VerifyServiceAccountResponse
+		expectedErrIs error
 	}{
 		{
-			name: "valid client token",
+			name:     "invalid service account token",
+			verifier: mockTokenVerifier{},
+			req: &auth.VerifyServiceAccountRequest{
+				ServiceAccountToken: "someinvalidtoken",
+			},
+			expectedErrIs: errVerify,
+		},
+		{
+			name: "valid service account token",
 			verifier: mockTokenVerifier{
 				"somevalidtoken": claims{
 					Expiration: staticExpiration.AsTime().Unix(),
@@ -90,8 +99,8 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 			server.verifier = test.verifier
 
 			resp, err := server.VerifyServiceAccount(ctx, test.req)
-			if test.expectedErr != nil {
-				assert.Equal(t, test.expectedErr, err)
+			if test.expectedErrIs != nil {
+				assert.ErrorIs(t, err, test.expectedErrIs)
 				return
 			}
 			require.NoError(t, err)
@@ -106,7 +115,7 @@ type mockTokenVerifier map[string]claims
 func (m mockTokenVerifier) verify(jwt string) (claims, error) {
 	claims, ok := m[jwt]
 	if !ok {
-		return claims, errors.New("token invalid")
+		return claims, errVerify
 	}
 
 	return claims, nil
