@@ -24,7 +24,7 @@ import (
 )
 
 func Test_Server(t *testing.T) {
-	t.Skip("Skipping until serviceAccountVerifier has been implemented")
+	t.Skip("Skipping until tokenVerifier has been implemented (FLI-210)")
 
 	var (
 		router = chi.NewRouter()
