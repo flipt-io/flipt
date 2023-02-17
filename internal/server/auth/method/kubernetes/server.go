@@ -42,6 +42,10 @@ type tokenVerifier interface {
 }
 
 // Server is the core server-side implementation of the "kubernetes" authentication method.
+//
+// The method allows services deployed into the same Kubernetes cluster as Flipt to leverage
+// their service account token in order to obtain access to Flipt itself.
+// When enabled, this authentication method grants any service in the same cluster access to Flipt.
 type Server struct {
 	logger *zap.Logger
 	store  storageauth.Store
@@ -66,6 +70,10 @@ func NewServer(logger *zap.Logger, store storageauth.Store, config config.Authen
 	return s, err
 }
 
+// VerifyServiceAccount takes a service account token, configured by a kubernetes environment,
+// validates it's authenticity and (if valid) creates a Flipt client token and returns it.
+// The returned client token is valid for the lifetime of the service account JWT.
+// The token tracks the source service account and pod identity of the provided token.
 func (s *Server) VerifyServiceAccount(ctx context.Context, req *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error) {
 	claims, err := s.verifier.verify(ctx, req.ServiceAccountToken)
 	if err != nil {

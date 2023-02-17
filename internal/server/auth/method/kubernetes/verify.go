@@ -14,6 +14,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// kubernetesOIDCVerifier uses the go-oidc library to obtain the OIDC configuration
+// and JWKS key material, in order to verify Kubernetes issued service account tokens.
+// It is configured to leverage the local systems own service account token and the clusters
+// CA certificate in order to obtain this information from the local cluster.
+// The material returned from the OIDC configuration endpoints is trusted as the signing party
+// in order to validate presented service account tokens.
 type kubernetesOIDCVerifier struct {
 	logger *zap.Logger
 	config config.AuthenticationMethodKubernetesConfig
@@ -33,6 +39,9 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 		return nil, fmt.Errorf("failed to append cert from path: %q", config.CAPath)
 	}
 
+	// adapted from the Go net/http.DefaultTransport
+	// This transport only uses the configured CA certificate
+	// PEM found at the configured path on the filesystem.
 	transport := &http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
 		ForceAttemptHTTP2:     true,
@@ -49,9 +58,9 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 		client: &http.Client{
 			Transport: transportFunc(func(r *http.Request) (*http.Response, error) {
 				// Re-evaluate token from disk per request.
-				// this client will be used by the OIDC code to periodically fetch
-				// OIDC configuration and PKI key chain from k8s.
-				// It handles caching that result.
+				// This client will be used by the OIDC code to periodically fetch
+				// OIDC configuration and JWKS key chain from the k8s api-server.
+				// The OIDC wrapper handles caching that result.
 				// Each time it needs to request again we should re-read the SA token
 				// as it may have been refreshed by kubernetes.
 				token, err := os.ReadFile(config.ServiceAccountTokenPath)
