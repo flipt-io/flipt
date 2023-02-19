@@ -46,8 +46,8 @@ import (
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 
-	goredis_cache "github.com/go-redis/cache/v8"
-	goredis "github.com/go-redis/redis/v8"
+	goredis_cache "github.com/go-redis/cache/v9"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 type grpcRegister interface {
