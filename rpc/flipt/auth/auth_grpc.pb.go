@@ -545,3 +545,90 @@ var AuthenticationMethodOIDCService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "auth/auth.proto",
 }
+
+// AuthenticationMethodKubernetesServiceClient is the client API for AuthenticationMethodKubernetesService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AuthenticationMethodKubernetesServiceClient interface {
+	VerifyServiceAccount(ctx context.Context, in *VerifyServiceAccountRequest, opts ...grpc.CallOption) (*VerifyServiceAccountResponse, error)
+}
+
+type authenticationMethodKubernetesServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAuthenticationMethodKubernetesServiceClient(cc grpc.ClientConnInterface) AuthenticationMethodKubernetesServiceClient {
+	return &authenticationMethodKubernetesServiceClient{cc}
+}
+
+func (c *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx context.Context, in *VerifyServiceAccountRequest, opts ...grpc.CallOption) (*VerifyServiceAccountResponse, error) {
+	out := new(VerifyServiceAccountResponse)
+	err := c.cc.Invoke(ctx, "/flipt.auth.AuthenticationMethodKubernetesService/VerifyServiceAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthenticationMethodKubernetesServiceServer is the server API for AuthenticationMethodKubernetesService service.
+// All implementations must embed UnimplementedAuthenticationMethodKubernetesServiceServer
+// for forward compatibility
+type AuthenticationMethodKubernetesServiceServer interface {
+	VerifyServiceAccount(context.Context, *VerifyServiceAccountRequest) (*VerifyServiceAccountResponse, error)
+	mustEmbedUnimplementedAuthenticationMethodKubernetesServiceServer()
+}
+
+// UnimplementedAuthenticationMethodKubernetesServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthenticationMethodKubernetesServiceServer struct {
+}
+
+func (UnimplementedAuthenticationMethodKubernetesServiceServer) VerifyServiceAccount(context.Context, *VerifyServiceAccountRequest) (*VerifyServiceAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyServiceAccount not implemented")
+}
+func (UnimplementedAuthenticationMethodKubernetesServiceServer) mustEmbedUnimplementedAuthenticationMethodKubernetesServiceServer() {
+}
+
+// UnsafeAuthenticationMethodKubernetesServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthenticationMethodKubernetesServiceServer will
+// result in compilation errors.
+type UnsafeAuthenticationMethodKubernetesServiceServer interface {
+	mustEmbedUnimplementedAuthenticationMethodKubernetesServiceServer()
+}
+
+func RegisterAuthenticationMethodKubernetesServiceServer(s grpc.ServiceRegistrar, srv AuthenticationMethodKubernetesServiceServer) {
+	s.RegisterService(&AuthenticationMethodKubernetesService_ServiceDesc, srv)
+}
+
+func _AuthenticationMethodKubernetesService_VerifyServiceAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyServiceAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodKubernetesServiceServer).VerifyServiceAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/flipt.auth.AuthenticationMethodKubernetesService/VerifyServiceAccount",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodKubernetesServiceServer).VerifyServiceAccount(ctx, req.(*VerifyServiceAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AuthenticationMethodKubernetesService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodKubernetesService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AuthenticationMethodKubernetesService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.auth.AuthenticationMethodKubernetesService",
+	HandlerType: (*AuthenticationMethodKubernetesServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "VerifyServiceAccount",
+			Handler:    _AuthenticationMethodKubernetesService_VerifyServiceAccount_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "auth/auth.proto",
+}

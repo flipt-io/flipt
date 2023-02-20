@@ -103,3 +103,7 @@ http:
     get: /auth/v1/method/oidc/{provider}/authorize
   - selector: flipt.auth.AuthenticationMethodOIDCService.Callback
     get: /auth/v1/method/oidc/{provider}/callback
+  # method: kubernetes
+  - selector: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount
+    post: /auth/v1/method/kubernetes/serviceaccount
+    body: "*"
