@@ -338,8 +338,8 @@ type AuthenticationMethodKubernetesConfig struct {
 }
 
 func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
-	defaults["issuer_url"] = "https://kubernetes.default.svc"
-	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert"
+	defaults["issuer_url"] = "https://kubernetes.default.svc.cluster.local"
+	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 	defaults["service_account_token_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
 

@@ -497,8 +497,8 @@ func TestLoad(t *testing.T) {
 					Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 						Enabled: true,
 						Method: AuthenticationMethodKubernetesConfig{
-							IssuerURL:               "https://kubernetes.default.svc",
-							CAPath:                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert",
+							IssuerURL:               "https://kubernetes.default.svc.cluster.local",
+							CAPath:                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 							ServiceAccountTokenPath: "/var/run/secrets/kubernetes.io/serviceaccount/token",
 						},
 						Cleanup: &AuthenticationCleanupSchedule{
