@@ -1,0 +1,4 @@
+authentication:
+  methods:
+    token:
+      bootstrap_token: "$up3r$3cr3t!"

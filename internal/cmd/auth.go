@@ -46,8 +46,15 @@ func authenticationGRPC(
 
 	// register auth method token service
 	if cfg.Methods.Token.Enabled {
+		opts := []storageauth.BootstrapOption{}
+
+		// if a bootstrap token is provided, use it
+		if cfg.Methods.Token.Method.BootstrapToken != "" {
+			opts = append(opts, storageauth.WithClientToken(cfg.Methods.Token.Method.BootstrapToken))
+		}
+
 		// attempt to bootstrap authentication store
-		clientToken, err := storageauth.Bootstrap(ctx, store)
+		clientToken, err := storageauth.Bootstrap(ctx, store, opts...)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("configuring token authentication: %w", err)
 		}

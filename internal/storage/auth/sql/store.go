@@ -91,7 +91,7 @@ func WithIDGeneratorFunc(fn func() string) Option {
 func (s *Store) CreateAuthentication(ctx context.Context, r *storageauth.CreateAuthenticationRequest) (string, *rpcauth.Authentication, error) {
 	var (
 		now            = s.now()
-		clientToken    = s.generateToken()
+		clientToken    = r.ClientToken
 		authentication = rpcauth.Authentication{
 			Id:        s.generateID(),
 			Method:    r.Method,
@@ -101,6 +101,11 @@ func (s *Store) CreateAuthentication(ctx context.Context, r *storageauth.CreateA
 			UpdatedAt: now,
 		}
 	)
+
+	// if no client token is provided, generate a new one
+	if clientToken == "" {
+		clientToken = s.generateToken()
+	}
 
 	hashedToken, err := storageauth.HashClientToken(clientToken)
 	if err != nil {

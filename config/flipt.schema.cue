@@ -32,6 +32,7 @@ import "strings"
 			token?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
+				bootstrap_token?: string
 			}
 
 			// OIDC

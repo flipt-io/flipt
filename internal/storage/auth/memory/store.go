@@ -89,7 +89,7 @@ func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthentica
 
 	var (
 		now            = s.now()
-		clientToken    = s.generateToken()
+		clientToken    = r.ClientToken
 		authentication = &rpcauth.Authentication{
 			Id:        s.generateID(),
 			Method:    r.Method,
@@ -99,6 +99,11 @@ func (s *Store) CreateAuthentication(_ context.Context, r *auth.CreateAuthentica
 			UpdatedAt: now,
 		}
 	)
+
+	// if no client token is provided, generate a new one
+	if clientToken == "" {
+		clientToken = s.generateToken()
+	}
 
 	hashedToken, err := auth.HashClientToken(clientToken)
 	if err != nil {

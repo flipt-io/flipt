@@ -70,6 +70,9 @@
                 },
                 "cleanup": {
                   "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
+                },
+                "bootstrap_token": {
+                  "type": "string"
                 }
               },
               "required": [],
