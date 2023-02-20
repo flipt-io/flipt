@@ -49,7 +49,10 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{RootCAs: rootCAs},
+		TLSClientConfig: &tls.Config{
+			RootCAs:    rootCAs,
+			MinVersion: tls.VersionTLS12,
+		},
 	}
 
 	return &kubernetesOIDCVerifier{

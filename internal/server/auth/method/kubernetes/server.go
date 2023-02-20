@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -102,10 +101,4 @@ func (s *Server) VerifyServiceAccount(ctx context.Context, req *auth.VerifyServi
 		ClientToken:    clientToken,
 		Authentication: authentication,
 	}, nil
-}
-
-type noopTokenVerifier struct{}
-
-func (n noopTokenVerifier) verify(context.Context, string) (claims, error) {
-	return claims{}, errors.New("invalid token")
 }
