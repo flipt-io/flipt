@@ -85,7 +85,7 @@ func Test_Server(t *testing.T) {
 				Kubernetes: config.AuthenticationMethod[config.AuthenticationMethodKubernetesConfig]{
 					Enabled: true,
 					Method: config.AuthenticationMethodKubernetesConfig{
-						IssuerURL:               tp.Addr(),
+						DiscoveryURL:            tp.Addr(),
 						CAPath:                  caPath,
 						ServiceAccountTokenPath: fliptServiceAccountTokenPath,
 					},
