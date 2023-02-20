@@ -30,6 +30,7 @@ type kubernetesOIDCVerifier struct {
 }
 
 func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationMethodKubernetesConfig) (*kubernetesOIDCVerifier, error) {
+	ctx := context.Background()
 	caCert, err := os.ReadFile(config.CAPath)
 	if err != nil {
 		logger.Error("reading CA certificate", zap.Error(err))
@@ -88,7 +89,7 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 	// that both URLs should match.
 	// We also instruct the library to use the issuer retrieved from the discovery
 	// endpoint when we verify service account ID tokens.
-	issuer, err := resolveTokenIssuer(client, config.DiscoveryURL)
+	issuer, err := resolveTokenIssuer(ctx, client, config.DiscoveryURL)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func newKubernetesOIDCVerifier(logger *zap.Logger, config config.AuthenticationM
 	provider, err := oidc.NewProvider(
 		// skip issuer verification when NewProvider requests the discovery document.
 		oidc.InsecureIssuerURLContext(
-			oidc.ClientContext(context.Background(), client),
+			oidc.ClientContext(ctx, client),
 			// override the issuer to match the discovery endpoint response.
 			issuer,
 		),
@@ -136,8 +137,9 @@ func (fn transportFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 	return fn(r)
 }
 
-func resolveTokenIssuer(client *http.Client, discoveryURL string) (string, error) {
-	req, err := http.NewRequest(
+func resolveTokenIssuer(ctx context.Context, client *http.Client, discoveryURL string) (string, error) {
+	req, err := http.NewRequestWithContext(
+		ctx,
 		"GET",
 		strings.TrimSuffix(discoveryURL, "/")+"/.well-known/openid-configuration",
 		nil)
