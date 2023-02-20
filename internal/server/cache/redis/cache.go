@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	redis "github.com/go-redis/cache/v8"
+	redis "github.com/go-redis/cache/v9"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server/cache"
 )
