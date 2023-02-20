@@ -9,6 +9,7 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -55,8 +56,8 @@ type Server struct {
 	auth.UnimplementedAuthenticationMethodKubernetesServiceServer
 }
 
-// NewServer constructs a new Server instance based on the provided logger, store and configuration.
-func NewServer(logger *zap.Logger, store storageauth.Store, config config.AuthenticationConfig) (*Server, error) {
+// New constructs a new Server instance based on the provided logger, store and configuration.
+func New(logger *zap.Logger, store storageauth.Store, config config.AuthenticationConfig) (*Server, error) {
 	s := &Server{
 		logger: logger,
 		store:  store,
@@ -67,6 +68,11 @@ func NewServer(logger *zap.Logger, store storageauth.Store, config config.Authen
 	s.verifier, err = newKubernetesOIDCVerifier(logger, config.Methods.Kubernetes.Method)
 
 	return s, err
+}
+
+// RegisterGRPC registers the server instnace on the provided gRPC server.
+func (s *Server) RegisterGRPC(srv *grpc.Server) {
+	auth.RegisterAuthenticationMethodKubernetesServiceServer(srv, s)
 }
 
 // VerifyServiceAccount takes a service account token, configured by a kubernetes environment,

@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
+	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
@@ -69,6 +70,19 @@ func authenticationGRPC(
 		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oidcServer))
 
 		logger.Debug("authentication method \"oidc\" server registered")
+	}
+
+	if cfg.Methods.Kubernetes.Enabled {
+		kubernetesServer, err := authkubernetes.New(logger, store, cfg)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+		}
+		register.Add(kubernetesServer)
+
+		// OIDC server exposes unauthenticated endpoints
+		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(kubernetesServer))
+
+		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
 
 	// only enable enforcement middleware if authentication required
@@ -137,6 +151,10 @@ func authenticationHTTPMount(
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
 
 		middleware = append(middleware, oidcmiddleware.Handler)
+	}
+
+	if cfg.Methods.Kubernetes.Enabled {
+		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodKubernetesServiceHandler))
 	}
 
 	r.Group(func(r chi.Router) {

@@ -48,7 +48,7 @@ func StartGRPCServer(t *testing.T, ctx context.Context, logger *zap.Logger, conf
 		}
 	)
 
-	srv, err := kubernetes.NewServer(logger, store, conf)
+	srv, err := kubernetes.New(logger, store, conf)
 	if err != nil {
 		panic(err)
 	}
