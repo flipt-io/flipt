@@ -328,9 +328,10 @@ type AuthenticationCleanupSchedule struct {
 // method to be performed. This method supports Flipt being deployed in a Kubernetes environment
 // and allowing it to exchange client tokens for valid service account tokens presented via this method.
 type AuthenticationMethodKubernetesConfig struct {
-	// IssuerURL is the URL to the local Kubernetes cluster.
-	// The URL is used to fetch the OIDC configuration and subsequently the public key chain.
-	IssuerURL string `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
+	// DiscoveryURL is the URL to the local Kubernetes cluster serving the "well-known" OIDC discovery endpoint.
+	// https://openid.net/specs/openid-connect-discovery-1_0.html
+	// The URL is used to fetch the OIDC configuration and subsequently the JWKS certificates.
+	DiscoveryURL string `json:"discoveryURL,omitempty" mapstructure:"discovery_url"`
 	// CAPath is the path on disk to the trusted certificate authority certificate for validating
 	// HTTPS requests to the issuer.
 	CAPath string `json:"caPath,omitempty" mapstructure:"ca_path"`
@@ -340,8 +341,8 @@ type AuthenticationMethodKubernetesConfig struct {
 }
 
 func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
-	defaults["issuer_url"] = "https://kubernetes.default.svc"
-	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert"
+	defaults["discovery_url"] = "https://kubernetes.default.svc.cluster.local"
+	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 	defaults["service_account_token_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
 
