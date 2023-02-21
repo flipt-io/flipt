@@ -19,6 +19,10 @@ type MetadataServiceHTTPClient struct {
 	addr   string
 }
 
+func NewMetadataServiceHTTPClient(addr string) *MetadataServiceHTTPClient {
+	return &MetadataServiceHTTPClient{client: http.DefaultClient, addr: addr}
+}
+
 func (x *MetadataServiceHTTPClient) GetConfiguration(ctx context.Context, v *emptypb.Empty) (*httpbody.HttpBody, error) {
 	var body io.Reader
 	var values = url.Values{}

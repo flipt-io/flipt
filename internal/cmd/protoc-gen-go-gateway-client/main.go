@@ -124,7 +124,11 @@ func generateFile(m mappings, gen *protogen.Plugin, file *protogen.File) {
 		g.P("type ", typ, " struct {")
 		g.P("client *", netHTTP("Client"))
 		g.P("addr string")
-		g.P("}")
+		g.P("}\n")
+
+		g.P("func New", typ, "(addr string) (*", typ, ") {")
+		g.P("return &", typ, "{ client: ", netHTTP("DefaultClient"), ", addr: addr }")
+		g.P("}\n")
 
 		for _, method := range srv.Methods {
 			rule, ok := m[string(method.Desc.FullName())]

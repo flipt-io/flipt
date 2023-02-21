@@ -20,6 +20,10 @@ type PublicAuthenticationServiceHTTPClient struct {
 	addr   string
 }
 
+func NewPublicAuthenticationServiceHTTPClient(addr string) *PublicAuthenticationServiceHTTPClient {
+	return &PublicAuthenticationServiceHTTPClient{client: http.DefaultClient, addr: addr}
+}
+
 func (x *PublicAuthenticationServiceHTTPClient) ListAuthenticationMethods(ctx context.Context, v *emptypb.Empty) (*ListAuthenticationMethodsResponse, error) {
 	var body io.Reader
 	var values = url.Values{}
@@ -50,6 +54,10 @@ func (x *PublicAuthenticationServiceHTTPClient) ListAuthenticationMethods(ctx co
 type AuthenticationServiceHTTPClient struct {
 	client *http.Client
 	addr   string
+}
+
+func NewAuthenticationServiceHTTPClient(addr string) *AuthenticationServiceHTTPClient {
+	return &AuthenticationServiceHTTPClient{client: http.DefaultClient, addr: addr}
 }
 
 func (x *AuthenticationServiceHTTPClient) GetAuthenticationSelf(ctx context.Context, v *emptypb.Empty) (*Authentication, error) {
@@ -196,6 +204,10 @@ type AuthenticationMethodTokenServiceHTTPClient struct {
 	addr   string
 }
 
+func NewAuthenticationMethodTokenServiceHTTPClient(addr string) *AuthenticationMethodTokenServiceHTTPClient {
+	return &AuthenticationMethodTokenServiceHTTPClient{client: http.DefaultClient, addr: addr}
+}
+
 func (x *AuthenticationMethodTokenServiceHTTPClient) CreateToken(ctx context.Context, v *CreateTokenRequest) (*CreateTokenResponse, error) {
 	var body io.Reader
 	var values = url.Values{}
@@ -231,6 +243,10 @@ func (x *AuthenticationMethodTokenServiceHTTPClient) CreateToken(ctx context.Con
 type AuthenticationMethodOIDCServiceHTTPClient struct {
 	client *http.Client
 	addr   string
+}
+
+func NewAuthenticationMethodOIDCServiceHTTPClient(addr string) *AuthenticationMethodOIDCServiceHTTPClient {
+	return &AuthenticationMethodOIDCServiceHTTPClient{client: http.DefaultClient, addr: addr}
 }
 
 func (x *AuthenticationMethodOIDCServiceHTTPClient) AuthorizeURL(ctx context.Context, v *AuthorizeURLRequest) (*AuthorizeURLResponse, error) {
@@ -293,6 +309,10 @@ func (x *AuthenticationMethodOIDCServiceHTTPClient) Callback(ctx context.Context
 type AuthenticationMethodKubernetesServiceHTTPClient struct {
 	client *http.Client
 	addr   string
+}
+
+func NewAuthenticationMethodKubernetesServiceHTTPClient(addr string) *AuthenticationMethodKubernetesServiceHTTPClient {
+	return &AuthenticationMethodKubernetesServiceHTTPClient{client: http.DefaultClient, addr: addr}
 }
 
 func (x *AuthenticationMethodKubernetesServiceHTTPClient) VerifyServiceAccount(ctx context.Context, v *VerifyServiceAccountRequest) (*VerifyServiceAccountResponse, error) {

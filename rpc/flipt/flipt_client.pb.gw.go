@@ -20,6 +20,10 @@ type FliptHTTPClient struct {
 	addr   string
 }
 
+func NewFliptHTTPClient(addr string) *FliptHTTPClient {
+	return &FliptHTTPClient{client: http.DefaultClient, addr: addr}
+}
+
 func (x *FliptHTTPClient) Evaluate(ctx context.Context, v *EvaluationRequest) (*EvaluationResponse, error) {
 	var body io.Reader
 	var values = url.Values{}
