@@ -47,8 +47,20 @@ func authenticationGRPC(
 
 	// register auth method token service
 	if cfg.Methods.Token.Enabled {
+		opts := []storageauth.BootstrapOption{}
+
+		// if a bootstrap token is provided, use it
+		if cfg.Methods.Token.Method.Bootstrap.Token != "" {
+			opts = append(opts, storageauth.WithToken(cfg.Methods.Token.Method.Bootstrap.Token))
+		}
+
+		// if a bootstrap expiration is provided, use it
+		if cfg.Methods.Token.Method.Bootstrap.Expiration != 0 {
+			opts = append(opts, storageauth.WithExpiration(cfg.Methods.Token.Method.Bootstrap.Expiration))
+		}
+
 		// attempt to bootstrap authentication store
-		clientToken, err := storageauth.Bootstrap(ctx, store)
+		clientToken, err := storageauth.Bootstrap(ctx, store, opts...)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("configuring token authentication: %w", err)
 		}

@@ -1,0 +1,6 @@
+authentication:
+  methods:
+    token:
+      bootstrap:
+        token: "s3cr3t!"
+        expiration: 24h
