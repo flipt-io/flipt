@@ -467,7 +467,10 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/authentication/token_bootstrap_token.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
-				cfg.Authentication.Methods.Token.Method.BootstrapToken = "$up3r$3cr3t!"
+				cfg.Authentication.Methods.Token.Method.Bootstrap = AuthenticationMethodTokenBootstrapConfig{
+					Token:      "s3cr3t!",
+					Expiration: 24 * time.Hour,
+				}
 				return cfg
 			},
 		},

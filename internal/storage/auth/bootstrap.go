@@ -3,20 +3,32 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.flipt.io/flipt/internal/storage"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type bootstrapOpt struct {
-	clientToken string
+	token      string
+	expiration time.Duration
 }
 
+// BootstrapOption is a type which configures the bootstrap or initial static token.
 type BootstrapOption func(*bootstrapOpt)
 
-func WithClientToken(clientToken string) BootstrapOption {
+// WithToken overrides the generated token with the provided token.
+func WithToken(token string) BootstrapOption {
 	return func(o *bootstrapOpt) {
-		o.clientToken = clientToken
+		o.token = token
+	}
+}
+
+// WithExpiration sets the expiration of the generated token.
+func WithExpiration(expiration time.Duration) BootstrapOption {
+	return func(o *bootstrapOpt) {
+		o.expiration = expiration
 	}
 }
 
@@ -47,8 +59,13 @@ func Bootstrap(ctx context.Context, store Store, opts ...BootstrapOption) (strin
 	}
 
 	// if a client token is provided, use it
-	if o.clientToken != "" {
-		req.ClientToken = o.clientToken
+	if o.token != "" {
+		req.ClientToken = o.token
+	}
+
+	// if an expiration is provided, use it
+	if o.expiration != 0 {
+		req.ExpiresAt = timestamppb.New(time.Now().Add(o.expiration))
 	}
 
 	clientToken, _, err := store.CreateAuthentication(ctx, req)

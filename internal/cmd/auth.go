@@ -49,8 +49,13 @@ func authenticationGRPC(
 		opts := []storageauth.BootstrapOption{}
 
 		// if a bootstrap token is provided, use it
-		if cfg.Methods.Token.Method.BootstrapToken != "" {
-			opts = append(opts, storageauth.WithClientToken(cfg.Methods.Token.Method.BootstrapToken))
+		if cfg.Methods.Token.Method.Bootstrap.Token != "" {
+			opts = append(opts, storageauth.WithToken(cfg.Methods.Token.Method.Bootstrap.Token))
+		}
+
+		// if a bootstrap expiration is provided, use it
+		if cfg.Methods.Token.Method.Bootstrap.Expiration != 0 {
+			opts = append(opts, storageauth.WithExpiration(cfg.Methods.Token.Method.Bootstrap.Expiration))
 		}
 
 		// attempt to bootstrap authentication store
