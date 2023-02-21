@@ -17,3 +17,8 @@ plugins:
       - paths=source_relative
       - grpc_api_configuration=rpc/flipt/flipt.yaml
     strategy: all
+  - name: go-gateway-client
+    out: rpc/flipt
+    opt:
+      - paths=source_relative
+      - grpc_api_configuration=rpc/flipt/flipt.yaml
