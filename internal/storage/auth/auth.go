@@ -43,9 +43,11 @@ type Store interface {
 // CreateAuthenticationRequest is the argument passed when creating instances
 // of an Authentication on a target AuthenticationStore.
 type CreateAuthenticationRequest struct {
-	Method      auth.Method
-	ExpiresAt   *timestamppb.Timestamp
-	Metadata    map[string]string
+	Method    auth.Method
+	ExpiresAt *timestamppb.Timestamp
+	Metadata  map[string]string
+	// ClientToken is an (optional) explicit client token to be associated with the authentication.
+	// When it is not supplied a random token will be generated and returned instead.
 	ClientToken string
 }
 
