@@ -453,17 +453,29 @@ func TestLoad(t *testing.T) {
 			wantErr: errValidationRequired,
 		},
 		{
-			name:    "authentication negative interval",
-			path:    "./testdata/authentication/negative_interval.yml",
+			name:    "authentication token negative interval",
+			path:    "./testdata/authentication/token_negative_interval.yml",
 			wantErr: errPositiveNonZeroDuration,
 		},
 		{
-			name:    "authentication zero grace_period",
-			path:    "./testdata/authentication/zero_grace_period.yml",
+			name:    "authentication token zero grace_period",
+			path:    "./testdata/authentication/token_zero_grace_period.yml",
 			wantErr: errPositiveNonZeroDuration,
 		},
 		{
-			name: "authentication strip session domain scheme/port",
+			name: "authentication token with provided bootstrap token",
+			path: "./testdata/authentication/token_bootstrap_token.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Authentication.Methods.Token.Method.Bootstrap = AuthenticationMethodTokenBootstrapConfig{
+					Token:      "s3cr3t!",
+					Expiration: 24 * time.Hour,
+				}
+				return cfg
+			},
+		},
+		{
+			name: "authentication session strip domain scheme/port",
 			path: "./testdata/authentication/session_domain_scheme_port.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
@@ -497,8 +509,8 @@ func TestLoad(t *testing.T) {
 					Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 						Enabled: true,
 						Method: AuthenticationMethodKubernetesConfig{
-							IssuerURL:               "https://kubernetes.default.svc",
-							CAPath:                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert",
+							DiscoveryURL:            "https://kubernetes.default.svc.cluster.local",
+							CAPath:                  "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 							ServiceAccountTokenPath: "/var/run/secrets/kubernetes.io/serviceaccount/token",
 						},
 						Cleanup: &AuthenticationCleanupSchedule{
@@ -608,7 +620,7 @@ func TestLoad(t *testing.T) {
 						Kubernetes: AuthenticationMethod[AuthenticationMethodKubernetesConfig]{
 							Enabled: true,
 							Method: AuthenticationMethodKubernetesConfig{
-								IssuerURL:               "https://some-other-k8s.namespace.svc",
+								DiscoveryURL:            "https://some-other-k8s.namespace.svc",
 								CAPath:                  "/path/to/ca/certificate/ca.pem",
 								ServiceAccountTokenPath: "/path/to/sa/token",
 							},

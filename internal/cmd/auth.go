@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
+	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
@@ -46,8 +47,20 @@ func authenticationGRPC(
 
 	// register auth method token service
 	if cfg.Methods.Token.Enabled {
+		opts := []storageauth.BootstrapOption{}
+
+		// if a bootstrap token is provided, use it
+		if cfg.Methods.Token.Method.Bootstrap.Token != "" {
+			opts = append(opts, storageauth.WithToken(cfg.Methods.Token.Method.Bootstrap.Token))
+		}
+
+		// if a bootstrap expiration is provided, use it
+		if cfg.Methods.Token.Method.Bootstrap.Expiration != 0 {
+			opts = append(opts, storageauth.WithExpiration(cfg.Methods.Token.Method.Bootstrap.Expiration))
+		}
+
 		// attempt to bootstrap authentication store
-		clientToken, err := storageauth.Bootstrap(ctx, store)
+		clientToken, err := storageauth.Bootstrap(ctx, store, opts...)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("configuring token authentication: %w", err)
 		}
@@ -69,6 +82,19 @@ func authenticationGRPC(
 		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oidcServer))
 
 		logger.Debug("authentication method \"oidc\" server registered")
+	}
+
+	if cfg.Methods.Kubernetes.Enabled {
+		kubernetesServer, err := authkubernetes.New(logger, store, cfg)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
+		}
+		register.Add(kubernetesServer)
+
+		// OIDC server exposes unauthenticated endpoints
+		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(kubernetesServer))
+
+		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
 
 	// only enable enforcement middleware if authentication required
@@ -137,6 +163,10 @@ func authenticationHTTPMount(
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
 
 		middleware = append(middleware, oidcmiddleware.Handler)
+	}
+
+	if cfg.Methods.Kubernetes.Enabled {
+		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodKubernetesServiceHandler))
 	}
 
 	r.Group(func(r chi.Router) {

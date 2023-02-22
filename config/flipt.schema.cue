@@ -32,6 +32,10 @@ import "strings"
 			token?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
+				bootstrap?: {
+					token?: string
+					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int 
+				}
 			}
 
 			// OIDC

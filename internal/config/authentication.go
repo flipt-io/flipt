@@ -261,7 +261,9 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 // method "token".
 // This authentication method supports the ability to create static tokens via the
 // /auth/v1/method/token prefix of endpoints.
-type AuthenticationMethodTokenConfig struct{}
+type AuthenticationMethodTokenConfig struct {
+	Bootstrap AuthenticationMethodTokenBootstrapConfig `json:"bootstrap" mapstructure:"bootstrap"`
+}
 
 func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
 
@@ -271,6 +273,13 @@ func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 		Method:            auth.Method_METHOD_TOKEN,
 		SessionCompatible: false,
 	}
+}
+
+// AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
+// bootstrap process for the authentication method "token".
+type AuthenticationMethodTokenBootstrapConfig struct {
+	Token      string        `json:"-" mapstructure:"token"`
+	Expiration time.Duration `json:"expiration,omitempty" mapstructure:"expiration"`
 }
 
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
@@ -326,9 +335,10 @@ type AuthenticationCleanupSchedule struct {
 // method to be performed. This method supports Flipt being deployed in a Kubernetes environment
 // and allowing it to exchange client tokens for valid service account tokens presented via this method.
 type AuthenticationMethodKubernetesConfig struct {
-	// IssuerURL is the URL to the local Kubernetes cluster.
-	// The URL is used to fetch the OIDC configuration and subsequently the public key chain.
-	IssuerURL string `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
+	// DiscoveryURL is the URL to the local Kubernetes cluster serving the "well-known" OIDC discovery endpoint.
+	// https://openid.net/specs/openid-connect-discovery-1_0.html
+	// The URL is used to fetch the OIDC configuration and subsequently the JWKS certificates.
+	DiscoveryURL string `json:"discoveryURL,omitempty" mapstructure:"discovery_url"`
 	// CAPath is the path on disk to the trusted certificate authority certificate for validating
 	// HTTPS requests to the issuer.
 	CAPath string `json:"caPath,omitempty" mapstructure:"ca_path"`
@@ -338,8 +348,8 @@ type AuthenticationMethodKubernetesConfig struct {
 }
 
 func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
-	defaults["issuer_url"] = "https://kubernetes.default.svc"
-	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.cert"
+	defaults["discovery_url"] = "https://kubernetes.default.svc.cluster.local"
+	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 	defaults["service_account_token_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
 
