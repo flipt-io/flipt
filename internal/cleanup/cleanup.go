@@ -44,7 +44,10 @@ func (s *AuthenticationService) Run(ctx context.Context) {
 	for _, info := range s.config.Methods.AllMethods() {
 		logger := s.logger.With(zap.Stringer("method", info.Method))
 		if info.Cleanup == nil {
-			logger.Debug("cleanup for auth method not defined (skipping)")
+			if info.Enabled {
+				logger.Debug("cleanup for auth method not defined (skipping)")
+			}
+
 			continue
 		}
 
