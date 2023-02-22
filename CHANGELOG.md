@@ -3,11 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/flipt-io/flipt/releases/tag/v1.19.0) - unreleased
+## [v1.19.0](https://github.com/flipt-io/flipt/releases/tag/v1.19.0) - 2023-02-22 :lock:
 
 ### Added
 
 - UI: Settings/API Tokens management
+- Enable ability to specify bootstrap token [#1350](https://github.com/flipt-io/flipt/1350)
+- Kubernetes Authentication Method [#1344](https://github.com/flipt-io/flipt/1344)
+
+### Changed
+
+- Dependency updates
+- Switch to official redis client and redis-cache/v9 [#1345](https://github.com/flipt-io/flipt/1345)
 
 ## [v1.18.2](https://github.com/flipt-io/flipt/releases/tag/v1.18.2) - 2023-02-14 :heart:
 
