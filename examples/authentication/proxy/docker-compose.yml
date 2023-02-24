@@ -2,16 +2,16 @@ version: "3"
 
 services:
   caddy:
-    image: abiosoft/caddy:latest
+    image: caddy:latest
     ports:
-      - "8080:8080" # port to proxy to flipt
+      - "8080:8080"
     networks:
       - flipt_network
     volumes:
-      - "./Caddyfile:/etc/Caddyfile"
+      - "./Caddyfile:/etc/caddy/Caddyfile"
     environment:
       - HTTP_USERNAME=admin
-      - HTTP_PASSWORD=password
+      - HTTP_PASSWORD_HASH=$$2a$$14$$aJbU.sSDUn0qCRmvpyjsxOdyt/a55NvI5d6u5xbNmZR.TYdlVskZi
 
   flipt:
     image: flipt/flipt:latest
@@ -20,6 +20,8 @@ services:
     # proxying all requests to 8080 to the Flipt container
     depends_on: 
       - caddy
+    environment:
+      - "FLIPT_LOG_LEVEL=debug"
     networks:
       - flipt_network
 

@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  proxy:
+    image: caddy:latest
+    ports:
+      - "8081:8081"
+    networks:
+      - flipt_network
+    volumes:
+      - "${PWD}/Caddyfile:/etc/caddy/Caddyfile"
+
+  next:
+    build: .
+    command: ["npm", "run", "dev"]
+    ports:
+      - "3000:3000"
+    environment:
+      - FLIPT_PUBLIC_ADDR=http://proxy:8081
+      - FLIPT_ADDR=http://flipt:8080
+    depends_on:
+      - proxy
+      - flipt
+    networks:
+      - flipt_network
+
+  flipt:
+    image: flipt/flipt:latest
+    command: ["./flipt", "--force-migrate"]
+    ports:
+      - "8080:8080"
+    environment:
+      - "FLIPT_LOG_LEVEL=debug"
+      - "FLIPT_TELMETRY_ENABLED=false"
+    volumes:
+      - type: bind
+        source: ./flipt.db
+        target: /var/opt/flipt/flipt.db
+    networks:
+      - flipt_network
+
+networks:
+  flipt_network:
