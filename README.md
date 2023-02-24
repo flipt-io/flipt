@@ -190,7 +190,6 @@ If a client in your language is not available for download, you can easily gener
 
 <br clear="both"/>
 
-
 ## Licensing
 
 There are currently two types of licenses in place for Flipt:
