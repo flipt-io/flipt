@@ -19,7 +19,7 @@ services:
       - "COLLECTOR_OTLP_ENABLED=true"
 
   flipt:
-    build: ../../..
+    image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
     depends_on:
       - jaeger

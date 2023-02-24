@@ -9,7 +9,7 @@ services:
       - flipt_network
 
   flipt:
-    build: ../../..
+    image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
     depends_on:
       - zipkin

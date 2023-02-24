@@ -1,0 +1,9 @@
+:8081 {
+  log
+
+  # proxy only evaluate requests to port 8080
+  reverse_proxy /api/v1/evaluate flipt:8080 {
+    # optionally add the Authorization header to the proxied request
+    # header_up Authorization "Bearer {env.FLIPT_API_KEY}"
+  }
+}
