@@ -36,7 +36,7 @@ export default async function handler(
     greeting:
       language == "spanish"
         ? "Hola, from Next.js API route"
-        : "Hello friend, from Next.js API route",
+        : "Hello, from Next.js API route",
   };
 
   res.status(200).json(response);
