@@ -2,10 +2,14 @@
 
 This is an example of how to use Flipt with a NextJS application.
 
+**Note:** This example is not meant to be used in production, it is only meant to demonstrate how to use Flipt with NextJS.
+
 It uses the [Flipt TypeScript SDK](https://github.com/flipt-io/flipt-node) to evalute feature flags from the Flipt API in two different ways:
 
 1. Using the `useFlipt` hook to evalute the flag in the browser/client side (using the `useEffect` hook)
-2. Using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page 
+1. Using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page 
+
+We also included [some code](./pages/api/hello.ts) showing how you could use Flipt with [NextJS API routes](https://nextjs.org/docs/api-routes/introduction), but we are not hitting the API it in this example.
 
 ## Example
 
