@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../images/mysql.svg" alt="MySQL" width=250 height=250 />
+    <img src="../../images/mysql.svg" alt="MySQL" width=250 height=250 />
 </p>
 
 # MySQL Example
