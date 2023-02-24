@@ -141,7 +141,7 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 
 ## Integration
 
-Check out the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing application.
+Check out the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
 
 ### REST API
 
