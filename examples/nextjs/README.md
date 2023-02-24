@@ -46,3 +46,7 @@ To run this example application you'll need:
 1. Open the Flipt UI (default: [http://localhost:8080](http://localhost:8080)) to browse the example Flags/Variants/Segments/etc that are pre-populated.
 1. Open the NextJS UI (default: [http://localhost:3000](http://localhost:3000)) to see the example application.
 1. Refresh the page to see the greeting messages change.
+
+<p align="center">
+    <img src="../images/nextjs.png" alt="NextJS Example" width=800 />
+</p>
