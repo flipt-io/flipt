@@ -10,6 +10,7 @@ services:
       - ./dex-config.yaml:/etc/dex/config.yaml
     networks:
       - flipt_network
+
   flipt:
     image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
@@ -17,6 +18,9 @@ services:
       - "8080:8080"
     volumes:
       - ./config.yaml:/etc/flipt/config/default.yml
+    environment:
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_META_TELMETRY_ENABLED=false
     networks:
       - flipt_network
 
