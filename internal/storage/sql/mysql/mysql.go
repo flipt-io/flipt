@@ -45,7 +45,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("flag %q is not unique for the namespace %q", r.Key, r.NamespaceKey)
 		}
 
 		return nil, err
@@ -65,7 +65,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			case constraintForeignKeyErrCode:
 				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
 			case constraintUniqueErrCode:
-				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+				return nil, errs.ErrInvalidf("variant %q is not unique for the flag %q", r.Key, r.FlagKey)
 			}
 		}
 
@@ -82,7 +82,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("variant %q is not unique for the flag %q", r.Key, r.FlagKey)
 		}
 
 		return nil, err

@@ -42,7 +42,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("flag %q is not unique for the namespace %q", r.Key, r.NamespaceKey)
 		}
 
 		return nil, err
@@ -62,7 +62,7 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 			case sqlite3.ErrConstraintForeignKey:
 				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
 			case sqlite3.ErrConstraintUnique:
-				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+				return nil, errs.ErrInvalidf("variant %q is not unique for the flag %q", r.Key, r.FlagKey)
 			}
 		}
 
@@ -79,7 +79,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf("variant %q is not unique for the flag %q", r.Key, r.FlagKey)
 		}
 
 		return nil, err
