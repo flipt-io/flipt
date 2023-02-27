@@ -24,7 +24,7 @@ func TestGetFlag(t *testing.T) {
 		req = &flipt.GetFlagRequest{Key: "foo"}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
 		Key:     req.Key,
 		Enabled: true,
 	}, nil)
@@ -50,7 +50,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 	defer store.AssertExpectations(t)
 
 	params := storage.QueryParams{}
-	store.On("ListFlags", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+	store.On("ListFlags", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
 		for _, opt := range opts {
 			opt(&params)
 		}
@@ -67,7 +67,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 			NextPageToken: "bar",
 		}, nil)
 
-	store.On("CountFlags", mock.Anything).Return(uint64(1), nil)
+	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)
 
 	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
 		Offset: 10,
@@ -93,7 +93,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 	defer store.AssertExpectations(t)
 
 	params := storage.QueryParams{}
-	store.On("ListFlags", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+	store.On("ListFlags", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
 		for _, opt := range opts {
 			opt(&params)
 		}
@@ -110,7 +110,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 			NextPageToken: "bar",
 		}, nil)
 
-	store.On("CountFlags", mock.Anything).Return(uint64(1), nil)
+	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)
 
 	got, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
 		PageToken: "Zm9v",
