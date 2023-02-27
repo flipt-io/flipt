@@ -118,7 +118,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 		FlagKey:        r.FlagKey,
 	}
 
-	flag, err := s.store.GetFlag(ctx, r.FlagKey)
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 

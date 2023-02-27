@@ -40,8 +40,8 @@ func TestBatchEvaluate(t *testing.T) {
 		Key:     "bar",
 		Enabled: false,
 	}
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
-	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "bar").Return(disabled, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -82,9 +82,9 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 		Key:     "bar",
 		Enabled: false,
 	}
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
-	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -130,9 +130,9 @@ func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 		Key:     "bar",
 		Enabled: false,
 	}
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
-	store.On("GetFlag", mock.Anything, "bar").Return(disabled, nil)
-	store.On("GetFlag", mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "bar").Return(disabled, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "NotFoundFlag").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "NotFoundFlag"))
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -172,7 +172,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "foo"))
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{}, errs.ErrNotFoundf("flag %q", "foo"))
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
@@ -198,7 +198,7 @@ func TestEvaluate_FlagDisabled(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(disabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(disabledFlag, nil)
 
 	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
 		EntityId: "1",
@@ -223,7 +223,7 @@ func TestEvaluate_FlagNoRules(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
 
@@ -250,7 +250,7 @@ func TestEvaluate_ErrorGettingRules(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return([]*storage.EvaluationRule{}, errors.New("error getting rules!"))
 
@@ -277,7 +277,7 @@ func TestEvaluate_RulesOutOfOrder(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -339,7 +339,7 @@ func TestEvaluate_ErrorGettingDistributions(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -387,7 +387,7 @@ func TestEvaluate_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -476,7 +476,7 @@ func TestEvaluate_MatchAll_SingleVariantDistribution(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -606,7 +606,7 @@ func TestEvaluate_MatchAll_RolloutDistribution(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -727,7 +727,7 @@ func TestEvaluate_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -802,7 +802,7 @@ func TestEvaluate_MatchAll_NoConstraints(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -913,7 +913,7 @@ func TestEvaluate_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -1002,7 +1002,7 @@ func TestEvaluate_MatchAny_SingleVariantDistribution(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -1164,7 +1164,7 @@ func TestEvaluate_MatchAny_RolloutDistribution(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -1285,7 +1285,7 @@ func TestEvaluate_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -1360,7 +1360,7 @@ func TestEvaluate_MatchAny_NoConstraints(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -1471,7 +1471,7 @@ func TestEvaluate_FirstRolloutRuleIsZero(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
@@ -1571,7 +1571,7 @@ func TestEvaluate_MultipleZeroRolloutDistributions(t *testing.T) {
 		}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(enabledFlag, nil)
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
 
 	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{

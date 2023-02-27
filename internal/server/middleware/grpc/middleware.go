@@ -173,7 +173,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 			return resp, err
 
 		case *flipt.GetFlagRequest:
-			key := flagCacheKey(r.GetKey())
+			key := flagCacheKey(r.GetNamespaceKey(), r.GetKey())
 
 			cached, ok, err := cache.Get(ctx, key)
 			if err != nil {
@@ -218,14 +218,14 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 			// need to do this assertion because the request type is not known in this block
 			keyer := r.(flagKeyer)
 			// delete from cache
-			if err := cache.Delete(ctx, flagCacheKey(keyer.GetKey())); err != nil {
+			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetKey())); err != nil {
 				logger.Error("deleting from cache", zap.Error(err))
 			}
 		case *flipt.CreateVariantRequest, *flipt.UpdateVariantRequest, *flipt.DeleteVariantRequest:
 			// need to do this assertion because the request type is not known in this block
 			keyer := r.(variantFlagKeyger)
 			// delete from cache
-			if err := cache.Delete(ctx, flagCacheKey(keyer.GetFlagKey())); err != nil {
+			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetFlagKey())); err != nil {
 				logger.Error("deleting from cache", zap.Error(err))
 			}
 		}
@@ -234,16 +234,29 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 	}
 }
 
+type namespaceKeyer interface {
+	GetNamespaceKey() string
+}
+
 type flagKeyer interface {
+	namespaceKeyer
 	GetKey() string
 }
 
 type variantFlagKeyger interface {
+	namespaceKeyer
 	GetFlagKey() string
 }
 
-func flagCacheKey(key string) string {
-	k := fmt.Sprintf("f:%s", key)
+func flagCacheKey(namespaceKey, key string) string {
+	var k string
+	// for backwards compatibility
+	if namespaceKey != "" {
+		k = fmt.Sprintf("f:%s:%s", namespaceKey, key)
+	} else {
+		k = fmt.Sprintf("f:%s", key)
+	}
+
 	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
 
@@ -253,6 +266,13 @@ func evaluationCacheKey(r *flipt.EvaluationRequest) (string, error) {
 		return "", fmt.Errorf("marshalling req to json: %w", err)
 	}
 
-	k := fmt.Sprintf("e:%s:%s:%s", r.GetFlagKey(), r.GetEntityId(), out)
+	var k string
+	// for backwards compatibility
+	if r.GetNamespaceKey() != "" {
+		k = fmt.Sprintf("e:%s:%s:%s:%s", r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out)
+	} else {
+		k = fmt.Sprintf("e:%s:%s:%s", r.GetFlagKey(), r.GetEntityId(), out)
+	}
+
 	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k))), nil
 }

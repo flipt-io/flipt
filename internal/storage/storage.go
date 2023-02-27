@@ -121,6 +121,8 @@ type ResultSet[T any] struct {
 	NextPageToken string
 }
 
+const DefaultNamespace = "default"
+
 // EvaluationStore returns data necessary for evaluation
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided
@@ -131,9 +133,9 @@ type EvaluationStore interface {
 
 // FlagStore stores and retrieves flags and variants
 type FlagStore interface {
-	GetFlag(ctx context.Context, key string) (*flipt.Flag, error)
-	ListFlags(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
-	CountFlags(ctx context.Context) (uint64, error)
+	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
+	ListFlags(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
+	CountFlags(ctx context.Context, namespaceKey string) (uint64, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error

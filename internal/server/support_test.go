@@ -18,18 +18,18 @@ func (m *storeMock) String() string {
 	return "mock"
 }
 
-func (m *storeMock) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
-	args := m.Called(ctx, key)
+func (m *storeMock) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error) {
+	args := m.Called(ctx, namespaceKey, key)
 	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
-func (m *storeMock) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
-	args := m.Called(ctx, opts)
+func (m *storeMock) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
+	args := m.Called(ctx, namespaceKey, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Flag]), args.Error(1)
 }
 
-func (m *storeMock) CountFlags(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *storeMock) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
