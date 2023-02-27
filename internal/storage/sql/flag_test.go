@@ -260,6 +260,24 @@ func (s *DBTestSuite) TestCreateFlag() {
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
+
+	// TODO: test create flag with different namespace (need to create namespace first)
+	// flag, err = s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	// 	Key:          t.Name(),
+	// 	Name:         "foo",
+	// 	Description:  "bar",
+	// 	Enabled:      true,
+	// 	NamespaceKey: "foo",
+	// })
+
+	// require.NoError(t, err)
+
+	// assert.Equal(t, t.Name(), flag.Key)
+	// assert.Equal(t, "foo", flag.Name)
+	// assert.Equal(t, "bar", flag.Description)
+	// assert.True(t, flag.Enabled)
+	// assert.NotZero(t, flag.CreatedAt)
+	// assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
 
 func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {

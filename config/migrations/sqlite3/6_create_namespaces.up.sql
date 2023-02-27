@@ -1,5 +1,6 @@
 PRAGMA foreign_keys=off;
 
+/* Create namespaces table */
 CREATE TABLE IF NOT EXISTS namespaces (
   key VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS flags_temp (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   namespace_key VARCHAR(255) NOT NULL DEFAULT 'default' REFERENCES namespaces ON DELETE CASCADE,
-  PRIMARY KEY (namespace_key, key));
+  PRIMARY KEY (namespace_key, key)); /* composite primary key unique by default */
 
 INSERT INTO flags_temp (key, name, description, enabled, created_at, updated_at)
   SELECT key, name, description, enabled, created_at, updated_at

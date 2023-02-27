@@ -332,7 +332,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	)
 
 	if _, err := s.builder.Insert("flags").
-		Columns("namespace_key, \"key\"", "name", "description", "enabled", "created_at", "updated_at").
+		Columns("namespace_key", "\"key\"", "name", "description", "enabled", "created_at", "updated_at").
 		Values(
 			flag.NamespaceKey,
 			flag.Key,
