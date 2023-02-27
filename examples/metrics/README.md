@@ -1,6 +1,6 @@
 <p align="center">
-    <img src="../images/prometheus.svg" alt="Prometheus" width=250 height=250 />
-    <img src="../images/grafana.svg" alt="Grafana" width=150 height=250 />
+    <img src="../images/logos/prometheus.svg" alt="Prometheus" width=250 height=250 />
+    <img src="../images/logos/grafana.svg" alt="Grafana" width=150 height=250 />
 </p>
 
 # Metrics Example

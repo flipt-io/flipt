@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../images/redis.svg" alt="Redis" width=250 height=250 />
+    <img src="../images/logos/redis.svg" alt="Redis" width=250 height=250 />
 </p>
 
 # Redis Example

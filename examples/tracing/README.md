@@ -1,7 +1,7 @@
 # Tracing Examples
 
 <p align="center">
-    <img src="../images/opentelemetry.svg" alt="OpenTelemetry" width=250 height=250 />
+    <img src="../images/logos/opentelemetry.svg" alt="OpenTelemetry" width=250 height=250 />
 </p>
 
 This directory contains examples of how to setup Flipt to export traces using the [OpenTelemetry](https://opentelemetry.io/) integration to configured backends.

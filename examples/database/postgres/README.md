@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../../images/postgresql.svg" alt="Postgres" width=250 height=250 />
+    <img src="../../images/logos/postgresql.svg" alt="Postgres" width=250 height=250 />
 </p>
 
 # Postgres Example

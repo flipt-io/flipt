@@ -21,7 +21,8 @@ services:
     depends_on: 
       - caddy
     environment:
-      - "FLIPT_LOG_LEVEL=debug"
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_META_TELMETRY_ENABLED=false
     networks:
       - flipt_network
 

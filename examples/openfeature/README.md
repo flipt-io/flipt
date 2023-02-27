@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../images/openfeature.svg" alt="OpenFeature" width=250 height=250 />
+    <img src="../images/logos/openfeature.svg" alt="OpenFeature" width=250 height=250 />
 </p>
 
 # OpenFeature/OpenTelemetry Example

@@ -43,10 +43,11 @@ services:
     networks:
       - flipt_network
     environment:
-      - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_TRACING_ENABLED=true"
-      - "FLIPT_TRACING_EXPORTER=otlp"
-      - "FLIPT_TRACING_OTLP_ENDPOINT=otel:4317"
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_TRACING_ENABLED=true
+      - FLIPT_TRACING_EXPORTER=otlp
+      - FLIPT_TRACING_OTLP_ENDPOINT=otel:4317
+      - FLIPT_META_TELMETRY_ENABLED=false
 
 networks:
   flipt_network:
