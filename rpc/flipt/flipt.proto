@@ -113,6 +113,15 @@ message BatchEvaluationResponse {
   double request_duration_millis = 3;
 }
 
+message Namespace {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool protected = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
 message Flag {
   string key = 1;
   string name = 2;
@@ -122,6 +131,44 @@ message Flag {
   google.protobuf.Timestamp updated_at = 6;
   repeated Variant variants = 7;
   string namespace_key = 8;
+}
+
+message NamespaceList {
+  repeated Namespace namespaces = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GetNamespaceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["key"]
+    }
+  };
+
+  string key = 1;
+}
+
+message ListNamespaceRequest {
+  int32 limit = 1;
+  int32 offset = 2 [deprecated = true];
+  string page_token = 3;
+}
+
+message CreateNamespaceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: [
+        "key",
+        "name"
+      ]
+    }
+  };
+  
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool protected = 4;
 }
 
 message FlagList {

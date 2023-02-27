@@ -40,7 +40,6 @@ DROP TABLE flags;
 ALTER TABLE flags_temp RENAME TO flags;
 
 /* variants */
-
 CREATE TABLE IF NOT EXISTS variants_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL,
@@ -64,7 +63,6 @@ DROP TABLE variants;
 ALTER TABLE variants_temp RENAME TO variants;
 
 /* rules */
-
 CREATE TABLE IF NOT EXISTS rules_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL,
