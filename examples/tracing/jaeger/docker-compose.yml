@@ -19,7 +19,7 @@ services:
       - "COLLECTOR_OTLP_ENABLED=true"
 
   flipt:
-    build: ../../..
+    image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
     depends_on:
       - jaeger
@@ -28,10 +28,11 @@ services:
     networks:
       - flipt_network
     environment:
-      - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_TRACING_ENABLED=true"
-      - "FLIPT_TRACING_EXPORTER=jaeger"
-      - "FLIPT_TRACING_JAEGER_HOST=jaeger"
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_TRACING_ENABLED=true
+      - FLIPT_TRACING_EXPORTER=jaeger
+      - FLIPT_TRACING_JAEGER_HOST=jaeger
+      - FLIPT_META_TELMETRY_ENABLED=false
 
 networks:
   flipt_network:

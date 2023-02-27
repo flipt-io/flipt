@@ -48,6 +48,7 @@
         <a href="https://www.flipt.io/docs/introduction">Documentation</a> |
         <a href="#features">Features</a> |
         <a href="#values">Values</a> |
+        <a href="#examples">Examples</a> |
         <a href="#integration">Integration</a> |
         <a href="#community">Community</a> |
         <a href="#feedback">Feedback</a>
@@ -139,9 +140,15 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 
 <br clear="both"/>
 
+## Examples
+
+Check out the [examples](/examples) to see how Flipt works in different use cases.
+
+<br clear="both"/>
+
 ## Integration
 
-Check out the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing application.
+Check out the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
 
 ### REST API
 
@@ -180,14 +187,6 @@ Note: These libraries are not maintained by the Flipt team and may not be up to 
 ### Generate Your Own
 
 If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples of how to generate GRPC clients in each supported language.
-
-<br clear="both"/>
-
-## Examples
-
-Check out the [examples](/examples) to see how Flipt works.
-
-Here's a [basic one](https://github.com/flipt-io/flipt/tree/main/examples/basic) to get started!
 
 <br clear="both"/>
 

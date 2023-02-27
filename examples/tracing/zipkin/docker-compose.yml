@@ -9,7 +9,7 @@ services:
       - flipt_network
 
   flipt:
-    build: ../../..
+    image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
     depends_on:
       - zipkin
@@ -18,10 +18,11 @@ services:
     networks:
       - flipt_network
     environment:
-      - "FLIPT_LOG_LEVEL=debug"
-      - "FLIPT_TRACING_ENABLED=true"
-      - "FLIPT_TRACING_EXPORTER=zipkin"
-      - "FLIPT_TRACING_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans"
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_TRACING_ENABLED=true
+      - FLIPT_TRACING_EXPORTER=zipkin
+      - FLIPT_TRACING_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - FLIPT_META_TELMETRY_ENABLED=false
 
 networks:
   flipt_network:

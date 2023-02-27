@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="../images/cockroachdb.svg" alt="CockroachDB" width=250 height=250 />
+    <img src="../../images/logos/cockroachdb.svg" alt="CockroachDB" width=250 height=250 />
 </p>
 
 # CockroachDB Example

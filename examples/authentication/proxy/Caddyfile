@@ -1,8 +1,10 @@
 :8080 {
-  # proxy requests to port 8080
-  # to the container with basic auth
-  basicauth / {$HTTP_USERNAME} {$HTTP_PASSWORD}
-  proxy / flipt:8080 {
-    transparent
+  log
+
+  # proxy requests to port 8080 to the Flipt container protected with basic auth
+  # https://caddyserver.com/docs/caddyfile/directives/basicauth
+  basicauth /* {
+    {$HTTP_USERNAME} {$HTTP_PASSWORD_HASH}
   }
+  reverse_proxy /* flipt:8080
 }
