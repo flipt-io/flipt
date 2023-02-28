@@ -299,7 +299,7 @@ func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {
 		Enabled:     true,
 	})
 
-	assert.EqualError(t, err, "flag \"TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique for the namespace \"default\"")
+	assert.EqualError(t, err, "flag \"TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique for namespace \"default\"")
 }
 
 func (s *DBTestSuite) TestUpdateFlag() {
@@ -462,7 +462,7 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique for the flag \"TestDBTestSuite/TestCreateVariant_DuplicateName\"")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"TestDBTestSuite/TestCreateVariant_DuplicateName\"")
 }
 
 func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentFlag() {
@@ -645,7 +645,7 @@ func (s *DBTestSuite) TestUpdateVariant_DuplicateName() {
 		Description: "foobar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique for the flag \"TestDBTestSuite/TestUpdateVariant_DuplicateName\"")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"TestDBTestSuite/TestUpdateVariant_DuplicateName\"")
 }
 
 func (s *DBTestSuite) TestDeleteVariant() {
