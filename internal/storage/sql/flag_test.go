@@ -272,6 +272,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 
 	// require.NoError(t, err)
 
+	// assert.Equal(t, "foo", flag.NamespaceKey)
 	// assert.Equal(t, t.Name(), flag.Key)
 	// assert.Equal(t, "foo", flag.Name)
 	// assert.Equal(t, "bar", flag.Description)

@@ -255,6 +255,25 @@ func (s *DBTestSuite) TestCreateSegment() {
 	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
 	assert.NotZero(t, segment.CreatedAt)
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
+
+	// TODO: test create segment with different namespace (need to create namespace first)
+	// segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	// 	Key:         t.Name(),
+	// 	Name:        "foo",
+	// 	Description: "bar",
+	// 	MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+	// 	NamespaceKey:   "foo",
+	// })
+
+	// require.NoError(t, err)
+
+	// assert.Equal(t, "foo", segment.NamespaceKey)
+	// assert.Equal(t, t.Name(), segment.Key)
+	// assert.Equal(t, "foo", segment.Name)
+	// assert.Equal(t, "bar", segment.Description)
+	// assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
+	// assert.NotZero(t, segment.CreatedAt)
+	// assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
 func (s *DBTestSuite) TestCreateSegment_DuplicateKey() {
@@ -274,7 +293,7 @@ func (s *DBTestSuite) TestCreateSegment_DuplicateKey() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "segment \"TestDBTestSuite/TestCreateSegment_DuplicateKey\" is not unique")
+	assert.EqualError(t, err, "segment \"default/TestDBTestSuite/TestCreateSegment_DuplicateKey\" is not unique")
 }
 
 func (s *DBTestSuite) TestUpdateSegment() {
@@ -465,7 +484,7 @@ func (s *DBTestSuite) TestCreateConstraint_SegmentNotFound() {
 		Value:      "baz",
 	})
 
-	assert.EqualError(t, err, "segment \"foo\" not found")
+	assert.EqualError(t, err, "segment \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestUpdateConstraint() {
