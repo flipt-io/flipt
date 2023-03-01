@@ -35,6 +35,7 @@ func (s *DBTestSuite) TestGetSegment() {
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
+	assert.Equal(t, storage.DefaultNamespace, got.NamespaceKey)
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
@@ -75,6 +76,12 @@ func (s *DBTestSuite) TestListSegments() {
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
+
+	for _, segment := range got {
+		assert.Equal(t, storage.DefaultNamespace, segment.NamespaceKey)
+		assert.NotZero(t, segment.CreatedAt)
+		assert.NotZero(t, segment.UpdatedAt)
+	}
 }
 
 func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
@@ -308,6 +315,7 @@ func (s *DBTestSuite) TestUpdateSegment() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, segment.NamespaceKey)
 	assert.Equal(t, t.Name(), segment.Key)
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
@@ -324,6 +332,7 @@ func (s *DBTestSuite) TestUpdateSegment() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, updated.NamespaceKey)
 	assert.Equal(t, segment.Key, updated.Key)
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
@@ -456,6 +465,7 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	assert.NotNil(t, constraint)
 
 	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
@@ -511,6 +521,7 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.NotNil(t, constraint)
 
 	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
@@ -531,6 +542,7 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	require.NoError(t, err)
 
 	assert.Equal(t, constraint.Id, updated.Id)
+	assert.Equal(t, storage.DefaultNamespace, updated.NamespaceKey)
 	assert.Equal(t, constraint.SegmentKey, updated.SegmentKey)
 	assert.Equal(t, constraint.Type, updated.Type)
 	assert.Equal(t, constraint.Property, updated.Property)
