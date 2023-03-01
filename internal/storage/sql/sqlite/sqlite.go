@@ -48,7 +48,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 			case sqlite3.ErrConstraintForeignKey:
 				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
 			case sqlite3.ErrConstraintPrimaryKey:
-				return nil, errs.ErrInvalidf("flag %q is not unique for namespace %q", r.Key, r.NamespaceKey)
+				return nil, errs.ErrInvalidf(`flag "%s/%s" is not unique`, r.NamespaceKey, r.Key)
 			}
 		}
 

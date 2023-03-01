@@ -250,7 +250,7 @@ type variantFlagKeyger interface {
 
 func flagCacheKey(namespaceKey, key string) string {
 	var k string
-	// for backwards compatibility
+	// for backward compatibility
 	if namespaceKey != "" {
 		k = fmt.Sprintf("f:%s:%s", namespaceKey, key)
 	} else {
@@ -267,7 +267,7 @@ func evaluationCacheKey(r *flipt.EvaluationRequest) (string, error) {
 	}
 
 	var k string
-	// for backwards compatibility
+	// for backward compatibility
 	if r.GetNamespaceKey() != "" {
 		k = fmt.Sprintf("e:%s:%s:%s:%s", r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out)
 	} else {

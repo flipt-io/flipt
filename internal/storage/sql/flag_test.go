@@ -47,7 +47,7 @@ func (s *DBTestSuite) TestGetFlagNotFound() {
 	t := s.T()
 
 	_, err := s.store.GetFlag(context.TODO(), storage.DefaultNamespace, "foo")
-	assert.EqualError(t, err, "flag \"foo\"; namespace \"default\" not found")
+	assert.EqualError(t, err, "flag \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestListFlags() {
@@ -299,7 +299,7 @@ func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {
 		Enabled:     true,
 	})
 
-	assert.EqualError(t, err, "flag \"TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique for namespace \"default\"")
+	assert.EqualError(t, err, "flag \"default/TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique")
 }
 
 func (s *DBTestSuite) TestUpdateFlag() {

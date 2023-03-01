@@ -305,7 +305,11 @@ func (s *Store) CountFlags(ctx context.Context, namespaceKey string) (uint64, er
 		namespaceKey = storage.DefaultNamespace
 	}
 
-	if err := s.builder.Select("COUNT(*)").From("flags").Where(sq.Eq{"namespace_key": namespaceKey}).QueryRowContext(ctx).Scan(&count); err != nil {
+	if err := s.builder.Select("COUNT(*)").
+		From("flags").
+		Where(sq.Eq{"namespace_key": namespaceKey}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
 		return 0, err
 	}
 
