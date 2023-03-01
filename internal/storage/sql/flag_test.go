@@ -428,7 +428,7 @@ func (s *DBTestSuite) TestCreateVariant_FlagNotFound() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "flag \"foo\" not found")
+	assert.EqualError(t, err, "flag \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
@@ -462,7 +462,7 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"TestDBTestSuite/TestCreateVariant_DuplicateName\"")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestCreateVariant_DuplicateName\"")
 }
 
 func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentFlag() {
@@ -645,7 +645,7 @@ func (s *DBTestSuite) TestUpdateVariant_DuplicateName() {
 		Description: "foobar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"TestDBTestSuite/TestUpdateVariant_DuplicateName\"")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestUpdateVariant_DuplicateName\"")
 }
 
 func (s *DBTestSuite) TestDeleteVariant() {
