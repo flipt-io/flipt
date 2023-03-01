@@ -70,6 +70,7 @@ message EvaluationRequest {
   string flag_key = 2;
   string entity_id = 3;
   map<string, string> context = 4;
+  string namespace_key = 5;
 }
 
 message BatchEvaluationRequest {
@@ -112,6 +113,15 @@ message BatchEvaluationResponse {
   double request_duration_millis = 3;
 }
 
+message Namespace {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool protected = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
 message Flag {
   string key = 1;
   string name = 2;
@@ -120,6 +130,45 @@ message Flag {
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
   repeated Variant variants = 7;
+  string namespace_key = 8;
+}
+
+message NamespaceList {
+  repeated Namespace namespaces = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message GetNamespaceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["key"]
+    }
+  };
+
+  string key = 1;
+}
+
+message ListNamespaceRequest {
+  int32 limit = 1;
+  int32 offset = 2 [deprecated = true];
+  string page_token = 3;
+}
+
+message CreateNamespaceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: [
+        "key",
+        "name"
+      ]
+    }
+  };
+  
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool protected = 4;
 }
 
 message FlagList {
@@ -136,12 +185,14 @@ message GetFlagRequest {
   };
 
   string key = 1;
+  string namespace_key = 2;
 }
 
 message ListFlagRequest {
   int32 limit = 1;
   int32 offset = 2 [deprecated = true];
   string page_token = 3;
+  string namespace_key = 4;
 }
 
 message CreateFlagRequest {
@@ -158,6 +209,7 @@ message CreateFlagRequest {
   string name = 2;
   string description = 3;
   bool enabled = 4;
+  string namespace_key = 5;
 }
 
 message UpdateFlagRequest {
@@ -174,6 +226,7 @@ message UpdateFlagRequest {
   string name = 2;
   string description = 3;
   bool enabled = 4;
+  string namespace_key = 5;
 }
 
 message DeleteFlagRequest {
@@ -184,6 +237,7 @@ message DeleteFlagRequest {
   };
 
   string key = 1;
+  string namespace_key = 2;
 }
 
 message Variant {
@@ -195,6 +249,7 @@ message Variant {
   google.protobuf.Timestamp created_at = 6;
   google.protobuf.Timestamp updated_at = 7;
   string attachment = 8;
+  string namespace_key = 9;
 }
 
 message CreateVariantRequest {
@@ -212,6 +267,7 @@ message CreateVariantRequest {
   string name = 3;
   string description = 4;
   string attachment = 5;
+  string namespace_key = 6;
 }
 
 message UpdateVariantRequest {
@@ -231,6 +287,7 @@ message UpdateVariantRequest {
   string name = 4;
   string description = 5;
   string attachment = 6;
+  string namespace_key = 7;
 }
 
 message DeleteVariantRequest {
@@ -245,6 +302,7 @@ message DeleteVariantRequest {
 
   string id = 1;
   string flag_key = 2;
+  string namespace_key = 3;
 }
 
 enum MatchType {
@@ -260,6 +318,7 @@ message Segment {
   google.protobuf.Timestamp updated_at = 5;
   repeated Constraint constraints = 6;
   MatchType match_type = 7;
+  string namespace_key = 8;
 }
 
 message SegmentList {
@@ -276,12 +335,14 @@ message GetSegmentRequest {
   };
 
   string key = 1;
+  string namespace_key = 2;
 }
 
 message ListSegmentRequest {
   int32 limit = 1;
   int32 offset = 2 [deprecated = true];
   string page_token = 3;
+  string namespace_key = 4;
 }
 
 message CreateSegmentRequest {
@@ -298,6 +359,7 @@ message CreateSegmentRequest {
   string name = 2;
   string description = 3;
   MatchType match_type = 4;
+  string namespace_key = 5;
 }
 
 message UpdateSegmentRequest {
@@ -314,6 +376,7 @@ message UpdateSegmentRequest {
   string name = 2;
   string description = 3;
   MatchType match_type = 4;
+  string namespace_key = 5;
 }
 
 message DeleteSegmentRequest {
@@ -324,6 +387,7 @@ message DeleteSegmentRequest {
   };
 
   string key = 1;
+  string namespace_key = 2;
 }
 
 enum ComparisonType {
@@ -342,6 +406,7 @@ message Constraint {
   string value = 6;
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
+  string namespace_key = 9;
 }
 
 message CreateConstraintRequest {
@@ -361,6 +426,7 @@ message CreateConstraintRequest {
   string property = 3;
   string operator = 4;
   string value = 5;
+  string namespace_key = 6;
 }
 
 message UpdateConstraintRequest {
@@ -382,6 +448,7 @@ message UpdateConstraintRequest {
   string property = 4;
   string operator = 5;
   string value = 6;
+  string namespace_key = 7;
 }
 
 message DeleteConstraintRequest {
@@ -396,6 +463,7 @@ message DeleteConstraintRequest {
 
   string id = 1;
   string segment_key = 2;
+  string namespace_key = 3;
 }
 
 message Rule {
@@ -406,6 +474,7 @@ message Rule {
   int32 rank = 5;
   google.protobuf.Timestamp created_at = 6;
   google.protobuf.Timestamp updated_at = 7;
+  string namespace_key = 8;
 }
 
 message RuleList {
@@ -425,6 +494,7 @@ message ListRuleRequest {
   int32 offset = 2 [deprecated = true];
   string flag_key = 3;
   string page_token = 4;
+  string namespace_key = 5;
 }
 
 message GetRuleRequest {
@@ -439,6 +509,7 @@ message GetRuleRequest {
 
   string id = 1;
   string flag_key = 2;
+  string namespace_key = 3;
 }
 
 message CreateRuleRequest {
@@ -455,6 +526,7 @@ message CreateRuleRequest {
   string flag_key = 1;
   string segment_key = 2;
   int32 rank = 3;
+  string namespace_key = 4;
 }
 
 message UpdateRuleRequest {
@@ -471,6 +543,7 @@ message UpdateRuleRequest {
   string id = 1;
   string flag_key = 2;
   string segment_key = 3;
+  string namespace_key = 4;
 }
 
 message DeleteRuleRequest {
@@ -485,6 +558,7 @@ message DeleteRuleRequest {
 
   string id = 1;
   string flag_key = 2;
+  string namespace_key = 3;
 }
 
 message OrderRulesRequest {
@@ -499,6 +573,7 @@ message OrderRulesRequest {
 
   string flag_key = 1;
   repeated string rule_ids = 2;
+  string namespace_key = 3;
 }
 
 message Distribution {
@@ -526,6 +601,7 @@ message CreateDistributionRequest {
   string rule_id = 2;
   string variant_id = 3;
   float rollout = 4;
+  string namespace_key = 5;
 }
 
 message UpdateDistributionRequest {
@@ -546,6 +622,7 @@ message UpdateDistributionRequest {
   string rule_id = 3;
   string variant_id = 4;
   float rollout = 5;
+  string namespace_key = 6;
 }
 
 message DeleteDistributionRequest {
@@ -564,6 +641,7 @@ message DeleteDistributionRequest {
   string flag_key = 2;
   string rule_id = 3;
   string variant_id = 4;
+  string namespace_key = 5;
 }
 
 service Flipt {

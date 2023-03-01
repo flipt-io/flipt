@@ -299,7 +299,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 		req      = &flipt.GetFlagRequest{Key: "foo"}
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
 		Key:     req.Key,
 		Enabled: true,
 	}, nil)
@@ -555,7 +555,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 		s        = server.New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, "foo").Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
 		Key:     "foo",
 		Enabled: true,
 	}, nil)

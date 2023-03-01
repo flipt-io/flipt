@@ -22,7 +22,7 @@ type mockLister struct {
 	ruleErr error
 }
 
-func (m mockLister) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
+func (m mockLister) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
 	return storage.ResultSet[*flipt.Flag]{
 		Results: m.flags,
 	}, m.flagErr

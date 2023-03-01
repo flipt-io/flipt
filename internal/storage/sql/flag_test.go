@@ -30,7 +30,7 @@ func (s *DBTestSuite) TestGetFlag() {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	got, err := s.store.GetFlag(context.TODO(), flag.Key)
+	got, err := s.store.GetFlag(context.TODO(), storage.DefaultNamespace, flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
@@ -46,8 +46,8 @@ func (s *DBTestSuite) TestGetFlag() {
 func (s *DBTestSuite) TestGetFlagNotFound() {
 	t := s.T()
 
-	_, err := s.store.GetFlag(context.TODO(), "foo")
-	assert.EqualError(t, err, "flag \"foo\" not found")
+	_, err := s.store.GetFlag(context.TODO(), storage.DefaultNamespace, "foo")
+	assert.EqualError(t, err, "flag \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestListFlags() {
@@ -72,7 +72,7 @@ func (s *DBTestSuite) TestListFlags() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListFlags(context.TODO())
+	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
@@ -114,7 +114,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	// get middle flag
-	res, err := s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -123,7 +123,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 	assert.Equal(t, middle.Key, got[0].Key)
 
 	// get first (newest) flag
-	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -132,7 +132,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 	assert.Equal(t, newest.Key, got[0].Key)
 
 	// get last (oldest) flag
-	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -141,7 +141,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
 	assert.Equal(t, oldest.Key, got[0].Key)
 
 	// get all flags
-	res, err = s.store.ListFlags(context.TODO(), storage.WithOrder(storage.OrderDesc))
+	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -189,7 +189,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	// get newest flag
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListFlags(context.TODO(), opts...)
+	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got := res.Results
@@ -207,7 +207,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	// get middle flag
-	res, err = s.store.ListFlags(context.TODO(), opts...)
+	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -223,7 +223,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
 	// get oldest flag
-	res, err = s.store.ListFlags(context.TODO(), opts...)
+	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -232,7 +232,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
 	// get all flags
-	res, err = s.store.ListFlags(context.TODO(), opts...)
+	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -260,6 +260,24 @@ func (s *DBTestSuite) TestCreateFlag() {
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
+
+	// TODO: test create flag with different namespace (need to create namespace first)
+	// flag, err = s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+	// 	Key:          t.Name(),
+	// 	Name:         "foo",
+	// 	Description:  "bar",
+	// 	Enabled:      true,
+	// 	NamespaceKey: "foo",
+	// })
+
+	// require.NoError(t, err)
+
+	// assert.Equal(t, t.Name(), flag.Key)
+	// assert.Equal(t, "foo", flag.Name)
+	// assert.Equal(t, "bar", flag.Description)
+	// assert.True(t, flag.Enabled)
+	// assert.NotZero(t, flag.CreatedAt)
+	// assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
 
 func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {
@@ -281,7 +299,7 @@ func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {
 		Enabled:     true,
 	})
 
-	assert.EqualError(t, err, "flag \"TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique")
+	assert.EqualError(t, err, "flag \"default/TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique")
 }
 
 func (s *DBTestSuite) TestUpdateFlag() {
@@ -392,7 +410,7 @@ func (s *DBTestSuite) TestCreateVariant() {
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	// get the flag again
-	flag, err = s.store.GetFlag(context.TODO(), flag.Key)
+	flag, err = s.store.GetFlag(context.TODO(), storage.DefaultNamespace, flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -410,7 +428,7 @@ func (s *DBTestSuite) TestCreateVariant_FlagNotFound() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "flag \"foo\" not found")
+	assert.EqualError(t, err, "flag \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
@@ -444,7 +462,7 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestCreateVariant_DuplicateName\"")
 }
 
 func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentFlag() {
@@ -554,7 +572,7 @@ func (s *DBTestSuite) TestUpdateVariant() {
 	assert.NotZero(t, updated.UpdatedAt)
 
 	// get the flag again
-	flag, err = s.store.GetFlag(context.TODO(), flag.Key)
+	flag, err = s.store.GetFlag(context.TODO(), storage.DefaultNamespace, flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -627,7 +645,7 @@ func (s *DBTestSuite) TestUpdateVariant_DuplicateName() {
 		Description: "foobar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestUpdateVariant_DuplicateName\"")
 }
 
 func (s *DBTestSuite) TestDeleteVariant() {
@@ -657,7 +675,7 @@ func (s *DBTestSuite) TestDeleteVariant() {
 	require.NoError(t, err)
 
 	// get the flag again
-	flag, err = s.store.GetFlag(context.TODO(), flag.Key)
+	flag, err = s.store.GetFlag(context.TODO(), storage.DefaultNamespace, flag.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
@@ -791,7 +809,7 @@ func BenchmarkListFlags(b *testing.B) {
 
 	b.Run("no-pagination", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			flags, err := s.store.ListFlags(context.TODO())
+			flags, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace)
 			require.NoError(t, err)
 			assert.NotEmpty(t, flags)
 		}
@@ -801,7 +819,7 @@ func BenchmarkListFlags(b *testing.B) {
 		pageSize := pageSize
 		b.Run(fmt.Sprintf("pagination-limit-%d", pageSize), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				flags, err := s.store.ListFlags(context.TODO(), storage.WithLimit(pageSize))
+				flags, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithLimit(pageSize))
 				require.NoError(t, err)
 				assert.NotEmpty(t, flags)
 			}
@@ -810,7 +828,7 @@ func BenchmarkListFlags(b *testing.B) {
 
 	b.Run("pagination", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			flags, err := s.store.ListFlags(context.TODO(), storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
+			flags, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
 			require.NoError(t, err)
 			assert.NotEmpty(t, flags)
 		}
