@@ -64,18 +64,18 @@ func (m *storeMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	return args.Error(0)
 }
 
-func (m *storeMock) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
-	args := m.Called(ctx, key)
+func (m *storeMock) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
+	args := m.Called(ctx, namespaceKey, key)
 	return args.Get(0).(*flipt.Segment), args.Error(1)
 }
 
-func (m *storeMock) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
-	args := m.Called(ctx, opts)
+func (m *storeMock) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
+	args := m.Called(ctx, namespaceKey, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Segment]), args.Error(1)
 }
 
-func (m *storeMock) CountSegments(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *storeMock) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 

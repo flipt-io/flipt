@@ -15,7 +15,7 @@ const defaultBatchSize = 25
 
 type lister interface {
 	ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error)
-	ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error)
+	ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error)
 	ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error)
 }
 
@@ -118,9 +118,11 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	remaining = true
 	nextPage = ""
 
+	// TODO: support all namespaces
+
 	// export segments/constraints in batches
 	for batch := uint64(0); remaining; batch++ {
-		resp, err := e.store.ListSegments(ctx, storage.WithPageToken(nextPage), storage.WithLimit(batchSize))
+		resp, err := e.store.ListSegments(ctx, storage.DefaultNamespace, storage.WithPageToken(nextPage), storage.WithLimit(batchSize))
 		if err != nil {
 			return fmt.Errorf("getting segments: %w", err)
 		}

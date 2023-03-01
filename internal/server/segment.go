@@ -14,7 +14,7 @@ import (
 // GetSegment gets a segment
 func (s *Server) GetSegment(ctx context.Context, r *flipt.GetSegmentRequest) (*flipt.Segment, error) {
 	s.logger.Debug("get segment", zap.Stringer("request", r))
-	segment, err := s.store.GetSegment(ctx, r.Key)
+	segment, err := s.store.GetSegment(ctx, r.NamespaceKey, r.Key)
 	s.logger.Debug("get segment", zap.Stringer("response", segment))
 	return segment, err
 }
@@ -41,7 +41,7 @@ func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) 
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
 	}
 
-	results, err := s.store.ListSegments(ctx, opts...)
+	results, err := s.store.ListSegments(ctx, r.NamespaceKey, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *Server) ListSegments(ctx context.Context, r *flipt.ListSegmentRequest) 
 
 	resp.Segments = append(resp.Segments, results.Results...)
 
-	total, err := s.store.CountSegments(ctx)
+	total, err := s.store.CountSegments(ctx, r.NamespaceKey)
 	if err != nil {
 		return nil, err
 	}

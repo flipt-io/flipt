@@ -89,9 +89,8 @@ func Open() (*Database, error) {
 		case config.DatabaseSQLite:
 			dbPath := createTempDBPath()
 			cfg.Database.URL = "file:" + dbPath
-			fmt.Printf("Using SQLite database: %s", dbPath)
 			cleanup = func() {
-				// _ = os.Remove(dbPath)
+				_ = os.Remove(dbPath)
 			}
 		case config.DatabaseCockroachDB:
 			useTestContainer = true

@@ -47,14 +47,16 @@ func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.F
 
 		err = s.builder.Select("namespace_key, \"key\", name, description, enabled, created_at, updated_at").
 			From("flags").
-			Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"\"key\"": key}}).QueryRowContext(ctx).Scan(
-			&flag.NamespaceKey,
-			&flag.Key,
-			&flag.Name,
-			&flag.Description,
-			&flag.Enabled,
-			&createdAt,
-			&updatedAt)
+			Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"\"key\"": key}}).
+			QueryRowContext(ctx).
+			Scan(
+				&flag.NamespaceKey,
+				&flag.Key,
+				&flag.Name,
+				&flag.Description,
+				&flag.Enabled,
+				&createdAt,
+				&updatedAt)
 	)
 
 	if err != nil {
