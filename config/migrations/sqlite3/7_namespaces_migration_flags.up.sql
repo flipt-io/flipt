@@ -1,10 +1,5 @@
 PRAGMA foreign_keys=off;
 
-/* SQLite doesn't allow you to drop unique constraints with ALTER TABLE
-   so we have to create a new table with the schema we want and copy the data over.
-   https://www.sqlite.org/lang_altertable.html
-*/
-
 /* Create temp tables */
 
 /* flags */
@@ -16,7 +11,8 @@ CREATE TABLE IF NOT EXISTS flags_temp (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   namespace_key VARCHAR(255) NOT NULL DEFAULT 'default' REFERENCES namespaces ON DELETE CASCADE,
-  PRIMARY KEY (namespace_key, key)); /* composite primary key unique by default */
+  PRIMARY KEY (namespace_key, key)
+);
 
 INSERT INTO flags_temp (key, name, description, enabled, created_at, updated_at)
   SELECT key, name, description, enabled, created_at, updated_at
@@ -53,7 +49,7 @@ ALTER TABLE variants_temp RENAME TO variants;
 CREATE TABLE IF NOT EXISTS rules_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL,
-  segment_key VARCHAR(255) NOT NULL REFERENCES segments ON DELETE CASCADE,
+  segment_key VARCHAR(255) NOT NULL,
   rank INTEGER DEFAULT 1 NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
