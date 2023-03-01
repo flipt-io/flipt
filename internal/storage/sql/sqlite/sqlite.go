@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"errors"
 
@@ -43,7 +42,6 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) {
-			fmt.Printf("sqlite3 error: %v", serr.ExtendedCode)
 			switch serr.ExtendedCode {
 			case sqlite3.ErrConstraintForeignKey:
 				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
