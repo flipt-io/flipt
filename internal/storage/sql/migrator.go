@@ -17,7 +17,7 @@ import (
 )
 
 var expectedVersions = map[Driver]uint{
-	SQLite:      6,
+	SQLite:      7,
 	Postgres:    5,
 	MySQL:       3,
 	CockroachDB: 2,

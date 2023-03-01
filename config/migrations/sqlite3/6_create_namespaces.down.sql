@@ -1,1 +1,1 @@
-/* TODO */
+DROP TABLE IF EXISTS namespaces;
