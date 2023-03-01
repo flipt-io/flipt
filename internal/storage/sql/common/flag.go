@@ -59,7 +59,7 @@ func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.F
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("flag %q; namespace %q", key, namespaceKey)
+			return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, key)
 		}
 
 		return nil, err
