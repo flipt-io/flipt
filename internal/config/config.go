@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"unicode"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
@@ -363,6 +364,11 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 			return []string{}, nil
 		}
 
-		return strings.Fields(raw), nil
+		return strings.FieldsFunc(raw, func(r rune) bool {
+			if r == ',' {
+				return true
+			}
+			return unicode.IsSpace(r)
+		}), nil
 	}
 }

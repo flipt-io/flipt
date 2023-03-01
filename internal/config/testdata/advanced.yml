@@ -62,6 +62,7 @@ authentication:
           client_id: "abcdefg"
           client_secret: "bcdefgh"
           redirect_address: "http://auth.flipt.io"
+          scopes: "openid,email,profile"
       cleanup:
         interval: 2h
         grace_period: 48h

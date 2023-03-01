@@ -608,6 +608,7 @@ func TestLoad(t *testing.T) {
 										ClientID:        "abcdefg",
 										ClientSecret:    "bcdefgh",
 										RedirectAddress: "http://auth.flipt.io",
+										Scopes:          []string{"openid", "email", "profile"},
 									},
 								},
 							},
