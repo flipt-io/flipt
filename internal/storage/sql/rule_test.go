@@ -54,12 +54,13 @@ func (s *DBTestSuite) TestGetRule() {
 	require.NoError(t, err)
 	assert.NotNil(t, rule)
 
-	got, err := s.store.GetRule(context.TODO(), rule.Id)
+	got, err := s.store.GetRule(context.TODO(), storage.DefaultNamespace, rule.Id)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
 	assert.Equal(t, rule.Id, got.Id)
+	assert.Equal(t, storage.DefaultNamespace, got.NamespaceKey)
 	assert.Equal(t, rule.FlagKey, got.FlagKey)
 	assert.Equal(t, rule.SegmentKey, got.SegmentKey)
 	assert.Equal(t, rule.Rank, got.Rank)
@@ -70,8 +71,8 @@ func (s *DBTestSuite) TestGetRule() {
 func (s *DBTestSuite) TestGetRule_NotFound() {
 	t := s.T()
 
-	_, err := s.store.GetRule(context.TODO(), "0")
-	assert.EqualError(t, err, "rule \"0\" not found")
+	_, err := s.store.GetRule(context.TODO(), storage.DefaultNamespace, "0")
+	assert.EqualError(t, err, "rule \"default/0\" not found")
 }
 
 func (s *DBTestSuite) TestListRules() {
@@ -124,10 +125,17 @@ func (s *DBTestSuite) TestListRules() {
 		require.NoError(t, err)
 	}
 
-	got, err := s.store.ListRules(context.TODO(), flag.Key)
-
+	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
 	require.NoError(t, err)
-	assert.NotZero(t, len(got.Results))
+
+	got := res.Results
+	assert.NotZero(t, len(got))
+
+	for _, rule := range got {
+		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
+		assert.NotZero(t, rule.CreatedAt)
+		assert.NotZero(t, rule.UpdatedAt)
+	}
 }
 
 func (s *DBTestSuite) TestListRulesPagination_LimitOffset() {
@@ -180,7 +188,7 @@ func (s *DBTestSuite) TestListRulesPagination_LimitOffset() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListRules(context.TODO(), flag.Key, storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -240,7 +248,7 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListRules(context.TODO(), flag.Key, opts...)
+	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
 	require.NoError(t, err)
 
 	got := res.Results
@@ -256,7 +264,7 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
-	res, err = s.store.ListRules(context.TODO(), flag.Key, opts...)
+	res, err = s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -325,6 +333,25 @@ func (s *DBTestSuite) TestCreateRuleAndDistribution() {
 	assert.Equal(t, float32(100), distribution.Rollout)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
+
+	// TODO: create a rule with a different namespace
+	// rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+	// 	NamespaceKey: "foo",
+	// 	FlagKey:    flag.Key,
+	// 	SegmentKey: segment.Key,
+	// 	Rank:       1,
+	// })
+
+	// require.NoError(t, err)
+	// assert.NotNil(t, rule)
+
+	// assert.NotZero(t, rule.Id)
+	// assert.Equal(t, "foo", rule.NamespaceKey)
+	// assert.Equal(t, flag.Key, rule.FlagKey)
+	// assert.Equal(t, segment.Key, rule.SegmentKey)
+	// assert.Equal(t, int32(1), rule.Rank)
+	// assert.NotZero(t, rule.CreatedAt)
+	// assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 }
 
 func (s *DBTestSuite) TestCreateDistribution_NoRule() {
@@ -531,7 +558,7 @@ func (s *DBTestSuite) TestUpdateRule_NotFound() {
 		SegmentKey: segment.Key,
 	})
 
-	assert.EqualError(t, err, "rule \"foo\" not found")
+	assert.EqualError(t, err, "rule \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestDeleteRule() {
@@ -589,17 +616,19 @@ func (s *DBTestSuite) TestDeleteRule() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRules(context.TODO(), flag.Key)
-
+	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
 	// ensure rules are in correct order
 	require.NoError(t, err)
+
 	got := res.Results
 	assert.NotNil(t, got)
 	assert.Equal(t, 2, len(got))
 	assert.Equal(t, rules[0].Id, got[0].Id)
 	assert.Equal(t, int32(1), got[0].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[0].NamespaceKey)
 	assert.Equal(t, rules[2].Id, got[1].Id)
 	assert.Equal(t, int32(2), got[1].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[1].NamespaceKey)
 }
 
 func (s *DBTestSuite) TestDeleteRule_NotFound() {
@@ -686,17 +715,23 @@ func (s *DBTestSuite) TestOrderRules() {
 
 	require.NoError(t, err)
 
-	res, err := s.store.ListRules(context.TODO(), flag.Key)
+	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
 
 	// ensure rules are in correct order
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotNil(t, got)
 	assert.Equal(t, 3, len(got))
+
 	assert.Equal(t, rules[0].Id, got[0].Id)
 	assert.Equal(t, int32(1), got[0].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[0].NamespaceKey)
+
 	assert.Equal(t, rules[1].Id, got[1].Id)
 	assert.Equal(t, int32(2), got[1].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[1].NamespaceKey)
+
 	assert.Equal(t, rules[2].Id, got[2].Id)
 	assert.Equal(t, int32(3), got[2].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[2].NamespaceKey)
 }

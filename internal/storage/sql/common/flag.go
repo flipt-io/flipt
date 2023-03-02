@@ -379,7 +379,7 @@ func (s *Store) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*fl
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("flag %q", r.Key)
+		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.Key)
 	}
 
 	return s.GetFlag(ctx, r.NamespaceKey, r.Key)

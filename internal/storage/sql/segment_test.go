@@ -48,7 +48,7 @@ func (s *DBTestSuite) TestGetSegmentNotFound() {
 	t := s.T()
 
 	_, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, "foo")
-	assert.EqualError(t, err, "segment \"foo\" not found")
+	assert.EqualError(t, err, "segment \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestListSegments() {
@@ -350,7 +350,7 @@ func (s *DBTestSuite) TestUpdateSegment_NotFound() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "segment \"foo\" not found")
+	assert.EqualError(t, err, "segment \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestDeleteSegment() {

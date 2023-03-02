@@ -16,7 +16,7 @@ const defaultBatchSize = 25
 type lister interface {
 	ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error)
 	ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error)
-	ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error)
+	ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error)
 }
 
 type Exporter struct {
@@ -88,8 +88,10 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				variantKeys[v.Id] = v.Key
 			}
 
+			// TODO: support all namespaces
+
 			// export rules for flag
-			resp, err := e.store.ListRules(ctx, flag.Key)
+			resp, err := e.store.ListRules(ctx, storage.DefaultNamespace, flag.Key)
 			if err != nil {
 				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
