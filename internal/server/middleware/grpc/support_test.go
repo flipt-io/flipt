@@ -159,8 +159,8 @@ func (m *storeMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistr
 	return args.Error(0)
 }
 
-func (m *storeMock) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
-	args := m.Called(ctx, flagKey)
+func (m *storeMock) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
+	args := m.Called(ctx, namespaceKey, flagKey)
 	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
 }
 

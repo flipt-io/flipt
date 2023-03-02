@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -70,13 +71,14 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 
 	require.NoError(t, err)
 
-	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), flag.Key)
+	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), storage.DefaultNamespace, flag.Key)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, evaluationRules)
 	assert.Equal(t, 2, len(evaluationRules))
 
 	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
+	assert.Equal(t, storage.DefaultNamespace, evaluationRules[0].NamespaceKey)
 	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
 	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].SegmentKey)
 	assert.Equal(t, segment.MatchType, evaluationRules[0].SegmentMatchType)
@@ -84,6 +86,7 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 	assert.Equal(t, 2, len(evaluationRules[0].Constraints))
 
 	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
+	assert.Equal(t, storage.DefaultNamespace, evaluationRules[1].NamespaceKey)
 	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
 	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].SegmentKey)
 	assert.Equal(t, segment.MatchType, evaluationRules[1].SegmentMatchType)
