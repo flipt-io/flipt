@@ -35,6 +35,7 @@ func (s *DBTestSuite) TestGetFlag() {
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
+	assert.Equal(t, storage.DefaultNamespace, got.NamespaceKey)
 	assert.Equal(t, flag.Key, got.Key)
 	assert.Equal(t, flag.Name, got.Name)
 	assert.Equal(t, flag.Description, got.Description)
@@ -76,6 +77,12 @@ func (s *DBTestSuite) TestListFlags() {
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
+
+	for _, flag := range got {
+		assert.Equal(t, storage.DefaultNamespace, flag.NamespaceKey)
+		assert.NotZero(t, flag.CreatedAt)
+		assert.NotZero(t, flag.UpdatedAt)
+	}
 }
 
 func (s *DBTestSuite) TestListFlagsPagination_LimitOffset() {
@@ -254,6 +261,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, flag.NamespaceKey)
 	assert.Equal(t, t.Name(), flag.Key)
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
@@ -272,6 +280,7 @@ func (s *DBTestSuite) TestCreateFlag() {
 
 	// require.NoError(t, err)
 
+	// assert.Equal(t, "foo", flag.NamespaceKey)
 	// assert.Equal(t, t.Name(), flag.Key)
 	// assert.Equal(t, "foo", flag.Name)
 	// assert.Equal(t, "bar", flag.Description)
@@ -314,6 +323,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, flag.NamespaceKey)
 	assert.Equal(t, t.Name(), flag.Key)
 	assert.Equal(t, "foo", flag.Name)
 	assert.Equal(t, "bar", flag.Description)
@@ -330,6 +340,7 @@ func (s *DBTestSuite) TestUpdateFlag() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, updated.NamespaceKey)
 	assert.Equal(t, flag.Key, updated.Key)
 	assert.Equal(t, flag.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
@@ -401,6 +412,7 @@ func (s *DBTestSuite) TestCreateVariant() {
 	assert.NotNil(t, variant)
 
 	assert.NotZero(t, variant.Id)
+	assert.Equal(t, storage.DefaultNamespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, t.Name(), variant.Key)
 	assert.Equal(t, "foo", variant.Name)
@@ -517,6 +529,12 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentFlag() {
 	assert.Equal(t, "foo", variant2.Key)
 }
 
+// TODO:
+func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentNamespace() {
+	t := s.T()
+	t.Skip("TODO")
+}
+
 func (s *DBTestSuite) TestUpdateVariant() {
 	t := s.T()
 
@@ -543,6 +561,7 @@ func (s *DBTestSuite) TestUpdateVariant() {
 	assert.NotNil(t, variant)
 
 	assert.NotZero(t, variant.Id)
+	assert.Equal(t, storage.DefaultNamespace, variant.NamespaceKey)
 	assert.Equal(t, flag.Key, variant.FlagKey)
 	assert.Equal(t, "foo", variant.Key)
 	assert.Equal(t, "foo", variant.Name)
@@ -563,6 +582,7 @@ func (s *DBTestSuite) TestUpdateVariant() {
 	require.NoError(t, err)
 
 	assert.Equal(t, variant.Id, updated.Id)
+	assert.Equal(t, storage.DefaultNamespace, updated.NamespaceKey)
 	assert.Equal(t, variant.FlagKey, updated.FlagKey)
 	assert.Equal(t, variant.Key, updated.Key)
 	assert.Equal(t, variant.Name, updated.Name)

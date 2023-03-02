@@ -19,23 +19,25 @@ import (
 )
 
 // GetSegment gets a segment
-func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
+func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error) {
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
 
 		segment = &flipt.Segment{}
 
-		err = s.builder.Select("\"key\", name, description, match_type, created_at, updated_at").
+		err = s.builder.Select("namespace_key, \"key\", name, description, match_type, created_at, updated_at").
 			From("segments").
-			Where(sq.Eq{"\"key\"": key}).
-			QueryRowContext(ctx).Scan(
-			&segment.Key,
-			&segment.Name,
-			&segment.Description,
-			&segment.MatchType,
-			&createdAt,
-			&updatedAt)
+			Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"\"key\"": key}}).
+			QueryRowContext(ctx).
+			Scan(
+				&segment.NamespaceKey,
+				&segment.Key,
+				&segment.Name,
+				&segment.Description,
+				&segment.MatchType,
+				&createdAt,
+				&updatedAt)
 	)
 
 	if err != nil {
@@ -49,7 +51,7 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 	segment.CreatedAt = createdAt.Timestamp
 	segment.UpdatedAt = updatedAt.Timestamp
 
-	query := s.builder.Select("id, segment_key, type, property, operator, value, created_at, updated_at").
+	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
 		From("constraints").
 		Where(sq.Eq{"segment_key": segment.Key}).
 		OrderBy("created_at ASC")
@@ -73,6 +75,7 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 
 		if err := rows.Scan(
 			&constraint.Id,
+			&constraint.NamespaceKey,
 			&constraint.SegmentKey,
 			&constraint.Type,
 			&constraint.Property,
@@ -92,18 +95,19 @@ func (s *Store) GetSegment(ctx context.Context, key string) (*flipt.Segment, err
 }
 
 type optionalConstraint struct {
-	Id         sql.NullString
-	SegmentKey sql.NullString
-	Type       sql.NullInt32
-	Property   sql.NullString
-	Operator   sql.NullString
-	Value      sql.NullString
-	CreatedAt  fliptsql.NullableTimestamp
-	UpdatedAt  fliptsql.NullableTimestamp
+	Id           sql.NullString
+	NamespaceKey sql.NullString
+	SegmentKey   sql.NullString
+	Type         sql.NullInt32
+	Property     sql.NullString
+	Operator     sql.NullString
+	Value        sql.NullString
+	CreatedAt    fliptsql.NullableTimestamp
+	UpdatedAt    fliptsql.NullableTimestamp
 }
 
 // ListSegments lists all segments
-func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
+func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
 	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
@@ -114,9 +118,10 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		segments []*flipt.Segment
 		results  = storage.ResultSet[*flipt.Segment]{}
 
-		query = s.builder.Select("s.key, s.name, s.description, s.match_type, s.created_at, s.updated_at, c.id, c.segment_key, c.type, c.property, c.operator, c.value, c.created_at, c.updated_at").
+		query = s.builder.Select("s.namespace_key, s.key, s.name, s.description, s.match_type, s.created_at, s.updated_at, c.id, c.namespace_key, c.segment_key, c.type, c.property, c.operator, c.value, c.created_at, c.updated_at").
 			From("segments s").
-			LeftJoin("constraints c ON s.key = c.segment_key").
+			Where(sq.Eq{"s.namespace_key": namespaceKey}).
+			LeftJoin("constraints c ON s.key = c.segment_key AND c.namespace_key = s.namespace_key").
 			OrderBy(fmt.Sprintf("s.created_at %s", params.Order))
 	)
 
@@ -164,6 +169,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		)
 
 		if err := rows.Scan(
+			&segment.NamespaceKey,
 			&segment.Key,
 			&segment.Name,
 			&segment.Description,
@@ -171,6 +177,7 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 			&sCreatedAt,
 			&sUpdatedAt,
 			&c.Id,
+			&c.NamespaceKey,
 			&c.SegmentKey,
 			&c.Type,
 			&c.Property,
@@ -193,6 +200,9 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 		if c.Id.Valid {
 			constraint := &flipt.Constraint{
 				Id: c.Id.String,
+			}
+			if c.NamespaceKey.Valid {
+				constraint.NamespaceKey = c.NamespaceKey.String
 			}
 			if c.SegmentKey.Valid {
 				constraint.SegmentKey = c.SegmentKey.String
@@ -254,10 +264,14 @@ func (s *Store) ListSegments(ctx context.Context, opts ...storage.QueryOption) (
 }
 
 // CountSegments counts all segments
-func (s *Store) CountSegments(ctx context.Context) (uint64, error) {
+func (s *Store) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
 	var count uint64
 
-	if err := s.builder.Select("COUNT(*)").From("segments").QueryRowContext(ctx).Scan(&count); err != nil {
+	if err := s.builder.Select("COUNT(*)").
+		From("segments").
+		Where(sq.Eq{"namespace_key": namespaceKey}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
 		return 0, err
 	}
 
@@ -266,21 +280,27 @@ func (s *Store) CountSegments(ctx context.Context) (uint64, error) {
 
 // CreateSegment creates a segment
 func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		now     = timestamppb.Now()
 		segment = &flipt.Segment{
-			Key:         r.Key,
-			Name:        r.Name,
-			Description: r.Description,
-			MatchType:   r.MatchType,
-			CreatedAt:   now,
-			UpdatedAt:   now,
+			NamespaceKey: r.NamespaceKey,
+			Key:          r.Key,
+			Name:         r.Name,
+			Description:  r.Description,
+			MatchType:    r.MatchType,
+			CreatedAt:    now,
+			UpdatedAt:    now,
 		}
 	)
 
 	if _, err := s.builder.Insert("segments").
-		Columns("\"key\"", "name", "description", "match_type", "created_at", "updated_at").
+		Columns("namespace_key", "\"key\"", "name", "description", "match_type", "created_at", "updated_at").
 		Values(
+			segment.NamespaceKey,
 			segment.Key,
 			segment.Name,
 			segment.Description,
@@ -296,12 +316,16 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 
 // UpdateSegment updates an existing segment
 func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	query := s.builder.Update("segments").
 		Set("name", r.Name).
 		Set("description", r.Description).
 		Set("match_type", r.MatchType).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.Eq{"\"key\"": r.Key})
+		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -317,13 +341,17 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 		return nil, errs.ErrNotFoundf("segment %q", r.Key)
 	}
 
-	return s.GetSegment(ctx, r.Key)
+	return s.GetSegment(ctx, r.NamespaceKey, r.Key)
 }
 
 // DeleteSegment deletes a segment
 func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	_, err := s.builder.Delete("segments").
-		Where(sq.Eq{"\"key\"": r.Key}).
+		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"\"key\"": r.Key}}).
 		ExecContext(ctx)
 
 	return err
@@ -331,18 +359,23 @@ func (s *Store) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest
 
 // CreateConstraint creates a constraint
 func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		operator = strings.ToLower(r.Operator)
 		now      = timestamppb.Now()
 		c        = &flipt.Constraint{
-			Id:         uuid.Must(uuid.NewV4()).String(),
-			SegmentKey: r.SegmentKey,
-			Type:       r.Type,
-			Property:   r.Property,
-			Operator:   operator,
-			Value:      r.Value,
-			CreatedAt:  now,
-			UpdatedAt:  now,
+			Id:           uuid.Must(uuid.NewV4()).String(),
+			NamespaceKey: r.NamespaceKey,
+			SegmentKey:   r.SegmentKey,
+			Type:         r.Type,
+			Property:     r.Property,
+			Operator:     operator,
+			Value:        r.Value,
+			CreatedAt:    now,
+			UpdatedAt:    now,
 		}
 	)
 
@@ -352,9 +385,10 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	}
 
 	if _, err := s.builder.Insert("constraints").
-		Columns("id", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
+		Columns("id", "namespace_key", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
 		Values(
 			c.Id,
+			c.NamespaceKey,
 			c.SegmentKey,
 			c.Type,
 			c.Property,
@@ -371,7 +405,14 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 
 // UpdateConstraint updates an existing constraint
 func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
-	operator := strings.ToLower(r.Operator)
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	var (
+		whereClause = sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}, sq.Eq{"namespace_key": r.NamespaceKey}}
+		operator    = strings.ToLower(r.Operator)
+	)
 
 	// unset value if operator does not require it
 	if _, ok := flipt.NoValueOperators[operator]; ok {
@@ -384,7 +425,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		Set("operator", operator).
 		Set("value", r.Value).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}}).
+		Where(whereClause).
 		ExecContext(ctx)
 	if err != nil {
 		return nil, err
@@ -406,11 +447,11 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		c = &flipt.Constraint{}
 	)
 
-	if err := s.builder.Select("id, segment_key, type, property, operator, value, created_at, updated_at").
+	if err := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
 		From("constraints").
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}}).
+		Where(whereClause).
 		QueryRowContext(ctx).
-		Scan(&c.Id, &c.SegmentKey, &c.Type, &c.Property, &c.Operator, &c.Value, &createdAt, &updatedAt); err != nil {
+		Scan(&c.Id, &c.NamespaceKey, &c.SegmentKey, &c.Type, &c.Property, &c.Operator, &c.Value, &createdAt, &updatedAt); err != nil {
 		return nil, err
 	}
 
@@ -422,8 +463,12 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 
 // DeleteConstraint deletes a constraint
 func (s *Store) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	_, err := s.builder.Delete("constraints").
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}}).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"segment_key": r.SegmentKey}, sq.Eq{"namespace_key": r.NamespaceKey}}).
 		ExecContext(ctx)
 
 	return err

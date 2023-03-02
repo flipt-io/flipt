@@ -28,7 +28,7 @@ func (m mockLister) ListFlags(ctx context.Context, namespaceKey string, opts ...
 	}, m.flagErr
 }
 
-func (m mockLister) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
+func (m mockLister) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
 	return storage.ResultSet[*flipt.Segment]{
 		Results: m.segments,
 	}, m.segmentErr

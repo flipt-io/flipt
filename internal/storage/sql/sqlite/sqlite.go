@@ -99,10 +99,14 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	if err != nil {
 		var serr sqlite3.Error
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
+		if errors.As(err, &serr) {
+			switch serr.ExtendedCode {
+			case sqlite3.ErrConstraintForeignKey:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case sqlite3.ErrConstraintPrimaryKey:
+				return nil, errs.ErrInvalidf(`segment "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
-
 		return nil, err
 	}
 
@@ -116,7 +120,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.SegmentKey)
 		}
 
 		return nil, err

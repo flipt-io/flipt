@@ -146,9 +146,9 @@ type FlagStore interface {
 
 // SegmentStore stores and retrieves segments and constraints
 type SegmentStore interface {
-	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
-	CountSegments(ctx context.Context) (uint64, error)
+	GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
+	CountSegments(ctx context.Context, namespaceKey string) (uint64, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
