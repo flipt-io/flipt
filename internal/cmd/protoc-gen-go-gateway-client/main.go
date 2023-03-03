@@ -139,14 +139,14 @@ func generateFile(m mappings, gen *protogen.Plugin, file *protogen.File) {
 			g.P("func (x *", typ, ") ", method.GoName, "(ctx ", context("Context"), ", v *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error) {")
 
 			g.P("var body ", io("Reader"))
-			g.P("var values = ", netURL("Values"), "{}")
-
 			path, inPath := renderPath(pkgfmt, rule, method.Input)
 			if rule.body {
+				g.P("var values ", netURL("Values"))
 				g.P("reqData, err := ", protojson("Marshal"), "(v)")
 				g.P("if err != nil { return nil, err }")
 				g.P("body = ", bytes("NewReader"), "(reqData)")
 			} else {
+				var setValues []string
 				for _, field := range method.Input.Fields {
 					if _, ok := inPath[field]; !ok {
 						var val string
@@ -156,7 +156,17 @@ func generateFile(m mappings, gen *protogen.Plugin, file *protogen.File) {
 							val = fmt.Sprintf(`%s("%%v", v.%s)`, pkgfmt("Sprintf"), field.GoName)
 						}
 
-						g.P(fmt.Sprintf(`values.Set("%s", %s)`, field.Desc.JSONName(), val))
+						setValues = append(setValues, fmt.Sprintf(`values.Set("%s", %s)`, field.Desc.JSONName(), val))
+					}
+				}
+
+				// only allocate if we have any values to set on the query
+				if len(setValues) == 0 {
+					g.P("var values ", netURL("Values"))
+				} else {
+					g.P("values := ", netURL("Values"), "{}")
+					for _, val := range setValues {
+						g.P(val)
 					}
 				}
 			}

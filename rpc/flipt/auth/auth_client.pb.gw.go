@@ -26,7 +26,7 @@ func NewPublicAuthenticationServiceHTTPClient(addr string) *PublicAuthentication
 
 func (x *PublicAuthenticationServiceHTTPClient) ListAuthenticationMethods(ctx context.Context, v *emptypb.Empty) (*ListAuthenticationMethodsResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/auth/v1/method", body)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func NewAuthenticationServiceHTTPClient(addr string) *AuthenticationServiceHTTPC
 
 func (x *AuthenticationServiceHTTPClient) GetAuthenticationSelf(ctx context.Context, v *emptypb.Empty) (*Authentication, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/auth/v1/self", body)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (x *AuthenticationServiceHTTPClient) GetAuthenticationSelf(ctx context.Cont
 
 func (x *AuthenticationServiceHTTPClient) GetAuthentication(ctx context.Context, v *GetAuthenticationRequest) (*Authentication, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/tokens/%v", v.Id), body)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (x *AuthenticationServiceHTTPClient) GetAuthentication(ctx context.Context,
 
 func (x *AuthenticationServiceHTTPClient) ListAuthentications(ctx context.Context, v *ListAuthenticationsRequest) (*ListAuthenticationsResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("method", fmt.Sprintf("%v", v.Method))
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("pageToken", v.PageToken)
@@ -146,7 +146,7 @@ func (x *AuthenticationServiceHTTPClient) ListAuthentications(ctx context.Contex
 
 func (x *AuthenticationServiceHTTPClient) DeleteAuthentication(ctx context.Context, v *DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/auth/v1/tokens/%v", v.Id), body)
 	if err != nil {
 		return nil, err
@@ -173,7 +173,7 @@ func (x *AuthenticationServiceHTTPClient) DeleteAuthentication(ctx context.Conte
 
 func (x *AuthenticationServiceHTTPClient) ExpireAuthenticationSelf(ctx context.Context, v *ExpireAuthenticationSelfRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("expiresAt", fmt.Sprintf("%v", v.ExpiresAt))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+"/auth/v1/self/expire", body)
 	if err != nil {
@@ -210,7 +210,7 @@ func NewAuthenticationMethodTokenServiceHTTPClient(addr string) *AuthenticationM
 
 func (x *AuthenticationMethodTokenServiceHTTPClient) CreateToken(ctx context.Context, v *CreateTokenRequest) (*CreateTokenResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -251,7 +251,7 @@ func NewAuthenticationMethodOIDCServiceHTTPClient(addr string) *AuthenticationMe
 
 func (x *AuthenticationMethodOIDCServiceHTTPClient) AuthorizeURL(ctx context.Context, v *AuthorizeURLRequest) (*AuthorizeURLResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("state", v.State)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oidc/%v/authorize", v.Provider), body)
 	if err != nil {
@@ -279,7 +279,7 @@ func (x *AuthenticationMethodOIDCServiceHTTPClient) AuthorizeURL(ctx context.Con
 
 func (x *AuthenticationMethodOIDCServiceHTTPClient) Callback(ctx context.Context, v *CallbackRequest) (*CallbackResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("code", v.Code)
 	values.Set("state", v.State)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oidc/%v/callback", v.Provider), body)
@@ -317,7 +317,7 @@ func NewAuthenticationMethodKubernetesServiceHTTPClient(addr string) *Authentica
 
 func (x *AuthenticationMethodKubernetesServiceHTTPClient) VerifyServiceAccount(ctx context.Context, v *VerifyServiceAccountRequest) (*VerifyServiceAccountResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err

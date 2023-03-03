@@ -26,7 +26,7 @@ func NewFliptHTTPClient(addr string) *FliptHTTPClient {
 
 func (x *FliptHTTPClient) Evaluate(ctx context.Context, v *EvaluationRequest) (*EvaluationResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (x *FliptHTTPClient) Evaluate(ctx context.Context, v *EvaluationRequest) (*
 
 func (x *FliptHTTPClient) BatchEvaluate(ctx context.Context, v *BatchEvaluationRequest) (*BatchEvaluationResponse, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (x *FliptHTTPClient) BatchEvaluate(ctx context.Context, v *BatchEvaluationR
 
 func (x *FliptHTTPClient) GetFlag(ctx context.Context, v *GetFlagRequest) (*Flag, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/%v", v.Key), body)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (x *FliptHTTPClient) GetFlag(ctx context.Context, v *GetFlagRequest) (*Flag
 
 func (x *FliptHTTPClient) ListFlags(ctx context.Context, v *ListFlagRequest) (*FlagList, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
@@ -147,7 +147,7 @@ func (x *FliptHTTPClient) ListFlags(ctx context.Context, v *ListFlagRequest) (*F
 
 func (x *FliptHTTPClient) CreateFlag(ctx context.Context, v *CreateFlagRequest) (*Flag, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func (x *FliptHTTPClient) CreateFlag(ctx context.Context, v *CreateFlagRequest) 
 
 func (x *FliptHTTPClient) UpdateFlag(ctx context.Context, v *UpdateFlagRequest) (*Flag, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func (x *FliptHTTPClient) UpdateFlag(ctx context.Context, v *UpdateFlagRequest) 
 
 func (x *FliptHTTPClient) DeleteFlag(ctx context.Context, v *DeleteFlagRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v", v.Key), body)
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func (x *FliptHTTPClient) DeleteFlag(ctx context.Context, v *DeleteFlagRequest) 
 
 func (x *FliptHTTPClient) CreateVariant(ctx context.Context, v *CreateVariantRequest) (*Variant, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -270,7 +270,7 @@ func (x *FliptHTTPClient) CreateVariant(ctx context.Context, v *CreateVariantReq
 
 func (x *FliptHTTPClient) UpdateVariant(ctx context.Context, v *UpdateVariantRequest) (*Variant, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -302,7 +302,7 @@ func (x *FliptHTTPClient) UpdateVariant(ctx context.Context, v *UpdateVariantReq
 
 func (x *FliptHTTPClient) DeleteVariant(ctx context.Context, v *DeleteVariantRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("flagKey", v.FlagKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/variants/%v", v.Id), body)
 	if err != nil {
@@ -330,7 +330,7 @@ func (x *FliptHTTPClient) DeleteVariant(ctx context.Context, v *DeleteVariantReq
 
 func (x *FliptHTTPClient) GetRule(ctx context.Context, v *GetRuleRequest) (*Rule, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("flagKey", v.FlagKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/%v", v.Id), body)
 	if err != nil {
@@ -358,7 +358,7 @@ func (x *FliptHTTPClient) GetRule(ctx context.Context, v *GetRuleRequest) (*Rule
 
 func (x *FliptHTTPClient) ListRules(ctx context.Context, v *ListRuleRequest) (*RuleList, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("flagKey", v.FlagKey)
@@ -389,7 +389,7 @@ func (x *FliptHTTPClient) ListRules(ctx context.Context, v *ListRuleRequest) (*R
 
 func (x *FliptHTTPClient) CreateRule(ctx context.Context, v *CreateRuleRequest) (*Rule, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -421,7 +421,7 @@ func (x *FliptHTTPClient) CreateRule(ctx context.Context, v *CreateRuleRequest) 
 
 func (x *FliptHTTPClient) UpdateRule(ctx context.Context, v *UpdateRuleRequest) (*Rule, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -453,7 +453,7 @@ func (x *FliptHTTPClient) UpdateRule(ctx context.Context, v *UpdateRuleRequest) 
 
 func (x *FliptHTTPClient) OrderRules(ctx context.Context, v *OrderRulesRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -485,7 +485,7 @@ func (x *FliptHTTPClient) OrderRules(ctx context.Context, v *OrderRulesRequest) 
 
 func (x *FliptHTTPClient) DeleteRule(ctx context.Context, v *DeleteRuleRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("flagKey", v.FlagKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/%v", v.Id), body)
 	if err != nil {
@@ -513,7 +513,7 @@ func (x *FliptHTTPClient) DeleteRule(ctx context.Context, v *DeleteRuleRequest) 
 
 func (x *FliptHTTPClient) CreateDistribution(ctx context.Context, v *CreateDistributionRequest) (*Distribution, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -545,7 +545,7 @@ func (x *FliptHTTPClient) CreateDistribution(ctx context.Context, v *CreateDistr
 
 func (x *FliptHTTPClient) UpdateDistribution(ctx context.Context, v *UpdateDistributionRequest) (*Distribution, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -577,7 +577,7 @@ func (x *FliptHTTPClient) UpdateDistribution(ctx context.Context, v *UpdateDistr
 
 func (x *FliptHTTPClient) DeleteDistribution(ctx context.Context, v *DeleteDistributionRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("flagKey", v.FlagKey)
 	values.Set("ruleId", v.RuleId)
 	values.Set("variantId", v.VariantId)
@@ -607,7 +607,7 @@ func (x *FliptHTTPClient) DeleteDistribution(ctx context.Context, v *DeleteDistr
 
 func (x *FliptHTTPClient) GetSegment(ctx context.Context, v *GetSegmentRequest) (*Segment, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/segments/%v", v.Key), body)
 	if err != nil {
 		return nil, err
@@ -634,7 +634,7 @@ func (x *FliptHTTPClient) GetSegment(ctx context.Context, v *GetSegmentRequest) 
 
 func (x *FliptHTTPClient) ListSegments(ctx context.Context, v *ListSegmentRequest) (*SegmentList, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
@@ -664,7 +664,7 @@ func (x *FliptHTTPClient) ListSegments(ctx context.Context, v *ListSegmentReques
 
 func (x *FliptHTTPClient) CreateSegment(ctx context.Context, v *CreateSegmentRequest) (*Segment, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -696,7 +696,7 @@ func (x *FliptHTTPClient) CreateSegment(ctx context.Context, v *CreateSegmentReq
 
 func (x *FliptHTTPClient) UpdateSegment(ctx context.Context, v *UpdateSegmentRequest) (*Segment, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -728,7 +728,7 @@ func (x *FliptHTTPClient) UpdateSegment(ctx context.Context, v *UpdateSegmentReq
 
 func (x *FliptHTTPClient) DeleteSegment(ctx context.Context, v *DeleteSegmentRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/segments/%v", v.Key), body)
 	if err != nil {
 		return nil, err
@@ -755,7 +755,7 @@ func (x *FliptHTTPClient) DeleteSegment(ctx context.Context, v *DeleteSegmentReq
 
 func (x *FliptHTTPClient) CreateConstraint(ctx context.Context, v *CreateConstraintRequest) (*Constraint, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -787,7 +787,7 @@ func (x *FliptHTTPClient) CreateConstraint(ctx context.Context, v *CreateConstra
 
 func (x *FliptHTTPClient) UpdateConstraint(ctx context.Context, v *UpdateConstraintRequest) (*Constraint, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	reqData, err := protojson.Marshal(v)
 	if err != nil {
 		return nil, err
@@ -819,7 +819,7 @@ func (x *FliptHTTPClient) UpdateConstraint(ctx context.Context, v *UpdateConstra
 
 func (x *FliptHTTPClient) DeleteConstraint(ctx context.Context, v *DeleteConstraintRequest) (*emptypb.Empty, error) {
 	var body io.Reader
-	var values = url.Values{}
+	values := url.Values{}
 	values.Set("segmentKey", v.SegmentKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/segments/{segment_key}/constraints/%v", v.Id), body)
 	if err != nil {

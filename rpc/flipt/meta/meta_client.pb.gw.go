@@ -25,7 +25,7 @@ func NewMetadataServiceHTTPClient(addr string) *MetadataServiceHTTPClient {
 
 func (x *MetadataServiceHTTPClient) GetConfiguration(ctx context.Context, v *emptypb.Empty) (*httpbody.HttpBody, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/meta/config", body)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (x *MetadataServiceHTTPClient) GetConfiguration(ctx context.Context, v *emp
 
 func (x *MetadataServiceHTTPClient) GetInfo(ctx context.Context, v *emptypb.Empty) (*httpbody.HttpBody, error) {
 	var body io.Reader
-	var values = url.Values{}
+	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/meta/info", body)
 	if err != nil {
 		return nil, err
