@@ -68,6 +68,35 @@ func TestBatchEvaluate(t *testing.T) {
 	assert.False(t, resp.Responses[0].Match)
 }
 
+func TestBatchEvaluate_NamespaceMismatch(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+	)
+
+	_, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{
+		NamespaceKey:    "foo",
+		RequestId:       "12345",
+		ExcludeNotFound: true,
+		Requests: []*flipt.EvaluationRequest{
+			{
+				NamespaceKey: "bar",
+				EntityId:     "1",
+				FlagKey:      "foo",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	})
+
+	assert.EqualError(t, err, "invalid field namespace_key: must be the same for all requests if specified")
+}
+
 func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	var (
 		store  = &storeMock{}

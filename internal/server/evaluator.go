@@ -80,7 +80,11 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	// each request individually
 	for _, req := range r.GetRequests() {
 		// ensure all requests have the same namespace
-		req.NamespaceKey = r.NamespaceKey
+		if req.NamespaceKey == "" {
+			req.NamespaceKey = r.NamespaceKey
+		} else if req.NamespaceKey != r.NamespaceKey {
+			return &res, errs.InvalidFieldError("namespace_key", "must be the same for all requests if specified")
+		}
 
 		// TODO: we also need to validate each request, we should likely do this in the validation middleware
 		f, err := s.evaluate(ctx, req)
