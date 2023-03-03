@@ -75,6 +75,7 @@ func (s *DBTestSuite) TestListFlags() {
 
 	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
+
 	got := res.Results
 	assert.NotZero(t, len(got))
 
@@ -359,7 +360,7 @@ func (s *DBTestSuite) TestUpdateFlag_NotFound() {
 		Enabled:     true,
 	})
 
-	assert.EqualError(t, err, "flag \"foo\" not found")
+	assert.EqualError(t, err, "flag \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestDeleteFlag() {

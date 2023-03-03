@@ -18,23 +18,27 @@ import (
 )
 
 // GetRule gets an individual rule with distributions by ID
-func (s *Store) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
+func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Rule, error) {
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
 
 		rule = &flipt.Rule{}
 
-		err = s.builder.Select("id, flag_key, segment_key, \"rank\", created_at, updated_at").
+		err = s.builder.Select("id, namespace_key, flag_key, segment_key, \"rank\", created_at, updated_at").
 			From("rules").
-			Where(sq.And{sq.Eq{"id": id}}).
+			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
 			QueryRowContext(ctx).
-			Scan(&rule.Id, &rule.FlagKey, &rule.SegmentKey, &rule.Rank, &createdAt, &updatedAt)
+			Scan(&rule.Id, &rule.NamespaceKey, &rule.FlagKey, &rule.SegmentKey, &rule.Rank, &createdAt, &updatedAt)
 	)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("rule %q", id)
+			return nil, errs.ErrNotFoundf(`rule "%s/%s"`, namespaceKey, id)
 		}
 
 		return nil, err
@@ -94,7 +98,11 @@ type optionalDistribution struct {
 }
 
 // ListRules gets all rules for a flag with distributions
-func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
+func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
 	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
@@ -105,10 +113,10 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 		rules   []*flipt.Rule
 		results = storage.ResultSet[*flipt.Rule]{}
 
-		query = s.builder.Select("r.id, r.flag_key, r.segment_key, r.rank, r.created_at, r.updated_at, d.id, d.rule_id, d.variant_id, d.rollout, d.created_at, d.updated_at").
+		query = s.builder.Select("r.id, r.namespace_key, r.flag_key, r.segment_key, r.rank, r.created_at, r.updated_at, d.id, d.rule_id, d.variant_id, d.rollout, d.created_at, d.updated_at").
 			From("rules r").
 			LeftJoin("distributions d ON d.rule_id = r.id").
-			Where(sq.Eq{"r.flag_key": flagKey}).
+			Where(sq.And{sq.Eq{"r.flag_key": flagKey}, sq.Eq{"r.namespace_key": namespaceKey}}).
 			OrderBy(fmt.Sprintf("r.rank %s", params.Order))
 	)
 
@@ -157,6 +165,7 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 
 		if err := rows.Scan(
 			&rule.Id,
+			&rule.NamespaceKey,
 			&rule.FlagKey,
 			&rule.SegmentKey,
 			&rule.Rank,
@@ -238,10 +247,18 @@ func (s *Store) ListRules(ctx context.Context, flagKey string, opts ...storage.Q
 }
 
 // CountRules counts all rules
-func (s *Store) CountRules(ctx context.Context) (uint64, error) {
+func (s *Store) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
 	var count uint64
 
-	if err := s.builder.Select("COUNT(*)").From("rules").QueryRowContext(ctx).Scan(&count); err != nil {
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
+	if err := s.builder.Select("COUNT(*)").
+		From("rules").
+		Where(sq.Eq{"namespace_key": namespaceKey}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
 		return 0, err
 	}
 
@@ -250,23 +267,29 @@ func (s *Store) CountRules(ctx context.Context) (uint64, error) {
 
 // CreateRule creates a rule
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		now  = timestamppb.Now()
 		rule = &flipt.Rule{
-			Id:         uuid.Must(uuid.NewV4()).String(),
-			FlagKey:    r.FlagKey,
-			SegmentKey: r.SegmentKey,
-			Rank:       r.Rank,
-			CreatedAt:  now,
-			UpdatedAt:  now,
+			Id:           uuid.Must(uuid.NewV4()).String(),
+			NamespaceKey: r.NamespaceKey,
+			FlagKey:      r.FlagKey,
+			SegmentKey:   r.SegmentKey,
+			Rank:         r.Rank,
+			CreatedAt:    now,
+			UpdatedAt:    now,
 		}
 	)
 
 	if _, err := s.builder.
 		Insert("rules").
-		Columns("id", "flag_key", "segment_key", "\"rank\"", "created_at", "updated_at").
+		Columns("id", "namespace_key", "flag_key", "segment_key", "\"rank\"", "created_at", "updated_at").
 		Values(
 			rule.Id,
+			rule.NamespaceKey,
 			rule.FlagKey,
 			rule.SegmentKey,
 			rule.Rank,
@@ -281,10 +304,14 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 
 // UpdateRule updates an existing rule
 func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	query := s.builder.Update("rules").
 		Set("segment_key", r.SegmentKey).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}})
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
@@ -297,14 +324,18 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("rule %q", r.Id)
+		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
 	}
 
-	return s.GetRule(ctx, r.Id)
+	return s.GetRule(ctx, r.NamespaceKey, r.Id)
 }
 
 // DeleteRule deletes a rule
 func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -314,14 +345,14 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 	//nolint
 	_, err = s.builder.Delete("rules").
 		RunWith(tx).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}}).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
 
 	// reorder existing rules after deletion
 	rows, err := s.builder.Select("id").
 		RunWith(tx).
 		From("rules").
-		Where(sq.Eq{"flag_key": r.FlagKey}).
+		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
 		OrderBy("\"rank\" ASC").
 		QueryContext(ctx)
 	if err != nil {
@@ -354,7 +385,7 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 		return err
 	}
 
-	if err := s.orderRules(ctx, tx, r.FlagKey, ruleIDs); err != nil {
+	if err := s.orderRules(ctx, tx, r.NamespaceKey, r.FlagKey, ruleIDs); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
@@ -364,12 +395,16 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 
 // OrderRules orders rules
 func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	if err := s.orderRules(ctx, tx, r.FlagKey, r.RuleIds); err != nil {
+	if err := s.orderRules(ctx, tx, r.NamespaceKey, r.FlagKey, r.RuleIds); err != nil {
 		_ = tx.Rollback()
 		return err
 	}
@@ -377,7 +412,7 @@ func (s *Store) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) erro
 	return tx.Commit()
 }
 
-func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, flagKey string, ruleIDs []string) error {
+func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, namespaceKey, flagKey string, ruleIDs []string) error {
 	updatedAt := timestamppb.Now()
 
 	for i, id := range ruleIDs {
@@ -385,7 +420,7 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, flagKey st
 			RunWith(runner).
 			Set("\"rank\"", i+1).
 			Set("updated_at", &fliptsql.Timestamp{Timestamp: updatedAt}).
-			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"flag_key": flagKey}}).
+			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"flag_key": flagKey}}).
 			ExecContext(ctx)
 		if err != nil {
 			return err

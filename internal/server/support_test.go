@@ -108,18 +108,18 @@ func (m *storeMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
-func (m *storeMock) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
-	args := m.Called(ctx, id)
+func (m *storeMock) GetRule(ctx context.Context, namespaceKey string, id string) (*flipt.Rule, error) {
+	args := m.Called(ctx, namespaceKey, id)
 	return args.Get(0).(*flipt.Rule), args.Error(1)
 }
 
-func (m *storeMock) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
-	args := m.Called(ctx, flagKey, opts)
+func (m *storeMock) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
+	args := m.Called(ctx, namespaceKey, flagKey, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Rule]), args.Error(1)
 }
 
-func (m *storeMock) CountRules(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *storeMock) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 

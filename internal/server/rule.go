@@ -14,7 +14,7 @@ import (
 // GetRule gets a rule
 func (s *Server) GetRule(ctx context.Context, r *flipt.GetRuleRequest) (*flipt.Rule, error) {
 	s.logger.Debug("get rule", zap.Stringer("request", r))
-	rule, err := s.store.GetRule(ctx, r.Id)
+	rule, err := s.store.GetRule(ctx, r.NamespaceKey, r.Id)
 	s.logger.Debug("get rule", zap.Stringer("response", rule))
 	return rule, err
 }
@@ -41,7 +41,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
 	}
 
-	results, err := s.store.ListRules(ctx, r.FlagKey, opts...)
+	results, err := s.store.ListRules(ctx, r.NamespaceKey, r.FlagKey, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 
 	resp.Rules = append(resp.Rules, results.Results...)
 
-	total, err := s.store.CountRules(ctx)
+	total, err := s.store.CountRules(ctx, r.NamespaceKey)
 	if err != nil {
 		return nil, err
 	}

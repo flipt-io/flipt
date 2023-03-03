@@ -20,6 +20,10 @@ import (
 
 // GetSegment gets a segment
 func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error) {
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
@@ -42,7 +46,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("segment %q", key)
+			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, namespaceKey, key)
 		}
 
 		return nil, err
@@ -109,6 +113,10 @@ type optionalConstraint struct {
 // ListSegments lists all segments
 func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
 	params := &storage.QueryParams{}
+
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
 
 	for _, opt := range opts {
 		opt(params)
@@ -267,6 +275,10 @@ func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...s
 func (s *Store) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
 	var count uint64
 
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
 	if err := s.builder.Select("COUNT(*)").
 		From("segments").
 		Where(sq.Eq{"namespace_key": namespaceKey}).
@@ -338,7 +350,7 @@ func (s *Store) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest
 	}
 
 	if count != 1 {
-		return nil, errs.ErrNotFoundf("segment %q", r.Key)
+		return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.Key)
 	}
 
 	return s.GetSegment(ctx, r.NamespaceKey, r.Key)

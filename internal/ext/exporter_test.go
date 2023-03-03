@@ -34,7 +34,7 @@ func (m mockLister) ListSegments(ctx context.Context, namespaceKey string, opts 
 	}, m.segmentErr
 }
 
-func (m mockLister) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
+func (m mockLister) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
 	return storage.ResultSet[*flipt.Rule]{
 		Results: m.rules,
 	}, m.ruleErr
