@@ -83,6 +83,7 @@ message BatchEvaluationRequest {
   string request_id = 1;
   repeated EvaluationRequest requests = 2;
   bool exclude_not_found = 3;
+  string namespace_key = 4;
 }
 
 message EvaluationResponse {

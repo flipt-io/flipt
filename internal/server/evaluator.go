@@ -22,6 +22,11 @@ import (
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.Debug("evaluate", zap.Stringer("request", r))
+
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	resp, err := s.evaluate(ctx, r)
 	if err != nil {
 		return resp, err
@@ -53,6 +58,11 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 // BatchEvaluate evaluates a request for multiple flags and entities
 func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
 	s.logger.Debug("batch-evaluate", zap.Stringer("request", r))
+
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	resp, err := s.batchEvaluate(ctx, r)
 	if err != nil {
 		return nil, err
@@ -68,9 +78,16 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 	// TODO: we should change this to a native batch query instead of looping through
 	// each request individually
-	for _, flag := range r.GetRequests() {
+	for _, req := range r.GetRequests() {
+		// ensure all requests have the same namespace
+		if req.NamespaceKey == "" {
+			req.NamespaceKey = r.NamespaceKey
+		} else if req.NamespaceKey != r.NamespaceKey {
+			return &res, errs.InvalidFieldError("namespace_key", "must be the same for all requests if specified")
+		}
+
 		// TODO: we also need to validate each request, we should likely do this in the validation middleware
-		f, err := s.evaluate(ctx, flag)
+		f, err := s.evaluate(ctx, req)
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if r.GetExcludeNotFound() && errors.As(err, &errnf) {
@@ -90,7 +107,9 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 		startTime = time.Now().UTC()
 		flagAttr  = metrics.AttributeFlag.String(r.FlagKey)
 	)
+
 	metrics.EvaluationsTotal.Add(ctx, 1, flagAttr)
+
 	defer func() {
 		if err == nil {
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
@@ -136,7 +155,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 		return resp, nil
 	}
 
-	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
+	rules, err := s.store.GetEvaluationRules(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 		return resp, err

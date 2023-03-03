@@ -560,7 +560,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 		Enabled: true,
 	}, nil)
 
-	store.On("GetEvaluationRules", mock.Anything, "foo").Return(
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
 				ID:               "1",

@@ -19,6 +19,7 @@ const (
 // given flagKey matches a segment
 type EvaluationRule struct {
 	ID               string
+	NamespaceKey     string
 	FlagKey          string
 	SegmentKey       string
 	SegmentMatchType flipt.MatchType
@@ -127,7 +128,7 @@ const DefaultNamespace = "default"
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided
 	// Note: Rules MUST be returned in order by Rank
-	GetEvaluationRules(ctx context.Context, flagKey string) ([]*EvaluationRule, error)
+	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
 }
 
