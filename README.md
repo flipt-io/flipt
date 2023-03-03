@@ -217,15 +217,18 @@ See [LICENSE](LICENSE).
 
 Some of the companies depending on Flipt in production.
 
-<p>
+<p align="center">
     <a href="https://paradigm.co">
         <img src="./logos/users/paradigm.png" alt="Paradigm" />
-    </a>
+    </a>&nbsp;&nbsp;
     <a href="https://rokt.com">
         <img src="./logos/users/rokt.svg" alt="Rokt" width="200"/>
-    </a>
+    </a>&nbsp;&nbsp;
     <a href="https://asphaltbot.com">
         <img src="./logos/users/asphaltlogo.png" alt="Asphalt" />
+    </a>&nbsp;&nbsp;
+    <a href="https://prose.com">
+        <img src="./logos/users/prose.png" alt="Prose" width="200"/>
     </a>
 </p>
 
