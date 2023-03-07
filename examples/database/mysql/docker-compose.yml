@@ -3,8 +3,10 @@ version: "3"
 services:
   mysql:
     image: mysql:latest
-    networks:
-      - flipt_network
+    # networks:
+    #   - flipt_network
+    ports:
+      - "3306:3306"
     environment:
       - MYSQL_DATABASE=flipt
       - MYSQL_USER=mysql
