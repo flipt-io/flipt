@@ -35,6 +35,25 @@ func (s *Store) String() string {
 	return "sqlite"
 }
 
+func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	namespace, err := s.Store.CreateNamespace(ctx, r)
+
+	if err != nil {
+		var serr sqlite3.Error
+
+		if errors.As(err, &serr) {
+			switch serr.ExtendedCode {
+			case sqlite3.ErrConstraintPrimaryKey:
+				return nil, errs.ErrInvalidf(`namespace "%s" is not unique`, r.Key)
+			}
+		}
+
+		return nil, err
+	}
+
+	return namespace, nil
+}
+
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
 
