@@ -19,33 +19,33 @@ func (m *storeMock) String() string {
 	return "mock"
 }
 
-func (s *storeMock) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
-	args := s.Called(ctx, key)
+func (m *storeMock) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
+	args := m.Called(ctx, key)
 	return args.Get(0).(*flipt.Namespace), args.Error(1)
 }
 
-func (s *storeMock) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Namespace], error) {
-	args := s.Called(ctx, opts)
+func (m *storeMock) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Namespace], error) {
+	args := m.Called(ctx, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Namespace]), args.Error(1)
 }
 
-func (s *storeMock) CountNamespaces(ctx context.Context) (uint64, error) {
-	args := s.Called(ctx)
+func (m *storeMock) CountNamespaces(ctx context.Context) (uint64, error) {
+	args := m.Called(ctx)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
-func (s *storeMock) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
-	args := s.Called(ctx, r)
+func (m *storeMock) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	args := m.Called(ctx, r)
 	return args.Get(0).(*flipt.Namespace), args.Error(1)
 }
 
-func (s *storeMock) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
-	args := s.Called(ctx, r)
+func (m *storeMock) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
+	args := m.Called(ctx, r)
 	return args.Get(0).(*flipt.Namespace), args.Error(1)
 }
 
-func (s *storeMock) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
-	args := s.Called(ctx, r)
+func (m *storeMock) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
+	args := m.Called(ctx, r)
 	return args.Error(0)
 }
 

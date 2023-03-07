@@ -41,11 +41,8 @@ func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceReq
 	if err != nil {
 		var serr sqlite3.Error
 
-		if errors.As(err, &serr) {
-			switch serr.ExtendedCode {
-			case sqlite3.ErrConstraintPrimaryKey:
-				return nil, errs.ErrInvalidf(`namespace "%s" is not unique`, r.Key)
-			}
+		if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+			return nil, errs.ErrInvalidf(`namespace "%s" is not unique`, r.Key)
 		}
 
 		return nil, err
