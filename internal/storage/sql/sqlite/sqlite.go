@@ -123,6 +123,7 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 				return nil, errs.ErrInvalidf(`segment "%s/%s" is not unique`, r.NamespaceKey, r.Key)
 			}
 		}
+
 		return nil, err
 	}
 
