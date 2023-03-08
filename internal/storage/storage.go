@@ -114,6 +114,7 @@ type Store interface {
 	RuleStore
 	SegmentStore
 	EvaluationStore
+	NamespaceStore
 	fmt.Stringer
 }
 
@@ -130,6 +131,16 @@ type EvaluationStore interface {
 	// Note: Rules MUST be returned in order by Rank
 	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
+}
+
+// NamespaceStore stores and retrieves namespaces
+type NamespaceStore interface {
+	GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error)
+	ListNamespaces(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Namespace], error)
+	CountNamespaces(ctx context.Context) (uint64, error)
+	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
+	UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error)
+	DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error
 }
 
 // FlagStore stores and retrieves flags and variants

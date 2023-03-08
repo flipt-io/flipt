@@ -123,17 +123,6 @@ message Namespace {
   google.protobuf.Timestamp updated_at = 6;
 }
 
-message Flag {
-  string key = 1;
-  string name = 2;
-  string description = 3;
-  bool enabled = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
-  repeated Variant variants = 7;
-  string namespace_key = 8;
-}
-
 message NamespaceList {
   repeated Namespace namespaces = 1;
   string next_page_token = 2;
@@ -170,6 +159,43 @@ message CreateNamespaceRequest {
   string name = 2;
   string description = 3;
   bool protected = 4;
+}
+
+message UpdateNamespaceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: [
+        "key",
+        "name"
+      ]
+    }
+  };
+  
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool protected = 4;
+}
+
+message DeleteNamespaceRequest {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["key"]
+    }
+  };
+
+  string key = 1;
+}
+
+message Flag {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  repeated Variant variants = 7;
+  string namespace_key = 8;
 }
 
 message FlagList {
