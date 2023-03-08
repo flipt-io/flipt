@@ -38,14 +38,35 @@ func (s *Store) String() string {
 	return "mysql"
 }
 
+func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	namespace, err := s.Store.CreateNamespace(ctx, r)
+
+	if err != nil {
+		var merr *mysql.MySQLError
+
+		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
+			return nil, errs.ErrInvalidf("namespace %q is not unique", r.Key)
+		}
+
+		return nil, err
+	}
+
+	return namespace, nil
+}
+
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
 
 	if err != nil {
 		var merr *mysql.MySQLError
 
-		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.ErrInvalidf("flag %q is not unique for the namespace %q", r.Key, r.NamespaceKey)
+		if errors.As(err, &merr) {
+			switch merr.Number {
+			case constraintForeignKeyErrCode:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case constraintUniqueErrCode:
+				return nil, errs.ErrInvalidf(`flag "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
 
 		return nil, err
@@ -63,9 +84,9 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		if errors.As(err, &merr) {
 			switch merr.Number {
 			case constraintForeignKeyErrCode:
-				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
+				return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
 			case constraintUniqueErrCode:
-				return nil, errs.ErrInvalidf("variant %q is not unique for the flag %q", r.Key, r.FlagKey)
+				return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 			}
 		}
 
@@ -82,7 +103,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.ErrInvalidf("variant %q is not unique for the flag %q", r.Key, r.FlagKey)
+			return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 		}
 
 		return nil, err
@@ -97,8 +118,13 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	if err != nil {
 		var merr *mysql.MySQLError
 
-		if errors.As(err, &merr) && merr.Number == constraintUniqueErrCode {
-			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
+		if errors.As(err, &merr) {
+			switch merr.Number {
+			case constraintForeignKeyErrCode:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case constraintUniqueErrCode:
+				return nil, errs.ErrInvalidf(`segment "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
 
 		return nil, err
@@ -114,7 +140,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
-			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.SegmentKey)
 		}
 
 		return nil, err

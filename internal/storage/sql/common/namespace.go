@@ -24,7 +24,7 @@ func (s *Store) GetNamespace(ctx context.Context, key string) (*flipt.Namespace,
 
 		err = s.builder.Select("\"key\", name, description, protected, created_at, updated_at").
 			From("namespaces").
-			Where(sq.Eq{"key": key}).
+			Where(sq.Eq{"\"key\"": key}).
 			QueryRowContext(ctx).
 			Scan(
 				&namespace.Key,
