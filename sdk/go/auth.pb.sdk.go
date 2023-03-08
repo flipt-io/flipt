@@ -10,60 +10,115 @@ import (
 )
 
 type AuthTransport interface {
-	ListAuthenticationMethods(context.Context, *emptypb.Empty) (*auth.ListAuthenticationMethodsResponse, error)
-	GetAuthenticationSelf(context.Context, *emptypb.Empty) (*auth.Authentication, error)
-	GetAuthentication(context.Context, *auth.GetAuthenticationRequest) (*auth.Authentication, error)
-	ListAuthentications(context.Context, *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error)
-	DeleteAuthentication(context.Context, *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error)
-	ExpireAuthenticationSelf(context.Context, *auth.ExpireAuthenticationSelfRequest) (*emptypb.Empty, error)
-	CreateToken(context.Context, *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error)
-	AuthorizeURL(context.Context, *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error)
-	Callback(context.Context, *auth.CallbackRequest) (*auth.CallbackResponse, error)
-	VerifyServiceAccount(context.Context, *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error)
+	PublicAuthenticationServiceTransport() PublicAuthenticationServiceTransport
+	AuthenticationServiceTransport() AuthenticationServiceTransport
+	AuthenticationMethodTokenServiceTransport() AuthenticationMethodTokenServiceTransport
+	AuthenticationMethodOIDCServiceTransport() AuthenticationMethodOIDCServiceTransport
+	AuthenticationMethodKubernetesServiceTransport() AuthenticationMethodKubernetesServiceTransport
 }
 
 type Auth struct {
 	transport AuthTransport
 }
 
-func (x *Auth) ListAuthenticationMethods(ctx context.Context) (*auth.ListAuthenticationMethodsResponse, error) {
+type PublicAuthenticationServiceTransport interface {
+	ListAuthenticationMethods(context.Context, *emptypb.Empty) (*auth.ListAuthenticationMethodsResponse, error)
+}
+
+type PublicAuthenticationService struct {
+	transport PublicAuthenticationServiceTransport
+}
+
+func (s Auth) PublicAuthenticationService() PublicAuthenticationService {
+	return PublicAuthenticationService{transport: s.transport.PublicAuthenticationServiceTransport()}
+}
+func (x *PublicAuthenticationService) ListAuthenticationMethods(ctx context.Context) (*auth.ListAuthenticationMethodsResponse, error) {
 	return x.transport.ListAuthenticationMethods(ctx, &emptypb.Empty{})
 }
 
-func (x *Auth) GetAuthenticationSelf(ctx context.Context) (*auth.Authentication, error) {
+type AuthenticationServiceTransport interface {
+	GetAuthenticationSelf(context.Context, *emptypb.Empty) (*auth.Authentication, error)
+	GetAuthentication(context.Context, *auth.GetAuthenticationRequest) (*auth.Authentication, error)
+	ListAuthentications(context.Context, *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error)
+	DeleteAuthentication(context.Context, *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error)
+	ExpireAuthenticationSelf(context.Context, *auth.ExpireAuthenticationSelfRequest) (*emptypb.Empty, error)
+}
+
+type AuthenticationService struct {
+	transport AuthenticationServiceTransport
+}
+
+func (s Auth) AuthenticationService() AuthenticationService {
+	return AuthenticationService{transport: s.transport.AuthenticationServiceTransport()}
+}
+func (x *AuthenticationService) GetAuthenticationSelf(ctx context.Context) (*auth.Authentication, error) {
 	return x.transport.GetAuthenticationSelf(ctx, &emptypb.Empty{})
 }
 
-func (x *Auth) GetAuthentication(ctx context.Context, id string) (*auth.Authentication, error) {
+func (x *AuthenticationService) GetAuthentication(ctx context.Context, id string) (*auth.Authentication, error) {
 	return x.transport.GetAuthentication(ctx, &auth.GetAuthenticationRequest{Id: id})
 }
 
-func (x *Auth) ListAuthentications(ctx context.Context, v *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error) {
+func (x *AuthenticationService) ListAuthentications(ctx context.Context, v *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error) {
 	return x.transport.ListAuthentications(ctx, v)
 }
 
-func (x *Auth) DeleteAuthentication(ctx context.Context, id string) error {
+func (x *AuthenticationService) DeleteAuthentication(ctx context.Context, id string) error {
 	_, err := x.transport.DeleteAuthentication(ctx, &auth.DeleteAuthenticationRequest{Id: id})
 	return err
 }
 
-func (x *Auth) ExpireAuthenticationSelf(ctx context.Context, expiresAt *timestamppb.Timestamp) error {
+func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, expiresAt *timestamppb.Timestamp) error {
 	_, err := x.transport.ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{ExpiresAt: expiresAt})
 	return err
 }
 
-func (x *Auth) CreateToken(ctx context.Context, v *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
+type AuthenticationMethodTokenServiceTransport interface {
+	CreateToken(context.Context, *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error)
+}
+
+type AuthenticationMethodTokenService struct {
+	transport AuthenticationMethodTokenServiceTransport
+}
+
+func (s Auth) AuthenticationMethodTokenService() AuthenticationMethodTokenService {
+	return AuthenticationMethodTokenService{transport: s.transport.AuthenticationMethodTokenServiceTransport()}
+}
+func (x *AuthenticationMethodTokenService) CreateToken(ctx context.Context, v *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
 	return x.transport.CreateToken(ctx, v)
 }
 
-func (x *Auth) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
+type AuthenticationMethodOIDCServiceTransport interface {
+	AuthorizeURL(context.Context, *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error)
+	Callback(context.Context, *auth.CallbackRequest) (*auth.CallbackResponse, error)
+}
+
+type AuthenticationMethodOIDCService struct {
+	transport AuthenticationMethodOIDCServiceTransport
+}
+
+func (s Auth) AuthenticationMethodOIDCService() AuthenticationMethodOIDCService {
+	return AuthenticationMethodOIDCService{transport: s.transport.AuthenticationMethodOIDCServiceTransport()}
+}
+func (x *AuthenticationMethodOIDCService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
 	return x.transport.AuthorizeURL(ctx, v)
 }
 
-func (x *Auth) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
+func (x *AuthenticationMethodOIDCService) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
 	return x.transport.Callback(ctx, v)
 }
 
-func (x *Auth) VerifyServiceAccount(ctx context.Context, serviceAccountToken string) (*auth.VerifyServiceAccountResponse, error) {
+type AuthenticationMethodKubernetesServiceTransport interface {
+	VerifyServiceAccount(context.Context, *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error)
+}
+
+type AuthenticationMethodKubernetesService struct {
+	transport AuthenticationMethodKubernetesServiceTransport
+}
+
+func (s Auth) AuthenticationMethodKubernetesService() AuthenticationMethodKubernetesService {
+	return AuthenticationMethodKubernetesService{transport: s.transport.AuthenticationMethodKubernetesServiceTransport()}
+}
+func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context.Context, serviceAccountToken string) (*auth.VerifyServiceAccountResponse, error) {
 	return x.transport.VerifyServiceAccount(ctx, &auth.VerifyServiceAccountRequest{ServiceAccountToken: serviceAccountToken})
 }

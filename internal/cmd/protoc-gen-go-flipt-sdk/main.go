@@ -80,23 +80,48 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, transport s
 
 	// define transport interface
 	transport = strings.Title(string(file.GoPackageName)) + "Transport"
-	g.P("type ", transport, " interface {")
-	for _, srv := range file.Services {
-		for _, method := range srv.Methods {
-			g.P(method.GoName, "(", context("Context"), ", *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error)")
+	if len(file.Services) > 1 {
+		g.P("type ", transport, " interface {")
+		for _, srv := range file.Services {
+			g.P(srv.GoName+"Transport", "()", srv.GoName+"Transport")
 		}
+		g.P("}\n")
 	}
-	g.P("}\n")
 
 	// define client structure
 	typ = strings.Title(string(file.GoPackageName))
 	g.P("type ", typ, " struct {")
 	g.P("transport ", transport)
 	g.P("}\n")
+
 	for _, srv := range file.Services {
+		transportTyp := transport
+		if len(file.Services) > 1 {
+			transportTyp = srv.GoName + "Transport"
+		}
+
+		g.P("type ", transportTyp, " interface {")
+		for _, method := range srv.Methods {
+			g.P(method.GoName, "(", context("Context"), ", *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error)")
+		}
+		g.P("}\n")
+
+		srvType := typ
+		if len(file.Services) > 1 {
+			srvType = srv.GoName
+
+			g.P("type ", srvType, " struct {")
+			g.P("transport ", transportTyp)
+			g.P("}\n")
+
+			g.P("func (s ", typ, ") ", srvType, "()", srvType, "{")
+			g.P("return ", srvType, "{ transport: s.transport.", transportTyp, "()}")
+			g.P("}")
+		}
+
 		for _, method := range srv.Methods {
 			var (
-				signature       = []any{"func (x *", typ, ") ", method.GoName, "(ctx ", context("Context")}
+				signature       = []any{"func (x *", srvType, ") ", method.GoName, "(ctx ", context("Context")}
 				returnStatement = []any{"x.transport.", method.GoName, "(ctx, "}
 			)
 

@@ -8,6 +8,10 @@ import (
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
+type Flipt struct {
+	transport FliptTransport
+}
+
 type FliptTransport interface {
 	Evaluate(context.Context, *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
 	BatchEvaluate(context.Context, *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error)
@@ -36,10 +40,6 @@ type FliptTransport interface {
 	CreateConstraint(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
 	UpdateConstraint(context.Context, *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
 	DeleteConstraint(context.Context, *flipt.DeleteConstraintRequest) (*emptypb.Empty, error)
-}
-
-type Flipt struct {
-	transport FliptTransport
 }
 
 func (x *Flipt) Evaluate(ctx context.Context, v *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {

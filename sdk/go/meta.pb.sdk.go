@@ -8,13 +8,13 @@ import (
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
+type Meta struct {
+	transport MetaTransport
+}
+
 type MetaTransport interface {
 	GetConfiguration(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error)
 	GetInfo(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error)
-}
-
-type Meta struct {
-	transport MetaTransport
 }
 
 func (x *Meta) GetConfiguration(ctx context.Context) (*httpbody.HttpBody, error) {
