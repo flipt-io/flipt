@@ -3,13 +3,11 @@ package sql_test
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
@@ -105,10 +103,6 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 	}
 
 	for _, req := range reqs {
-		if s.db.Driver == fliptsql.MySQL {
-			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-			time.Sleep(time.Second)
-		}
 		_, err := s.store.CreateNamespace(context.TODO(), req)
 		require.NoError(t, err)
 	}
@@ -178,10 +172,6 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	}
 
 	for _, req := range reqs {
-		if s.db.Driver == fliptsql.MySQL {
-			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-			time.Sleep(time.Second)
-		}
 		_, err := s.store.CreateNamespace(context.TODO(), req)
 		require.NoError(t, err)
 	}
