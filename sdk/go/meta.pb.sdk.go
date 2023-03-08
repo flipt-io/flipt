@@ -4,17 +4,13 @@ package sdk
 
 import (
 	context "context"
+	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Meta struct {
-	transport MetaTransport
-}
-
-type MetaTransport interface {
-	GetConfiguration(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error)
-	GetInfo(context.Context, *emptypb.Empty) (*httpbody.HttpBody, error)
+	transport meta.MetadataServiceClient
 }
 
 func (x *Meta) GetConfiguration(ctx context.Context) (*httpbody.HttpBody, error) {

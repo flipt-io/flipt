@@ -9,47 +9,35 @@ import (
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type AuthTransport interface {
-	PublicAuthenticationServiceTransport() PublicAuthenticationServiceTransport
-	AuthenticationServiceTransport() AuthenticationServiceTransport
-	AuthenticationMethodTokenServiceTransport() AuthenticationMethodTokenServiceTransport
-	AuthenticationMethodOIDCServiceTransport() AuthenticationMethodOIDCServiceTransport
-	AuthenticationMethodKubernetesServiceTransport() AuthenticationMethodKubernetesServiceTransport
+type AuthClient interface {
+	PublicAuthenticationServiceClient() auth.PublicAuthenticationServiceClient
+	AuthenticationServiceClient() auth.AuthenticationServiceClient
+	AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient
+	AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient
+	AuthenticationMethodKubernetesServiceClient() auth.AuthenticationMethodKubernetesServiceClient
 }
 
 type Auth struct {
-	transport AuthTransport
-}
-
-type PublicAuthenticationServiceTransport interface {
-	ListAuthenticationMethods(context.Context, *emptypb.Empty) (*auth.ListAuthenticationMethodsResponse, error)
+	transport AuthClient
 }
 
 type PublicAuthenticationService struct {
-	transport PublicAuthenticationServiceTransport
+	transport auth.PublicAuthenticationServiceClient
 }
 
 func (s Auth) PublicAuthenticationService() PublicAuthenticationService {
-	return PublicAuthenticationService{transport: s.transport.PublicAuthenticationServiceTransport()}
+	return PublicAuthenticationService{transport: s.transport.PublicAuthenticationServiceClient()}
 }
 func (x *PublicAuthenticationService) ListAuthenticationMethods(ctx context.Context) (*auth.ListAuthenticationMethodsResponse, error) {
 	return x.transport.ListAuthenticationMethods(ctx, &emptypb.Empty{})
 }
 
-type AuthenticationServiceTransport interface {
-	GetAuthenticationSelf(context.Context, *emptypb.Empty) (*auth.Authentication, error)
-	GetAuthentication(context.Context, *auth.GetAuthenticationRequest) (*auth.Authentication, error)
-	ListAuthentications(context.Context, *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error)
-	DeleteAuthentication(context.Context, *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error)
-	ExpireAuthenticationSelf(context.Context, *auth.ExpireAuthenticationSelfRequest) (*emptypb.Empty, error)
-}
-
 type AuthenticationService struct {
-	transport AuthenticationServiceTransport
+	transport auth.AuthenticationServiceClient
 }
 
 func (s Auth) AuthenticationService() AuthenticationService {
-	return AuthenticationService{transport: s.transport.AuthenticationServiceTransport()}
+	return AuthenticationService{transport: s.transport.AuthenticationServiceClient()}
 }
 func (x *AuthenticationService) GetAuthenticationSelf(ctx context.Context) (*auth.Authentication, error) {
 	return x.transport.GetAuthenticationSelf(ctx, &emptypb.Empty{})
@@ -73,32 +61,23 @@ func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, ex
 	return err
 }
 
-type AuthenticationMethodTokenServiceTransport interface {
-	CreateToken(context.Context, *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error)
-}
-
 type AuthenticationMethodTokenService struct {
-	transport AuthenticationMethodTokenServiceTransport
+	transport auth.AuthenticationMethodTokenServiceClient
 }
 
 func (s Auth) AuthenticationMethodTokenService() AuthenticationMethodTokenService {
-	return AuthenticationMethodTokenService{transport: s.transport.AuthenticationMethodTokenServiceTransport()}
+	return AuthenticationMethodTokenService{transport: s.transport.AuthenticationMethodTokenServiceClient()}
 }
 func (x *AuthenticationMethodTokenService) CreateToken(ctx context.Context, v *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
 	return x.transport.CreateToken(ctx, v)
 }
 
-type AuthenticationMethodOIDCServiceTransport interface {
-	AuthorizeURL(context.Context, *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error)
-	Callback(context.Context, *auth.CallbackRequest) (*auth.CallbackResponse, error)
-}
-
 type AuthenticationMethodOIDCService struct {
-	transport AuthenticationMethodOIDCServiceTransport
+	transport auth.AuthenticationMethodOIDCServiceClient
 }
 
 func (s Auth) AuthenticationMethodOIDCService() AuthenticationMethodOIDCService {
-	return AuthenticationMethodOIDCService{transport: s.transport.AuthenticationMethodOIDCServiceTransport()}
+	return AuthenticationMethodOIDCService{transport: s.transport.AuthenticationMethodOIDCServiceClient()}
 }
 func (x *AuthenticationMethodOIDCService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
 	return x.transport.AuthorizeURL(ctx, v)
@@ -108,16 +87,12 @@ func (x *AuthenticationMethodOIDCService) Callback(ctx context.Context, v *auth.
 	return x.transport.Callback(ctx, v)
 }
 
-type AuthenticationMethodKubernetesServiceTransport interface {
-	VerifyServiceAccount(context.Context, *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error)
-}
-
 type AuthenticationMethodKubernetesService struct {
-	transport AuthenticationMethodKubernetesServiceTransport
+	transport auth.AuthenticationMethodKubernetesServiceClient
 }
 
 func (s Auth) AuthenticationMethodKubernetesService() AuthenticationMethodKubernetesService {
-	return AuthenticationMethodKubernetesService{transport: s.transport.AuthenticationMethodKubernetesServiceTransport()}
+	return AuthenticationMethodKubernetesService{transport: s.transport.AuthenticationMethodKubernetesServiceClient()}
 }
 func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context.Context, serviceAccountToken string) (*auth.VerifyServiceAccountResponse, error) {
 	return x.transport.VerifyServiceAccount(ctx, &auth.VerifyServiceAccountRequest{ServiceAccountToken: serviceAccountToken})

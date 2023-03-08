@@ -5,41 +5,10 @@ package sdk
 import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Flipt struct {
-	transport FliptTransport
-}
-
-type FliptTransport interface {
-	Evaluate(context.Context, *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
-	BatchEvaluate(context.Context, *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error)
-	GetFlag(context.Context, *flipt.GetFlagRequest) (*flipt.Flag, error)
-	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
-	CreateFlag(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
-	UpdateFlag(context.Context, *flipt.UpdateFlagRequest) (*flipt.Flag, error)
-	DeleteFlag(context.Context, *flipt.DeleteFlagRequest) (*emptypb.Empty, error)
-	CreateVariant(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
-	UpdateVariant(context.Context, *flipt.UpdateVariantRequest) (*flipt.Variant, error)
-	DeleteVariant(context.Context, *flipt.DeleteVariantRequest) (*emptypb.Empty, error)
-	GetRule(context.Context, *flipt.GetRuleRequest) (*flipt.Rule, error)
-	ListRules(context.Context, *flipt.ListRuleRequest) (*flipt.RuleList, error)
-	CreateRule(context.Context, *flipt.CreateRuleRequest) (*flipt.Rule, error)
-	UpdateRule(context.Context, *flipt.UpdateRuleRequest) (*flipt.Rule, error)
-	OrderRules(context.Context, *flipt.OrderRulesRequest) (*emptypb.Empty, error)
-	DeleteRule(context.Context, *flipt.DeleteRuleRequest) (*emptypb.Empty, error)
-	CreateDistribution(context.Context, *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
-	UpdateDistribution(context.Context, *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
-	DeleteDistribution(context.Context, *flipt.DeleteDistributionRequest) (*emptypb.Empty, error)
-	GetSegment(context.Context, *flipt.GetSegmentRequest) (*flipt.Segment, error)
-	ListSegments(context.Context, *flipt.ListSegmentRequest) (*flipt.SegmentList, error)
-	CreateSegment(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
-	UpdateSegment(context.Context, *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
-	DeleteSegment(context.Context, *flipt.DeleteSegmentRequest) (*emptypb.Empty, error)
-	CreateConstraint(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
-	UpdateConstraint(context.Context, *flipt.UpdateConstraintRequest) (*flipt.Constraint, error)
-	DeleteConstraint(context.Context, *flipt.DeleteConstraintRequest) (*emptypb.Empty, error)
+	transport flipt.FliptClient
 }
 
 func (x *Flipt) Evaluate(ctx context.Context, v *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {

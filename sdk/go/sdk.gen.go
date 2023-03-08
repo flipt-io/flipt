@@ -2,10 +2,15 @@
 
 package sdk
 
+import (
+	flipt "go.flipt.io/flipt/rpc/flipt"
+	meta "go.flipt.io/flipt/rpc/flipt/meta"
+)
+
 type Transport interface {
-	AuthTransport() AuthTransport
-	FliptTransport() FliptTransport
-	MetaTransport() MetaTransport
+	AuthClient() AuthClient
+	FliptClient() flipt.FliptClient
+	MetaClient() meta.MetadataServiceClient
 }
 
 // ClientTokenProvider is a type which when requested provides a
@@ -47,13 +52,13 @@ func New(t Transport, opts ...Option) SDK {
 }
 
 func (s SDK) Auth() Auth {
-	return Auth{transport: s.transport.AuthTransport()}
+	return Auth{transport: s.transport.AuthClient()}
 }
 
 func (s SDK) Flipt() Flipt {
-	return Flipt{transport: s.transport.FliptTransport()}
+	return Flipt{transport: s.transport.FliptClient()}
 }
 
 func (s SDK) Meta() Meta {
-	return Meta{transport: s.transport.MetaTransport()}
+	return Meta{transport: s.transport.MetaClient()}
 }
