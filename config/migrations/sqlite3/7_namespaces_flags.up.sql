@@ -1,8 +1,8 @@
 PRAGMA foreign_keys=off;
 
-/* Create temp tables */
+-- Create temp tables
 
-/* flags */
+-- Flags
 CREATE TABLE IF NOT EXISTS flags_temp (
   key VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -22,7 +22,7 @@ DROP TABLE flags;
 
 ALTER TABLE flags_temp RENAME TO flags;
 
-/* variants */
+-- Variants
 CREATE TABLE IF NOT EXISTS variants_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL,
@@ -45,7 +45,7 @@ DROP TABLE variants;
 
 ALTER TABLE variants_temp RENAME TO variants;
 
-/* rules */
+-- Rules
 CREATE TABLE IF NOT EXISTS rules_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL,

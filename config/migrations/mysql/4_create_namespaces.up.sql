@@ -1,4 +1,4 @@
-/* Create namespaces table */
+-- Create namespaces table
 CREATE TABLE IF NOT EXISTS namespaces (
   `key` VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -8,5 +8,5 @@ CREATE TABLE IF NOT EXISTS namespaces (
   updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL
 );
 
-/* Create default namespace */
+-- Create default namespace
 INSERT INTO namespaces (`key`, name, description, protected) VALUES ('default', 'Default', 'Default namespace', true);

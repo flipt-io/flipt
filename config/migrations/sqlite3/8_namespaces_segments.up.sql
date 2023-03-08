@@ -1,8 +1,8 @@
 PRAGMA foreign_keys=off;
 
-/* Create temp tables */
+-- Create temp tables 
 
-/* segments */
+-- Segments 
 CREATE TABLE IF NOT EXISTS segments_temp (
   key VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -22,7 +22,7 @@ DROP TABLE segments;
 
 ALTER TABLE segments_temp RENAME TO segments;
 
-/* constraints */
+-- Constraints 
 CREATE TABLE IF NOT EXISTS constraints_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   segment_key VARCHAR(255) NOT NULL,
@@ -44,7 +44,7 @@ DROP TABLE constraints;
 
 ALTER TABLE constraints_temp RENAME TO constraints;
 
-/* rules */
+-- Rules 
 CREATE TABLE IF NOT EXISTS rules_temp (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   flag_key VARCHAR(255) NOT NULL,
