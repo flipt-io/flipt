@@ -52,10 +52,7 @@ func generateSDK(gen *protogen.Plugin) {
 		)
 
 		if len(file.Services) < 2 {
-			returns = g.QualifiedGoIdent(protogen.GoIdent{
-				GoImportPath: file.GoImportPath,
-				GoName:       file.Services[0].GoName + "Client",
-			})
+			returns = relativeImport(g, file, file.Services[0].GoName+"Client")
 		}
 
 		types = append(types, [...]string{typ, method})
@@ -84,35 +81,20 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 	g.P("package sdk")
 	g.P()
 
-	ident := func(pkg string) func(name string) string {
-		return func(name string) string {
-			return g.QualifiedGoIdent(protogen.GoIdent{
-				GoImportPath: protogen.GoImportPath(pkg),
-				GoName:       name,
-			})
-		}
-	}
-
-	context := ident("context")
-	flipt := func(name string) string {
-		return g.QualifiedGoIdent(protogen.GoIdent{
-			GoImportPath: file.GoImportPath,
-			GoName:       name,
-		})
-	}
+	context := importPackage(g, "context")
 
 	oneServicePackage := len(file.Services) == 1
 
 	// define client structure
 	typ = strings.Title(string(file.GoPackageName))
-	client = flipt(typ + "Client")
+	client = relativeImport(g, file, typ+"Client")
 
 	if !oneServicePackage {
 		client = typ + "Client"
 
 		g.P("type ", typ, "Client interface {")
 		for _, srv := range file.Services {
-			g.P(srv.GoName+"Client", "()", flipt(srv.GoName+"Client"))
+			g.P(srv.GoName+"Client", "()", relativeImport(g, file, srv.GoName+"Client"))
 		}
 		g.P("}\n")
 
@@ -128,10 +110,7 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 		}
 
 		g.P("type ", serviceName, " struct {")
-		g.P("transport ", g.QualifiedGoIdent(protogen.GoIdent{
-			GoImportPath: file.GoImportPath,
-			GoName:       srv.GoName + "Client",
-		}))
+		g.P("transport ", relativeImport(g, file, srv.GoName+"Client"))
 		g.P("}\n")
 
 		if !oneServicePackage {
@@ -185,6 +164,22 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 func variableCase(v string) string {
 	return strings.ToLower(v[:1]) + v[1:]
+}
+
+func importPackage(g *protogen.GeneratedFile, pkg string) func(string) string {
+	return func(name string) string {
+		return g.QualifiedGoIdent(protogen.GoIdent{
+			GoImportPath: protogen.GoImportPath(pkg),
+			GoName:       name,
+		})
+	}
+}
+
+func relativeImport(g *protogen.GeneratedFile, file *protogen.File, name string) string {
+	return g.QualifiedGoIdent(protogen.GoIdent{
+		GoImportPath: file.GoImportPath,
+		GoName:       name,
+	})
 }
 
 const sdkBase = `// ClientTokenProvider is a type which when requested provides a
