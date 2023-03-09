@@ -6,17 +6,37 @@ import (
 	context "context"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
+	metadata "google.golang.org/grpc/metadata"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Meta struct {
-	transport meta.MetadataServiceClient
+	transport     meta.MetadataServiceClient
+	tokenProvider ClientTokenProvider
 }
 
 func (x *Meta) GetConfiguration(ctx context.Context) (*httpbody.HttpBody, error) {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return nil, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
 	return x.transport.GetConfiguration(ctx, &emptypb.Empty{})
 }
 
 func (x *Meta) GetInfo(ctx context.Context) (*httpbody.HttpBody, error) {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return nil, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
 	return x.transport.GetInfo(ctx, &emptypb.Empty{})
 }
