@@ -6,7 +6,6 @@ import (
 	context "context"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AuthClient interface {
@@ -43,21 +42,21 @@ func (x *AuthenticationService) GetAuthenticationSelf(ctx context.Context) (*aut
 	return x.transport.GetAuthenticationSelf(ctx, &emptypb.Empty{})
 }
 
-func (x *AuthenticationService) GetAuthentication(ctx context.Context, id string) (*auth.Authentication, error) {
-	return x.transport.GetAuthentication(ctx, &auth.GetAuthenticationRequest{Id: id})
+func (x *AuthenticationService) GetAuthentication(ctx context.Context, v *auth.GetAuthenticationRequest) (*auth.Authentication, error) {
+	return x.transport.GetAuthentication(ctx, v)
 }
 
 func (x *AuthenticationService) ListAuthentications(ctx context.Context, v *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error) {
 	return x.transport.ListAuthentications(ctx, v)
 }
 
-func (x *AuthenticationService) DeleteAuthentication(ctx context.Context, id string) error {
-	_, err := x.transport.DeleteAuthentication(ctx, &auth.DeleteAuthenticationRequest{Id: id})
+func (x *AuthenticationService) DeleteAuthentication(ctx context.Context, v *auth.DeleteAuthenticationRequest) error {
+	_, err := x.transport.DeleteAuthentication(ctx, v)
 	return err
 }
 
-func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, expiresAt *timestamppb.Timestamp) error {
-	_, err := x.transport.ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{ExpiresAt: expiresAt})
+func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, v *auth.ExpireAuthenticationSelfRequest) error {
+	_, err := x.transport.ExpireAuthenticationSelf(ctx, v)
 	return err
 }
 
@@ -94,6 +93,6 @@ type AuthenticationMethodKubernetesService struct {
 func (s Auth) AuthenticationMethodKubernetesService() AuthenticationMethodKubernetesService {
 	return AuthenticationMethodKubernetesService{transport: s.transport.AuthenticationMethodKubernetesServiceClient()}
 }
-func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context.Context, serviceAccountToken string) (*auth.VerifyServiceAccountResponse, error) {
-	return x.transport.VerifyServiceAccount(ctx, &auth.VerifyServiceAccountRequest{ServiceAccountToken: serviceAccountToken})
+func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context.Context, v *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error) {
+	return x.transport.VerifyServiceAccount(ctx, v)
 }

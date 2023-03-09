@@ -19,8 +19,8 @@ func (x *Flipt) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluationReque
 	return x.transport.BatchEvaluate(ctx, v)
 }
 
-func (x *Flipt) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
-	return x.transport.GetFlag(ctx, &flipt.GetFlagRequest{Key: key})
+func (x *Flipt) GetFlag(ctx context.Context, v *flipt.GetFlagRequest) (*flipt.Flag, error) {
+	return x.transport.GetFlag(ctx, v)
 }
 
 func (x *Flipt) ListFlags(ctx context.Context, v *flipt.ListFlagRequest) (*flipt.FlagList, error) {
@@ -35,8 +35,8 @@ func (x *Flipt) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest) (*fl
 	return x.transport.UpdateFlag(ctx, v)
 }
 
-func (x *Flipt) DeleteFlag(ctx context.Context, key string) error {
-	_, err := x.transport.DeleteFlag(ctx, &flipt.DeleteFlagRequest{Key: key})
+func (x *Flipt) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest) error {
+	_, err := x.transport.DeleteFlag(ctx, v)
 	return err
 }
 
@@ -92,8 +92,8 @@ func (x *Flipt) DeleteDistribution(ctx context.Context, v *flipt.DeleteDistribut
 	return err
 }
 
-func (x *Flipt) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
-	return x.transport.GetSegment(ctx, &flipt.GetSegmentRequest{Key: key})
+func (x *Flipt) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest) (*flipt.Segment, error) {
+	return x.transport.GetSegment(ctx, v)
 }
 
 func (x *Flipt) ListSegments(ctx context.Context, v *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
@@ -108,8 +108,8 @@ func (x *Flipt) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentRequest
 	return x.transport.UpdateSegment(ctx, v)
 }
 
-func (x *Flipt) DeleteSegment(ctx context.Context, key string) error {
-	_, err := x.transport.DeleteSegment(ctx, &flipt.DeleteSegmentRequest{Key: key})
+func (x *Flipt) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentRequest) error {
+	_, err := x.transport.DeleteSegment(ctx, v)
 	return err
 }
 

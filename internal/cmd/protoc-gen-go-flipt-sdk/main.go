@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
 const (
-	importPath = "go.flipt.io/flipt/sdk"
+	importPath  = "go.flipt.io/flipt/sdk"
+	emptyImport = "google.golang.org/protobuf/types/known/emptypb"
 )
 
 func main() {
@@ -186,29 +186,14 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 				returnStatement = []any{"x.transport.", method.GoName, "(ctx, "}
 			)
 
-			switch len(method.Input.Fields) {
-			case 0:
-				returnStatement = append(returnStatement, "&", method.Input.GoIdent, "{})")
-			case 1:
-				field := method.Input.Fields[0]
-				v := variableCase(field.GoName)
-
-				var kind []any
-				switch field.Desc.Kind() {
-				case protoreflect.MessageKind:
-					kind = []any{"*", field.Message.GoIdent}
-				default:
-					kind = []any{field.Desc.Kind()}
-				}
-
-				signature = append(append(signature, ", ", v, " "), kind...)
-				returnStatement = append(returnStatement, "&", method.Input.GoIdent, "{", field.GoName, ": ", v, "})")
-			default:
+			if method.Input.GoIdent.GoImportPath != emptyImport {
 				signature = append(signature, ", v *", method.Input.GoIdent)
 				returnStatement = append(returnStatement, "v)")
+			} else {
+				returnStatement = append(returnStatement, "&", method.Input.GoIdent, "{})")
 			}
 
-			if method.Output.GoIdent.GoImportPath != "google.golang.org/protobuf/types/known/emptypb" {
+			if method.Output.GoIdent.GoImportPath != emptyImport {
 				g.P(append(signature, ") (*", method.Output.GoIdent, ", error) {")...)
 				g.P(append([]any{"return "}, returnStatement...)...)
 			} else {
