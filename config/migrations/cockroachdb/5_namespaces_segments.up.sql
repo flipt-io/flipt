@@ -5,8 +5,8 @@ ALTER TABLE segments ADD COLUMN namespace_key VARCHAR(255) NOT NULL DEFAULT 'def
 ALTER TABLE segments ADD FOREIGN KEY (namespace_key) REFERENCES namespaces(key) ON DELETE CASCADE;
 
 -- Drop primary key constraint and add a new composite primary key on namespace_key and key columns
-ALTER TABLE segments DROP CONSTRAINT IF EXISTS segments_pkey CASCADE;
-ALTER TABLE segments ADD CONSTRAINT segments_pkey PRIMARY KEY (namespace_key, key);
+ALTER TABLE segments ALTER PRIMARY KEY USING COLUMNS (namespace_key, key);
+DROP INDEX IF EXISTS segments_key_key CASCADE;
 
 -- Add column namespace_key with a default value
 ALTER TABLE constraints ADD COLUMN namespace_key VARCHAR(255) NOT NULL DEFAULT 'default';
