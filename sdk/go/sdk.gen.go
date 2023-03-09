@@ -51,14 +51,14 @@ func New(t Transport, opts ...Option) SDK {
 	return sdk
 }
 
-func (s SDK) Auth() Auth {
-	return Auth{transport: s.transport.AuthClient()}
+func (s SDK) Auth() *Auth {
+	return &Auth{transport: s.transport.AuthClient()}
 }
 
-func (s SDK) Flipt() Flipt {
-	return Flipt{transport: s.transport.FliptClient()}
+func (s SDK) Flipt() *Flipt {
+	return &Flipt{transport: s.transport.FliptClient()}
 }
 
-func (s SDK) Meta() Meta {
-	return Meta{transport: s.transport.MetaClient()}
+func (s SDK) Meta() *Meta {
+	return &Meta{transport: s.transport.MetaClient()}
 }

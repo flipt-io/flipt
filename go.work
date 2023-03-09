@@ -6,4 +6,5 @@ use (
 	./internal/cmd/protoc-gen-go-flipt-sdk
 	./rpc/flipt
 	./sdk/go
+  ./_tools/
 )
