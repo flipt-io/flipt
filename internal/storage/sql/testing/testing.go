@@ -278,8 +278,8 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		return nil, err
 	}
 
-	var logger testContainerLogger
-	container.FollowOutput(&logger)
+	// var logger testContainerLogger
+	// container.FollowOutput(&logger)
 
 	mappedPort, err := container.MappedPort(ctx, port)
 	if err != nil {
