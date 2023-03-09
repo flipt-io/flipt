@@ -80,6 +80,8 @@ func generateGRPC(gen *protogen.Plugin) {
 	g.P("package sdk")
 	g.P()
 
+	g.P("var _ Transport = GRPCTransport{}")
+
 	g.P("type GRPCTransport struct {")
 	grpc := importPackage(g, "google.golang.org/grpc")
 	g.P("cc ", grpc("ClientConnInterface"))

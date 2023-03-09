@@ -9,6 +9,8 @@ import (
 	grpc "google.golang.org/grpc"
 )
 
+var _ Transport = GRPCTransport{}
+
 type GRPCTransport struct {
 	cc grpc.ClientConnInterface
 }
