@@ -38,14 +38,35 @@ func (s *Store) String() string {
 	return "postgres"
 }
 
+func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	namespace, err := s.Store.CreateNamespace(ctx, r)
+
+	if err != nil {
+		var perr *pq.Error
+
+		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
+			return nil, errs.ErrInvalidf(`namespace %q is not unique`, r.Key)
+		}
+
+		return nil, err
+	}
+
+	return namespace, nil
+}
+
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
 
 	if err != nil {
 		var perr *pq.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
-			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
+		if errors.As(err, &perr) {
+			switch perr.Code.Name() {
+			case constraintForeignKeyErr:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case constraintUniqueErr:
+				return nil, errs.ErrInvalidf(`flag "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
 
 		return nil, err
@@ -63,9 +84,9 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		if errors.As(err, &perr) {
 			switch perr.Code.Name() {
 			case constraintForeignKeyErr:
-				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
+				return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
 			case constraintUniqueErr:
-				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+				return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 			}
 		}
 
@@ -82,7 +103,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var perr *pq.Error
 
 		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
-			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 		}
 
 		return nil, err
@@ -97,8 +118,13 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	if err != nil {
 		var perr *pq.Error
 
-		if errors.As(err, &perr) && perr.Code.Name() == constraintUniqueErr {
-			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
+		if errors.As(err, &perr) {
+			switch perr.Code.Name() {
+			case constraintForeignKeyErr:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case constraintUniqueErr:
+				return nil, errs.ErrInvalidf(`segment "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
 
 		return nil, err
@@ -114,7 +140,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		var perr *pq.Error
 
 		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
-			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.SegmentKey)
 		}
 
 		return nil, err
@@ -130,7 +156,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 		var perr *pq.Error
 
 		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
-			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`flag "%s/%s" or segment "%s/%s"`, r.NamespaceKey, r.FlagKey, r.NamespaceKey, r.SegmentKey)
 		}
 
 		return nil, err

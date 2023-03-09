@@ -395,7 +395,7 @@ func (s *DBTestSuite) TestCreateRule_FlagNotFound() {
 		Rank:       1,
 	})
 
-	assert.EqualError(t, err, "flag \"foo\" or segment \"bar\" not found")
+	assert.EqualError(t, err, "flag \"default/foo\" or segment \"default/bar\" not found")
 }
 
 func (s *DBTestSuite) TestCreateRule_SegmentNotFound() {
@@ -417,7 +417,7 @@ func (s *DBTestSuite) TestCreateRule_SegmentNotFound() {
 		Rank:       1,
 	})
 
-	assert.EqualError(t, err, "flag \"TestDBTestSuite/TestCreateRule_SegmentNotFound\" or segment \"foo\" not found")
+	assert.EqualError(t, err, "flag \"default/TestDBTestSuite/TestCreateRule_SegmentNotFound\" or segment \"default/foo\" not found")
 }
 
 func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
