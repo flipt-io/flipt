@@ -1,5 +1,4 @@
-Flipt Go SDK
-------------
+# Flipt Go SDK
 
 **WARNING**: This is currently in development. It is released and versioned on the same cadence as Flipt itself.
 However, we are actively developing it. That said, we may choose to drop this warning before we make the first release which contains it.
@@ -19,7 +18,7 @@ The [Flipt SDK Generator](../../internal/cmd/protoc-gen-go-flipt-sdk/) can be fo
 
 ## Get the SDK
 
-```
+```sh
 go get go.flipt.io/flipt/sdk
 ```
 
