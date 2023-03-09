@@ -39,6 +39,15 @@ func WithClientTokenProvider(p ClientTokenProvider) Option {
 	return func(s *SDK) {}
 }
 
+// StaticClientTokenProvider is a string which is supplied as a static client token
+// on each RPC which requires authentication.
+type StaticClientTokenProvider string
+
+// ClientToken returns the underlying string that is the StaticClientTokenProvider.
+func (p StaticClientTokenProvider) ClientToken() (string, error) {
+	return string(p), nil
+}
+
 // New constructs and configures a Flipt SDK instance from
 // the provided Transport implementation and options.
 func New(t Transport, opts ...Option) SDK {
