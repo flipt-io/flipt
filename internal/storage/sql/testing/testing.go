@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/docker/go-connections/nat"
@@ -278,8 +280,11 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 		return nil, err
 	}
 
-	// var logger testContainerLogger
-	// container.FollowOutput(&logger)
+	verbose, _ := strconv.ParseBool(strings.TrimSpace(os.Getenv("FLIPT_TEST_DATABASE_VERBOSE")))
+	if verbose {
+		var logger testContainerLogger
+		container.FollowOutput(&logger)
+	}
 
 	mappedPort, err := container.MappedPort(ctx, port)
 	if err != nil {
