@@ -65,7 +65,7 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 
 Flipt supports use cases such as:
 
-- Enabling trunk-based development workflows
+- Enabling [trunk-based development](https://trunkbaseddevelopment.com/) workflows
 - Testing new features internally during development before releasing them fully in production
 - Ensuring overall system safety by guarding new releases with an emergency kill switch
 - Gating certain features for different permission levels, you to control who sees what
