@@ -6,7 +6,7 @@ However, we are actively developing it. That said, we may choose to drop this wa
 [![Go Reference](https://pkg.go.dev/badge/go.flipt.io/flipt/sdk.svg)](https://pkg.go.dev/go.flipt.io/flipt/sdk)
 
 The Flipt Go SDK supports developing applications in Go against Flipt.
-It also supports the ability to access the resource management APIs and other sysystem such as authentication and system metadata.
+It also supports the ability to access the resource management APIs and other systems, such as authentication and metadata.
 
 The SDK supports both Flipts `gRPC` and `HTTP` RPC APIs.
 A majority of this client is generated directly from Flipt's `protobuf` definitions.

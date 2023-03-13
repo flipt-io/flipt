@@ -31,7 +31,7 @@
 //
 // # SDK Services
 //
-// The Flipt [SDK] is split into three sctions [Flipt], [Auth] and [Meta].
+// The Flipt [SDK] is split into three sections [Flipt], [Auth] and [Meta].
 // Each of which provides access to different parts of the Flipt system.
 //
 // # Flipt Service
@@ -55,7 +55,7 @@
 //
 // Additionally, Flipt resources can be accessed and managed directly.
 //
-//	flag, err := client.GetFlag(ctx, "my_flag_key")
+//	flag, err := client.GetFlag(ctx, &flipt.GetFlagRequest{Key: "my_flag_key"})
 //	if err != nil {
 //	    panic(err)
 //	}
