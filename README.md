@@ -68,8 +68,8 @@ Flipt supports use cases such as:
 - Enabling [trunk-based development](https://trunkbaseddevelopment.com/) workflows
 - Testing new features internally during development before releasing them fully in production
 - Ensuring overall system safety by guarding new releases with an emergency kill switch
-- Gating certain features for different permission levels, you to control who sees what
-- Enabling continuous configuration by changing values during runtime
+- Gating certain features for different permission levels allowing you to control who sees what
+- Enabling continuous configuration by changing values during runtime without additional deployments
 
 <br clear="both"/>
 
