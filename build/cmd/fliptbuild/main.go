@@ -14,14 +14,12 @@ import (
 )
 
 var (
-	uiVersion        int
 	uiRepositoryPath string
 	uiExport         bool
 	publishImage     string
 )
 
 func main() {
-	flag.IntVar(&uiVersion, "ui-version", 1, "Version of the UI to build")
 	flag.StringVar(&uiRepositoryPath, "ui-path", "git://git@github.com:flipt-io/flipt-ui.git", "Path to UI V2 repository (file:// and git:// both supported)")
 	flag.BoolVar(&uiExport, "ui-export", false, "Export the generated UI contents to ui/dist.")
 	flag.StringVar(&publishImage, "publish", "", "Publish image to remote or local image repository (docker:// or docker-local://)")
@@ -52,20 +50,9 @@ func main() {
 	}
 	defer client.Close()
 
-	var ui *dagger.Container
-	switch uiVersion {
-	case 1:
-		ui, err = internal.UI(ctx, client)
-		if err != nil {
-			panic(err)
-		}
-	case 2:
-		ui, err = internal.UIV2(ctx, client, uiRepositoryPath)
-		if err != nil {
-			panic(err)
-		}
-	default:
-		panic("unexpected UI version")
+	ui, err := internal.UI(ctx, client, uiRepositoryPath)
+	if err != nil {
+		panic(err)
 	}
 
 	// write contents of container dist/ directory to the host
@@ -95,5 +82,10 @@ func main() {
 		}
 
 		fmt.Println("Image Published:", ref)
+		return
+	}
+
+	if _, err := flipt.ExitCode(ctx); err != nil {
+		panic(err)
 	}
 }

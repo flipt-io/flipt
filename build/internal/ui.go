@@ -10,29 +10,6 @@ import (
 	"dagger.io/dagger"
 )
 
-func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
-	// get reference to the local project
-	src := client.Host().Directory("./ui", dagger.HostDirectoryOpts{
-		Exclude: []string{
-			"./dist/",
-			"./node_modules/",
-		},
-	})
-
-	id, err := src.File("package-lock.json").ID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	cache := client.CacheVolume(fmt.Sprintf("node-modules-%s", id))
-
-	return client.Container().From("node:18-alpine3.16").
-		WithMountedDirectory("/src", src).WithWorkdir("/src").
-		WithMountedCache("./ui/node_modules", cache).
-		WithExec([]string{"npm", "ci"}).
-		WithExec([]string{"npm", "run", "build"}), nil
-}
-
 func parseUIRepoPath(ctx context.Context, client *dagger.Client, path string) (*dagger.Directory, error) {
 	if !strings.HasPrefix(path, "git://") {
 		if !strings.HasPrefix(path, "file://") {
@@ -42,7 +19,6 @@ func parseUIRepoPath(ctx context.Context, client *dagger.Client, path string) (*
 		path = path[len("file://"):]
 		return client.Host().Directory(path, dagger.HostDirectoryOpts{
 			Exclude: []string{
-				"./.next/",
 				"./dist/",
 				"./node_modules/",
 			},
@@ -62,7 +38,7 @@ func parseUIRepoPath(ctx context.Context, client *dagger.Client, path string) (*
 		}), nil
 }
 
-func UIV2(ctx context.Context, client *dagger.Client, path string) (*dagger.Container, error) {
+func UI(ctx context.Context, client *dagger.Client, path string) (*dagger.Container, error) {
 	src, err := parseUIRepoPath(ctx, client, path)
 	if err != nil {
 		return nil, err
@@ -79,6 +55,5 @@ func UIV2(ctx context.Context, client *dagger.Client, path string) (*dagger.Cont
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("./ui/node_modules", cache).
 		WithExec([]string{"npm", "ci"}).
-		WithExec([]string{"npm", "run", "build"}).
-		WithExec([]string{"npx", "next", "export", "-o", "dist"}), nil
+		WithExec([]string{"npm", "run", "build"}), nil
 }

@@ -2,7 +2,7 @@ go 1.18
 
 use (
 	.
-	./_tools/
+	./_tools
 	./build
 	./errors
 	./internal/cmd/protoc-gen-go-flipt-sdk
