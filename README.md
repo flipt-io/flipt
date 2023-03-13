@@ -45,27 +45,31 @@
 
 <div align="center">
     <h4>
-        <a href="https://www.flipt.io/docs/introduction">Documentation</a> |
-        <a href="#features">Features</a> |
-        <a href="#values">Values</a> |
-        <a href="#examples">Examples</a> |
-        <a href="#integration">Integration</a> |
-        <a href="#community">Community</a> |
-        <a href="#feedback">Feedback</a>
+        <a href="https://www.flipt.io/docs/introduction">Documentation</a> •
+        <a href="#usecases">Usecases</a> •
+        <a href="#features">Features</a> •
+        <a href="#values">Values</a> •
+        <a href="#examples">Examples</a> •
+        <a href="#integration">Integration</a> •
+        <a href="#community">Community</a>
     </h4>
 </div>
-
-<br clear="both"/>
 
 Flipt is an open-source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
+<br clear="both"/>
+
+## Usecases
+
 Flipt supports use cases such as:
 
-- Simple on/off feature flags to toggle functionality in your applications
-- Rolling out features to a percentage of your customers
-- Using advanced segmentation to target and serve users based on custom properties that you define
+- Enabling trunk-based development workflows
+- Testing new features internally during development before releasing them fully in production
+- Ensuring overall system safety by guarding new releases with an emergency kill switch
+- Gating certain features for different permission levels, you to control who sees what
+- Enabling continuous configuration by changing values during runtime
 
 <br clear="both"/>
 
