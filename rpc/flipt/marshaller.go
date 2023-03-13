@@ -1,6 +1,8 @@
 package flipt
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	grpc_gateway_v1 "github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -34,8 +36,27 @@ func (m *V1toV2MarshallerAdapter) Marshal(v interface{}) ([]byte, error) {
 	return m.JSONPb.Marshal(v)
 }
 
+// decoderInterceptor intercepts and modifies the outbound error return value for
+// inputs that fail to unmarshal against the protobuf.
+type decoderInterceptor struct {
+	grpc_gateway_v1.Decoder
+}
+
+func (c *decoderInterceptor) Decode(v interface{}) error {
+	err := c.Decoder.Decode(v)
+	if err != nil {
+		if _, ok := err.(*json.UnmarshalTypeError); ok {
+			return fmt.Errorf("invalid values for key(s) in json body")
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 func (m *V1toV2MarshallerAdapter) NewDecoder(r io.Reader) grpc_gateway_v2.Decoder {
-	return m.JSONPb.NewDecoder(r)
+	return &decoderInterceptor{Decoder: m.JSONPb.NewDecoder(r)}
 }
 
 func (m *V1toV2MarshallerAdapter) NewEncoder(w io.Writer) grpc_gateway_v2.Encoder {
