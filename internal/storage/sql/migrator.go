@@ -20,7 +20,7 @@ var expectedVersions = map[Driver]uint{
 	SQLite:      8,
 	Postgres:    9,
 	MySQL:       7,
-	CockroachDB: 2,
+	CockroachDB: 6,
 }
 
 // Migrator is responsible for migrating the database schema

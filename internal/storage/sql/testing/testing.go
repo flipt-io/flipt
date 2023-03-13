@@ -57,7 +57,7 @@ func Open() (*Database, error) {
 	var proto config.DatabaseProtocol
 
 	switch os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL") {
-	case "cockroachdb":
+	case "cockroachdb", "cockroach":
 		proto = config.DatabaseCockroachDB
 	case "postgres":
 		proto = config.DatabasePostgres
