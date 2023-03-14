@@ -27,6 +27,6 @@ The test section of the Mage targets handles running Flipts various unit tests w
 
 `mage test:database <db>` runs the entire test suite with the desired database (`sqlite`, `postgres`, `mysql` and `cockroach` available).
 
-`mage test:all` runs the entire suite for each database concurrently in parallel.
+`mage test:all` runs the entire suite for each database concurrently.
 
-`mage test:integration` run an [integration test suite](./build/integration) against an instance of Flipt.
+`mage test:integration` run the [integration test suite](./build/integration) against an instance of Flipt.
