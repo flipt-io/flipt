@@ -137,6 +137,7 @@ func registerFunc(ctx context.Context, conn *grpc.ClientConn, fn func(context.Co
 
 func authenticationHTTPMount(
 	ctx context.Context,
+	logger *zap.Logger,
 	cfg config.AuthenticationConfig,
 	r chi.Router,
 	conn *grpc.ClientConn,
@@ -172,6 +173,6 @@ func authenticationHTTPMount(
 	r.Group(func(r chi.Router) {
 		r.Use(middleware...)
 
-		r.Mount("/auth/v1", gateway.NewGatewayServeMux(muxOpts...))
+		r.Mount("/auth/v1", gateway.NewGatewayServeMux(logger, muxOpts...))
 	})
 }

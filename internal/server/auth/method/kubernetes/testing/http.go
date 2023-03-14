@@ -26,7 +26,7 @@ func StartHTTPServer(
 	t.Helper()
 
 	var (
-		mux        = gateway.NewGatewayServeMux()
+		mux        = gateway.NewGatewayServeMux(logger)
 		httpServer = &HTTPServer{
 			GRPCServer: StartGRPCServer(t, ctx, logger, conf),
 		}
