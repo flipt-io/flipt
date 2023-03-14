@@ -18,7 +18,7 @@ import (
 
 var expectedVersions = map[Driver]uint{
 	SQLite:      7,
-	Postgres:    9,
+	Postgres:    7,
 	MySQL:       7,
 	CockroachDB: 6,
 }
@@ -100,7 +100,6 @@ func (m *Migrator) Up(force bool) error {
 		}
 
 		m.logger.Debug("migrations complete")
-
 		return nil
 	}
 
@@ -136,6 +135,5 @@ func (m *Migrator) Down() error {
 	}
 
 	m.logger.Debug("down migrations complete")
-
 	return nil
 }
