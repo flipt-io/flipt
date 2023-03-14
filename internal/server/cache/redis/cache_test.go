@@ -147,7 +147,7 @@ func newCache(t *testing.T, ctx context.Context) (*Cache, func()) {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	teardown := func() {
-		redisCancel(shutdownCtx)
+		_ = redisCancel(shutdownCtx)
 		cancel()
 	}
 
