@@ -2,6 +2,9 @@ go 1.18
 
 use (
 	.
+	./_tools/
 	./errors
-	./rpc/flipt/
+	./internal/cmd/protoc-gen-go-flipt-sdk
+	./rpc/flipt
+	./sdk/go
 )
