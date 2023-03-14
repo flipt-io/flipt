@@ -129,7 +129,7 @@ func (m *Migrator) Up(force bool) error {
 
 // Down returns the down migrations (drops the database)
 func (m *Migrator) Down() error {
-	m.logger.Debug("Running down migrations...")
+	m.logger.Debug("running down migrations...")
 
 	if err := m.migrator.Down(); err != nil {
 		return fmt.Errorf("reverting migrations: %w", err)
