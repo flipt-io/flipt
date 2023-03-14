@@ -16,7 +16,7 @@ func Test(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 	_, err := flipt.
 		WithServiceBinding("redis", redisSrv).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
-		WithExec([]string{"go", "test", "-tags", "assets", "-p", "1", "./..."}).
+		WithExec([]string{"go", "test", "-race", "-p", "1", "./..."}).
 		ExitCode(ctx)
 	return err
 }
