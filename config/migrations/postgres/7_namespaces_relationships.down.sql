@@ -4,7 +4,7 @@
 -- Drop foreign key constraint on namespace_key column
 ALTER TABLE flags DROP CONSTRAINT IF EXISTS flags_namespace_key_fkey CASCADE;
 
--- Drop primary key constraint and add a new composite primary key on key column
+-- Drop primary key constraint and add a new primary key on key column
 ALTER TABLE flags DROP CONSTRAINT IF EXISTS flags_pkey CASCADE;
 ALTER TABLE flags ADD CONSTRAINT flags_pkey PRIMARY KEY (key);
 
