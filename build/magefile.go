@@ -228,7 +228,7 @@ func uiRepositoryPath() string {
 		return path
 	}
 
-	return "git://git@github.com:flipt-io/flipt-ui.git"
+	return "https://github.com/flipt-io/flipt-ui.git"
 }
 
 func workDir() string {

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -11,30 +10,35 @@ import (
 )
 
 func parseUIRepoPath(ctx context.Context, client *dagger.Client, path string) (*dagger.Directory, error) {
-	if !strings.HasPrefix(path, "git://") {
-		if !strings.HasPrefix(path, "file://") {
-			return nil, errors.New("unexpected ui repo path scheme")
-		}
+	protocol, path, found := strings.Cut(path, "://")
+	if !found {
+		return nil, fmt.Errorf("protocol required: %q", path)
+	}
 
-		path = path[len("file://"):]
+	switch protocol {
+	case "file":
 		return client.Host().Directory(path, dagger.HostDirectoryOpts{
 			Exclude: []string{
 				"./dist/",
 				"./node_modules/",
 			},
 		}), nil
+	case "git", "http", "https":
+	default:
+		return nil, fmt.Errorf("unexpected protocol: %q", protocol)
 	}
 
-	path, ref, _ := strings.Cut(path[len("git://"):], "#")
+	path, ref, _ := strings.Cut(path, "#")
 	if ref == "" {
 		ref = "main"
 	}
 
-	treeOpts := dagger.GitRefTreeOpts{
-		SSHAuthSocket: client.Host().UnixSocket(os.Getenv("SSH_AUTH_SOCK")),
+	var treeOpts dagger.GitRefTreeOpts
+	if protocol == "git" {
+		treeOpts.SSHAuthSocket = client.Host().UnixSocket(os.Getenv("SSH_AUTH_SOCK"))
 	}
 
-	return client.Git(path).
+	return client.Git(protocol + "://" + path).
 		Branch(ref).
 		Tree(treeOpts), nil
 }
