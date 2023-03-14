@@ -30,12 +30,14 @@ func parseUIRepoPath(ctx context.Context, client *dagger.Client, path string) (*
 		ref = "main"
 	}
 
-	socket := client.Host().UnixSocket(os.Getenv("SSH_AUTH_SOCK"))
+	treeOpts := dagger.GitRefTreeOpts{}
+	if os.Getenv("SSH_AGENT_PID") != "" {
+		treeOpts.SSHAuthSocket = client.Host().UnixSocket(os.Getenv("SSH_AUTH_SOCK"))
+	}
+
 	return client.Git(path).
 		Branch(ref).
-		Tree(dagger.GitRefTreeOpts{
-			SSHAuthSocket: socket,
-		}), nil
+		Tree(treeOpts), nil
 }
 
 func UI(ctx context.Context, client *dagger.Client, path string) (*dagger.Container, error) {
