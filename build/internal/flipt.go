@@ -3,11 +3,14 @@ package internal
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
 	"strings"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	"golang.org/x/mod/modfile"
 )
 
 type FliptRequest struct {
@@ -53,22 +56,34 @@ func NewFliptRequest(ui *dagger.Directory, build dagger.Platform, opts ...Option
 }
 
 func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger.Container, error) {
+	workFilePath := path.Join(req.WorkDir, "go.work")
+	work, err := os.ReadFile(workFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	workFile, err := modfile.ParseWork(workFilePath, work, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// infer mod and sum files from the contents of the work file.
+	includes := []string{
+		"./go.work",
+		"./go.work.sum",
+		"./magefile.go",
+	}
+
+	for _, use := range workFile.Use {
+		includes = append(includes,
+			path.Join(use.Path, "go.mod"),
+			path.Join(use.Path, "go.sum"),
+		)
+	}
+
 	// add base dependencies to intialize project with
 	src := client.Host().Directory(".", dagger.HostDirectoryOpts{
-		Include: []string{
-			"./go.work",
-			"./go.work.sum",
-			"./go.mod",
-			"./go.sum",
-			"./build/go.mod",
-			"./build/go.sum",
-			"./rpc/flipt/go.mod",
-			"./rpc/flipt/go.sum",
-			"./errors/go.mod",
-			"./errors/go.sum",
-			"./_tools/",
-			"./magefile.go",
-		},
+		Include: includes,
 	})
 
 	golang := client.Container(dagger.ContainerOpts{

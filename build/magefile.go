@@ -173,6 +173,37 @@ func (t Test) Database(ctx context.Context, db string) error {
 	return test.Test(test.All[db](ctx, client, base))
 }
 
+func (t Test) Integration(ctx context.Context) error {
+	client, err := daggerClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer client.Close()
+
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		return err
+	}
+
+	req, err := newRequest(ctx, client, platform)
+	if err != nil {
+		return err
+	}
+
+	base, err := internal.Base(ctx, client, req)
+	if err != nil {
+		return err
+	}
+
+	flipt, err := internal.Package(ctx, client, base, req)
+	if err != nil {
+		return err
+	}
+
+	return test.Integration(ctx, client, base, flipt)
+}
+
 func daggerClient(ctx context.Context) (*dagger.Client, error) {
 	return dagger.Connect(ctx,
 		dagger.WithWorkdir(workDir()),
