@@ -68,7 +68,10 @@ func generateSDK(gen *protogen.Plugin) {
 
 	for _, t := range types {
 		g.P("func (s SDK) ", t[0], "() *", t[0], "{")
-		g.P("return &", t[0], "{transport: s.transport.", t[1], "()}")
+		g.P("return &", t[0], "{")
+		g.P("transport: s.transport.", t[1], "(),")
+		g.P("tokenProvider: s.tokenProvider,")
+		g.P("}")
 		g.P("}\n")
 	}
 }
@@ -110,7 +113,10 @@ func generateGRPC(gen *protogen.Plugin) {
 			continue
 		}
 
-		groupType := variableCase(method)
+		// the following handles bundling together packages containing more than
+		// one service definition into a single unexported type which implements
+		// the combined client interface the SDK generator produces.
+		groupType := unexport(method)
 		g.P("type ", groupType, " struct {")
 		g.P("cc ", grpc("ClientConnInterface"))
 		g.P("}\n")
@@ -161,6 +167,7 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 		g.P("type ", typ, " struct {")
 		g.P("transport ", typ, "Client")
+		g.P("tokenProvider ", "ClientTokenProvider")
 		g.P("}\n")
 	}
 
@@ -172,11 +179,15 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 		g.P("type ", serviceName, " struct {")
 		g.P("transport ", relativeImport(g, file, srv.GoName+"Client"))
+		g.P("tokenProvider ", "ClientTokenProvider")
 		g.P("}\n")
 
 		if !oneServicePackage {
 			g.P("func (s ", typ, ") ", srv.GoName, "()", srv.GoName, "{")
-			g.P("return ", srv.GoName, "{ transport: s.transport.", srv.GoName+"Client", "()}")
+			g.P("return ", srv.GoName, "{")
+			g.P("transport: s.transport.", srv.GoName+"Client", "(),")
+			g.P("tokenProvider: ", "s.tokenProvider,")
+			g.P("}")
 			g.P("}")
 		}
 
@@ -195,9 +206,11 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 			if method.Output.GoIdent.GoImportPath != emptyImport {
 				g.P(append(signature, ") (*", method.Output.GoIdent, ", error) {")...)
+				threadAuth(g, "x", "return nil, err")
 				g.P(append([]any{"return "}, returnStatement...)...)
 			} else {
 				g.P(append(signature, ") error {")...)
+				threadAuth(g, "x", "return err")
 				g.P(append([]any{"_, err := "}, returnStatement...)...)
 				g.P("return err")
 			}
@@ -208,7 +221,18 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 	return
 }
 
-func variableCase(v string) string {
+func threadAuth(g *protogen.GeneratedFile, receiver, returnErr string) {
+	metadata := importPackage(g, "google.golang.org/grpc/metadata")
+	g.P("if ", receiver, ".tokenProvider != nil {")
+	g.P("token, err := ", receiver, ".tokenProvider.ClientToken()")
+	g.P("if err != nil { ", returnErr, " }")
+	g.P()
+	g.P("ctx = ", metadata("AppendToOutgoingContext"), `(ctx, "authorization", "Bearer "+token)`)
+	g.P("}")
+	g.P()
+}
+
+func unexport(v string) string {
 	return strings.ToLower(v[:1]) + v[1:]
 }
 
