@@ -7,7 +7,6 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
@@ -266,14 +265,11 @@ func NewGRPCServer(
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 	}
 
-	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
-	// and if the slice has a non-zero length, add the audit sink interceptor.
-	var sinksString string
 	sinks := make([]auditsink.AuditSink, 0)
+	var sinksString string
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
-		auditsink.AuditEvents = make([]*auditsink.AuditEvent, 0)
-		logFileSink, err := logfile.NewLogFileSink(cfg.Audit.Sinks.LogFile.FilePath)
+		logFileSink, err := logfile.NewLogFileSink(logger, cfg.Audit.Sinks.LogFile.FilePath)
 		if err != nil {
 			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.FilePath)
 		}
@@ -282,29 +278,11 @@ func NewGRPCServer(
 		sinksString += fmt.Sprintf("%s,", logFileSink.String())
 	}
 
+	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
+	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
-		ch := make(chan []*auditsink.AuditEvent)
-		// Due to RPC requests being processed in goroutines by the server, we have to pass in a
-		// mutex to protect the global variable auditsink.AuditEvents.
-		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, ch, &sync.Mutex{}, cfg.Audit.Advanced.BufferSize))
-		go func(ctx context.Context, sinks []auditsink.AuditSink) {
-			defer close(ch)
-
-			for {
-				select {
-				case c := <-ch:
-					for _, sink := range sinks {
-						err := sink.SendAudits(c)
-						if err != nil {
-							logger.Warn("Failed to send audits to configured sink", zap.Stringer("sink", sink))
-						}
-					}
-				case <-ctx.Done():
-					return
-				}
-			}
-		}(ctx, sinks)
-
+		publisher := auditsink.NewPublisher(logger, cfg.Audit.Advanced.BufferSize, sinks)
+		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher))
 		logger.Debug(fmt.Sprintf("sinks are enabled with buffer size %d", cfg.Audit.Advanced.BufferSize), zap.String("sinks", strings.TrimSuffix(sinksString, ",")))
 	}
 

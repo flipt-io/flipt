@@ -277,6 +277,18 @@ func defaultConfig() *Config {
 				StateLifetime: 10 * time.Minute,
 			},
 		},
+
+		Audit: AuditSinkConfig{
+			Sinks: SinksConfig{
+				LogFile: LogFileSinkConfig{
+					Enabled:  false,
+					FilePath: "./path/to/log/file",
+				},
+			},
+			Advanced: AdvancedConfig{
+				BufferSize: 2,
+			},
+		},
 	}
 }
 
