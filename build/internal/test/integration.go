@@ -36,6 +36,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	g.Go(integration(
 		flipt.
 			WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", token),
 		"-flipt-token", token,
 	))
