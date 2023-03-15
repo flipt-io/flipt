@@ -2,6 +2,8 @@ package sql_test
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -16,6 +18,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	fliptsqltesting "go.flipt.io/flipt/internal/storage/sql/testing"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -107,8 +110,9 @@ func TestDBTestSuite(t *testing.T) {
 
 type DBTestSuite struct {
 	suite.Suite
-	db    *fliptsqltesting.Database
-	store storage.Store
+	db        *fliptsqltesting.Database
+	store     storage.Store
+	namespace string
 }
 
 var dd string
@@ -140,11 +144,31 @@ func (s *DBTestSuite) SetupSuite() {
 			store = mysql.NewStore(db.DB, logger)
 		}
 
+		namespace := randomString(6)
+
+		if _, err := store.CreateNamespace(context.Background(), &flipt.CreateNamespaceRequest{
+			Key: namespace,
+		}); err != nil {
+			return fmt.Errorf("failed to create namespace: %w", err)
+		}
+
+		s.namespace = namespace
 		s.store = store
 		return nil
 	}
 
 	s.Require().NoError(setup())
+}
+
+func randomString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(b)
 }
 
 func (s *DBTestSuite) TearDownSuite() {

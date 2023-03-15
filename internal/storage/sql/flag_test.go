@@ -44,6 +44,34 @@ func (s *DBTestSuite) TestGetFlag() {
 	assert.NotZero(t, flag.UpdatedAt)
 }
 
+func (s *DBTestSuite) TestGetFlagNamespace() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	got, err := s.store.GetFlag(context.TODO(), s.namespace, flag.Key)
+
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, s.namespace, got.NamespaceKey)
+	assert.Equal(t, flag.Key, got.Key)
+	assert.Equal(t, flag.Name, got.Name)
+	assert.Equal(t, flag.Description, got.Description)
+	assert.Equal(t, flag.Enabled, got.Enabled)
+	assert.NotZero(t, flag.CreatedAt)
+	assert.NotZero(t, flag.UpdatedAt)
+}
+
 func (s *DBTestSuite) TestGetFlagNotFound() {
 	t := s.T()
 
@@ -81,6 +109,43 @@ func (s *DBTestSuite) TestListFlags() {
 
 	for _, flag := range got {
 		assert.Equal(t, storage.DefaultNamespace, flag.NamespaceKey)
+		assert.NotZero(t, flag.CreatedAt)
+		assert.NotZero(t, flag.UpdatedAt)
+	}
+}
+
+func (s *DBTestSuite) TestListFlagsNamespace() {
+	t := s.T()
+
+	reqs := []*flipt.CreateFlagRequest{
+		{
+			NamespaceKey: s.namespace,
+			Key:          uuid.Must(uuid.NewV4()).String(),
+			Name:         "foo",
+			Description:  "bar",
+			Enabled:      true,
+		},
+		{
+			NamespaceKey: s.namespace,
+			Key:          uuid.Must(uuid.NewV4()).String(),
+			Name:         "foo",
+			Description:  "bar",
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := s.store.CreateFlag(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	res, err := s.store.ListFlags(context.TODO(), s.namespace)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.NotZero(t, len(got))
+
+	for _, flag := range got {
+		assert.Equal(t, s.namespace, flag.NamespaceKey)
 		assert.NotZero(t, flag.CreatedAt)
 		assert.NotZero(t, flag.UpdatedAt)
 	}
@@ -269,25 +334,28 @@ func (s *DBTestSuite) TestCreateFlag() {
 	assert.True(t, flag.Enabled)
 	assert.NotZero(t, flag.CreatedAt)
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
+}
 
-	// TODO: test create flag with different namespace (need to create namespace first)
-	// flag, err = s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-	// 	Key:          t.Name(),
-	// 	Name:         "foo",
-	// 	Description:  "bar",
-	// 	Enabled:      true,
-	// 	NamespaceKey: "foo",
-	// })
+func (s *DBTestSuite) TestCreateFlagNamespace() {
+	t := s.T()
 
-	// require.NoError(t, err)
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
 
-	// assert.Equal(t, "foo", flag.NamespaceKey)
-	// assert.Equal(t, t.Name(), flag.Key)
-	// assert.Equal(t, "foo", flag.Name)
-	// assert.Equal(t, "bar", flag.Description)
-	// assert.True(t, flag.Enabled)
-	// assert.NotZero(t, flag.CreatedAt)
-	// assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
+	require.NoError(t, err)
+
+	assert.Equal(t, s.namespace, flag.NamespaceKey)
+	assert.Equal(t, t.Name(), flag.Key)
+	assert.Equal(t, "foo", flag.Name)
+	assert.Equal(t, "bar", flag.Description)
+	assert.True(t, flag.Enabled)
+	assert.NotZero(t, flag.CreatedAt)
+	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 }
 
 func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {
@@ -312,6 +380,29 @@ func (s *DBTestSuite) TestCreateFlag_DuplicateKey() {
 	assert.EqualError(t, err, "flag \"default/TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique")
 }
 
+func (s *DBTestSuite) TestCreateFlagNamespace_DuplicateKey() {
+	t := s.T()
+
+	_, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique", s.namespace))
+}
 func (s *DBTestSuite) TestUpdateFlag() {
 	t := s.T()
 
