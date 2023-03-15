@@ -11,6 +11,8 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
+	"go.flipt.io/flipt/internal/server/auditsink"
+	"go.flipt.io/flipt/internal/server/auditsink/logfile"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
@@ -260,6 +262,36 @@ func NewGRPCServer(
 		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
 
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
+	}
+
+	// Audit sinks configuration.
+	sinks := make([]auditsink.AuditSink, 0)
+
+	if cfg.Audit.Sinks.LogFile.Enabled {
+		logFileSink, err := logfile.NewLogFileSink(logger, cfg.Audit.Sinks.LogFile.FilePath)
+		if err != nil {
+			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.FilePath)
+		}
+
+		sinks = append(sinks, logFileSink)
+	}
+
+	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
+	// and if the slice has a non-zero length, add the audit sink interceptor.
+	if len(sinks) > 0 {
+		publisher := auditsink.NewSinkPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, cfg.Audit.Buffer.FlushPeriod)
+		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher, cfg.Audit.Version))
+		logger.Debug("audit sinks are enabled",
+			zap.Stringers("sinks", sinks),
+			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
+			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
+			zap.String("version", cfg.Audit.Version),
+		)
+
+		server.onShutdown(func(context.Context) error {
+			publisher.Close()
+			return nil
+		})
 	}
 
 	grpcOpts := []grpc.ServerOption{grpc_middleware.WithUnaryServerChain(interceptors...)}

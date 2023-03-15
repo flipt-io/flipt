@@ -277,6 +277,20 @@ func defaultConfig() *Config {
 				StateLifetime: 10 * time.Minute,
 			},
 		},
+
+		Audit: AuditSinkConfig{
+			Version: "v0.1",
+			Sinks: SinksConfig{
+				LogFile: LogFileSinkConfig{
+					Enabled:  false,
+					FilePath: "./path/to/log/file",
+				},
+			},
+			Buffer: BufferConfig{
+				Capacity:    2,
+				FlushPeriod: 2 * time.Minute,
+			},
+		},
 	}
 }
 
@@ -647,6 +661,21 @@ func TestLoad(t *testing.T) {
 			name:    "version invalid",
 			path:    "./testdata/version/invalid.yml",
 			wantErr: errors.New("invalid version: 2.0"),
+		},
+		{
+			name:    "audit sink version invalid",
+			path:    "./testdata/auditsink/invalid_version.yml",
+			wantErr: errors.New("unrecognized version v1000"),
+		},
+		{
+			name:    "buffer size not within range",
+			path:    "./testdata/auditsink/invalid_buffersize.yml",
+			wantErr: errors.New("buffer capacity below 2 or above 10"),
+		},
+		{
+			name:    "flush period invalid",
+			path:    "./testdata/auditsink/invalid_flushperiod.yml",
+			wantErr: errors.New("flush period below 2 minutes or greater than 5 minutes"),
 		},
 	}
 

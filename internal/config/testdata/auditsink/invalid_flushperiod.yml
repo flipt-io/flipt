@@ -1,0 +1,9 @@
+audit:
+  version: v0.1
+  sinks:
+    logFile:
+      enabled: true
+      filePath: ./log.txt
+  buffer:
+    capacity: 2
+    flushPeriod: 30m

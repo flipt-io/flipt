@@ -47,6 +47,7 @@ type Config struct {
 	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db"`
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
 	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication"`
+	Audit          AuditSinkConfig      `json:"audit,omitempty" mapstructure:"audit"`
 }
 
 type Result struct {
