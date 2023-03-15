@@ -275,7 +275,9 @@ type Option func(*SDK)
 // WithClientTokenProviders returns an Option which configures
 // any supplied SDK with the provided ClientTokenProvider.
 func WithClientTokenProvider(p ClientTokenProvider) Option {
-	return func(s *SDK) {}
+	return func(s *SDK) {
+        s.tokenProvider = p
+    }
 }
 
 // StaticClientTokenProvider is a string which is supplied as a static client token
