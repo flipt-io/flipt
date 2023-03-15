@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path"
@@ -55,6 +56,22 @@ func NewFliptRequest(ui *dagger.Directory, build dagger.Platform, opts ...Option
 }
 
 func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger.Container, error) {
+	var (
+		goBuildCachePath = "/root/.cache/go-build"
+		goModCachePath   = "/go/pkg/mod"
+	)
+
+	golang := client.Container(dagger.ContainerOpts{
+		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
+	}).
+		From("golang:1.18-alpine3.16").
+		WithEnvVariable("GOCACHE", goBuildCachePath).
+		WithEnvVariable("GOMODCACHE", goModCachePath).
+		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
+	if _, err := golang.ExitCode(ctx); err != nil {
+		return nil, err
+	}
+
 	workFilePath := path.Join(req.WorkDir, "go.work")
 	work, err := os.ReadFile(workFilePath)
 	if err != nil {
@@ -85,30 +102,16 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		Include: includes,
 	})
 
-	var (
-		goBuildCachePath = "/root/.cache/go-build"
-		goModCachePath   = "/go/pkg/mod"
-	)
-
-	golang := client.Container(dagger.ContainerOpts{
-		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
-	}).
-		From("golang:1.18-alpine3.16").
-		WithEnvVariable("GOCACHE", goBuildCachePath).
-		WithEnvVariable("GOMODCACHE", goModCachePath).
-		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
-	if _, err := golang.ExitCode(ctx); err != nil {
-		return nil, err
-	}
-
-	sumID, err := src.File("go.sum").ID(ctx)
+	contents, err := src.File("go.sum").Contents(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	sum := fmt.Sprintf("%x", sha256.Sum256([]byte(contents)))
+
 	var (
-		cacheGoBuild = client.CacheVolume(fmt.Sprintf("go-build-%s", sumID))
-		cacheGoMod   = client.CacheVolume(fmt.Sprintf("go-mod-%s", sumID))
+		cacheGoBuild = client.CacheVolume(fmt.Sprintf("go-build-%s", sum))
+		cacheGoMod   = client.CacheVolume(fmt.Sprintf("go-mod-%s", sum))
 	)
 
 	golang = golang.WithEnvVariable("GOOS", req.Target.OS).
@@ -118,10 +121,14 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src")
 
+	_, _ = golang.WithExec([]string{"sh", "-c", "echo foo && ls " + goBuildCachePath}).ExitCode(ctx)
+
 	golang = golang.WithExec([]string{"go", "mod", "download"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
+
+	_, _ = golang.WithExec([]string{"sh", "-c", "echo foo && ls " + goBuildCachePath}).ExitCode(ctx)
 
 	// install mage and bootstrap project tools
 	golang = golang.
