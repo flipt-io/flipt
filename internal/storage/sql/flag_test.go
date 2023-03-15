@@ -446,11 +446,11 @@ func (s *DBTestSuite) TestUpdateFlagNamespace() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
@@ -464,11 +464,11 @@ func (s *DBTestSuite) TestUpdateFlagNamespace() {
 	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         flag.Key,
-		Name:        flag.Name,
-		Description: "foobar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          flag.Key,
+		Name:         flag.Name,
+		Description:  "foobar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
@@ -499,11 +499,11 @@ func (s *DBTestSuite) TestUpdateFlagNamespace_NotFound() {
 	t := s.T()
 
 	_, err := s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
@@ -527,25 +527,25 @@ func (s *DBTestSuite) TestDeleteFlag() {
 }
 
 func (s *DBTestSuite) TestDeleteFlagNamespace() {
-  t := s.T()
+	t := s.T()
 
-  flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-    Key:         t.Name(),
-    Name:        "foo",
-    Description: "bar",
-    Enabled:     true,
-  })
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
 
-  require.NoError(t, err)
-  assert.NotNil(t, flag)
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
 
-  err = s.store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{
-    NamespaceKey: s.namespace,
-    Key: flag.Key,
-  }) 
+	err = s.store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          flag.Key,
+	})
 
-  require.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func (s *DBTestSuite) TestDeleteFlag_NotFound() {
@@ -559,9 +559,9 @@ func (s *DBTestSuite) TestDeleteFlagNamespace_NotFound() {
 	t := s.T()
 
 	err := s.store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{
-    NamespaceKey: s.namespace,
-    Key: "foo",
-  })
+		NamespaceKey: s.namespace,
+		Key:          "foo",
+	})
 
 	require.NoError(t, err)
 }
@@ -614,11 +614,11 @@ func (s *DBTestSuite) TestCreateVariantNamespace() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
@@ -626,12 +626,12 @@ func (s *DBTestSuite) TestCreateVariantNamespace() {
 
 	attachment := `{"key":"value"}`
 	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Attachment:  attachment,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Attachment:   attachment,
 	})
 
 	require.NoError(t, err)
@@ -673,11 +673,11 @@ func (s *DBTestSuite) TestCreateVariantNamespace_FlagNotFound() {
 	t := s.T()
 
 	_, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     "foo",
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		FlagKey:      "foo",
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
@@ -721,22 +721,22 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateName() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
 	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	require.NoError(t, err)
@@ -744,11 +744,11 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateName() {
 
 	// try to create another variant with the same name for this flag
 	_, err = s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	assert.EqualError(t, err, fmt.Sprintf("variant \"foo\" is not unique for flag \"%s/%s\"", s.namespace, t.Name()))
@@ -810,34 +810,34 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateName() {
 	t := s.T()
 
 	flag1, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-    Key: t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag1)
 
 	variant1, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag1.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		FlagKey:      flag1.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, variant1)
 
 	assert.NotZero(t, variant1.Id)
-  assert.Equal(t, s.namespace, variant1.NamespaceKey)
+	assert.Equal(t, s.namespace, variant1.NamespaceKey)
 	assert.Equal(t, flag1.Key, variant1.FlagKey)
 	assert.Equal(t, "foo", variant1.Key)
 
 	flag2, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    Key: t.Name(),
+		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
 		Enabled:     true,
@@ -857,7 +857,7 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateName() {
 	assert.NotNil(t, variant2)
 
 	assert.NotZero(t, variant2.Id)
-  assert.Equal(t, storage.DefaultNamespace, variant2.NamespaceKey)
+	assert.Equal(t, storage.DefaultNamespace, variant2.NamespaceKey)
 	assert.Equal(t, flag2.Key, variant2.FlagKey)
 	assert.Equal(t, "foo", variant2.Key)
 }
@@ -931,11 +931,11 @@ func (s *DBTestSuite) TestUpdateVariantNamespace() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
@@ -943,12 +943,12 @@ func (s *DBTestSuite) TestUpdateVariantNamespace() {
 
 	attachment1 := `{"key":"value1"}`
 	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
-		Attachment:  attachment1,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
+		Attachment:   attachment1,
 	})
 
 	require.NoError(t, err)
@@ -965,13 +965,13 @@ func (s *DBTestSuite) TestUpdateVariantNamespace() {
 	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
-    NamespaceKey: s.namespace,
-		Id:          variant.Id,
-		FlagKey:     variant.FlagKey,
-		Key:         variant.Key,
-		Name:        variant.Name,
-		Description: "foobar",
-		Attachment:  `{"key":      "value2"}`,
+		NamespaceKey: s.namespace,
+		Id:           variant.Id,
+		FlagKey:      variant.FlagKey,
+		Key:          variant.Key,
+		Name:         variant.Name,
+		Description:  "foobar",
+		Attachment:   `{"key":      "value2"}`,
 	})
 
 	require.NoError(t, err)
@@ -1023,23 +1023,23 @@ func (s *DBTestSuite) TestUpdateVariantNamespace_NotFound() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
 	_, err = s.store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
-    NamespaceKey: s.namespace,
-		Id:          "foo",
-		FlagKey:     flag.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		Id:           "foo",
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	assert.EqualError(t, err, "variant \"foo\" not found")
@@ -1093,45 +1093,45 @@ func (s *DBTestSuite) TestUpdateVariantNamespace_DuplicateName() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
 	variant1, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, variant1)
 
 	variant2, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         "bar",
-		Name:        "bar",
-		Description: "baz",
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "bar",
+		Name:         "bar",
+		Description:  "baz",
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, variant2)
 
 	_, err = s.store.UpdateVariant(context.TODO(), &flipt.UpdateVariantRequest{
-    NamespaceKey: s.namespace,
-		Id:          variant2.Id,
-		FlagKey:     variant2.FlagKey,
-		Key:         variant1.Key,
-		Name:        variant2.Name,
-		Description: "foobar",
+		NamespaceKey: s.namespace,
+		Id:           variant2.Id,
+		FlagKey:      variant2.FlagKey,
+		Key:          variant1.Key,
+		Name:         variant2.Name,
+		Description:  "foobar",
 	})
 
 	assert.EqualError(t, err, fmt.Sprintf("variant \"foo\" is not unique for flag \"%s/s\"", s.namespace, t.Name()))
@@ -1176,32 +1176,32 @@ func (s *DBTestSuite) TestDeleteVariantNamespace() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
 	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-    NamespaceKey: s.namespace,
-		FlagKey:     flag.Key,
-		Key:         "foo",
-		Name:        "foo",
-		Description: "bar",
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, variant)
 
 	err = s.store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
-    NamespaceKey: s.namespace,
-    FlagKey: variant.FlagKey,
-    Id: variant.Id,
-  })
+		NamespaceKey: s.namespace,
+		FlagKey:      variant.FlagKey,
+		Id:           variant.Id,
+	})
 	require.NoError(t, err)
 
 	// get the flag again
@@ -1306,20 +1306,20 @@ func (s *DBTestSuite) TestDeleteVariantNamespace_NotFound() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
-    NamespaceKey: s.namespace,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-		Enabled:     true,
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
 	})
 
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
 	err = s.store.DeleteVariant(context.TODO(), &flipt.DeleteVariantRequest{
-    NamespaceKey: s.namespace,
-		Id:      "foo",
-		FlagKey: flag.Key,
+		NamespaceKey: s.namespace,
+		Id:           "foo",
+		FlagKey:      flag.Key,
 	})
 
 	require.NoError(t, err)
