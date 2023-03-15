@@ -401,8 +401,9 @@ func (s *DBTestSuite) TestCreateFlagNamespace_DuplicateKey() {
 		Enabled:      true,
 	})
 
-	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/TestDBTestSuite/TestCreateFlag_DuplicateKey\" is not unique", s.namespace))
+	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/TestDBTestSuite/TestCreateFlagNamespace_DuplicateKey\" is not unique", s.namespace))
 }
+
 func (s *DBTestSuite) TestUpdateFlag() {
 	t := s.T()
 
@@ -441,6 +442,46 @@ func (s *DBTestSuite) TestUpdateFlag() {
 	assert.NotZero(t, updated.UpdatedAt)
 }
 
+func (s *DBTestSuite) TestUpdateFlagNamespace() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, s.namespace, flag.NamespaceKey)
+	assert.Equal(t, t.Name(), flag.Key)
+	assert.Equal(t, "foo", flag.Name)
+	assert.Equal(t, "bar", flag.Description)
+	assert.True(t, flag.Enabled)
+	assert.NotZero(t, flag.CreatedAt)
+	assert.Equal(t, flag.CreatedAt.Seconds, flag.UpdatedAt.Seconds)
+
+	updated, err := s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          flag.Key,
+		Name:         flag.Name,
+		Description:  "foobar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, s.namespace, updated.NamespaceKey)
+	assert.Equal(t, flag.Key, updated.Key)
+	assert.Equal(t, flag.Name, updated.Name)
+	assert.Equal(t, "foobar", updated.Description)
+	assert.True(t, flag.Enabled)
+	assert.NotZero(t, updated.CreatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
+}
+
 func (s *DBTestSuite) TestUpdateFlag_NotFound() {
 	t := s.T()
 
@@ -452,6 +493,20 @@ func (s *DBTestSuite) TestUpdateFlag_NotFound() {
 	})
 
 	assert.EqualError(t, err, "flag \"default/foo\" not found")
+}
+
+func (s *DBTestSuite) TestUpdateFlagNamespace_NotFound() {
+	t := s.T()
+
+	_, err := s.store.UpdateFlag(context.TODO(), &flipt.UpdateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
 }
 
 func (s *DBTestSuite) TestDeleteFlag() {
@@ -471,10 +526,43 @@ func (s *DBTestSuite) TestDeleteFlag() {
 	require.NoError(t, err)
 }
 
+func (s *DBTestSuite) TestDeleteFlagNamespace() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	err = s.store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          flag.Key,
+	})
+
+	require.NoError(t, err)
+}
+
 func (s *DBTestSuite) TestDeleteFlag_NotFound() {
 	t := s.T()
 
 	err := s.store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{Key: "foo"})
+	require.NoError(t, err)
+}
+
+func (s *DBTestSuite) TestDeleteFlagNamespace_NotFound() {
+	t := s.T()
+
+	err := s.store.DeleteFlag(context.TODO(), &flipt.DeleteFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          "foo",
+	})
+
 	require.NoError(t, err)
 }
 
