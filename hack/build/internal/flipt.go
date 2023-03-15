@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
@@ -86,30 +85,19 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		Include: includes,
 	})
 
+	var (
+		goBuildCachePath = "/root/.cache/go-build"
+		goModCachePath   = "/go/pkg/mod"
+	)
+
 	golang := client.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
 	}).
 		From("golang:1.18-alpine3.16").
+		WithEnvVariable("GOCACHE", goBuildCachePath).
+		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
 	if _, err := golang.ExitCode(ctx); err != nil {
-		return nil, err
-	}
-
-	golang = golang.
-		WithWorkdir("/deps").
-		WithExec([]string{"git", "clone", "https://github.com/magefile/mage"}).
-		WithWorkdir("/deps/mage").
-		WithExec([]string{"go", "run", "bootstrap.go"}).
-		WithMountedDirectory("/src", src).
-		WithWorkdir("/src")
-
-	goBuildCachePath, err := golang.WithExec([]string{"go", "env", "GOCACHE"}).Stdout(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	goModCachePath, err := golang.WithExec([]string{"go", "env", "GOMODCACHE"}).Stdout(ctx)
-	if err != nil {
 		return nil, err
 	}
 
@@ -125,15 +113,23 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 
 	golang = golang.WithEnvVariable("GOOS", req.Target.OS).
 		WithEnvVariable("GOARCH", req.Target.Architecture).
-		// sanitize output as it returns with a \n on the end
-		// and that breaks the mount silently
-		WithMountedCache(strings.TrimSpace(goBuildCachePath), cacheGoBuild).
-		WithMountedCache(strings.TrimSpace(goModCachePath), cacheGoMod)
+		WithMountedCache(goBuildCachePath, cacheGoBuild).
+		WithMountedCache(goModCachePath, cacheGoMod).
+		WithMountedDirectory("/src", src).
+		WithWorkdir("/src")
 
 	golang = golang.WithExec([]string{"go", "mod", "download"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
+
+	// install mage and bootstrap project tools
+	golang = golang.
+		WithWorkdir("/deps").
+		WithExec([]string{"git", "clone", "https://github.com/magefile/mage"}).
+		WithWorkdir("/deps/mage").
+		WithExec([]string{"go", "run", "bootstrap.go"}).
+		WithWorkdir("/src")
 
 	golang = golang.WithExec([]string{"mage", "bootstrap"})
 	if _, err := golang.ExitCode(ctx); err != nil {
