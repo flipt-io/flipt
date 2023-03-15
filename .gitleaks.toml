@@ -16,6 +16,7 @@ paths = [
     '''gitleaks.toml''',
     '''(.*?)(jpg|gif|doc|docx|zip|xls|pdf|bin|svg|socket)$''',
     '''(go.mod|go.sum)$''',
+    '''(go.work|go.work.sum)$''',
     '''node_modules''',
     '''vendor''',
     '''script/''',

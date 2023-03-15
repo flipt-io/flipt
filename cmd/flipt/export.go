@@ -45,7 +45,7 @@ func runExport(ctx context.Context, logger *zap.Logger) error {
 	switch driver {
 	case sql.SQLite:
 		store = sqlite.NewStore(db, logger)
-	case sql.Postgres:
+	case sql.Postgres, sql.CockroachDB:
 		store = postgres.NewStore(db, logger)
 	case sql.MySQL:
 		store = mysql.NewStore(db, logger)
