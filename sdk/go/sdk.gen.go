@@ -61,13 +61,22 @@ func New(t Transport, opts ...Option) SDK {
 }
 
 func (s SDK) Auth() *Auth {
-	return &Auth{transport: s.transport.AuthClient()}
+	return &Auth{
+		transport:     s.transport.AuthClient(),
+		tokenProvider: s.tokenProvider,
+	}
 }
 
 func (s SDK) Flipt() *Flipt {
-	return &Flipt{transport: s.transport.FliptClient()}
+	return &Flipt{
+		transport:     s.transport.FliptClient(),
+		tokenProvider: s.tokenProvider,
+	}
 }
 
 func (s SDK) Meta() *Meta {
-	return &Meta{transport: s.transport.MetaClient()}
+	return &Meta{
+		transport:     s.transport.MetaClient(),
+		tokenProvider: s.tokenProvider,
+	}
 }
