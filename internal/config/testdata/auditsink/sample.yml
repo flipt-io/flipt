@@ -1,0 +1,7 @@
+audit:
+  sinks:
+    logFile:
+      enabled: true
+      filePath: ./log.txt
+  advanced:
+    bufferSize: 2

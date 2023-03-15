@@ -5,10 +5,12 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/auditsink"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -231,6 +233,39 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 		}
 
 		return handler(ctx, req)
+	}
+}
+
+// AuditSinkUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
+func AuditSinkUnaryInterceptor(logger *zap.Logger, ch chan<- []*auditsink.AuditEvent, mtx *sync.Mutex, bufferSize int) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		resp, err := handler(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+
+		if len(auditsink.AuditEvents) >= bufferSize {
+			mtx.Lock()
+			copiedEvents := make([]*auditsink.AuditEvent, len(auditsink.AuditEvents))
+			copy(copiedEvents, auditsink.AuditEvents)
+			auditsink.AuditEvents = make([]*auditsink.AuditEvent, 0)
+			mtx.Unlock()
+			ch <- copiedEvents
+		}
+
+		switch r := req.(type) {
+		case *flipt.CreateFlagRequest:
+			mtx.Lock()
+			auditsink.AuditEvents = append(auditsink.AuditEvents, &auditsink.AuditEvent{
+				ResourceName: r.Key,
+			})
+			mtx.Unlock()
+		case *flipt.UpdateFlagRequest:
+		case *flipt.DeleteFlagRequest:
+		case *flipt.CreateRuleRequest:
+		}
+
+		return resp, err
 	}
 }
 
