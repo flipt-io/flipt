@@ -113,7 +113,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		return nil, err
 	}
 
-	sumID, err := src.File("go.work.sum").ID(ctx)
+	sumID, err := src.File("go.sum").ID(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -1,44 +1,42 @@
-package integration
+package integration_test
 
 import (
-	"context"
 	"flag"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/build/integration"
 	"go.flipt.io/flipt/sdk"
 	sdkgrpc "go.flipt.io/flipt/sdk/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var fliptAddr = flag.String("flipt-addr", "localhost:9000", "Address for running Flipt instance (gRPC only)")
+var (
+	fliptAddr  = flag.String("flipt-addr", "localhost:9000", "Address for running Flipt instance (gRPC only)")
+	fliptToken = flag.String("flipt-token", "", "Authentication token to be used during test suite")
+)
 
 func TestFlipt(t *testing.T) {
-	conn, err := grpc.Dial(*fliptAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
+	var (
+		name = "No Authentication"
+		opts []sdk.Option
+	)
 
-	transport := sdkgrpc.NewTransport(conn)
-	client := sdk.New(transport)
+	if *fliptToken != "" {
+		name = "With Static Token Authentication"
+		opts = append(opts, sdk.WithClientTokenProvider(
+			sdk.StaticClientTokenProvider(*fliptToken),
+		))
+	}
 
-	ctx := context.Background()
+	t.Run(name, func(t *testing.T) {
+		integration.Harness(t, func(t *testing.T) sdk.SDK {
+			conn, err := grpc.Dial(*fliptAddr,
+				grpc.WithTransportCredentials(insecure.NewCredentials()))
+			require.NoError(t, err)
 
-	created, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
-		Key:         "test",
-		Name:        "Test",
-		Description: "This is a test flag",
+			return sdk.New(sdkgrpc.NewTransport(conn), opts...)
+		})
 	})
-	require.NoError(t, err)
-
-	assert.Equal(t, "test", created.Key)
-	assert.Equal(t, "Test", created.Name)
-	assert.Equal(t, "This is a test flag", created.Description)
-
-	flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{Key: "test"})
-	require.NoError(t, err)
-
-	assert.Equal(t, created, flag)
 }
