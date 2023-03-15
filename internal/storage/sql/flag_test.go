@@ -1134,7 +1134,7 @@ func (s *DBTestSuite) TestUpdateVariantNamespace_DuplicateName() {
 		Description:  "foobar",
 	})
 
-	assert.EqualError(t, err, fmt.Sprintf("variant \"foo\" is not unique for flag \"%s/s\"", s.namespace, t.Name()))
+	assert.EqualError(t, err, fmt.Sprintf("variant \"foo\" is not unique for flag \"%s/%s\"", s.namespace, t.Name()))
 }
 
 func (s *DBTestSuite) TestDeleteVariant() {
