@@ -173,6 +173,9 @@ func (t Test) Database(ctx context.Context, db string) error {
 	return test.Test(test.All[db](ctx, client, base))
 }
 
+// Integration runs the entire integration test suite.
+// The suite runs a number of operations via the Go SDK against Flipt
+// in various configurations using both HTTP and GRPC.
 func (t Test) Integration(ctx context.Context) error {
 	client, err := daggerClient(ctx)
 	if err != nil {

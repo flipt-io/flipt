@@ -19,7 +19,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				WithServiceBinding("flipt", flipt.
 					WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
 					WithExec(nil)).
-				WithWorkdir("build/integration").
+				WithWorkdir("hack/build/integration").
 				WithExec(append([]string{"go", "test"}, append(flags, ".")...)).
 				ExitCode(ctx)
 
