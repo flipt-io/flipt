@@ -204,6 +204,15 @@
       "contributions": [
         "test"
       ]
+    },
+    {
+      "login": "yquansah",
+      "name": "Yoofi Quansah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13950726?v=4",
+      "profile": "https://github.com/yquansah",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
