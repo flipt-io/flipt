@@ -3,6 +3,17 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.19.2](https://github.com/flipt-io/flipt/releases/tag/v1.19.2) - 2023-03-15
+
+### Changed
+
+- Dependency updates
+- Return better error messages for grpc-gateway errors [#1397](https://github.com/flipt-io/flipt/pull/1397)
+
+### Fixed
+
+- Import/Export for CockroachDB [#1399](https://github.com/flipt-io/flipt/pull/1399)
+
 ## [v1.19.1](https://github.com/flipt-io/flipt/releases/tag/v1.19.1) - 2023-02-27
 
 ### Changed
