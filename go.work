@@ -3,8 +3,8 @@ go 1.18
 use (
 	.
 	./_tools
-	./build
 	./errors
+	./hack/build
 	./internal/cmd/protoc-gen-go-flipt-sdk
 	./rpc/flipt
 	./sdk/go

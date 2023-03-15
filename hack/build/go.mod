@@ -61,4 +61,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace go.flipt.io/flipt/sdk => ../sdk/go
+replace go.flipt.io/flipt/sdk => ../../sdk/go

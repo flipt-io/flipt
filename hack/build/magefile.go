@@ -243,7 +243,7 @@ func workDir() string {
 	}
 
 	if modfile.ModulePath(mod) == "go.flipt.io/flipt/build" {
-		return ".."
+		return "../.."
 	}
 
 	return "."
