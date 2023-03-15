@@ -263,6 +263,12 @@ step_5_test_evaluation()
         status 200
         matches "\"flagKey\":\"$flag_key\""
         matches "\"match\":false"
+
+    # evaluate returns 400 plus user friendly error message
+    authedShakedown POST "/api/v1/evaluate" -H 'Content-Type:application/json' -d "{\"flag_key\":\"$flag_key\",\"entity_id\":\"$(uuid_str)\",\"context\":\"hello\"}"
+        status 400
+        matches "\"code\":3"
+        contains "\"message\":\"invalid values for key(s) in json body\""
 }
 
 step_6_test_batch_evaluation()

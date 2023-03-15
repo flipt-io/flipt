@@ -55,7 +55,7 @@ func NewHTTPServer(
 		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
 
 		r        = chi.NewRouter()
-		api      = gateway.NewGatewayServeMux()
+		api      = gateway.NewGatewayServeMux(logger)
 		httpPort = cfg.Server.HTTPPort
 	)
 
@@ -130,7 +130,7 @@ func NewHTTPServer(
 
 		// mount all authentication related HTTP components
 		// to the chi router.
-		authenticationHTTPMount(ctx, cfg.Authentication, r, conn)
+		authenticationHTTPMount(ctx, logger, cfg.Authentication, r, conn)
 
 		r.Group(func(r chi.Router) {
 			r.Use(func(handler http.Handler) http.Handler {

@@ -34,6 +34,7 @@ func StartHTTPServer(
 
 		oidcmiddleware = oidc.NewHTTPMiddleware(conf.Session)
 		mux            = gateway.NewGatewayServeMux(
+			logger,
 			runtime.WithMetadata(oidc.ForwardCookies),
 			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
 		)
