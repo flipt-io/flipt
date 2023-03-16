@@ -28,6 +28,12 @@ func (s *sampleSink) SendAudits([]AuditEvent) error {
 	return nil
 }
 
+func (s *sampleSink) GetHits() int {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	return s.hits
+}
+
 func TestPublisher(t *testing.T) {
 	ss := &sampleSink{}
 	publisher := NewPublisher(zap.NewNop(), 2, []AuditSink{ss}, 10*time.Second)
@@ -48,11 +54,11 @@ func TestPublisher(t *testing.T) {
 	<-time.After(10 * time.Second)
 
 	for i := 0; i < retries; i++ {
-		if ss.hits == 5 {
+		if ss.GetHits() == 5 {
 			break
 		}
 		time.Sleep(1 * time.Second)
 	}
 
-	assert.Equal(t, ss.hits, 5)
+	assert.Equal(t, ss.GetHits(), 5)
 }
