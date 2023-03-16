@@ -4,6 +4,7 @@ package sdk
 
 import (
 	context "context"
+
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	metadata "google.golang.org/grpc/metadata"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"

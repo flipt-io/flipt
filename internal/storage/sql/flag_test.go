@@ -72,11 +72,18 @@ func (s *DBTestSuite) TestGetFlagNamespace() {
 	assert.NotZero(t, flag.UpdatedAt)
 }
 
-func (s *DBTestSuite) TestGetFlagNotFound() {
+func (s *DBTestSuite) TestGetFlag_NotFound() {
 	t := s.T()
 
 	_, err := s.store.GetFlag(context.TODO(), storage.DefaultNamespace, "foo")
 	assert.EqualError(t, err, "flag \"default/foo\" not found")
+}
+
+func (s *DBTestSuite) TestGetFlagNamespace_NotFound() {
+	t := s.T()
+
+	_, err := s.store.GetFlag(context.TODO(), s.namespace, "foo")
+	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
 }
 
 func (s *DBTestSuite) TestListFlags() {
@@ -683,7 +690,7 @@ func (s *DBTestSuite) TestCreateVariantNamespace_FlagNotFound() {
 	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
 }
 
-func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
+func (s *DBTestSuite) TestCreateVariant_DuplicateKey() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -714,10 +721,10 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateName() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestCreateVariant_DuplicateName\"")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestCreateVariant_DuplicateKey\"")
 }
 
-func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateName() {
+func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateKey() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -754,7 +761,7 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateName() {
 	assert.EqualError(t, err, fmt.Sprintf("variant \"foo\" is not unique for flag \"%s/%s\"", s.namespace, t.Name()))
 }
 
-func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentFlag() {
+func (s *DBTestSuite) TestCreateVariant_DuplicateKey_DifferentFlag() {
 	t := s.T()
 
 	flag1, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -806,7 +813,7 @@ func (s *DBTestSuite) TestCreateVariant_DuplicateName_DifferentFlag() {
 	assert.Equal(t, "foo", variant2.Key)
 }
 
-func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateName() {
+func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateKey() {
 	t := s.T()
 
 	flag1, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -1045,7 +1052,7 @@ func (s *DBTestSuite) TestUpdateVariantNamespace_NotFound() {
 	assert.EqualError(t, err, "variant \"foo\" not found")
 }
 
-func (s *DBTestSuite) TestUpdateVariant_DuplicateName() {
+func (s *DBTestSuite) TestUpdateVariant_DuplicateKey() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
@@ -1086,10 +1093,10 @@ func (s *DBTestSuite) TestUpdateVariant_DuplicateName() {
 		Description: "foobar",
 	})
 
-	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestUpdateVariant_DuplicateName\"")
+	assert.EqualError(t, err, "variant \"foo\" is not unique for flag \"default/TestDBTestSuite/TestUpdateVariant_DuplicateKey\"")
 }
 
-func (s *DBTestSuite) TestUpdateVariantNamespace_DuplicateName() {
+func (s *DBTestSuite) TestUpdateVariantNamespace_DuplicateKey() {
 	t := s.T()
 
 	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
