@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"strings"
@@ -49,12 +50,12 @@ func UI(ctx context.Context, client *dagger.Client, path string) (*dagger.Contai
 		return nil, err
 	}
 
-	id, err := src.File("package-lock.json").ID(ctx)
+	contents, err := src.File("package-lock.json").Contents(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	cache := client.CacheVolume(fmt.Sprintf("node-modules-%s", id))
+	cache := client.CacheVolume(fmt.Sprintf("node-modules-%x", sha256.Sum256([]byte(contents))))
 
 	return client.Container().From("node:18-alpine3.16").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
