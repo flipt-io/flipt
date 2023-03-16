@@ -184,7 +184,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil
 }
 
-// Package copies the Flipt binaries built into the provoded flipt container
+// Package copies the Flipt binaries built into the provided flipt container
 // into a thinner alpine distribution.
 func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container, req FliptRequest) (*dagger.Container, error) {
 	// build container with just Flipt + config
