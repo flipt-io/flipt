@@ -5,6 +5,7 @@ package http
 import (
 	sdk "go.flipt.io/flipt/sdk"
 	status "google.golang.org/genproto/googleapis/rpc/status"
+	metadata "google.golang.org/grpc/metadata"
 	status1 "google.golang.org/grpc/status"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	http "net/http"
@@ -25,12 +26,24 @@ func WithHTTPClient(client *http.Client) Option {
 
 func NewTransport(addr string, opts ...Option) Transport {
 	t := Transport{
-		client: http.DefaultClient,
+		client: &http.Client{Transport: http.DefaultTransport},
 		addr:   addr,
 	}
 	for _, opt := range opts {
 		opt(&t)
 	}
+	transport := t.client.Transport
+	t.client.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		md, ok := metadata.FromOutgoingContext(r.Context())
+		if ok {
+			if auth := md.Get("authorization"); len(auth) > 0 {
+				r.Header.Set("Authorization", auth[0])
+			}
+		}
+
+		return transport.RoundTrip(r)
+	})
+
 	return t
 }
 
@@ -44,4 +57,10 @@ func checkResponse(resp *http.Response, v []byte) error {
 	}
 
 	return nil
+}
+
+type roundTripFunc func(r *http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) {
+	return f(r)
 }

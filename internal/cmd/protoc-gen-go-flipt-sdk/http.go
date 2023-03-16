@@ -65,6 +65,7 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 		sdk     = importPackage(g, importPath)
 		netHTTP = importPackage(g, "net/http")
 
+		metadata  = importPackage(g, "google.golang.org/grpc/metadata")
 		protojson = importPackage(g, "google.golang.org/protobuf/encoding/protojson")
 		pbstatus  = importPackage(g, "google.golang.org/genproto/googleapis/rpc/status")
 		status    = importPackage(g, "google.golang.org/grpc/status")
@@ -84,10 +85,20 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 
 	g.P("func NewTransport(addr string, opts ...Option) Transport {")
 	g.P("t := Transport{")
-	g.P("client: ", netHTTP("DefaultClient"), ",")
+	g.P("client: &", netHTTP("Client"), "{ Transport: http.DefaultTransport },")
 	g.P("addr: addr,")
 	g.P("}")
 	g.P("for _, opt := range opts { opt(&t) }")
+	g.P("transport := t.client.Transport")
+	g.P("t.client.Transport = roundTripFunc(func(r *", netHTTP("Request"), ") (*", netHTTP("Response"), ", error) {")
+	g.P("md, ok := ", metadata("FromOutgoingContext"), "(r.Context())")
+	g.P("if ok {")
+	g.P(`if auth := md.Get("authorization"); len(auth) > 0 {`)
+	g.P(`r.Header.Set("Authorization", auth[0])`)
+	g.P("}")
+	g.P("}\n")
+	g.P("return transport.RoundTrip(r)")
+	g.P("})\n")
 	g.P("return t")
 	g.P("}\n")
 
@@ -98,6 +109,11 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 	g.P("return ", status("ErrorProto"), "(&status)")
 	g.P("}\n")
 	g.P("return nil")
+	g.P("}\n")
+
+	g.P("type roundTripFunc func(r *", netHTTP("Request"), ") (*", netHTTP("Response"), ", error)")
+	g.P("func (f roundTripFunc) RoundTrip(r *", netHTTP("Request"), ") (*", netHTTP("Response"), ", error) {")
+	g.P("return f(r)")
 	g.P("}\n")
 
 	for _, file := range gen.Files {
