@@ -7,8 +7,8 @@ import (
 // AuditSinkConfig contains fields, which enable and configure
 // Flipt's various audit sink mechanisms.
 type AuditSinkConfig struct {
-	Sinks    SinksConfig    `json:"sinks,omitempty" mapstructure:"sinks"`
-	Advanced AdvancedConfig `json:"advanced,omitempty" mapstructure:"advanced"`
+	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
+	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
 }
 
 func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
@@ -19,8 +19,8 @@ func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
 				"filePath": "./path/to/log/file",
 			},
 		},
-		"advanced": map[string]any{
-			"bufferSize": 2,
+		"buffer": map[string]any{
+			"capacity": 2,
 		},
 	})
 }
@@ -38,8 +38,8 @@ type LogFileSinkConfig struct {
 	FilePath string `json:"filePath,omitempty" mapstructure:"filePath"`
 }
 
-// AdvancedConfig holds configuration for advanced configuration of sending the audit
+// BufferConfig holds configuration for the buffering of sending the audit
 // events to the sinks.
-type AdvancedConfig struct {
-	BufferSize int `json:"bufferSize,omitempty" mapstructure:"bufferSize"`
+type BufferConfig struct {
+	Capacity int `json:"capacity,omitempty" mapstructure:"capacity"`
 }

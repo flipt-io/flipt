@@ -25,19 +25,19 @@ type AuditSink interface {
 type Publisher struct {
 	mtx         sync.Mutex
 	logger      *zap.Logger
-	bufferSize  int
+	capacity    int
 	sinks       []AuditSink
 	auditEvents []AuditEvent
 	ticker      *time.Ticker
 }
 
 // NewPublisher is the constructor for a Publisher.
-func NewPublisher(logger *zap.Logger, bufferSize int, sinks []AuditSink, tickerDuration time.Duration) *Publisher {
+func NewPublisher(logger *zap.Logger, capacity int, sinks []AuditSink, tickerDuration time.Duration) *Publisher {
 	p := &Publisher{
 		logger:      logger,
-		bufferSize:  bufferSize,
+		capacity:    capacity,
 		sinks:       sinks,
-		auditEvents: make([]AuditEvent, 0),
+		auditEvents: make([]AuditEvent, 0, capacity),
 		ticker:      time.NewTicker(tickerDuration),
 	}
 
@@ -47,14 +47,10 @@ func NewPublisher(logger *zap.Logger, bufferSize int, sinks []AuditSink, tickerD
 }
 
 // flush flushes the buffer to the configured sinks.
-func (p *Publisher) flush(auditEvent *AuditEvent) {
+func (p *Publisher) flush() {
 	copiedEvents := make([]AuditEvent, len(p.auditEvents))
 	copy(copiedEvents, p.auditEvents)
-	p.auditEvents = make([]AuditEvent, 0)
-	if auditEvent != nil {
-		p.auditEvents = append(p.auditEvents, *auditEvent)
-	}
-	p.mtx.Unlock()
+	p.auditEvents = p.auditEvents[:0]
 	for _, sink := range p.sinks {
 		go func(s AuditSink) {
 			err := s.SendAudits(copiedEvents)
@@ -72,7 +68,8 @@ func (p *Publisher) flushWhenNecessary() {
 	for {
 		<-p.ticker.C
 		p.mtx.Lock()
-		p.flush(nil)
+		p.flush()
+		p.mtx.Unlock()
 	}
 }
 
@@ -82,13 +79,12 @@ func (p *Publisher) flushWhenNecessary() {
 // This Publish method has to be concurrent-safe, due to the nature of gRPC requests to the server.
 func (p *Publisher) Publish(auditEvent *AuditEvent) {
 	p.mtx.Lock()
-	if len(p.auditEvents) < p.bufferSize {
-		defer p.mtx.Unlock()
-		p.auditEvents = append(p.auditEvents, *auditEvent)
-		return
+	defer p.mtx.Unlock()
+	if len(p.auditEvents) >= p.capacity {
+		p.flush()
 	}
 
-	p.flush(auditEvent)
+	p.auditEvents = append(p.auditEvents, *auditEvent)
 }
 
 // Close releases all the resources for the Publisher.

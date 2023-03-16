@@ -285,8 +285,8 @@ func defaultConfig() *Config {
 					FilePath: "./path/to/log/file",
 				},
 			},
-			Advanced: AdvancedConfig{
-				BufferSize: 2,
+			Buffer: BufferConfig{
+				Capacity: 2,
 			},
 		},
 	}
