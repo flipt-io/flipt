@@ -117,5 +117,18 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, createdSegment.Key, retrievedSegment.Key)
 		assert.Equal(t, createdSegment.Name, retrievedSegment.Name)
 		assert.Equal(t, createdSegment.Description, retrievedSegment.Description)
+		assert.Equal(t, createdSegment.MatchType, createdSegment.MatchType)
+
+		t.Log(`Update segment "everyone" (rename "Everyone" to "All the peeps").`)
+
+		updatedSegment, err := client.Flipt().UpdateSegment(ctx, &flipt.UpdateSegmentRequest{
+			Key:  "everyone",
+			Name: "All the peeps",
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "everyone", updatedSegment.Key)
+		assert.Equal(t, "All the peeps", updatedSegment.Name)
+		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, updatedSegment.MatchType)
 	})
 }
