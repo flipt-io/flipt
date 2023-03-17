@@ -186,7 +186,7 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 	})
 
 	t.Run("Rules and Distributions", func(*testing.T) {
-		t.Log(`Create Rule "rank 1".`)
+		t.Log(`Create rule "rank 1".`)
 
 		ruleOne, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
 			FlagKey:    "test",
@@ -199,5 +199,26 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, "test", ruleOne.FlagKey)
 		assert.Equal(t, "everyone", ruleOne.SegmentKey)
 		assert.Equal(t, int32(1), ruleOne.Rank)
+
+		t.Log(`List rules.`)
+
+		allRules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+			FlagKey: "test",
+		})
+		require.NoError(t, err)
+
+		assert.Len(t, allRules.Rules, 1)
+
+		t.Log(`Get rules "rank 1".`)
+
+		retrievedRule, err := client.Flipt().GetRule(ctx, &flipt.GetRuleRequest{
+			FlagKey: "test",
+			Id:      ruleOne.Id,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "test", retrievedRule.FlagKey)
+		assert.Equal(t, "everyone", retrievedRule.SegmentKey)
+		assert.Equal(t, int32(1), retrievedRule.Rank)
 	})
 }
