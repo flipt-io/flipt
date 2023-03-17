@@ -240,7 +240,7 @@ func (x *FliptClient) CreateVariant(ctx context.Context, v *flipt.CreateVariantR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/flags/{flag_key}/variants", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/variants", v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/variants/%v", v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/variants/%v", v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -298,9 +298,8 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 
 func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("flagKey", v.FlagKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/variants/%v", v.Id), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/variants/%v", v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -326,9 +325,8 @@ func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantR
 
 func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ...grpc.CallOption) (*flipt.Rule, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("flagKey", v.FlagKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/%v", v.Id), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v", v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -357,9 +355,8 @@ func (x *FliptClient) ListRules(ctx context.Context, v *flipt.ListRuleRequest, _
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
-	values.Set("flagKey", v.FlagKey)
 	values.Set("pageToken", v.PageToken)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/api/v1/flags/{flag_key}/rules", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules", v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +388,7 @@ func (x *FliptClient) CreateRule(ctx context.Context, v *flipt.CreateRuleRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/flags/{flag_key}/rules", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules", v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +420,7 @@ func (x *FliptClient) UpdateRule(ctx context.Context, v *flipt.UpdateRuleRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/%v", v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v", v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -455,7 +452,7 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+"/api/v1/flags/{flag_key}/rules/order", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/order", v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -481,9 +478,8 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 
 func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("flagKey", v.FlagKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/%v", v.Id), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v", v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +511,7 @@ func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDis
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/flags/{flag_key}/rules/{rule_id}/distributions", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions", v.FlagKey, v.RuleId), body)
 	if err != nil {
 		return nil, err
 	}
@@ -547,7 +543,7 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/%v", v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions/%v", v.FlagKey, v.RuleId, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -574,10 +570,8 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDistributionRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	values := url.Values{}
-	values.Set("flagKey", v.FlagKey)
-	values.Set("ruleId", v.RuleId)
 	values.Set("variantId", v.VariantId)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/{flag_key}/rules/{rule_id}/distributions/%v", v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions/%v", v.FlagKey, v.RuleId, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +751,7 @@ func (x *FliptClient) CreateConstraint(ctx context.Context, v *flipt.CreateConst
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/segments/{segment_key}/constraints", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/segments/%v/constraints", v.SegmentKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -789,7 +783,7 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/segments/{segment_key}/constraints/%v", v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/segments/%v/constraints/%v", v.SegmentKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -815,9 +809,8 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 
 func (x *FliptClient) DeleteConstraint(ctx context.Context, v *flipt.DeleteConstraintRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("segmentKey", v.SegmentKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/segments/{segment_key}/constraints/%v", v.Id), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/segments/%v/constraints/%v", v.SegmentKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
