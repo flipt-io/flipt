@@ -236,7 +236,9 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 }
 
 // AuditSinkUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditSinkUnaryInterceptor(logger *zap.Logger, publisher *auditsink.Publisher) grpc.UnaryServerInterceptor {
+func AuditSinkUnaryInterceptor(logger *zap.Logger, publisher interface {
+	Publish(*auditsink.AuditEvent)
+}) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {

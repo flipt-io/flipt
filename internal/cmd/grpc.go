@@ -265,6 +265,7 @@ func NewGRPCServer(
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 	}
 
+	// Audit sinks configuration.
 	sinks := make([]auditsink.AuditSink, 0)
 	var sinksString string
 
@@ -281,7 +282,7 @@ func NewGRPCServer(
 	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
-		publisher := auditsink.NewPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, 2*time.Minute)
+		publisher := auditsink.NewSinkPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, 2*time.Minute)
 		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher))
 		logger.Debug(fmt.Sprintf("sinks are enabled with buffer size %d", cfg.Audit.Buffer.Capacity), zap.String("sinks", strings.TrimSuffix(sinksString, ",")))
 

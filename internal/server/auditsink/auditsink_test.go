@@ -36,7 +36,7 @@ func (s *sampleSink) GetHits() int {
 
 func TestPublisher(t *testing.T) {
 	ss := &sampleSink{}
-	publisher := NewPublisher(zap.NewNop(), 2, []AuditSink{ss}, 10*time.Second)
+	publisher := NewSinkPublisher(zap.NewNop(), 2, []AuditSink{ss}, 10*time.Second)
 
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {

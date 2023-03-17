@@ -20,9 +20,9 @@ type AuditSink interface {
 	fmt.Stringer
 }
 
-// Publisher holds information about the configured sinks that we are going
+// SinkPublisher holds information about the configured sinks that we are going
 // to send audit events to.
-type Publisher struct {
+type SinkPublisher struct {
 	mtx         sync.Mutex
 	logger      *zap.Logger
 	capacity    int
@@ -31,9 +31,9 @@ type Publisher struct {
 	ticker      *time.Ticker
 }
 
-// NewPublisher is the constructor for a Publisher.
-func NewPublisher(logger *zap.Logger, capacity int, sinks []AuditSink, tickerDuration time.Duration) *Publisher {
-	p := &Publisher{
+// NewSinkPublisher is the constructor for a Publisher.
+func NewSinkPublisher(logger *zap.Logger, capacity int, sinks []AuditSink, tickerDuration time.Duration) *SinkPublisher {
+	p := &SinkPublisher{
 		logger:      logger,
 		capacity:    capacity,
 		sinks:       sinks,
@@ -47,7 +47,7 @@ func NewPublisher(logger *zap.Logger, capacity int, sinks []AuditSink, tickerDur
 }
 
 // flush flushes the buffer to the configured sinks.
-func (p *Publisher) flush() {
+func (p *SinkPublisher) flush() {
 	copiedEvents := make([]AuditEvent, len(p.auditEvents))
 	copy(copiedEvents, p.auditEvents)
 	p.auditEvents = p.auditEvents[:0]
@@ -64,7 +64,7 @@ func (p *Publisher) flush() {
 // flushWhenNecessary flushes the buffer to the configured sinks if a tick elapses
 // and there are elements in the buffer, to prevent things from staying in the buffer
 // for an indefinite amount of time.
-func (p *Publisher) flushWhenNecessary() {
+func (p *SinkPublisher) flushWhenNecessary() {
 	for {
 		<-p.ticker.C
 		p.mtx.Lock()
@@ -77,7 +77,7 @@ func (p *Publisher) flushWhenNecessary() {
 // The shared state here are the audit events which are initialized when a Publisher is constructed.
 //
 // This Publish method has to be concurrent-safe, due to the nature of gRPC requests to the server.
-func (p *Publisher) Publish(auditEvent *AuditEvent) {
+func (p *SinkPublisher) Publish(auditEvent *AuditEvent) {
 	p.mtx.Lock()
 	defer p.mtx.Unlock()
 	if len(p.auditEvents) >= p.capacity {
@@ -88,6 +88,6 @@ func (p *Publisher) Publish(auditEvent *AuditEvent) {
 }
 
 // Close releases all the resources for the Publisher.
-func (p *Publisher) Close() {
+func (p *SinkPublisher) Close() {
 	p.ticker.Stop()
 }
