@@ -119,6 +119,18 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, createdSegment.Description, retrievedSegment.Description)
 		assert.Equal(t, createdSegment.MatchType, createdSegment.MatchType)
 
+		t.Log(`Update segment "everyone" (rename "Everyone" to "All the peeps").`)
+
+		updatedSegment, err := client.Flipt().UpdateSegment(ctx, &flipt.UpdateSegmentRequest{
+			Key:  "everyone",
+			Name: "All the peeps",
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "everyone", updatedSegment.Key)
+		assert.Equal(t, "All the peeps", updatedSegment.Name)
+		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, updatedSegment.MatchType)
+
 		for _, constraint := range []struct {
 			property, operator, value string
 		}{
@@ -145,16 +157,31 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			assert.Equal(t, constraint.value, createdConstraint.Value)
 		}
 
-		t.Log(`Update segment "everyone" (rename "Everyone" to "All the peeps").`)
+		t.Log(`Get segment "everyone" with constraints.`)
 
-		updatedSegment, err := client.Flipt().UpdateSegment(ctx, &flipt.UpdateSegmentRequest{
-			Key:  "everyone",
-			Name: "All the peeps",
+		retrievedSegment, err = client.Flipt().GetSegment(ctx, &flipt.GetSegmentRequest{
+			Key: "everyone",
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, "everyone", updatedSegment.Key)
-		assert.Equal(t, "All the peeps", updatedSegment.Name)
-		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, updatedSegment.MatchType)
+		assert.Len(t, retrievedSegment.Constraints, 2)
+		assert.Equal(t, "foo", retrievedSegment.Constraints[0].Property)
+		assert.Equal(t, "fizz", retrievedSegment.Constraints[1].Property)
+
+		t.Log(`Update constraint value (from "bar" to "baz").`)
+		updatedConstraint, err := client.Flipt().UpdateConstraint(ctx, &flipt.UpdateConstraintRequest{
+			SegmentKey: "everyone",
+			Type:       retrievedSegment.Constraints[0].Type,
+			Id:         retrievedSegment.Constraints[0].Id,
+			Property:   retrievedSegment.Constraints[0].Property,
+			Operator:   retrievedSegment.Constraints[0].Operator,
+			Value:      "baz",
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, updatedConstraint.Type)
+		assert.Equal(t, "foo", updatedConstraint.Property)
+		assert.Equal(t, "eq", updatedConstraint.Operator)
+		assert.Equal(t, "baz", updatedConstraint.Value)
 	})
 }
