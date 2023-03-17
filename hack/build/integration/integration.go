@@ -185,7 +185,7 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, "baz", updatedConstraint.Value)
 	})
 
-	t.Run("Rules and Distributions", func(*testing.T) {
+	t.Run("Rules and Distributions", func(t *testing.T) {
 		t.Log(`Create rule "rank 1".`)
 
 		ruleOne, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
@@ -260,5 +260,23 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, int32(1), allRules.Rules[0].Rank)
 		assert.Equal(t, ruleOne.Id, allRules.Rules[1].Id)
 		assert.Equal(t, int32(2), allRules.Rules[1].Rank)
+
+		t.Log(`Create distribution "rollout 100"`)
+
+		flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+			Key: "test",
+		})
+		require.NoError(t, err)
+
+		distribution, err := client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+			FlagKey:   "test",
+			RuleId:    ruleOne.Id,
+			VariantId: flag.Variants[0].Id,
+			Rollout:   100,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, ruleOne.Id, distribution.RuleId)
+		assert.Equal(t, float32(100), distribution.Rollout)
 	})
 }
