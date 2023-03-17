@@ -79,7 +79,7 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 		assert.Len(t, flag.Variants, 2)
 
-		t.Log("Update variant \"one\" (rename from \"one\" to \"One\")")
+		t.Log(`Update variant "one" (rename from "one" to "One").`)
 
 		updatedVariant, err := client.Flipt().UpdateVariant(ctx, &flipt.UpdateVariantRequest{
 			FlagKey: "test",
@@ -94,6 +94,8 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 	})
 
 	t.Run("Segments and Constraints", func(t *testing.T) {
+		t.Log(`Create segment "everyone".`)
+
 		createdSegment, err := client.Flipt().CreateSegment(ctx, &flipt.CreateSegmentRequest{
 			Key:       "everyone",
 			Name:      "Everyone",
@@ -104,5 +106,16 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, "everyone", createdSegment.Key)
 		assert.Equal(t, "Everyone", createdSegment.Name)
 		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, createdSegment.MatchType)
+
+		t.Log(`Get segment "everyone".`)
+
+		retrievedSegment, err := client.Flipt().GetSegment(ctx, &flipt.GetSegmentRequest{
+			Key: "everyone",
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, createdSegment.Key, retrievedSegment.Key)
+		assert.Equal(t, createdSegment.Name, retrievedSegment.Name)
+		assert.Equal(t, createdSegment.Description, retrievedSegment.Description)
 	})
 }
