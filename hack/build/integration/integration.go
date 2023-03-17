@@ -46,4 +46,14 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "Test 2", updated.Name)
+
+	t.Log("List all flags.")
+
+	flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{})
+	require.NoError(t, err)
+
+	assert.Len(t, flags.Flags, 1)
+	assert.Equal(t, updated.Key, flags.Flags[0].Key)
+	assert.Equal(t, updated.Name, flags.Flags[0].Name)
+	assert.Equal(t, updated.Description, flags.Flags[0].Description)
 }
