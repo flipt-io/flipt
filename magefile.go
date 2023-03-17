@@ -142,12 +142,19 @@ func Cover() error {
 	return sh.RunV("go", "tool", "cover", "-html=coverage.txt")
 }
 
+var ignoreFmt = []string{"rpc/", "sdk/"}
+
 // Fmt formats code
 func Fmt() error {
 	fmt.Println("Formatting...")
 	files, err := findFilesRecursive(func(path string, _ os.FileInfo) bool {
-		// only go files, ignoring generated files in rpc/
-		return filepath.Ext(path) == ".go" && !filepath.HasPrefix(path, "rpc/")
+		// only go files, ignoring generated files
+		for _, dir := range ignoreFmt {
+			if filepath.HasPrefix(path, dir) {
+				return false
+			}
+		}
+		return filepath.Ext(path) == ".go"
 	})
 	if err != nil {
 		return fmt.Errorf("failed to find files: %w", err)
