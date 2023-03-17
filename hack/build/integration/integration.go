@@ -57,13 +57,37 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 	assert.Equal(t, updated.Name, flags.Flags[0].Name)
 	assert.Equal(t, updated.Description, flags.Flags[0].Description)
 
-	t.Log("Create variant with key \"one\".")
+	for _, key := range []string{"one", "two"} {
+		t.Logf("Create variant with key %q.", key)
 
-	createdVariant, err := client.Flipt().CreateVariant(ctx, &flipt.CreateVariantRequest{
-		Key:     "one",
+		createdVariant, err := client.Flipt().CreateVariant(ctx, &flipt.CreateVariantRequest{
+			Key:     key,
+			Name:    key,
+			FlagKey: "test",
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, key, createdVariant.Key)
+		assert.Equal(t, key, createdVariant.Name)
+	}
+
+	t.Log("Get flag \"test\" and check variants.")
+
+	flag, err = client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{Key: "test"})
+	require.NoError(t, err)
+
+	assert.Len(t, flag.Variants, 2)
+
+	t.Log("Update variant \"one\" (rename from \"one\" to \"One\")")
+
+	updatedVariant, err := client.Flipt().UpdateVariant(ctx, &flipt.UpdateVariantRequest{
 		FlagKey: "test",
+		Id:      flag.Variants[0].Id,
+		Key:     "one",
+		Name:    "One",
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, "one", createdVariant.Key)
+	assert.Equal(t, "one", updatedVariant.Key)
+	assert.Equal(t, "One", updatedVariant.Name)
 }
