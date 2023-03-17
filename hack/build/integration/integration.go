@@ -184,4 +184,20 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, "eq", updatedConstraint.Operator)
 		assert.Equal(t, "baz", updatedConstraint.Value)
 	})
+
+	t.Run("Rules and Distributions", func(*testing.T) {
+		t.Log(`Create Rule "rank 1".`)
+
+		ruleOne, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
+			FlagKey:    "test",
+			SegmentKey: "everyone",
+			Rank:       1,
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "test", ruleOne.FlagKey)
+		assert.Equal(t, "everyone", ruleOne.SegmentKey)
+		assert.Equal(t, int32(1), ruleOne.Rank)
+	})
 }
