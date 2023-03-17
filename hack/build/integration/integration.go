@@ -56,4 +56,14 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 	assert.Equal(t, updated.Key, flags.Flags[0].Key)
 	assert.Equal(t, updated.Name, flags.Flags[0].Name)
 	assert.Equal(t, updated.Description, flags.Flags[0].Description)
+
+	t.Log("Create variant with key \"one\".")
+
+	createdVariant, err := client.Flipt().CreateVariant(ctx, &flipt.CreateVariantRequest{
+		Key:     "one",
+		FlagKey: "test",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, "one", createdVariant.Key)
 }
