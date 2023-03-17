@@ -4,7 +4,6 @@ package sdk
 
 import (
 	context "context"
-
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	metadata "google.golang.org/grpc/metadata"
 )
