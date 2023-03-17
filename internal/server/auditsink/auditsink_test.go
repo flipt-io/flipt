@@ -43,9 +43,7 @@ func TestPublisher(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			publisher.Publish(&AuditEvent{
-				ResourceName: "sample-flag",
-			})
+			publisher.Publish(&AuditEvent{})
 		}()
 	}
 

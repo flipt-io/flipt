@@ -283,8 +283,8 @@ func NewGRPCServer(
 	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
 		publisher := auditsink.NewSinkPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, 2*time.Minute)
-		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher))
-		logger.Debug(fmt.Sprintf("sinks are enabled with buffer size %d", cfg.Audit.Buffer.Capacity), zap.String("sinks", strings.TrimSuffix(sinksString, ",")))
+		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher, cfg.Audit.Version))
+		logger.Debug("audit sinks are enabled", zap.String("sinks", strings.TrimSuffix(sinksString, ",")), zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity), zap.String("version", cfg.Audit.Version))
 
 		server.onShutdown(func(context.Context) error {
 			publisher.Close()

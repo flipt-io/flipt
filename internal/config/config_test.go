@@ -279,6 +279,7 @@ func defaultConfig() *Config {
 		},
 
 		Audit: AuditSinkConfig{
+			Version: "v0.1",
 			Sinks: SinksConfig{
 				LogFile: LogFileSinkConfig{
 					Enabled:  false,

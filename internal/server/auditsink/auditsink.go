@@ -8,9 +8,35 @@ import (
 	"go.uber.org/zap"
 )
 
+// AuditType represents what resource is being acted on.
+type AuditType string
+
+// AuditAction represents the action being taken on the resource.
+type AuditAction string
+
+const (
+	FlagType         AuditType = "flag"
+	VariantType      AuditType = "variant"
+	SegmentType      AuditType = "segment"
+	ConstraintType   AuditType = "constraint"
+	DistributionType AuditType = "distribution"
+
+	CreateAction AuditAction = "created"
+	UpdateAction AuditAction = "updated"
+	DeleteAction AuditAction = "deleted"
+)
+
 // AuditEvent holds information that represents an audit internally.
 type AuditEvent struct {
-	ResourceName string `json:"resourceName"`
+	Version  string         `json:"version"`
+	Metadata MetadataConfig `json:"metadata"`
+	Payload  interface{}    `json:"payload"`
+}
+
+// MetadataConfig holds information of what metadata an event will contain.
+type MetadataConfig struct {
+	Type   AuditType   `json:"type"`
+	Action AuditAction `json:"action"`
 }
 
 // AuditSink is the abstraction for various audit sink configurations
@@ -23,12 +49,26 @@ type AuditSink interface {
 // SinkPublisher holds information about the configured sinks that we are going
 // to send audit events to.
 type SinkPublisher struct {
-	mtx         sync.Mutex
-	logger      *zap.Logger
-	capacity    int
+	logger *zap.Logger
+
 	sinks       []AuditSink
 	auditEvents []AuditEvent
-	ticker      *time.Ticker
+
+	capacity int
+	mtx      sync.Mutex
+	ticker   *time.Ticker
+}
+
+// NewAuditEvent is the constructor for an audit event.
+func NewAuditEvent(auditType AuditType, auditAction AuditAction, payload interface{}, auditEventVersion string) *AuditEvent {
+	return &AuditEvent{
+		Version: auditEventVersion,
+		Metadata: MetadataConfig{
+			Type:   auditType,
+			Action: auditAction,
+		},
+		Payload: payload,
+	}
 }
 
 // NewSinkPublisher is the constructor for a Publisher.

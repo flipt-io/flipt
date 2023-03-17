@@ -1,18 +1,27 @@
 package config
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/spf13/viper"
+)
+
+var (
+	allowedVersions = []string{"v0.1"}
 )
 
 // AuditSinkConfig contains fields, which enable and configure
 // Flipt's various audit sink mechanisms.
 type AuditSinkConfig struct {
-	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
-	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
+	Version string       `json:"version" mapstructure:"version"`
+	Sinks   SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
+	Buffer  BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
 }
 
 func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("audit", map[string]any{
+		"version": "v0.1",
 		"sinks": map[string]any{
 			"logFile": map[string]any{
 				"enabled":  "false",
@@ -23,6 +32,28 @@ func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
 			"capacity": 2,
 		},
 	})
+}
+
+func isVersionSupported(version string) bool {
+	for _, v := range allowedVersions {
+		if version == v {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (c *AuditSinkConfig) validate() error {
+	if !isVersionSupported(c.Version) {
+		return fmt.Errorf("unrecognized version %s", c.Version)
+	}
+
+	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
+		return errors.New("buffer capacity below 2 or above 10")
+	}
+
+	return nil
 }
 
 // SinksConfig contains configuration held in structures for the different sinks
