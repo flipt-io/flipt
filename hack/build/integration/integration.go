@@ -200,15 +200,6 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, "everyone", ruleOne.SegmentKey)
 		assert.Equal(t, int32(1), ruleOne.Rank)
 
-		t.Log(`List rules.`)
-
-		allRules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
-			FlagKey: "test",
-		})
-		require.NoError(t, err)
-
-		assert.Len(t, allRules.Rules, 1)
-
 		t.Log(`Get rules "rank 1".`)
 
 		retrievedRule, err := client.Flipt().GetRule(ctx, &flipt.GetRuleRequest{
@@ -220,5 +211,54 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, "test", retrievedRule.FlagKey)
 		assert.Equal(t, "everyone", retrievedRule.SegmentKey)
 		assert.Equal(t, int32(1), retrievedRule.Rank)
+
+		t.Log(`Create rule "rank 2".`)
+
+		ruleTwo, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
+			FlagKey:    "test",
+			SegmentKey: "everyone",
+			Rank:       2,
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "test", ruleTwo.FlagKey)
+		assert.Equal(t, "everyone", ruleTwo.SegmentKey)
+		assert.Equal(t, int32(2), ruleTwo.Rank)
+
+		t.Log(`List rules.`)
+
+		allRules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+			FlagKey: "test",
+		})
+		require.NoError(t, err)
+
+		assert.Len(t, allRules.Rules, 2)
+
+		assert.Equal(t, ruleOne.Id, allRules.Rules[0].Id)
+		assert.Equal(t, ruleTwo.Id, allRules.Rules[1].Id)
+
+		t.Log(`Re-order rules.`)
+
+		err = client.Flipt().OrderRules(ctx, &flipt.OrderRulesRequest{
+			FlagKey: "test",
+			RuleIds: []string{ruleTwo.Id, ruleOne.Id},
+		})
+		require.NoError(t, err)
+
+		t.Log(`List rules again.`)
+
+		allRules, err = client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+			FlagKey: "test",
+		})
+		require.NoError(t, err)
+
+		assert.Len(t, allRules.Rules, 2)
+
+		// ensure the order has switched
+		assert.Equal(t, ruleTwo.Id, allRules.Rules[0].Id)
+		assert.Equal(t, int32(1), allRules.Rules[0].Rank)
+		assert.Equal(t, ruleOne.Id, allRules.Rules[1].Id)
+		assert.Equal(t, int32(2), allRules.Rules[1].Rank)
 	})
 }
