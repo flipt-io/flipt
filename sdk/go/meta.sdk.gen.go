@@ -4,7 +4,6 @@ package sdk
 
 import (
 	context "context"
-
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	metadata "google.golang.org/grpc/metadata"
