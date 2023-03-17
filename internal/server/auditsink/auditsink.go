@@ -15,15 +15,16 @@ type AuditType string
 type AuditAction string
 
 const (
-	FlagType         AuditType = "flag"
-	VariantType      AuditType = "variant"
-	SegmentType      AuditType = "segment"
 	ConstraintType   AuditType = "constraint"
 	DistributionType AuditType = "distribution"
+	FlagType         AuditType = "flag"
+	RuleType         AuditType = "rule"
+	SegmentType      AuditType = "segment"
+	VariantType      AuditType = "variant"
 
 	CreateAction AuditAction = "created"
-	UpdateAction AuditAction = "updated"
 	DeleteAction AuditAction = "deleted"
+	UpdateAction AuditAction = "updated"
 )
 
 // AuditEvent holds information that represents an audit internally.

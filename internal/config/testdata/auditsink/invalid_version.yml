@@ -1,7 +1,8 @@
 audit:
+  version: v1000
   sinks:
     logFile:
       enabled: true
       filePath: ./log.txt
-  advanced:
-    bufferSize: 2
+  buffer:
+    capacity: 2

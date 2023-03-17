@@ -278,6 +278,12 @@ func AuditSinkUnaryInterceptor(logger *zap.Logger, publisher interface {
 			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.UpdateAction, r, auditEventVersion)
 		case *flipt.DeleteDistributionRequest:
 			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.DeleteAction, r, auditEventVersion)
+		case *flipt.CreateRuleRequest:
+			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.CreateAction, r, auditEventVersion)
+		case *flipt.UpdateRuleRequest:
+			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.UpdateAction, r, auditEventVersion)
+		case *flipt.DeleteRuleRequest:
+			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.DeleteAction, r, auditEventVersion)
 		}
 
 		if auditEvent != nil {

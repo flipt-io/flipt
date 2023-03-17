@@ -661,6 +661,16 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/version/invalid.yml",
 			wantErr: errors.New("invalid version: 2.0"),
 		},
+		{
+			name:    "audit sink version invalid",
+			path:    "./testdata/auditsink/invalid_version.yml",
+			wantErr: errors.New("unrecognized version v1000"),
+		},
+		{
+			name:    "buffer size not within range",
+			path:    "./testdata/auditsink/invalid_buffersize.yml",
+			wantErr: errors.New("buffer capacity below 2 or above 10"),
+		},
 	}
 
 	for _, tt := range tests {
