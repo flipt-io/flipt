@@ -119,6 +119,32 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, createdSegment.Description, retrievedSegment.Description)
 		assert.Equal(t, createdSegment.MatchType, createdSegment.MatchType)
 
+		for _, constraint := range []struct {
+			property, operator, value string
+		}{
+			{"foo", "eq", "bar"},
+			{"fizz", "neq", "buzz"},
+		} {
+			t.Logf(`Create constraint with key %q %s %q.`,
+				constraint.property,
+				constraint.operator,
+				constraint.value,
+			)
+
+			createdConstraint, err := client.Flipt().CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+				SegmentKey: "everyone",
+				Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   constraint.property,
+				Operator:   constraint.operator,
+				Value:      constraint.value,
+			})
+			require.NoError(t, err)
+
+			assert.Equal(t, constraint.property, createdConstraint.Property)
+			assert.Equal(t, constraint.operator, createdConstraint.Operator)
+			assert.Equal(t, constraint.value, createdConstraint.Value)
+		}
+
 		t.Log(`Update segment "everyone" (rename "Everyone" to "All the peeps").`)
 
 		updatedSegment, err := client.Flipt().UpdateSegment(ctx, &flipt.UpdateSegmentRequest{
