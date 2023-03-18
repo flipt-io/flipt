@@ -405,5 +405,27 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		goVersion, ok := infoMap["goVersion"]
 		assert.True(t, ok, "Missing Go version.")
 		assert.NotEmpty(t, goVersion)
+
+		t.Log(`Config()`)
+
+		config, err := client.Meta().GetConfiguration(ctx)
+		require.NoError(t, err)
+
+		assert.Equal(t, "application/json", info.ContentType)
+
+		var configMap map[string]any
+		require.NoError(t, json.Unmarshal(config.Data, &configMap))
+
+		for _, name := range []string{
+			"log",
+			"ui",
+			"cache",
+			"server",
+			"db",
+		} {
+			field, ok := configMap[name]
+			assert.True(t, ok, "Missing %s.", name)
+			assert.NotEmpty(t, field)
+		}
 	})
 }
