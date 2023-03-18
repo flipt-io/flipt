@@ -48,9 +48,15 @@ func TestFlipt(t *testing.T) {
 	}
 
 	t.Run(name, func(t *testing.T) {
-		integration.Harness(t, func(t *testing.T) sdk.SDK {
-
+		fn := func(t *testing.T) sdk.SDK {
 			return sdk.New(transport, opts...)
-		})
+		}
+
+		integration.Core(t, fn)
+
+		// run extra tests in authenticated context
+		if *fliptToken != "" {
+			integration.Authenticated(t, fn)
+		}
 	})
 }

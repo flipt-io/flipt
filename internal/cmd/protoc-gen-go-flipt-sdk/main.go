@@ -138,8 +138,8 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 		g.P("}\n")
 
 		if !oneServicePackage {
-			g.P("func (s ", typ, ") ", srv.GoName, "()", srv.GoName, "{")
-			g.P("return ", srv.GoName, "{")
+			g.P("func (s ", typ, ") ", srv.GoName, "() *", srv.GoName, "{")
+			g.P("return &", srv.GoName, "{")
 			g.P("transport: s.transport.", srv.GoName+"Client", "(),")
 			g.P("tokenProvider: ", "s.tokenProvider,")
 			g.P("}")

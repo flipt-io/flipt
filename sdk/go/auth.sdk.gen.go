@@ -27,8 +27,8 @@ type PublicAuthenticationService struct {
 	tokenProvider ClientTokenProvider
 }
 
-func (s Auth) PublicAuthenticationService() PublicAuthenticationService {
-	return PublicAuthenticationService{
+func (s Auth) PublicAuthenticationService() *PublicAuthenticationService {
+	return &PublicAuthenticationService{
 		transport:     s.transport.PublicAuthenticationServiceClient(),
 		tokenProvider: s.tokenProvider,
 	}
@@ -51,8 +51,8 @@ type AuthenticationService struct {
 	tokenProvider ClientTokenProvider
 }
 
-func (s Auth) AuthenticationService() AuthenticationService {
-	return AuthenticationService{
+func (s Auth) AuthenticationService() *AuthenticationService {
+	return &AuthenticationService{
 		transport:     s.transport.AuthenticationServiceClient(),
 		tokenProvider: s.tokenProvider,
 	}
@@ -129,8 +129,8 @@ type AuthenticationMethodTokenService struct {
 	tokenProvider ClientTokenProvider
 }
 
-func (s Auth) AuthenticationMethodTokenService() AuthenticationMethodTokenService {
-	return AuthenticationMethodTokenService{
+func (s Auth) AuthenticationMethodTokenService() *AuthenticationMethodTokenService {
+	return &AuthenticationMethodTokenService{
 		transport:     s.transport.AuthenticationMethodTokenServiceClient(),
 		tokenProvider: s.tokenProvider,
 	}
@@ -153,8 +153,8 @@ type AuthenticationMethodOIDCService struct {
 	tokenProvider ClientTokenProvider
 }
 
-func (s Auth) AuthenticationMethodOIDCService() AuthenticationMethodOIDCService {
-	return AuthenticationMethodOIDCService{
+func (s Auth) AuthenticationMethodOIDCService() *AuthenticationMethodOIDCService {
+	return &AuthenticationMethodOIDCService{
 		transport:     s.transport.AuthenticationMethodOIDCServiceClient(),
 		tokenProvider: s.tokenProvider,
 	}
@@ -190,8 +190,8 @@ type AuthenticationMethodKubernetesService struct {
 	tokenProvider ClientTokenProvider
 }
 
-func (s Auth) AuthenticationMethodKubernetesService() AuthenticationMethodKubernetesService {
-	return AuthenticationMethodKubernetesService{
+func (s Auth) AuthenticationMethodKubernetesService() *AuthenticationMethodKubernetesService {
+	return &AuthenticationMethodKubernetesService{
 		transport:     s.transport.AuthenticationMethodKubernetesServiceClient(),
 		tokenProvider: s.tokenProvider,
 	}
