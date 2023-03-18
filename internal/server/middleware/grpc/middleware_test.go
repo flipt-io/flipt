@@ -8,9 +8,11 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
+	"go.flipt.io/flipt/internal/server/auditsink"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/stretchr/testify/assert"
@@ -692,4 +694,616 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
 		})
 	}
+}
+
+func TestAuditSinkUnaryInterceptor_UpdateFlag(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.UpdateFlagRequest{
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+			Enabled:     true,
+		}
+	)
+
+	store.On("UpdateFlag", mock.Anything, req).Return(&flipt.Flag{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		Enabled:     req.Enabled,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateFlag(ctx, r.(*flipt.UpdateFlagRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_DeleteFlag(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.DeleteFlagRequest{
+			Key: "key",
+		}
+	)
+
+	store.On("DeleteFlag", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteFlag(ctx, r.(*flipt.DeleteFlagRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_CreateVariant(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.CreateVariantRequest{
+			FlagKey:     "flagKey",
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+		}
+	)
+
+	store.On("CreateVariant", mock.Anything, req).Return(&flipt.Variant{
+		Id:          "1",
+		FlagKey:     req.FlagKey,
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		Attachment:  req.Attachment,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateVariant(ctx, r.(*flipt.CreateVariantRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_UpdateVariant(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.UpdateVariantRequest{
+			Id:          "1",
+			FlagKey:     "flagKey",
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+		}
+	)
+
+	store.On("UpdateVariant", mock.Anything, req).Return(&flipt.Variant{
+		Id:          req.Id,
+		FlagKey:     req.FlagKey,
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		Attachment:  req.Attachment,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateVariant(ctx, r.(*flipt.UpdateVariantRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_DeleteVariant(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.DeleteVariantRequest{
+			Id: "1",
+		}
+	)
+
+	store.On("DeleteVariant", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteVariant(ctx, r.(*flipt.DeleteVariantRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_CreateDistribution(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.CreateDistributionRequest{
+			FlagKey:   "flagKey",
+			RuleId:    "1",
+			VariantId: "2",
+			Rollout:   25,
+		}
+	)
+
+	store.On("CreateDistribution", mock.Anything, req).Return(&flipt.Distribution{
+		Id:        "1",
+		RuleId:    req.RuleId,
+		VariantId: req.VariantId,
+		Rollout:   req.Rollout,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateDistribution(ctx, r.(*flipt.CreateDistributionRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_UpdateDistribution(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.UpdateDistributionRequest{
+			Id:        "1",
+			FlagKey:   "flagKey",
+			RuleId:    "1",
+			VariantId: "2",
+			Rollout:   25,
+		}
+	)
+
+	store.On("UpdateDistribution", mock.Anything, req).Return(&flipt.Distribution{
+		Id:        req.Id,
+		RuleId:    req.RuleId,
+		VariantId: req.VariantId,
+		Rollout:   req.Rollout,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateDistribution(ctx, r.(*flipt.UpdateDistributionRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_DeleteDistribution(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.DeleteDistributionRequest{
+			Id:        "1",
+			FlagKey:   "flagKey",
+			RuleId:    "1",
+			VariantId: "2",
+		}
+	)
+
+	store.On("DeleteDistribution", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteDistribution(ctx, r.(*flipt.DeleteDistributionRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_CreateSegment(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.CreateSegmentRequest{
+			Key:         "segmentkey",
+			Name:        "segment",
+			Description: "segment description",
+			MatchType:   25,
+		}
+	)
+
+	store.On("CreateSegment", mock.Anything, req).Return(&flipt.Segment{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		MatchType:   req.MatchType,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateSegment(ctx, r.(*flipt.CreateSegmentRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_UpdateSegment(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.UpdateSegmentRequest{
+			Key:         "segmentkey",
+			Name:        "segment",
+			Description: "segment description",
+			MatchType:   25,
+		}
+	)
+
+	store.On("UpdateSegment", mock.Anything, req).Return(&flipt.Segment{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+		MatchType:   req.MatchType,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateSegment(ctx, r.(*flipt.UpdateSegmentRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_DeleteSegment(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.DeleteSegmentRequest{
+			Key: "segment",
+		}
+	)
+
+	store.On("DeleteSegment", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteSegment(ctx, r.(*flipt.DeleteSegmentRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_CreateConstraint(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.CreateConstraintRequest{
+			SegmentKey: "constraintsegmentkey",
+			Type:       32,
+			Property:   "constraintproperty",
+			Operator:   "eq",
+			Value:      "thisvalue",
+		}
+	)
+
+	store.On("CreateConstraint", mock.Anything, req).Return(&flipt.Constraint{
+		Id:         "1",
+		SegmentKey: req.SegmentKey,
+		Type:       req.Type,
+		Property:   req.Property,
+		Operator:   req.Operator,
+		Value:      req.Value,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateConstraint(ctx, r.(*flipt.CreateConstraintRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_UpdateConstraint(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.UpdateConstraintRequest{
+			Id:         "1",
+			SegmentKey: "constraintsegmentkey",
+			Type:       32,
+			Property:   "constraintproperty",
+			Operator:   "eq",
+			Value:      "thisvalue",
+		}
+	)
+
+	store.On("UpdateConstraint", mock.Anything, req).Return(&flipt.Constraint{
+		Id:         "1",
+		SegmentKey: req.SegmentKey,
+		Type:       req.Type,
+		Property:   req.Property,
+		Operator:   req.Operator,
+		Value:      req.Value,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateConstraint(ctx, r.(*flipt.UpdateConstraintRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_DeleteConstraint(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.DeleteConstraintRequest{
+			Id:         "1",
+			SegmentKey: "constraintsegmentkey",
+		}
+	)
+
+	store.On("DeleteConstraint", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteConstraint(ctx, r.(*flipt.DeleteConstraintRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_CreateRule(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.CreateRuleRequest{
+			FlagKey:    "flagkey",
+			SegmentKey: "segmentkey",
+			Rank:       1,
+		}
+	)
+
+	store.On("CreateRule", mock.Anything, req).Return(&flipt.Rule{
+		Id:         "1",
+		SegmentKey: req.SegmentKey,
+		FlagKey:    req.FlagKey,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateRule(ctx, r.(*flipt.CreateRuleRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_UpdateRule(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.UpdateRuleRequest{
+			Id:         "1",
+			FlagKey:    "flagkey",
+			SegmentKey: "segmentkey",
+		}
+	)
+
+	store.On("UpdateRule", mock.Anything, req).Return(&flipt.Rule{
+		Id:         "1",
+		SegmentKey: req.SegmentKey,
+		FlagKey:    req.FlagKey,
+	}, nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateRule(ctx, r.(*flipt.UpdateRuleRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
+}
+
+func TestAuditSinkUnaryInterceptor_DeleteRule(t *testing.T) {
+	var (
+		store        = &storeMock{}
+		publisherSpy = newPublisherSpy(auditsink.NewSinkPublisher(zap.NewNop(), 2, []auditsink.AuditSink{}, 10*time.Second))
+		logger       = zaptest.NewLogger(t)
+		s            = server.New(logger, store)
+		req          = &flipt.DeleteRuleRequest{
+			Id:      "1",
+			FlagKey: "flagkey",
+		}
+	)
+
+	store.On("DeleteRule", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditSinkUnaryInterceptor(logger, publisherSpy, "v0.1")
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteRule(ctx, r.(*flipt.DeleteRuleRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	got, err := unaryInterceptor(context.Background(), req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, 1, publisherSpy.publishCalled)
 }

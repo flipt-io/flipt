@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
+	"go.flipt.io/flipt/internal/server/auditsink"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -207,4 +208,25 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 	c.deleteCalled++
 	c.deleteKeys[key] = struct{}{}
 	return c.Cacher.Delete(ctx, key)
+}
+
+type publisherSpy struct {
+	publisher interface {
+		Publish(*auditsink.AuditEvent)
+	}
+
+	publishCalled int
+}
+
+func newPublisherSpy(publisher interface {
+	Publish(*auditsink.AuditEvent)
+}) *publisherSpy {
+	return &publisherSpy{
+		publisher: publisher,
+	}
+}
+
+func (p *publisherSpy) Publish(auditEvent *auditsink.AuditEvent) {
+	p.publisher.Publish(auditEvent)
+	p.publishCalled++
 }
