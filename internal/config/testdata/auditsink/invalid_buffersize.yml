@@ -5,3 +5,4 @@ audit:
       filePath: ./log.txt
   buffer:
     capacity: 1000
+    flushPeriod: 3m

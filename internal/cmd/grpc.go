@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	"strings"
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
@@ -267,7 +266,6 @@ func NewGRPCServer(
 
 	// Audit sinks configuration.
 	sinks := make([]auditsink.AuditSink, 0)
-	var sinksString string
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
 		logFileSink, err := logfile.NewLogFileSink(logger, cfg.Audit.Sinks.LogFile.FilePath)
@@ -276,15 +274,19 @@ func NewGRPCServer(
 		}
 
 		sinks = append(sinks, logFileSink)
-		sinksString += fmt.Sprintf("%s,", logFileSink.String())
 	}
 
 	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
-		publisher := auditsink.NewSinkPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, 2*time.Minute)
+		publisher := auditsink.NewSinkPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, cfg.Audit.Buffer.FlushPeriod)
 		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher, cfg.Audit.Version))
-		logger.Debug("audit sinks are enabled", zap.String("sinks", strings.TrimSuffix(sinksString, ",")), zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity), zap.String("version", cfg.Audit.Version))
+		logger.Debug("audit sinks are enabled",
+			zap.Stringers("sinks", sinks),
+			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
+			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
+			zap.String("version", cfg.Audit.Version),
+		)
 
 		server.onShutdown(func(context.Context) error {
 			publisher.Close()

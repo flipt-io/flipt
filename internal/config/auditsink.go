@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -29,7 +30,8 @@ func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
 			},
 		},
 		"buffer": map[string]any{
-			"capacity": 2,
+			"capacity":    2,
+			"flushPeriod": "2m",
 		},
 	})
 }
@@ -53,6 +55,10 @@ func (c *AuditSinkConfig) validate() error {
 		return errors.New("buffer capacity below 2 or above 10")
 	}
 
+	if c.Buffer.FlushPeriod < 2*time.Minute || c.Buffer.FlushPeriod > 5*time.Minute {
+		return errors.New("flush period below 2 minutes or greater than 5 minutes")
+	}
+
 	return nil
 }
 
@@ -72,5 +78,6 @@ type LogFileSinkConfig struct {
 // BufferConfig holds configuration for the buffering of sending the audit
 // events to the sinks.
 type BufferConfig struct {
-	Capacity int `json:"capacity,omitempty" mapstructure:"capacity"`
+	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity"`
+	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flushPeriod"`
 }

@@ -287,7 +287,8 @@ func defaultConfig() *Config {
 				},
 			},
 			Buffer: BufferConfig{
-				Capacity: 2,
+				Capacity:    2,
+				FlushPeriod: 2 * time.Minute,
 			},
 		},
 	}
@@ -670,6 +671,11 @@ func TestLoad(t *testing.T) {
 			name:    "buffer size not within range",
 			path:    "./testdata/auditsink/invalid_buffersize.yml",
 			wantErr: errors.New("buffer capacity below 2 or above 10"),
+		},
+		{
+			name:    "flush period invalid",
+			path:    "./testdata/auditsink/invalid_flushperiod.yml",
+			wantErr: errors.New("flush period below 2 minutes or greater than 5 minutes"),
 		},
 	}
 
