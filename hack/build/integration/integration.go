@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -384,5 +385,25 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
 			Key: "everyone",
 		})
+	})
+
+	t.Run("Meta", func(t *testing.T) {
+		t.Log(`Info()`)
+
+		info, err := client.Meta().GetInfo(ctx)
+		require.NoError(t, err)
+
+		assert.Equal(t, "application/json", info.ContentType)
+
+		var infoMap map[string]any
+		require.NoError(t, json.Unmarshal(info.Data, &infoMap))
+
+		version, ok := infoMap["version"]
+		assert.True(t, ok, "Missing version.")
+		assert.NotEmpty(t, version)
+
+		goVersion, ok := infoMap["goVersion"]
+		assert.True(t, ok, "Missing Go version.")
+		assert.NotEmpty(t, goVersion)
 	})
 }
