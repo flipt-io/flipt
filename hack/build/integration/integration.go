@@ -314,4 +314,50 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 		assert.False(t, result.Match, "Evaluation should not have matched.")
 	})
+
+	t.Run("Batch Evaluation", func(t *testing.T) {
+		t.Log(`Successful match.`)
+
+		results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+			Requests: []*flipt.EvaluationRequest{
+				{
+					FlagKey:  "test",
+					EntityId: uuid.Must(uuid.NewV4()).String(),
+					Context: map[string]string{
+						"foo":  "baz",
+						"fizz": "bozz",
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		require.Len(t, results.Responses, 1)
+		result := results.Responses[0]
+
+		require.True(t, result.Match, "Evaluation should have matched.")
+		assert.Equal(t, "everyone", result.SegmentKey)
+		assert.Equal(t, "one", result.Value)
+		assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+
+		t.Log(`Unsuccessful match.`)
+
+		results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+			Requests: []*flipt.EvaluationRequest{
+				{
+					FlagKey:  "test",
+					EntityId: uuid.Must(uuid.NewV4()).String(),
+					Context: map[string]string{
+						"fizz": "buzz",
+					},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		require.Len(t, results.Responses, 1)
+		result = results.Responses[0]
+
+		assert.False(t, result.Match, "Evaluation should not have matched.")
+	})
 }
