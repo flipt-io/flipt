@@ -11,6 +11,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/sdk"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
@@ -465,6 +466,16 @@ func Authenticated(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			assert.NotEmpty(t, resp.ClientToken)
 			assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
 			assert.Equal(t, "Some kind of access token.", resp.Authentication.Metadata["io.flipt.auth.token.description"])
+		})
+
+		t.Run("Expire Self", func(t *testing.T) {
+			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
+				ExpiresAt: timestamppb.Now(),
+			})
+			require.NoError(t, err)
+
+			_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+			require.Error(t, err, "unauthenticated")
 		})
 	})
 }
