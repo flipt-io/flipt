@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -41,8 +42,10 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		t.Log("Update flag with key \"test\".")
 
 		updated, err := client.Flipt().UpdateFlag(ctx, &flipt.UpdateFlagRequest{
-			Key:  "test",
-			Name: "Test 2",
+			Key:         created.Key,
+			Name:        "Test 2",
+			Description: created.Description,
+			Enabled:     true,
 		})
 		require.NoError(t, err)
 
@@ -261,7 +264,7 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		assert.Equal(t, ruleOne.Id, allRules.Rules[1].Id)
 		assert.Equal(t, int32(2), allRules.Rules[1].Rank)
 
-		t.Log(`Create distribution "rollout 100"`)
+		t.Log(`Create distribution "rollout 100".`)
 
 		flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
 			Key: "test",
@@ -270,13 +273,45 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 		distribution, err := client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
 			FlagKey:   "test",
-			RuleId:    ruleOne.Id,
+			RuleId:    ruleTwo.Id,
 			VariantId: flag.Variants[0].Id,
 			Rollout:   100,
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, ruleOne.Id, distribution.RuleId)
+		assert.Equal(t, ruleTwo.Id, distribution.RuleId)
 		assert.Equal(t, float32(100), distribution.Rollout)
+	})
+
+	t.Run("Evaluation", func(t *testing.T) {
+		t.Log(`Successful match.`)
+
+		result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+			FlagKey:  "test",
+			EntityId: uuid.Must(uuid.NewV4()).String(),
+			Context: map[string]string{
+				"foo":  "baz",
+				"fizz": "bozz",
+			},
+		})
+		require.NoError(t, err)
+
+		require.True(t, result.Match, "Evaluation should have matched.")
+		assert.Equal(t, "everyone", result.SegmentKey)
+		assert.Equal(t, "one", result.Value)
+		assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+
+		t.Log(`Unsuccessful match.`)
+
+		result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+			FlagKey:  "test",
+			EntityId: uuid.Must(uuid.NewV4()).String(),
+			Context: map[string]string{
+				"fizz": "buzz",
+			},
+		})
+		require.NoError(t, err)
+
+		assert.False(t, result.Match, "Evaluation should not have matched.")
 	})
 }
