@@ -13,6 +13,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const httpbodyImport = "google.golang.org/genproto/googleapis/api/httpbody"
+
 func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 	data, err := os.ReadFile(grpcAPIConfig)
 	if err != nil {
@@ -260,6 +262,16 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 	g.P("if err != nil { return nil, err }")
 
 	g.P("if err := checkResponse(resp, respData); err != nil {return nil, err}")
+
+	// httpbody just returns the entire response body
+	// as-is on its Body field.
+	if method.Output.GoIdent.GoImportPath == httpbodyImport {
+		g.P(`output.ContentType = resp.Header.Get("Content-Type")`)
+		g.P(`output.Data = respData`)
+		g.P("return &output, nil")
+		g.P("}\n")
+		return
+	}
 
 	g.P("if err := ", protojson("Unmarshal"), "(respData, &output); err != nil { return nil, err }")
 	g.P("return &output, nil")
