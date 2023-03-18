@@ -360,4 +360,29 @@ func Harness(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 		assert.False(t, result.Match, "Evaluation should not have matched.")
 	})
+
+	t.Run("Delete", func(t *testing.T) {
+		t.Log(`Rules.`)
+		rules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+			FlagKey: "test",
+		})
+		require.NoError(t, err)
+
+		for _, rule := range rules.Rules {
+			client.Flipt().DeleteRule(ctx, &flipt.DeleteRuleRequest{
+				FlagKey: "test",
+				Id:      rule.Id,
+			})
+		}
+
+		t.Log(`Flag.`)
+		client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+			Key: "test",
+		})
+
+		t.Log(`Segment.`)
+		client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
+			Key: "everyone",
+		})
+	})
 }
