@@ -21,4 +21,5 @@ plugins:
     out: sdk/go
     opt:
       - paths=source_relative
+      - grpc_api_configuration=rpc/flipt/flipt.yaml
     strategy: all
