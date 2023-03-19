@@ -18,9 +18,14 @@ import (
 func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.Debug("get flag", zap.Stringer("request", r))
 
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.Key)
 
 	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.Key),
 	}
 

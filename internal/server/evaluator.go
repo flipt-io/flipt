@@ -136,6 +136,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 		EntityId:       r.EntityId,
 		RequestContext: r.Context,
 		FlagKey:        r.FlagKey,
+		NamespaceKey:   r.NamespaceKey,
 	}
 
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
