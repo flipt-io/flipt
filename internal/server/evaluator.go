@@ -33,6 +33,7 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 	}
 
 	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
 		fliptotel.AttributeRequestID.String(r.RequestId),

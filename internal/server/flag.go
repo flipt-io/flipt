@@ -17,6 +17,7 @@ import (
 // GetFlag gets a flag
 func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.Debug("get flag", zap.Stringer("request", r))
+
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.Key)
 
 	spanAttrs := []attribute.KeyValue{
