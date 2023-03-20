@@ -81,6 +81,30 @@ func (s *Server) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRe
 // DeleteNamespace deletes a namespace
 func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) (*empty.Empty, error) {
 	s.logger.Debug("delete namespace", zap.Stringer("request", r))
+	namespace, err := s.store.GetNamespace(ctx, r.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	// if namespace is not found then nothing to do
+	if namespace == nil {
+		return &empty.Empty{}, nil
+	}
+
+	if namespace.Protected {
+		return nil, errors.ErrInvalidf("namespace %q is protected", r.Key)
+	}
+
+	// if any flags exist under the namespace then it cannot be deleted
+	count, err := s.store.CountFlags(ctx, r.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	if count > 0 {
+		return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key, count)
+	}
+
 	if err := s.store.DeleteNamespace(ctx, r); err != nil {
 		return nil, err
 	}
