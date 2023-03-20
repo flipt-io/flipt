@@ -46,9 +46,9 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 		return nil, err
 	}
 
-	var resp flipt.NamespaceList
-
-	resp.Namespaces = append(resp.Namespaces, results.Results...)
+	resp := flipt.NamespaceList{
+		Namespaces: results.Results,
+	}
 
 	total, err := s.store.CountNamespaces(ctx)
 	if err != nil {
