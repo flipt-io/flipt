@@ -225,6 +225,31 @@ func TestDeleteNamespace(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
+func TestDeleteNamespace_NonExistent(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+		req = &flipt.DeleteNamespaceRequest{
+			Key: "foo",
+		}
+	)
+
+	var ns *flipt.Namespace
+	store.On("GetNamespace", mock.Anything, "foo").Return(ns, nil) // mock library does not like nil
+
+	store.AssertNotCalled(t, "CountFlags")
+	store.AssertNotCalled(t, "DeleteNamespace")
+
+	got, err := s.DeleteNamespace(context.TODO(), req)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+}
+
 func TestDeleteNamespace_Protected(t *testing.T) {
 	var (
 		store  = &storeMock{}
