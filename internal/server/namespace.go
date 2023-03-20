@@ -14,9 +14,7 @@ import (
 // GetNamespace gets a namespace
 func (s *Server) GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
 	s.logger.Debug("get namespace", zap.Stringer("request", r))
-
 	namespace, err := s.store.GetNamespace(ctx, r.Key)
-
 	s.logger.Debug("get namespace", zap.Stringer("response", namespace))
 	return namespace, err
 }
