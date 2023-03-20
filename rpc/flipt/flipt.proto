@@ -159,7 +159,6 @@ message CreateNamespaceRequest {
   string key = 1;
   string name = 2;
   string description = 3;
-  bool protected = 4;
 }
 
 message UpdateNamespaceRequest {
@@ -175,7 +174,6 @@ message UpdateNamespaceRequest {
   string key = 1;
   string name = 2;
   string description = 3;
-  bool protected = 4;
 }
 
 message DeleteNamespaceRequest {

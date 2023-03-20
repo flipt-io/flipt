@@ -19,7 +19,6 @@ func (s *DBTestSuite) TestGetNamespace() {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	require.NoError(t, err)
@@ -33,7 +32,6 @@ func (s *DBTestSuite) TestGetNamespace() {
 	assert.Equal(t, ns.Key, got.Key)
 	assert.Equal(t, ns.Name, got.Name)
 	assert.Equal(t, ns.Description, got.Description)
-	assert.Equal(t, ns.Protected, got.Protected)
 	assert.NotZero(t, ns.CreatedAt)
 	assert.NotZero(t, ns.UpdatedAt)
 }
@@ -53,7 +51,6 @@ func (s *DBTestSuite) TestListNamespaces() {
 			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
-			Protected:   true,
 		},
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -87,7 +84,6 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
-			Protected:   true,
 		},
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -98,7 +94,6 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitOffset() {
 			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
-			Protected:   true,
 		},
 	}
 
@@ -156,7 +151,6 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
-			Protected:   true,
 		},
 		{
 			Key:         uuid.Must(uuid.NewV4()).String(),
@@ -167,7 +161,6 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 			Key:         uuid.Must(uuid.NewV4()).String(),
 			Name:        "foo",
 			Description: "bar",
-			Protected:   true,
 		},
 	}
 
@@ -242,7 +235,6 @@ func (s *DBTestSuite) TestCreateNamespace() {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	require.NoError(t, err)
@@ -250,7 +242,6 @@ func (s *DBTestSuite) TestCreateNamespace() {
 	assert.Equal(t, t.Name(), ns.Key)
 	assert.Equal(t, "foo", ns.Name)
 	assert.Equal(t, "bar", ns.Description)
-	assert.True(t, ns.Protected)
 	assert.NotZero(t, ns.CreatedAt)
 	assert.Equal(t, ns.CreatedAt.Seconds, ns.UpdatedAt.Seconds)
 }
@@ -262,7 +253,6 @@ func (s *DBTestSuite) TestCreateNamespace_DuplicateKey() {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	require.NoError(t, err)
@@ -271,7 +261,6 @@ func (s *DBTestSuite) TestCreateNamespace_DuplicateKey() {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	assert.EqualError(t, err, "namespace \"TestDBTestSuite/TestCreateNamespace_DuplicateKey\" is not unique")
@@ -284,7 +273,6 @@ func (s *DBTestSuite) TestUpdateNamespace() {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	require.NoError(t, err)
@@ -292,7 +280,6 @@ func (s *DBTestSuite) TestUpdateNamespace() {
 	assert.Equal(t, t.Name(), ns.Key)
 	assert.Equal(t, "foo", ns.Name)
 	assert.Equal(t, "bar", ns.Description)
-	assert.True(t, ns.Protected)
 	assert.NotZero(t, ns.CreatedAt)
 	assert.Equal(t, ns.CreatedAt.Seconds, ns.UpdatedAt.Seconds)
 
@@ -300,7 +287,6 @@ func (s *DBTestSuite) TestUpdateNamespace() {
 		Key:         ns.Key,
 		Name:        ns.Name,
 		Description: "foobar",
-		Protected:   true,
 	})
 
 	require.NoError(t, err)
@@ -308,7 +294,6 @@ func (s *DBTestSuite) TestUpdateNamespace() {
 	assert.Equal(t, ns.Key, updated.Key)
 	assert.Equal(t, ns.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
-	assert.True(t, ns.Protected)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }
@@ -320,7 +305,6 @@ func (s *DBTestSuite) TestUpdateNamespace_NotFound() {
 		Key:         "foo",
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	assert.EqualError(t, err, "namespace \"foo\" not found")
@@ -333,7 +317,6 @@ func (s *DBTestSuite) TestDeleteNamespace() {
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
-		Protected:   true,
 	})
 
 	require.NoError(t, err)

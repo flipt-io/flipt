@@ -169,19 +169,17 @@ func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceReq
 			Key:         r.Key,
 			Name:        r.Name,
 			Description: r.Description,
-			Protected:   r.Protected,
 			CreatedAt:   now,
 			UpdatedAt:   now,
 		}
 	)
 
 	if _, err := s.builder.Insert("namespaces").
-		Columns("\"key\"", "name", "description", "protected", "created_at", "updated_at").
+		Columns("\"key\"", "name", "description", "created_at", "updated_at").
 		Values(
 			namespace.Key,
 			namespace.Name,
 			namespace.Description,
-			namespace.Protected,
 			&fliptsql.Timestamp{Timestamp: namespace.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: namespace.UpdatedAt},
 		).

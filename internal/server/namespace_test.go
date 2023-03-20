@@ -156,7 +156,6 @@ func TestCreateNamespace(t *testing.T) {
 			Key:         "key",
 			Name:        "name",
 			Description: "desc",
-			Protected:   true,
 		}
 	)
 
@@ -164,7 +163,6 @@ func TestCreateNamespace(t *testing.T) {
 		Key:         req.Key,
 		Name:        req.Name,
 		Description: req.Description,
-		Protected:   req.Protected,
 	}, nil)
 
 	got, err := s.CreateNamespace(context.TODO(), req)
@@ -192,7 +190,6 @@ func TestUpdateNamespace(t *testing.T) {
 		Key:         req.Key,
 		Name:        req.Name,
 		Description: req.Description,
-		Protected:   true,
 	}, nil)
 
 	got, err := s.UpdateNamespace(context.TODO(), req)
