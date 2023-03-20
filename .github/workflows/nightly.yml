@@ -103,6 +103,6 @@ jobs:
           cmd: yq -i '.app.env = "Nightly"' stackhawk.yml
 
       - name: Run HawkScan
-        uses: stackhawk/hawkscan-action@v2.0.1
+        uses: stackhawk/hawkscan-action@v2.0.2
         with:
           apiKey: ${{ secrets.HAWK_API_KEY }}
