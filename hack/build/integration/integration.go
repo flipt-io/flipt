@@ -11,6 +11,8 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.flipt.io/flipt/sdk"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -435,7 +437,7 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 }
 
 func Authenticated(t *testing.T, fn func(t *testing.T) sdk.SDK) {
-	t.Run("Authentication Only", func(t *testing.T) {
+	t.Run("Authentication Methods", func(t *testing.T) {
 		client := fn(t)
 
 		ctx := context.Background()
@@ -474,8 +476,13 @@ func Authenticated(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			})
 			require.NoError(t, err)
 
+			t.Log(`Ensure token is no longer valid.`)
+
 			_, err = client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			require.Error(t, err, "unauthenticated")
+
+			status, ok := status.FromError(err)
+			require.True(t, ok)
+			assert.Equal(t, codes.Unauthenticated, status.Code())
 		})
 	})
 }
