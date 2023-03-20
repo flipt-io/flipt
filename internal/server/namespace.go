@@ -102,7 +102,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 	}
 
 	if count > 0 {
-		return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key, count)
+		return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key)
 	}
 
 	if err := s.store.DeleteNamespace(ctx, r); err != nil {
