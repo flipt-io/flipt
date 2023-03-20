@@ -296,12 +296,12 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 		cacheSpy = newCacheSpy(cache)
 		logger   = zaptest.NewLogger(t)
 		s        = server.New(logger, store)
-		req      = &flipt.GetFlagRequest{Key: "foo"}
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
-		Key:     req.Key,
-		Enabled: true,
+		NamespaceKey: storage.DefaultNamespace,
+		Key:          "foo",
+		Enabled:      true,
 	}, nil)
 
 	unaryInterceptor := CacheUnaryInterceptor(cacheSpy, logger)
@@ -315,6 +315,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
+		req := &flipt.GetFlagRequest{Key: "foo"}
 		got, err := unaryInterceptor(context.Background(), req, info, handler)
 		require.NoError(t, err)
 		assert.NotNil(t, got)

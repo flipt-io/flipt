@@ -98,6 +98,7 @@ message EvaluationResponse {
   double request_duration_millis = 9;
   string attachment = 10;
   EvaluationReason reason = 11;
+  string namespace_key = 12;
 }
 
 enum EvaluationReason {
