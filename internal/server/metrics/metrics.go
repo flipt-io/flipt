@@ -5,7 +5,6 @@ import (
 	"go.flipt.io/flipt/internal/metrics"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric/instrument"
-	"go.opentelemetry.io/otel/metric/unit"
 )
 
 const (
@@ -51,7 +50,7 @@ var (
 	EvaluationLatency = metrics.MustFloat64().Histogram(
 		prometheus.BuildFQName(namespace, evaluationsSubsystem, "latency"),
 		instrument.WithDescription("The latency of inidividual evaluations in milliseconds"),
-		instrument.WithUnit(unit.Milliseconds),
+		instrument.WithUnit("ms"),
 	)
 
 	// Attributes used in evaluation metrics

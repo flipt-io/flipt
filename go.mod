@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/squirrel v1.5.3
-	github.com/XSAM/otelsql v0.19.0
+	github.com/XSAM/otelsql v0.20.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/docker/go-connections v0.4.0
@@ -38,16 +38,16 @@ require (
 	github.com/xo/dburl v0.13.0
 	go.flipt.io/flipt/errors v0.0.0-00010101000000-000000000000
 	go.flipt.io/flipt/rpc/flipt v0.0.0-00010101000000-000000000000
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.39.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
 	go.opentelemetry.io/otel v1.14.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.13.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.14.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.14.0
-	go.opentelemetry.io/otel/exporters/prometheus v0.36.0
+	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
 	go.opentelemetry.io/otel/exporters/zipkin v1.13.0
-	go.opentelemetry.io/otel/metric v0.36.0
+	go.opentelemetry.io/otel/metric v0.37.0
 	go.opentelemetry.io/otel/sdk v1.14.0
-	go.opentelemetry.io/otel/sdk/metric v0.36.0
+	go.opentelemetry.io/otel/sdk/metric v0.37.0
 	go.opentelemetry.io/otel/trace v1.14.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95
