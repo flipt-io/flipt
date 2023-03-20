@@ -46,9 +46,9 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 		return nil, err
 	}
 
-	var resp flipt.RuleList
-
-	resp.Rules = append(resp.Rules, results.Results...)
+	resp := flipt.RuleList{
+		Rules: results.Results,
+	}
 
 	total, err := s.store.CountRules(ctx, r.NamespaceKey)
 	if err != nil {

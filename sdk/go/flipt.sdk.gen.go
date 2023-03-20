@@ -39,6 +39,72 @@ func (x *Flipt) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluationReque
 	return x.transport.BatchEvaluate(ctx, v)
 }
 
+func (x *Flipt) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return nil, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
+	return x.transport.GetNamespace(ctx, v)
+}
+
+func (x *Flipt) ListNamespaces(ctx context.Context, v *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error) {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return nil, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
+	return x.transport.ListNamespaces(ctx, v)
+}
+
+func (x *Flipt) CreateNamespace(ctx context.Context, v *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return nil, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
+	return x.transport.CreateNamespace(ctx, v)
+}
+
+func (x *Flipt) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return nil, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
+	return x.transport.UpdateNamespace(ctx, v)
+}
+
+func (x *Flipt) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest) error {
+	if x.tokenProvider != nil {
+		token, err := x.tokenProvider.ClientToken()
+		if err != nil {
+			return err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
+	_, err := x.transport.DeleteNamespace(ctx, v)
+	return err
+}
+
 func (x *Flipt) GetFlag(ctx context.Context, v *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	if x.tokenProvider != nil {
 		token, err := x.tokenProvider.ClientToken()

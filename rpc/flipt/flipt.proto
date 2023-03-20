@@ -159,7 +159,6 @@ message CreateNamespaceRequest {
   string key = 1;
   string name = 2;
   string description = 3;
-  bool protected = 4;
 }
 
 message UpdateNamespaceRequest {
@@ -175,7 +174,6 @@ message UpdateNamespaceRequest {
   string key = 1;
   string name = 2;
   string description = 3;
-  bool protected = 4;
 }
 
 message DeleteNamespaceRequest {
@@ -686,6 +684,46 @@ service Flipt {
       operation_id: "batchEvaluate";
       description: "Batch Evaluate";
       tags: "evaluate";
+    };
+  }
+
+  rpc GetNamespace(GetNamespaceRequest) returns (Namespace) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "getNamespace";
+      description: "Get Namespace";
+      tags: "namespaces";
+    };
+  } 
+
+  rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "listNamespaces";
+      description: "List Namespaces";
+      tags: "namespaces";
+    };
+  }
+
+  rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "createNamespace";
+      description: "Create Namespace";
+      tags: "namespaces";
+    };
+  }
+
+  rpc UpdateNamespace(UpdateNamespaceRequest) returns (Namespace) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "updateNamespace";
+      description: "Update Namespace";
+      tags: "namespaces";
+    };
+  }
+
+  rpc DeleteNamespace(DeleteNamespaceRequest) returns (google.protobuf.Empty) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      operation_id: "deleteNamespace";
+      description: "Delete Namespace";
+      tags: "namespaces";
     };
   }
 
