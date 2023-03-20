@@ -9,7 +9,7 @@ require (
 	golang.org/x/tools v0.7.0
 	golang.org/x/tools/cmd/cover v0.1.0-deprecated
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.29.1
+	google.golang.org/protobuf v1.30.0
 )
 
 require (
