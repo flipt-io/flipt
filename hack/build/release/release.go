@@ -83,7 +83,7 @@ func tagSubmodule(ctx context.Context, client *github.Client, submodule, tag str
 		return err
 	}
 
-	if ref.GetObject().GetType() != "tag" {
+	if ref.GetObject().GetType() != "tag" && ref.GetObject().GetType() != "commit" {
 		return fmt.Errorf("unexpected object type %q", ref.GetObject().GetType())
 	}
 
