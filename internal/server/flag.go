@@ -68,9 +68,9 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 		return nil, err
 	}
 
-	var resp flipt.FlagList
-
-	resp.Flags = append(resp.Flags, results.Results...)
+	resp := flipt.FlagList{
+		Flags: results.Results,
+	}
 
 	total, err := s.store.CountFlags(ctx, r.NamespaceKey)
 	if err != nil {
