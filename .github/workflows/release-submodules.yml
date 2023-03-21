@@ -25,14 +25,6 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
-          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
-          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
-
       - name: "Tag Submodules (Dispatch)"
         if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
