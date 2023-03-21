@@ -18,9 +18,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Change to build directory
-        run: "cd hack/build"
-
       - name: Generate token
         id: generate_token
         uses: tibdex/github-app-token@v1
@@ -36,6 +33,7 @@ jobs:
         uses: magefile/mage-action@v2
         with:
           args: "release:submodules ${{ inputs.tag }}"
+          workdir: "hack/build"
 
       - name: Tag Submodules (Release)
         if: ${{ github.event_name == 'push' }}
@@ -43,4 +41,5 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         uses: magefile/mage-action@v2
         with:
+          workdir: "hack/build"
           args: "release:submodules ${{ github.ref_name }}"
