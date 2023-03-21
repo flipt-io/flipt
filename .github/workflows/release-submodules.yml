@@ -1,9 +1,10 @@
 on:
   push:
+    tags:
+      - "v*"
   workflow_dispatch:
     branches:
       - main
-      - gm/sdk-release
     inputs:
       tag:
         description: Flipt release version tag

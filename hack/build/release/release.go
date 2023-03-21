@@ -43,7 +43,7 @@ func Submodules(ctx context.Context, client *dagger.Client, tag string) error {
 	// ensure we only attempt to publish updates when requested
 	// tag matches the latest semver in default branch.
 	if lastTwo[1] != tag {
-		return fmt.Errorf("Publish tag %q does not match latest semver tag %q. Aborting.", lastTwo[1], tag)
+		return fmt.Errorf("Publish tag %q does not match latest semver tag %q. Aborting.", tag, lastTwo[1])
 	}
 
 	for _, submodule := range []string{
