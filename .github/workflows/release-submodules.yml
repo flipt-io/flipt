@@ -8,7 +8,7 @@ on:
         description: Flipt release version tag
         required: true
 
-name: Various Updates Post Release
+name: Release Submodules
 jobs:
   release_client:
     runs-on: ubuntu-latest
