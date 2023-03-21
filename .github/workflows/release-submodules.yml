@@ -1,0 +1,45 @@
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Flipt release version tag
+        required: true
+
+name: Various Updates Post Release
+jobs:
+  release_client:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Change to build directory
+        run: "cd hack/build"
+
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
+
+      - name: "Tag Submodules (Dispatch)"
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        uses: magefile/mage-action@v2
+        with:
+          args: "release:submodules ${{ inputs.tag }}"
+
+      - name: Tag Submodules (Release)
+        if: ${{ github.event_name == 'push' }}
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        uses: magefile/mage-action@v2
+        with:
+          args: "release:submodules ${{ github.ref_name }}"

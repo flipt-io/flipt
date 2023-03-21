@@ -15,6 +15,7 @@ import (
 	"go.flipt.io/flipt/build/internal"
 	"go.flipt.io/flipt/build/internal/publish"
 	"go.flipt.io/flipt/build/internal/test"
+	"go.flipt.io/flipt/build/release"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/sync/errgroup"
 )
@@ -205,6 +206,17 @@ func (t Test) Integration(ctx context.Context) error {
 	}
 
 	return test.Integration(ctx, client, base, flipt)
+}
+
+type Release mg.Namespace
+
+func (r Release) Submodules(ctx context.Context, tag string) error {
+	client, err := daggerClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	return release.Submodules(ctx, client, tag)
 }
 
 func daggerClient(ctx context.Context) (*dagger.Client, error) {
