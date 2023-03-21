@@ -80,12 +80,12 @@ func tagSubmodule(ctx context.Context, container *dagger.Container, submodule, f
 			target,
 		})
 
-	_, err = container.WithExec([]string{"git", "tag", "-n", target}).ExitCode(ctx)
+	_, err = container.WithExec([]string{"git", "tag", "-n", target}).
+		WithExec([]string{"git", "push", "origin", target}).
+		ExitCode(ctx)
 	if err != nil {
 		return err
 	}
 
-	_, err = container.WithExec([]string{"git", "push", "origin", target}).ExitCode(ctx)
-
-	return err
+	return nil
 }
