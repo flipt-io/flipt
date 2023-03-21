@@ -25,18 +25,12 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
-          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
-          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
-
       - name: "Tag Submodules (Dispatch)"
         if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          FLIPT_RELEASE_BOT_APP_ID: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          FLIPT_RELEASE_BOT_INSTALLATION_ID: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
+          FLIPT_RELEASE_BOT_APP_PEM: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
         uses: magefile/mage-action@v2
         with:
           args: "release:submodules ${{ inputs.tag }}"
@@ -45,7 +39,9 @@ jobs:
       - name: Tag Submodules (Release)
         if: ${{ github.event_name == 'push' }}
         env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          FLIPT_RELEASE_BOT_APP_ID: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          FLIPT_RELEASE_BOT_INSTALLATION_ID: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
+          FLIPT_RELEASE_BOT_APP_PEM: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
         uses: magefile/mage-action@v2
         with:
           workdir: "hack/build"
