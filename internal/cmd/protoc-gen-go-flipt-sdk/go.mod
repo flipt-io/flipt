@@ -1,6 +1,6 @@
 module go.flipt.io/protoc-gen-go-flipt-sdk
 
-go 1.19
+go 1.20
 
 require (
 	google.golang.org/genproto v0.0.0-20230320184635-7606e756e683
