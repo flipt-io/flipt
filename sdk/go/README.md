@@ -14,7 +14,7 @@ The [Flipt SDK Generator](../../internal/cmd/protoc-gen-go-flipt-sdk/) can be fo
 
 ## Dependencies
 
-- Go `>= v1.18`
+- Go `>= v1.20`
 
 ## Get the SDK
 
