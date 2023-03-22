@@ -6,7 +6,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/stretchr/testify v1.8.2
-	go.flipt.io/flipt/errors v0.0.0-00010101000000-000000000000
+	go.flipt.io/flipt/errors v1.19.2
 	go.uber.org/zap v1.24.0
 	google.golang.org/genproto v0.0.0-20230320184635-7606e756e683
 	google.golang.org/grpc v1.54.0
