@@ -1,0 +1,44 @@
+name: Integration Tests Experiment
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "examples/**"
+      - "logos/**"
+      - "**.md"
+      - "**.txt"
+  pull_request:
+    paths-ignore:
+      - "examples/**"
+      - "logos/**"
+      - "**.md"
+      - "**.txt"
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: actions/cache@v3
+        with:
+          path: hack/build/
+          key: ${{ runner.os }}-go-hack-build${{ hashFiles('hack/build/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-hack-build
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: test:integration
