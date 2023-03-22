@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Upgraded `rpc/flipt` to `v1.19.3`
-- Upgraded `errors to `v1.19.3`
+- Upgraded `errors` to `v1.19.3`
 
 ## v0.1.0
 
