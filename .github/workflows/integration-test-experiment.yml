@@ -42,3 +42,4 @@ jobs:
         with:
           version: latest
           args: test:integration
+          workdir: hack/build
