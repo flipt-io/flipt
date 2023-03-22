@@ -36,8 +36,8 @@ require (
 	github.com/testcontainers/testcontainers-go v0.18.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.13.0
-	go.flipt.io/flipt/errors v0.0.0-00010101000000-000000000000
-	go.flipt.io/flipt/rpc/flipt v0.0.0-00010101000000-000000000000
+	go.flipt.io/flipt/errors v1.19.2
+	go.flipt.io/flipt/rpc/flipt v1.19.2
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
 	go.opentelemetry.io/otel v1.14.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.13.0
@@ -103,6 +103,7 @@ require (
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
+	github.com/onsi/gomega v1.26.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
 	github.com/opencontainers/runc v1.1.3 // indirect
