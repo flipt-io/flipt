@@ -3,8 +3,10 @@
 package sdk
 
 import (
+	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
+	metadata "google.golang.org/grpc/metadata"
 )
 
 type Transport interface {
@@ -81,4 +83,17 @@ func (s SDK) Meta() *Meta {
 		transport:     s.transport.MetaClient(),
 		tokenProvider: s.tokenProvider,
 	}
+}
+
+func authenticate(ctx context.Context, p ClientTokenProvider) (context.Context, error) {
+	if p != nil {
+		token, err := p.ClientToken()
+		if err != nil {
+			return ctx, err
+		}
+
+		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	}
+
+	return ctx, nil
 }

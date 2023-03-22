@@ -6,11 +6,11 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
-	sdk "go.flipt.io/flipt/sdk"
+	_go "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 )
 
-var _ sdk.Transport = Transport{}
+var _ _go.Transport = Transport{}
 
 type Transport struct {
 	cc grpc.ClientConnInterface
@@ -44,7 +44,7 @@ func (t authClient) AuthenticationMethodKubernetesServiceClient() auth.Authentic
 	return auth.NewAuthenticationMethodKubernetesServiceClient(t.cc)
 }
 
-func (t Transport) AuthClient() sdk.AuthClient {
+func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{cc: t.cc}
 }
 

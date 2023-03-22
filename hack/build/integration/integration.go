@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
-	"go.flipt.io/flipt/sdk"
+	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"

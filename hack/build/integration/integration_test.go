@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/build/integration"
-	"go.flipt.io/flipt/sdk"
-	sdkgrpc "go.flipt.io/flipt/sdk/grpc"
-	sdkhttp "go.flipt.io/flipt/sdk/http"
+	sdk "go.flipt.io/flipt/sdk/go"
+	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
+	sdkhttp "go.flipt.io/flipt/sdk/go/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

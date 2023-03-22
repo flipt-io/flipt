@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	importPath  = "go.flipt.io/flipt/sdk"
+	importPath  = "go.flipt.io/flipt/sdk/go"
 	emptyImport = "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -87,6 +87,8 @@ func generateSDK(gen *protogen.Plugin) {
 		g.P("}")
 		g.P("}\n")
 	}
+
+	authenticateFunction(g)
 }
 
 // generateSubSDK generates a .pb.sdk.go file containing a single SDK structure
@@ -161,12 +163,14 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 			if method.Output.GoIdent.GoImportPath != emptyImport {
 				g.P(append(signature, ") (*", method.Output.GoIdent, ", error) {")...)
-				threadAuth(g, "x", "return nil, err")
+				g.P("ctx, err := authenticate(ctx, x.tokenProvider)")
+				g.P("if err != nil { return nil, err }")
 				g.P(append([]any{"return "}, returnStatement...)...)
 			} else {
 				g.P(append(signature, ") error {")...)
-				threadAuth(g, "x", "return err")
-				g.P(append([]any{"_, err := "}, returnStatement...)...)
+				g.P("ctx, err := authenticate(ctx, x.tokenProvider)")
+				g.P("if err != nil { return err }")
+				g.P(append([]any{"_, err = "}, returnStatement...)...)
 				g.P("return err")
 			}
 
@@ -176,13 +180,17 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 	return
 }
 
-func threadAuth(g *protogen.GeneratedFile, receiver, returnErr string) {
+func authenticateFunction(g *protogen.GeneratedFile) {
+	context := importPackage(g, "context")
+	g.P("func authenticate(ctx ", context("Context"), ", p ClientTokenProvider) (", context("Context"), ", error) {")
 	metadata := importPackage(g, "google.golang.org/grpc/metadata")
-	g.P("if ", receiver, ".tokenProvider != nil {")
-	g.P("token, err := ", receiver, ".tokenProvider.ClientToken()")
-	g.P("if err != nil { ", returnErr, " }")
+	g.P("if p != nil {")
+	g.P("token, err := p.ClientToken()")
+	g.P("if err != nil { return ctx, err }")
 	g.P()
 	g.P("ctx = ", metadata("AppendToOutgoingContext"), `(ctx, "authorization", "Bearer "+token)`)
+	g.P("}\n")
+	g.P("return ctx, nil")
 	g.P("}")
 	g.P()
 }

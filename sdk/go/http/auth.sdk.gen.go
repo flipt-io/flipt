@@ -7,7 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
-	sdk "go.flipt.io/flipt/sdk"
+	_go "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -368,6 +368,6 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	return &output, nil
 }
 
-func (t Transport) AuthClient() sdk.AuthClient {
+func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{client: t.client, addr: t.addr}
 }
