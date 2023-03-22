@@ -1,8 +1,5 @@
 # Flipt Go SDK
 
-**WARNING**: This is currently in development. It is released and versioned on the same cadence as Flipt itself.
-However, we are actively developing it. That said, we may choose to drop this warning before we make the first release which contains it.
-
 [![Go Reference](https://pkg.go.dev/badge/go.flipt.io/flipt/sdk/go.svg)](https://pkg.go.dev/go.flipt.io/flipt/sdk/go)
 
 The Flipt Go SDK supports developing applications in Go against Flipt.
