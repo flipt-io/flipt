@@ -5,7 +5,6 @@ package sdk
 import (
 	context "context"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
-	metadata "google.golang.org/grpc/metadata"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -34,15 +33,10 @@ func (s Auth) PublicAuthenticationService() *PublicAuthenticationService {
 	}
 }
 func (x *PublicAuthenticationService) ListAuthenticationMethods(ctx context.Context) (*auth.ListAuthenticationMethodsResponse, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.ListAuthenticationMethods(ctx, &emptypb.Empty{})
 }
 
@@ -58,69 +52,44 @@ func (s Auth) AuthenticationService() *AuthenticationService {
 	}
 }
 func (x *AuthenticationService) GetAuthenticationSelf(ctx context.Context) (*auth.Authentication, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.GetAuthenticationSelf(ctx, &emptypb.Empty{})
 }
 
 func (x *AuthenticationService) GetAuthentication(ctx context.Context, v *auth.GetAuthenticationRequest) (*auth.Authentication, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.GetAuthentication(ctx, v)
 }
 
 func (x *AuthenticationService) ListAuthentications(ctx context.Context, v *auth.ListAuthenticationsRequest) (*auth.ListAuthenticationsResponse, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.ListAuthentications(ctx, v)
 }
 
 func (x *AuthenticationService) DeleteAuthentication(ctx context.Context, v *auth.DeleteAuthenticationRequest) error {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
 	}
-
-	_, err := x.transport.DeleteAuthentication(ctx, v)
+	_, err = x.transport.DeleteAuthentication(ctx, v)
 	return err
 }
 
 func (x *AuthenticationService) ExpireAuthenticationSelf(ctx context.Context, v *auth.ExpireAuthenticationSelfRequest) error {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
 	}
-
-	_, err := x.transport.ExpireAuthenticationSelf(ctx, v)
+	_, err = x.transport.ExpireAuthenticationSelf(ctx, v)
 	return err
 }
 
@@ -136,15 +105,10 @@ func (s Auth) AuthenticationMethodTokenService() *AuthenticationMethodTokenServi
 	}
 }
 func (x *AuthenticationMethodTokenService) CreateToken(ctx context.Context, v *auth.CreateTokenRequest) (*auth.CreateTokenResponse, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.CreateToken(ctx, v)
 }
 
@@ -160,28 +124,18 @@ func (s Auth) AuthenticationMethodOIDCService() *AuthenticationMethodOIDCService
 	}
 }
 func (x *AuthenticationMethodOIDCService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.AuthorizeURL(ctx, v)
 }
 
 func (x *AuthenticationMethodOIDCService) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.Callback(ctx, v)
 }
 
@@ -197,14 +151,9 @@ func (s Auth) AuthenticationMethodKubernetesService() *AuthenticationMethodKuber
 	}
 }
 func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context.Context, v *auth.VerifyServiceAccountRequest) (*auth.VerifyServiceAccountResponse, error) {
-	if x.tokenProvider != nil {
-		token, err := x.tokenProvider.ClientToken()
-		if err != nil {
-			return nil, err
-		}
-
-		ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
 	}
-
 	return x.transport.VerifyServiceAccount(ctx, v)
 }

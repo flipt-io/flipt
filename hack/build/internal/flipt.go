@@ -121,14 +121,10 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src")
 
-	_, _ = golang.WithExec([]string{"sh", "-c", "echo foo && ls " + goBuildCachePath}).ExitCode(ctx)
-
 	golang = golang.WithExec([]string{"go", "mod", "download"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
-
-	_, _ = golang.WithExec([]string{"sh", "-c", "echo foo && ls " + goBuildCachePath}).ExitCode(ctx)
 
 	// install mage and bootstrap project tools
 	golang = golang.
