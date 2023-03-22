@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	sdk "go.flipt.io/flipt/sdk"
+	sdk "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 )
 

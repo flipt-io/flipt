@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	importPath  = "go.flipt.io/flipt/sdk"
+	importPath  = "go.flipt.io/flipt/sdk/go"
 	emptyImport = "google.golang.org/protobuf/types/known/emptypb"
 )
 

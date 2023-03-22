@@ -3,7 +3,7 @@
 **WARNING**: This is currently in development. It is released and versioned on the same cadence as Flipt itself.
 However, we are actively developing it. That said, we may choose to drop this warning before we make the first release which contains it.
 
-[![Go Reference](https://pkg.go.dev/badge/go.flipt.io/flipt/sdk.svg)](https://pkg.go.dev/go.flipt.io/flipt/sdk)
+[![Go Reference](https://pkg.go.dev/badge/go.flipt.io/flipt/sdk/go.svg)](https://pkg.go.dev/go.flipt.io/flipt/sdk/go)
 
 The Flipt Go SDK supports developing applications in Go against Flipt.
 It also supports the ability to access the resource management APIs and other systems, such as authentication and metadata.
@@ -19,7 +19,7 @@ The [Flipt SDK Generator](../../internal/cmd/protoc-gen-go-flipt-sdk/) can be fo
 ## Get the SDK
 
 ```sh
-go get go.flipt.io/flipt/sdk
+go get go.flipt.io/flipt/sdk/go
 ```
 
 ## Construct and Authenticate the SDK
@@ -34,7 +34,7 @@ Constructing an SDK client is easy.
 package main
 
 import (
-	"go.flipt.io/flipt/sdk"
+	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/grpc"
 	grpc "google.golang.org/grpc"
 )
