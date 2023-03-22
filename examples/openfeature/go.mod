@@ -1,6 +1,6 @@
 module openfeature-example
 
-go 1.18
+go 1.20
 
 require (
 	github.com/gofrs/uuid v4.3.0+incompatible

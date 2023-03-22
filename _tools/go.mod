@@ -1,10 +1,10 @@
 module tools
 
-go 1.18
+go 1.20
 
 require (
 	github.com/bufbuild/buf v1.9.0
-	github.com/golangci/golangci-lint v1.49.0
+	github.com/golangci/golangci-lint v1.51.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	golang.org/x/tools v0.7.0
 	golang.org/x/tools/cmd/cover v0.1.0-deprecated

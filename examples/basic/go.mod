@@ -1,6 +1,6 @@
 module flipt-example
 
-go 1.18
+go 1.20
 
 require (
 	go.flipt.io/flipt-grpc v1.1.0

@@ -231,6 +231,7 @@ type AuthenticationMethodInfoProvider interface {
 // Along with leaving a generic slot for the particular method to declare
 // its own structural fields. This generic field (Method) must implement
 // the AuthenticationMethodInfoProvider to be valid at compile time.
+// nolint:musttag
 type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
 	Method  C                              `mapstructure:",squash"`
 	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`

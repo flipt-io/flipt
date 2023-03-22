@@ -1,6 +1,6 @@
 module go.flipt.io/flipt/rpc/flipt
 
-go 1.18
+go 1.20
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0

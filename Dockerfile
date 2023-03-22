@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine3.16 AS build
+FROM golang:1.20-alpine3.16 AS build
 
 WORKDIR /home/flipt
 
