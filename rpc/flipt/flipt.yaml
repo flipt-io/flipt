@@ -6,10 +6,6 @@ http:
   rules:
   # namespaces
   #
-  # TODO
-
-  # namespaces
-  #
   - selector: flipt.Flipt.GetNamespace
     get: /api/v1/namespaces/{key}
 
