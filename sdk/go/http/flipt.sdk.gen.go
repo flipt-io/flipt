@@ -84,6 +84,154 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 	return &output, nil
 }
 
+func (x *FliptClient) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.Namespace
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := protojson.Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) ListNamespaces(ctx context.Context, v *flipt.ListNamespaceRequest, _ ...grpc.CallOption) (*flipt.NamespaceList, error) {
+	var body io.Reader
+	values := url.Values{}
+	values.Set("limit", fmt.Sprintf("%v", v.Limit))
+	values.Set("offset", fmt.Sprintf("%v", v.Offset))
+	values.Set("pageToken", v.PageToken)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/api/v1/namespaces", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.NamespaceList
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := protojson.Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) CreateNamespace(ctx context.Context, v *flipt.CreateNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/namespaces", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.Namespace
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := protojson.Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.Namespace
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := protojson.Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output emptypb.Empty
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := protojson.Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ...grpc.CallOption) (*flipt.Flag, error) {
 	var body io.Reader
 	var values url.Values

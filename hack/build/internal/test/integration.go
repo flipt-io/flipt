@@ -2,6 +2,9 @@ package test
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"dagger.io/dagger"
 	"github.com/google/uuid"
@@ -31,24 +34,30 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		}
 	}
 
+	rand.Seed(time.Now().Unix())
+
 	var g errgroup.Group
-
-	for _, addr := range []string{
-		"grpc://flipt:9000",
-		"http://flipt:8080",
+	for _, namespace := range []string{
+		"",
+		fmt.Sprintf("%x", rand.Int()),
 	} {
-		addr := addr
-		g.Go(integration(flipt, "-flipt-addr", addr))
+		for _, addr := range []string{
+			"grpc://flipt:9000",
+			"http://flipt:8080",
+		} {
+			addr := addr
+			g.Go(integration(flipt, "-flipt-addr", addr, "-flipt-namespace", namespace))
 
-		token := "abcdefghij"
-		g.Go(integration(
-			flipt.
-				WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
-				WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-				WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", token),
-			"-flipt-addr", addr,
-			"-flipt-token", token,
-		))
+			token := "abcdefghij"
+			g.Go(integration(
+				flipt.
+					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", token),
+				"-flipt-addr", addr,
+				"-flipt-token", token,
+			))
+		}
 	}
 
 	return g.Wait()
