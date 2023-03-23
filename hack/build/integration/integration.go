@@ -3,6 +3,7 @@ package integration
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -469,6 +470,16 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 		})
 
 		t.Run("Delete", func(t *testing.T) {
+			if namespace != "" {
+				t.Log(`Namespace with flags fails.`)
+				err := client.Flipt().DeleteNamespace(ctx, &flipt.DeleteNamespaceRequest{
+					Key: namespace,
+				})
+
+				msg := fmt.Sprintf("rpc error: code = InvalidArgument desc = namespace %q cannot be deleted; flags must be deleted first", namespace)
+				require.EqualError(t, err, msg)
+			}
+
 			t.Log(`Rules.`)
 			rules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
 				NamespaceKey: namespace,
