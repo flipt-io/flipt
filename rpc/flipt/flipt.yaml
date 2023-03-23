@@ -8,6 +8,25 @@ http:
   #
   # TODO
 
+  # namespaces
+  #
+  - selector: flipt.Flipt.GetNamespace
+    get: /api/v1/namespaces/{key}
+
+  - selector: flipt.Flipt.ListNamespaces
+    get: /api/v1/namespaces
+
+  - selector: flipt.Flipt.CreateNamespace
+    post: /api/v1/namespaces
+    body: "*"
+
+  - selector: flipt.Flipt.UpdateNamespace
+    put: /api/v1/namespaces/{key}
+    body: "*"
+
+  - selector: flipt.Flipt.DeleteNamespace
+    delete: /api/v1/namespaces/{key}
+
   # evaluation
   #
   - selector: flipt.Flipt.Evaluate
