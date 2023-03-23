@@ -16,20 +16,65 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
+func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 	t.Run("Core Suite", func(t *testing.T) {
-		client := fn(t)
+		client, namespace := fn(t)
 
 		ctx := context.Background()
+
+		if namespace != "" {
+			t.Run("Namespaces", func(t *testing.T) {
+				t.Log(`Create namespace.`)
+
+				created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+					Key:  namespace,
+					Name: namespace,
+				})
+				require.NoError(t, err)
+
+				assert.Equal(t, namespace, created.Key)
+				assert.Equal(t, namespace, created.Name)
+
+				t.Log(`Get namespace by key.`)
+
+				retrieved, err := client.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
+					Key: namespace,
+				})
+
+				assert.Equal(t, created.Name, retrieved.Name)
+
+				t.Log(`List namespaces.`)
+
+				namespaces, err := client.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
+				require.NoError(t, err)
+
+				assert.Len(t, namespaces.Namespaces, 2)
+
+				assert.Equal(t, "default", namespaces.Namespaces[0].Key)
+				assert.Equal(t, namespace, namespaces.Namespaces[1].Key)
+
+				t.Log(`Update namespace.`)
+
+				updated, err := client.Flipt().UpdateNamespace(ctx, &flipt.UpdateNamespaceRequest{
+					Key:         namespace,
+					Name:        namespace,
+					Description: "Some kind of description",
+				})
+				require.NoError(t, err)
+
+				assert.Equal(t, "Some kind of description", updated.Description)
+			})
+		}
 
 		t.Run("Flags and Variants", func(t *testing.T) {
 			t.Log("Create a new flag with key \"test\".")
 
 			created, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
-				Key:         "test",
-				Name:        "Test",
-				Description: "This is a test flag",
-				Enabled:     true,
+				NamespaceKey: namespace,
+				Key:          "test",
+				Name:         "Test",
+				Description:  "This is a test flag",
+				Enabled:      true,
 			})
 			require.NoError(t, err)
 
@@ -40,7 +85,10 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 			t.Log("Retrieve flag with key \"test\".")
 
-			flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{Key: "test"})
+			flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+				NamespaceKey: namespace,
+				Key:          "test",
+			})
 			require.NoError(t, err)
 
 			assert.Equal(t, created, flag)
@@ -48,10 +96,11 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log("Update flag with key \"test\".")
 
 			updated, err := client.Flipt().UpdateFlag(ctx, &flipt.UpdateFlagRequest{
-				Key:         created.Key,
-				Name:        "Test 2",
-				Description: created.Description,
-				Enabled:     true,
+				NamespaceKey: namespace,
+				Key:          created.Key,
+				Name:         "Test 2",
+				Description:  created.Description,
+				Enabled:      true,
 			})
 			require.NoError(t, err)
 
@@ -59,7 +108,9 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 			t.Log("List all flags.")
 
-			flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{})
+			flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+				NamespaceKey: namespace,
+			})
 			require.NoError(t, err)
 
 			assert.Len(t, flags.Flags, 1)
@@ -71,9 +122,10 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 				t.Logf("Create variant with key %q.", key)
 
 				createdVariant, err := client.Flipt().CreateVariant(ctx, &flipt.CreateVariantRequest{
-					Key:     key,
-					Name:    key,
-					FlagKey: "test",
+					NamespaceKey: namespace,
+					Key:          key,
+					Name:         key,
+					FlagKey:      "test",
 				})
 				require.NoError(t, err)
 
@@ -83,7 +135,10 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 			t.Log("Get flag \"test\" and check variants.")
 
-			flag, err = client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{Key: "test"})
+			flag, err = client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+				NamespaceKey: namespace,
+				Key:          "test",
+			})
 			require.NoError(t, err)
 
 			assert.Len(t, flag.Variants, 2)
@@ -91,10 +146,11 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Update variant "one" (rename from "one" to "One").`)
 
 			updatedVariant, err := client.Flipt().UpdateVariant(ctx, &flipt.UpdateVariantRequest{
-				FlagKey: "test",
-				Id:      flag.Variants[0].Id,
-				Key:     "one",
-				Name:    "One",
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				Id:           flag.Variants[0].Id,
+				Key:          "one",
+				Name:         "One",
 			})
 			require.NoError(t, err)
 
@@ -106,9 +162,10 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Create segment "everyone".`)
 
 			createdSegment, err := client.Flipt().CreateSegment(ctx, &flipt.CreateSegmentRequest{
-				Key:       "everyone",
-				Name:      "Everyone",
-				MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				NamespaceKey: namespace,
+				Key:          "everyone",
+				Name:         "Everyone",
+				MatchType:    flipt.MatchType_ALL_MATCH_TYPE,
 			})
 			require.NoError(t, err)
 
@@ -119,7 +176,8 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Get segment "everyone".`)
 
 			retrievedSegment, err := client.Flipt().GetSegment(ctx, &flipt.GetSegmentRequest{
-				Key: "everyone",
+				NamespaceKey: namespace,
+				Key:          "everyone",
 			})
 			require.NoError(t, err)
 
@@ -131,8 +189,9 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Update segment "everyone" (rename "Everyone" to "All the peeps").`)
 
 			updatedSegment, err := client.Flipt().UpdateSegment(ctx, &flipt.UpdateSegmentRequest{
-				Key:  "everyone",
-				Name: "All the peeps",
+				NamespaceKey: namespace,
+				Key:          "everyone",
+				Name:         "All the peeps",
 			})
 			require.NoError(t, err)
 
@@ -153,11 +212,12 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 				)
 
 				createdConstraint, err := client.Flipt().CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-					SegmentKey: "everyone",
-					Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-					Property:   constraint.property,
-					Operator:   constraint.operator,
-					Value:      constraint.value,
+					NamespaceKey: namespace,
+					SegmentKey:   "everyone",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					Property:     constraint.property,
+					Operator:     constraint.operator,
+					Value:        constraint.value,
 				})
 				require.NoError(t, err)
 
@@ -169,7 +229,8 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Get segment "everyone" with constraints.`)
 
 			retrievedSegment, err = client.Flipt().GetSegment(ctx, &flipt.GetSegmentRequest{
-				Key: "everyone",
+				NamespaceKey: namespace,
+				Key:          "everyone",
 			})
 			require.NoError(t, err)
 
@@ -179,12 +240,13 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 
 			t.Log(`Update constraint value (from "bar" to "baz").`)
 			updatedConstraint, err := client.Flipt().UpdateConstraint(ctx, &flipt.UpdateConstraintRequest{
-				SegmentKey: "everyone",
-				Type:       retrievedSegment.Constraints[0].Type,
-				Id:         retrievedSegment.Constraints[0].Id,
-				Property:   retrievedSegment.Constraints[0].Property,
-				Operator:   retrievedSegment.Constraints[0].Operator,
-				Value:      "baz",
+				NamespaceKey: namespace,
+				SegmentKey:   "everyone",
+				Type:         retrievedSegment.Constraints[0].Type,
+				Id:           retrievedSegment.Constraints[0].Id,
+				Property:     retrievedSegment.Constraints[0].Property,
+				Operator:     retrievedSegment.Constraints[0].Operator,
+				Value:        "baz",
 			})
 			require.NoError(t, err)
 
@@ -198,9 +260,10 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Create rule "rank 1".`)
 
 			ruleOne, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
-				FlagKey:    "test",
-				SegmentKey: "everyone",
-				Rank:       1,
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				SegmentKey:   "everyone",
+				Rank:         1,
 			})
 
 			require.NoError(t, err)
@@ -212,8 +275,9 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Get rules "rank 1".`)
 
 			retrievedRule, err := client.Flipt().GetRule(ctx, &flipt.GetRuleRequest{
-				FlagKey: "test",
-				Id:      ruleOne.Id,
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				Id:           ruleOne.Id,
 			})
 			require.NoError(t, err)
 
@@ -224,9 +288,10 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Create rule "rank 2".`)
 
 			ruleTwo, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
-				FlagKey:    "test",
-				SegmentKey: "everyone",
-				Rank:       2,
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				SegmentKey:   "everyone",
+				Rank:         2,
 			})
 
 			require.NoError(t, err)
@@ -238,7 +303,8 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`List rules.`)
 
 			allRules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
-				FlagKey: "test",
+				NamespaceKey: namespace,
+				FlagKey:      "test",
 			})
 			require.NoError(t, err)
 
@@ -250,15 +316,17 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Re-order rules.`)
 
 			err = client.Flipt().OrderRules(ctx, &flipt.OrderRulesRequest{
-				FlagKey: "test",
-				RuleIds: []string{ruleTwo.Id, ruleOne.Id},
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				RuleIds:      []string{ruleTwo.Id, ruleOne.Id},
 			})
 			require.NoError(t, err)
 
 			t.Log(`List rules again.`)
 
 			allRules, err = client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
-				FlagKey: "test",
+				NamespaceKey: namespace,
+				FlagKey:      "test",
 			})
 			require.NoError(t, err)
 
@@ -273,15 +341,17 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Create distribution "rollout 100".`)
 
 			flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
-				Key: "test",
+				NamespaceKey: namespace,
+				Key:          "test",
 			})
 			require.NoError(t, err)
 
 			distribution, err := client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
-				FlagKey:   "test",
-				RuleId:    ruleTwo.Id,
-				VariantId: flag.Variants[0].Id,
-				Rollout:   100,
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				RuleId:       ruleTwo.Id,
+				VariantId:    flag.Variants[0].Id,
+				Rollout:      100,
 			})
 			require.NoError(t, err)
 
@@ -293,8 +363,9 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Successful match.`)
 
 			result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-				FlagKey:  "test",
-				EntityId: uuid.Must(uuid.NewV4()).String(),
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				EntityId:     uuid.Must(uuid.NewV4()).String(),
 				Context: map[string]string{
 					"foo":  "baz",
 					"fizz": "bozz",
@@ -310,8 +381,9 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Unsuccessful match.`)
 
 			result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-				FlagKey:  "test",
-				EntityId: uuid.Must(uuid.NewV4()).String(),
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				EntityId:     uuid.Must(uuid.NewV4()).String(),
 				Context: map[string]string{
 					"fizz": "buzz",
 				},
@@ -325,10 +397,12 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Successful match.`)
 
 			results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
 				Requests: []*flipt.EvaluationRequest{
 					{
-						FlagKey:  "test",
-						EntityId: uuid.Must(uuid.NewV4()).String(),
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     uuid.Must(uuid.NewV4()).String(),
 						Context: map[string]string{
 							"foo":  "baz",
 							"fizz": "bozz",
@@ -349,10 +423,12 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 			t.Log(`Unsuccessful match.`)
 
 			results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
 				Requests: []*flipt.EvaluationRequest{
 					{
-						FlagKey:  "test",
-						EntityId: uuid.Must(uuid.NewV4()).String(),
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     uuid.Must(uuid.NewV4()).String(),
 						Context: map[string]string{
 							"fizz": "buzz",
 						},
@@ -370,26 +446,40 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		t.Run("Delete", func(t *testing.T) {
 			t.Log(`Rules.`)
 			rules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
-				FlagKey: "test",
+				NamespaceKey: namespace,
+				FlagKey:      "test",
 			})
 			require.NoError(t, err)
 
 			for _, rule := range rules.Rules {
 				client.Flipt().DeleteRule(ctx, &flipt.DeleteRuleRequest{
-					FlagKey: "test",
-					Id:      rule.Id,
+					NamespaceKey: namespace,
+					FlagKey:      "test",
+					Id:           rule.Id,
 				})
 			}
 
 			t.Log(`Flag.`)
-			client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
-				Key: "test",
+			err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+				NamespaceKey: namespace,
+				Key:          "test",
 			})
+			require.NoError(t, err)
 
 			t.Log(`Segment.`)
-			client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
-				Key: "everyone",
+			err = client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
+				NamespaceKey: namespace,
+				Key:          "everyone",
 			})
+			require.NoError(t, err)
+
+			if namespace != "" {
+				t.Log(`Namespace.`)
+				err = client.Flipt().DeleteNamespace(ctx, &flipt.DeleteNamespaceRequest{
+					Key: namespace,
+				})
+				require.NoError(t, err)
+			}
 		})
 
 		t.Run("Meta", func(t *testing.T) {
@@ -436,9 +526,9 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 	})
 }
 
-func Authenticated(t *testing.T, fn func(t *testing.T) sdk.SDK) {
+func Authenticated(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 	t.Run("Authentication Methods", func(t *testing.T) {
-		client := fn(t)
+		client, _ := fn(t)
 
 		ctx := context.Background()
 

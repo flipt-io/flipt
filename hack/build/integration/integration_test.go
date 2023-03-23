@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	fliptAddr  = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
-	fliptToken = flag.String("flipt-token", "", "Authentication token to be used during test suite")
+	fliptAddr      = flag.String("flipt-addr", "grpc://localhost:9000", "Address for running Flipt instance (gRPC only)")
+	fliptToken     = flag.String("flipt-token", "", "Authentication token to be used during test suite")
+	fliptNamespace = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
 )
 
 func TestFlipt(t *testing.T) {
@@ -47,9 +48,13 @@ func TestFlipt(t *testing.T) {
 		))
 	}
 
+	if *fliptNamespace != "" {
+		name = fmt.Sprintf("%s [Namespace %q]", name, *fliptNamespace)
+	}
+
 	t.Run(name, func(t *testing.T) {
-		fn := func(t *testing.T) sdk.SDK {
-			return sdk.New(transport, opts...)
+		fn := func(t *testing.T) (sdk.SDK, string) {
+			return sdk.New(transport, opts...), *fliptNamespace
 		}
 
 		integration.Core(t, fn)
