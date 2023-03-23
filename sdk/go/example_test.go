@@ -9,6 +9,7 @@ import (
 func ExampleNew() {
 	// see the following subpackages for transport implementations:
 	// - grpc
+	// - http
 	var transport Transport
 
 	client := New(transport)
