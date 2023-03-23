@@ -64,7 +64,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	golang := client.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
 	}).
-		From("golang:1.18-alpine3.16").
+		From("golang:1.20-alpine3.16").
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -121,14 +121,10 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src")
 
-	_, _ = golang.WithExec([]string{"sh", "-c", "echo foo && ls " + goBuildCachePath}).ExitCode(ctx)
-
 	golang = golang.WithExec([]string{"go", "mod", "download"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
-
-	_, _ = golang.WithExec([]string{"sh", "-c", "echo foo && ls " + goBuildCachePath}).ExitCode(ctx)
 
 	// install mage and bootstrap project tools
 	golang = golang.

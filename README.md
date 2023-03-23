@@ -160,6 +160,12 @@ Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is com
 
 The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
+### Official SDK
+
+Our SDK is designed to support either HTTP or gRPC (configurable based on your needs).
+
+- [Go](./sdk/go)
+
 ### Official REST Client Libraries
 
 - [Node/TypeScript](https://github.com/flipt-io/flipt-node)

@@ -1,26 +1,8 @@
-FROM golang:1.20-alpine3.16 AS build
+# https://goreleaser.com/docker/
 
-WORKDIR /home/flipt
+ARG BINARY=flipt
 
-RUN apk add npm git bash gcc build-base binutils-gold
-
-RUN git clone https://github.com/magefile/mage && \
-    cd mage && \
-    go run bootstrap.go
-
-COPY go.mod .
-COPY go.sum .
-
-RUN go mod download
-
-COPY . /home/flipt
-
-ENV CGO_ENABLED=1
-
-RUN mage bootstrap && \
-    mage build
-
-FROM alpine:3.16.2
+FROM alpine:3.17.2
 
 LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
@@ -33,7 +15,7 @@ RUN apk add --no-cache postgresql-client \
 RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
-COPY --from=build /home/flipt/bin/flipt /
+COPY $BINARY /
 COPY config/*.yml /etc/flipt/config/
 
 RUN addgroup flipt && \

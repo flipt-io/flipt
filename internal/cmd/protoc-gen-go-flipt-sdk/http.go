@@ -13,6 +13,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const httpbodyImport = "google.golang.org/genproto/googleapis/api/httpbody"
+
 func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 	data, err := os.ReadFile(grpcAPIConfig)
 	if err != nil {
@@ -221,17 +223,24 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 		g.P("if err != nil { return nil, err }")
 		g.P("body = ", bytes("NewReader"), "(reqData)")
 	} else {
-		var setValues []string
+		var (
+			setValues  []string
+			hasMessage bool
+		)
+
 		for _, field := range method.Input.Fields {
 			if _, ok := inPath[field]; !ok {
-				var val string
-				if field.Desc.Kind() == protoreflect.StringKind {
-					val = "v." + field.GoName
-				} else {
-					val = fmt.Sprintf(`%s("%%v", v.%s)`, pkgfmt("Sprintf"), field.GoName)
+				switch field.Desc.Kind() {
+				case protoreflect.StringKind:
+					val := "v." + field.GoName
+					setValues = append(setValues, fmt.Sprintf(`values.Set("%s", %s)`, field.Desc.JSONName(), val))
+				case protoreflect.MessageKind:
+					hasMessage = true
+					marshal := fmt.Sprintf("field, err = protojson.Marshal(v.%s)\nif err != nil { return nil, err }\n", field.GoName)
+					setValues = append(setValues, marshal, fmt.Sprintf(`values.Set("%s", unquote(field))`, field.Desc.JSONName()))
+				default:
+					setValues = append(setValues, fmt.Sprintf(`values.Set("%s", fmt.Sprintf("%%v", v.%s))`, field.Desc.JSONName(), field.GoName))
 				}
-
-				setValues = append(setValues, fmt.Sprintf(`values.Set("%s", %s)`, field.Desc.JSONName(), val))
 			}
 		}
 
@@ -239,6 +248,15 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 		if len(setValues) == 0 {
 			g.P("var values ", netURL("Values"))
 		} else {
+			if hasMessage {
+				g.P("var field []byte")
+				g.P("var err error")
+				g.P("var unquote = func(v []byte) string {")
+				g.P("s, err := ", importPackage(g, "strconv")("Unquote"), "(string(v))")
+				g.P("if err == nil { return s }")
+				g.P("return string(v)")
+				g.P("}")
+			}
 			g.P("values := ", netURL("Values"), "{}")
 			for _, val := range setValues {
 				g.P(val)
@@ -260,6 +278,16 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 	g.P("if err != nil { return nil, err }")
 
 	g.P("if err := checkResponse(resp, respData); err != nil {return nil, err}")
+
+	// httpbody just returns the entire response body
+	// as-is on its Body field.
+	if method.Output.GoIdent.GoImportPath == httpbodyImport {
+		g.P(`output.ContentType = resp.Header.Get("Content-Type")`)
+		g.P(`output.Data = respData`)
+		g.P("return &output, nil")
+		g.P("}\n")
+		return
+	}
 
 	g.P("if err := ", protojson("Unmarshal"), "(respData, &output); err != nil { return nil, err }")
 	g.P("return &output, nil")

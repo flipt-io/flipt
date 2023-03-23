@@ -5,7 +5,7 @@
 // The main entrypoint within this package is [New], which takes an instance of [Transport] and returns an instance of [SDK].
 // [Transport] implementations can be found in the following sub-packages:
 //
-//   - [go.flipt.io/flipt/sdk/grpc.NewTransport]
+//   - [go.flipt.io/flipt/sdk/go/grpc.NewTransport]
 //
 // # GRPC Transport
 //

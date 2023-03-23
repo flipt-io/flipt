@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/build/integration"
-	"go.flipt.io/flipt/sdk"
-	sdkgrpc "go.flipt.io/flipt/sdk/grpc"
-	sdkhttp "go.flipt.io/flipt/sdk/http"
+	sdk "go.flipt.io/flipt/sdk/go"
+	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
+	sdkhttp "go.flipt.io/flipt/sdk/go/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -48,9 +48,15 @@ func TestFlipt(t *testing.T) {
 	}
 
 	t.Run(name, func(t *testing.T) {
-		integration.Harness(t, func(t *testing.T) sdk.SDK {
-
+		fn := func(t *testing.T) sdk.SDK {
 			return sdk.New(transport, opts...)
-		})
+		}
+
+		integration.Core(t, fn)
+
+		// run extra tests in authenticated context
+		if *fliptToken != "" {
+			integration.Authenticated(t, fn)
+		}
 	})
 }

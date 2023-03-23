@@ -7,7 +7,6 @@ import (
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	grpc "google.golang.org/grpc"
-	protojson "google.golang.org/protobuf/encoding/protojson"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	http "net/http"
@@ -40,9 +39,8 @@ func (x *MetadataServiceClient) GetConfiguration(ctx context.Context, v *emptypb
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
-		return nil, err
-	}
+	output.ContentType = resp.Header.Get("Content-Type")
+	output.Data = respData
 	return &output, nil
 }
 
@@ -67,9 +65,8 @@ func (x *MetadataServiceClient) GetInfo(ctx context.Context, v *emptypb.Empty, _
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
-		return nil, err
-	}
+	output.ContentType = resp.Header.Get("Content-Type")
+	output.Data = respData
 	return &output, nil
 }
 

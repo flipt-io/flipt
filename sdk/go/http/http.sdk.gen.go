@@ -3,7 +3,7 @@
 package http
 
 import (
-	sdk "go.flipt.io/flipt/sdk"
+	_go "go.flipt.io/flipt/sdk/go"
 	status "google.golang.org/genproto/googleapis/rpc/status"
 	metadata "google.golang.org/grpc/metadata"
 	status1 "google.golang.org/grpc/status"
@@ -11,7 +11,7 @@ import (
 	http "net/http"
 )
 
-var _ sdk.Transport = Transport{}
+var _ _go.Transport = Transport{}
 
 type Transport struct {
 	client *http.Client

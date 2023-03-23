@@ -7,13 +7,14 @@ import (
 	context "context"
 	fmt "fmt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
-	sdk "go.flipt.io/flipt/sdk"
+	_go "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	http "net/http"
 	url "net/url"
+	strconv "strconv"
 )
 
 type authClient struct {
@@ -179,8 +180,22 @@ func (x *authenticationServiceClient) DeleteAuthentication(ctx context.Context, 
 
 func (x *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Context, v *auth.ExpireAuthenticationSelfRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
+	var field []byte
+	var err error
+	var unquote = func(v []byte) string {
+		s, err := strconv.Unquote(string(v))
+		if err == nil {
+			return s
+		}
+		return string(v)
+	}
 	values := url.Values{}
-	values.Set("expiresAt", fmt.Sprintf("%v", v.ExpiresAt))
+	field, err = protojson.Marshal(v.ExpiresAt)
+	if err != nil {
+		return nil, err
+	}
+
+	values.Set("expiresAt", unquote(field))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+"/auth/v1/self/expire", body)
 	if err != nil {
 		return nil, err
@@ -353,6 +368,6 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	return &output, nil
 }
 
-func (t Transport) AuthClient() sdk.AuthClient {
+func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{client: t.client, addr: t.addr}
 }
