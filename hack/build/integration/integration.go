@@ -23,12 +23,6 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 		ctx := context.Background()
 
 		t.Run("Namespaces", func(t *testing.T) {
-			_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-				Key:  "default",
-				Name: "Default",
-			})
-			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = namespace \"default\" is not unique")
-
 			if namespace != "" {
 				t.Log(`Create namespace.`)
 
@@ -69,6 +63,31 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 				require.NoError(t, err)
 
 				assert.Equal(t, "Some kind of description", updated.Description)
+			} else {
+				t.Log(`Ensure default cannot be created.`)
+
+				_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+					Key:  "default",
+					Name: "Default",
+				})
+				require.EqualError(t, err, "rpc error: code = InvalidArgument desc = namespace \"default\" is not unique")
+
+				t.Log(`Ensure default can be updated.`)
+
+				updated, err := client.Flipt().UpdateNamespace(ctx, &flipt.UpdateNamespaceRequest{
+					Key:         "default",
+					Name:        "Default",
+					Description: "Some namespace description.",
+				})
+				require.NoError(t, err)
+				assert.Equal(t, "Default", updated.Name)
+
+				t.Log(`Ensure default cannot be deleted.`)
+
+				err = client.Flipt().DeleteNamespace(ctx, &flipt.DeleteNamespaceRequest{
+					Key: "default",
+				})
+				require.EqualError(t, err, "rpc error: code = InvalidArgument desc = namespace \"default\" is protected")
 			}
 		})
 
