@@ -22,8 +22,14 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 
 		ctx := context.Background()
 
-		if namespace != "" {
-			t.Run("Namespaces", func(t *testing.T) {
+		t.Run("Namespaces", func(t *testing.T) {
+			_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+				Key:  "default",
+				Name: "Default",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = namespace \"default\" is not unique")
+
+			if namespace != "" {
 				t.Log(`Create namespace.`)
 
 				created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
@@ -63,8 +69,8 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 				require.NoError(t, err)
 
 				assert.Equal(t, "Some kind of description", updated.Description)
-			})
-		}
+			}
+		})
 
 		t.Run("Flags and Variants", func(t *testing.T) {
 			t.Log("Create a new flag with key \"test\".")
