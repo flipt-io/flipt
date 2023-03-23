@@ -20,7 +20,7 @@
 //
 // # HTTP Transport
 //
-// The following is an example of creating and instance of the SDK using the HTTP transport.
+// The following is an example of creating an instance of the SDK using the HTTP transport.
 //
 //	func main() {
 //	    transport := http.NewTransport("http://localhost:8080")
