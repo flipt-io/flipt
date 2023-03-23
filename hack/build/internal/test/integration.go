@@ -2,6 +2,9 @@ package test
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"dagger.io/dagger"
 	"github.com/google/uuid"
@@ -31,10 +34,12 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		}
 	}
 
+	rand.Seed(time.Now().Unix())
+
 	var g errgroup.Group
 	for _, namespace := range []string{
 		"",
-		"flags",
+		fmt.Sprintf("%x", rand.Int()),
 	} {
 		for _, addr := range []string{
 			"grpc://flipt:9000",
