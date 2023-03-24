@@ -4,71 +4,10 @@ package flipt.meta;
 
 import "google/api/httpbody.proto";
 import "google/protobuf/empty.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/meta";
-option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-  info: {
-    title: "Flipt Metadata APIs";
-    version: "latest";
-    contact: {
-      name: "Flipt Team";
-      url: "https://github.com/flipt-io/flipt";
-      email: "dev@flipt.io"
-    };
-    license: {
-      name: "MIT License";
-      url: "https://github.com/flipt-io/flipt/blob/main/rpc/flipt/LICENSE";
-    };
-  };
-  external_docs: {
-    url: "https://www.flipt.io/docs";
-    description: "Flipt Docs";
-  };
-  schemes: HTTP;
-  schemes: HTTPS;
-  consumes: "application/json";
-  produces: "application/json";
-  security_definitions: {
-    security: {
-      key: "ClientTokenBearer";
-      value: {
-        type: TYPE_API_KEY;
-        in: IN_HEADER;
-        name: "Authorization";
-      }
-    }
-  };
-  security: {
-    security_requirement: {
-      key: "ClientTokenBearer";
-      value: {};
-    }
-  };
-  responses: {
-    key: "401";
-    value: {
-      description: "Request could not be authenticated (authentication required).";
-      schema: {
-        json_schema: {ref: "#/definitions/rpcStatus"};
-      };
-    };
-  };
-};
 
 service MetadataService {
-  rpc GetConfiguration(google.protobuf.Empty) returns (google.api.HttpBody) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "get_configuration",
-      description: "Get Flipt instance configuration.",
-      tags: "metadata",
-    };
-  }
-  rpc GetInfo(google.protobuf.Empty) returns (google.api.HttpBody) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "get_info",
-      description: "Get Flipt instance information.",
-      tags: "metadata",
-    };
-  }
+  rpc GetConfiguration(google.protobuf.Empty) returns (google.api.HttpBody) {}
+  rpc GetInfo(google.protobuf.Empty) returns (google.api.HttpBody) {}
 }

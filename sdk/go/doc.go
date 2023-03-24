@@ -6,6 +6,7 @@
 // [Transport] implementations can be found in the following sub-packages:
 //
 //   - [go.flipt.io/flipt/sdk/go/grpc.NewTransport]
+//   - [go.flipt.io/flipt/sdk/go/http.NewTransport]
 //
 // # GRPC Transport
 //
@@ -17,6 +18,15 @@
 //	    sdk := sdk.New(transport)
 //	}
 //
+// # HTTP Transport
+//
+// The following is an example of creating an instance of the SDK using the HTTP transport.
+//
+//	func main() {
+//	    transport := http.NewTransport("http://localhost:8080")
+//	    sdk := sdk.New(transport)
+//	}
+
 // # Authenticating the SDK
 //
 // The remote procedure calls mades by this SDK are authenticated via a [ClientTokenProvider] implementation.
