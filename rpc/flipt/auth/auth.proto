@@ -5,57 +5,8 @@ package flipt.auth;
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/auth";
-option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-  info: {
-    title: "Flipt Authentication APIs";
-    version: "latest";
-    contact: {
-      name: "Flipt Team";
-      url: "https://github.com/flipt-io/flipt";
-      email: "dev@flipt.io"
-    };
-    license: {
-      name: "MIT License";
-      url: "https://github.com/flipt-io/flipt/blob/main/rpc/flipt/LICENSE";
-    };
-  };
-  external_docs: {
-    url: "https://www.flipt.io/docs";
-    description: "Flipt Docs";
-  };
-  schemes: HTTP;
-  schemes: HTTPS;
-  consumes: "application/json";
-  produces: "application/json";
-  security_definitions: {
-    security: {
-      key: "ClientTokenBearer";
-      value: {
-        type: TYPE_API_KEY;
-        in: IN_HEADER;
-        name: "Authorization";
-      }
-    }
-  };
-  security: {
-    security_requirement: {
-      key: "ClientTokenBearer";
-      value: {};
-    }
-  };
-  responses: {
-    key: "401";
-    value: {
-      description: "Request could not be authenticated (authentication required).";
-      schema: {
-        json_schema: {ref: "#/definitions/rpcStatus"};
-      };
-    };
-  };
-};
 
 enum Method {
   METHOD_NONE = 0;
@@ -76,13 +27,7 @@ message ListAuthenticationMethodsResponse {
 }
 
 service PublicAuthenticationService {
-  rpc ListAuthenticationMethods(google.protobuf.Empty) returns (ListAuthenticationMethodsResponse) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "list_authentication_methods",
-      description: "List all available authentication methods",
-      tags: "authentication",
-    };
-  }
+  rpc ListAuthenticationMethods(google.protobuf.Empty) returns (ListAuthenticationMethodsResponse) {}
 }
 
 message Authentication {
@@ -95,12 +40,6 @@ message Authentication {
 }
 
 message GetAuthenticationRequest {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["id"]
-    }
-  };
-
   string id = 1;
 }
 
@@ -116,12 +55,6 @@ message ListAuthenticationsResponse {
 }
 
 message DeleteAuthenticationRequest {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["id"]
-    }
-  };
-
   string id = 1;
 }
 
@@ -130,53 +63,14 @@ message ExpireAuthenticationSelfRequest {
 }
 
 service AuthenticationService {
-  rpc GetAuthenticationSelf(google.protobuf.Empty) returns (Authentication) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "get_self",
-      description: "Get Authentication for current authenticated context",
-      tags: "authentication",
-    };
-  }
-  rpc GetAuthentication(GetAuthenticationRequest) returns (Authentication) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "get_authentication",
-      description: "Get Authentication by ID",
-      tags: "authentication",
-    };
-  }
-  rpc ListAuthentications(ListAuthenticationsRequest) returns (ListAuthenticationsResponse) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "list_authentications",
-      description: "List Authentication instances",
-      tags: "authentication",
-    };
-  }
-  rpc DeleteAuthentication(DeleteAuthenticationRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "delete_authentication",
-      description: "Delete Authentication by ID",
-      tags: "authentication",
-    };
-  }
-  rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "expire_self",
-      description: "Expire Authentication for current authenticated context",
-      tags: "authentication",
-    };
-  }
+  rpc GetAuthenticationSelf(google.protobuf.Empty) returns (Authentication) {}
+  rpc GetAuthentication(GetAuthenticationRequest) returns (Authentication) {}
+  rpc ListAuthentications(ListAuthenticationsRequest) returns (ListAuthenticationsResponse) {}
+  rpc DeleteAuthentication(DeleteAuthenticationRequest) returns (google.protobuf.Empty) {}
+  rpc ExpireAuthenticationSelf(ExpireAuthenticationSelfRequest) returns (google.protobuf.Empty) {}
 }
 
 message CreateTokenRequest {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: [
-        "name",
-        "description"
-      ]
-    }
-  };
-
   string name = 1;
   string description = 2;
   google.protobuf.Timestamp expires_at = 3;
@@ -188,13 +82,7 @@ message CreateTokenResponse {
 }
 
 service AuthenticationMethodTokenService {
-  rpc CreateToken(CreateTokenRequest) returns (CreateTokenResponse) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "create",
-      description: "Create authentication token",
-      tags: "authentication authentication_method token",
-    };
-  }
+  rpc CreateToken(CreateTokenRequest) returns (CreateTokenResponse) {}
 }
 
 message AuthorizeURLRequest {
@@ -218,20 +106,8 @@ message CallbackResponse {
 }
 
 service AuthenticationMethodOIDCService {
-  rpc AuthorizeURL(AuthorizeURLRequest) returns (AuthorizeURLResponse) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "authorize_url",
-      description: "Generate OIDC authorize URL",
-      tags: "authentication authentication_method oidc",
-    };
-  }
-  rpc Callback(CallbackRequest) returns (CallbackResponse) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "callback",
-      description: "OIDC callback operation",
-      tags: "authentication authentication_method oidc",
-    };
-  }
+  rpc AuthorizeURL(AuthorizeURLRequest) returns (AuthorizeURLResponse) {}
+  rpc Callback(CallbackRequest) returns (CallbackResponse) {}
 }
 
 message VerifyServiceAccountRequest {
@@ -244,11 +120,5 @@ message VerifyServiceAccountResponse {
 }
 
 service AuthenticationMethodKubernetesService {
-  rpc VerifyServiceAccount(VerifyServiceAccountRequest) returns (VerifyServiceAccountResponse) {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      operation_id: "verify_service_account",
-      description: "Verify service account token and exchange for client token",
-      tags: "authentication authentication_method kubernetes",
-    };
-  }
+  rpc VerifyServiceAccount(VerifyServiceAccountRequest) returns (VerifyServiceAccountResponse) {}
 }
