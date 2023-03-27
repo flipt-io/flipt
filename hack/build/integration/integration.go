@@ -326,6 +326,19 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 			assert.Equal(t, "everyone", ruleTwo.SegmentKey)
 			assert.Equal(t, int32(2), ruleTwo.Rank)
 
+			// ensure you can not link flags and segments from different namespaces.
+			if namespace != "" {
+				t.Log(`Ensure that rules can only link entities in the same namespace.`)
+				_, err = client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
+					FlagKey:    "test",
+					SegmentKey: "everyone",
+					Rank:       2,
+				})
+
+				msg := "rpc error: code = NotFound desc = flag \"default/test\" or segment \"default/everyone\" not found"
+				require.EqualError(t, err, msg)
+			}
+
 			t.Log(`List rules.`)
 
 			allRules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
