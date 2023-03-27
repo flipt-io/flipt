@@ -33,7 +33,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
-	github.com/testcontainers/testcontainers-go v0.18.0
+	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.13.0
 	go.flipt.io/flipt/errors v1.19.2
@@ -69,7 +69,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.1.1 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-00010101000000-000000000000 // indirect
-	github.com/containerd/containerd v1.6.18 // indirect
+	github.com/containerd/containerd v1.6.19 // indirect
+	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
