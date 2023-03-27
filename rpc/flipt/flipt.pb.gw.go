@@ -5218,7 +5218,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments/{key}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5268,7 +5268,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5318,7 +5318,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5368,7 +5368,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments/{key}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5418,7 +5418,7 @@ func RegisterFliptHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments/{key}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6534,7 +6534,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments/{key}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/GetSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6578,7 +6578,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/ListSegments", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6622,7 +6622,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/CreateSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6666,7 +6666,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments/{key}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/UpdateSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6710,7 +6710,7 @@ func RegisterFliptHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/namespace/{namespace_key}/segments/{key}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.Flipt/DeleteSegment", runtime.WithHTTPPathPattern("/api/v1/namespaces/{namespace_key}/segments/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6944,23 +6944,23 @@ var (
 
 	pattern_Flipt_GetSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, ""))
 
-	pattern_Flipt_GetSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "namespace", "namespace_key", "segments", "key"}, ""))
+	pattern_Flipt_GetSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "namespaces", "namespace_key", "segments", "key"}, ""))
 
 	pattern_Flipt_ListSegments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "segments"}, ""))
 
-	pattern_Flipt_ListSegments_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "namespace", "namespace_key", "segments"}, ""))
+	pattern_Flipt_ListSegments_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "namespaces", "namespace_key", "segments"}, ""))
 
 	pattern_Flipt_CreateSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "segments"}, ""))
 
-	pattern_Flipt_CreateSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "namespace", "namespace_key", "segments"}, ""))
+	pattern_Flipt_CreateSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "namespaces", "namespace_key", "segments"}, ""))
 
 	pattern_Flipt_UpdateSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, ""))
 
-	pattern_Flipt_UpdateSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "namespace", "namespace_key", "segments", "key"}, ""))
+	pattern_Flipt_UpdateSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "namespaces", "namespace_key", "segments", "key"}, ""))
 
 	pattern_Flipt_DeleteSegment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "segments", "key"}, ""))
 
-	pattern_Flipt_DeleteSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "namespace", "namespace_key", "segments", "key"}, ""))
+	pattern_Flipt_DeleteSegment_1 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"api", "v1", "namespaces", "namespace_key", "segments", "key"}, ""))
 
 	pattern_Flipt_CreateConstraint_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "segments", "segment_key", "constraints"}, ""))
 
