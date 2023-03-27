@@ -393,7 +393,7 @@ func Core(t *testing.T, fn func(t *testing.T) sdk.SDK) {
 		})
 
 		t.Run("Meta", func(t *testing.T) {
-			t.Log(`Returns service information.`)
+			t.Log(`Returns Flipt service information.`)
 
 			info, err := client.Meta().GetInfo(ctx)
 			require.NoError(t, err)
