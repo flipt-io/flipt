@@ -16,6 +16,9 @@ on:
       - "**.txt"
   workflow_dispatch:
 
+env:
+  _EXPERIMENTAL_DAGGER_CACHE_CONFIG: type=gha;mode=max
+
 jobs:
   test:
     name: Integration Tests
