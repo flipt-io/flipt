@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"dagger.io/dagger"
 	"github.com/google/uuid"
@@ -10,10 +11,6 @@ import (
 )
 
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
-	if _, err := flipt.ExitCode(ctx); err != nil {
-		return err
-	}
-
 	logs := client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
 	_, err := flipt.WithUser("root").
 		WithMountedCache("/logs", logs).
@@ -78,10 +75,12 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	err = g.Wait()
 
-	flipt.
+	if _, lerr := flipt.
 		WithMountedCache("/var/opt/flipt/logs", logs).
 		WithExec([]string{"cp", "-r", "/var/opt/flipt/logs", "/var/opt/flipt/out"}).
-		Directory("/var/opt/flipt/out").Export(ctx, "hack/build/logs")
+		Directory("/var/opt/flipt/out").Export(ctx, "hack/build/logs"); lerr != nil {
+		log.Println("Erroring copying logs", lerr)
+	}
 
 	return err
 }
