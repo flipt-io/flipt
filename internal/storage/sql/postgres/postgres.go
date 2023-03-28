@@ -172,7 +172,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		var perr *pq.Error
 
 		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
-			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
+			return nil, errs.ErrNotFoundf("rule %q or variant %q", r.RuleId, r.VariantId)
 		}
 
 		return nil, err

@@ -430,8 +430,38 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, namespaceK
 	return nil
 }
 
+func (s *Store) distributionValidationHelper(ctx context.Context, namespaceKey, ruleId, variantId string) error {
+	var count uint64
+
+	if err := s.builder.Select("COUNT(*)").
+		From("rules").
+		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"id": ruleId}}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
+		return err
+	} else if count < 1 {
+		return errs.ErrNotFoundf("rule %q/%q", namespaceKey, ruleId)
+	}
+
+	if err := s.builder.Select("COUNT(*)").
+		From("variants").
+		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"id": variantId}}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
+		return err
+	} else if count < 1 {
+		return errs.ErrNotFoundf("variant %q/%q", namespaceKey, variantId)
+	}
+
+	return nil
+}
+
 // CreateDistribution creates a distribution
 func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		now = timestamppb.Now()
 		d   = &flipt.Distribution{
@@ -443,6 +473,11 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 			UpdatedAt: now,
 		}
 	)
+
+	err := s.distributionValidationHelper(ctx, r.NamespaceKey, r.RuleId, r.VariantId)
+	if err != nil {
+		return nil, err
+	}
 
 	if _, err := s.builder.
 		Insert("distributions").
@@ -463,6 +498,15 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 
 // UpdateDistribution updates an existing distribution
 func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	err := s.distributionValidationHelper(ctx, r.NamespaceKey, r.RuleId, r.VariantId)
+	if err != nil {
+		return nil, err
+	}
+
 	query := s.builder.Update("distributions").
 		Set("rollout", r.Rollout).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
