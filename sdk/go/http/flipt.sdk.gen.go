@@ -659,7 +659,7 @@ func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDis
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions", v.FlagKey, v.RuleId), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions", v.NamespaceKey, v.FlagKey, v.RuleId), body)
 	if err != nil {
 		return nil, err
 	}
@@ -691,7 +691,7 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions/%v", v.FlagKey, v.RuleId, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions/%v", v.NamespaceKey, v.FlagKey, v.RuleId, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -719,8 +719,7 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 	var body io.Reader
 	values := url.Values{}
 	values.Set("variantId", v.VariantId)
-	values.Set("namespaceKey", v.NamespaceKey)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions/%v", v.FlagKey, v.RuleId, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions/%v", v.NamespaceKey, v.FlagKey, v.RuleId, v.Id), body)
 	if err != nil {
 		return nil, err
 	}

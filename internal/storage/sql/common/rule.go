@@ -436,43 +436,33 @@ func (s *Store) distributionValidationHelper(ctx context.Context, ruleId, varian
 	if err := s.builder.Select("namespace_key").
 		From("rules").
 		Where(sq.Eq{"id": ruleId}).
-		Limit(1).
 		QueryRowContext(ctx).
 		Scan(&ruleNamespace); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return errs.ErrNotFoundf("rule %q", ruleId)
-		}
 		return err
 	}
 
 	if err := s.builder.Select("namespace_key").
 		From("variants").
 		Where(sq.Eq{"id": variantId}).
-		Limit(1).
 		QueryRowContext(ctx).
 		Scan(&variantNamespace); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return errs.ErrNotFoundf("variant %q", variantId)
-		}
 		return err
 	}
 
 	if err := s.builder.Select("namespace_key").
 		From("flags").
-		Where(sq.And{sq.Eq{"key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
-		Limit(1).
+		Where(sq.And{sq.Eq{"\"key\"": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
 		QueryRowContext(ctx).
 		Scan(&flagNamespace); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return errs.ErrNotFoundf("flag %q", flagKey)
-		}
 		return err
 	}
 
+	// We return the sql.ErrNoRows here so that upstream we can return a more appropriate
+	// error to the client.
 	//nolint:gocritic
 	valid := (ruleNamespace == variantNamespace) && (ruleNamespace == flagNamespace)
 	if !valid {
-		return errs.ErrNotFoundf("namespace does not match for variant %q, rule %q, flag %q/%q", variantId, ruleId, flagNamespace, flagKey)
+		return sql.ErrNoRows
 	}
 
 	return nil
@@ -498,6 +488,9 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 
 	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q/%q in namespace", r.VariantId, r.RuleId, r.NamespaceKey, r.FlagKey)
+		}
 		return nil, err
 	}
 
@@ -526,6 +519,9 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 
 	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q/%q in namespace", r.VariantId, r.RuleId, r.NamespaceKey, r.FlagKey)
+		}
 		return nil, err
 	}
 

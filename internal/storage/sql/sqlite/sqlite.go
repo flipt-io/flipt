@@ -169,7 +169,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrNotFoundf("rule %q or variant %q", r.RuleId, r.VariantId)
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q/%q in namespace", r.VariantId, r.RuleId, r.NamespaceKey, r.FlagKey)
 		}
 
 		return nil, err

@@ -570,7 +570,7 @@ func (s *DBTestSuite) TestCreateDistribution_NoRule() {
 		Rollout:   100,
 	})
 
-	assert.EqualError(t, err, "rule \"foo\" not found")
+	assert.EqualError(t, err, fmt.Sprintf("variant %q, rule %q, flag %q/%q in namespace not found", variant.Id, "foo", "default", flag.Key))
 }
 
 func (s *DBTestSuite) TestCreateRule_FlagNotFound() {
