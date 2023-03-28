@@ -430,27 +430,49 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, namespaceK
 	return nil
 }
 
-func (s *Store) distributionValidationHelper(ctx context.Context, namespaceKey, ruleId, variantId string) error {
-	var count uint64
+func (s *Store) distributionValidationHelper(ctx context.Context, ruleId, variantId, flagKey, namespaceKey string) error {
+	var ruleNamespace, variantNamespace, flagNamespace string
 
-	if err := s.builder.Select("COUNT(*)").
+	if err := s.builder.Select("namespace_key").
 		From("rules").
-		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"id": ruleId}}).
+		Where(sq.Eq{"id": ruleId}).
+		Limit(1).
 		QueryRowContext(ctx).
-		Scan(&count); err != nil {
+		Scan(&ruleNamespace); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrNotFoundf("rule %q", ruleId)
+		}
 		return err
-	} else if count < 1 {
-		return errs.ErrNotFoundf("rule %q/%q", namespaceKey, ruleId)
 	}
 
-	if err := s.builder.Select("COUNT(*)").
+	if err := s.builder.Select("namespace_key").
 		From("variants").
-		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"id": variantId}}).
+		Where(sq.Eq{"id": variantId}).
+		Limit(1).
 		QueryRowContext(ctx).
-		Scan(&count); err != nil {
+		Scan(&variantNamespace); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrNotFoundf("variant %q", variantId)
+		}
 		return err
-	} else if count < 1 {
-		return errs.ErrNotFoundf("variant %q/%q", namespaceKey, variantId)
+	}
+
+	if err := s.builder.Select("namespace_key").
+		From("flags").
+		Where(sq.And{sq.Eq{"key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
+		Limit(1).
+		QueryRowContext(ctx).
+		Scan(&flagNamespace); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrNotFoundf("flag %q", flagKey)
+		}
+		return err
+	}
+
+	//nolint:gocritic
+	valid := (ruleNamespace == variantNamespace) && (ruleNamespace == flagNamespace)
+	if !valid {
+		return errs.ErrNotFoundf("namespace does not match for variant %q, rule %q, flag %q/%q", variantId, ruleId, flagNamespace, flagKey)
 	}
 
 	return nil
@@ -474,7 +496,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		}
 	)
 
-	err := s.distributionValidationHelper(ctx, r.NamespaceKey, r.RuleId, r.VariantId)
+	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
 	if err != nil {
 		return nil, err
 	}
@@ -502,7 +524,7 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	err := s.distributionValidationHelper(ctx, r.NamespaceKey, r.RuleId, r.VariantId)
+	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
 	if err != nil {
 		return nil, err
 	}
