@@ -11,6 +11,8 @@ import (
 )
 
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
+	fmt.Println("Starting integration tests...")
+
 	logs := client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
 	_, err := flipt.WithUser("root").
 		WithMountedCache("/logs", logs).
