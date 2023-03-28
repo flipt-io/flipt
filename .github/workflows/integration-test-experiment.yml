@@ -31,13 +31,6 @@ jobs:
           check-latest: true
           cache: true
 
-      - uses: actions/cache@v3
-        with:
-          path: hack/build/
-          key: ${{ runner.os }}-go-hack-build${{ hashFiles('hack/build/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-hack-build
-
       - uses: magefile/mage-action@v2
         with:
           version: latest
