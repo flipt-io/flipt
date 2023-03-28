@@ -747,7 +747,7 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest, _ ...grpc.CallOption) (*flipt.Segment, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespace/%v/segments/%v", v.NamespaceKey, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -777,7 +777,7 @@ func (x *FliptClient) ListSegments(ctx context.Context, v *flipt.ListSegmentRequ
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespace/%v/segments", v.NamespaceKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -809,7 +809,7 @@ func (x *FliptClient) CreateSegment(ctx context.Context, v *flipt.CreateSegmentR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespace/%v/segments", v.NamespaceKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -841,7 +841,7 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespace/%v/segments/%v", v.NamespaceKey, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -868,7 +868,7 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 func (x *FliptClient) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespace/%v/segments/%v", v.NamespaceKey, v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
