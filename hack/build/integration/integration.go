@@ -423,7 +423,7 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 					Rollout:   100,
 				})
 
-				msg := fmt.Sprintf("rpc error: code = NotFound desc = variant %q, rule %q, flag %q/%q in namespace not found", defaultVariant.Id, ruleTwo.Id, "default", "test")
+				msg := fmt.Sprintf("rpc error: code = NotFound desc = variant %q, rule %q, flag %q in namespace %q not found", defaultVariant.Id, ruleTwo.Id, "test", "default")
 				require.EqualError(t, err, msg)
 
 				_, err = client.Flipt().UpdateDistribution(ctx, &flipt.UpdateDistributionRequest{
@@ -435,7 +435,7 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 					Rollout:      50,
 				})
 
-				msg = fmt.Sprintf("rpc error: code = NotFound desc = variant %q, rule %q, flag %q/%q in namespace not found", defaultVariant.Id, ruleTwo.Id, namespace, "test")
+				msg = fmt.Sprintf("rpc error: code = NotFound desc = variant %q, rule %q, flag %q in namespace %q not found", defaultVariant.Id, ruleTwo.Id, "test", namespace)
 				require.EqualError(t, err, msg)
 
 				err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{

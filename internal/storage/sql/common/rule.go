@@ -489,7 +489,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q/%q in namespace", r.VariantId, r.RuleId, r.NamespaceKey, r.FlagKey)
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
 		}
 		return nil, err
 	}
@@ -520,7 +520,7 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q/%q in namespace", r.VariantId, r.RuleId, r.NamespaceKey, r.FlagKey)
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
 		}
 		return nil, err
 	}
