@@ -167,9 +167,9 @@ func Open() (*Database, error) {
 		return nil, fmt.Errorf("creating migrate instance: %w", err)
 	}
 
-	// run down migrations to clear target DB (incase we're reusing)
-	if err := mm.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return nil, fmt.Errorf("running down migrations: %w", err)
+	// run drop to clear target DB (incase we're reusing)
+	if err := mm.Drop(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("running drop: %w", err)
 	}
 
 	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {

@@ -126,14 +126,14 @@ func (m *Migrator) Up(force bool) error {
 	return nil
 }
 
-// Down returns the down migrations (drops the database)
-func (m *Migrator) Down() error {
-	m.logger.Debug("running down migrations...")
+// Drop drops the database
+func (m *Migrator) Drop() error {
+	m.logger.Debug("running drop ...")
 
-	if err := m.migrator.Down(); err != nil {
-		return fmt.Errorf("reverting migrations: %w", err)
+	if err := m.migrator.Drop(); err != nil {
+		return fmt.Errorf("dropping: %w", err)
 	}
 
-	m.logger.Debug("down migrations complete")
+	m.logger.Debug("drop complete")
 	return nil
 }

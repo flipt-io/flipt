@@ -86,7 +86,7 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 	if dropBeforeImport {
 		logger.Debug("dropping tables before import")
 
-		if err := migrator.Down(); err != nil {
+		if err := migrator.Drop(); err != nil {
 			return fmt.Errorf("attempting to drop during import: %w", err)
 		}
 	}
