@@ -32,8 +32,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	var cases []testCase
 
-	for _, protocol := range []string{"http", "grpc"} {
-		address := fmt.Sprintf("%s://flipt:%s", protocol, protocolPorts[protocol])
+	for protocol, port := range protocolPorts {
+		address := fmt.Sprintf("%s://flipt:%s", protocol, port)
 		cases = append(cases,
 			testCase{
 				name:    fmt.Sprintf("%s no authentication", strings.ToUpper(protocol)),
