@@ -3,7 +3,7 @@ module go.flipt.io/flipt/build
 go 1.20
 
 require (
-	dagger.io/dagger v0.5.0
+	dagger.io/dagger v0.5.2
 	github.com/bradleyfalzon/ghinstallation/v2 v2.2.0
 	github.com/containerd/containerd v1.6.18
 	github.com/docker/docker v23.0.1+incompatible
