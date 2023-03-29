@@ -436,37 +436,23 @@ func (s *Store) distributionValidationHelper(ctx context.Context, distributionRe
 	GetVariantId() string
 	GetRuleId() string
 }) error {
-	var ruleNamespace, variantNamespace, flagNamespace string
-
-	if err := s.builder.Select("namespace_key").
+	var count int
+	if err := s.builder.Select("COUNT(*)").
 		From("rules").
-		Where(sq.Eq{"id": distributionRequest.GetRuleId()}).
+		Join("variants USING (namespace_key)").
+		Join("flags USING (namespace_key)").
+		Where(sq.Eq{
+			"namespace_key": distributionRequest.GetNamespaceKey(),
+			"rules.id":      distributionRequest.GetRuleId(),
+			"variants.id":   distributionRequest.GetVariantId(),
+			"flags.\"key\"": distributionRequest.GetFlagKey(),
+		}).
 		QueryRowContext(ctx).
-		Scan(&ruleNamespace); err != nil {
+		Scan(&count); err != nil {
 		return err
 	}
 
-	if err := s.builder.Select("namespace_key").
-		From("variants").
-		Where(sq.Eq{"id": distributionRequest.GetVariantId()}).
-		QueryRowContext(ctx).
-		Scan(&variantNamespace); err != nil {
-		return err
-	}
-
-	if err := s.builder.Select("namespace_key").
-		From("flags").
-		Where(sq.And{sq.Eq{"\"key\"": distributionRequest.GetFlagKey()}, sq.Eq{"namespace_key": distributionRequest.GetNamespaceKey()}}).
-		QueryRowContext(ctx).
-		Scan(&flagNamespace); err != nil {
-		return err
-	}
-
-	// We return the sql.ErrNoRows here so that upstream we can return a more appropriate
-	// error to the client.
-	//nolint:gocritic
-	valid := (ruleNamespace == variantNamespace) && (ruleNamespace == flagNamespace)
-	if !valid {
+	if count < 1 {
 		return sql.ErrNoRows
 	}
 
