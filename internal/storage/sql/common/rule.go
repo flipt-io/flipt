@@ -430,12 +430,17 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, namespaceK
 	return nil
 }
 
-func (s *Store) distributionValidationHelper(ctx context.Context, ruleId, variantId, flagKey, namespaceKey string) error {
+func (s *Store) distributionValidationHelper(ctx context.Context, distributionRequest interface {
+	GetFlagKey() string
+	GetNamespaceKey() string
+	GetVariantId() string
+	GetRuleId() string
+}) error {
 	var ruleNamespace, variantNamespace, flagNamespace string
 
 	if err := s.builder.Select("namespace_key").
 		From("rules").
-		Where(sq.Eq{"id": ruleId}).
+		Where(sq.Eq{"id": distributionRequest.GetRuleId()}).
 		QueryRowContext(ctx).
 		Scan(&ruleNamespace); err != nil {
 		return err
@@ -443,7 +448,7 @@ func (s *Store) distributionValidationHelper(ctx context.Context, ruleId, varian
 
 	if err := s.builder.Select("namespace_key").
 		From("variants").
-		Where(sq.Eq{"id": variantId}).
+		Where(sq.Eq{"id": distributionRequest.GetVariantId()}).
 		QueryRowContext(ctx).
 		Scan(&variantNamespace); err != nil {
 		return err
@@ -451,7 +456,7 @@ func (s *Store) distributionValidationHelper(ctx context.Context, ruleId, varian
 
 	if err := s.builder.Select("namespace_key").
 		From("flags").
-		Where(sq.And{sq.Eq{"\"key\"": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
+		Where(sq.And{sq.Eq{"\"key\"": distributionRequest.GetFlagKey()}, sq.Eq{"namespace_key": distributionRequest.GetNamespaceKey()}}).
 		QueryRowContext(ctx).
 		Scan(&flagNamespace); err != nil {
 		return err
@@ -486,7 +491,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		}
 	)
 
-	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
+	err := s.distributionValidationHelper(ctx, r)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
@@ -517,7 +522,7 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	err := s.distributionValidationHelper(ctx, r.RuleId, r.VariantId, r.FlagKey, r.NamespaceKey)
+	err := s.distributionValidationHelper(ctx, r)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
