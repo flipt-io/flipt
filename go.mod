@@ -36,8 +36,8 @@ require (
 	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.13.0
-	go.flipt.io/flipt/errors v1.19.2
-	go.flipt.io/flipt/rpc/flipt v1.19.2
+	go.flipt.io/flipt/errors v1.19.3
+	go.flipt.io/flipt/rpc/flipt v1.19.3
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
 	go.opentelemetry.io/otel v1.14.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.14.0
@@ -129,6 +129,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
+	go.flipt.io/flipt/sdk/go v0.1.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.14.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
@@ -153,4 +154,5 @@ replace (
 replace (
 	go.flipt.io/flipt/errors => ./errors/
 	go.flipt.io/flipt/rpc/flipt => ./rpc/flipt/
+	go.flipt.io/flipt/sdk/go => ./sdk/go/
 )

@@ -190,6 +190,9 @@ func main() {
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "export to filename (default STDOUT)")
+	exportCmd.Flags().StringVarP(&exportAddress, "export-from-address", "", "", "address of remote Flipt instance to export from (defaults to direct DB export if not supplied)")
+	exportCmd.Flags().StringVarP(&exportToken, "export-from-token", "", "", "client token used to authenticate access to remote Flipt instance when exporting.")
+
 	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
 	importCmd.Flags().BoolVar(&importStdin, "stdin", false, "import from STDIN")
 

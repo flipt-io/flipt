@@ -12,19 +12,19 @@ import (
 
 const defaultBatchSize = 25
 
-type lister interface {
+type Lister interface {
 	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
 	ListSegments(context.Context, *flipt.ListSegmentRequest) (*flipt.SegmentList, error)
 	ListRules(context.Context, *flipt.ListRuleRequest) (*flipt.RuleList, error)
 }
 
 type Exporter struct {
-	store     lister
+	store     Lister
 	batchSize int32
 	namespace string
 }
 
-func NewExporter(store lister, namespace string) *Exporter {
+func NewExporter(store Lister, namespace string) *Exporter {
 	return &Exporter{
 		store:     store,
 		batchSize: defaultBatchSize,
