@@ -89,6 +89,25 @@ INSERT INTO rules_temp (id, flag_key, segment_key, rank, created_at, updated_at)
   SELECT id, flag_key, segment_key, rank, created_at, updated_at
   FROM rules;
 
+-- Copy data from distributions table to temporary distributions table
+CREATE TABLE distributions_temp (
+  id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
+  rule_id VARCHAR(255) NOT NULL REFERENCES rules_temp ON DELETE CASCADE,
+  variant_id VARCHAR(255) NOT NULL REFERENCES variants_temp ON DELETE CASCADE,
+  rollout float DEFAULT 0 NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+INSERT INTO distributions_temp (id, rule_id, variant_id, rollout, created_at, updated_at)
+  SELECT id, rule_id, variant_id, rollout, created_at, updated_at
+  FROM distributions;
+
+-- Drop old distributions table
+DROP TABLE distributions;
+-- Rename temporary distributions table to distributions
+ALTER TABLE distributions_temp RENAME TO distributions;
+
 -- Drop old rules table
 DROP TABLE rules;
 -- Rename temporary rules table to rules
