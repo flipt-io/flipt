@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"gopkg.in/yaml.v2"
 )
@@ -14,14 +13,14 @@ import (
 const defaultBatchSize = 25
 
 type lister interface {
-	ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error)
-	ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error)
-	ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error)
+	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
+	ListSegments(context.Context, *flipt.ListSegmentRequest) (*flipt.SegmentList, error)
+	ListRules(context.Context, *flipt.ListRuleRequest) (*flipt.RuleList, error)
 }
 
 type Exporter struct {
 	store     lister
-	batchSize uint64
+	batchSize int32
 	namespace string
 }
 
@@ -50,18 +49,20 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	// TODO: support all namespaces
 
 	// export flags/variants in batches
-	for batch := uint64(0); remaining; batch++ {
+	for batch := int32(0); remaining; batch++ {
 		resp, err := e.store.ListFlags(
 			ctx,
-			e.namespace,
-			storage.WithPageToken(nextPage),
-			storage.WithLimit(batchSize),
+			&flipt.ListFlagRequest{
+				NamespaceKey: e.namespace,
+				PageToken:    nextPage,
+				Limit:        batchSize,
+			},
 		)
 		if err != nil {
 			return fmt.Errorf("getting flags: %w", err)
 		}
 
-		flags := resp.Results
+		flags := resp.Flags
 		nextPage = resp.NextPageToken
 		remaining = nextPage != ""
 
@@ -95,19 +96,19 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				variantKeys[v.Id] = v.Key
 			}
 
-			// TODO: support all namespaces
-
 			// export rules for flag
 			resp, err := e.store.ListRules(
 				ctx,
-				e.namespace,
-				flag.Key,
+				&flipt.ListRuleRequest{
+					NamespaceKey: e.namespace,
+					FlagKey:      flag.Key,
+				},
 			)
 			if err != nil {
 				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
 
-			rules := resp.Results
+			rules := resp.Rules
 			for _, r := range rules {
 				rule := &Rule{
 					SegmentKey: r.SegmentKey,
@@ -134,18 +135,20 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	// TODO: support all namespaces
 
 	// export segments/constraints in batches
-	for batch := uint64(0); remaining; batch++ {
+	for batch := int32(0); remaining; batch++ {
 		resp, err := e.store.ListSegments(
 			ctx,
-			e.namespace,
-			storage.WithPageToken(nextPage),
-			storage.WithLimit(batchSize),
+			&flipt.ListSegmentRequest{
+				NamespaceKey: e.namespace,
+				PageToken:    nextPage,
+				Limit:        batchSize,
+			},
 		)
 		if err != nil {
 			return fmt.Errorf("getting segments: %w", err)
 		}
 
-		segments := resp.Results
+		segments := resp.Segments
 		nextPage = resp.NextPageToken
 		remaining = nextPage != ""
 

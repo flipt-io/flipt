@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
@@ -68,7 +69,7 @@ func runExport(ctx context.Context, logger *zap.Logger) error {
 
 	defer out.Close()
 
-	exporter := ext.NewExporter(store, storage.DefaultNamespace)
+	exporter := ext.NewExporter(server.New(logger, store), storage.DefaultNamespace)
 	if err := exporter.Export(ctx, out); err != nil {
 		return fmt.Errorf("exporting: %w", err)
 	}
