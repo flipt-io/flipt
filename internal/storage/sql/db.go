@@ -29,25 +29,6 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 		return nil, 0, err
 	}
 
-	sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
-
-	var maxOpenConn int
-	if cfg.Database.MaxOpenConn > 0 {
-		maxOpenConn = cfg.Database.MaxOpenConn
-	}
-
-	// if we're using sqlite, we need to set always set the max open connections to 1
-	// see: https://github.com/mattn/go-sqlite3/issues/274
-	if driver == SQLite {
-		maxOpenConn = 1
-	}
-
-	sql.SetMaxOpenConns(maxOpenConn)
-
-	if cfg.Database.ConnMaxLifetime > 0 {
-		sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
-	}
-
 	err = otelsql.RegisterDBStatsMetrics(sql,
 		otelsql.WithAttributes(
 			attribute.Key("driver").String(driver.String()),
@@ -126,6 +107,25 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	db, err := sql.Open(driverName, url.DSN)
 	if err != nil {
 		return nil, 0, fmt.Errorf("opening db for driver: %s %w", d, err)
+	}
+
+	db.SetMaxIdleConns(cfg.Database.MaxIdleConn)
+
+	var maxOpenConn int
+	if cfg.Database.MaxOpenConn > 0 {
+		maxOpenConn = cfg.Database.MaxOpenConn
+	}
+
+	// if we're using sqlite, we need to set always set the max open connections to 1
+	// see: https://github.com/mattn/go-sqlite3/issues/274
+	if d == SQLite {
+		maxOpenConn = 1
+	}
+
+	db.SetMaxOpenConns(maxOpenConn)
+
+	if cfg.Database.ConnMaxLifetime > 0 {
+		db.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 	}
 
 	return db, d, nil

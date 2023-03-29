@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -25,6 +26,7 @@ var expectedVersions = map[Driver]uint{
 
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
+	db       *sql.DB
 	driver   Driver
 	logger   *zap.Logger
 	migrator *migrate.Migrate
@@ -69,6 +71,7 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 	}
 
 	return &Migrator{
+		db:       sql,
 		migrator: mm,
 		logger:   logger,
 		driver:   driver,
@@ -129,6 +132,14 @@ func (m *Migrator) Up(force bool) error {
 // Drop drops the database
 func (m *Migrator) Drop() error {
 	m.logger.Debug("running drop ...")
+
+	if m.driver == SQLite {
+		// disable foreign keys for sqlite to avoid errors when dropping tables
+		// https://www.sqlite.org/foreignkeys.html#fk_enable
+		// we dont need to worry about re-enabling them since we're dropping the db
+		// and the connection will be closed
+		_, _ = m.db.Exec("PRAGMA foreign_keys = OFF")
+	}
 
 	if err := m.migrator.Drop(); err != nil {
 		return fmt.Errorf("dropping: %w", err)
