@@ -455,6 +455,7 @@ func (s *DBTestSuite) TestCreateRuleAndDistribution() {
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
 		Rollout:   100,
@@ -523,9 +524,11 @@ func (s *DBTestSuite) TestCreateRuleAndDistributionNamespace() {
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
-		RuleId:    rule.Id,
-		VariantId: variant.Id,
-		Rollout:   100,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		RuleId:       rule.Id,
+		VariantId:    variant.Id,
+		Rollout:      100,
 	})
 
 	require.NoError(t, err)
@@ -561,12 +564,13 @@ func (s *DBTestSuite) TestCreateDistribution_NoRule() {
 	assert.NotNil(t, variant)
 
 	_, err = s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+		FlagKey:   flag.Key,
 		RuleId:    "foo",
 		VariantId: variant.Id,
 		Rollout:   100,
 	})
 
-	assert.EqualError(t, err, "rule \"foo\" not found")
+	assert.EqualError(t, err, fmt.Sprintf("variant %q, rule %q, flag %q in namespace %q not found", variant.Id, "foo", flag.Key, "default"))
 }
 
 func (s *DBTestSuite) TestCreateRule_FlagNotFound() {
@@ -689,6 +693,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
+		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
 		Rollout:   100,
@@ -728,6 +733,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.NotZero(t, rule.UpdatedAt)
 
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+		FlagKey:   flag.Key,
 		Id:        distribution.Id,
 		RuleId:    rule.Id,
 		VariantId: variant.Id,
@@ -804,9 +810,11 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.Equal(t, rule.CreatedAt.Seconds, rule.UpdatedAt.Seconds)
 
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
-		RuleId:    rule.Id,
-		VariantId: variant.Id,
-		Rollout:   100,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		RuleId:       rule.Id,
+		VariantId:    variant.Id,
+		Rollout:      100,
 	})
 
 	require.NoError(t, err)
@@ -846,10 +854,12 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	assert.NotZero(t, rule.UpdatedAt)
 
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
-		Id:        distribution.Id,
-		RuleId:    rule.Id,
-		VariantId: variant.Id,
-		Rollout:   10,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Id:           distribution.Id,
+		RuleId:       rule.Id,
+		VariantId:    variant.Id,
+		Rollout:      10,
 	})
 
 	require.NoError(t, err)

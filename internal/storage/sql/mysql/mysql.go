@@ -172,7 +172,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		var merr *mysql.MySQLError
 
 		if errors.As(err, &merr) && merr.Number == constraintForeignKeyErrCode {
-			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
 		}
 
 		return nil, err

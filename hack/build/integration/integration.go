@@ -326,6 +326,19 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 			assert.Equal(t, "everyone", ruleTwo.SegmentKey)
 			assert.Equal(t, int32(2), ruleTwo.Rank)
 
+			// ensure you can not link flags and segments from different namespaces.
+			if namespace != "" {
+				t.Log(`Ensure that rules can only link entities in the same namespace.`)
+				_, err = client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
+					FlagKey:    "test",
+					SegmentKey: "everyone",
+					Rank:       2,
+				})
+
+				msg := "rpc error: code = NotFound desc = flag \"default/test\" or segment \"default/everyone\" not found"
+				require.EqualError(t, err, msg)
+			}
+
 			t.Log(`List rules.`)
 
 			allRules, err := client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
@@ -380,6 +393,62 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 				Rollout:      100,
 			})
 			require.NoError(t, err)
+
+			if namespace != "" {
+				t.Log(`Ensure that distributions and all entities associated with them are part of same namespace.`)
+				var (
+					flagKey = "defaultflag"
+				)
+
+				defaultFlag, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+					Key:         flagKey,
+					Name:        "DefaultFlag",
+					Description: "default flag description",
+					Enabled:     true,
+				})
+				require.NoError(t, err)
+
+				defaultVariant, err := client.Flipt().CreateVariant(ctx, &flipt.CreateVariantRequest{
+					Key:         "defaultvariant",
+					Name:        "DefaultVariant",
+					FlagKey:     flagKey,
+					Description: "default variant description",
+				})
+				require.NoError(t, err)
+
+				_, err = client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+					FlagKey:   "test",
+					RuleId:    ruleTwo.Id,
+					VariantId: defaultVariant.Id,
+					Rollout:   100,
+				})
+
+				msg := fmt.Sprintf("rpc error: code = NotFound desc = variant %q, rule %q, flag %q in namespace %q not found", defaultVariant.Id, ruleTwo.Id, "test", "default")
+				require.EqualError(t, err, msg)
+
+				_, err = client.Flipt().UpdateDistribution(ctx, &flipt.UpdateDistributionRequest{
+					NamespaceKey: namespace,
+					Id:           distribution.Id,
+					FlagKey:      "test",
+					VariantId:    defaultVariant.Id,
+					RuleId:       ruleTwo.Id,
+					Rollout:      50,
+				})
+
+				msg = fmt.Sprintf("rpc error: code = NotFound desc = variant %q, rule %q, flag %q in namespace %q not found", defaultVariant.Id, ruleTwo.Id, "test", namespace)
+				require.EqualError(t, err, msg)
+
+				err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+					Key: defaultFlag.Key,
+				})
+				require.NoError(t, err)
+
+				err = client.Flipt().DeleteVariant(ctx, &flipt.DeleteVariantRequest{
+					Id:      defaultVariant.Id,
+					FlagKey: flagKey,
+				})
+				require.NoError(t, err)
+			}
 
 			assert.Equal(t, ruleTwo.Id, distribution.RuleId)
 			assert.Equal(t, float32(100), distribution.Rollout)

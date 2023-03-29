@@ -345,10 +345,11 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 
 	// 50/50 distribution
 	_, err = s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
-		FlagKey:   flag.Key,
-		RuleId:    rule.Id,
-		VariantId: variant1.Id,
-		Rollout:   50.00,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		RuleId:       rule.Id,
+		VariantId:    variant1.Id,
+		Rollout:      50.00,
 	})
 
 	// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
@@ -357,10 +358,11 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 	require.NoError(t, err)
 
 	_, err = s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
-		FlagKey:   flag.Key,
-		RuleId:    rule.Id,
-		VariantId: variant2.Id,
-		Rollout:   50.00,
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		RuleId:       rule.Id,
+		VariantId:    variant2.Id,
+		Rollout:      50.00,
 	})
 
 	require.NoError(t, err)
