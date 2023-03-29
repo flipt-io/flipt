@@ -430,8 +430,41 @@ func (s *Store) orderRules(ctx context.Context, runner sq.BaseRunner, namespaceK
 	return nil
 }
 
+func (s *Store) distributionValidationHelper(ctx context.Context, distributionRequest interface {
+	GetFlagKey() string
+	GetNamespaceKey() string
+	GetVariantId() string
+	GetRuleId() string
+}) error {
+	var count int
+	if err := s.builder.Select("COUNT(*)").
+		From("rules").
+		Join("variants USING (namespace_key)").
+		Join("flags USING (namespace_key)").
+		Where(sq.Eq{
+			"namespace_key": distributionRequest.GetNamespaceKey(),
+			"rules.id":      distributionRequest.GetRuleId(),
+			"variants.id":   distributionRequest.GetVariantId(),
+			"flags.\"key\"": distributionRequest.GetFlagKey(),
+		}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
+		return err
+	}
+
+	if count < 1 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 // CreateDistribution creates a distribution
 func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	var (
 		now = timestamppb.Now()
 		d   = &flipt.Distribution{
@@ -443,6 +476,14 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 			UpdatedAt: now,
 		}
 	)
+
+	err := s.distributionValidationHelper(ctx, r)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
+		}
+		return nil, err
+	}
 
 	if _, err := s.builder.
 		Insert("distributions").
@@ -463,6 +504,18 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 
 // UpdateDistribution updates an existing distribution
 func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	err := s.distributionValidationHelper(ctx, r)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
+		}
+		return nil, err
+	}
+
 	query := s.builder.Update("distributions").
 		Set("rollout", r.Rollout).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
