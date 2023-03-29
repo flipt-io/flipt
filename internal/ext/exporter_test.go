@@ -117,7 +117,7 @@ func TestExport(t *testing.T) {
 	}
 
 	var (
-		exporter = NewExporter(lister)
+		exporter = NewExporter(lister, storage.DefaultNamespace)
 		b        = new(bytes.Buffer)
 	)
 

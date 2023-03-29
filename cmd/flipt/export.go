@@ -68,7 +68,7 @@ func runExport(ctx context.Context, logger *zap.Logger) error {
 
 	defer out.Close()
 
-	exporter := ext.NewExporter(store)
+	exporter := ext.NewExporter(store, storage.DefaultNamespace)
 	if err := exporter.Export(ctx, out); err != nil {
 		return fmt.Errorf("exporting: %w", err)
 	}

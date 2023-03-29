@@ -22,12 +22,14 @@ type lister interface {
 type Exporter struct {
 	store     lister
 	batchSize uint64
+	namespace string
 }
 
-func NewExporter(store lister) *Exporter {
+func NewExporter(store lister, namespace string) *Exporter {
 	return &Exporter{
 		store:     store,
 		batchSize: defaultBatchSize,
+		namespace: namespace,
 	}
 }
 
@@ -49,7 +51,12 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	// export flags/variants in batches
 	for batch := uint64(0); remaining; batch++ {
-		resp, err := e.store.ListFlags(ctx, storage.DefaultNamespace, storage.WithPageToken(nextPage), storage.WithLimit(batchSize))
+		resp, err := e.store.ListFlags(
+			ctx,
+			e.namespace,
+			storage.WithPageToken(nextPage),
+			storage.WithLimit(batchSize),
+		)
 		if err != nil {
 			return fmt.Errorf("getting flags: %w", err)
 		}
@@ -91,7 +98,11 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			// TODO: support all namespaces
 
 			// export rules for flag
-			resp, err := e.store.ListRules(ctx, storage.DefaultNamespace, flag.Key)
+			resp, err := e.store.ListRules(
+				ctx,
+				e.namespace,
+				flag.Key,
+			)
 			if err != nil {
 				return fmt.Errorf("getting rules for flag %q: %w", flag.Key, err)
 			}
@@ -124,7 +135,12 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	// export segments/constraints in batches
 	for batch := uint64(0); remaining; batch++ {
-		resp, err := e.store.ListSegments(ctx, storage.DefaultNamespace, storage.WithPageToken(nextPage), storage.WithLimit(batchSize))
+		resp, err := e.store.ListSegments(
+			ctx,
+			e.namespace,
+			storage.WithPageToken(nextPage),
+			storage.WithLimit(batchSize),
+		)
 		if err != nil {
 			return fmt.Errorf("getting segments: %w", err)
 		}
