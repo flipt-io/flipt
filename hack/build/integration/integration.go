@@ -519,7 +519,7 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 		})
 
 		t.Run("Meta", func(t *testing.T) {
-			t.Log(`Info()`)
+			t.Log(`Returns Flipt service information.`)
 
 			info, err := client.Meta().GetInfo(ctx)
 			require.NoError(t, err)
@@ -537,7 +537,7 @@ func Core(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
 			assert.True(t, ok, "Missing Go version.")
 			assert.NotEmpty(t, goVersion)
 
-			t.Log(`Config()`)
+			t.Log(`Returns expected configuration.`)
 
 			config, err := client.Meta().GetConfiguration(ctx)
 			require.NoError(t, err)
