@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/build/integration"
+	"go.flipt.io/flipt/build/testing/integration"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	sdkhttp "go.flipt.io/flipt/sdk/go/http"
@@ -57,7 +57,7 @@ func TestFlipt(t *testing.T) {
 			return sdk.New(transport, opts...), *fliptNamespace
 		}
 
-		integration.Core(t, fn)
+		integration.Common(t, fn)
 
 		// run extra tests in authenticated context
 		if *fliptToken != "" {
