@@ -1,50 +1,55 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	"go.flipt.io/flipt/internal/config"
+	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
-	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/internal/storage/sql/mysql"
-	"go.flipt.io/flipt/internal/storage/sql/postgres"
-	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.uber.org/zap"
 )
 
-var (
+type importCommand struct {
 	dropBeforeImport bool
 	importStdin      bool
-)
+}
 
-func runImport(ctx context.Context, logger *zap.Logger, cfg *config.Config, args []string) error {
-	db, driver, err := sql.Open(*cfg)
-	if err != nil {
-		return fmt.Errorf("opening db: %w", err)
+func newImportCommand() *cobra.Command {
+	importCmd := &importCommand{}
+
+	cmd := &cobra.Command{
+		Use:   "import",
+		Short: "Import flags/segments/rules from file",
+		RunE:  importCmd.run,
 	}
 
-	defer db.Close()
+	cmd.Flags().BoolVar(
+		&importCmd.dropBeforeImport,
+		"drop",
+		false,
+		"drop database before import",
+	)
 
-	var store storage.Store
+	cmd.Flags().BoolVar(
+		&importCmd.importStdin,
+		"stdin",
+		false,
+		"import from STDIN",
+	)
 
-	switch driver {
-	case sql.SQLite:
-		store = sqlite.NewStore(db, logger)
-	case sql.Postgres, sql.CockroachDB:
-		store = postgres.NewStore(db, logger)
-	case sql.MySQL:
-		store = mysql.NewStore(db, logger)
-	}
+	return cmd
+}
 
-	var in io.ReadCloser = os.Stdin
+func (c *importCommand) run(cmd *cobra.Command, args []string) error {
+	var (
+		in     io.Reader = os.Stdin
+		logger           = zap.Must(zap.NewDevelopment())
+	)
 
-	if !importStdin {
+	if !c.importStdin {
 		importFilename := args[0]
 		if importFilename == "" {
 			return errors.New("import filename required")
@@ -54,42 +59,20 @@ func runImport(ctx context.Context, logger *zap.Logger, cfg *config.Config, args
 
 		logger.Debug("importing", zap.String("source_path", f))
 
-		in, err = os.Open(f)
+		fi, err := os.Open(f)
 		if err != nil {
 			return fmt.Errorf("opening import file: %w", err)
 		}
+
+		defer fi.Close()
+
+		in = fi
 	}
 
-	defer in.Close()
-
-	migrator, err := sql.NewMigrator(*cfg, logger)
+	server, err := fliptServer(c.dropBeforeImport)
 	if err != nil {
 		return err
 	}
 
-	defer migrator.Close()
-
-	// drop tables if specified
-	if dropBeforeImport {
-		logger.Debug("dropping tables before import")
-
-		if err := migrator.Down(); err != nil {
-			return fmt.Errorf("attempting to drop during import: %w", err)
-		}
-	}
-
-	if err := migrator.Up(forceMigrate); err != nil {
-		return err
-	}
-
-	if _, err := migrator.Close(); err != nil {
-		return fmt.Errorf("closing migrator: %w", err)
-	}
-
-	importer := ext.NewImporter(store)
-	if err := importer.Import(ctx, in); err != nil {
-		return fmt.Errorf("importing: %w", err)
-	}
-
-	return nil
+	return ext.NewImporter(server).Import(cmd.Context(), in)
 }

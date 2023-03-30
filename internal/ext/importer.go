@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type creator interface {
+type Creator interface {
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
@@ -20,12 +20,12 @@ type creator interface {
 }
 
 type Importer struct {
-	store creator
+	creator Creator
 }
 
-func NewImporter(store creator) *Importer {
+func NewImporter(store Creator) *Importer {
 	return &Importer{
-		store: store,
+		creator: store,
 	}
 }
 
@@ -54,7 +54,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			continue
 		}
 
-		flag, err := i.store.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		flag, err := i.creator.CreateFlag(ctx, &flipt.CreateFlagRequest{
 			Key:         f.Key,
 			Name:        f.Name,
 			Description: f.Description,
@@ -80,7 +80,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				}
 			}
 
-			variant, err := i.store.CreateVariant(ctx, &flipt.CreateVariantRequest{
+			variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
 				FlagKey:     f.Key,
 				Key:         v.Key,
 				Name:        v.Name,
@@ -104,7 +104,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			continue
 		}
 
-		segment, err := i.store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+		segment, err := i.creator.CreateSegment(ctx, &flipt.CreateSegmentRequest{
 			Key:         s.Key,
 			Name:        s.Name,
 			Description: s.Description,
@@ -120,7 +120,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				continue
 			}
 
-			_, err := i.store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+			_, err := i.creator.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
 				SegmentKey: s.Key,
 				Type:       flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
 				Property:   c.Property,
@@ -148,7 +148,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				continue
 			}
 
-			rule, err := i.store.CreateRule(ctx, &flipt.CreateRuleRequest{
+			rule, err := i.creator.CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:    f.Key,
 				SegmentKey: r.SegmentKey,
 				Rank:       int32(r.Rank),
@@ -168,7 +168,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
 				}
 
-				_, err := i.store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+				_, err := i.creator.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
 					FlagKey:   f.Key,
 					RuleId:    rule.Id,
 					VariantId: variant.Id,

@@ -86,33 +86,74 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		out = fi
 	}
 
-	// Use direct DB access when remote address is not supplied.
-	if c.address == "" {
-		logger, cfg := buildConfig()
-
-		db, driver, err := sql.Open(*cfg)
-		if err != nil {
-			return fmt.Errorf("opening db: %w", err)
-		}
-
-		defer db.Close()
-
-		var store storage.Store
-
-		switch driver {
-		case sql.SQLite:
-			store = sqlite.NewStore(db, logger)
-		case sql.Postgres, sql.CockroachDB:
-			store = postgres.NewStore(db, logger)
-		case sql.MySQL:
-			store = mysql.NewStore(db, logger)
-		}
-
-		return export(cmd.Context(), out, server.New(logger, store))
+	// Use client when remote address is configured.
+	if c.address != "" {
+		return export(cmd.Context(), out, fliptClient(logger, c.address, c.token))
 	}
 
-	// Otherwise, use the Go SDK to access Flipt remotely.
-	addr, err := url.Parse(c.address)
+	server, err := fliptServer(false)
+	if err != nil {
+		return err
+	}
+
+	return export(cmd.Context(), out, server)
+}
+
+func export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
+	return ext.NewExporter(lister, storage.DefaultNamespace).Export(ctx, dst)
+}
+
+func fliptServer(dropBeforeMigrate bool) (*server.Server, error) {
+	// Otherwise, go direct to the DB using Flipt configuration file.
+	logger, cfg := buildConfig()
+
+	db, driver, err := sql.Open(*cfg)
+	if err != nil {
+		return nil, fmt.Errorf("opening db: %w", err)
+	}
+
+	defer db.Close()
+
+	var store storage.Store
+
+	switch driver {
+	case sql.SQLite:
+		store = sqlite.NewStore(db, logger)
+	case sql.Postgres, sql.CockroachDB:
+		store = postgres.NewStore(db, logger)
+	case sql.MySQL:
+		store = mysql.NewStore(db, logger)
+	}
+
+	migrator, err := sql.NewMigrator(*cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	defer migrator.Close()
+
+	// drop tables if specified
+	if dropBeforeMigrate {
+		logger.Debug("dropping tables")
+
+		if err := migrator.Down(); err != nil {
+			return nil, fmt.Errorf("attempting to drop: %w", err)
+		}
+	}
+
+	if err := migrator.Up(forceMigrate); err != nil {
+		return nil, err
+	}
+
+	if _, err := migrator.Close(); err != nil {
+		return nil, fmt.Errorf("closing migrator: %w", err)
+	}
+
+	return server.New(logger, store), nil
+}
+
+func fliptClient(logger *zap.Logger, address, token string) *sdk.Flipt {
+	addr, err := url.Parse(address)
 	if err != nil {
 		logger.Fatal("Export address is invalid", zap.Error(err))
 	}
@@ -120,7 +161,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	var transport sdk.Transport
 	switch addr.Scheme {
 	case "http":
-		transport = sdkhttp.NewTransport(c.address)
+		transport = sdkhttp.NewTransport(address)
 	case "grpc":
 		conn, err := grpc.Dial(addr.Host,
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -132,15 +173,11 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	}
 
 	var opts []sdk.Option
-	if c.token != "" {
+	if token != "" {
 		opts = append(opts, sdk.WithClientTokenProvider(
-			sdk.StaticClientTokenProvider(c.token),
+			sdk.StaticClientTokenProvider(token),
 		))
 	}
 
-	return export(cmd.Context(), out, sdk.New(transport, opts...).Flipt())
-}
-
-func export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, storage.DefaultNamespace).Export(ctx, dst)
+	return sdk.New(transport, opts...).Flipt()
 }

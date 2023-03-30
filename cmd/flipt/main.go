@@ -66,21 +66,6 @@ func main() {
 			},
 		}
 
-		importCmd = &cobra.Command{
-			Use:   "import",
-			Short: "Import flags/segments/rules from file",
-			Run: func(cmd *cobra.Command, args []string) {
-				logger, cfg := buildConfig()
-				defer func() {
-					_ = logger.Sync()
-				}()
-
-				if err := runImport(cmd.Context(), logger, cfg, args); err != nil {
-					logger.Fatal("import", zap.Error(err))
-				}
-			},
-		}
-
 		migrateCmd = &cobra.Command{
 			Use:   "migrate",
 			Short: "Run pending database migrations",
@@ -125,12 +110,9 @@ func main() {
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
-	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
-	importCmd.Flags().BoolVar(&importStdin, "stdin", false, "import from STDIN")
-
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(newExportCommand())
-	rootCmd.AddCommand(importCmd)
+	rootCmd.AddCommand(newImportCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
