@@ -100,10 +100,12 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
-	server, err := fliptServer(false)
+	server, cleanup, err := fliptServer(false)
 	if err != nil {
 		return err
 	}
+
+	defer cleanup()
 
 	return c.export(cmd.Context(), out, server)
 }
@@ -112,15 +114,13 @@ func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Li
 	return ext.NewExporter(lister, c.namespace).Export(ctx, dst)
 }
 
-func fliptServer(dropBeforeMigrate bool) (*server.Server, error) {
+func fliptServer(dropBeforeMigrate bool) (*server.Server, func(), error) {
 	logger, cfg := buildConfig()
 
 	db, driver, err := sql.Open(*cfg)
 	if err != nil {
-		return nil, fmt.Errorf("opening db: %w", err)
+		return nil, nil, fmt.Errorf("opening db: %w", err)
 	}
-
-	defer db.Close()
 
 	var store storage.Store
 
@@ -135,7 +135,7 @@ func fliptServer(dropBeforeMigrate bool) (*server.Server, error) {
 
 	migrator, err := sql.NewMigrator(*cfg, logger)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer migrator.Close()
@@ -145,19 +145,19 @@ func fliptServer(dropBeforeMigrate bool) (*server.Server, error) {
 		logger.Debug("dropping tables")
 
 		if err := migrator.Down(); err != nil {
-			return nil, fmt.Errorf("attempting to drop: %w", err)
+			return nil, nil, fmt.Errorf("attempting to drop: %w", err)
 		}
 	}
 
 	if err := migrator.Up(forceMigrate); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if _, err := migrator.Close(); err != nil {
-		return nil, fmt.Errorf("closing migrator: %w", err)
+		return nil, nil, fmt.Errorf("closing migrator: %w", err)
 	}
 
-	return server.New(logger, store), nil
+	return server.New(logger, store), func() { _ = db.Close() }, nil
 }
 
 func fliptClient(logger *zap.Logger, address, token string) *sdk.Flipt {

@@ -111,10 +111,12 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
-	server, err := fliptServer(c.dropBeforeImport)
+	server, cleanup, err := fliptServer(c.dropBeforeImport)
 	if err != nil {
 		return err
 	}
+
+	defer cleanup()
 
 	return ext.NewImporter(
 		server,
