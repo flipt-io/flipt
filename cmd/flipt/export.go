@@ -25,9 +25,10 @@ import (
 )
 
 type exportCommand struct {
-	filename string
-	address  string
-	token    string
+	filename  string
+	address   string
+	token     string
+	namespace string
 }
 
 func newExportCommand() *cobra.Command {
@@ -60,6 +61,13 @@ func newExportCommand() *cobra.Command {
 		"client token used to authenticate access to remote Flipt instance when exporting.",
 	)
 
+	cmd.Flags().StringVarP(
+		&export.namespace,
+		"namespace", "n",
+		"default",
+		"source namespace for exported resources.",
+	)
+
 	return cmd
 }
 
@@ -88,7 +96,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 	// Use client when remote address is configured.
 	if c.address != "" {
-		return export(cmd.Context(), out, fliptClient(logger, c.address, c.token))
+		return c.export(cmd.Context(), out, fliptClient(logger, c.address, c.token))
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
@@ -97,11 +105,11 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return export(cmd.Context(), out, server)
+	return c.export(cmd.Context(), out, server)
 }
 
-func export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, storage.DefaultNamespace).Export(ctx, dst)
+func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
+	return ext.NewExporter(lister, c.namespace).Export(ctx, dst)
 }
 
 func fliptServer(dropBeforeMigrate bool) (*server.Server, error) {

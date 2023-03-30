@@ -2,6 +2,7 @@ package testing
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -142,17 +143,20 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			flags = append(flags, "--namespace", conf.namespace, "--create-namespace")
 		}
 
-		// create unique instance for test case
-		fliptToTest := flipt.
-			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(nil)
+		var (
+			// create unique instance for test case
+			fliptToTest = flipt.
+					WithEnvVariable("UNIQUE", uuid.New().String()).
+					WithExec(nil)
 
-		importCmd := append([]string{"/bin/flipt", "import"}, append(flags, "import.yaml")...)
+			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "import.yaml")...)
+			seed      = base.File("hack/build/testing/integration/readonly/testdata/seed.yaml")
+		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			// copy testdata import yaml from base
-			WithFile("import.yaml", base.File("hack/build/testing/integration/readonly/testdata/seed.yaml")).
+			WithFile("import.yaml", seed).
 			WithServiceBinding("flipt", fliptToTest).
 			// it appears it takes a little while for Flipt to come online
 			// For the go tests they have to compile and that seems to be enough
@@ -165,7 +169,46 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 		}
 
 		// run readonly suite against imported Flipt instance
-		return suite(ctx, "readonly", base, fliptToTest, conf)()
+		if err := suite(ctx, "readonly", base, fliptToTest, conf)(); err != nil {
+			return err
+		}
+
+		// attempt to export and compare generated yaml
+		flags = []string{"--export-from-address", conf.address}
+		if conf.token != "" {
+			flags = append(flags, "--export-from-token", conf.token)
+		}
+
+		if conf.namespace != "" {
+			flags = append(flags, "--namespace", conf.namespace)
+		}
+
+		expected, err := seed.Contents(ctx)
+		if err != nil {
+			return err
+		}
+
+		// use target flipt binary to invoke import
+		generated, err := flipt.
+			WithEnvVariable("UNIQUE", uuid.New().String()).
+			WithServiceBinding("flipt", fliptToTest).
+			WithExec(append([]string{"/bin/flipt", "export"}, flags...)).
+			Stdout(ctx)
+		if err != nil {
+			return err
+		}
+
+		if expected != generated {
+			fmt.Println("Unexpected difference in exported output:")
+			fmt.Println("Expected:")
+			fmt.Println(expected + "\n")
+			fmt.Println("Found:")
+			fmt.Println(generated)
+
+			return errors.New("Exported yaml did not match.")
+		}
+
+		return nil
 	}
 }
 
