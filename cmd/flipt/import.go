@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/sql"
@@ -24,7 +25,7 @@ var (
 	importStdin      bool
 )
 
-func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
+func runImport(ctx context.Context, logger *zap.Logger, cfg *config.Config, args []string) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer cancel()

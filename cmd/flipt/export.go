@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/storage"
@@ -31,7 +32,7 @@ var (
 	exportToken    string
 )
 
-func runExport(ctx context.Context, logger *zap.Logger) error {
+func runExport(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	defer cancel()
