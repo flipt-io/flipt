@@ -21,7 +21,7 @@ func FuzzImport(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, in []byte) {
-		importer := NewImporter(&mockCreator{}, storage.DefaultNamespace)
+		importer := NewImporter(&mockCreator{}, storage.DefaultNamespace, false)
 		if err := importer.Import(context.Background(), bytes.NewReader(in)); err != nil {
 			t.Skip()
 		}

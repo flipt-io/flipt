@@ -7,10 +7,14 @@ import (
 	"io"
 
 	"go.flipt.io/flipt/rpc/flipt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gopkg.in/yaml.v2"
 )
 
 type Creator interface {
+	GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error)
+	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
@@ -22,12 +26,14 @@ type Creator interface {
 type Importer struct {
 	creator   Creator
 	namespace string
+	createNS  bool
 }
 
-func NewImporter(store Creator, namespace string) *Importer {
+func NewImporter(store Creator, namespace string, createNS bool) *Importer {
 	return &Importer{
 		creator:   store,
 		namespace: namespace,
+		createNS:  createNS,
 	}
 }
 
@@ -39,6 +45,23 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 	if err := dec.Decode(doc); err != nil {
 		return fmt.Errorf("unmarshalling document: %w", err)
+	}
+
+	if i.namespace != "" && i.namespace != "default" {
+		_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
+			Key: i.namespace,
+		})
+
+		if status.Code(err) != codes.NotFound {
+			return err
+		}
+
+		_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+			Key: i.namespace,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	var (
@@ -176,10 +199,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				}
 
 				_, err := i.creator.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
-					FlagKey:   f.Key,
-					RuleId:    rule.Id,
-					VariantId: variant.Id,
-					Rollout:   d.Rollout,
+					FlagKey:      f.Key,
+					RuleId:       rule.Id,
+					VariantId:    variant.Id,
+					Rollout:      d.Rollout,
+					NamespaceKey: i.namespace,
 				})
 
 				if err != nil {

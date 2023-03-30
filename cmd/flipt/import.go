@@ -9,7 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
-	"go.flipt.io/flipt/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -18,6 +17,8 @@ type importCommand struct {
 	importStdin      bool
 	address          string
 	token            string
+	namespace        string
+	createNamespace  bool
 }
 
 func newImportCommand() *cobra.Command {
@@ -57,6 +58,20 @@ func newImportCommand() *cobra.Command {
 		"client token used to authenticate access to remote Flipt instance when importing.",
 	)
 
+	cmd.Flags().StringVarP(
+		&importCmd.namespace,
+		"namespace", "n",
+		"default",
+		"destination namespace for imported resources.",
+	)
+
+	cmd.Flags().BoolVar(
+		&importCmd.createNamespace,
+		"create-namespace",
+		false,
+		"create the namespace if it does not exist.",
+	)
+
 	return cmd
 }
 
@@ -90,7 +105,8 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	if c.address != "" {
 		return ext.NewImporter(
 			fliptClient(logger, c.address, c.token),
-			storage.DefaultNamespace,
+			c.namespace,
+			c.createNamespace,
 		).Import(cmd.Context(), in)
 	}
 
@@ -100,5 +116,9 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return ext.NewImporter(server, storage.DefaultNamespace).Import(cmd.Context(), in)
+	return ext.NewImporter(
+		server,
+		c.namespace,
+		c.createNamespace,
+	).Import(cmd.Context(), in)
 }

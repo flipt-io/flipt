@@ -1,4 +1,4 @@
-package integration
+package api
 
 import (
 	"context"
@@ -13,10 +13,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func Authenticated(t *testing.T, fn func(t *testing.T) (sdk.SDK, string)) {
+func Authenticated(t *testing.T, client sdk.SDK) {
 	t.Run("Authentication Methods", func(t *testing.T) {
-		client, _ := fn(t)
-
 		ctx := context.Background()
 
 		t.Log(`List methods (ensure at-least 1).`)

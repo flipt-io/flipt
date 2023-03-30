@@ -1,0 +1,44 @@
+flags:
+  - key: color
+    name: Color
+    description: This flag represents two colors.
+    enabled: true
+    variants:
+      - key: red
+        name: Red
+      - key: blue
+        name: Blue
+    rules:
+      - segment: team-red
+        rank: 1
+        distributions:
+          - variant: red
+            rollout: 100
+      - segment: team-blue
+        rank: 2
+        distributions:
+          - variant: blue
+            rollout: 100
+segments:
+  - key: team-red
+    name: "Red Team"
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: favourite_color
+        operator: eq
+        value: red
+      - type: STRING_COMPARISON_TYPE
+        property: favourite_color
+        operator: neq
+        value: blue
+  - key: team-blue
+    name: "Blue Team"
+    constraints:
+      - type: STRING_COMPARISON_TYPE
+        property: favourite_color
+        operator: eq
+        value: blue
+      - type: STRING_COMPARISON_TYPE
+        property: favourite_color
+        operator: neq
+        value: red
