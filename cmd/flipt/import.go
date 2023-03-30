@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -74,5 +75,5 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return ext.NewImporter(server).Import(cmd.Context(), in)
+	return ext.NewImporter(server, storage.DefaultNamespace).Import(cmd.Context(), in)
 }

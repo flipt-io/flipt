@@ -20,12 +20,14 @@ type Creator interface {
 }
 
 type Importer struct {
-	creator Creator
+	creator   Creator
+	namespace string
 }
 
-func NewImporter(store Creator) *Importer {
+func NewImporter(store Creator, namespace string) *Importer {
 	return &Importer{
-		creator: store,
+		creator:   store,
+		namespace: namespace,
 	}
 }
 
@@ -55,10 +57,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		flag, err := i.creator.CreateFlag(ctx, &flipt.CreateFlagRequest{
-			Key:         f.Key,
-			Name:        f.Name,
-			Description: f.Description,
-			Enabled:     f.Enabled,
+			Key:          f.Key,
+			Name:         f.Name,
+			Description:  f.Description,
+			Enabled:      f.Enabled,
+			NamespaceKey: i.namespace,
 		})
 
 		if err != nil {
@@ -81,11 +84,12 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			}
 
 			variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
-				FlagKey:     f.Key,
-				Key:         v.Key,
-				Name:        v.Name,
-				Description: v.Description,
-				Attachment:  string(out),
+				FlagKey:      f.Key,
+				Key:          v.Key,
+				Name:         v.Name,
+				Description:  v.Description,
+				Attachment:   string(out),
+				NamespaceKey: i.namespace,
 			})
 
 			if err != nil {
@@ -105,10 +109,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		segment, err := i.creator.CreateSegment(ctx, &flipt.CreateSegmentRequest{
-			Key:         s.Key,
-			Name:        s.Name,
-			Description: s.Description,
-			MatchType:   flipt.MatchType(flipt.MatchType_value[s.MatchType]),
+			Key:          s.Key,
+			Name:         s.Name,
+			Description:  s.Description,
+			MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
+			NamespaceKey: i.namespace,
 		})
 
 		if err != nil {
@@ -121,11 +126,12 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			}
 
 			_, err := i.creator.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-				SegmentKey: s.Key,
-				Type:       flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
-				Property:   c.Property,
-				Operator:   c.Operator,
-				Value:      c.Value,
+				SegmentKey:   s.Key,
+				Type:         flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
+				Property:     c.Property,
+				Operator:     c.Operator,
+				Value:        c.Value,
+				NamespaceKey: i.namespace,
 			})
 
 			if err != nil {
@@ -149,9 +155,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			}
 
 			rule, err := i.creator.CreateRule(ctx, &flipt.CreateRuleRequest{
-				FlagKey:    f.Key,
-				SegmentKey: r.SegmentKey,
-				Rank:       int32(r.Rank),
+				FlagKey:      f.Key,
+				SegmentKey:   r.SegmentKey,
+				Rank:         int32(r.Rank),
+				NamespaceKey: i.namespace,
 			})
 
 			if err != nil {
