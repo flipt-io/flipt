@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
 	"path/filepath"
-	"syscall"
 
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/ext"
@@ -26,18 +24,6 @@ var (
 )
 
 func runImport(ctx context.Context, logger *zap.Logger, cfg *config.Config, args []string) error {
-	ctx, cancel := context.WithCancel(ctx)
-
-	defer cancel()
-
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-interrupt
-		cancel()
-	}()
-
 	db, driver, err := sql.Open(*cfg)
 	if err != nil {
 		return fmt.Errorf("opening db: %w", err)

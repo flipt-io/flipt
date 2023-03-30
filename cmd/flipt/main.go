@@ -132,7 +132,18 @@ func main() {
 	rootCmd.AddCommand(newExportCommand())
 	rootCmd.AddCommand(importCmd)
 
-	if err := rootCmd.Execute(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-interrupt
+		cancel()
+	}()
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fatal("execute", zap.Error(err))
 	}
 }
@@ -198,13 +209,6 @@ func buildConfig() (*zap.Logger, *config.Config) {
 }
 
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-	defer signal.Stop(interrupt)
-
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
 	if isConsole {
@@ -327,16 +331,11 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	// starts REST http(s) server
 	g.Go(httpServer.Run)
 
-	select {
-	case <-interrupt:
-		break
-	case <-ctx.Done():
-		break
-	}
+	// block until root context is cancelled
+	// and shutdown has been signalled
+	<-ctx.Done()
 
 	logger.Info("shutting down...")
-
-	cancel()
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()

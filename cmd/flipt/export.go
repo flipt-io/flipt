@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -66,9 +64,29 @@ func newExportCommand() *cobra.Command {
 }
 
 func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
-	// Switch on the presence of the export address
-	// Use direct DB access if not supplied
-	// Otherwise, use the Go SDK to access Flipt remotely.
+	var (
+		// default to stdout
+		out    io.Writer = os.Stdout
+		logger           = zap.Must(zap.NewDevelopment())
+	)
+
+	// export to file
+	if c.filename != "" {
+		logger.Debug("exporting", zap.String("destination_path", c.filename))
+
+		fi, err := os.Create(c.filename)
+		if err != nil {
+			return fmt.Errorf("creating output file: %w", err)
+		}
+
+		defer fi.Close()
+
+		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
+
+		out = fi
+	}
+
+	// Use direct DB access when remote address is not supplied.
 	if c.address == "" {
 		logger, cfg := buildConfig()
 
@@ -90,11 +108,10 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 			store = mysql.NewStore(db, logger)
 		}
 
-		return c.export(cmd.Context(), logger, server.New(logger, store))
+		return export(cmd.Context(), out, server.New(logger, store))
 	}
 
-	logger := zap.Must(zap.NewDevelopment())
-
+	// Otherwise, use the Go SDK to access Flipt remotely.
 	addr, err := url.Parse(c.address)
 	if err != nil {
 		logger.Fatal("Export address is invalid", zap.Error(err))
@@ -121,45 +138,9 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		))
 	}
 
-	client := sdk.New(transport, opts...)
-
-	return c.export(cmd.Context(), logger, client.Flipt())
+	return export(cmd.Context(), out, sdk.New(transport, opts...).Flipt())
 }
 
-func (c *exportCommand) export(ctx context.Context, logger *zap.Logger, lister ext.Lister) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-interrupt
-		cancel()
-	}()
-
-	// default to stdout
-	var out io.WriteCloser = os.Stdout
-
-	// export to file
-	if c.filename != "" {
-		logger.Debug("exporting", zap.String("destination_path", c.filename))
-
-		var err error
-		out, err = os.Create(c.filename)
-		if err != nil {
-			return fmt.Errorf("creating output file: %w", err)
-		}
-
-		fmt.Fprintf(out, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
-
-		defer out.Close()
-	}
-
-	exporter := ext.NewExporter(lister, storage.DefaultNamespace)
-	if err := exporter.Export(ctx, out); err != nil {
-		return fmt.Errorf("exporting: %w", err)
-	}
-
-	return nil
+func export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
+	return ext.NewExporter(lister, storage.DefaultNamespace).Export(ctx, dst)
 }
