@@ -154,6 +154,10 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			// copy testdata import yaml from base
 			WithFile("import.yaml", base.File("hack/build/testing/integration/readonly/testdata/seed.yaml")).
 			WithServiceBinding("flipt", fliptToTest).
+			// it appears it takes a little while for Flipt to come online
+			// For the go tests they have to compile and that seems to be enough
+			// time for the target Flipt to come up.
+			// However, in this case the flipt binary is prebuilt and needs a little sleep.
 			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 5 && %s", strings.Join(importCmd, " "))}).
 			ExitCode(ctx)
 		if err != nil {

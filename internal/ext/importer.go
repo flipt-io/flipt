@@ -47,7 +47,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		return fmt.Errorf("unmarshalling document: %w", err)
 	}
 
-	if i.namespace != "" && i.namespace != "default" {
+	if i.createNS && i.namespace != "" && i.namespace != "default" {
 		_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
 			Key: i.namespace,
 		})
