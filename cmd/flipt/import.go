@@ -75,22 +75,29 @@ func runImport(ctx context.Context, logger *zap.Logger, args []string) error {
 
 	defer in.Close()
 
+	// drop tables if specified
+	if dropBeforeImport {
+		logger.Debug("dropping tables before import")
+		migrator, err := sql.NewMigrator(*cfg, logger)
+		if err != nil {
+			return err
+		}
+
+		if err := migrator.Drop(); err != nil {
+			return fmt.Errorf("attempting to drop during import: %w", err)
+		}
+
+		if _, err := migrator.Close(); err != nil {
+			return fmt.Errorf("closing migrator: %w", err)
+		}
+	}
+
 	migrator, err := sql.NewMigrator(*cfg, logger)
 	if err != nil {
 		return err
 	}
 
 	defer migrator.Close()
-
-	// drop tables if specified
-	if dropBeforeImport {
-		logger.Debug("dropping tables before import")
-
-		if err := migrator.Down(); err != nil {
-			return fmt.Errorf("attempting to drop during import: %w", err)
-		}
-	}
-
 	if err := migrator.Up(forceMigrate); err != nil {
 		return err
 	}
