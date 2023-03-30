@@ -59,84 +59,6 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  api:
-    needs: build
-    name: Test API
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      DEBIAN_FRONTEND: noninteractive
-
-    steps:
-      - name: Install dependencies
-        run: |
-          echo 'tzdata tzdata/Areas select Etc' | sudo  debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
-          sudo apt-get update && \
-          sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg uuid-runtime
-
-      - uses: actions/checkout@v3
-
-      - uses: actions/download-artifact@v3
-        id: download
-        with:
-          name: flipt
-          path: bin/
-
-      - run: chmod +x flipt
-        working-directory: bin/
-
-      - name: Run API tests
-        run: ./test/api.sh
-
-      - name: Upload the log
-        uses: actions/upload-artifact@v3
-        if: ${{ always() }}
-        with:
-          name: api.log
-          path: out.log
-          retention-days: 5
-
-  api_with_auth:
-    needs: build
-    name: Test API (with authentication enabled)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      DEBIAN_FRONTEND: noninteractive
-
-    steps:
-      - name: Install dependencies
-        run: |
-          echo 'tzdata tzdata/Areas select Etc' | sudo debconf-set-selections; \
-          echo 'tzdata tzdata/Zones/Etc select UTC' | sudo debconf-set-selections; \
-          sudo apt-get update && \
-          sudo apt-get install -y \
-          tzdata bats curl wget jq gnupg uuid-runtime
-
-      - uses: actions/checkout@v3
-
-      - uses: actions/download-artifact@v3
-        id: download
-        with:
-          name: flipt
-          path: bin/
-
-      - run: chmod +x flipt
-        working-directory: bin/
-
-      - name: Run API tests
-        run: ./test/api_with_auth.sh
-
-      - name: Upload the log
-        uses: actions/upload-artifact@v3
-        if: ${{ always() }}
-        with:
-          name: api-with-auth.log
-          path: out.log
-          retention-days: 5
-
   cli:
     needs: build
     name: Test CLI
@@ -166,3 +88,31 @@ jobs:
 
       - name: Run CLI tests
         run: ./test/cli.bats
+
+  test:
+    name: API Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: test:integration
+          workdir: hack/build
+
+      - name: Upload Flipt Service Logs
+        uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: Flipt Service Logs
+          path: hack/build/logs
+          retention-days: 5

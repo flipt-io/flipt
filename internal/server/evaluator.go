@@ -105,15 +105,17 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	var (
-		startTime = time.Now().UTC()
-		flagAttr  = metrics.AttributeFlag.String(r.FlagKey)
+		startTime     = time.Now().UTC()
+		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
 	)
 
-	metrics.EvaluationsTotal.Add(ctx, 1, flagAttr)
+	metrics.EvaluationsTotal.Add(ctx, 1, namespaceAttr, flagAttr)
 
 	defer func() {
 		if err == nil {
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				namespaceAttr,
 				flagAttr,
 				metrics.AttributeMatch.Bool(resp.Match),
 				metrics.AttributeSegment.String(resp.SegmentKey),
@@ -121,12 +123,13 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 				metrics.AttributeValue.String(resp.Value),
 			)
 		} else {
-			metrics.EvaluationErrorsTotal.Add(ctx, 1, flagAttr)
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, namespaceAttr, flagAttr)
 		}
 
 		metrics.EvaluationLatency.Record(
 			ctx,
 			float64(time.Since(startTime).Nanoseconds())/1e6,
+			namespaceAttr,
 			flagAttr,
 		)
 	}()
