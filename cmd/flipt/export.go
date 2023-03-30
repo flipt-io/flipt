@@ -91,6 +91,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		return export(cmd.Context(), out, fliptClient(logger, c.address, c.token))
 	}
 
+	// Otherwise, go direct to the DB using Flipt configuration file.
 	server, err := fliptServer(false)
 	if err != nil {
 		return err
@@ -104,7 +105,6 @@ func export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
 }
 
 func fliptServer(dropBeforeMigrate bool) (*server.Server, error) {
-	// Otherwise, go direct to the DB using Flipt configuration file.
 	logger, cfg := buildConfig()
 
 	db, driver, err := sql.Open(*cfg)

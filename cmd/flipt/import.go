@@ -16,6 +16,8 @@ import (
 type importCommand struct {
 	dropBeforeImport bool
 	importStdin      bool
+	address          string
+	token            string
 }
 
 func newImportCommand() *cobra.Command {
@@ -39,6 +41,20 @@ func newImportCommand() *cobra.Command {
 		"stdin",
 		false,
 		"import from STDIN",
+	)
+
+	cmd.Flags().StringVar(
+		&importCmd.address,
+		"import-to-address",
+		"",
+		"address of remote Flipt instance to import intp (defaults to direct DB import if not supplied)",
+	)
+
+	cmd.Flags().StringVar(
+		&importCmd.token,
+		"import-to-token",
+		"",
+		"client token used to authenticate access to remote Flipt instance when importing.",
 	)
 
 	return cmd
@@ -70,6 +86,15 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		in = fi
 	}
 
+	// Use client when remote address is configured.
+	if c.address != "" {
+		return ext.NewImporter(
+			fliptClient(logger, c.address, c.token),
+			storage.DefaultNamespace,
+		).Import(cmd.Context(), in)
+	}
+
+	// Otherwise, go direct to the DB using Flipt configuration file.
 	server, err := fliptServer(c.dropBeforeImport)
 	if err != nil {
 		return err
