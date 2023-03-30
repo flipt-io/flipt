@@ -170,12 +170,6 @@ func Open() (*Database, error) {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	if driver == fliptsql.MySQL {
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
-			return nil, fmt.Errorf("enabling foreign key checks: %w", err)
-		}
-	}
-
 	db.SetConnMaxLifetime(2 * time.Minute)
 	db.SetConnMaxIdleTime(time.Minute)
 
@@ -210,10 +204,6 @@ func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
 	case fliptsql.MySQL:
 		dr, err = ms.WithInstance(db, &ms.Config{})
 
-		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
-			return nil, fmt.Errorf("disabling foreign key checks: %w", err)
-		}
 	default:
 		return nil, fmt.Errorf("unknown driver: %s", driver)
 	}

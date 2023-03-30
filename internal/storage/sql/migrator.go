@@ -133,12 +133,16 @@ func (m *Migrator) Up(force bool) error {
 func (m *Migrator) Drop() error {
 	m.logger.Debug("running drop ...")
 
-	if m.driver == SQLite {
+	switch m.driver {
+	case SQLite:
 		// disable foreign keys for sqlite to avoid errors when dropping tables
 		// https://www.sqlite.org/foreignkeys.html#fk_enable
 		// we dont need to worry about re-enabling them since we're dropping the db
 		// and the connection will be closed
 		_, _ = m.db.Exec("PRAGMA foreign_keys = OFF")
+	case MySQL:
+		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
+		_, _ = m.db.Exec("SET FOREIGN_KEY_CHECKS = 0;")
 	}
 
 	if err := m.migrator.Drop(); err != nil {
