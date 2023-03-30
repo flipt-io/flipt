@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"go.flipt.io/flipt/internal/config"
+	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/storage"
@@ -26,31 +26,52 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var (
-	exportFilename string
-	exportAddress  string
-	exportToken    string
-)
+type exportCommand struct {
+	filename string
+	address  string
+	token    string
+}
 
-func runExport(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
-	ctx, cancel := context.WithCancel(ctx)
+func newExportCommand() *cobra.Command {
+	export := &exportCommand{}
 
-	defer cancel()
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Export flags/segments/rules to file/stdout",
+		RunE:  export.run,
+	}
 
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+	cmd.Flags().StringVarP(
+		&export.filename,
+		"output", "o",
+		"",
+		"export to filename (default STDOUT)",
+	)
 
-	go func() {
-		<-interrupt
-		cancel()
-	}()
+	cmd.Flags().StringVarP(
+		&export.address,
+		"export-from-address", "",
+		"",
+		"address of remote Flipt instance to export from (defaults to direct DB export if not supplied)",
+	)
 
-	var lister ext.Lister
+	cmd.Flags().StringVarP(
+		&export.token,
+		"export-from-token", "",
+		"",
+		"client token used to authenticate access to remote Flipt instance when exporting.",
+	)
 
+	return cmd
+}
+
+func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	// Switch on the presence of the export address
 	// Use direct DB access if not supplied
 	// Otherwise, use the Go SDK to access Flipt remotely.
-	if exportAddress == "" {
+	if c.address == "" {
+		logger, cfg := buildConfig()
+
 		db, driver, err := sql.Open(*cfg)
 		if err != nil {
 			return fmt.Errorf("opening db: %w", err)
@@ -69,47 +90,63 @@ func runExport(ctx context.Context, logger *zap.Logger, cfg *config.Config) erro
 			store = mysql.NewStore(db, logger)
 		}
 
-		lister = server.New(logger, store)
-	} else {
-		addr, err := url.Parse(exportAddress)
-		if err != nil {
-			logger.Fatal("Export address is invalid", zap.Error(err))
-		}
-
-		var transport sdk.Transport
-		switch addr.Scheme {
-		case "http":
-			transport = sdkhttp.NewTransport(exportAddress)
-		case "grpc":
-			conn, err := grpc.Dial(addr.Host,
-				grpc.WithTransportCredentials(insecure.NewCredentials()))
-			if err != nil {
-				logger.Fatal("Failed to dial Flipt", zap.Error(err))
-			}
-
-			transport = sdkgrpc.NewTransport(conn)
-		}
-
-		var opts []sdk.Option
-		if exportToken != "" {
-			opts = append(opts, sdk.WithClientTokenProvider(
-				sdk.StaticClientTokenProvider(exportToken),
-			))
-		}
-
-		client := sdk.New(transport, opts...)
-		lister = client.Flipt()
+		return c.export(cmd.Context(), logger, server.New(logger, store))
 	}
+
+	logger := zap.Must(zap.NewDevelopment())
+
+	addr, err := url.Parse(c.address)
+	if err != nil {
+		logger.Fatal("Export address is invalid", zap.Error(err))
+	}
+
+	var transport sdk.Transport
+	switch addr.Scheme {
+	case "http":
+		transport = sdkhttp.NewTransport(c.address)
+	case "grpc":
+		conn, err := grpc.Dial(addr.Host,
+			grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			logger.Fatal("Failed to dial Flipt", zap.Error(err))
+		}
+
+		transport = sdkgrpc.NewTransport(conn)
+	}
+
+	var opts []sdk.Option
+	if c.token != "" {
+		opts = append(opts, sdk.WithClientTokenProvider(
+			sdk.StaticClientTokenProvider(c.token),
+		))
+	}
+
+	client := sdk.New(transport, opts...)
+
+	return c.export(cmd.Context(), logger, client.Flipt())
+}
+
+func (c *exportCommand) export(ctx context.Context, logger *zap.Logger, lister ext.Lister) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-interrupt
+		cancel()
+	}()
 
 	// default to stdout
 	var out io.WriteCloser = os.Stdout
 
 	// export to file
-	if exportFilename != "" {
-		logger.Debug("exporting", zap.String("destination_path", exportFilename))
+	if c.filename != "" {
+		logger.Debug("exporting", zap.String("destination_path", c.filename))
 
 		var err error
-		out, err = os.Create(exportFilename)
+		out, err = os.Create(c.filename)
 		if err != nil {
 			return fmt.Errorf("creating output file: %w", err)
 		}

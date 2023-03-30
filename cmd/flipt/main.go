@@ -66,21 +66,6 @@ func main() {
 			},
 		}
 
-		exportCmd = &cobra.Command{
-			Use:   "export",
-			Short: "Export flags/segments/rules to file/stdout",
-			Run: func(cmd *cobra.Command, _ []string) {
-				logger, cfg := buildConfig()
-				defer func() {
-					_ = logger.Sync()
-				}()
-
-				if err := runExport(cmd.Context(), logger, cfg); err != nil {
-					logger.Fatal("export", zap.Error(err))
-				}
-			},
-		}
-
 		importCmd = &cobra.Command{
 			Use:   "import",
 			Short: "Import flags/segments/rules from file",
@@ -140,15 +125,11 @@ func main() {
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
-	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "export to filename (default STDOUT)")
-	exportCmd.Flags().StringVarP(&exportAddress, "export-from-address", "", "", "address of remote Flipt instance to export from (defaults to direct DB export if not supplied)")
-	exportCmd.Flags().StringVarP(&exportToken, "export-from-token", "", "", "client token used to authenticate access to remote Flipt instance when exporting.")
-
 	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
 	importCmd.Flags().BoolVar(&importStdin, "stdin", false, "import from STDIN")
 
 	rootCmd.AddCommand(migrateCmd)
-	rootCmd.AddCommand(exportCmd)
+	rootCmd.AddCommand(newExportCommand())
 	rootCmd.AddCommand(importCmd)
 
 	if err := rootCmd.Execute(); err != nil {
