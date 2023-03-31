@@ -124,7 +124,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	if c.dropBeforeImport {
 		logger.Debug("dropping tables")
 
-		if err := migrator.Down(); err != nil {
+		if err := migrator.Drop(); err != nil {
 			return fmt.Errorf("attempting to drop: %w", err)
 		}
 	}

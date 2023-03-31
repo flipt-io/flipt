@@ -1,6 +1,9 @@
 ignore:
   - "rpc/flipt/flipt_grpc.pb.*"
   - "rpc/flipt/flipt.pb.*"
+  - "rpc/flipt/auth"
+  - "rpc/flipt/meta"
   - "examples"
   - "ui"
   - "_tools"
+  - "hack"

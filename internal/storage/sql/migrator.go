@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -25,6 +26,7 @@ var expectedVersions = map[Driver]uint{
 
 // Migrator is responsible for migrating the database schema
 type Migrator struct {
+	db       *sql.DB
 	driver   Driver
 	logger   *zap.Logger
 	migrator *migrate.Migrate
@@ -69,6 +71,7 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 	}
 
 	return &Migrator{
+		db:       sql,
 		migrator: mm,
 		logger:   logger,
 		driver:   driver,
@@ -126,14 +129,26 @@ func (m *Migrator) Up(force bool) error {
 	return nil
 }
 
-// Down returns the down migrations (drops the database)
-func (m *Migrator) Down() error {
-	m.logger.Debug("running down migrations...")
+// Drop drops the database
+func (m *Migrator) Drop() error {
+	m.logger.Debug("running drop ...")
 
-	if err := m.migrator.Down(); err != nil {
-		return fmt.Errorf("reverting migrations: %w", err)
+	switch m.driver {
+	case SQLite:
+		// disable foreign keys for sqlite to avoid errors when dropping tables
+		// https://www.sqlite.org/foreignkeys.html#fk_enable
+		// we dont need to worry about re-enabling them since we're dropping the db
+		// and the connection will be closed
+		_, _ = m.db.Exec("PRAGMA foreign_keys = OFF")
+	case MySQL:
+		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
+		_, _ = m.db.Exec("SET FOREIGN_KEY_CHECKS = 0;")
 	}
 
-	m.logger.Debug("down migrations complete")
+	if err := m.migrator.Drop(); err != nil {
+		return fmt.Errorf("dropping: %w", err)
+	}
+
+	m.logger.Debug("drop complete")
 	return nil
 }

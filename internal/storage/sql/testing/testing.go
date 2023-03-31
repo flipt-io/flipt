@@ -131,45 +131,29 @@ func Open() (*Database, error) {
 		return nil, fmt.Errorf("opening db: %w", err)
 	}
 
-	var dr database.Driver
-
-	switch driver {
-	case fliptsql.SQLite:
-		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-	case fliptsql.Postgres:
-		dr, err = pg.WithInstance(db, &pg.Config{})
-	case fliptsql.CockroachDB:
-		dr, err = cockroachdb.WithInstance(db, &cockroachdb.Config{})
-	case fliptsql.MySQL:
-		dr, err = ms.WithInstance(db, &ms.Config{})
-
-		// https://stackoverflow.com/questions/5452760/how-to-truncate-a-foreign-key-constrained-table
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;"); err != nil {
-			return nil, fmt.Errorf("disabling foreign key checks: %w", err)
-		}
-	default:
-		return nil, fmt.Errorf("unknown driver: %s", proto)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("creating driver: %w", err)
-	}
-
-	// source migrations from embedded config/migrations package
-	// relative to the specific driver
-	sourceDriver, err := iofs.New(migrations.FS, driver.String())
-	if err != nil {
-		return nil, fmt.Errorf("constructing migration source driver (db driver %q): %w", driver.String(), err)
-	}
-
-	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
+	mm, err := newMigrator(db, driver)
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate instance: %w", err)
 	}
 
-	// run down migrations to clear target DB (incase we're reusing)
-	if err := mm.Down(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return nil, fmt.Errorf("running down migrations: %w", err)
+	// run drop to clear target DB (incase we're reusing)
+	if err := mm.Drop(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("running drop: %w", err)
+	}
+
+	if err := db.Close(); err != nil {
+		return nil, fmt.Errorf("closing db: %w", err)
+	}
+
+	// need new instance after drop
+	db, driver, err = fliptsql.Open(cfg, fliptsql.WithMigrate, fliptsql.WithSSLDisabled)
+	if err != nil {
+		return nil, fmt.Errorf("opening db: %w", err)
+	}
+
+	mm, err = newMigrator(db, driver)
+	if err != nil {
+		return nil, fmt.Errorf("creating migrate instance: %w", err)
 	}
 
 	if err := mm.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
@@ -184,12 +168,6 @@ func Open() (*Database, error) {
 	db, driver, err = fliptsql.Open(cfg, fliptsql.WithSSLDisabled)
 	if err != nil {
 		return nil, fmt.Errorf("opening db: %w", err)
-	}
-
-	if driver == fliptsql.MySQL {
-		if _, err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;"); err != nil {
-			return nil, fmt.Errorf("enabling foreign key checks: %w", err)
-		}
 	}
 
 	db.SetConnMaxLifetime(2 * time.Minute)
@@ -208,6 +186,40 @@ func Open() (*Database, error) {
 		Container: container,
 		cleanup:   cleanup,
 	}, nil
+}
+
+func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
+	var (
+		dr  database.Driver
+		err error
+	)
+
+	switch driver {
+	case fliptsql.SQLite:
+		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+	case fliptsql.Postgres:
+		dr, err = pg.WithInstance(db, &pg.Config{})
+	case fliptsql.CockroachDB:
+		dr, err = cockroachdb.WithInstance(db, &cockroachdb.Config{})
+	case fliptsql.MySQL:
+		dr, err = ms.WithInstance(db, &ms.Config{})
+
+	default:
+		return nil, fmt.Errorf("unknown driver: %s", driver)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("creating driver: %w", err)
+	}
+
+	// source migrations from embedded config/migrations package
+	// relative to the specific driver
+	sourceDriver, err := iofs.New(migrations.FS, driver.String())
+	if err != nil {
+		return nil, fmt.Errorf("constructing migration source driver (db driver %q): %w", driver.String(), err)
+	}
+
+	return migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
 }
 
 type DBContainer struct {
