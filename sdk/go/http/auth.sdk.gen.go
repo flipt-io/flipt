@@ -52,7 +52,7 @@ func (x *publicAuthenticationServiceClient) ListAuthenticationMethods(ctx contex
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -88,7 +88,7 @@ func (x *authenticationServiceClient) GetAuthenticationSelf(ctx context.Context,
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -115,7 +115,7 @@ func (x *authenticationServiceClient) GetAuthentication(ctx context.Context, v *
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -145,7 +145,7 @@ func (x *authenticationServiceClient) ListAuthentications(ctx context.Context, v
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -172,7 +172,7 @@ func (x *authenticationServiceClient) DeleteAuthentication(ctx context.Context, 
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -214,7 +214,7 @@ func (x *authenticationServiceClient) ExpireAuthenticationSelf(ctx context.Conte
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -255,7 +255,7 @@ func (x *authenticationMethodTokenServiceClient) CreateToken(ctx context.Context
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -292,7 +292,7 @@ func (x *authenticationMethodOIDCServiceClient) AuthorizeURL(ctx context.Context
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -321,7 +321,7 @@ func (x *authenticationMethodOIDCServiceClient) Callback(ctx context.Context, v 
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -362,7 +362,7 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil

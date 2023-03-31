@@ -46,7 +46,7 @@ func (x *FliptClient) Evaluate(ctx context.Context, v *flipt.EvaluationRequest, 
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -78,7 +78,7 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -105,7 +105,7 @@ func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ..
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -135,7 +135,7 @@ func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -167,7 +167,7 @@ func (x *FliptClient) CreateFlag(ctx context.Context, v *flipt.CreateFlagRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -199,7 +199,7 @@ func (x *FliptClient) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -226,7 +226,7 @@ func (x *FliptClient) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -258,7 +258,7 @@ func (x *FliptClient) CreateVariant(ctx context.Context, v *flipt.CreateVariantR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -290,7 +290,7 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -317,7 +317,7 @@ func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -344,7 +344,7 @@ func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ..
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -374,7 +374,7 @@ func (x *FliptClient) ListRules(ctx context.Context, v *flipt.ListRuleRequest, _
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -406,7 +406,7 @@ func (x *FliptClient) CreateRule(ctx context.Context, v *flipt.CreateRuleRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -438,7 +438,7 @@ func (x *FliptClient) UpdateRule(ctx context.Context, v *flipt.UpdateRuleRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -470,7 +470,7 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -497,7 +497,7 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -529,7 +529,7 @@ func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDis
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -561,7 +561,7 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -589,7 +589,7 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -616,7 +616,7 @@ func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -646,7 +646,7 @@ func (x *FliptClient) ListSegments(ctx context.Context, v *flipt.ListSegmentRequ
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -678,7 +678,7 @@ func (x *FliptClient) CreateSegment(ctx context.Context, v *flipt.CreateSegmentR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -710,7 +710,7 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -737,7 +737,7 @@ func (x *FliptClient) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -769,7 +769,7 @@ func (x *FliptClient) CreateConstraint(ctx context.Context, v *flipt.CreateConst
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -801,7 +801,7 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -828,7 +828,7 @@ func (x *FliptClient) DeleteConstraint(ctx context.Context, v *flipt.DeleteConst
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil

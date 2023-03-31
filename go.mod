@@ -36,8 +36,8 @@ require (
 	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.13.0
-	go.flipt.io/flipt/errors v1.19.2
-	go.flipt.io/flipt/rpc/flipt v1.19.2
+	go.flipt.io/flipt/errors v1.19.3
+	go.flipt.io/flipt/rpc/flipt v1.19.3
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
 	go.opentelemetry.io/otel v1.14.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.14.0
