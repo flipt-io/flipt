@@ -18,7 +18,7 @@ import (
 var (
 	protocolPorts = map[string]string{"http": "8080", "grpc": "9000"}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
-	sema          = make(chan struct{}, 10)
+	sema          = make(chan struct{}, 6)
 )
 
 type testConfig struct {
@@ -162,7 +162,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			// For the go tests they have to compile and that seems to be enough
 			// time for the target Flipt to come up.
 			// However, in this case the flipt binary is prebuilt and needs a little sleep.
-			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 5 && %s", strings.Join(importCmd, " "))}).
+			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
 			ExitCode(ctx)
 		if err != nil {
 			return err
@@ -216,6 +216,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		_, err := base.
 			WithServiceBinding("flipt", flipt).
 			WithWorkdir(path.Join("hack/build/testing/integration", dir)).
+			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithExec(append([]string{"go", "test", "-v", "-race"}, append(flags, ".")...)).
 			ExitCode(ctx)
 

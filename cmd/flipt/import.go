@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/storage/sql"
 	"go.uber.org/zap"
 )
 
@@ -110,8 +111,34 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		).Import(cmd.Context(), in)
 	}
 
+	logger, cfg := buildConfig()
+
+	migrator, err := sql.NewMigrator(*cfg, logger)
+	if err != nil {
+		return err
+	}
+
+	defer migrator.Close()
+
+	// drop tables if specified
+	if c.dropBeforeImport {
+		logger.Debug("dropping tables")
+
+		if err := migrator.Down(); err != nil {
+			return fmt.Errorf("attempting to drop: %w", err)
+		}
+	}
+
+	if err := migrator.Up(forceMigrate); err != nil {
+		return err
+	}
+
+	if _, err := migrator.Close(); err != nil {
+		return fmt.Errorf("closing migrator: %w", err)
+	}
+
 	// Otherwise, go direct to the DB using Flipt configuration file.
-	server, cleanup, err := fliptServer(c.dropBeforeImport)
+	server, cleanup, err := fliptServer(logger, cfg)
 	if err != nil {
 		return err
 	}
