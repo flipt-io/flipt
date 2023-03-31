@@ -10,7 +10,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"sync"
 	"syscall"
 	"text/template"
 	"time"
@@ -34,9 +33,6 @@ import (
 )
 
 var (
-	cfg         *config.Config
-	cfgWarnings []string
-
 	cfgPath      string
 	forceMigrate bool
 	version      = "dev"
@@ -47,50 +43,22 @@ var (
 	banner       string
 )
 
+var fatal = zap.Must(zap.NewProduction()).Fatal
+
 func main() {
-	var (
-		once         sync.Once
-		loggerConfig = zap.Config{
-			Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-			Development: false,
-			Encoding:    "console",
-			EncoderConfig: zapcore.EncoderConfig{
-				// Keys can be anything except the empty string.
-				TimeKey:        "T",
-				LevelKey:       "L",
-				NameKey:        "N",
-				CallerKey:      zapcore.OmitKey,
-				FunctionKey:    zapcore.OmitKey,
-				MessageKey:     "M",
-				StacktraceKey:  zapcore.OmitKey,
-				LineEnding:     zapcore.DefaultLineEnding,
-				EncodeLevel:    zapcore.CapitalColorLevelEncoder,
-				EncodeTime:     zapcore.RFC3339TimeEncoder,
-				EncodeDuration: zapcore.StringDurationEncoder,
-				EncodeCaller:   zapcore.ShortCallerEncoder,
-			},
-			OutputPaths:      []string{"stdout"},
-			ErrorOutputPaths: []string{"stderr"},
-		}
-		l      *zap.Logger
-		logger = func() *zap.Logger {
-			once.Do(func() { l = zap.Must(loggerConfig.Build()) })
-			return l
-		}
-	)
-
-	defer func() {
-		_ = logger().Sync()
-	}()
-
 	var (
 		rootCmd = &cobra.Command{
 			Use:     "flipt",
 			Short:   "Flipt is a modern feature flag solution",
 			Version: version,
 			Run: func(cmd *cobra.Command, _ []string) {
-				if err := run(cmd.Context(), logger()); err != nil {
-					logger().Fatal("flipt", zap.Error(err))
+				logger, cfg := buildConfig()
+				defer func() {
+					_ = logger.Sync()
+				}()
+
+				if err := run(cmd.Context(), logger, cfg); err != nil {
+					logger.Fatal("flipt", zap.Error(err))
 				}
 			},
 			CompletionOptions: cobra.CompletionOptions{
@@ -98,39 +66,24 @@ func main() {
 			},
 		}
 
-		exportCmd = &cobra.Command{
-			Use:   "export",
-			Short: "Export flags/segments/rules to file/stdout",
-			Run: func(cmd *cobra.Command, _ []string) {
-				if err := runExport(cmd.Context(), logger()); err != nil {
-					logger().Fatal("export", zap.Error(err))
-				}
-			},
-		}
-
-		importCmd = &cobra.Command{
-			Use:   "import",
-			Short: "Import flags/segments/rules from file",
-			Run: func(cmd *cobra.Command, args []string) {
-				if err := runImport(cmd.Context(), logger(), args); err != nil {
-					logger().Fatal("import", zap.Error(err))
-				}
-			},
-		}
-
 		migrateCmd = &cobra.Command{
 			Use:   "migrate",
 			Short: "Run pending database migrations",
 			Run: func(cmd *cobra.Command, _ []string) {
-				migrator, err := sql.NewMigrator(*cfg, logger())
+				logger, cfg := buildConfig()
+				defer func() {
+					_ = logger.Sync()
+				}()
+
+				migrator, err := sql.NewMigrator(*cfg, logger)
 				if err != nil {
-					logger().Fatal("initializing migrator", zap.Error(err))
+					logger.Fatal("initializing migrator", zap.Error(err))
 				}
 
 				defer migrator.Close()
 
 				if err := migrator.Up(true); err != nil {
-					logger().Fatal("running migrator", zap.Error(err))
+					logger.Fatal("running migrator", zap.Error(err))
 				}
 			},
 		}
@@ -147,80 +100,103 @@ func main() {
 		Date:      date,
 		GoVersion: goVersion,
 	}); err != nil {
-		logger().Fatal("executing template", zap.Error(err))
+		fatal("executing template", zap.Error(err))
 	}
 
 	banner = buf.String()
-
-	cobra.OnInitialize(func() {
-		// read in config
-		res, err := config.Load(cfgPath)
-		if err != nil {
-			logger().Fatal("loading configuration", zap.Error(err))
-		}
-
-		cfg = res.Config
-		cfgWarnings = res.Warnings
-
-		loggerConfig.EncoderConfig.TimeKey = cfg.Log.Keys.Time
-		loggerConfig.EncoderConfig.LevelKey = cfg.Log.Keys.Level
-		loggerConfig.EncoderConfig.MessageKey = cfg.Log.Keys.Message
-		// log to file if enabled
-		if cfg.Log.File != "" {
-			loggerConfig.OutputPaths = []string{cfg.Log.File}
-		}
-
-		// parse/set log level
-		loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
-		if err != nil {
-			logger().Fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
-		}
-
-		if cfg.Log.Encoding > config.LogEncodingConsole {
-			loggerConfig.Encoding = cfg.Log.Encoding.String()
-
-			// don't encode with colors if not using console log output
-			loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-		}
-	})
 
 	rootCmd.SetVersionTemplate(banner)
 	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
-	exportCmd.Flags().StringVarP(&exportFilename, "output", "o", "", "export to filename (default STDOUT)")
-	importCmd.Flags().BoolVar(&dropBeforeImport, "drop", false, "drop database before import")
-	importCmd.Flags().BoolVar(&importStdin, "stdin", false, "import from STDIN")
-
 	rootCmd.AddCommand(migrateCmd)
-	rootCmd.AddCommand(exportCmd)
-	rootCmd.AddCommand(importCmd)
+	rootCmd.AddCommand(newExportCommand())
+	rootCmd.AddCommand(newImportCommand())
 
-	if err := rootCmd.Execute(); err != nil {
-		logger().Fatal("execute", zap.Error(err))
-	}
-}
-
-func run(ctx context.Context, logger *zap.Logger) error {
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-	defer signal.Stop(interrupt)
 
+	go func() {
+		<-interrupt
+		cancel()
+	}()
+
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		fatal("execute", zap.Error(err))
+	}
+}
+
+func buildConfig() (*zap.Logger, *config.Config) {
+	// read in config
+	res, err := config.Load(cfgPath)
+	if err != nil {
+		fatal("loading configuration", zap.Error(err))
+	}
+
+	cfg := res.Config
+
+	loggerConfig := zap.Config{
+		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development: false,
+		Encoding:    "console",
+		EncoderConfig: zapcore.EncoderConfig{
+			// Keys can be anything except the empty string.
+			TimeKey:        cfg.Log.Keys.Time,
+			LevelKey:       cfg.Log.Keys.Level,
+			NameKey:        "N",
+			CallerKey:      zapcore.OmitKey,
+			FunctionKey:    zapcore.OmitKey,
+			MessageKey:     cfg.Log.Keys.Message,
+			StacktraceKey:  zapcore.OmitKey,
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+			EncodeTime:     zapcore.RFC3339TimeEncoder,
+			EncodeDuration: zapcore.StringDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+
+	// log to file if enabled
+	if cfg.Log.File != "" {
+		loggerConfig.OutputPaths = []string{cfg.Log.File}
+	}
+
+	// parse/set log level
+	loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
+	if err != nil {
+		fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
+	}
+
+	if cfg.Log.Encoding > config.LogEncodingConsole {
+		loggerConfig.Encoding = cfg.Log.Encoding.String()
+
+		// don't encode with colors if not using console log output
+		loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	}
+
+	logger := zap.Must(loggerConfig.Build())
+
+	// print out any warnings from config parsing
+	for _, warning := range res.Warnings {
+		logger.Warn("configuration warning", zap.String("message", warning))
+	}
+
+	return logger, cfg
+}
+
+func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	isConsole := cfg.Log.Encoding == config.LogEncodingConsole
 
 	if isConsole {
 		color.Cyan("%s\n", banner)
 	} else {
 		logger.Info("flipt starting", zap.String("version", version), zap.String("commit", commit), zap.String("date", date), zap.String("go_version", goVersion))
-	}
-
-	// print out any warnings from config parsing
-	for _, warning := range cfgWarnings {
-		logger.Warn("configuration warning", zap.String("message", warning))
 	}
 
 	var (
@@ -266,7 +242,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 
 	g, ctx := errgroup.WithContext(ctx)
 
-	if err := initLocalState(); err != nil {
+	if err := initLocalState(cfg); err != nil {
 		logger.Debug("disabling telemetry, state directory not accessible", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
 		cfg.Meta.TelemetryEnabled = false
 	} else {
@@ -337,16 +313,11 @@ func run(ctx context.Context, logger *zap.Logger) error {
 	// starts REST http(s) server
 	g.Go(httpServer.Run)
 
-	select {
-	case <-interrupt:
-		break
-	case <-ctx.Done():
-		break
-	}
+	// block until root context is cancelled
+	// and shutdown has been signalled
+	<-ctx.Done()
 
 	logger.Info("shutting down...")
-
-	cancel()
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
@@ -358,7 +329,7 @@ func run(ctx context.Context, logger *zap.Logger) error {
 }
 
 // check if state directory already exists, create it if not
-func initLocalState() error {
+func initLocalState(cfg *config.Config) error {
 	if cfg.Meta.StateDirectory == "" {
 		configDir, err := os.UserConfigDir()
 		if err != nil {

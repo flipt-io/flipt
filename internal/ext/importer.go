@@ -7,10 +7,14 @@ import (
 	"io"
 
 	"go.flipt.io/flipt/rpc/flipt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"gopkg.in/yaml.v2"
 )
 
-type creator interface {
+type Creator interface {
+	GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error)
+	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
@@ -20,12 +24,16 @@ type creator interface {
 }
 
 type Importer struct {
-	store creator
+	creator   Creator
+	namespace string
+	createNS  bool
 }
 
-func NewImporter(store creator) *Importer {
+func NewImporter(store Creator, namespace string, createNS bool) *Importer {
 	return &Importer{
-		store: store,
+		creator:   store,
+		namespace: namespace,
+		createNS:  createNS,
 	}
 }
 
@@ -37,6 +45,23 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 	if err := dec.Decode(doc); err != nil {
 		return fmt.Errorf("unmarshalling document: %w", err)
+	}
+
+	if i.createNS && i.namespace != "" && i.namespace != "default" {
+		_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
+			Key: i.namespace,
+		})
+
+		if status.Code(err) != codes.NotFound {
+			return err
+		}
+
+		_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+			Key: i.namespace,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	var (
@@ -54,11 +79,12 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			continue
 		}
 
-		flag, err := i.store.CreateFlag(ctx, &flipt.CreateFlagRequest{
-			Key:         f.Key,
-			Name:        f.Name,
-			Description: f.Description,
-			Enabled:     f.Enabled,
+		flag, err := i.creator.CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Key:          f.Key,
+			Name:         f.Name,
+			Description:  f.Description,
+			Enabled:      f.Enabled,
+			NamespaceKey: i.namespace,
 		})
 
 		if err != nil {
@@ -80,12 +106,13 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				}
 			}
 
-			variant, err := i.store.CreateVariant(ctx, &flipt.CreateVariantRequest{
-				FlagKey:     f.Key,
-				Key:         v.Key,
-				Name:        v.Name,
-				Description: v.Description,
-				Attachment:  string(out),
+			variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
+				FlagKey:      f.Key,
+				Key:          v.Key,
+				Name:         v.Name,
+				Description:  v.Description,
+				Attachment:   string(out),
+				NamespaceKey: i.namespace,
 			})
 
 			if err != nil {
@@ -104,11 +131,12 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			continue
 		}
 
-		segment, err := i.store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
-			Key:         s.Key,
-			Name:        s.Name,
-			Description: s.Description,
-			MatchType:   flipt.MatchType(flipt.MatchType_value[s.MatchType]),
+		segment, err := i.creator.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+			Key:          s.Key,
+			Name:         s.Name,
+			Description:  s.Description,
+			MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
+			NamespaceKey: i.namespace,
 		})
 
 		if err != nil {
@@ -120,12 +148,13 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				continue
 			}
 
-			_, err := i.store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-				SegmentKey: s.Key,
-				Type:       flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
-				Property:   c.Property,
-				Operator:   c.Operator,
-				Value:      c.Value,
+			_, err := i.creator.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+				SegmentKey:   s.Key,
+				Type:         flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
+				Property:     c.Property,
+				Operator:     c.Operator,
+				Value:        c.Value,
+				NamespaceKey: i.namespace,
 			})
 
 			if err != nil {
@@ -148,10 +177,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				continue
 			}
 
-			rule, err := i.store.CreateRule(ctx, &flipt.CreateRuleRequest{
-				FlagKey:    f.Key,
-				SegmentKey: r.SegmentKey,
-				Rank:       int32(r.Rank),
+			rule, err := i.creator.CreateRule(ctx, &flipt.CreateRuleRequest{
+				FlagKey:      f.Key,
+				SegmentKey:   r.SegmentKey,
+				Rank:         int32(r.Rank),
+				NamespaceKey: i.namespace,
 			})
 
 			if err != nil {
@@ -168,11 +198,12 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
 				}
 
-				_, err := i.store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
-					FlagKey:   f.Key,
-					RuleId:    rule.Id,
-					VariantId: variant.Id,
-					Rollout:   d.Rollout,
+				_, err := i.creator.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+					FlagKey:      f.Key,
+					RuleId:       rule.Id,
+					VariantId:    variant.Id,
+					Rollout:      d.Rollout,
+					NamespaceKey: i.namespace,
 				})
 
 				if err != nil {

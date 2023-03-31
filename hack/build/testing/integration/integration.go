@@ -1,4 +1,4 @@
-package integration_test
+package integration
 
 import (
 	"flag"
@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/build/integration"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	sdkhttp "go.flipt.io/flipt/sdk/go/http"
@@ -21,47 +20,40 @@ var (
 	fliptNamespace = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
 )
 
-func TestFlipt(t *testing.T) {
+func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, ns string, authenticated bool)) {
 	var transport sdk.Transport
-	protocol, addr, _ := strings.Cut(*fliptAddr, "://")
+
+	protocol, host, _ := strings.Cut(*fliptAddr, "://")
 	switch protocol {
 	case "grpc":
-		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.Dial(host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		require.NoError(t, err)
 
 		transport = sdkgrpc.NewTransport(conn)
 	case "http", "https":
-		transport = sdkhttp.NewTransport(*fliptAddr)
+		transport = sdkhttp.NewTransport(fmt.Sprintf("%s://%s", protocol, host))
 	default:
-		t.Fatalf("Unexpected flipt address protocol %q", *fliptAddr)
+		t.Fatalf("Unexpected flipt address protocol %s://%s", protocol, host)
 	}
 
 	var (
-		name = fmt.Sprintf("(%s) No Authentication", protocol)
-		opts []sdk.Option
+		opts           []sdk.Option
+		authentication = false
 	)
 
-	if *fliptToken != "" {
-		name = fmt.Sprintf("(%s) With Static Token Authentication", protocol)
+	if authentication = *fliptToken != ""; authentication {
 		opts = append(opts, sdk.WithClientTokenProvider(
 			sdk.StaticClientTokenProvider(*fliptToken),
 		))
 	}
 
+	namespace := "default"
 	if *fliptNamespace != "" {
-		name = fmt.Sprintf("%s [Namespace %q]", name, *fliptNamespace)
+		namespace = *fliptNamespace
 	}
 
+	name := fmt.Sprintf("[Protocol %q; Namespace %q; Authentication %v]", protocol, namespace, authentication)
 	t.Run(name, func(t *testing.T) {
-		fn := func(t *testing.T) (sdk.SDK, string) {
-			return sdk.New(transport, opts...), *fliptNamespace
-		}
-
-		integration.Core(t, fn)
-
-		// run extra tests in authenticated context
-		if *fliptToken != "" {
-			integration.Authenticated(t, fn)
-		}
+		fn(t, sdk.New(transport, opts...), namespace, authentication)
 	})
 }

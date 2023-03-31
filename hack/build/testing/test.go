@@ -1,4 +1,4 @@
-package test
+package testing
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"dagger.io/dagger"
 )
 
-func Test(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
+func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
 	// create Redis service container
 	redisSrv := client.Container().
 		From("redis").
