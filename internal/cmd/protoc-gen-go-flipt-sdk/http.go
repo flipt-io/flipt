@@ -289,7 +289,7 @@ func generateHTTPMethod(g *protogen.GeneratedFile, m mappings, method *protogen.
 		return
 	}
 
-	g.P("if err := ", "(protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal", "(respData, &output); err != nil { return nil, err }")
+	g.P("if err := (", protojson("UnmarshalOptions"), "{DiscardUnknown: true}).Unmarshal", "(respData, &output); err != nil { return nil, err }")
 	g.P("return &output, nil")
 	g.P("}\n")
 }
