@@ -134,13 +134,13 @@ func api(ctx context.Context, base, flipt *dagger.Container, conf testConfig) fu
 func importExport(ctx context.Context, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
-		flags := []string{"--import-to-address", conf.address}
+		flags := []string{"--address", conf.address}
 		if conf.token != "" {
-			flags = append(flags, "--import-to-token", conf.token)
+			flags = append(flags, "--token", conf.token)
 		}
 
 		if conf.namespace != "" {
-			flags = append(flags, "--namespace", conf.namespace, "--create-namespace")
+			flags = append(flags, "--namespace", conf.namespace)
 		}
 
 		var (
@@ -149,7 +149,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 					WithEnvVariable("UNIQUE", uuid.New().String()).
 					WithExec(nil)
 
-			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "import.yaml")...)
+			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
 			seed      = base.File("hack/build/testing/integration/readonly/testdata/seed.yaml")
 		)
 		// use target flipt binary to invoke import
@@ -171,16 +171,6 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 		// run readonly suite against imported Flipt instance
 		if err := suite(ctx, "readonly", base, fliptToTest, conf)(); err != nil {
 			return err
-		}
-
-		// attempt to export and compare generated yaml
-		flags = []string{"--export-from-address", conf.address}
-		if conf.token != "" {
-			flags = append(flags, "--export-from-token", conf.token)
-		}
-
-		if conf.namespace != "" {
-			flags = append(flags, "--namespace", conf.namespace)
 		}
 
 		expected, err := seed.Contents(ctx)

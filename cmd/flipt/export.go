@@ -49,14 +49,14 @@ func newExportCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(
 		&export.address,
-		"export-from-address", "",
+		"address", "a",
 		"",
 		"address of remote Flipt instance to export from (defaults to direct DB export if not supplied)",
 	)
 
 	cmd.Flags().StringVarP(
 		&export.token,
-		"export-from-token", "",
+		"token", "t",
 		"",
 		"client token used to authenticate access to remote Flipt instance when exporting.",
 	)

@@ -44,16 +44,16 @@ func newImportCommand() *cobra.Command {
 		"import from STDIN",
 	)
 
-	cmd.Flags().StringVar(
+	cmd.Flags().StringVarP(
 		&importCmd.address,
-		"import-to-address",
+		"address", "a",
 		"",
-		"address of remote Flipt instance to import intp (defaults to direct DB import if not supplied)",
+		"address of remote Flipt instance to import into (defaults to direct DB import if not supplied)",
 	)
 
-	cmd.Flags().StringVar(
+	cmd.Flags().StringVarP(
 		&importCmd.token,
-		"import-to-token",
+		"token", "t",
 		"",
 		"client token used to authenticate access to remote Flipt instance when importing.",
 	)
