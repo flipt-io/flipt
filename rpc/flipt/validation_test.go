@@ -1485,3 +1485,106 @@ func TestValidate_DeleteConstraintRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestValidate_CreateNamespaceRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *CreateNamespaceRequest
+		wantErr error
+	}{
+		{
+			name: "emptyKey",
+			req: &CreateNamespaceRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "invalidKey",
+			req: &CreateNamespaceRequest{
+				Key:         "foo:bar",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.InvalidFieldError("key", "contains invalid characters"),
+		},
+		{
+			name: "emptyName",
+			req: &CreateNamespaceRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("name"),
+		},
+		{
+			name: "valid",
+			req: &CreateNamespaceRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_UpdateNamespaceRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *UpdateNamespaceRequest
+		wantErr error
+	}{
+		{
+			name: "emptyKey",
+			req: &UpdateNamespaceRequest{
+				Key:         "",
+				Name:        "name",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("key"),
+		},
+		{
+			name: "emptyName",
+			req: &UpdateNamespaceRequest{
+				Key:         "key",
+				Name:        "",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("name"),
+		},
+		{
+			name: "valid",
+			req: &UpdateNamespaceRequest{
+				Key:         "key",
+				Name:        "name",
+				Description: "desc",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}

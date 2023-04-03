@@ -57,7 +57,8 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-			Key: i.namespace,
+			Key:  i.namespace,
+			Name: i.namespace,
 		})
 		if err != nil {
 			return err
