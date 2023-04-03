@@ -28,7 +28,7 @@ func TestReadOnly(t *testing.T) {
 		if namespace != "" && namespace != "default" {
 			expected = namespace
 		}
-		assert.Equal(t, expected, namespace)
+		assert.Equal(t, expected, ns.Name)
 
 		require.NoError(t, err)
 		flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
