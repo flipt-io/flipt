@@ -17,6 +17,20 @@ import (
 func TestReadOnly(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, namespace string, _ bool) {
 		ctx := context.Background()
+		ns, err := sdk.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
+			Key: namespace,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, ns.Key)
+
+		expected := "Default"
+		if namespace != "" && namespace != "default" {
+			expected = namespace
+		}
+		assert.Equal(t, expected, ns.Name)
+
+		require.NoError(t, err)
 		flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 			NamespaceKey: namespace,
 		})
