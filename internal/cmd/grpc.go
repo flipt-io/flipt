@@ -279,7 +279,8 @@ func NewGRPCServer(
 			tp = tracesdk.NewTracerProvider(
 				tracesdk.WithBatcher(
 					sse,
-					tracesdk.WithBatchTimeout(1*time.Second),
+					tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod),
+					tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity),
 				),
 				tracesdk.WithResource(resource.NewWithAttributes(
 					semconv.SchemaURL,
@@ -289,7 +290,7 @@ func NewGRPCServer(
 				tracesdk.WithSampler(tracesdk.AlwaysSample()),
 			)
 		} else {
-			tp.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(2*time.Second), tracesdk.WithMaxExportBatchSize(2)))
+			tp.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 		}
 
 		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, cfg.Audit.Version))
