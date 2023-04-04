@@ -13,6 +13,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -236,14 +237,14 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 }
 
 // AuditSinkUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditSinkUnaryInterceptor(logger *zap.Logger, publisher interface {
-	Publish(*auditsink.AuditEvent)
-}, auditEventVersion string) grpc.UnaryServerInterceptor {
+func AuditSinkUnaryInterceptor(logger *zap.Logger, auditEventVersion string) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
+
+		span := trace.SpanFromContext(ctx)
 
 		var auditEvent *auditsink.AuditEvent
 
@@ -287,7 +288,7 @@ func AuditSinkUnaryInterceptor(logger *zap.Logger, publisher interface {
 		}
 
 		if auditEvent != nil {
-			publisher.Publish(auditEvent)
+			span.AddEvent("auditEvent", trace.WithAttributes(auditEvent.DecodeToAttributes()...))
 		}
 
 		return resp, err

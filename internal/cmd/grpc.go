@@ -138,6 +138,7 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("driver", driver))
 
+	var tp *tracesdk.TracerProvider
 	var tracingProvider = fliptotel.NewNoopProvider()
 
 	if cfg.Tracing.Enabled {
@@ -164,7 +165,7 @@ func NewGRPCServer(
 			return nil, fmt.Errorf("creating exporter: %w", err)
 		}
 
-		tracingProvider = tracesdk.NewTracerProvider(
+		tp = tracesdk.NewTracerProvider(
 			tracesdk.WithBatcher(
 				exp,
 				tracesdk.WithBatchTimeout(1*time.Second),
@@ -178,13 +179,7 @@ func NewGRPCServer(
 		)
 
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
-		server.onShutdown(func(ctx context.Context) error {
-			return tracingProvider.Shutdown(ctx)
-		})
 	}
-
-	otel.SetTracerProvider(tracingProvider)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 	var (
 		sqlBuilder           = sql.BuilderFor(db, driver)
@@ -279,20 +274,43 @@ func NewGRPCServer(
 	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
-		publisher := auditsink.NewSinkPublisher(logger, cfg.Audit.Buffer.Capacity, sinks, cfg.Audit.Buffer.FlushPeriod)
-		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, publisher, cfg.Audit.Version))
+		sse := auditsink.NewSinkSpanExporter(logger, sinks)
+		if tp == nil {
+			tp = tracesdk.NewTracerProvider(
+				tracesdk.WithBatcher(
+					sse,
+					tracesdk.WithBatchTimeout(1*time.Second),
+				),
+				tracesdk.WithResource(resource.NewWithAttributes(
+					semconv.SchemaURL,
+					semconv.ServiceNameKey.String("flipt"),
+					semconv.ServiceVersionKey.String(info.Version),
+				)),
+				tracesdk.WithSampler(tracesdk.AlwaysSample()),
+			)
+		} else {
+			tp.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(2*time.Second), tracesdk.WithMaxExportBatchSize(2)))
+		}
+
+		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, cfg.Audit.Version))
 		logger.Debug("audit sinks are enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
 			zap.String("version", cfg.Audit.Version),
 		)
-
-		server.onShutdown(func(context.Context) error {
-			publisher.Close()
-			return nil
-		})
 	}
+
+	if tp != nil {
+		tracingProvider = tp
+	}
+
+	server.onShutdown(func(ctx context.Context) error {
+		return tracingProvider.Shutdown(ctx)
+	})
+
+	otel.SetTracerProvider(tracingProvider)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 	grpcOpts := []grpc.ServerOption{grpc_middleware.WithUnaryServerChain(interceptors...)}
 
