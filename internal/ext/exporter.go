@@ -46,8 +46,6 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 		nextPage  string
 	)
 
-	// TODO: support all namespaces
-
 	// export flags/variants in batches
 	for batch := int32(0); remaining; batch++ {
 		resp, err := e.store.ListFlags(
@@ -131,8 +129,6 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	remaining = true
 	nextPage = ""
-
-	// TODO: support all namespaces
 
 	// export segments/constraints in batches
 	for batch := int32(0); remaining; batch++ {
