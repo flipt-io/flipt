@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const AuditEventVersion = "v0.1"
+const auditEventVersion = "v0.1"
 
 // AuditType represents what resource is being acted on.
 type AuditType string
@@ -134,12 +134,21 @@ type AuditSink interface {
 	fmt.Stringer
 }
 
+// SinkSpanExporter sends audit logs to configured sinks through intercepting span events.
 type SinkSpanExporter struct {
 	sinks  []AuditSink
 	logger *zap.Logger
 }
 
-func NewSinkSpanExporter(logger *zap.Logger, sinks []AuditSink) *SinkSpanExporter {
+// AuditEventExporter provides an API for exporting spans as AuditEvent(s).
+type AuditEventExporter interface {
+	ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error
+	Shutdown(ctx context.Context) error
+	SendAudits(aes []AuditEvent) error
+}
+
+// NewSinkSpanExporter is the constructor for a SinkSpanExporter.
+func NewSinkSpanExporter(logger *zap.Logger, sinks []AuditSink) AuditEventExporter {
 	return &SinkSpanExporter{
 		sinks:  sinks,
 		logger: logger,
@@ -182,7 +191,7 @@ func (s *SinkSpanExporter) SendAudits(aes []AuditEvent) error {
 }
 
 // NewAuditEvent is the constructor for an audit event.
-func NewAuditEvent(auditType AuditType, auditAction AuditAction, payload interface{}, auditEventVersion string) *AuditEvent {
+func NewAuditEvent(auditType AuditType, auditAction AuditAction, payload interface{}) *AuditEvent {
 	return &AuditEvent{
 		Version: auditEventVersion,
 		Metadata: MetadataConfig{

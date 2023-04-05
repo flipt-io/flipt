@@ -2,11 +2,14 @@ package grpc_middleware
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/stretchr/testify/mock"
+	"go.flipt.io/flipt/internal/server/auditsink"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap"
 )
 
 var _ storage.Store = &storeMock{}
@@ -237,4 +240,33 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 	c.deleteCalled++
 	c.deleteKeys[key] = struct{}{}
 	return c.Cacher.Delete(ctx, key)
+}
+
+type auditSinkSpy struct {
+	sendAuditsCalled int
+	fmt.Stringer
+}
+
+func (a *auditSinkSpy) SendAudits(aes []auditsink.AuditEvent) error {
+	a.sendAuditsCalled++
+	return nil
+}
+
+type auditExporterSpy struct {
+	auditsink.AuditEventExporter
+	sinkSpy *auditSinkSpy
+}
+
+func newAuditExporterSpy(logger *zap.Logger) *auditExporterSpy {
+	aspy := &auditSinkSpy{}
+	as := []auditsink.AuditSink{aspy}
+
+	return &auditExporterSpy{
+		AuditEventExporter: auditsink.NewSinkSpanExporter(logger, as),
+		sinkSpy:            aspy,
+	}
+}
+
+func (a *auditExporterSpy) GetSendAuditsCalled() int {
+	return a.sinkSpy.sendAuditsCalled
 }

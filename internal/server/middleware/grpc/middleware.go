@@ -237,57 +237,57 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 }
 
 // AuditSinkUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditSinkUnaryInterceptor(logger *zap.Logger, auditEventVersion string) grpc.UnaryServerInterceptor {
+func AuditSinkUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
 
-		span := trace.SpanFromContext(ctx)
-
 		var auditEvent *auditsink.AuditEvent
 
 		switch r := req.(type) {
 		case *flipt.CreateFlagRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.FlagType, auditsink.CreateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.FlagType, auditsink.CreateAction, r)
 		case *flipt.UpdateFlagRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.FlagType, auditsink.UpdateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.FlagType, auditsink.UpdateAction, r)
 		case *flipt.DeleteFlagRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.FlagType, auditsink.DeleteAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.FlagType, auditsink.DeleteAction, r)
 		case *flipt.CreateVariantRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.VariantType, auditsink.CreateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.VariantType, auditsink.CreateAction, r)
 		case *flipt.UpdateVariantRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.VariantType, auditsink.UpdateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.VariantType, auditsink.UpdateAction, r)
 		case *flipt.DeleteVariantRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.VariantType, auditsink.DeleteAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.VariantType, auditsink.DeleteAction, r)
 		case *flipt.CreateSegmentRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.SegmentType, auditsink.CreateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.SegmentType, auditsink.CreateAction, r)
 		case *flipt.UpdateSegmentRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.SegmentType, auditsink.UpdateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.SegmentType, auditsink.UpdateAction, r)
 		case *flipt.DeleteSegmentRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.SegmentType, auditsink.DeleteAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.SegmentType, auditsink.DeleteAction, r)
 		case *flipt.CreateConstraintRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.ConstraintType, auditsink.CreateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.ConstraintType, auditsink.CreateAction, r)
 		case *flipt.UpdateConstraintRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.ConstraintType, auditsink.UpdateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.ConstraintType, auditsink.UpdateAction, r)
 		case *flipt.DeleteConstraintRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.ConstraintType, auditsink.DeleteAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.ConstraintType, auditsink.DeleteAction, r)
 		case *flipt.CreateDistributionRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.CreateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.CreateAction, r)
 		case *flipt.UpdateDistributionRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.UpdateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.UpdateAction, r)
 		case *flipt.DeleteDistributionRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.DeleteAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.DistributionType, auditsink.DeleteAction, r)
 		case *flipt.CreateRuleRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.CreateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.CreateAction, r)
 		case *flipt.UpdateRuleRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.UpdateAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.UpdateAction, r)
 		case *flipt.DeleteRuleRequest:
-			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.DeleteAction, r, auditEventVersion)
+			auditEvent = auditsink.NewAuditEvent(auditsink.RuleType, auditsink.DeleteAction, r)
 		}
 
 		if auditEvent != nil {
+			span := trace.SpanFromContext(ctx)
+			fmt.Println("GETTING IN HERE: ", span)
 			span.AddEvent("auditEvent", trace.WithAttributes(auditEvent.DecodeToAttributes()...))
 		}
 

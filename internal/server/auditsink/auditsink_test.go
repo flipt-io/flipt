@@ -42,7 +42,7 @@ func TestSinkSpanExporter(t *testing.T) {
 		Name:        "this-flag",
 		Description: "this description",
 		Enabled:     false,
-	}, "v0.1")
+	})
 
 	span.AddEvent("auditEvent", trace.WithAttributes(ae.DecodeToAttributes()...))
 	span.End()

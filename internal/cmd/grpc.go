@@ -293,12 +293,11 @@ func NewGRPCServer(
 			tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 		}
 
-		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, auditsink.AuditEventVersion))
+		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger))
 		logger.Debug("audit sinks are enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
-			zap.String("version", auditsink.AuditEventVersion),
 		)
 	}
 
