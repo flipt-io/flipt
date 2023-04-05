@@ -28,6 +28,47 @@ func (x *Flipt) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluationReque
 	return x.transport.BatchEvaluate(ctx, v)
 }
 
+func (x *Flipt) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.GetNamespace(ctx, v)
+}
+
+func (x *Flipt) ListNamespaces(ctx context.Context, v *flipt.ListNamespaceRequest) (*flipt.NamespaceList, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.ListNamespaces(ctx, v)
+}
+
+func (x *Flipt) CreateNamespace(ctx context.Context, v *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.CreateNamespace(ctx, v)
+}
+
+func (x *Flipt) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.UpdateNamespace(ctx, v)
+}
+
+func (x *Flipt) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest) error {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
+	}
+	_, err = x.transport.DeleteNamespace(ctx, v)
+	return err
+}
+
 func (x *Flipt) GetFlag(ctx context.Context, v *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {

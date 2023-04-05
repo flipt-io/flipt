@@ -14,8 +14,8 @@ import (
 	"github.com/magefile/mage/sh"
 	"go.flipt.io/flipt/build/internal"
 	"go.flipt.io/flipt/build/internal/publish"
-	"go.flipt.io/flipt/build/internal/test"
 	"go.flipt.io/flipt/build/release"
+	"go.flipt.io/flipt/build/testing"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/sync/errgroup"
 )
@@ -109,7 +109,7 @@ type Test mg.Namespace
 func (t Test) All(ctx context.Context) error {
 	var g errgroup.Group
 
-	for db := range test.All {
+	for db := range testing.All {
 		db := db
 		g.Go(func() error {
 			return t.Database(ctx, db)
@@ -144,7 +144,7 @@ func (t Test) Unit(ctx context.Context) error {
 		return err
 	}
 
-	return test.Test(ctx, client, base)
+	return testing.Unit(ctx, client, base)
 }
 
 // Database runs the unit test suite against the desired database (one of ["sqlite" "postgres" "mysql" "cockroach"]).
@@ -171,7 +171,7 @@ func (t Test) Database(ctx context.Context, db string) error {
 		return err
 	}
 
-	return test.Test(test.All[db](ctx, client, base))
+	return testing.Unit(testing.All[db](ctx, client, base))
 }
 
 // Integration runs the entire integration test suite.
@@ -205,7 +205,7 @@ func (t Test) Integration(ctx context.Context) error {
 		return err
 	}
 
-	return test.Integration(ctx, client, base, flipt)
+	return testing.Integration(ctx, client, base, flipt)
 }
 
 type Release mg.Namespace

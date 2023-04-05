@@ -30,11 +30,12 @@ func (s *DBTestSuite) TestGetSegment() {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
-	got, err := s.store.GetSegment(context.TODO(), segment.Key)
+	got, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, got)
 
+	assert.Equal(t, storage.DefaultNamespace, got.NamespaceKey)
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
@@ -43,11 +44,46 @@ func (s *DBTestSuite) TestGetSegment() {
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
-func (s *DBTestSuite) TestGetSegmentNotFound() {
+func (s *DBTestSuite) TestGetSegmentNamespace() {
 	t := s.T()
 
-	_, err := s.store.GetSegment(context.TODO(), "foo")
-	assert.EqualError(t, err, "segment \"foo\" not found")
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		MatchType:    flipt.MatchType_ALL_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	got, err := s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
+
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, s.namespace, got.NamespaceKey)
+	assert.Equal(t, segment.Key, got.Key)
+	assert.Equal(t, segment.Name, got.Name)
+	assert.Equal(t, segment.Description, got.Description)
+	assert.NotZero(t, segment.CreatedAt)
+	assert.NotZero(t, segment.UpdatedAt)
+	assert.Equal(t, segment.MatchType, got.MatchType)
+}
+
+func (s *DBTestSuite) TestGetSegment_NotFound() {
+	t := s.T()
+
+	_, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, "foo")
+	assert.EqualError(t, err, "segment \"default/foo\" not found")
+}
+
+func (s *DBTestSuite) TestGetSegmentNamespace_NotFound() {
+	t := s.T()
+
+	_, err := s.store.GetSegment(context.TODO(), s.namespace, "foo")
+	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
 }
 
 func (s *DBTestSuite) TestListSegments() {
@@ -71,10 +107,51 @@ func (s *DBTestSuite) TestListSegments() {
 		require.NoError(t, err)
 	}
 
-	res, err := s.store.ListSegments(context.TODO())
+	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
 	got := res.Results
 	assert.NotZero(t, len(got))
+
+	for _, segment := range got {
+		assert.Equal(t, storage.DefaultNamespace, segment.NamespaceKey)
+		assert.NotZero(t, segment.CreatedAt)
+		assert.NotZero(t, segment.UpdatedAt)
+	}
+}
+
+func (s *DBTestSuite) TestListSegmentsNamespace() {
+	t := s.T()
+
+	reqs := []*flipt.CreateSegmentRequest{
+		{
+			NamespaceKey: s.namespace,
+			Key:          uuid.Must(uuid.NewV4()).String(),
+			Name:         "foo",
+			Description:  "bar",
+		},
+		{
+			NamespaceKey: s.namespace,
+			Key:          uuid.Must(uuid.NewV4()).String(),
+			Name:         "foo",
+			Description:  "bar",
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := s.store.CreateSegment(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	res, err := s.store.ListSegments(context.TODO(), s.namespace)
+	require.NoError(t, err)
+	got := res.Results
+	assert.NotZero(t, len(got))
+
+	for _, segment := range got {
+		assert.Equal(t, s.namespace, segment.NamespaceKey)
+		assert.NotZero(t, segment.CreatedAt)
+		assert.NotZero(t, segment.UpdatedAt)
+	}
 }
 
 func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
@@ -111,7 +188,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 
 	// TODO: the ordering (DESC) is required because the default ordering is ASC and we are not clearing the DB between tests
 	// get middle segment
-	res, err := s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
+	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(1))
 	require.NoError(t, err)
 
 	got := res.Results
@@ -120,7 +197,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	assert.Equal(t, middle.Key, got[0].Key)
 
 	// get first (newest) segment
-	res, err = s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
+	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -129,7 +206,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	assert.Equal(t, newest.Key, got[0].Key)
 
 	// get last (oldest) segment
-	res, err = s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
+	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithOffset(2))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -138,7 +215,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitOffset() {
 	assert.Equal(t, oldest.Key, got[0].Key)
 
 	// get all segments
-	res, err = s.store.ListSegments(context.TODO(), storage.WithOrder(storage.OrderDesc))
+	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithOrder(storage.OrderDesc))
 	require.NoError(t, err)
 
 	got = res.Results
@@ -184,7 +261,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	// get newest segment
 	opts := []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1)}
 
-	res, err := s.store.ListSegments(context.TODO(), opts...)
+	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got := res.Results
@@ -202,7 +279,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	// get middle segment
-	res, err = s.store.ListSegments(context.TODO(), opts...)
+	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -218,7 +295,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
 	// get oldest segment
-	res, err = s.store.ListSegments(context.TODO(), opts...)
+	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -227,7 +304,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 
 	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(3)}
 	// get all segments
-	res, err = s.store.ListSegments(context.TODO(), opts...)
+	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
 	require.NoError(t, err)
 
 	got = res.Results
@@ -257,6 +334,28 @@ func (s *DBTestSuite) TestCreateSegment() {
 	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
 }
 
+func (s *DBTestSuite) TestCreateSegmentNamespace() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, s.namespace, segment.NamespaceKey)
+	assert.Equal(t, t.Name(), segment.Key)
+	assert.Equal(t, "foo", segment.Name)
+	assert.Equal(t, "bar", segment.Description)
+	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
+	assert.NotZero(t, segment.CreatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
+}
+
 func (s *DBTestSuite) TestCreateSegment_DuplicateKey() {
 	t := s.T()
 
@@ -274,7 +373,29 @@ func (s *DBTestSuite) TestCreateSegment_DuplicateKey() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "segment \"TestDBTestSuite/TestCreateSegment_DuplicateKey\" is not unique")
+	assert.EqualError(t, err, "segment \"default/TestDBTestSuite/TestCreateSegment_DuplicateKey\" is not unique")
+}
+
+func (s *DBTestSuite) TestCreateSegmentNamespace_DuplicateKey() {
+	t := s.T()
+
+	_, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/%s\" is not unique", s.namespace, t.Name()))
 }
 
 func (s *DBTestSuite) TestUpdateSegment() {
@@ -289,6 +410,7 @@ func (s *DBTestSuite) TestUpdateSegment() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, segment.NamespaceKey)
 	assert.Equal(t, t.Name(), segment.Key)
 	assert.Equal(t, "foo", segment.Name)
 	assert.Equal(t, "bar", segment.Description)
@@ -305,6 +427,46 @@ func (s *DBTestSuite) TestUpdateSegment() {
 
 	require.NoError(t, err)
 
+	assert.Equal(t, storage.DefaultNamespace, updated.NamespaceKey)
+	assert.Equal(t, segment.Key, updated.Key)
+	assert.Equal(t, segment.Name, updated.Name)
+	assert.Equal(t, "foobar", updated.Description)
+	assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, updated.MatchType)
+	assert.NotZero(t, updated.CreatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
+}
+func (s *DBTestSuite) TestUpdateSegmentNamespace() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		MatchType:    flipt.MatchType_ALL_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, s.namespace, segment.NamespaceKey)
+	assert.Equal(t, t.Name(), segment.Key)
+	assert.Equal(t, "foo", segment.Name)
+	assert.Equal(t, "bar", segment.Description)
+	assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, segment.MatchType)
+	assert.NotZero(t, segment.CreatedAt)
+	assert.Equal(t, segment.CreatedAt.Seconds, segment.UpdatedAt.Seconds)
+
+	updated, err := s.store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          segment.Key,
+		Name:         segment.Name,
+		Description:  "foobar",
+		MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, s.namespace, updated.NamespaceKey)
 	assert.Equal(t, segment.Key, updated.Key)
 	assert.Equal(t, segment.Name, updated.Name)
 	assert.Equal(t, "foobar", updated.Description)
@@ -322,7 +484,20 @@ func (s *DBTestSuite) TestUpdateSegment_NotFound() {
 		Description: "bar",
 	})
 
-	assert.EqualError(t, err, "segment \"foo\" not found")
+	assert.EqualError(t, err, "segment \"default/foo\" not found")
+}
+
+func (s *DBTestSuite) TestUpdateSegmentNamespace_NotFound() {
+	t := s.T()
+
+	_, err := s.store.UpdateSegment(context.TODO(), &flipt.UpdateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          "foo",
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
 }
 
 func (s *DBTestSuite) TestDeleteSegment() {
@@ -338,6 +513,26 @@ func (s *DBTestSuite) TestDeleteSegment() {
 	assert.NotNil(t, segment)
 
 	err = s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{Key: segment.Key})
+	require.NoError(t, err)
+}
+
+func (s *DBTestSuite) TestDeleteSegmentNamespace() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	err = s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          segment.Key,
+	})
 	require.NoError(t, err)
 }
 
@@ -413,6 +608,16 @@ func (s *DBTestSuite) TestDeleteSegment_NotFound() {
 	require.NoError(t, err)
 }
 
+func (s *DBTestSuite) TestDeleteSegmentNamespace_NotFound() {
+	t := s.T()
+
+	err := s.store.DeleteSegment(context.TODO(), &flipt.DeleteSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          "foo",
+	})
+	require.NoError(t, err)
+}
+
 func (s *DBTestSuite) TestCreateConstraint() {
 	t := s.T()
 
@@ -437,6 +642,7 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	assert.NotNil(t, constraint)
 
 	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
@@ -446,7 +652,51 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	assert.Len(t, segment.Constraints, 1)
+}
+
+func (s *DBTestSuite) TestCreateConstraintNamespace() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		NamespaceKey: s.namespace,
+		SegmentKey:   segment.Key,
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "EQ",
+		Value:        "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, constraint)
+
+	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, s.namespace, constraint.NamespaceKey)
+	assert.Equal(t, segment.Key, constraint.SegmentKey)
+	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
+	assert.Equal(t, "foo", constraint.Property)
+	assert.Equal(t, flipt.OpEQ, constraint.Operator)
+	assert.Equal(t, "bar", constraint.Value)
+	assert.NotZero(t, constraint.CreatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
+
+	// get the segment again
+	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -465,7 +715,22 @@ func (s *DBTestSuite) TestCreateConstraint_SegmentNotFound() {
 		Value:      "baz",
 	})
 
-	assert.EqualError(t, err, "segment \"foo\" not found")
+	assert.EqualError(t, err, "segment \"default/foo\" not found")
+}
+
+func (s *DBTestSuite) TestCreateConstraintNamespace_SegmentNotFound() {
+	t := s.T()
+
+	_, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		NamespaceKey: s.namespace,
+		SegmentKey:   "foo",
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "NEQ",
+		Value:        "baz",
+	})
+
+	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
 }
 
 func (s *DBTestSuite) TestUpdateConstraint() {
@@ -492,6 +757,7 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.NotNil(t, constraint)
 
 	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
 	assert.Equal(t, segment.Key, constraint.SegmentKey)
 	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 	assert.Equal(t, "foo", constraint.Property)
@@ -512,6 +778,7 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	require.NoError(t, err)
 
 	assert.Equal(t, constraint.Id, updated.Id)
+	assert.Equal(t, storage.DefaultNamespace, updated.NamespaceKey)
 	assert.Equal(t, constraint.SegmentKey, updated.SegmentKey)
 	assert.Equal(t, constraint.Type, updated.Type)
 	assert.Equal(t, constraint.Property, updated.Property)
@@ -521,7 +788,73 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.NotZero(t, updated.UpdatedAt)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	assert.Len(t, segment.Constraints, 1)
+}
+
+func (s *DBTestSuite) TestUpdateConstraintNamespace() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		NamespaceKey: s.namespace,
+		SegmentKey:   segment.Key,
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "EQ",
+		Value:        "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, constraint)
+
+	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, s.namespace, constraint.NamespaceKey)
+	assert.Equal(t, segment.Key, constraint.SegmentKey)
+	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
+	assert.Equal(t, "foo", constraint.Property)
+	assert.Equal(t, flipt.OpEQ, constraint.Operator)
+	assert.Equal(t, "bar", constraint.Value)
+	assert.NotZero(t, constraint.CreatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
+
+	updated, err := s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
+		Id:           constraint.Id,
+		NamespaceKey: s.namespace,
+		SegmentKey:   constraint.SegmentKey,
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "EMPTY",
+		Value:        "bar",
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, constraint.Id, updated.Id)
+	assert.Equal(t, s.namespace, updated.NamespaceKey)
+	assert.Equal(t, constraint.SegmentKey, updated.SegmentKey)
+	assert.Equal(t, constraint.Type, updated.Type)
+	assert.Equal(t, constraint.Property, updated.Property)
+	assert.Equal(t, flipt.OpEmpty, updated.Operator)
+	assert.Empty(t, updated.Value)
+	assert.NotZero(t, updated.CreatedAt)
+	assert.NotZero(t, updated.UpdatedAt)
+
+	// get the segment again
+	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -548,6 +881,32 @@ func (s *DBTestSuite) TestUpdateConstraint_NotFound() {
 		Property:   "foo",
 		Operator:   "NEQ",
 		Value:      "baz",
+	})
+
+	assert.EqualError(t, err, "constraint \"foo\" not found")
+}
+
+func (s *DBTestSuite) TestUpdateConstraintNamespace_NotFound() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	_, err = s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
+		Id:           "foo",
+		NamespaceKey: s.namespace,
+		SegmentKey:   segment.Key,
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "NEQ",
+		Value:        "baz",
 	})
 
 	assert.EqualError(t, err, "constraint \"foo\" not found")
@@ -580,7 +939,48 @@ func (s *DBTestSuite) TestDeleteConstraint() {
 	require.NoError(t, err)
 
 	// get the segment again
-	segment, err = s.store.GetSegment(context.TODO(), segment.Key)
+	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	assert.Empty(t, segment.Constraints)
+}
+
+func (s *DBTestSuite) TestDeleteConstraintNamespace() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		NamespaceKey: s.namespace,
+		SegmentKey:   segment.Key,
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "EQ",
+		Value:        "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, constraint)
+
+	err = s.store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{
+		NamespaceKey: s.namespace,
+		SegmentKey:   constraint.SegmentKey,
+		Id:           constraint.Id,
+	})
+	require.NoError(t, err)
+
+	// get the segment again
+	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
 
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
@@ -603,6 +1003,28 @@ func (s *DBTestSuite) TestDeleteConstraint_NotFound() {
 	err = s.store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{
 		Id:         "foo",
 		SegmentKey: segment.Key,
+	})
+
+	require.NoError(t, err)
+}
+
+func (s *DBTestSuite) TestDeleteConstraintNamespace_NotFound() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	err = s.store.DeleteConstraint(context.TODO(), &flipt.DeleteConstraintRequest{
+		Id:           "foo",
+		NamespaceKey: s.namespace,
+		SegmentKey:   segment.Key,
 	})
 
 	require.NoError(t, err)
@@ -646,7 +1068,7 @@ func BenchmarkListSegments(b *testing.B) {
 
 	b.Run("no-pagination", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			segments, err := s.store.ListSegments(context.TODO())
+			segments, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
 			require.NoError(t, err)
 			assert.NotEmpty(t, segments)
 		}
@@ -656,7 +1078,7 @@ func BenchmarkListSegments(b *testing.B) {
 		pageSize := pageSize
 		b.Run(fmt.Sprintf("pagination-limit-%d", pageSize), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				segments, err := s.store.ListSegments(context.TODO(), storage.WithLimit(pageSize))
+				segments, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithLimit(pageSize))
 				require.NoError(t, err)
 				assert.NotEmpty(t, segments)
 			}
@@ -665,7 +1087,7 @@ func BenchmarkListSegments(b *testing.B) {
 
 	b.Run("pagination", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			segments, err := s.store.ListSegments(context.TODO(), storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
+			segments, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithLimit(500), storage.WithOffset(50), storage.WithOrder(storage.OrderDesc))
 			require.NoError(t, err)
 			assert.NotEmpty(t, segments)
 		}

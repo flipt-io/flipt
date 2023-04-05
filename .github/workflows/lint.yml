@@ -76,4 +76,4 @@ jobs:
         run: go mod tidy
 
       - name: Ensure clean git state.
-        run: git diff-index --quiet HEAD -- || (echo "Please run go mod tidy." && exit 1)
+        run: git diff-index --quiet HEAD -- || (echo "Please run 'go mod tidy' and commit changes." && exit 1)

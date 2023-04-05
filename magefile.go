@@ -142,12 +142,19 @@ func Cover() error {
 	return sh.RunV("go", "tool", "cover", "-html=coverage.txt")
 }
 
+var ignoreFmt = []string{"rpc/", "sdk/"}
+
 // Fmt formats code
 func Fmt() error {
 	fmt.Println("Formatting...")
 	files, err := findFilesRecursive(func(path string, _ os.FileInfo) bool {
-		// only go files, ignoring generated files in rpc/
-		return filepath.Ext(path) == ".go" && !filepath.HasPrefix(path, "rpc/")
+		// only go files, ignoring generated files
+		for _, dir := range ignoreFmt {
+			if filepath.HasPrefix(path, dir) {
+				return false
+			}
+		}
+		return filepath.Ext(path) == ".go"
 	})
 	if err != nil {
 		return fmt.Errorf("failed to find files: %w", err)
@@ -217,14 +224,14 @@ func (u UI) Build() error {
 	return sh.RunV("mv", ".build/ui/dist", "ui")
 }
 
-// Clone clones the UI repo
+// Clone clones the UI repo with an optional branch
 func (u UI) Clone() error {
 	if err := os.MkdirAll(".build", 0755); err != nil {
 		return fmt.Errorf("failed to create dir: %w", err)
 	}
 
 	if _, err := os.Stat(".build/ui/.git"); os.IsNotExist(err) {
-		if err := sh.RunV("git", "clone", "https://github.com/flipt-io/flipt-ui.git", ".build/ui", "--depth=1"); err != nil {
+		if err := sh.RunV("git", "clone", "https://github.com/flipt-io/flipt-ui.git", ".build/ui"); err != nil {
 			return fmt.Errorf("failed to clone UI repo: %w", err)
 		}
 	}
@@ -237,28 +244,34 @@ func (u UI) Sync() error {
 	mg.Deps(u.Clone)
 	fmt.Println("Syncing UI repo...")
 
-	cmd := exec.Command("git", "fetch", "--all")
+	branch := "main"
+	if os.Getenv("FLIPT_BUILD_UI_BRANCH") != "" {
+		branch = os.Getenv("FLIPT_BUILD_UI_BRANCH")
+	}
+
+	cmd := exec.Command("git", "pull", "--all")
 	cmd.Dir = ".build/ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to fetch UI repo: %w", err)
+		return fmt.Errorf("failed to pull UI repo: %w", err)
 	}
 
-	cmd = exec.Command("git", "checkout", "main")
+	cmd = exec.Command("git", "checkout", branch)
 	cmd.Dir = ".build/ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to checkout main branch in UI repo: %w", err)
+		return fmt.Errorf("failed to checkout branch %s: %w", branch, err)
 	}
 
-	cmd = exec.Command("git", "reset", "--hard", "origin/main")
+	cmd = exec.Command("git", "pull")
 	cmd.Dir = ".build/ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 

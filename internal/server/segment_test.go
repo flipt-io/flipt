@@ -24,7 +24,7 @@ func TestGetSegment(t *testing.T) {
 		req = &flipt.GetSegmentRequest{Key: "foo"}
 	)
 
-	store.On("GetSegment", mock.Anything, "foo").Return(&flipt.Segment{
+	store.On("GetSegment", mock.Anything, mock.Anything, "foo").Return(&flipt.Segment{
 		Key: req.Key,
 	}, nil)
 
@@ -47,7 +47,7 @@ func TestListSegments_PaginationOffset(t *testing.T) {
 	defer store.AssertExpectations(t)
 
 	params := storage.QueryParams{}
-	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+	store.On("ListSegments", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
 		for _, opt := range opts {
 			opt(&params)
 		}
@@ -64,7 +64,7 @@ func TestListSegments_PaginationOffset(t *testing.T) {
 			NextPageToken: "bar",
 		}, nil)
 
-	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+	store.On("CountSegments", mock.Anything, mock.Anything).Return(uint64(1), nil)
 
 	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
 		Offset: 10,
@@ -90,7 +90,7 @@ func TestListSegments_PaginationPageToken(t *testing.T) {
 	defer store.AssertExpectations(t)
 
 	params := storage.QueryParams{}
-	store.On("ListSegments", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
+	store.On("ListSegments", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
 		for _, opt := range opts {
 			opt(&params)
 		}
@@ -107,7 +107,7 @@ func TestListSegments_PaginationPageToken(t *testing.T) {
 			NextPageToken: "bar",
 		}, nil)
 
-	store.On("CountSegments", mock.Anything).Return(uint64(1), nil)
+	store.On("CountSegments", mock.Anything, mock.Anything).Return(uint64(1), nil)
 
 	got, err := s.ListSegments(context.TODO(), &flipt.ListSegmentRequest{
 		PageToken: "Zm9v",

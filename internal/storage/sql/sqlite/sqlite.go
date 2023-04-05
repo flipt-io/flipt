@@ -35,14 +35,35 @@ func (s *Store) String() string {
 	return "sqlite"
 }
 
+func (s *Store) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	namespace, err := s.Store.CreateNamespace(ctx, r)
+
+	if err != nil {
+		var serr sqlite3.Error
+
+		if errors.As(err, &serr) && serr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+			return nil, errs.ErrInvalidf(`namespace "%s" is not unique`, r.Key)
+		}
+
+		return nil, err
+	}
+
+	return namespace, nil
+}
+
 func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	flag, err := s.Store.CreateFlag(ctx, r)
 
 	if err != nil {
 		var serr sqlite3.Error
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrInvalidf("flag %q is not unique", r.Key)
+		if errors.As(err, &serr) {
+			switch serr.ExtendedCode {
+			case sqlite3.ErrConstraintForeignKey:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case sqlite3.ErrConstraintPrimaryKey:
+				return nil, errs.ErrInvalidf(`flag "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
 
 		return nil, err
@@ -60,9 +81,9 @@ func (s *Store) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest
 		if errors.As(err, &serr) {
 			switch serr.ExtendedCode {
 			case sqlite3.ErrConstraintForeignKey:
-				return nil, errs.ErrNotFoundf("flag %q", r.FlagKey)
+				return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
 			case sqlite3.ErrConstraintUnique:
-				return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+				return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 			}
 		}
 
@@ -79,7 +100,7 @@ func (s *Store) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrInvalidf("variant %q is not unique", r.Key)
+			return nil, errs.ErrInvalidf(`variant %q is not unique for flag "%s/%s"`, r.Key, r.NamespaceKey, r.FlagKey)
 		}
 
 		return nil, err
@@ -94,8 +115,13 @@ func (s *Store) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest
 	if err != nil {
 		var serr sqlite3.Error
 
-		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrInvalidf("segment %q is not unique", r.Key)
+		if errors.As(err, &serr) {
+			switch serr.ExtendedCode {
+			case sqlite3.ErrConstraintForeignKey:
+				return nil, errs.ErrNotFoundf("namespace %q", r.NamespaceKey)
+			case sqlite3.ErrConstraintPrimaryKey:
+				return nil, errs.ErrInvalidf(`segment "%s/%s" is not unique`, r.NamespaceKey, r.Key)
+			}
 		}
 
 		return nil, err
@@ -111,7 +137,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrNotFoundf("segment %q", r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`segment "%s/%s"`, r.NamespaceKey, r.SegmentKey)
 		}
 
 		return nil, err
@@ -127,7 +153,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrNotFoundf("flag %q or segment %q", r.FlagKey, r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`flag "%s/%s" or segment "%s/%s"`, r.NamespaceKey, r.FlagKey, r.NamespaceKey, r.SegmentKey)
 		}
 
 		return nil, err
@@ -143,7 +169,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			return nil, errs.ErrNotFoundf("rule %q", r.RuleId)
+			return nil, errs.ErrNotFoundf("variant %q, rule %q, flag %q in namespace %q", r.VariantId, r.RuleId, r.FlagKey, r.NamespaceKey)
 		}
 
 		return nil, err

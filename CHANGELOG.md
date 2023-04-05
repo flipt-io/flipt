@@ -3,6 +3,18 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Support for 'namespacing' / multi-environments. All types can now belong to a namespace allowing you to seperate your flags/segments/etc.
+
+### Changed
+
+- All existing objects have been moved to the 'default' namespace to be fully backward compatible.
+- Import/Export have been updated to be 'namespace-aware'
+- Dependency updates
+
 ## [v1.19.3](https://github.com/flipt-io/flipt/releases/tag/v1.19.3) - 2023-03-22
 
 ### Changed

@@ -17,9 +17,15 @@ import (
 // GetFlag gets a flag
 func (s *Server) GetFlag(ctx context.Context, r *flipt.GetFlagRequest) (*flipt.Flag, error) {
 	s.logger.Debug("get flag", zap.Stringer("request", r))
-	flag, err := s.store.GetFlag(ctx, r.Key)
+
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.Key)
 
 	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.Key),
 	}
 
@@ -57,16 +63,16 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
 	}
 
-	results, err := s.store.ListFlags(ctx, opts...)
+	results, err := s.store.ListFlags(ctx, r.NamespaceKey, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp flipt.FlagList
+	resp := flipt.FlagList{
+		Flags: results.Results,
+	}
 
-	resp.Flags = append(resp.Flags, results.Results...)
-
-	total, err := s.store.CountFlags(ctx)
+	total, err := s.store.CountFlags(ctx, r.NamespaceKey)
 	if err != nil {
 		return nil, err
 	}
