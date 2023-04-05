@@ -20,7 +20,7 @@ type LogFileSink struct {
 
 // NewLogFileSink is the constructor for a LogFileSink.
 func NewLogFileSink(logger *zap.Logger, filePath string) (*LogFileSink, error) {
-	file, err := os.Create(filePath)
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
 	}

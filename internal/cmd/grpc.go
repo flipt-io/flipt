@@ -138,8 +138,7 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("driver", driver))
 
-	var tp *tracesdk.TracerProvider
-	var tracingProvider = fliptotel.NewNoopProvider()
+	var tracingProvider fliptotel.TracerProvider = fliptotel.NewNoopProvider()
 
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
@@ -165,7 +164,7 @@ func NewGRPCServer(
 			return nil, fmt.Errorf("creating exporter: %w", err)
 		}
 
-		tp = tracesdk.NewTracerProvider(
+		tracingProvider = tracesdk.NewTracerProvider(
 			tracesdk.WithBatcher(
 				exp,
 				tracesdk.WithBatchTimeout(1*time.Second),
@@ -263,9 +262,9 @@ func NewGRPCServer(
 	sinks := make([]auditsink.AuditSink, 0)
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
-		logFileSink, err := logfile.NewLogFileSink(logger, cfg.Audit.Sinks.LogFile.FilePath)
+		logFileSink, err := logfile.NewLogFileSink(logger, cfg.Audit.Sinks.LogFile.Path)
 		if err != nil {
-			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.FilePath)
+			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.Path)
 		}
 
 		sinks = append(sinks, logFileSink)
@@ -275,8 +274,9 @@ func NewGRPCServer(
 	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
 		sse := auditsink.NewSinkSpanExporter(logger, sinks)
-		if tp == nil {
-			tp = tracesdk.NewTracerProvider(
+		_, ok := tracingProvider.(*tracesdk.TracerProvider)
+		if !ok {
+			tracingProvider = tracesdk.NewTracerProvider(
 				tracesdk.WithBatcher(
 					sse,
 					tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod),
@@ -290,7 +290,7 @@ func NewGRPCServer(
 				tracesdk.WithSampler(tracesdk.AlwaysSample()),
 			)
 		} else {
-			tp.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
+			tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 		}
 
 		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger, cfg.Audit.Version))
@@ -300,10 +300,6 @@ func NewGRPCServer(
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
 			zap.String("version", cfg.Audit.Version),
 		)
-	}
-
-	if tp != nil {
-		tracingProvider = tp
 	}
 
 	server.onShutdown(func(ctx context.Context) error {

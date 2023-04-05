@@ -1,8 +1,8 @@
 audit:
   sinks:
-    logFile:
+    log:
       enabled: true
-      filePath: ./log.txt
+      path: ./log.txt
   buffer:
     capacity: 1000
     flushPeriod: 3m

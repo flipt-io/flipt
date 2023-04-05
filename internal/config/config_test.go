@@ -282,8 +282,8 @@ func defaultConfig() *Config {
 			Version: "v0.1",
 			Sinks: SinksConfig{
 				LogFile: LogFileSinkConfig{
-					Enabled:  false,
-					FilePath: "./path/to/log/file",
+					Enabled: false,
+					Path:    "./path/to/log/file",
 				},
 			},
 			Buffer: BufferConfig{

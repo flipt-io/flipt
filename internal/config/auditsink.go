@@ -65,14 +65,14 @@ func (c *AuditSinkConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	LogFile LogFileSinkConfig `json:"logFile,omitempty" mapstructure:"logFile"`
+	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
 }
 
 // LogFileSinkConfig contains fields that hold configuration for sending audits
 // to a log file.
 type LogFileSinkConfig struct {
-	Enabled  bool   `json:"enabled,omitempty" mapstructure:"enabled"`
-	FilePath string `json:"filePath,omitempty" mapstructure:"filePath"`
+	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled"`
+	Path    string `json:"path,omitempty" mapstructure:"path"`
 }
 
 // BufferConfig holds configuration for the buffering of sending the audit
