@@ -105,7 +105,7 @@ func (x *FliptClient) GetNamespace(ctx context.Context, v *flipt.GetNamespaceReq
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -135,7 +135,7 @@ func (x *FliptClient) ListNamespaces(ctx context.Context, v *flipt.ListNamespace
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -167,7 +167,7 @@ func (x *FliptClient) CreateNamespace(ctx context.Context, v *flipt.CreateNamesp
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -199,7 +199,7 @@ func (x *FliptClient) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamesp
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -226,7 +226,7 @@ func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamesp
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
