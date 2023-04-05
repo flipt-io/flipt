@@ -76,4 +76,24 @@ jobs:
         run: go mod tidy
 
       - name: Ensure clean git state.
-        run: git diff-index --quiet HEAD -- || (echo "Please run go mod tidy." && exit 1)
+        run: git diff-index --quiet HEAD -- || (echo "Please run 'go mod tidy' and commit changes." && exit 1)
+
+  grpc-gen:
+    name: "Generate GRPC"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: proto
+
+      - name: Ensure clean git state.
+        run: git diff-index --quiet HEAD -- || (echo "Please run 'mage proto' and commit changes." && exit 1)
