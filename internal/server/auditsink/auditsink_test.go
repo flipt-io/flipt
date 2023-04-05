@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
-	"gotest.tools/assert"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"

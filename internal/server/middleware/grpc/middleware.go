@@ -287,7 +287,6 @@ func AuditSinkUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 
 		if auditEvent != nil {
 			span := trace.SpanFromContext(ctx)
-			fmt.Println("GETTING IN HERE: ", span)
 			span.AddEvent("auditEvent", trace.WithAttributes(auditEvent.DecodeToAttributes()...))
 		}
 
