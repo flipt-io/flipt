@@ -1,5 +1,4 @@
 audit:
-  version: v0.1
   sinks:
     log:
       enabled: true

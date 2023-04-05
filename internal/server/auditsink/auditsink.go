@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const AuditEventVersion = "v0.1"
+
 // AuditType represents what resource is being acted on.
 type AuditType string
 
@@ -37,6 +39,8 @@ type AuditEvent struct {
 	Payload  interface{}    `json:"payload"`
 }
 
+// DecodeToAttributes provides a helper method for an AuditEvent that will return
+// a value compatible to a SpanEvent.
 func (ae AuditEvent) DecodeToAttributes() []attribute.KeyValue {
 	akv := make([]attribute.KeyValue, 0)
 
@@ -82,6 +86,8 @@ func (ae *AuditEvent) Valid() bool {
 	return ae.Version != "" && ae.Metadata.Action != "" && ae.Metadata.Type != "" && ae.Payload != nil
 }
 
+// decodeToAuditEvent provides helper logic for turning to value of SpanEvents to
+// an AuditEvent.
 func decodeToAuditEvent(kvs []attribute.KeyValue) (*AuditEvent, error) {
 	ae := new(AuditEvent)
 	for _, kv := range kvs {

@@ -279,7 +279,6 @@ func defaultConfig() *Config {
 		},
 
 		Audit: AuditSinkConfig{
-			Version: "v0.1",
 			Sinks: SinksConfig{
 				LogFile: LogFileSinkConfig{
 					Enabled: false,
@@ -661,11 +660,6 @@ func TestLoad(t *testing.T) {
 			name:    "version invalid",
 			path:    "./testdata/version/invalid.yml",
 			wantErr: errors.New("invalid version: 2.0"),
-		},
-		{
-			name:    "audit sink version invalid",
-			path:    "./testdata/auditsink/invalid_version.yml",
-			wantErr: errors.New("unrecognized version v1000"),
 		},
 		{
 			name:    "buffer size not within range",
