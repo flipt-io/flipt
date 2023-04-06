@@ -151,7 +151,7 @@ func UpdateChangelog(module, version string) error {
 			return err
 		}
 
-		rng = latest + ".." + rng
+		rng = path.Join(prefix, latest) + ".." + rng
 	}
 
 	logCmd := fmt.Sprintf(`git --no-pager log --format="%%s" %s -- %s`, rng, prefix)
@@ -181,7 +181,7 @@ func Tag(ctx context.Context, module, version string) error {
 		return err
 	}
 
-	diff, err := exec.Command("git", "diff", "--shortstat", latest, "--", prefix).CombinedOutput()
+	diff, err := exec.Command("git", "diff", "--shortstat", path.Join(prefix, latest), "--", prefix).CombinedOutput()
 	if err != nil {
 		return err
 	}
