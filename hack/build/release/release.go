@@ -143,7 +143,7 @@ func UpdateChangelog(module, version string) error {
 	}
 
 	// go-git doesn't support half the functionality of git log
-	// It ends up brining along a lot of extra commits.
+	// It ends up bringing along a lot of extra commits.
 	// So for now, I am just going to pop a shell.
 	rng := "HEAD"
 	if latest != "" {
