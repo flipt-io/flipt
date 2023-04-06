@@ -91,7 +91,9 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          if [[ $TAG == $(cat version.txt) ]]; then
+          cd hack/build
+
+          if [[ $TAG == $(mage release:latest go.flipt.io/flipt) ]]; then
             docker pull flipt/flipt:$TAG
             skopeo copy --all docker://flipt/flipt:$TAG docker://flipt/flipt:latest
 

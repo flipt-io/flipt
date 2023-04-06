@@ -210,13 +210,24 @@ func (t Test) Integration(ctx context.Context) error {
 
 type Release mg.Namespace
 
-func (r Release) Submodules(ctx context.Context, tag string) error {
-	client, err := daggerClient(ctx)
-	if err != nil {
-		return err
-	}
+func (r Release) Next(ctx context.Context, module, versionParts string) error {
+	return release.Next(module, versionParts)
+}
 
-	return release.Submodules(ctx, client, tag)
+func (r Release) Latest(ctx context.Context, module string) error {
+	return release.Latest(module, false)
+}
+
+func (r Release) LatestRC(ctx context.Context, module string) error {
+	return release.Latest(module, true)
+}
+
+func (r Release) Changelog(ctx context.Context, module, version string) error {
+	return release.UpdateChangelog(module, version)
+}
+
+func (r Release) Tag(ctx context.Context, module, version string) error {
+	return release.Tag(ctx, module, version)
 }
 
 func daggerClient(ctx context.Context) (*dagger.Client, error) {
