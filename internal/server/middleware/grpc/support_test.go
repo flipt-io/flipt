@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/stretchr/testify/mock"
-	"go.flipt.io/flipt/internal/server/auditsink"
+	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -247,23 +247,25 @@ type auditSinkSpy struct {
 	fmt.Stringer
 }
 
-func (a *auditSinkSpy) SendAudits(aes []auditsink.AuditEvent) error {
+func (a *auditSinkSpy) SendAudits(aes []audit.Event) error {
 	a.sendAuditsCalled++
 	return nil
 }
 
+func (a *auditSinkSpy) Close() error { return nil }
+
 type auditExporterSpy struct {
-	auditsink.AuditEventExporter
+	audit.EventExporter
 	sinkSpy *auditSinkSpy
 }
 
 func newAuditExporterSpy(logger *zap.Logger) *auditExporterSpy {
 	aspy := &auditSinkSpy{}
-	as := []auditsink.AuditSink{aspy}
+	as := []audit.Sink{aspy}
 
 	return &auditExporterSpy{
-		AuditEventExporter: auditsink.NewSinkSpanExporter(logger, as),
-		sinkSpy:            aspy,
+		EventExporter: audit.NewSinkSpanExporter(logger, as),
+		sinkSpy:       aspy,
 	}
 }
 

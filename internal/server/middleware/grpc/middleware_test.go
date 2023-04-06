@@ -697,7 +697,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 	}
 }
 
-func TestAuditSinkUnaryInterceptor_UpdateFlag(t *testing.T) {
+func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -718,7 +718,7 @@ func TestAuditSinkUnaryInterceptor_UpdateFlag(t *testing.T) {
 		Enabled:     req.Enabled,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		span := trace.SpanFromContext(ctx)
@@ -745,7 +745,7 @@ func TestAuditSinkUnaryInterceptor_UpdateFlag(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_DeleteFlag(t *testing.T) {
+func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -758,7 +758,7 @@ func TestAuditSinkUnaryInterceptor_DeleteFlag(t *testing.T) {
 
 	store.On("DeleteFlag", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteFlag(ctx, r.(*flipt.DeleteFlagRequest))
@@ -782,7 +782,7 @@ func TestAuditSinkUnaryInterceptor_DeleteFlag(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_CreateVariant(t *testing.T) {
+func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -805,7 +805,7 @@ func TestAuditSinkUnaryInterceptor_CreateVariant(t *testing.T) {
 		Attachment:  req.Attachment,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateVariant(ctx, r.(*flipt.CreateVariantRequest))
@@ -829,7 +829,7 @@ func TestAuditSinkUnaryInterceptor_CreateVariant(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_UpdateVariant(t *testing.T) {
+func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -853,7 +853,7 @@ func TestAuditSinkUnaryInterceptor_UpdateVariant(t *testing.T) {
 		Attachment:  req.Attachment,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateVariant(ctx, r.(*flipt.UpdateVariantRequest))
@@ -877,7 +877,7 @@ func TestAuditSinkUnaryInterceptor_UpdateVariant(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_DeleteVariant(t *testing.T) {
+func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -890,7 +890,7 @@ func TestAuditSinkUnaryInterceptor_DeleteVariant(t *testing.T) {
 
 	store.On("DeleteVariant", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteVariant(ctx, r.(*flipt.DeleteVariantRequest))
@@ -914,7 +914,7 @@ func TestAuditSinkUnaryInterceptor_DeleteVariant(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_CreateDistribution(t *testing.T) {
+func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -935,7 +935,7 @@ func TestAuditSinkUnaryInterceptor_CreateDistribution(t *testing.T) {
 		Rollout:   req.Rollout,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateDistribution(ctx, r.(*flipt.CreateDistributionRequest))
@@ -959,7 +959,7 @@ func TestAuditSinkUnaryInterceptor_CreateDistribution(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_UpdateDistribution(t *testing.T) {
+func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -981,7 +981,7 @@ func TestAuditSinkUnaryInterceptor_UpdateDistribution(t *testing.T) {
 		Rollout:   req.Rollout,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateDistribution(ctx, r.(*flipt.UpdateDistributionRequest))
@@ -1005,7 +1005,7 @@ func TestAuditSinkUnaryInterceptor_UpdateDistribution(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_DeleteDistribution(t *testing.T) {
+func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1021,7 +1021,7 @@ func TestAuditSinkUnaryInterceptor_DeleteDistribution(t *testing.T) {
 
 	store.On("DeleteDistribution", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteDistribution(ctx, r.(*flipt.DeleteDistributionRequest))
@@ -1045,7 +1045,7 @@ func TestAuditSinkUnaryInterceptor_DeleteDistribution(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_CreateSegment(t *testing.T) {
+func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1066,7 +1066,7 @@ func TestAuditSinkUnaryInterceptor_CreateSegment(t *testing.T) {
 		MatchType:   req.MatchType,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateSegment(ctx, r.(*flipt.CreateSegmentRequest))
@@ -1090,7 +1090,7 @@ func TestAuditSinkUnaryInterceptor_CreateSegment(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_UpdateSegment(t *testing.T) {
+func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1111,7 +1111,7 @@ func TestAuditSinkUnaryInterceptor_UpdateSegment(t *testing.T) {
 		MatchType:   req.MatchType,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateSegment(ctx, r.(*flipt.UpdateSegmentRequest))
@@ -1135,7 +1135,7 @@ func TestAuditSinkUnaryInterceptor_UpdateSegment(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_DeleteSegment(t *testing.T) {
+func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1148,7 +1148,7 @@ func TestAuditSinkUnaryInterceptor_DeleteSegment(t *testing.T) {
 
 	store.On("DeleteSegment", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteSegment(ctx, r.(*flipt.DeleteSegmentRequest))
@@ -1172,7 +1172,7 @@ func TestAuditSinkUnaryInterceptor_DeleteSegment(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_CreateConstraint(t *testing.T) {
+func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1196,7 +1196,7 @@ func TestAuditSinkUnaryInterceptor_CreateConstraint(t *testing.T) {
 		Value:      req.Value,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateConstraint(ctx, r.(*flipt.CreateConstraintRequest))
@@ -1220,7 +1220,7 @@ func TestAuditSinkUnaryInterceptor_CreateConstraint(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_UpdateConstraint(t *testing.T) {
+func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1245,7 +1245,7 @@ func TestAuditSinkUnaryInterceptor_UpdateConstraint(t *testing.T) {
 		Value:      req.Value,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateConstraint(ctx, r.(*flipt.UpdateConstraintRequest))
@@ -1269,7 +1269,7 @@ func TestAuditSinkUnaryInterceptor_UpdateConstraint(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_DeleteConstraint(t *testing.T) {
+func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1283,7 +1283,7 @@ func TestAuditSinkUnaryInterceptor_DeleteConstraint(t *testing.T) {
 
 	store.On("DeleteConstraint", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteConstraint(ctx, r.(*flipt.DeleteConstraintRequest))
@@ -1307,7 +1307,7 @@ func TestAuditSinkUnaryInterceptor_DeleteConstraint(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_CreateRule(t *testing.T) {
+func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1326,7 +1326,7 @@ func TestAuditSinkUnaryInterceptor_CreateRule(t *testing.T) {
 		FlagKey:    req.FlagKey,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateRule(ctx, r.(*flipt.CreateRuleRequest))
@@ -1350,7 +1350,7 @@ func TestAuditSinkUnaryInterceptor_CreateRule(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_UpdateRule(t *testing.T) {
+func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1369,7 +1369,7 @@ func TestAuditSinkUnaryInterceptor_UpdateRule(t *testing.T) {
 		FlagKey:    req.FlagKey,
 	}, nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateRule(ctx, r.(*flipt.UpdateRuleRequest))
@@ -1393,7 +1393,7 @@ func TestAuditSinkUnaryInterceptor_UpdateRule(t *testing.T) {
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }
 
-func TestAuditSinkUnaryInterceptor_DeleteRule(t *testing.T) {
+func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		logger      = zaptest.NewLogger(t)
@@ -1407,10 +1407,137 @@ func TestAuditSinkUnaryInterceptor_DeleteRule(t *testing.T) {
 
 	store.On("DeleteRule", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditSinkUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteRule(ctx, r.(*flipt.DeleteRuleRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+}
+
+func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.CreateNamespaceRequest{
+			Key:  "namespacekey",
+			Name: "namespaceKey",
+		}
+	)
+
+	store.On("CreateNamespace", mock.Anything, req).Return(&flipt.Namespace{
+		Key:  req.Key,
+		Name: req.Name,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateNamespace(ctx, r.(*flipt.CreateNamespaceRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+}
+
+func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.UpdateNamespaceRequest{
+			Key:         "namespacekey",
+			Name:        "namespaceKey",
+			Description: "namespace description",
+		}
+	)
+
+	store.On("UpdateNamespace", mock.Anything, req).Return(&flipt.Namespace{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateNamespace(ctx, r.(*flipt.UpdateNamespaceRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+}
+
+func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.DeleteNamespaceRequest{
+			Key: "namespacekey",
+		}
+	)
+
+	store.On("GetNamespace", mock.Anything, req.Key).Return(&flipt.Namespace{
+		Key: req.Key,
+	}, nil)
+
+	store.On("CountFlags", mock.Anything, req.Key).Return(uint64(0), nil)
+
+	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteNamespace(ctx, r.(*flipt.DeleteNamespaceRequest))
 	}
 
 	info := &grpc.UnaryServerInfo{

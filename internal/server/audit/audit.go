@@ -1,4 +1,4 @@
-package auditsink
+package audit
 
 import (
 	"context"
@@ -6,42 +6,44 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 )
 
-const auditEventVersion = "v0.1"
+const eventVersion = "v0.1"
 
-// AuditType represents what resource is being acted on.
-type AuditType string
+// Type represents what resource is being acted on.
+type Type string
 
-// AuditAction represents the action being taken on the resource.
-type AuditAction string
+// Action represents the action being taken on the resource.
+type Action string
 
 const (
-	ConstraintType   AuditType = "constraint"
-	DistributionType AuditType = "distribution"
-	FlagType         AuditType = "flag"
-	RuleType         AuditType = "rule"
-	SegmentType      AuditType = "segment"
-	VariantType      AuditType = "variant"
+	Constraint   Type = "constraint"
+	Distribution Type = "distribution"
+	Flag         Type = "flag"
+	Namespace    Type = "namespace"
+	Rule         Type = "rule"
+	Segment      Type = "segment"
+	Variant      Type = "variant"
 
-	CreateAction AuditAction = "created"
-	DeleteAction AuditAction = "deleted"
-	UpdateAction AuditAction = "updated"
+	Create Action = "created"
+	Delete Action = "deleted"
+	Update Action = "updated"
 )
 
-// AuditEvent holds information that represents an audit internally.
-type AuditEvent struct {
+// Event holds information that represents an audit internally.
+type Event struct {
 	Version  string         `json:"version"`
 	Metadata MetadataConfig `json:"metadata"`
 	Payload  interface{}    `json:"payload"`
 }
 
-// DecodeToAttributes provides a helper method for an AuditEvent that will return
+// DecodeToAttributes provides a helper method for an Event that will return
 // a value compatible to a SpanEvent.
-func (ae AuditEvent) DecodeToAttributes() []attribute.KeyValue {
+func (ae Event) DecodeToAttributes() []attribute.KeyValue {
 	akv := make([]attribute.KeyValue, 0)
 
 	if ae.Version != "" {
@@ -83,30 +85,25 @@ func deserializeHelper(s string) string {
 	return ss[len(ss)-1]
 }
 
-func (ae *AuditEvent) Valid() bool {
+func (ae *Event) Valid() bool {
 	return ae.Version != "" && ae.Metadata.Action != "" && ae.Metadata.Type != "" && ae.Payload != nil
 }
 
-// decodeToAuditEvent provides helper logic for turning to value of SpanEvents to
-// an AuditEvent.
-func decodeToAuditEvent(kvs []attribute.KeyValue) (*AuditEvent, error) {
-	ae := new(AuditEvent)
+// decodeToEvent provides helper logic for turning to value of SpanEvents to
+// an Event.
+func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
+	ae := new(Event)
 	for _, kv := range kvs {
 		terminalKey := deserializeHelper(string(kv.Key))
 
-		if terminalKey == "version" {
+		switch terminalKey {
+		case "version":
 			ae.Version = kv.Value.AsString()
-		}
-
-		if terminalKey == "action" {
-			ae.Metadata.Action = AuditAction(kv.Value.AsString())
-		}
-
-		if terminalKey == "type" {
-			ae.Metadata.Type = AuditType(kv.Value.AsString())
-		}
-
-		if terminalKey == "payload" {
+		case "action":
+			ae.Metadata.Action = Action(kv.Value.AsString())
+		case "type":
+			ae.Metadata.Type = Type(kv.Value.AsString())
+		case "payload":
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
 				return nil, err
@@ -124,32 +121,33 @@ func decodeToAuditEvent(kvs []attribute.KeyValue) (*AuditEvent, error) {
 
 // MetadataConfig holds information of what metadata an event will contain.
 type MetadataConfig struct {
-	Type   AuditType   `json:"type"`
-	Action AuditAction `json:"action"`
+	Type   Type   `json:"type"`
+	Action Action `json:"action"`
 }
 
-// AuditSink is the abstraction for various audit sink configurations
+// Sink is the abstraction for various audit sink configurations
 // that Flipt will support.
-type AuditSink interface {
-	SendAudits([]AuditEvent) error
+type Sink interface {
+	SendAudits([]Event) error
+	Close() error
 	fmt.Stringer
 }
 
 // SinkSpanExporter sends audit logs to configured sinks through intercepting span events.
 type SinkSpanExporter struct {
-	sinks  []AuditSink
+	sinks  []Sink
 	logger *zap.Logger
 }
 
-// AuditEventExporter provides an API for exporting spans as AuditEvent(s).
-type AuditEventExporter interface {
+// EventExporter provides an API for exporting spans as Event(s).
+type EventExporter interface {
 	ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error
 	Shutdown(ctx context.Context) error
-	SendAudits(aes []AuditEvent) error
+	SendAudits(aes []Event) error
 }
 
 // NewSinkSpanExporter is the constructor for a SinkSpanExporter.
-func NewSinkSpanExporter(logger *zap.Logger, sinks []AuditSink) AuditEventExporter {
+func NewSinkSpanExporter(logger *zap.Logger, sinks []Sink) EventExporter {
 	return &SinkSpanExporter{
 		sinks:  sinks,
 		logger: logger,
@@ -158,14 +156,14 @@ func NewSinkSpanExporter(logger *zap.Logger, sinks []AuditSink) AuditEventExport
 
 // ExportSpans completes one part of the implementation of a SpanExporter. Decodes span events to audit events.
 func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error {
-	aes := make([]AuditEvent, 0)
+	aes := make([]Event, 0)
 
 	for _, span := range spans {
 		events := span.Events()
 		for _, e := range events {
-			ae, err := decodeToAuditEvent(e.Attributes)
+			ae, err := decodeToEvent(e.Attributes)
 			if err != nil {
-				s.logger.Debug("audit event not decodable")
+				s.logger.Debug("audit event not decodable", zap.Any("audit event", ae), zap.Error(err))
 				continue
 			}
 			aes = append(aes, *ae)
@@ -175,12 +173,22 @@ func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []trace.ReadOn
 	return s.SendAudits(aes)
 }
 
+// Shutdown will close all the registered sinks.
 func (s *SinkSpanExporter) Shutdown(ctx context.Context) error {
-	return nil
+	var result error
+
+	for _, sink := range s.sinks {
+		err := sink.Close()
+		if err != nil {
+			result = multierror.Append(result, err)
+		}
+	}
+
+	return result
 }
 
 // SendAudits wraps the methods of sending audits to various sinks.
-func (s *SinkSpanExporter) SendAudits(aes []AuditEvent) error {
+func (s *SinkSpanExporter) SendAudits(aes []Event) error {
 	for _, sink := range s.sinks {
 		err := sink.SendAudits(aes)
 		if err != nil {
@@ -191,13 +199,13 @@ func (s *SinkSpanExporter) SendAudits(aes []AuditEvent) error {
 	return nil
 }
 
-// NewAuditEvent is the constructor for an audit event.
-func NewAuditEvent(auditType AuditType, auditAction AuditAction, payload interface{}) *AuditEvent {
-	return &AuditEvent{
-		Version: auditEventVersion,
+// NewEvent is the constructor for an audit event.
+func NewEvent(auditType Type, action Action, payload interface{}) *Event {
+	return &Event{
+		Version: eventVersion,
 		Metadata: MetadataConfig{
 			Type:   auditType,
-			Action: auditAction,
+			Action: action,
 		},
 		Payload: payload,
 	}

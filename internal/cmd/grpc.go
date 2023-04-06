@@ -11,14 +11,13 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
-	"go.flipt.io/flipt/internal/server/auditsink"
-	"go.flipt.io/flipt/internal/server/auditsink/logfile"
+	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
-	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
@@ -138,7 +137,16 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("driver", driver))
 
-	var tracingProvider = fliptotel.NewNoopProvider()
+	// Initialize tracingProvider regardless of configuration. No extraordinary resources
+	// are consumed, or goroutines initialized until a SpanProcessor is registered.
+	var tracingProvider = tracesdk.NewTracerProvider(
+		tracesdk.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String("flipt"),
+			semconv.ServiceVersionKey.String(info.Version),
+		)),
+		tracesdk.WithSampler(tracesdk.AlwaysSample()),
+	)
 
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
@@ -164,18 +172,7 @@ func NewGRPCServer(
 			return nil, fmt.Errorf("creating exporter: %w", err)
 		}
 
-		tracingProvider = tracesdk.NewTracerProvider(
-			tracesdk.WithBatcher(
-				exp,
-				tracesdk.WithBatchTimeout(1*time.Second),
-			),
-			tracesdk.WithResource(resource.NewWithAttributes(
-				semconv.SchemaURL,
-				semconv.ServiceNameKey.String("flipt"),
-				semconv.ServiceVersionKey.String(info.Version),
-			)),
-			tracesdk.WithSampler(tracesdk.AlwaysSample()),
-		)
+		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
 
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
@@ -259,10 +256,10 @@ func NewGRPCServer(
 	}
 
 	// Audit sinks configuration.
-	sinks := make([]auditsink.AuditSink, 0)
+	sinks := make([]audit.Sink, 0)
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
-		logFileSink, err := logfile.NewLogFileSink(logger, cfg.Audit.Sinks.LogFile.Path)
+		logFileSink, err := logfile.NewSink(logger, cfg.Audit.Sinks.LogFile.Path)
 		if err != nil {
 			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.Path)
 		}
@@ -273,32 +270,19 @@ func NewGRPCServer(
 	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor.
 	if len(sinks) > 0 {
-		sse := auditsink.NewSinkSpanExporter(logger, sinks)
-		_, ok := tracingProvider.(*tracesdk.TracerProvider)
-		if !ok {
-			tracingProvider = tracesdk.NewTracerProvider(
-				tracesdk.WithBatcher(
-					sse,
-					tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod),
-					tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity),
-				),
-				tracesdk.WithResource(resource.NewWithAttributes(
-					semconv.SchemaURL,
-					semconv.ServiceNameKey.String("flipt"),
-					semconv.ServiceVersionKey.String(info.Version),
-				)),
-				tracesdk.WithSampler(tracesdk.AlwaysSample()),
-			)
-		} else {
-			tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
-		}
+		sse := audit.NewSinkSpanExporter(logger, sinks)
+		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 
-		interceptors = append(interceptors, middlewaregrpc.AuditSinkUnaryInterceptor(logger))
+		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger))
 		logger.Debug("audit sinks are enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
 		)
+
+		server.onShutdown(func(ctx context.Context) error {
+			return sse.Shutdown(ctx)
+		})
 	}
 
 	server.onShutdown(func(ctx context.Context) error {

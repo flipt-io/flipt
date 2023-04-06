@@ -1,4 +1,4 @@
-package auditsink
+package audit
 
 import (
 	"context"
@@ -14,11 +14,11 @@ import (
 )
 
 type sampleSink struct {
-	ch chan AuditEvent
+	ch chan Event
 	fmt.Stringer
 }
 
-func (s *sampleSink) SendAudits(aes []AuditEvent) error {
+func (s *sampleSink) SendAudits(aes []Event) error {
 	go func() {
 		s.ch <- aes[0]
 	}()
@@ -26,9 +26,11 @@ func (s *sampleSink) SendAudits(aes []AuditEvent) error {
 	return nil
 }
 
+func (s *sampleSink) Close() error { return nil }
+
 func TestSinkSpanExporter(t *testing.T) {
-	ss := &sampleSink{ch: make(chan AuditEvent)}
-	sse := NewSinkSpanExporter(zap.NewNop(), []AuditSink{ss})
+	ss := &sampleSink{ch: make(chan Event)}
+	sse := NewSinkSpanExporter(zap.NewNop(), []Sink{ss})
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(sse))
@@ -37,7 +39,7 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	_, span := tr.Start(context.Background(), "OnStart")
 
-	ae := NewAuditEvent(FlagType, CreateAction, &flipt.CreateFlagRequest{
+	ae := NewEvent(Flag, Create, &flipt.CreateFlagRequest{
 		Key:         "this-flag",
 		Name:        "this-flag",
 		Description: "this description",
