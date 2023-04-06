@@ -66,12 +66,13 @@ func (ae AuditEvent) DecodeToAttributes() []attribute.KeyValue {
 	}
 
 	if ae.Payload != nil {
-		b, _ := json.Marshal(ae.Payload)
-
-		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.payload",
-			Value: attribute.StringValue(string(b)),
-		})
+		b, err := json.Marshal(ae.Payload)
+		if err == nil {
+			akv = append(akv, attribute.KeyValue{
+				Key:   "flipt.payload",
+				Value: attribute.StringValue(string(b)),
+			})
+		}
 	}
 
 	return akv

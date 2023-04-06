@@ -138,7 +138,7 @@ func NewGRPCServer(
 
 	logger.Debug("store enabled", zap.Stringer("driver", driver))
 
-	var tracingProvider fliptotel.TracerProvider = fliptotel.NewNoopProvider()
+	var tracingProvider = fliptotel.NewNoopProvider()
 
 	if cfg.Tracing.Enabled {
 		var exp tracesdk.SpanExporter
