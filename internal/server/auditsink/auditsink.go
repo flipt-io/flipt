@@ -46,21 +46,21 @@ func (ae AuditEvent) DecodeToAttributes() []attribute.KeyValue {
 
 	if ae.Version != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.version",
+			Key:   "flipt.event.version",
 			Value: attribute.StringValue(ae.Version),
 		})
 	}
 
 	if ae.Metadata.Action != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.metadata.action",
+			Key:   "flipt.event.metadata.action",
 			Value: attribute.StringValue(string(ae.Metadata.Action)),
 		})
 	}
 
 	if ae.Metadata.Type != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.metadata.type",
+			Key:   "flipt.event.metadata.type",
 			Value: attribute.StringValue(string(ae.Metadata.Type)),
 		})
 	}
@@ -69,7 +69,7 @@ func (ae AuditEvent) DecodeToAttributes() []attribute.KeyValue {
 		b, err := json.Marshal(ae.Payload)
 		if err == nil {
 			akv = append(akv, attribute.KeyValue{
-				Key:   "flipt.payload",
+				Key:   "flipt.event.payload",
 				Value: attribute.StringValue(string(b)),
 			})
 		}
