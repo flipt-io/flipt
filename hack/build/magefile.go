@@ -210,6 +210,10 @@ func (t Test) Integration(ctx context.Context) error {
 
 type Release mg.Namespace
 
+func (r Release) Changelog(ctx context.Context, module, version string) error {
+	return release.PrepareChangelog(module, version)
+}
+
 func (r Release) Submodules(ctx context.Context, tag string) error {
 	client, err := daggerClient(ctx)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"strconv"
 	"strings"
@@ -12,9 +13,118 @@ import (
 
 	"dagger.io/dagger"
 	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/google/go-github/v50/github"
+	"golang.org/x/mod/modfile"
 	"golang.org/x/mod/semver"
 )
+
+const rootModule = "go.flipt.io/flipt"
+
+func PrepareChangelog(module, version string) error {
+	curDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	mod, err := os.ReadFile(path.Join(curDir, "go.mod"))
+	if err != nil {
+		panic(err)
+	}
+
+	if modfile.ModulePath(mod) == path.Join(rootModule, "build") {
+		if err := os.Chdir("../.."); err != nil {
+			return err
+		}
+
+		defer os.Chdir("hack/build")
+	}
+
+	if !strings.HasPrefix(module, rootModule) {
+		return fmt.Errorf("Expected module %q to be prefixed with %q", module, rootModule)
+	}
+
+	prefix := module[len(rootModule):]
+	if len(prefix) > 0 && prefix[0] == '/' {
+		prefix = prefix[1:]
+	}
+
+	repo, err := git.PlainOpen(".")
+	if err != nil {
+		return err
+	}
+
+	tags, err := versionTags(repo, prefix)
+	if err != nil {
+		return err
+	}
+
+	// go-git doesn't support half the functionality of git log
+	// It ends up brining along a lot of extra commits.
+	// So for now, I am just going to pop a shell.
+	rng := "HEAD"
+	if len(tags) > 0 {
+		latest := tags[len(tags)-1]
+		if semver.Compare(version, latest) < 1 {
+			return fmt.Errorf("requested version %v must be newer than latest %v", version, latest)
+		}
+
+		rng = latest + ".." + rng
+	}
+
+	logCmd := fmt.Sprintf(`git --no-pager log --format="%%s" %s -- %s`, rng, prefix)
+	cmd := exec.Command("sh", "-c", logCmd)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	messages := strings.Split(strings.TrimSpace(string(out)), "\n")
+
+	return insertChangeLogEntryIntoFile(
+		path.Join(prefix, "CHANGELOG.md"),
+		parseChangeLogVersion(prefix, version, time.Now(), messages...),
+	)
+}
+
+func versionTags(repo *git.Repository, prefix string) (v []string, err error) {
+	iter, err := repo.Tags()
+	if err != nil {
+		return nil, err
+	}
+
+	defer iter.Close()
+
+	if err := iter.ForEach(func(ref *plumbing.Reference) error {
+		name := strings.TrimPrefix(string(ref.Name()), "refs/tags/")
+		if strings.HasPrefix(name, prefix) {
+			v = append(v, name)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	semver.Sort(v)
+
+	// filter out all prerelease versions
+	for i := 0; i < len(v)-1; {
+		if semver.Prerelease(v[i]) != "" {
+			if len(v) == i+1 {
+				v = v[:i]
+				continue
+			}
+
+			v = append(v[:i], v[i+1:]...)
+			continue
+		}
+		i++
+	}
+
+	return
+}
 
 func Submodules(ctx context.Context, client *dagger.Client, tag string) error {
 	var (
