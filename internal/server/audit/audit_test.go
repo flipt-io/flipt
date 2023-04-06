@@ -18,9 +18,9 @@ type sampleSink struct {
 	fmt.Stringer
 }
 
-func (s *sampleSink) SendAudits(aes []Event) error {
+func (s *sampleSink) SendAudits(es []Event) error {
 	go func() {
-		s.ch <- aes[0]
+		s.ch <- es[0]
 	}()
 
 	return nil
@@ -39,17 +39,17 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	_, span := tr.Start(context.Background(), "OnStart")
 
-	ae := NewEvent(Flag, Create, &flipt.CreateFlagRequest{
+	e := NewEvent(Flag, Create, &flipt.CreateFlagRequest{
 		Key:         "this-flag",
 		Name:        "this-flag",
 		Description: "this description",
 		Enabled:     false,
 	})
 
-	span.AddEvent("auditEvent", trace.WithAttributes(ae.DecodeToAttributes()...))
+	span.AddEvent("auditEvent", trace.WithAttributes(e.DecodeToAttributes()...))
 	span.End()
 
-	sae := <-ss.ch
-	assert.Equal(t, ae.Metadata, sae.Metadata)
-	assert.Equal(t, ae.Version, sae.Version)
+	se := <-ss.ch
+	assert.Equal(t, e.Metadata, se.Metadata)
+	assert.Equal(t, e.Version, se.Version)
 }

@@ -247,7 +247,7 @@ type auditSinkSpy struct {
 	fmt.Stringer
 }
 
-func (a *auditSinkSpy) SendAudits(aes []audit.Event) error {
+func (a *auditSinkSpy) SendAudits(es []audit.Event) error {
 	a.sendAuditsCalled++
 	return nil
 }

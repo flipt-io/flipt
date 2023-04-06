@@ -43,32 +43,32 @@ type Event struct {
 
 // DecodeToAttributes provides a helper method for an Event that will return
 // a value compatible to a SpanEvent.
-func (ae Event) DecodeToAttributes() []attribute.KeyValue {
+func (e Event) DecodeToAttributes() []attribute.KeyValue {
 	akv := make([]attribute.KeyValue, 0)
 
-	if ae.Version != "" {
+	if e.Version != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   "flipt.event.version",
-			Value: attribute.StringValue(ae.Version),
+			Value: attribute.StringValue(e.Version),
 		})
 	}
 
-	if ae.Metadata.Action != "" {
+	if e.Metadata.Action != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   "flipt.event.metadata.action",
-			Value: attribute.StringValue(string(ae.Metadata.Action)),
+			Value: attribute.StringValue(string(e.Metadata.Action)),
 		})
 	}
 
-	if ae.Metadata.Type != "" {
+	if e.Metadata.Type != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   "flipt.event.metadata.type",
-			Value: attribute.StringValue(string(ae.Metadata.Type)),
+			Value: attribute.StringValue(string(e.Metadata.Type)),
 		})
 	}
 
-	if ae.Payload != nil {
-		b, err := json.Marshal(ae.Payload)
+	if e.Payload != nil {
+		b, err := json.Marshal(e.Payload)
 		if err == nil {
 			akv = append(akv, attribute.KeyValue{
 				Key:   "flipt.event.payload",
@@ -85,38 +85,38 @@ func deserializeHelper(s string) string {
 	return ss[len(ss)-1]
 }
 
-func (ae *Event) Valid() bool {
-	return ae.Version != "" && ae.Metadata.Action != "" && ae.Metadata.Type != "" && ae.Payload != nil
+func (e *Event) Valid() bool {
+	return e.Version != "" && e.Metadata.Action != "" && e.Metadata.Type != "" && e.Payload != nil
 }
 
 // decodeToEvent provides helper logic for turning to value of SpanEvents to
 // an Event.
 func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
-	ae := new(Event)
+	e := new(Event)
 	for _, kv := range kvs {
 		terminalKey := deserializeHelper(string(kv.Key))
 
 		switch terminalKey {
 		case "version":
-			ae.Version = kv.Value.AsString()
+			e.Version = kv.Value.AsString()
 		case "action":
-			ae.Metadata.Action = Action(kv.Value.AsString())
+			e.Metadata.Action = Action(kv.Value.AsString())
 		case "type":
-			ae.Metadata.Type = Type(kv.Value.AsString())
+			e.Metadata.Type = Type(kv.Value.AsString())
 		case "payload":
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
 				return nil, err
 			}
-			ae.Payload = payload
+			e.Payload = payload
 		}
 	}
 
-	if !ae.Valid() {
+	if !e.Valid() {
 		return nil, fmt.Errorf("audit event not valid")
 	}
 
-	return ae, nil
+	return e, nil
 }
 
 // MetadataConfig holds information of what metadata an event will contain.
@@ -143,7 +143,7 @@ type SinkSpanExporter struct {
 type EventExporter interface {
 	ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error
 	Shutdown(ctx context.Context) error
-	SendAudits(aes []Event) error
+	SendAudits(es []Event) error
 }
 
 // NewSinkSpanExporter is the constructor for a SinkSpanExporter.
@@ -156,21 +156,21 @@ func NewSinkSpanExporter(logger *zap.Logger, sinks []Sink) EventExporter {
 
 // ExportSpans completes one part of the implementation of a SpanExporter. Decodes span events to audit events.
 func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error {
-	aes := make([]Event, 0)
+	es := make([]Event, 0)
 
 	for _, span := range spans {
 		events := span.Events()
 		for _, e := range events {
-			ae, err := decodeToEvent(e.Attributes)
+			e, err := decodeToEvent(e.Attributes)
 			if err != nil {
-				s.logger.Debug("audit event not decodable", zap.Any("audit event", ae), zap.Error(err))
+				s.logger.Debug("audit event not decodable", zap.Any("audit event", e), zap.Error(err))
 				continue
 			}
-			aes = append(aes, *ae)
+			es = append(es, *e)
 		}
 	}
 
-	return s.SendAudits(aes)
+	return s.SendAudits(es)
 }
 
 // Shutdown will close all the registered sinks.
@@ -188,9 +188,9 @@ func (s *SinkSpanExporter) Shutdown(ctx context.Context) error {
 }
 
 // SendAudits wraps the methods of sending audits to various sinks.
-func (s *SinkSpanExporter) SendAudits(aes []Event) error {
+func (s *SinkSpanExporter) SendAudits(es []Event) error {
 	for _, sink := range s.sinks {
-		err := sink.SendAudits(aes)
+		err := sink.SendAudits(es)
 		if err != nil {
 			s.logger.Debug("failed to send audits to sink", zap.Stringer("sink", sink))
 		}

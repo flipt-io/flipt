@@ -34,15 +34,15 @@ func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
 	}, nil
 }
 
-func (l *LogFileSink) SendAudits(auditEvents []audit.Event) error {
+func (l *LogFileSink) SendAudits(events []audit.Event) error {
 	l.logger.Debug("performing batched sending of audits", zap.Stringer("sink", l))
 
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
 	var result error
 
-	for _, ae := range auditEvents {
-		err := l.enc.Encode(ae)
+	for _, e := range events {
+		err := l.enc.Encode(e)
 		if err != nil {
 			l.logger.Error("failed to write audit event to file", zap.String("file", l.file.Name()), zap.Error(err))
 			result = multierror.Append(result, err)

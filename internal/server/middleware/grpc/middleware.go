@@ -244,56 +244,56 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			return resp, err
 		}
 
-		var auditEvent *audit.Event
+		var event *audit.Event
 
 		switch r := req.(type) {
 		case *flipt.CreateFlagRequest:
-			auditEvent = audit.NewEvent(audit.Flag, audit.Create, r)
+			event = audit.NewEvent(audit.Flag, audit.Create, r)
 		case *flipt.UpdateFlagRequest:
-			auditEvent = audit.NewEvent(audit.Flag, audit.Update, r)
+			event = audit.NewEvent(audit.Flag, audit.Update, r)
 		case *flipt.DeleteFlagRequest:
-			auditEvent = audit.NewEvent(audit.Flag, audit.Delete, r)
+			event = audit.NewEvent(audit.Flag, audit.Delete, r)
 		case *flipt.CreateVariantRequest:
-			auditEvent = audit.NewEvent(audit.Variant, audit.Create, r)
+			event = audit.NewEvent(audit.Variant, audit.Create, r)
 		case *flipt.UpdateVariantRequest:
-			auditEvent = audit.NewEvent(audit.Variant, audit.Update, r)
+			event = audit.NewEvent(audit.Variant, audit.Update, r)
 		case *flipt.DeleteVariantRequest:
-			auditEvent = audit.NewEvent(audit.Variant, audit.Delete, r)
+			event = audit.NewEvent(audit.Variant, audit.Delete, r)
 		case *flipt.CreateSegmentRequest:
-			auditEvent = audit.NewEvent(audit.Segment, audit.Create, r)
+			event = audit.NewEvent(audit.Segment, audit.Create, r)
 		case *flipt.UpdateSegmentRequest:
-			auditEvent = audit.NewEvent(audit.Segment, audit.Update, r)
+			event = audit.NewEvent(audit.Segment, audit.Update, r)
 		case *flipt.DeleteSegmentRequest:
-			auditEvent = audit.NewEvent(audit.Segment, audit.Delete, r)
+			event = audit.NewEvent(audit.Segment, audit.Delete, r)
 		case *flipt.CreateConstraintRequest:
-			auditEvent = audit.NewEvent(audit.Constraint, audit.Create, r)
+			event = audit.NewEvent(audit.Constraint, audit.Create, r)
 		case *flipt.UpdateConstraintRequest:
-			auditEvent = audit.NewEvent(audit.Constraint, audit.Update, r)
+			event = audit.NewEvent(audit.Constraint, audit.Update, r)
 		case *flipt.DeleteConstraintRequest:
-			auditEvent = audit.NewEvent(audit.Constraint, audit.Delete, r)
+			event = audit.NewEvent(audit.Constraint, audit.Delete, r)
 		case *flipt.CreateDistributionRequest:
-			auditEvent = audit.NewEvent(audit.Distribution, audit.Create, r)
+			event = audit.NewEvent(audit.Distribution, audit.Create, r)
 		case *flipt.UpdateDistributionRequest:
-			auditEvent = audit.NewEvent(audit.Distribution, audit.Update, r)
+			event = audit.NewEvent(audit.Distribution, audit.Update, r)
 		case *flipt.DeleteDistributionRequest:
-			auditEvent = audit.NewEvent(audit.Distribution, audit.Delete, r)
+			event = audit.NewEvent(audit.Distribution, audit.Delete, r)
 		case *flipt.CreateRuleRequest:
-			auditEvent = audit.NewEvent(audit.Rule, audit.Create, r)
+			event = audit.NewEvent(audit.Rule, audit.Create, r)
 		case *flipt.UpdateRuleRequest:
-			auditEvent = audit.NewEvent(audit.Rule, audit.Update, r)
+			event = audit.NewEvent(audit.Rule, audit.Update, r)
 		case *flipt.DeleteRuleRequest:
-			auditEvent = audit.NewEvent(audit.Rule, audit.Delete, r)
+			event = audit.NewEvent(audit.Rule, audit.Delete, r)
 		case *flipt.CreateNamespaceRequest:
-			auditEvent = audit.NewEvent(audit.Namespace, audit.Create, r)
+			event = audit.NewEvent(audit.Namespace, audit.Create, r)
 		case *flipt.UpdateNamespaceRequest:
-			auditEvent = audit.NewEvent(audit.Namespace, audit.Update, r)
+			event = audit.NewEvent(audit.Namespace, audit.Update, r)
 		case *flipt.DeleteNamespaceRequest:
-			auditEvent = audit.NewEvent(audit.Namespace, audit.Delete, r)
+			event = audit.NewEvent(audit.Namespace, audit.Delete, r)
 		}
 
-		if auditEvent != nil {
+		if event != nil {
 			span := trace.SpanFromContext(ctx)
-			span.AddEvent("event", trace.WithAttributes(auditEvent.DecodeToAttributes()...))
+			span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
 		}
 
 		return resp, err
