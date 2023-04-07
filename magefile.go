@@ -48,7 +48,7 @@ func Bench() error {
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
 	if err := os.MkdirAll("_tools", 0755); err != nil {
-		return fmt.Errorf("failed to create dir: %w", err)
+		return fmt.Errorf("creating dir: %w", err)
 	}
 
 	// create module if go.mod doesnt exist
@@ -123,15 +123,15 @@ func ui(mode buildMode) error {
 
 	f, err := os.Create(filepath.Join("ui", "index.html"))
 	if err != nil {
-		return fmt.Errorf("failed to create index.html: %w", err)
+		return fmt.Errorf("creating file: %w", err)
 	}
 
 	if err := tmplt.Execute(f, v); err != nil {
-		return fmt.Errorf("failed to execute template: %w", err)
+		return fmt.Errorf("executing template: %w", err)
 	}
 
 	if err := f.Close(); err != nil {
-		return fmt.Errorf("failed to close index.html: %w", err)
+		return fmt.Errorf("closing file: %w", err)
 	}
 
 	if mode == buildModeDev {
@@ -161,7 +161,7 @@ func ui(mode buildMode) error {
 
 func build(mode buildMode) error {
 	if err := ui(mode); err != nil {
-		return fmt.Errorf("failed to build UI: %w", err)
+		return fmt.Errorf("build UI: %w", err)
 	}
 
 	buildDate := time.Now().UTC().Format(time.RFC3339)
@@ -170,12 +170,11 @@ func build(mode buildMode) error {
 	switch mode {
 	case buildModeProd:
 		buildArgs = append(buildArgs, "-tags", "assets")
-	case buildModeDev:
 	}
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
 	if err != nil {
-		return fmt.Errorf("failed to get git commit: %w", err)
+		return fmt.Errorf("getting git commit: %w", err)
 	}
 
 	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
@@ -189,17 +188,13 @@ func Clean() error {
 	fmt.Println("Cleaning...")
 
 	if err := sh.RunV("go", "mod", "tidy"); err != nil {
-		return fmt.Errorf("failed to tidy go.mod: %w", err)
-	}
-
-	if err := sh.RunV("go", "clean", "-i", "./..."); err != nil {
-		return fmt.Errorf("failed to clean cache: %w", err)
+		return fmt.Errorf("tidying go.mod: %w", err)
 	}
 
 	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
 	for _, dir := range clean {
 		if err := os.RemoveAll(dir); err != nil {
-			return fmt.Errorf("failed to remove dir %q: %w", dir, err)
+			return fmt.Errorf("removing dir %q: %w", dir, err)
 		}
 	}
 
@@ -228,7 +223,7 @@ func Fmt() error {
 		return filepath.Ext(path) == ".go"
 	})
 	if err != nil {
-		return fmt.Errorf("failed to find files: %w", err)
+		return fmt.Errorf("finding files: %w", err)
 	}
 
 	args := append([]string{"-w"}, files...)
@@ -240,7 +235,7 @@ func Lint() error {
 	fmt.Println("Linting...")
 
 	if err := sh.RunV("golangci-lint", "run"); err != nil {
-		return fmt.Errorf("failed to lint: %w", err)
+		return fmt.Errorf("linting: %w", err)
 	}
 
 	return sh.RunV("buf", "lint")
