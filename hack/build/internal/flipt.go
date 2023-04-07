@@ -97,7 +97,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		)
 	}
 
-	// add base dependencies to intialize project with
+	// add base dependencies to initialize project with
 	src := client.Host().Directory(".", dagger.HostDirectoryOpts{
 		Include: includes,
 	})
@@ -147,7 +147,6 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 			// which is used to embed the built frontend
 			// distribution directory.
 			"./ui/",
-			"./.build/",
 			"./bin/",
 			"./.git/",
 		},
