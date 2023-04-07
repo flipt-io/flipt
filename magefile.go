@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,10 +74,10 @@ func Bootstrap() error {
 
 // Build builds the project similar to a release build
 func Build() error {
-	mg.Deps(Prep)
+	mg.Deps(Clean)
 	fmt.Println("Building...")
 
-	if err := build([]string{"-tags", "assets"}...); err != nil {
+	if err := build(buildModeProd); err != nil {
 		return err
 	}
 
@@ -90,7 +91,7 @@ func Dev() error {
 	mg.Deps(Clean)
 	fmt.Println("Building...")
 
-	if err := build(); err != nil {
+	if err := build(buildModeDev); err != nil {
 		return err
 	}
 
@@ -99,15 +100,85 @@ func Dev() error {
 	return nil
 }
 
-func build(args ...string) error {
+type buildMode uint8
+
+const (
+	// buildModeDev builds the project for development, without bundling assets
+	buildModeDev buildMode = iota
+	// BuildModeProd builds the project similar to a release build
+	buildModeProd
+)
+
+func ui(mode buildMode) error {
+	// use template to determine if we should inject dev scripts
+	// required to proxy to vite dev server
+	// see: https://vitejs.dev/guide/backend-integration.html
+	tmplt := template.Must(template.ParseFiles("ui/index.html.tmpl"))
+
+	v := struct {
+		IsDev bool
+	}{
+		IsDev: mode == buildModeDev,
+	}
+
+	f, err := os.Create(filepath.Join("ui", "index.html"))
+	if err != nil {
+		return fmt.Errorf("failed to create index.html: %w", err)
+	}
+
+	if err := tmplt.Execute(f, v); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("failed to close index.html: %w", err)
+	}
+
+	if mode == buildModeDev {
+		return nil
+	}
+
+	fmt.Println("Installing UI deps...")
+
+	// TODO: only install if package.json has changed
+	cmd := exec.Command("npm", "ci")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("installing UI deps: %w", err)
+	}
+
+	fmt.Println("Generating assets...")
+
+	cmd = exec.Command("npm", "run", "build")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func build(mode buildMode) error {
+	if err := ui(mode); err != nil {
+		return fmt.Errorf("failed to build UI: %w", err)
+	}
+
 	buildDate := time.Now().UTC().Format(time.RFC3339)
+	buildArgs := make([]string, 0)
+
+	switch mode {
+	case buildModeProd:
+		buildArgs = append(buildArgs, "-tags", "assets")
+	case buildModeDev:
+	}
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
 	if err != nil {
 		return fmt.Errorf("failed to get git commit: %w", err)
 	}
 
-	buildArgs := append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, args...)
+	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
 	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
 
 	return sh.RunV("go", buildArgs...)
@@ -175,14 +246,6 @@ func Lint() error {
 	return sh.RunV("buf", "lint")
 }
 
-// Prep prepares the project for building
-func Prep() error {
-	fmt.Println("Preparing...")
-	mg.Deps(Clean)
-	mg.Deps(UI.Build)
-	return nil
-}
-
 // Proto generates protobuf files and gRPC stubs
 func Proto() error {
 	mg.Deps(Bootstrap)
@@ -203,33 +266,6 @@ func Test() error {
 	}
 
 	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
-}
-
-type UI mg.Namespace
-
-// Build generates UI assets
-func (u UI) Build() error {
-	mg.Deps(u.Deps)
-	fmt.Println("Generating assets...")
-
-	cmd := exec.Command("npm", "run", "build")
-	cmd.Dir = "ui"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
-}
-
-// Deps installs UI deps
-func (u UI) Deps() error {
-	fmt.Println("Installing UI deps...")
-
-	// TODO: only install if package.json has changed
-	cmd := exec.Command("npm", "ci")
-	cmd.Dir = "ui"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given
