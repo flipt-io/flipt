@@ -2,6 +2,7 @@ package logfile
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 
@@ -12,29 +13,29 @@ import (
 
 const sinkType = "logfile"
 
-// LogFileSink is the structure in charge of sending Audits to a specified file location.
-type LogFileSink struct {
+// Sink is the structure in charge of sending Audits to a specified file location.
+type Sink struct {
 	logger *zap.Logger
 	file   *os.File
 	mtx    sync.Mutex
 	enc    *json.Encoder
 }
 
-// NewSink is the constructor for a LogFileSink.
+// NewSink is the constructor for a Sink.
 func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("opening log file: %w", err)
 	}
 
-	return &LogFileSink{
+	return &Sink{
 		logger: logger,
 		file:   file,
 		enc:    json.NewEncoder(file),
 	}, nil
 }
 
-func (l *LogFileSink) SendAudits(events []audit.Event) error {
+func (l *Sink) SendAudits(events []audit.Event) error {
 	l.logger.Debug("performing batched sending of audits", zap.Stringer("sink", l))
 
 	l.mtx.Lock()
@@ -52,12 +53,12 @@ func (l *LogFileSink) SendAudits(events []audit.Event) error {
 	return result
 }
 
-func (l *LogFileSink) Close() error {
+func (l *Sink) Close() error {
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
 	return l.file.Close()
 }
 
-func (l *LogFileSink) String() string {
+func (l *Sink) String() string {
 	return sinkType
 }

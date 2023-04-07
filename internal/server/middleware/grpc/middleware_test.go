@@ -12,7 +12,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap/zaptest"
 
 	"github.com/stretchr/testify/assert"
@@ -697,6 +696,50 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 	}
 }
 
+func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.CreateFlagRequest{
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+		}
+	)
+
+	store.On("CreateFlag", mock.Anything, req).Return(&flipt.Flag{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateFlag(ctx, r.(*flipt.CreateFlagRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+
+	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+}
+
 func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 	var (
 		store       = &storeMock{}
@@ -721,8 +764,6 @@ func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 	unaryInterceptor := AuditUnaryInterceptor(logger)
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
-		span := trace.SpanFromContext(ctx)
-		span.End()
 		return s.UpdateFlag(ctx, r.(*flipt.UpdateFlagRequest))
 	}
 
