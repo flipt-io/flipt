@@ -1,11 +1,13 @@
 {
   "folders": [
-	{
-		"path": ".."
-	},
-	{
-		"path": "../ui"
-	}
-],
+    {
+      "path": "..",
+      "name": "flipt"
+    },
+    {
+      "path": "../ui",
+      "name": "ui"
+    }
+  ],
   "settings": {}
 }
