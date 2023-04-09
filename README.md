@@ -1,3 +1,5 @@
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=dc285028-90ba-436b-9a4a-e0d826a2c986" />
+
 <p align=center>
     <img src="logo.svg" alt="Flipt" width=275 height=96 />
 </p>
