@@ -22,6 +22,8 @@ RUN curl -sSL https://deb.nodesource.com/setup_18.x | bash && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN git config --system --add safe.directory *
+
 # install mage
 RUN git clone https://github.com/magefile/mage && \
     cd mage && \
