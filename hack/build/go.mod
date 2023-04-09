@@ -5,7 +5,7 @@ go 1.20
 require (
 	dagger.io/dagger v0.5.2
 	github.com/containerd/containerd v1.6.18
-	github.com/docker/docker v23.0.1+incompatible
+	github.com/docker/docker v23.0.3+incompatible
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/google/uuid v1.3.0
