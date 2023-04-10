@@ -39,7 +39,11 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	_, span := tr.Start(context.Background(), "OnStart")
 
-	e := NewEvent(Flag, Create, &flipt.CreateFlagRequest{
+	e := NewEvent(Metadata{
+		Type:   Flag,
+		Action: Create,
+		IP:     "127.0.0.1",
+	}, &flipt.CreateFlagRequest{
 		Key:         "this-flag",
 		Name:        "this-flag",
 		Description: "this description",

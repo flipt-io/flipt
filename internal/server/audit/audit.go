@@ -36,9 +36,9 @@ const (
 
 // Event holds information that represents an audit internally.
 type Event struct {
-	Version  string         `json:"version"`
-	Metadata MetadataConfig `json:"metadata"`
-	Payload  interface{}    `json:"payload"`
+	Version  string      `json:"version"`
+	Metadata Metadata    `json:"metadata"`
+	Payload  interface{} `json:"payload"`
 }
 
 // DecodeToAttributes provides a helper method for an Event that will return
@@ -64,6 +64,20 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		akv = append(akv, attribute.KeyValue{
 			Key:   "flipt.event.metadata.type",
 			Value: attribute.StringValue(string(e.Metadata.Type)),
+		})
+	}
+
+	if e.Metadata.IP != "" {
+		akv = append(akv, attribute.KeyValue{
+			Key:   "flipt.event.metadata.ip",
+			Value: attribute.StringValue(string(e.Metadata.IP)),
+		})
+	}
+
+	if e.Metadata.Author != "" {
+		akv = append(akv, attribute.KeyValue{
+			Key:   "flipt.event.metadata.author",
+			Value: attribute.StringValue(string(e.Metadata.Author)),
 		})
 	}
 
@@ -103,6 +117,10 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 			e.Metadata.Action = Action(kv.Value.AsString())
 		case "type":
 			e.Metadata.Type = Type(kv.Value.AsString())
+		case "ip":
+			e.Metadata.IP = kv.Value.AsString()
+		case "author":
+			e.Metadata.Author = kv.Value.AsString()
 		case "payload":
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
@@ -119,10 +137,12 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 	return e, nil
 }
 
-// MetadataConfig holds information of what metadata an event will contain.
-type MetadataConfig struct {
+// Metadata holds information of what metadata an event will contain.
+type Metadata struct {
 	Type   Type   `json:"type"`
 	Action Action `json:"action"`
+	IP     string `json:"ip,omitempty"`
+	Author string `json:"author,omitempty"`
 }
 
 // Sink is the abstraction for various audit sink configurations
@@ -200,12 +220,14 @@ func (s *SinkSpanExporter) SendAudits(es []Event) error {
 }
 
 // NewEvent is the constructor for an audit event.
-func NewEvent(auditType Type, action Action, payload interface{}) *Event {
+func NewEvent(metadata Metadata, payload interface{}) *Event {
 	return &Event{
 		Version: eventVersion,
-		Metadata: MetadataConfig{
-			Type:   auditType,
-			Action: action,
+		Metadata: Metadata{
+			Type:   metadata.Type,
+			Action: metadata.Action,
+			IP:     metadata.IP,
+			Author: metadata.Author,
 		},
 		Payload: payload,
 	}
