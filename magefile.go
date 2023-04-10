@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -76,6 +75,7 @@ func Bootstrap() error {
 // Build builds the project similar to a release build
 func Build() error {
 	mg.Deps(Clean)
+	mg.Deps(UI)
 	fmt.Println("Building...")
 
 	if err := build(buildModeProd); err != nil {
@@ -114,35 +114,8 @@ const (
 	buildModeProd
 )
 
-func ui(mode buildMode) error {
-	// use template to determine if we should inject dev scripts
-	// required to proxy to vite dev server
-	// see: https://vitejs.dev/guide/backend-integration.html
-	tmplt := template.Must(template.ParseFiles("ui/index.html.tmpl"))
-
-	v := struct {
-		IsDev bool
-	}{
-		IsDev: mode == buildModeDev,
-	}
-
-	f, err := os.Create(filepath.Join("ui", "index.html"))
-	if err != nil {
-		return fmt.Errorf("creating file: %w", err)
-	}
-
-	if err := tmplt.Execute(f, v); err != nil {
-		return fmt.Errorf("executing template: %w", err)
-	}
-
-	if err := f.Close(); err != nil {
-		return fmt.Errorf("closing file: %w", err)
-	}
-
-	if mode == buildModeDev {
-		return nil
-	}
-
+// UI installs UI dependencies and generates assets
+func UI() error {
 	fmt.Println("Installing UI deps...")
 
 	// TODO: only install if package.json has changed
@@ -165,10 +138,6 @@ func ui(mode buildMode) error {
 }
 
 func build(mode buildMode) error {
-	if err := ui(mode); err != nil {
-		return fmt.Errorf("build UI: %w", err)
-	}
-
 	buildDate := time.Now().UTC().Format(time.RFC3339)
 	buildArgs := make([]string, 0)
 
@@ -203,6 +172,14 @@ func Clean() error {
 		}
 	}
 
+	return nil
+}
+
+// Prep prepares the project for building
+func Prep() error {
+	fmt.Println("Preparing...")
+	mg.Deps(Clean)
+	mg.Deps(UI)
 	return nil
 }
 
