@@ -5,11 +5,13 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
@@ -47,7 +49,7 @@ func Bench() error {
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
 	if err := os.MkdirAll("_tools", 0755); err != nil {
-		return fmt.Errorf("failed to create dir: %w", err)
+		return fmt.Errorf("creating dir: %w", err)
 	}
 
 	// create module if go.mod doesnt exist
@@ -73,15 +75,16 @@ func Bootstrap() error {
 
 // Build builds the project similar to a release build
 func Build() error {
-	mg.Deps(Prep)
+	mg.Deps(Clean)
 	fmt.Println("Building...")
 
-	if err := build([]string{"-tags", "assets"}...); err != nil {
+	if err := build(buildModeProd); err != nil {
 		return err
 	}
 
 	fmt.Println("Done.")
-	fmt.Println("Run `./bin/flipt [--config config/local.yml]` to start Flipt")
+	fmt.Printf("\nRun the following to start Flipt:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
 	return nil
 }
 
@@ -90,24 +93,96 @@ func Dev() error {
 	mg.Deps(Clean)
 	fmt.Println("Building...")
 
-	if err := build(); err != nil {
+	if err := build(buildModeDev); err != nil {
 		return err
 	}
 
 	fmt.Println("Done.")
-	fmt.Println("Run `./bin/flipt [--config config/local.yml]` to start Flipt")
+	fmt.Printf("\nRun the following to start Flipt server:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
+	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
 	return nil
 }
 
-func build(args ...string) error {
+type buildMode uint8
+
+const (
+	// buildModeDev builds the project for development, without bundling assets
+	buildModeDev buildMode = iota
+	// BuildModeProd builds the project similar to a release build
+	buildModeProd
+)
+
+func ui(mode buildMode) error {
+	// use template to determine if we should inject dev scripts
+	// required to proxy to vite dev server
+	// see: https://vitejs.dev/guide/backend-integration.html
+	tmplt := template.Must(template.ParseFiles("ui/index.html.tmpl"))
+
+	v := struct {
+		IsDev bool
+	}{
+		IsDev: mode == buildModeDev,
+	}
+
+	f, err := os.Create(filepath.Join("ui", "index.html"))
+	if err != nil {
+		return fmt.Errorf("creating file: %w", err)
+	}
+
+	if err := tmplt.Execute(f, v); err != nil {
+		return fmt.Errorf("executing template: %w", err)
+	}
+
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("closing file: %w", err)
+	}
+
+	if mode == buildModeDev {
+		return nil
+	}
+
+	fmt.Println("Installing UI deps...")
+
+	// TODO: only install if package.json has changed
+	cmd := exec.Command("npm", "ci")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("installing UI deps: %w", err)
+	}
+
+	fmt.Println("Generating assets...")
+
+	cmd = exec.Command("npm", "run", "build")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func build(mode buildMode) error {
+	if err := ui(mode); err != nil {
+		return fmt.Errorf("build UI: %w", err)
+	}
+
 	buildDate := time.Now().UTC().Format(time.RFC3339)
+	buildArgs := make([]string, 0)
+
+	switch mode {
+	case buildModeProd:
+		buildArgs = append(buildArgs, "-tags", "assets")
+	}
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
 	if err != nil {
-		return fmt.Errorf("failed to get git commit: %w", err)
+		return fmt.Errorf("getting git commit: %w", err)
 	}
 
-	buildArgs := append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, args...)
+	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
 	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
 
 	return sh.RunV("go", buildArgs...)
@@ -118,17 +193,13 @@ func Clean() error {
 	fmt.Println("Cleaning...")
 
 	if err := sh.RunV("go", "mod", "tidy"); err != nil {
-		return fmt.Errorf("failed to tidy go.mod: %w", err)
-	}
-
-	if err := sh.RunV("go", "clean", "-i", "./..."); err != nil {
-		return fmt.Errorf("failed to clean cache: %w", err)
+		return fmt.Errorf("tidying go.mod: %w", err)
 	}
 
 	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
 	for _, dir := range clean {
 		if err := os.RemoveAll(dir); err != nil {
-			return fmt.Errorf("failed to remove dir %q: %w", dir, err)
+			return fmt.Errorf("removing dir %q: %w", dir, err)
 		}
 	}
 
@@ -157,7 +228,7 @@ func Fmt() error {
 		return filepath.Ext(path) == ".go"
 	})
 	if err != nil {
-		return fmt.Errorf("failed to find files: %w", err)
+		return fmt.Errorf("finding files: %w", err)
 	}
 
 	args := append([]string{"-w"}, files...)
@@ -169,18 +240,10 @@ func Lint() error {
 	fmt.Println("Linting...")
 
 	if err := sh.RunV("golangci-lint", "run"); err != nil {
-		return fmt.Errorf("failed to lint: %w", err)
+		return fmt.Errorf("linting: %w", err)
 	}
 
 	return sh.RunV("buf", "lint")
-}
-
-// Prep prepares the project for building
-func Prep() error {
-	fmt.Println("Preparing...")
-	mg.Deps(Clean)
-	mg.Deps(UI.Build)
-	return nil
 }
 
 // Proto generates protobuf files and gRPC stubs
@@ -203,33 +266,6 @@ func Test() error {
 	}
 
 	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
-}
-
-type UI mg.Namespace
-
-// Build generates UI assets
-func (u UI) Build() error {
-	mg.Deps(u.Deps)
-	fmt.Println("Generating assets...")
-
-	cmd := exec.Command("npm", "run", "build")
-	cmd.Dir = "ui"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
-}
-
-// Deps installs UI deps
-func (u UI) Deps() error {
-	fmt.Println("Installing UI deps...")
-
-	// TODO: only install if package.json has changed
-	cmd := exec.Command("npm", "ci")
-	cmd.Dir = "ui"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given
