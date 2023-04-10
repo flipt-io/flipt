@@ -27,4 +27,4 @@ dist-ssr
 /playwright/.cache/
 
 # Generated
-#index.html
+index.html
