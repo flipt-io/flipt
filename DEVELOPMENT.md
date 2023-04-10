@@ -18,7 +18,7 @@ Before starting, make sure you have the following installed:
 1. Clone this repo: `git clone https://github.com/flipt-io/flipt`
 1. Run `mage bootstrap` to install required development tools. See [#bootstrap](#bootstrap) below.
 1. Run `mage test` to execute the test suite
-1. Run `mage build` to build the binary with embedded assets.
+1. Run `mage` to build the binary with embedded assets.
 1. Run `mage -l` to see a full list of possible commands
 
 ## Go
