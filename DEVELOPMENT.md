@@ -47,15 +47,13 @@ After changing `flipt.proto`, you'll need to run `mage proto`. This will regener
 
 The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.dev/) and is also statically compiled into the Flipt binary using [go:embed](https://golang.org/pkg/embed/).
 
-The UI code has been migrated to it's own repository: [flipt-ui](https://github.com/flipt-io/flipt-ui), clone it somewhere on your machine and follow the instructions in the README to get started.
-
 To develop the project with the UI also in development mode (with hot reloading):
 
-1. Run `npm run dev` where you have the `flipt-ui` repository checked out. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
+1. Run `npm run dev` from the `ui` directory. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
 2. Run `mage dev` from the this repository. This will create a dev build that will serve the UI from the development server, while still making it accessible on port `8080`.
 3. Run the binary with the local config: `./bin/flipt --config ./config/local.yml`. This will enable CORS with the correct configuration and start the server on port `8080`.
 4. Visit `http://localhost:8080` to see the UI.
-5. Any changes made in the `flipt-ui` repository will be picked up by the development server and the UI will be reloaded.
+5. Any changes made in the `ui` directory will be picked up by the development server and the UI will be reloaded.
 
 ### Ports
 

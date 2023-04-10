@@ -6,22 +6,26 @@
     "context": "..",
     "dockerfile": "Dockerfile"
   },
-  // Set *default* container specific settings.json values on container create.
-  "settings": {
-    "go.toolsManagement.checkForUpdates": "local",
-    "go.gopath": "/go",
-    "go.useLanguageServer": true,
-    "go.formatTool": "goimports",
-    "go.lintTool": "golangci-lint",
-    "go.lintFlags": ["--fast"]
+  "customizations": {
+    "vscode": {
+      // Set *default* container specific settings.json values on container create.
+      "settings": {
+        "go.toolsManagement.checkForUpdates": "local",
+        "go.gopath": "/go",
+        "go.useLanguageServer": true,
+        "go.formatTool": "goimports",
+        "go.lintTool": "golangci-lint",
+        "go.lintFlags": ["--fast"]
+      },
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": [
+        "golang.Go",
+        "dbaeumer.vscode-eslint",
+        "zxh404.vscode-proto3",
+        "esbenp.prettier-vscode"
+      ]
+    }
   },
-  // Add the IDs of extensions you want installed when the container is created.
-  "extensions": [
-    "golang.Go",
-    "dbaeumer.vscode-eslint",
-    "zxh404.vscode-proto3",
-    "esbenp.prettier-vscode"
-  ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [8080, 9000],
   "portsAttributes": {
@@ -35,7 +39,7 @@
     }
   },
   // Uncomment the next line to run commands after the container is created - for example installing curl.
-  "postCreateCommand": "task bootstrap assets:deps"
+  "postCreateCommand": "mage bootstrap"
   // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
   // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
   // Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.

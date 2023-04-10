@@ -113,20 +113,27 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	logger, cfg := buildConfig()
 
-	migrator, err := sql.NewMigrator(*cfg, logger)
-	if err != nil {
-		return err
-	}
-
-	defer migrator.Close()
-
 	// drop tables if specified
 	if c.dropBeforeImport {
 		logger.Debug("dropping tables")
 
+		migrator, err := sql.NewMigrator(*cfg, logger)
+		if err != nil {
+			return err
+		}
+
 		if err := migrator.Drop(); err != nil {
 			return fmt.Errorf("attempting to drop: %w", err)
 		}
+
+		if _, err := migrator.Close(); err != nil {
+			return fmt.Errorf("closing migrator: %w", err)
+		}
+	}
+
+	migrator, err := sql.NewMigrator(*cfg, logger)
+	if err != nil {
+		return err
 	}
 
 	if err := migrator.Up(forceMigrate); err != nil {
