@@ -113,11 +113,7 @@ const (
 	buildModeProd
 )
 
-func ui(mode buildMode) error {
-	if mode == buildModeDev {
-		return nil
-	}
-
+func ui() error {
 	fmt.Println("Installing UI deps...")
 
 	// TODO: only install if package.json has changed
@@ -140,16 +136,15 @@ func ui(mode buildMode) error {
 }
 
 func build(mode buildMode) error {
-	if err := ui(mode); err != nil {
-		return fmt.Errorf("build UI: %w", err)
-	}
-
 	buildDate := time.Now().UTC().Format(time.RFC3339)
 	buildArgs := make([]string, 0)
 
 	switch mode {
 	case buildModeProd:
 		buildArgs = append(buildArgs, "-tags", "assets")
+		if err := ui(); err != nil {
+			return fmt.Errorf("build UI: %w", err)
+		}
 	}
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
