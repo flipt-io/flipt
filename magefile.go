@@ -75,6 +75,7 @@ func Bootstrap() error {
 // Build builds the project similar to a release build
 func Build() error {
 	mg.Deps(Clean)
+	mg.Deps(UI)
 	fmt.Println("Building...")
 
 	if err := build(buildModeProd); err != nil {
@@ -113,7 +114,8 @@ const (
 	buildModeProd
 )
 
-func ui() error {
+// UI installs UI dependencies and generates assets
+func UI() error {
 	fmt.Println("Installing UI deps...")
 
 	// TODO: only install if package.json has changed
@@ -142,9 +144,6 @@ func build(mode buildMode) error {
 	switch mode {
 	case buildModeProd:
 		buildArgs = append(buildArgs, "-tags", "assets")
-		if err := ui(); err != nil {
-			return fmt.Errorf("build UI: %w", err)
-		}
 	}
 
 	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
@@ -173,6 +172,14 @@ func Clean() error {
 		}
 	}
 
+	return nil
+}
+
+// Prep prepares the project for building
+func Prep() error {
+	fmt.Println("Preparing...")
+	mg.Deps(Clean)
+	mg.Deps(UI)
 	return nil
 }
 
