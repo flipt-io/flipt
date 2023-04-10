@@ -3,6 +3,7 @@ package audit
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -70,14 +71,14 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 	if e.Metadata.IP != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   "flipt.event.metadata.ip",
-			Value: attribute.StringValue(string(e.Metadata.IP)),
+			Value: attribute.StringValue(e.Metadata.IP),
 		})
 	}
 
 	if e.Metadata.Author != "" {
 		akv = append(akv, attribute.KeyValue{
 			Key:   "flipt.event.metadata.author",
-			Value: attribute.StringValue(string(e.Metadata.Author)),
+			Value: attribute.StringValue(e.Metadata.Author),
 		})
 	}
 
@@ -102,6 +103,8 @@ func deserializeHelper(s string) string {
 func (e *Event) Valid() bool {
 	return e.Version != "" && e.Metadata.Action != "" && e.Metadata.Type != "" && e.Payload != nil
 }
+
+var errEventNotValid = errors.New("audit event not valid")
 
 // decodeToEvent provides helper logic for turning to value of SpanEvents to
 // an Event.
@@ -131,7 +134,7 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 	}
 
 	if !e.Valid() {
-		return nil, fmt.Errorf("audit event not valid")
+		return nil, errEventNotValid
 	}
 
 	return e, nil
@@ -183,7 +186,9 @@ func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []trace.ReadOn
 		for _, e := range events {
 			e, err := decodeToEvent(e.Attributes)
 			if err != nil {
-				s.logger.Debug("audit event not decodable", zap.Any("audit event", e), zap.Error(err))
+				if !errors.Is(err, errEventNotValid) {
+					s.logger.Error("audit event not decodable", zap.Error(err))
+				}
 				continue
 			}
 			es = append(es, *e)
@@ -209,7 +214,12 @@ func (s *SinkSpanExporter) Shutdown(ctx context.Context) error {
 
 // SendAudits wraps the methods of sending audits to various sinks.
 func (s *SinkSpanExporter) SendAudits(es []Event) error {
+	if len(es) < 1 {
+		return nil
+	}
+
 	for _, sink := range s.sinks {
+		s.logger.Debug("performing batched sending of audit events", zap.Stringer("sink", sink), zap.Int("batch size", len(es)))
 		err := sink.SendAudits(es)
 		if err != nil {
 			s.logger.Debug("failed to send audits to sink", zap.Stringer("sink", sink))

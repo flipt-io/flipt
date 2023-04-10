@@ -2,7 +2,7 @@
 
 Audit Events are pieces of data that describe a particular thing that has happened in a system. At Flipt, we provide the functionality of processing and batching these audit events and an abstraction for sending these audit events to a sink.
 
-However, if you have an idea of a sink that would be nice to receive audit events on, there are certain steps you would need to take to contribute, which is detailed below.
+If you have an idea of a sink that you would like to receive audit events on, there are certain steps you would need to take to contribute, which are detailed below.
 
 ## Contributing
 
@@ -27,4 +27,4 @@ For contributions of new sinks, you can follow this pattern:
 
 :rocket: you should be good to go!
 
-Need help? Reach out to us on [GitHub](https://github.com/flipt-io/flipt), [Discord](https://discord.com/invite/kRhEqG2TEZ), [Twitter](https://twitter.com/flipt_io), or [Mastodon](https://hachyderm.io/@flipt)
+Need help? Reach out to us on [GitHub](https://github.com/flipt-io/flipt), [Discord](https://www.flipt.io/discord), [Twitter](https://twitter.com/flipt_io), or [Mastodon](https://hachyderm.io/@flipt).

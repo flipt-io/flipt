@@ -24,7 +24,10 @@ import (
 	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const metadataIPKey = "x-forwarded-for"
+const (
+	ipKey        = "x-forwarded-for"
+	oidcEmailKey = "io.flipt.auth.oidc.email"
+)
 
 // ValidationUnaryInterceptor validates incoming requests
 func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -255,13 +258,13 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 		var ipAddress string
 
 		md, _ := metadata.FromIncomingContext(ctx)
-		if len(md[metadataIPKey]) > 0 {
-			ipAddress = md[metadataIPKey][0]
+		if len(md[ipKey]) > 0 {
+			ipAddress = md[ipKey][0]
 		}
 
 		auth := auth.GetAuthenticationFrom(ctx)
 		if auth != nil {
-			author = auth.Metadata["io.flipt.auth.oidc.email"]
+			author = auth.Metadata[oidcEmailKey]
 		}
 
 		var event *audit.Event

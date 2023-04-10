@@ -36,8 +36,6 @@ func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
 }
 
 func (l *Sink) SendAudits(events []audit.Event) error {
-	l.logger.Debug("performing batched sending of audits", zap.Stringer("sink", l))
-
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
 	var result error
