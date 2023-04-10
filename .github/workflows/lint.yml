@@ -60,6 +60,24 @@ jobs:
           input: "rpc/flipt"
           against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
 
+  ui-lint:
+    name: "Lint UI"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Lint
+        run: |
+          npm ci
+          npm run lint
+        working-directory: ui
+
   go-mod-tidy:
     name: "Go Mod Tidy"
     runs-on: ubuntu-latest

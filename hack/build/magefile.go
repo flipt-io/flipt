@@ -238,7 +238,7 @@ func daggerClient(ctx context.Context) (*dagger.Client, error) {
 }
 
 func newRequest(ctx context.Context, client *dagger.Client, platform dagger.Platform) (internal.FliptRequest, error) {
-	ui, err := internal.UI(ctx, client, uiRepositoryPath())
+	ui, err := internal.UI(ctx, client)
 	if err != nil {
 		return internal.FliptRequest{}, err
 	}
@@ -247,14 +247,6 @@ func newRequest(ctx context.Context, client *dagger.Client, platform dagger.Plat
 	dist := ui.Directory("./dist")
 
 	return internal.NewFliptRequest(dist, platform, internal.WithWorkDir(workDir())), nil
-}
-
-func uiRepositoryPath() string {
-	if path := os.Getenv("FLIPT_UI_PATH"); path != "" {
-		return path
-	}
-
-	return "https://github.com/flipt-io/flipt-ui.git"
 }
 
 func workDir() string {

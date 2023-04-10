@@ -18,7 +18,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: "Tests (Go)"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -37,6 +37,24 @@ jobs:
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.1
+
+  ui:
+    name: "Tests (UI)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Unit Test
+        run: |
+          npm ci
+          npm run test
+        working-directory: ui
 
   database:
     name: Database Test
