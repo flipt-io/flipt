@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net/http"
 	"time"
 
@@ -156,12 +155,12 @@ func NewHTTPServer(
 
 	// TODO: remove (deprecated as of 1.17)
 	if cfg.UI.Enabled {
-		u, err := fs.Sub(ui.UI, ui.Mount)
+		fs, err := ui.FS()
 		if err != nil {
-			return nil, fmt.Errorf("mounting UI: %w", err)
+			return nil, fmt.Errorf("mounting ui: %w", err)
 		}
 
-		r.Mount("/", http.FileServer(http.FS(u)))
+		r.Mount("/", http.FileServer(http.FS(fs)))
 	}
 
 	server.Server = &http.Server{
