@@ -1,5 +1,8 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 
+monorepo:
+  tag_prefix: v
+
 builds:
   - main: ./cmd/flipt/.
     ldflags:
