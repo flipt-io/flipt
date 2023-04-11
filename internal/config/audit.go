@@ -19,7 +19,7 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) {
 		"sinks": map[string]any{
 			"log": map[string]any{
 				"enabled": "false",
-				"path":    "./log.txt",
+				"file":    "",
 			},
 		},
 		"buffer": map[string]any{
@@ -30,6 +30,10 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) {
 }
 
 func (c *AuditConfig) validate() error {
+	if c.Sinks.LogFile.Enabled && c.Sinks.LogFile.File == "" {
+		return errors.New("file not specified")
+	}
+
 	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
 		return errors.New("buffer capacity below 2 or above 10")
 	}
@@ -51,7 +55,7 @@ type SinksConfig struct {
 // to a log file.
 type LogFileSinkConfig struct {
 	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled"`
-	Path    string `json:"path,omitempty" mapstructure:"path"`
+	File    string `json:"file,omitempty" mapstructure:"file"`
 }
 
 // BufferConfig holds configuration for the buffering of sending the audit

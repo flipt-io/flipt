@@ -282,7 +282,7 @@ func defaultConfig() *Config {
 			Sinks: SinksConfig{
 				LogFile: LogFileSinkConfig{
 					Enabled: false,
-					Path:    "./path/to/log/file",
+					File:    "",
 				},
 			},
 			Buffer: BufferConfig{
@@ -663,13 +663,18 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name:    "buffer size not within range",
-			path:    "./testdata/auditsink/invalid_buffersize.yml",
+			path:    "./testdata/audit/invalid_buffersize.yml",
 			wantErr: errors.New("buffer capacity below 2 or above 10"),
 		},
 		{
 			name:    "flush period invalid",
-			path:    "./testdata/auditsink/invalid_flushperiod.yml",
+			path:    "./testdata/audit/invalid_flushperiod.yml",
 			wantErr: errors.New("flush period below 2 minutes or greater than 5 minutes"),
+		},
+		{
+			name:    "flush period invalid",
+			path:    "./testdata/audit/invalid_enable_without_file.yml",
+			wantErr: errors.New("file not specified"),
 		},
 	}
 

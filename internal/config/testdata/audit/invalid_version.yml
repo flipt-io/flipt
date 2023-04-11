@@ -2,7 +2,7 @@ audit:
   sinks:
     log:
       enabled: true
-      path: ./log.txt
+      file: ./log.txt
   buffer:
     capacity: 2
-    flushPeriod: 30m
+    flushPeriod: 3m
