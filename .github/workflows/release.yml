@@ -74,13 +74,19 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+
+      - name: Install Mage
+        run:
+          git clone https://github.com/magefile/mage
+          cd mage
+          go run bootstrap.go
 
       - name: Tag and Push latest
         env:

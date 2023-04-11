@@ -7,6 +7,7 @@ auto_approve_usernames = ["dependabot"]
 # if using `update.always`, add dependabot to `update.ignore_usernames` to allow
 # dependabot to update and close stale dependency upgrades.
 [update]
+always = true
 ignored_usernames = ["dependabot"]
 
 [merge]

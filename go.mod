@@ -31,14 +31,14 @@ require (
 	github.com/prometheus/client_golang v1.14.0
 	github.com/redis/go-redis/v9 v9.0.3
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.13.1
 	go.flipt.io/flipt/errors v1.19.3
-	go.flipt.io/flipt/rpc/flipt v1.20.0-rc1
+	go.flipt.io/flipt/rpc/flipt v1.20.0
 	go.flipt.io/flipt/sdk/go v0.1.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
 	go.opentelemetry.io/otel v1.14.0
@@ -93,7 +93,7 @@ require (
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.15.12 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
