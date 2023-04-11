@@ -3,7 +3,7 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.20.0](https://github.com/flipt-io/flipt/releases/tag/v1.20.0) - 2023-04-11
 
 ### Added
 
@@ -11,9 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `sdk/go`: add details regarding the HTTP transport (#1435)
 - All existing objects have been moved to the 'default' namespace to be fully backward compatible.
 - Import/Export have been updated to be 'namespace-aware'
 - Dependency updates
+
+### Fixed
+
+- `cmd/import`: re-open migration after dropping on import
+- protojson to use DiscardUnknown option for backwards compatibility (#1453)
+- `rpc/flipt`: move all openapi annotations into yaml file (#1437)
 
 ## [v1.19.3](https://github.com/flipt-io/flipt/releases/tag/v1.19.3) - 2023-03-22
 
