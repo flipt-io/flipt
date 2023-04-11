@@ -7,19 +7,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-// AuditSinkConfig contains fields, which enable and configure
+// AuditConfig contains fields, which enable and configure
 // Flipt's various audit sink mechanisms.
-type AuditSinkConfig struct {
+type AuditConfig struct {
 	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
 	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
 }
 
-func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
+func (c *AuditConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
 			"log": map[string]any{
 				"enabled": "false",
-				"path":    "./path/to/log/file",
+				"path":    "./log.txt",
 			},
 		},
 		"buffer": map[string]any{
@@ -29,7 +29,7 @@ func (c *AuditSinkConfig) setDefaults(v *viper.Viper) {
 	})
 }
 
-func (c *AuditSinkConfig) validate() error {
+func (c *AuditConfig) validate() error {
 	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
 		return errors.New("buffer capacity below 2 or above 10")
 	}
