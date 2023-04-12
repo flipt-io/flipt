@@ -23,6 +23,6 @@ jobs:
       - name: Build and run Dev Container task
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ghcr.io/flipt-io/flipt-devcontainer
+          imageName: ghcr.io/flipt-io/flipt/flipt-devcontainer
           runCmd: |
             mage bootstrap
