@@ -1,0 +1,8 @@
+audit:
+  sinks:
+    log:
+      enabled: true
+      file: ./log.txt
+  buffer:
+    capacity: 2
+    flush_period: 30m

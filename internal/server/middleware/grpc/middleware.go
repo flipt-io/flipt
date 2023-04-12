@@ -9,15 +9,24 @@ import (
 
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	timestamp "google.golang.org/protobuf/types/known/timestamppb"
+)
+
+const (
+	ipKey        = "x-forwarded-for"
+	oidcEmailKey = "io.flipt.auth.oidc.email"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -231,6 +240,86 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 		}
 
 		return handler(ctx, req)
+	}
+}
+
+// AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
+func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		resp, err := handler(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+
+		// Identity metadata for audit events. We will always include the IP address in the
+		// metadata configuration, and only include the email when it exists from the user logging
+		// into the UI via OIDC.
+		var author string
+		var ipAddress string
+
+		md, _ := metadata.FromIncomingContext(ctx)
+		if len(md[ipKey]) > 0 {
+			ipAddress = md[ipKey][0]
+		}
+
+		auth := auth.GetAuthenticationFrom(ctx)
+		if auth != nil {
+			author = auth.Metadata[oidcEmailKey]
+		}
+
+		var event *audit.Event
+
+		switch r := req.(type) {
+		case *flipt.CreateFlagRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateFlagRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteFlagRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		case *flipt.CreateVariantRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateVariantRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteVariantRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		case *flipt.CreateSegmentRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateSegmentRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteSegmentRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		case *flipt.CreateConstraintRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateConstraintRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteConstraintRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		case *flipt.CreateDistributionRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateDistributionRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteDistributionRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		case *flipt.CreateRuleRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateRuleRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteRuleRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		case *flipt.CreateNamespaceRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Create, IP: ipAddress, Author: author}, r)
+		case *flipt.UpdateNamespaceRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, IP: ipAddress, Author: author}, r)
+		case *flipt.DeleteNamespaceRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+		}
+
+		if event != nil {
+			span := trace.SpanFromContext(ctx)
+			span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+		}
+
+		return resp, err
 	}
 }
 
