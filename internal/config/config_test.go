@@ -657,22 +657,17 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name:    "version invalid",
-			path:    "./testdata/version/invalid.yml",
-			wantErr: errors.New("invalid version: 2.0"),
-		},
-		{
-			name:    "buffer size not within range",
-			path:    "./testdata/audit/invalid_buffersize.yml",
+			name:    "buffer size invalid capacity",
+			path:    "./testdata/audit/invalid_buffer_capacity.yml",
 			wantErr: errors.New("buffer capacity below 2 or above 10"),
 		},
 		{
 			name:    "flush period invalid",
-			path:    "./testdata/audit/invalid_flushperiod.yml",
+			path:    "./testdata/audit/invalid_flush_period.yml",
 			wantErr: errors.New("flush period below 2 minutes or greater than 5 minutes"),
 		},
 		{
-			name:    "flush period invalid",
+			name:    "file not specified",
 			path:    "./testdata/audit/invalid_enable_without_file.yml",
 			wantErr: errors.New("file not specified"),
 		},

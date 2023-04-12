@@ -23,8 +23,8 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) {
 			},
 		},
 		"buffer": map[string]any{
-			"capacity":    2,
-			"flushPeriod": "2m",
+			"capacity":     2,
+			"flush_period": "2m",
 		},
 	})
 }
@@ -62,5 +62,5 @@ type LogFileSinkConfig struct {
 // events to the sinks.
 type BufferConfig struct {
 	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity"`
-	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flushPeriod"`
+	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period"`
 }

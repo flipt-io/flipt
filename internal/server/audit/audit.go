@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
@@ -13,7 +12,15 @@ import (
 	"go.uber.org/zap"
 )
 
-const eventVersion = "v0.1"
+const (
+	eventVersion           = "v0.1"
+	eventVersionKey        = "flipt.event.version"
+	eventMetadataActionKey = "flipt.event.metadata.action"
+	eventMetadataTypeKey   = "flipt.event.metadata.type"
+	eventMetadataIPKey     = "flipt.event.metadata.ip"
+	eventMetadataAuthorKey = "flipt.event.metadata.author"
+	eventPayloadKey        = "flipt.event.payload"
+)
 
 // Type represents what resource is being acted on.
 type Type string
@@ -49,35 +56,35 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 
 	if e.Version != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.event.version",
+			Key:   eventVersionKey,
 			Value: attribute.StringValue(e.Version),
 		})
 	}
 
 	if e.Metadata.Action != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.event.metadata.action",
+			Key:   eventMetadataActionKey,
 			Value: attribute.StringValue(string(e.Metadata.Action)),
 		})
 	}
 
 	if e.Metadata.Type != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.event.metadata.type",
+			Key:   eventMetadataTypeKey,
 			Value: attribute.StringValue(string(e.Metadata.Type)),
 		})
 	}
 
 	if e.Metadata.IP != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.event.metadata.ip",
+			Key:   eventMetadataIPKey,
 			Value: attribute.StringValue(e.Metadata.IP),
 		})
 	}
 
 	if e.Metadata.Author != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   "flipt.event.metadata.author",
+			Key:   eventMetadataAuthorKey,
 			Value: attribute.StringValue(e.Metadata.Author),
 		})
 	}
@@ -86,18 +93,13 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		b, err := json.Marshal(e.Payload)
 		if err == nil {
 			akv = append(akv, attribute.KeyValue{
-				Key:   "flipt.event.payload",
+				Key:   eventPayloadKey,
 				Value: attribute.StringValue(string(b)),
 			})
 		}
 	}
 
 	return akv
-}
-
-func deserializeHelper(s string) string {
-	ss := strings.Split(s, ".")
-	return ss[len(ss)-1]
 }
 
 func (e *Event) Valid() bool {
@@ -111,20 +113,18 @@ var errEventNotValid = errors.New("audit event not valid")
 func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 	e := new(Event)
 	for _, kv := range kvs {
-		terminalKey := deserializeHelper(string(kv.Key))
-
-		switch terminalKey {
-		case "version":
+		switch string(kv.Key) {
+		case eventVersionKey:
 			e.Version = kv.Value.AsString()
-		case "action":
+		case eventMetadataActionKey:
 			e.Metadata.Action = Action(kv.Value.AsString())
-		case "type":
+		case eventMetadataTypeKey:
 			e.Metadata.Type = Type(kv.Value.AsString())
-		case "ip":
+		case eventMetadataIPKey:
 			e.Metadata.IP = kv.Value.AsString()
-		case "author":
+		case eventMetadataAuthorKey:
 			e.Metadata.Author = kv.Value.AsString()
-		case "payload":
+		case eventPayloadKey:
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
 				return nil, err
