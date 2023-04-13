@@ -1,4 +1,5 @@
 # Audit Event Logging Example
+**This feature is still under development, and this example is subject to change.**
 
 This example shows how you can run Flipt with Audit Event logging enabled to a file on disk.
 

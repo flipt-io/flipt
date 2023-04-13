@@ -2,7 +2,7 @@ version: "3"
 
 services:
   flipt:
-    image: flipt/flipt:latest
+    build: ../../
     command: ["./flipt", "--force-migrate"]
     ports:
       - "8080:8080"
