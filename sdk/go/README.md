@@ -20,7 +20,7 @@ The [Flipt SDK Generator](../../internal/cmd/protoc-gen-go-flipt-sdk/) can be fo
 | 0.1.\*              |          ✓ |       ✓\* |
 | >= 0.2.\*           |          ✗ |         ✓ |
 
-\* Backwards compatible, but does can only access the `"default"` namespace.
+\* Backwards compatible, but can only access the `"default"` namespace.
 
 ## Get the SDK
 
