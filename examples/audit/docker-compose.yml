@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  flipt:
+    image: flipt/flipt:latest
+    command: ["./flipt", "--force-migrate"]
+    ports:
+      - "8080:8080"
+    environment:
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_AUDIT_SINKS_LOG_ENABLED=true
+      - FLIPT_AUDIT_SINKS_LOG_FILE=/var/opt/flipt/audits.txt
