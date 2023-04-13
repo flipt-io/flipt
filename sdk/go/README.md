@@ -13,6 +13,15 @@ The [Flipt SDK Generator](../../internal/cmd/protoc-gen-go-flipt-sdk/) can be fo
 
 - Go `>= v1.20`
 
+## Client / Server Version Compatibility
+
+| client ⌄ / server › | <= 1.19.\* | >= 1.20.0 |
+| ------------------- | ---------- | --------- |
+| 0.1.\*              |          ✓ |       ✓\* |
+| >= 0.2.\*           |          ✗ |         ✓ |
+
+\* Backwards compatible, but can only access the `"default"` namespace.
+
 ## Get the SDK
 
 ```sh
