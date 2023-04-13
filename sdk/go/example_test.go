@@ -14,5 +14,8 @@ func ExampleNew() {
 
 	client := New(transport)
 
-	client.Flipt().GetFlag(context.Background(), &flipt.GetFlagRequest{Key: "my_flag"})
+	client.Flipt().GetFlag(context.Background(), &flipt.GetFlagRequest{
+		NamespaceKey: "my_namespace",
+		Key:          "my_flag",
+	})
 }
