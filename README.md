@@ -162,23 +162,19 @@ Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is com
 
 The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
 
-### Official SDK
+### REST Client Libraries
 
-Our SDK is designed to support either HTTP or gRPC (configurable based on your needs).
-
-- [Go](./sdk/go)
-
-### Official REST Client Libraries
-
+- [Go](./sdk/go) - supports both HTTP and GRPC (configurable based on your needs)
 - [Node/TypeScript](https://github.com/flipt-io/flipt-node)
 - [Java](https://github.com/flipt-io/flipt-java)
 - [Rust](https://github.com/flipt-io/flipt-rust)
+- [Python](https://github.com/flipt-io/flipt-python) (beta)
 
 :exclamation: Offical REST clients in more languages coming soon.
 
-### Official GRPC Client Libraries
+### GRPC Client Libraries
 
-- [Go](https://github.com/flipt-io/flipt-grpc-go)
+- [Go](./sdk/go) - supports both HTTP and GRPC (configurable based on your needs)
 - [Ruby](https://github.com/flipt-io/flipt-grpc-ruby)
 
 :exclamation: Offical GRPC clients in more languages coming soon.
