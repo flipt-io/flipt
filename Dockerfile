@@ -10,6 +10,9 @@ RUN git clone https://github.com/magefile/mage && \
 
 COPY go.mod .
 COPY go.sum .
+COPY ./errors ./errors
+COPY ./rpc/flipt ./rpc/flipt
+COPY ./sdk ./sdk
 
 RUN go mod download
 
