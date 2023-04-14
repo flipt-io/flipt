@@ -250,11 +250,11 @@ func chdirRoot() func() {
 	}
 
 	if modfile.ModulePath(mod) == path.Join(rootModule, "build") {
-		if err := os.Chdir("../.."); err != nil {
+		if err := os.Chdir(".."); err != nil {
 			panic(err)
 		}
 
-		return func() { _ = os.Chdir("hack/build") }
+		return func() { _ = os.Chdir("build") }
 	}
 
 	return func() {}
