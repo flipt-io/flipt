@@ -5,10 +5,10 @@ services:
     build: ../../
     command: ["./flipt", "--force-migrate"]
     volumes:
-      - /tmp/flipt/audit.log:/var/opt/flipt/audit.log
+      - /tmp/flipt/audit.log:/var/log/audit.log
     ports:
       - "8080:8080"
     environment:
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_AUDIT_SINKS_LOG_ENABLED=true
-      - FLIPT_AUDIT_SINKS_LOG_FILE=/var/opt/flipt/audit.log
+      - FLIPT_AUDIT_SINKS_LOG_FILE=/var/log/audit.log
