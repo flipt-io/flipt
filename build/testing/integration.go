@@ -105,7 +105,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	if _, lerr := client.Container().From("alpine:3.16").
 		WithMountedCache("/logs", logs).
 		WithExec([]string{"cp", "-r", "/logs", "/out"}).
-		Directory("/out").Export(ctx, "hack/build/logs"); lerr != nil {
+		Directory("/out").Export(ctx, "build/logs"); lerr != nil {
 		log.Println("Error copying logs", lerr)
 	}
 
@@ -150,7 +150,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 					WithExec(nil)
 
 			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
-			seed      = base.File("hack/build/testing/integration/readonly/testdata/seed.yaml")
+			seed      = base.File("build/testing/integration/readonly/testdata/seed.yaml")
 		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
@@ -215,7 +215,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 
 		_, err := base.
 			WithServiceBinding("flipt", flipt).
-			WithWorkdir(path.Join("hack/build/testing/integration", dir)).
+			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithExec(append([]string{"go", "test", "-v", "-race"}, append(flags, ".")...)).
 			ExitCode(ctx)

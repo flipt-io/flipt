@@ -102,12 +102,12 @@ jobs:
         with:
           version: latest
           args: test:integration
-          workdir: hack/build
+          workdir: build
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: Flipt Service Logs
-          path: hack/build/logs
+          path: build/logs
           retention-days: 5
