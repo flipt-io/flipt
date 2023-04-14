@@ -18,7 +18,7 @@ const (
 	eventMetadataActionKey = "flipt.event.metadata.action"
 	eventMetadataTypeKey   = "flipt.event.metadata.type"
 	eventMetadataIPKey     = "flipt.event.metadata.ip"
-	eventMetadataAuthorKey = "flipt.event.metadata.author"
+	eventMetadataActorKey  = "flipt.event.metadata.actor"
 	eventPayloadKey        = "flipt.event.payload"
 )
 
@@ -82,10 +82,10 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		})
 	}
 
-	if e.Metadata.Author != "" {
+	if e.Metadata.Actor != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   eventMetadataAuthorKey,
-			Value: attribute.StringValue(e.Metadata.Author),
+			Key:   eventMetadataActorKey,
+			Value: attribute.StringValue(e.Metadata.Actor),
 		})
 	}
 
@@ -122,8 +122,8 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 			e.Metadata.Type = Type(kv.Value.AsString())
 		case eventMetadataIPKey:
 			e.Metadata.IP = kv.Value.AsString()
-		case eventMetadataAuthorKey:
-			e.Metadata.Author = kv.Value.AsString()
+		case eventMetadataActorKey:
+			e.Metadata.Actor = kv.Value.AsString()
 		case eventPayloadKey:
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
@@ -145,7 +145,7 @@ type Metadata struct {
 	Type   Type   `json:"type"`
 	Action Action `json:"action"`
 	IP     string `json:"ip,omitempty"`
-	Author string `json:"author,omitempty"`
+	Actor  string `json:"actor,omitempty"`
 }
 
 // Sink is the abstraction for various audit sink configurations
@@ -237,7 +237,7 @@ func NewEvent(metadata Metadata, payload interface{}) *Event {
 			Type:   metadata.Type,
 			Action: metadata.Action,
 			IP:     metadata.IP,
-			Author: metadata.Author,
+			Actor:  metadata.Actor,
 		},
 		Payload: payload,
 	}
