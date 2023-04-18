@@ -252,6 +252,10 @@ func (a *auditSinkSpy) SendAudits(es []audit.Event) error {
 	return nil
 }
 
+func (a *auditSinkSpy) String() string {
+	return "auditSinkSpy"
+}
+
 func (a *auditSinkSpy) Close() error { return nil }
 
 type auditExporterSpy struct {
