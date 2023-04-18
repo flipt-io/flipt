@@ -4,13 +4,11 @@ on:
     branches:
       - main
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
   pull_request:
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
