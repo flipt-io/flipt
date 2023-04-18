@@ -4,13 +4,11 @@ on:
     branches:
       - main
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
   pull_request:
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
@@ -36,7 +34,7 @@ jobs:
         run: go test -race -covermode=atomic -coverprofile=coverage.txt -count=1 ./...
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v3.1.1
+        uses: codecov/codecov-action@v3.1.2
 
   ui:
     name: "Tests (UI)"
