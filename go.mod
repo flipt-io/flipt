@@ -23,7 +23,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/hashicorp/cap v0.2.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/lib/pq v1.10.7
+	github.com/lib/pq v1.10.8
 	github.com/magefile/mage v1.14.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
@@ -36,7 +36,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/testcontainers/testcontainers-go v0.19.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
-	github.com/xo/dburl v0.13.1
+	github.com/xo/dburl v0.14.2
 	go.flipt.io/flipt/errors v1.19.3
 	go.flipt.io/flipt/rpc/flipt v1.20.0
 	go.flipt.io/flipt/sdk/go v0.1.1
