@@ -42,7 +42,10 @@ func TestSinkSpanExporter(t *testing.T) {
 	e := NewEvent(Metadata{
 		Type:   Flag,
 		Action: Create,
-		IP:     "127.0.0.1",
+		Actor: map[string]string{
+			"method": "token",
+			"ip":     "127.0.0.1",
+		},
 	}, &flipt.CreateFlagRequest{
 		Key:         "this-flag",
 		Name:        "this-flag",
