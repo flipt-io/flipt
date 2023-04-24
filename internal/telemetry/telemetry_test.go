@@ -88,43 +88,105 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestPing(t *testing.T) {
-	var (
-		logger        = zaptest.NewLogger(t)
-		mockAnalytics = &mockAnalytics{}
-
-		reporter = &Reporter{
+	test := []struct {
+		name string
+		cfg  config.Config
+		want map[string]interface{}
+	}{
+		{
+			name: "basic",
 			cfg: config.Config{
-				Meta: config.MetaConfig{
-					TelemetryEnabled: true,
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
 				},
 			},
-			logger: logger,
-			client: mockAnalytics,
-			info: info.Flipt{
-				Version: "1.0.0",
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "file",
+				},
 			},
-		}
+		},
+		{
+			name: "with cache not enabled",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Cache: config.CacheConfig{
+					Enabled: false,
+					Backend: config.CacheRedis,
+				},
+			},
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "file",
+				},
+			},
+		}, {
+			name: "with cache",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Cache: config.CacheConfig{
+					Enabled: true,
+					Backend: config.CacheRedis,
+				},
+			},
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "file",
+					"cache":    "redis",
+				},
+			},
+		},
+	}
 
-		in       = bytes.NewBuffer(nil)
-		out      = bytes.NewBuffer(nil)
-		mockFile = &mockFile{
-			Reader: in,
-			Writer: out,
-		}
-	)
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				logger        = zaptest.NewLogger(t)
+				mockAnalytics = &mockAnalytics{}
+			)
 
-	err := reporter.ping(context.Background(), mockFile)
-	assert.NoError(t, err)
+			cfg := tt.cfg
+			cfg.Meta.TelemetryEnabled = true
 
-	msg, ok := mockAnalytics.msg.(analytics.Track)
-	require.True(t, ok)
-	assert.Equal(t, "flipt.ping", msg.Event)
-	assert.NotEmpty(t, msg.AnonymousId)
-	assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
-	assert.Equal(t, "1.0", msg.Properties["version"])
-	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
+			var (
+				reporter = &Reporter{
+					cfg:    cfg,
+					logger: logger,
+					client: mockAnalytics,
+					info: info.Flipt{
+						Version: "1.0.0",
+					},
+				}
 
-	assert.NotEmpty(t, out.String())
+				in       = bytes.NewBuffer(nil)
+				out      = bytes.NewBuffer(nil)
+				mockFile = &mockFile{
+					Reader: in,
+					Writer: out,
+				}
+			)
+
+			err := reporter.ping(context.Background(), mockFile)
+			assert.NoError(t, err)
+
+			msg, ok := mockAnalytics.msg.(analytics.Track)
+			require.True(t, ok)
+			assert.Equal(t, "flipt.ping", msg.Event)
+			assert.NotEmpty(t, msg.AnonymousId)
+			assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
+			assert.Equal(t, "1.1", msg.Properties["version"])
+			assert.Equal(t, tt.want, msg.Properties["flipt"])
+
+			assert.NotEmpty(t, out.String())
+		})
+	}
 }
 
 func TestPing_Existing(t *testing.T) {
@@ -145,7 +207,7 @@ func TestPing_Existing(t *testing.T) {
 			},
 		}
 
-		b, _     = ioutil.ReadFile("./testdata/telemetry.json")
+		b, _     = ioutil.ReadFile("./testdata/telemetry_v1.json")
 		in       = bytes.NewReader(b)
 		out      = bytes.NewBuffer(nil)
 		mockFile = &mockFile{
@@ -162,7 +224,7 @@ func TestPing_Existing(t *testing.T) {
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.AnonymousId)
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.Properties["uuid"])
-	assert.Equal(t, "1.0", msg.Properties["version"])
+	assert.Equal(t, "1.1", msg.Properties["version"])
 	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
 
 	assert.NotEmpty(t, out.String())
@@ -226,7 +288,7 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 	assert.Equal(t, "flipt.ping", msg.Event)
 	assert.NotEmpty(t, msg.AnonymousId)
 	assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
-	assert.Equal(t, "1.0", msg.Properties["version"])
+	assert.Equal(t, "1.1", msg.Properties["version"])
 	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
 
 	b, _ := ioutil.ReadFile(path)
