@@ -8,6 +8,7 @@ import (
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
+	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -17,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -1597,4 +1599,57 @@ func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 
 	span.End()
 	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+}
+
+func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.CreateFlagRequest{
+			Key:         "key",
+			Name:        "name",
+			Description: "desc",
+		}
+	)
+
+	store.On("CreateFlag", mock.Anything, req).Return(&flipt.Flag{
+		Key:         req.Key,
+		Name:        req.Name,
+		Description: req.Description,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateFlag(ctx, r.(*flipt.CreateFlagRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	ctx = auth.ContextWithAuthentication(ctx, &authrpc.Authentication{
+		Method: authrpc.Method_METHOD_OIDC,
+		Metadata: map[string]string{
+			"email": "example@flipt.com",
+		},
+	})
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+
+	event := exporterSpy.GetEvents()[0]
+	assert.Equal(t, event.Metadata.Actor["email"], "example@flipt.com")
+	assert.Equal(t, event.Metadata.Actor["method"], "oidc")
 }
