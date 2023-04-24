@@ -43,9 +43,14 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	for _, namespace := range []string{"", fmt.Sprintf("%x", rand.Int())} {
 		for protocol, port := range protocolPorts {
 			for _, token := range []string{"", "some-token"} {
+				name := fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace)
+				if token != "" {
+					name = fmt.Sprintf("%s with token %s", name, token)
+				}
+
 				cases = append(cases,
 					testConfig{
-						name:      fmt.Sprintf("%s namespace %s with token %q", strings.ToUpper(protocol), namespace, token),
+						name:      name,
 						namespace: namespace,
 						address:   fmt.Sprintf("%s://flipt:%s", protocol, port),
 						token:     token,
