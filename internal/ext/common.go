@@ -1,8 +1,9 @@
 package ext
 
 type Document struct {
-	Flags    []*Flag    `yaml:"flags,omitempty"`
-	Segments []*Segment `yaml:"segments,omitempty"`
+	Namespace string     `yaml:"namespace,omitempty"`
+	Flags     []*Flag    `yaml:"flags,omitempty"`
+	Segments  []*Segment `yaml:"segments,omitempty"`
 }
 
 type Flag struct {

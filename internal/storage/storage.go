@@ -68,6 +68,16 @@ func (q *QueryParams) Normalize() {
 
 type QueryOption func(p *QueryParams)
 
+func NewQueryParams(opts ...QueryOption) (params QueryParams) {
+	for _, opt := range opts {
+		opt(&params)
+	}
+
+	params.Normalize()
+
+	return params
+}
+
 func WithLimit(limit uint64) QueryOption {
 	return func(p *QueryParams) {
 		p.Limit = limit

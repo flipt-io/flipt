@@ -17,7 +17,9 @@ import (
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
-	storageoplock "go.flipt.io/flipt/internal/storage/oplock"
+	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
+	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -26,12 +28,21 @@ import (
 func authenticationGRPC(
 	ctx context.Context,
 	logger *zap.Logger,
-	cfg config.AuthenticationConfig,
-	store storageauth.Store,
-	oplock storageoplock.Service,
+	cfg *config.Config,
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
+	db, driver, shutdown, err := getDB(ctx, logger, cfg)
+	if err != nil {
+		return nil, nil, shutdown, err
+	}
+
 	var (
-		public   = public.NewServer(logger, cfg)
+		sqlBuilder = fliptsql.BuilderFor(db, driver)
+		store      = authsql.NewStore(driver, sqlBuilder, logger)
+		oplock     = oplocksql.New(logger, driver, sqlBuilder)
+	)
+
+	var (
+		public   = public.NewServer(logger, cfg.Authentication)
 		register = grpcRegisterers{
 			public,
 			auth.NewServer(logger, store),
@@ -40,23 +51,20 @@ func authenticationGRPC(
 			auth.WithServerSkipsAuthentication(public),
 		}
 		interceptors []grpc.UnaryServerInterceptor
-		shutdown     = func(context.Context) error {
-			return nil
-		}
 	)
 
 	// register auth method token service
-	if cfg.Methods.Token.Enabled {
+	if cfg := cfg.Authentication.Methods.Token; cfg.Enabled {
 		opts := []storageauth.BootstrapOption{}
 
 		// if a bootstrap token is provided, use it
-		if cfg.Methods.Token.Method.Bootstrap.Token != "" {
-			opts = append(opts, storageauth.WithToken(cfg.Methods.Token.Method.Bootstrap.Token))
+		if cfg.Method.Bootstrap.Token != "" {
+			opts = append(opts, storageauth.WithToken(cfg.Method.Bootstrap.Token))
 		}
 
 		// if a bootstrap expiration is provided, use it
-		if cfg.Methods.Token.Method.Bootstrap.Expiration != 0 {
-			opts = append(opts, storageauth.WithExpiration(cfg.Methods.Token.Method.Bootstrap.Expiration))
+		if cfg.Method.Bootstrap.Expiration != 0 {
+			opts = append(opts, storageauth.WithExpiration(cfg.Method.Bootstrap.Expiration))
 		}
 
 		// attempt to bootstrap authentication store
@@ -75,8 +83,8 @@ func authenticationGRPC(
 	}
 
 	// register auth method oidc service
-	if cfg.Methods.OIDC.Enabled {
-		oidcServer := authoidc.NewServer(logger, store, cfg)
+	if cfg.Authentication.Methods.OIDC.Enabled {
+		oidcServer := authoidc.NewServer(logger, store, cfg.Authentication)
 		register.Add(oidcServer)
 		// OIDC server exposes unauthenticated endpoints
 		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oidcServer))
@@ -84,8 +92,8 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
-	if cfg.Methods.Kubernetes.Enabled {
-		kubernetesServer, err := authkubernetes.New(logger, store, cfg)
+	if cfg.Authentication.Methods.Kubernetes.Enabled {
+		kubernetesServer, err := authkubernetes.New(logger, store, cfg.Authentication)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("configuring kubernetes authentication: %w", err)
 		}
@@ -98,7 +106,7 @@ func authenticationGRPC(
 	}
 
 	// only enable enforcement middleware if authentication required
-	if cfg.Required {
+	if cfg.Authentication.Required {
 		interceptors = append(interceptors, auth.UnaryInterceptor(
 			logger,
 			store,
@@ -108,19 +116,24 @@ func authenticationGRPC(
 		logger.Info("authentication middleware enabled")
 	}
 
-	if cfg.ShouldRunCleanup() {
+	if cfg.Authentication.ShouldRunCleanup() {
 		cleanupAuthService := cleanup.NewAuthenticationService(
 			logger,
 			oplock,
 			store,
-			cfg,
+			cfg.Authentication,
 		)
 		cleanupAuthService.Run(ctx)
 
+		backupShutdown := shutdown
 		shutdown = func(ctx context.Context) error {
 			logger.Info("shutting down authentication cleanup service...")
 
-			return cleanupAuthService.Shutdown(ctx)
+			if err := cleanupAuthService.Shutdown(ctx); err != nil {
+				return err
+			}
+
+			return backupShutdown(ctx)
 		}
 	}
 
