@@ -23,7 +23,7 @@ func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
 
 	cache := client.CacheVolume(fmt.Sprintf("node-modules-%x", sha256.Sum256([]byte(contents))))
 
-	return client.Container().From("node:18-alpine3.16").
+	return client.Container().From("node:18").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("./ui/node_modules", cache).
 		WithExec([]string{"npm", "ci"}).
