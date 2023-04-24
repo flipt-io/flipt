@@ -35,6 +35,7 @@ const (
 	Namespace    Type = "namespace"
 	Rule         Type = "rule"
 	Segment      Type = "segment"
+	Token        Type = "token"
 	Variant      Type = "variant"
 
 	Create Action = "created"

@@ -15,6 +15,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -320,6 +321,10 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteNamespaceRequest:
 			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, Actor: actor}, r)
+		case *authrpc.CreateTokenRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Create, Actor: actor}, r)
+		case *authrpc.DeleteAuthenticationRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, r)
 		}
 
 		if event != nil {
