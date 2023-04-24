@@ -34,7 +34,7 @@ jobs:
         run: go test -race -covermode=atomic -coverprofile=coverage.txt -count=1 ./...
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v3.1.2
+        uses: codecov/codecov-action@v3.1.3
 
   ui:
     name: "Tests (UI)"
