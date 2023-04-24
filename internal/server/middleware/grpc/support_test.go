@@ -244,11 +244,13 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 
 type auditSinkSpy struct {
 	sendAuditsCalled int
+	events           []audit.Event
 	fmt.Stringer
 }
 
 func (a *auditSinkSpy) SendAudits(es []audit.Event) error {
 	a.sendAuditsCalled++
+	a.events = append(a.events, es...)
 	return nil
 }
 
@@ -264,7 +266,7 @@ type auditExporterSpy struct {
 }
 
 func newAuditExporterSpy(logger *zap.Logger) *auditExporterSpy {
-	aspy := &auditSinkSpy{}
+	aspy := &auditSinkSpy{events: make([]audit.Event, 0)}
 	as := []audit.Sink{aspy}
 
 	return &auditExporterSpy{
@@ -275,4 +277,8 @@ func newAuditExporterSpy(logger *zap.Logger) *auditExporterSpy {
 
 func (a *auditExporterSpy) GetSendAuditsCalled() int {
 	return a.sinkSpy.sendAuditsCalled
+}
+
+func (a *auditExporterSpy) GetEvents() []audit.Event {
+	return a.sinkSpy.events
 }
