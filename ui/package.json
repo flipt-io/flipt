@@ -42,7 +42,7 @@
     "@types/loadable__component": "^5.13.4",
     "@types/lodash": "^4.14.194",
     "@types/node": "^18.15.12",
-    "@types/react": "^18.0.37",
+    "@types/react": "^18.0.38",
     "@types/react-dom": "^18.0.11",
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^9.0.1",
