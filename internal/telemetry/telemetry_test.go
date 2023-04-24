@@ -124,7 +124,8 @@ func TestPing(t *testing.T) {
 					"database": "file",
 				},
 			},
-		}, {
+		},
+		{
 			name: "with cache",
 			cfg: config.Config{
 				Database: config.DatabaseConfig{
@@ -140,6 +141,55 @@ func TestPing(t *testing.T) {
 				"storage": map[string]interface{}{
 					"database": "file",
 					"cache":    "redis",
+				},
+			},
+		},
+		{
+			name: "with auth not enabled",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Authentication: config.AuthenticationConfig{
+					Required: false,
+					Methods: config.AuthenticationMethods{
+						Token: config.AuthenticationMethod[config.AuthenticationMethodTokenConfig]{
+							Enabled: false,
+						},
+					},
+				},
+			},
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "file",
+				},
+			},
+		},
+		{
+			name: "with auth",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Authentication: config.AuthenticationConfig{
+					Required: false,
+					Methods: config.AuthenticationMethods{
+						Token: config.AuthenticationMethod[config.AuthenticationMethodTokenConfig]{
+							Enabled: true,
+						},
+					},
+				},
+			},
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "file",
+				},
+				"authentication": map[string]interface{}{
+					"methods": []interface{}{
+						"token",
+					},
 				},
 			},
 		},

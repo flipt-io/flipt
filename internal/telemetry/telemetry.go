@@ -186,14 +186,15 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 		flipt.Storage.Cache = r.cfg.Cache.Backend.String()
 	}
 
-	// only report authentications if enabled/required
-	if r.cfg.Authentication.Required {
-		methods := []string{}
+	// authentication
+	methods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))
 
-		for _, m := range r.cfg.Authentication.Methods.EnabledMethods() {
-			methods = append(methods, m.Name())
-		}
+	for _, m := range r.cfg.Authentication.Methods.EnabledMethods() {
+		methods = append(methods, m.Name())
+	}
 
+	// only report authentications if enabled
+	if len(methods) > 0 {
 		flipt.Authentication = &authentication{
 			Methods: methods,
 		}
@@ -255,8 +256,4 @@ func newState() state {
 		Version: version,
 		UUID:    uid,
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
 }
