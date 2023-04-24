@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -254,64 +255,71 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 		// Identity metadata for audit events. We will always include the IP address in the
 		// metadata configuration, and only include the email when it exists from the user logging
 		// into the UI via OIDC.
-		var author string
-		var ipAddress string
+		var (
+			actor  = make(map[string]string)
+			method = "none"
+		)
 
 		md, _ := metadata.FromIncomingContext(ctx)
 		if len(md[ipKey]) > 0 {
-			ipAddress = md[ipKey][0]
+			actor["ip"] = md[ipKey][0]
 		}
 
 		auth := auth.GetAuthenticationFrom(ctx)
 		if auth != nil {
-			author = auth.Metadata[oidcEmailKey]
+			method = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
+			for k, v := range auth.Metadata {
+				actor[k] = v
+			}
 		}
+
+		actor["method"] = method
 
 		var event *audit.Event
 
 		switch r := req.(type) {
 		case *flipt.CreateFlagRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Create, Actor: actor}, r)
 		case *flipt.UpdateFlagRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteFlagRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Delete, Actor: actor}, r)
 		case *flipt.CreateVariantRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Create, Actor: actor}, r)
 		case *flipt.UpdateVariantRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteVariantRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Delete, Actor: actor}, r)
 		case *flipt.CreateSegmentRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Create, Actor: actor}, r)
 		case *flipt.UpdateSegmentRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteSegmentRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Delete, Actor: actor}, r)
 		case *flipt.CreateConstraintRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Create, Actor: actor}, r)
 		case *flipt.UpdateConstraintRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteConstraintRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Delete, Actor: actor}, r)
 		case *flipt.CreateDistributionRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Create}, r)
 		case *flipt.UpdateDistributionRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteDistributionRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Delete, Actor: actor}, r)
 		case *flipt.CreateRuleRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Create, Actor: actor}, r)
 		case *flipt.UpdateRuleRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteRuleRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Delete, Actor: actor}, r)
 		case *flipt.CreateNamespaceRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Create, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Create, Actor: actor}, r)
 		case *flipt.UpdateNamespaceRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteNamespaceRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, Actor: actor}, r)
 		}
 
 		if event != nil {
