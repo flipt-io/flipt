@@ -118,4 +118,4 @@ jobs:
           args: proto
 
       - name: Ensure clean git state.
-        run: git diff --quiet --exit-code rpc/ || (echo "Please run 'mage proto' and commit changes." && exit 1)
+        run: git diff --quiet --exit-code sdk/ rpc/ || (echo "Please run 'mage proto' and commit changes." && exit 1)
