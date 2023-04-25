@@ -230,18 +230,18 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		}
 	}
 
-	if os.Getenv("CI") == "true" || os.Getenv("CI") == "1" {
-		logger.Debug("CI detected, disabling telemetry")
-		cfg.Meta.TelemetryEnabled = false
-	}
-
 	// see: https://consoledonottrack.com/
-	if os.Getenv("DO_NOT_TRACK") == "true" || os.Getenv("DO_NOT_TRACK") == "1" {
+	if (os.Getenv("DO_NOT_TRACK") == "true" || os.Getenv("DO_NOT_TRACK") == "1") && cfg.Meta.TelemetryEnabled {
 		logger.Debug("DO_NOT_TRACK environment variable set, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
 
-	if !isRelease {
+	if (os.Getenv("CI") == "true" || os.Getenv("CI") == "1") && cfg.Meta.TelemetryEnabled {
+		logger.Debug("CI detected, disabling telemetry")
+		cfg.Meta.TelemetryEnabled = false
+	}
+
+	if !isRelease && cfg.Meta.TelemetryEnabled {
 		logger.Debug("not a release version, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
