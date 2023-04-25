@@ -246,7 +246,9 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 }
 
 // AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+func AuditUnaryInterceptor(logger *zap.Logger, authGetter interface {
+	GetAuthentication(ctx context.Context, r *authrpc.GetAuthenticationRequest) (*authrpc.Authentication, error)
+}) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
@@ -324,7 +326,15 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 		case *authrpc.CreateTokenRequest:
 			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Create, Actor: actor}, r)
 		case *authrpc.DeleteAuthenticationRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, r)
+			auth, err := authGetter.GetAuthentication(ctx, &authrpc.GetAuthenticationRequest{Id: r.Id})
+			if err != nil {
+				logger.Error("failed to get auth for audit event", zap.Error(err))
+				return resp, err
+			}
+
+			if auth.Method == authrpc.Method_METHOD_TOKEN {
+				event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, auth.Metadata)
+			}
 		}
 
 		if event != nil {
