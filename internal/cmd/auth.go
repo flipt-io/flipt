@@ -27,7 +27,6 @@ func authenticationGRPC(
 	ctx context.Context,
 	logger *zap.Logger,
 	cfg config.AuthenticationConfig,
-	authServer *auth.Server,
 	store storageauth.Store,
 	oplock storageoplock.Service,
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
@@ -35,7 +34,7 @@ func authenticationGRPC(
 		public   = public.NewServer(logger, cfg)
 		register = grpcRegisterers{
 			public,
-			authServer,
+			auth.NewServer(logger, store),
 		}
 		authOpts = []containers.Option[auth.InterceptorOptions]{
 			auth.WithServerSkipsAuthentication(public),

@@ -13,7 +13,6 @@ import (
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
-	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
@@ -184,12 +183,10 @@ func NewGRPCServer(
 		operationLockService = oplocksql.New(logger, driver, sqlBuilder)
 	)
 
-	authServer := auth.NewServer(logger, authenticationStore)
 	register, authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg.Authentication,
-		authServer,
 		authenticationStore,
 		operationLockService,
 	)
@@ -276,7 +273,7 @@ func NewGRPCServer(
 		sse := audit.NewSinkSpanExporter(logger, sinks)
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 
-		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger, authServer))
+		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger, authenticationStore))
 		logger.Debug("audit sinks enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),

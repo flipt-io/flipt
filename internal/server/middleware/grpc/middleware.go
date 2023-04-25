@@ -27,8 +27,7 @@ import (
 )
 
 const (
-	ipKey        = "x-forwarded-for"
-	oidcEmailKey = "io.flipt.auth.oidc.email"
+	ipKey = "x-forwarded-for"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -247,17 +246,9 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 
 // AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
 func AuditUnaryInterceptor(logger *zap.Logger, authGetter interface {
-	GetAuthentication(ctx context.Context, r *authrpc.GetAuthenticationRequest) (*authrpc.Authentication, error)
+	GetAuthenticationByID(ctx context.Context, id string) (*authrpc.Authentication, error)
 }) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		resp, err := handler(ctx, req)
-		if err != nil {
-			return resp, err
-		}
-
-		// Identity metadata for audit events. We will always include the IP address in the
-		// metadata configuration, and only include the email when it exists from the user logging
-		// into the UI via OIDC.
 		var (
 			actor  = make(map[string]string)
 			method = "none"
@@ -326,15 +317,18 @@ func AuditUnaryInterceptor(logger *zap.Logger, authGetter interface {
 		case *authrpc.CreateTokenRequest:
 			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Create, Actor: actor}, r)
 		case *authrpc.DeleteAuthenticationRequest:
-			auth, err := authGetter.GetAuthentication(ctx, &authrpc.GetAuthenticationRequest{Id: r.Id})
+			a, err := authGetter.GetAuthenticationByID(ctx, r.Id)
 			if err != nil {
-				logger.Error("failed to get auth for audit event", zap.Error(err))
-				return resp, err
+				return nil, err
 			}
+			if a.Method == authrpc.Method_METHOD_TOKEN {
+				event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, a.Metadata)
+			}
+		}
 
-			if auth.Method == authrpc.Method_METHOD_TOKEN {
-				event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, auth.Metadata)
-			}
+		resp, err := handler(ctx, req)
+		if err != nil {
+			return resp, err
 		}
 
 		if event != nil {
