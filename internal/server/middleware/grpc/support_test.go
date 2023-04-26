@@ -317,15 +317,3 @@ func (a *auditExporterSpy) GetSendAuditsCalled() int {
 func (a *auditExporterSpy) GetEvents() []audit.Event {
 	return a.sinkSpy.events
 }
-
-type authMemStore struct {
-}
-
-func (a *authMemStore) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
-	return &auth.Authentication{
-		Method: auth.Method_METHOD_TOKEN,
-		Metadata: map[string]string{
-			"method": "token",
-		},
-	}, nil
-}

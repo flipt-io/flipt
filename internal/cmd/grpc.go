@@ -177,6 +177,13 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
+	var auditLoggingEnabled bool
+
+	// If any of the audit logging sinks are enabled, then audit logging is enabled in general.
+	if cfg.Audit.Sinks.LogFile.Enabled {
+		auditLoggingEnabled = true
+	}
+
 	var (
 		sqlBuilder           = sql.BuilderFor(db, driver)
 		authenticationStore  = authsql.NewStore(driver, sqlBuilder, logger)
@@ -187,6 +194,7 @@ func NewGRPCServer(
 		ctx,
 		logger,
 		cfg.Authentication,
+		auditLoggingEnabled,
 		authenticationStore,
 		operationLockService,
 	)
@@ -273,7 +281,7 @@ func NewGRPCServer(
 		sse := audit.NewSinkSpanExporter(logger, sinks)
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 
-		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger, authenticationStore))
+		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger))
 		logger.Debug("audit sinks enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),

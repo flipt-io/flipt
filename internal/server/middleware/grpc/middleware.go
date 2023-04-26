@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -20,14 +19,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	timestamp "google.golang.org/protobuf/types/known/timestamppb"
-)
-
-const (
-	ipKey = "x-forwarded-for"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -245,29 +239,9 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 }
 
 // AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditUnaryInterceptor(logger *zap.Logger, authGetter interface {
-	GetAuthenticationByID(ctx context.Context, id string) (*authrpc.Authentication, error)
-}) grpc.UnaryServerInterceptor {
+func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var (
-			actor  = make(map[string]string)
-			method = "none"
-		)
-
-		md, _ := metadata.FromIncomingContext(ctx)
-		if len(md[ipKey]) > 0 {
-			actor["ip"] = md[ipKey][0]
-		}
-
-		auth := auth.GetAuthenticationFrom(ctx)
-		if auth != nil {
-			method = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
-			for k, v := range auth.Metadata {
-				actor[k] = v
-			}
-		}
-
-		actor["method"] = method
+		actor := auth.ActorFromContext(ctx)
 
 		var event *audit.Event
 
@@ -316,14 +290,6 @@ func AuditUnaryInterceptor(logger *zap.Logger, authGetter interface {
 			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, Actor: actor}, r)
 		case *authrpc.CreateTokenRequest:
 			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Create, Actor: actor}, r)
-		case *authrpc.DeleteAuthenticationRequest:
-			a, err := authGetter.GetAuthenticationByID(ctx, r.Id)
-			if err != nil {
-				return nil, err
-			}
-			if a.Method == authrpc.Method_METHOD_TOKEN {
-				event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, a.Metadata)
-			}
 		}
 
 		resp, err := handler(ctx, req)
