@@ -9,6 +9,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/auth"
+	"go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -18,6 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -1652,4 +1654,47 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	event := exporterSpy.GetEvents()[0]
 	assert.Equal(t, event.Metadata.Actor["email"], "example@flipt.com")
 	assert.Equal(t, event.Metadata.Actor["method"], "oidc")
+}
+
+func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
+	var (
+		store       = &authStoreMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = token.NewServer(logger, store)
+		req         = &authrpc.CreateTokenRequest{
+			Name: "token",
+		}
+	)
+
+	store.On("CreateAuthentication", mock.Anything, &storageauth.CreateAuthenticationRequest{
+		Method: authrpc.Method_METHOD_TOKEN,
+		Metadata: map[string]string{
+			"io.flipt.auth.token.description": "",
+			"io.flipt.auth.token.name":        "token",
+		},
+	}).Return("", &authrpc.Authentication{}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateToken(ctx, r.(*authrpc.CreateTokenRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
 }

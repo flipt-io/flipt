@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -15,19 +14,14 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	timestamp "google.golang.org/protobuf/types/known/timestamppb"
-)
-
-const (
-	ipKey        = "x-forwarded-for"
-	oidcEmailKey = "io.flipt.auth.oidc.email"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -247,33 +241,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 // AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
 func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		resp, err := handler(ctx, req)
-		if err != nil {
-			return resp, err
-		}
-
-		// Identity metadata for audit events. We will always include the IP address in the
-		// metadata configuration, and only include the email when it exists from the user logging
-		// into the UI via OIDC.
-		var (
-			actor  = make(map[string]string)
-			method = "none"
-		)
-
-		md, _ := metadata.FromIncomingContext(ctx)
-		if len(md[ipKey]) > 0 {
-			actor["ip"] = md[ipKey][0]
-		}
-
-		auth := auth.GetAuthenticationFrom(ctx)
-		if auth != nil {
-			method = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
-			for k, v := range auth.Metadata {
-				actor[k] = v
-			}
-		}
-
-		actor["method"] = method
+		actor := auth.ActorFromContext(ctx)
 
 		var event *audit.Event
 
@@ -320,6 +288,13 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, Actor: actor}, r)
 		case *flipt.DeleteNamespaceRequest:
 			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, Actor: actor}, r)
+		case *authrpc.CreateTokenRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Create, Actor: actor}, r)
+		}
+
+		resp, err := handler(ctx, req)
+		if err != nil {
+			return resp, err
 		}
 
 		if event != nil {
