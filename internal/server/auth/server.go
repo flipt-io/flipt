@@ -9,7 +9,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -145,8 +144,7 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 		}
 		if a.Method == auth.Method_METHOD_TOKEN {
 			event := audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, a.Metadata)
-			span := trace.SpanFromContext(ctx)
-			span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+			event.AddToSpan(ctx)
 		}
 	}
 

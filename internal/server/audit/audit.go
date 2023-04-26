@@ -8,7 +8,8 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/sdk/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -97,6 +98,11 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 	return akv
 }
 
+func (e *Event) AddToSpan(ctx context.Context) {
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent("event", trace.WithAttributes(e.DecodeToAttributes()...))
+}
+
 func (e *Event) Valid() bool {
 	return e.Version != "" && e.Metadata.Action != "" && e.Metadata.Type != "" && e.Payload != nil
 }
@@ -160,7 +166,7 @@ type SinkSpanExporter struct {
 
 // EventExporter provides an API for exporting spans as Event(s).
 type EventExporter interface {
-	ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error
+	ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error
 	Shutdown(ctx context.Context) error
 	SendAudits(es []Event) error
 }
@@ -174,7 +180,7 @@ func NewSinkSpanExporter(logger *zap.Logger, sinks []Sink) EventExporter {
 }
 
 // ExportSpans completes one part of the implementation of a SpanExporter. Decodes span events to audit events.
-func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error {
+func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
 	es := make([]Event, 0)
 
 	for _, span := range spans {
