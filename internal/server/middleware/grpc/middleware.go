@@ -9,9 +9,13 @@ import (
 
 	"github.com/gofrs/uuid"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/audit"
+	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -235,6 +239,74 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 		}
 
 		return handler(ctx, req)
+	}
+}
+
+// AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
+func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		actor := auth.ActorFromContext(ctx)
+
+		var event *audit.Event
+
+		switch r := req.(type) {
+		case *flipt.CreateFlagRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Create, Actor: actor}, r)
+		case *flipt.UpdateFlagRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteFlagRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Delete, Actor: actor}, r)
+		case *flipt.CreateVariantRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Create, Actor: actor}, r)
+		case *flipt.UpdateVariantRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteVariantRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Delete, Actor: actor}, r)
+		case *flipt.CreateSegmentRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Create, Actor: actor}, r)
+		case *flipt.UpdateSegmentRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteSegmentRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Delete, Actor: actor}, r)
+		case *flipt.CreateConstraintRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Create, Actor: actor}, r)
+		case *flipt.UpdateConstraintRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteConstraintRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Delete, Actor: actor}, r)
+		case *flipt.CreateDistributionRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Create}, r)
+		case *flipt.UpdateDistributionRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteDistributionRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Delete, Actor: actor}, r)
+		case *flipt.CreateRuleRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Create, Actor: actor}, r)
+		case *flipt.UpdateRuleRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteRuleRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Delete, Actor: actor}, r)
+		case *flipt.CreateNamespaceRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Create, Actor: actor}, r)
+		case *flipt.UpdateNamespaceRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, Actor: actor}, r)
+		case *flipt.DeleteNamespaceRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, Actor: actor}, r)
+		case *authrpc.CreateTokenRequest:
+			event = audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Create, Actor: actor}, r)
+		}
+
+		resp, err := handler(ctx, req)
+		if err != nil {
+			return resp, err
+		}
+
+		if event != nil {
+			span := trace.SpanFromContext(ctx)
+			span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+		}
+
+		return resp, err
 	}
 }
 

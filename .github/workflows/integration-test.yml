@@ -4,13 +4,11 @@ on:
     branches:
       - main
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
   pull_request:
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
@@ -102,12 +100,40 @@ jobs:
         with:
           version: latest
           args: test:integration
-          workdir: hack/build
+          workdir: build
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v3
         if: ${{ always() }}
         with:
           name: Flipt Service Logs
-          path: hack/build/logs
+          path: build/logs
+          retention-days: 5
+
+  ui:
+    name: UI Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: test:ui
+          workdir: build
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v3
+        if: ${{ always() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
           retention-days: 5

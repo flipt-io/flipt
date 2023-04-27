@@ -158,7 +158,9 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	// fetch and add ui/embed.go on its own
 	embed := client.Host().Directory(".", dagger.HostDirectoryOpts{
 		Include: []string{
+			"./ui/dev.go",
 			"./ui/embed.go",
+			"./ui/index.dev.html",
 		},
 	})
 
@@ -173,7 +175,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 
 	// build the Flipt target binary
 	return golang.
-		WithMountedFile("./ui/embed.go", embed.File("./ui/embed.go")).
+		WithMountedDirectory("./ui", embed.Directory("./ui")).
 		WithMountedDirectory("./ui/dist", req.ui).
 		WithExec([]string{"mkdir", "-p", req.binary()}).
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil

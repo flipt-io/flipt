@@ -92,7 +92,7 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
         run: |
-          cd hack/build
+          cd build
 
           if [[ $TAG == $(mage release:latest go.flipt.io/flipt) ]]; then
             docker pull flipt/flipt:$TAG

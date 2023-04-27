@@ -119,33 +119,60 @@ export default function Login() {
                 Login to Flipt
               </h2>
             </div>
-
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
+            <div className="mt-8 max-w-sm sm:mx-auto sm:w-full md:max-w-lg">
               <div className="px-4 py-8 sm:px-10">
-                <div className="mt-6 flex flex-col space-y-5">
-                  {providers.map((provider) => (
-                    <div key={provider.name}>
-                      <a
-                        href="#"
-                        className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:text-violet-500 hover:shadow-violet-300"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          authorize(provider.authorize_url);
-                        }}
-                      >
-                        <span className="sr-only">
-                          Sign in with {provider.name}
-                        </span>
-                        <FontAwesomeIcon
-                          icon={provider.icon}
-                          className="text-gray h-5 w-5"
-                          aria-hidden={true}
-                        />
-                        <span className="ml-2">With {provider.name}</span>
-                      </a>
+                {providers && providers.length > 0 && (
+                  <div className="mt-6 flex flex-col space-y-5">
+                    {providers.map((provider) => (
+                      <div key={provider.name}>
+                        <a
+                          href="#"
+                          className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:text-violet-500 hover:shadow-violet-300"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            authorize(provider.authorize_url);
+                          }}
+                        >
+                          <span className="sr-only">
+                            Sign in with {provider.name}
+                          </span>
+                          <FontAwesomeIcon
+                            icon={provider.icon}
+                            className="text-gray h-5 w-5"
+                            aria-hidden={true}
+                          />
+                          <span className="ml-2">With {provider.name}</span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {(!providers || providers.length === 0) && (
+                  <div className="bg-white shadow sm:rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <h3 className="text-base font-semibold leading-6 text-gray-900">
+                        No Providers
+                      </h3>
+                      <div className="mt-2 max-w-xl text-sm text-gray-500">
+                        <p>
+                          Authentication is set to{' '}
+                          <span className="font-medium">required</span>,
+                          however, there are no login providers configured.
+                          Please see the documentation for more information.
+                        </p>
+                      </div>
+                      <div className="mt-3 text-sm leading-6">
+                        <a
+                          href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
+                          className="font-semibold text-violet-600 hover:text-violet-500"
+                        >
+                          Configuring authentication
+                          <span aria-hidden="true"> &rarr;</span>
+                        </a>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -46,6 +46,11 @@ func GetAuthenticationFrom(ctx context.Context) *authrpc.Authentication {
 	return auth.(*authrpc.Authentication)
 }
 
+// ContextWithAuthentication returns a context with the specified authentication
+func ContextWithAuthentication(ctx context.Context, a *authrpc.Authentication) context.Context {
+	return context.WithValue(ctx, authenticationContextKey{}, a)
+}
+
 // InterceptorOptions configure the UnaryInterceptor
 type InterceptorOptions struct {
 	skippedServers []any
@@ -116,7 +121,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 			return ctx, errUnauthenticated
 		}
 
-		return handler(context.WithValue(ctx, authenticationContextKey{}, auth), req)
+		return handler(ContextWithAuthentication(ctx, auth), req)
 	}
 }
 

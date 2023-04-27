@@ -40,25 +40,23 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	var cases []testConfig
 
-	for _, namespace := range []string{
-		"",
-		fmt.Sprintf("%x", rand.Int()),
-	} {
+	for _, namespace := range []string{"", fmt.Sprintf("%x", rand.Int())} {
 		for protocol, port := range protocolPorts {
-			address := fmt.Sprintf("%s://flipt:%s", protocol, port)
-			cases = append(cases,
-				testConfig{
-					name:      fmt.Sprintf("%s namespace %s no authentication", strings.ToUpper(protocol), namespace),
-					namespace: namespace,
-					address:   address,
-				},
-				testConfig{
-					name:      fmt.Sprintf("%s namespace %s with authentication", strings.ToUpper(protocol), namespace),
-					namespace: namespace,
-					address:   address,
-					token:     "some-token",
-				},
-			)
+			for _, token := range []string{"", "some-token"} {
+				name := fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace)
+				if token != "" {
+					name = fmt.Sprintf("%s with token %s", name, token)
+				}
+
+				cases = append(cases,
+					testConfig{
+						name:      name,
+						namespace: namespace,
+						address:   fmt.Sprintf("%s://flipt:%s", protocol, port),
+						token:     token,
+					},
+				)
+			}
 		}
 	}
 
@@ -105,7 +103,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	if _, lerr := client.Container().From("alpine:3.16").
 		WithMountedCache("/logs", logs).
 		WithExec([]string{"cp", "-r", "/logs", "/out"}).
-		Directory("/out").Export(ctx, "hack/build/logs"); lerr != nil {
+		Directory("/out").Export(ctx, "build/logs"); lerr != nil {
 		log.Println("Error copying logs", lerr)
 	}
 
@@ -150,7 +148,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 					WithExec(nil)
 
 			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
-			seed      = base.File("hack/build/testing/integration/readonly/testdata/seed.yaml")
+			seed      = base.File("build/testing/integration/readonly/testdata/seed.yaml")
 		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
@@ -215,7 +213,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 
 		_, err := base.
 			WithServiceBinding("flipt", flipt).
-			WithWorkdir(path.Join("hack/build/testing/integration", dir)).
+			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithExec(append([]string{"go", "test", "-v", "-race"}, append(flags, ".")...)).
 			ExitCode(ctx)
