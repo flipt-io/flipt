@@ -21,7 +21,7 @@ import (
 
 const (
 	filename = "telemetry.json"
-	version  = "1.0"
+	version  = "1.1"
 	event    = "flipt.ping"
 )
 
@@ -31,8 +31,19 @@ type ping struct {
 	Flipt   flipt  `json:"flipt"`
 }
 
+type storage struct {
+	Database string `json:"database,omitempty"`
+	Cache    string `json:"cache,omitempty"`
+}
+
+type authentication struct {
+	Methods []string `json:"methods,omitempty"`
+}
+
 type flipt struct {
-	Version string `json:"version"`
+	Version        string          `json:"version"`
+	Storage        *storage        `json:"storage,omitempty"`
+	Authentication *authentication `json:"authentication,omitempty"`
 }
 
 type state struct {
@@ -161,14 +172,39 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 
 	var (
 		props = analytics.NewProperties()
-		p     = ping{
-			Version: s.Version,
-			UUID:    s.UUID,
-			Flipt: flipt{
-				Version: info.Version,
-			},
+		flipt = flipt{
+			Version: info.Version,
 		}
 	)
+
+	flipt.Storage = &storage{
+		Database: r.cfg.Database.Protocol.String(),
+	}
+
+	// only report cache if enabled
+	if r.cfg.Cache.Enabled {
+		flipt.Storage.Cache = r.cfg.Cache.Backend.String()
+	}
+
+	// authentication
+	methods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))
+
+	for _, m := range r.cfg.Authentication.Methods.EnabledMethods() {
+		methods = append(methods, m.Name())
+	}
+
+	// only report authentications if enabled
+	if len(methods) > 0 {
+		flipt.Authentication = &authentication{
+			Methods: methods,
+		}
+	}
+
+	p := ping{
+		Version: version,
+		UUID:    s.UUID,
+		Flipt:   flipt,
+	}
 
 	// marshal as json first so we can get the correct case field names in the analytics service
 	out, err := json.Marshal(p)
