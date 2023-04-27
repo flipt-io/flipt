@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - protojson to use DiscardUnknown option for backwards compatibility (#1453)
 - `rpc/flipt`: move all openapi annotations into yaml file (#1437)
 
+## [v1.19.4](https://github.com/flipt-io/flipt/releases/tag/v1.19.4) - 2023-04-27
+
+### Fixed
+
+- `grpc/middleware`: set timestamp on each batch evaluate response (#1545)
+
 ## [v1.19.3](https://github.com/flipt-io/flipt/releases/tag/v1.19.3) - 2023-03-22
 
 ### Changed
