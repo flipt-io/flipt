@@ -2,7 +2,7 @@
 
 ## Issues
 
-Let me know how I can help!
+Let us know how we can help!
 
 * Include any **stack traces** with your error
 * List versions you are using: Flipt, Go, OS, etc.
@@ -10,10 +10,15 @@ Let me know how I can help!
 
 ## Code
 
-It's always best to open an issue before investing a lot of time into a
-fix or new functionality.
+It's always best to open a dialogue before investing a lot of time into a fix or new functionality.
 
-Functionality must meet the design goals and vision for the project to be accepted; I would be happy to discuss how your idea can best fit into Flipt.
+Functionality must meet the design goals and vision for the project to be accepted; we would be happy to discuss how your idea can best fit into the future of Flipt.
+
+Join our [Discord](https://www.flipt.io/discord) to chat with the team about any feature ideas or open a [Discussion](https://github.com/flipt-io/flipt/discussions) here on GitHub.
+
+### Conventional Commits
+
+We use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages. Please adhere to this specification when contributing.
 
 ## Testing
 

@@ -28,7 +28,7 @@ func (x *FliptClient) Evaluate(ctx context.Context, v *flipt.EvaluationRequest, 
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/evaluate", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/evaluate", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (x *FliptClient) Evaluate(ctx context.Context, v *flipt.EvaluationRequest, 
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -60,7 +60,7 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/batch-evaluate", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/batch-evaluate", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,155 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) GetNamespace(ctx context.Context, v *flipt.GetNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.Namespace
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) ListNamespaces(ctx context.Context, v *flipt.ListNamespaceRequest, _ ...grpc.CallOption) (*flipt.NamespaceList, error) {
+	var body io.Reader
+	values := url.Values{}
+	values.Set("limit", fmt.Sprintf("%v", v.Limit))
+	values.Set("offset", fmt.Sprintf("%v", v.Offset))
+	values.Set("pageToken", v.PageToken)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/api/v1/namespaces", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.NamespaceList
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) CreateNamespace(ctx context.Context, v *flipt.CreateNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/namespaces", body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.Namespace
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) UpdateNamespace(ctx context.Context, v *flipt.UpdateNamespaceRequest, _ ...grpc.CallOption) (*flipt.Namespace, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.Namespace
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) DeleteNamespace(ctx context.Context, v *flipt.DeleteNamespaceRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output emptypb.Empty
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -87,7 +235,7 @@ func (x *FliptClient) BatchEvaluate(ctx context.Context, v *flipt.BatchEvaluatio
 func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ...grpc.CallOption) (*flipt.Flag, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/%v", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +253,7 @@ func (x *FliptClient) GetFlag(ctx context.Context, v *flipt.GetFlagRequest, _ ..
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -117,7 +265,7 @@ func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/api/v1/flags", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +283,7 @@ func (x *FliptClient) ListFlags(ctx context.Context, v *flipt.ListFlagRequest, _
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -149,7 +297,7 @@ func (x *FliptClient) CreateFlag(ctx context.Context, v *flipt.CreateFlagRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/flags", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +315,7 @@ func (x *FliptClient) CreateFlag(ctx context.Context, v *flipt.CreateFlagRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -181,7 +329,7 @@ func (x *FliptClient) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +347,7 @@ func (x *FliptClient) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -208,7 +356,7 @@ func (x *FliptClient) UpdateFlag(ctx context.Context, v *flipt.UpdateFlagRequest
 func (x *FliptClient) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +374,7 @@ func (x *FliptClient) DeleteFlag(ctx context.Context, v *flipt.DeleteFlagRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -240,7 +388,7 @@ func (x *FliptClient) CreateVariant(ctx context.Context, v *flipt.CreateVariantR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/variants", v.FlagKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/variants", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +406,7 @@ func (x *FliptClient) CreateVariant(ctx context.Context, v *flipt.CreateVariantR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -272,7 +420,7 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/variants/%v", v.FlagKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/variants/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +438,7 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -299,7 +447,7 @@ func (x *FliptClient) UpdateVariant(ctx context.Context, v *flipt.UpdateVariantR
 func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/variants/%v", v.FlagKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/variants/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +465,7 @@ func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -326,7 +474,7 @@ func (x *FliptClient) DeleteVariant(ctx context.Context, v *flipt.DeleteVariantR
 func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ...grpc.CallOption) (*flipt.Rule, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v", v.FlagKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +492,7 @@ func (x *FliptClient) GetRule(ctx context.Context, v *flipt.GetRuleRequest, _ ..
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -356,7 +504,7 @@ func (x *FliptClient) ListRules(ctx context.Context, v *flipt.ListRuleRequest, _
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules", v.FlagKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +522,7 @@ func (x *FliptClient) ListRules(ctx context.Context, v *flipt.ListRuleRequest, _
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -388,7 +536,7 @@ func (x *FliptClient) CreateRule(ctx context.Context, v *flipt.CreateRuleRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules", v.FlagKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +554,7 @@ func (x *FliptClient) CreateRule(ctx context.Context, v *flipt.CreateRuleRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -420,7 +568,7 @@ func (x *FliptClient) UpdateRule(ctx context.Context, v *flipt.UpdateRuleRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v", v.FlagKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +586,7 @@ func (x *FliptClient) UpdateRule(ctx context.Context, v *flipt.UpdateRuleRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -452,7 +600,7 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/order", v.FlagKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/order", v.NamespaceKey, v.FlagKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +618,7 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -479,7 +627,7 @@ func (x *FliptClient) OrderRules(ctx context.Context, v *flipt.OrderRulesRequest
 func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v", v.FlagKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +645,7 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -511,7 +659,7 @@ func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDis
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions", v.FlagKey, v.RuleId), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions", v.NamespaceKey, v.FlagKey, v.RuleId), body)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +677,7 @@ func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDis
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -543,7 +691,7 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions/%v", v.FlagKey, v.RuleId, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions/%v", v.NamespaceKey, v.FlagKey, v.RuleId, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -561,7 +709,7 @@ func (x *FliptClient) UpdateDistribution(ctx context.Context, v *flipt.UpdateDis
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -571,7 +719,7 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 	var body io.Reader
 	values := url.Values{}
 	values.Set("variantId", v.VariantId)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/flags/%v/rules/%v/distributions/%v", v.FlagKey, v.RuleId, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rules/%v/distributions/%v", v.NamespaceKey, v.FlagKey, v.RuleId, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -589,7 +737,7 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -598,7 +746,7 @@ func (x *FliptClient) DeleteDistribution(ctx context.Context, v *flipt.DeleteDis
 func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest, _ ...grpc.CallOption) (*flipt.Segment, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/segments/%v", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -616,7 +764,7 @@ func (x *FliptClient) GetSegment(ctx context.Context, v *flipt.GetSegmentRequest
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -628,7 +776,7 @@ func (x *FliptClient) ListSegments(ctx context.Context, v *flipt.ListSegmentRequ
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
 	values.Set("offset", fmt.Sprintf("%v", v.Offset))
 	values.Set("pageToken", v.PageToken)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/api/v1/segments", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -646,7 +794,7 @@ func (x *FliptClient) ListSegments(ctx context.Context, v *flipt.ListSegmentRequ
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -660,7 +808,7 @@ func (x *FliptClient) CreateSegment(ctx context.Context, v *flipt.CreateSegmentR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+"/api/v1/segments", body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments", v.NamespaceKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -678,7 +826,7 @@ func (x *FliptClient) CreateSegment(ctx context.Context, v *flipt.CreateSegmentR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -692,7 +840,7 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/segments/%v", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -710,7 +858,7 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -719,7 +867,7 @@ func (x *FliptClient) UpdateSegment(ctx context.Context, v *flipt.UpdateSegmentR
 func (x *FliptClient) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/segments/%v", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v", v.NamespaceKey, v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -737,7 +885,7 @@ func (x *FliptClient) DeleteSegment(ctx context.Context, v *flipt.DeleteSegmentR
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -751,7 +899,7 @@ func (x *FliptClient) CreateConstraint(ctx context.Context, v *flipt.CreateConst
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/segments/%v/constraints", v.SegmentKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v/constraints", v.NamespaceKey, v.SegmentKey), body)
 	if err != nil {
 		return nil, err
 	}
@@ -769,7 +917,7 @@ func (x *FliptClient) CreateConstraint(ctx context.Context, v *flipt.CreateConst
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -783,7 +931,7 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/segments/%v/constraints/%v", v.SegmentKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v/constraints/%v", v.NamespaceKey, v.SegmentKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -801,7 +949,7 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil
@@ -810,7 +958,7 @@ func (x *FliptClient) UpdateConstraint(ctx context.Context, v *flipt.UpdateConst
 func (x *FliptClient) DeleteConstraint(ctx context.Context, v *flipt.DeleteConstraintRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/segments/%v/constraints/%v", v.SegmentKey, v.Id), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/segments/%v/constraints/%v", v.NamespaceKey, v.SegmentKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -828,7 +976,7 @@ func (x *FliptClient) DeleteConstraint(ctx context.Context, v *flipt.DeleteConst
 	if err := checkResponse(resp, respData); err != nil {
 		return nil, err
 	}
-	if err := protojson.Unmarshal(respData, &output); err != nil {
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
 		return nil, err
 	}
 	return &output, nil

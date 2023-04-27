@@ -8,7 +8,6 @@ RUN apt-get update && \
     apt-get -y install --no-install-recommends \
     curl \
     gnupg \
-    silversearcher-ag \
     sudo \
     openssh-server \
     postgresql-client && \
@@ -23,17 +22,19 @@ RUN curl -sSL https://deb.nodesource.com/setup_18.x | bash && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# install task
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+RUN git config --global --add safe.directory '*'
+
+# install mage
+RUN git clone https://github.com/magefile/mage && \
+    cd mage && \
+    go run bootstrap.go
 
 WORKDIR /flipt
 
 COPY go.mod go.mod
 COPY go.sum go.sum
-RUN go mod download
 
 COPY . .
 
 EXPOSE 8080
-EXPOSE 8081
 EXPOSE 9000

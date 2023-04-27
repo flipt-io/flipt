@@ -459,3 +459,32 @@ func (req *DeleteConstraintRequest) Validate() error {
 
 	return nil
 }
+
+// Namespaces
+func (req *CreateNamespaceRequest) Validate() error {
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	if !keyRegex.MatchString(req.Key) {
+		return errors.InvalidFieldError("key", "contains invalid characters")
+	}
+
+	if req.Name == "" {
+		return errors.EmptyFieldError("name")
+	}
+
+	return nil
+}
+
+func (req *UpdateNamespaceRequest) Validate() error {
+	if req.Key == "" {
+		return errors.EmptyFieldError("key")
+	}
+
+	if req.Name == "" {
+		return errors.EmptyFieldError("name")
+	}
+
+	return nil
+}

@@ -1,0 +1,4 @@
+audit:
+  sinks:
+    log:
+      enabled: true

@@ -22,22 +22,22 @@ type mockLister struct {
 	ruleErr error
 }
 
-func (m mockLister) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
-	return storage.ResultSet[*flipt.Flag]{
-		Results: m.flags,
+func (m mockLister) ListFlags(_ context.Context, _ *flipt.ListFlagRequest) (*flipt.FlagList, error) {
+	return &flipt.FlagList{
+		Flags: m.flags,
 	}, m.flagErr
 }
 
-func (m mockLister) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
-	return storage.ResultSet[*flipt.Segment]{
-		Results: m.segments,
-	}, m.segmentErr
+func (m mockLister) ListRules(_ context.Context, _ *flipt.ListRuleRequest) (*flipt.RuleList, error) {
+	return &flipt.RuleList{
+		Rules: m.rules,
+	}, m.ruleErr
 }
 
-func (m mockLister) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
-	return storage.ResultSet[*flipt.Rule]{
-		Results: m.rules,
-	}, m.ruleErr
+func (m mockLister) ListSegments(_ context.Context, _ *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
+	return &flipt.SegmentList{
+		Segments: m.segments,
+	}, m.segmentErr
 }
 
 func TestExport(t *testing.T) {
@@ -117,7 +117,7 @@ func TestExport(t *testing.T) {
 	}
 
 	var (
-		exporter = NewExporter(lister)
+		exporter = NewExporter(lister, storage.DefaultNamespace)
 		b        = new(bytes.Buffer)
 	)
 

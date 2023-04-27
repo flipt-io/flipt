@@ -19,6 +19,7 @@ const (
 // given flagKey matches a segment
 type EvaluationRule struct {
 	ID               string
+	NamespaceKey     string
 	FlagKey          string
 	SegmentKey       string
 	SegmentMatchType flipt.MatchType
@@ -113,6 +114,7 @@ type Store interface {
 	RuleStore
 	SegmentStore
 	EvaluationStore
+	NamespaceStore
 	fmt.Stringer
 }
 
@@ -121,19 +123,31 @@ type ResultSet[T any] struct {
 	NextPageToken string
 }
 
+const DefaultNamespace = "default"
+
 // EvaluationStore returns data necessary for evaluation
 type EvaluationStore interface {
 	// GetEvaluationRules returns rules applicable to flagKey provided
 	// Note: Rules MUST be returned in order by Rank
-	GetEvaluationRules(ctx context.Context, flagKey string) ([]*EvaluationRule, error)
+	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
+}
+
+// NamespaceStore stores and retrieves namespaces
+type NamespaceStore interface {
+	GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error)
+	ListNamespaces(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Namespace], error)
+	CountNamespaces(ctx context.Context) (uint64, error)
+	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
+	UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error)
+	DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error
 }
 
 // FlagStore stores and retrieves flags and variants
 type FlagStore interface {
-	GetFlag(ctx context.Context, key string) (*flipt.Flag, error)
-	ListFlags(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
-	CountFlags(ctx context.Context) (uint64, error)
+	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
+	ListFlags(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Flag], error)
+	CountFlags(ctx context.Context, namespaceKey string) (uint64, error)
 	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
 	UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error)
 	DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error
@@ -144,9 +158,9 @@ type FlagStore interface {
 
 // SegmentStore stores and retrieves segments and constraints
 type SegmentStore interface {
-	GetSegment(ctx context.Context, key string) (*flipt.Segment, error)
-	ListSegments(ctx context.Context, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
-	CountSegments(ctx context.Context) (uint64, error)
+	GetSegment(ctx context.Context, namespaceKey, key string) (*flipt.Segment, error)
+	ListSegments(ctx context.Context, namespaceKey string, opts ...QueryOption) (ResultSet[*flipt.Segment], error)
+	CountSegments(ctx context.Context, namespaceKey string) (uint64, error)
 	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
 	UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error)
 	DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error
@@ -157,9 +171,9 @@ type SegmentStore interface {
 
 // RuleStore stores and retrieves rules and distributions
 type RuleStore interface {
-	GetRule(ctx context.Context, id string) (*flipt.Rule, error)
-	ListRules(ctx context.Context, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rule], error)
-	CountRules(ctx context.Context) (uint64, error)
+	GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Rule, error)
+	ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rule], error)
+	CountRules(ctx context.Context, namespaceKey string) (uint64, error)
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error

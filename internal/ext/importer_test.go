@@ -7,10 +7,17 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
+	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
 type mockCreator struct {
+	getNSReqs []*flipt.GetNamespaceRequest
+	getNSErr  error
+
+	createNSReqs []*flipt.CreateNamespaceRequest
+	createNSErr  error
+
 	flagReqs []*flipt.CreateFlagRequest
 	flagErr  error
 
@@ -28,6 +35,16 @@ type mockCreator struct {
 
 	distributionReqs []*flipt.CreateDistributionRequest
 	distributionErr  error
+}
+
+func (m *mockCreator) GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
+	m.getNSReqs = append(m.getNSReqs, r)
+	return &flipt.Namespace{Key: "default"}, m.getNSErr
+}
+
+func (m *mockCreator) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	m.createNSReqs = append(m.createNSReqs, r)
+	return &flipt.Namespace{Key: "default"}, m.createNSErr
 }
 
 func (m *mockCreator) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
@@ -135,7 +152,7 @@ func TestImport(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
 				creator  = &mockCreator{}
-				importer = NewImporter(creator)
+				importer = NewImporter(creator, storage.DefaultNamespace, false)
 			)
 
 			in, err := os.Open(tc.path)

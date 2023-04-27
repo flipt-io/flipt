@@ -3,6 +3,7 @@ package otel
 import (
 	"context"
 
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -11,6 +12,7 @@ import (
 type TracerProvider interface {
 	trace.TracerProvider
 	Shutdown(context.Context) error
+	RegisterSpanProcessor(sp tracesdk.SpanProcessor)
 }
 
 type noopProvider struct {
@@ -26,3 +28,5 @@ func NewNoopProvider() TracerProvider {
 func (p noopProvider) Shutdown(context.Context) error {
 	return nil
 }
+
+func (p noopProvider) RegisterSpanProcessor(sp tracesdk.SpanProcessor) {}

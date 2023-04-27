@@ -89,10 +89,8 @@ func TestMigratorExpectedVersions(t *testing.T) {
 		count := len(migrations)
 		require.True(t, count > 0, "no migrations found for %s", db)
 
-		// 1 is the up migration and 1 is the down migration
-		// so we should have count/2 migrations
-		// and they start at 0
-		actual := uint((count / 2) - 1)
+		// migrations start at 0
+		actual := uint(count - 1)
 		assert.Equal(t, actual, expectedVersions[driver], "expectedVersions for %s should be set to %d. you need to increment expectedVersions after adding a new migration", db, actual)
 	}
 }

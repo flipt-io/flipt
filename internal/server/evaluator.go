@@ -22,12 +22,18 @@ import (
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.Debug("evaluate", zap.Stringer("request", r))
+
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	resp, err := s.evaluate(ctx, r)
 	if err != nil {
 		return resp, err
 	}
 
 	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
 		fliptotel.AttributeRequestID.String(r.RequestId),
@@ -53,6 +59,11 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 // BatchEvaluate evaluates a request for multiple flags and entities
 func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequest) (*flipt.BatchEvaluationResponse, error) {
 	s.logger.Debug("batch-evaluate", zap.Stringer("request", r))
+
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
 	resp, err := s.batchEvaluate(ctx, r)
 	if err != nil {
 		return nil, err
@@ -68,9 +79,16 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 	// TODO: we should change this to a native batch query instead of looping through
 	// each request individually
-	for _, flag := range r.GetRequests() {
+	for _, req := range r.GetRequests() {
+		// ensure all requests have the same namespace
+		if req.NamespaceKey == "" {
+			req.NamespaceKey = r.NamespaceKey
+		} else if req.NamespaceKey != r.NamespaceKey {
+			return &res, errs.InvalidFieldError("namespace_key", "must be the same for all requests if specified")
+		}
+
 		// TODO: we also need to validate each request, we should likely do this in the validation middleware
-		f, err := s.evaluate(ctx, flag)
+		f, err := s.evaluate(ctx, req)
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if r.GetExcludeNotFound() && errors.As(err, &errnf) {
@@ -87,13 +105,17 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 
 func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	var (
-		startTime = time.Now().UTC()
-		flagAttr  = metrics.AttributeFlag.String(r.FlagKey)
+		startTime     = time.Now().UTC()
+		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
 	)
-	metrics.EvaluationsTotal.Add(ctx, 1, flagAttr)
+
+	metrics.EvaluationsTotal.Add(ctx, 1, namespaceAttr, flagAttr)
+
 	defer func() {
 		if err == nil {
 			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				namespaceAttr,
 				flagAttr,
 				metrics.AttributeMatch.Bool(resp.Match),
 				metrics.AttributeSegment.String(resp.SegmentKey),
@@ -101,12 +123,13 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 				metrics.AttributeValue.String(resp.Value),
 			)
 		} else {
-			metrics.EvaluationErrorsTotal.Add(ctx, 1, flagAttr)
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, namespaceAttr, flagAttr)
 		}
 
 		metrics.EvaluationLatency.Record(
 			ctx,
 			float64(time.Since(startTime).Nanoseconds())/1e6,
+			namespaceAttr,
 			flagAttr,
 		)
 	}()
@@ -116,9 +139,10 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 		EntityId:       r.EntityId,
 		RequestContext: r.Context,
 		FlagKey:        r.FlagKey,
+		NamespaceKey:   r.NamespaceKey,
 	}
 
-	flag, err := s.store.GetFlag(ctx, r.FlagKey)
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 
@@ -136,7 +160,7 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 		return resp, nil
 	}
 
-	rules, err := s.store.GetEvaluationRules(ctx, r.FlagKey)
+	rules, err := s.store.GetEvaluationRules(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 		return resp, err

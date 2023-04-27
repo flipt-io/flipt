@@ -3,17 +3,49 @@ package auth
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const ipKey = "x-forwarded-for"
+
 var _ auth.AuthenticationServiceServer = &Server{}
+
+// Actor represents some metadata from the context for the audit event.
+type Actor map[string]string
+
+func ActorFromContext(ctx context.Context) Actor {
+	var (
+		actor  = Actor{}
+		method = "none"
+	)
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	fmt.Println(md)
+	if len(md[ipKey]) > 0 {
+		actor["ip"] = md[ipKey][0]
+	}
+
+	auth := GetAuthenticationFrom(ctx)
+	if auth != nil {
+		method = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
+		for k, v := range auth.Metadata {
+			actor[k] = v
+		}
+	}
+
+	actor["method"] = method
+	return actor
+}
 
 // Server is the core AuthenticationServiceServer implementations.
 //
@@ -22,14 +54,31 @@ type Server struct {
 	logger *zap.Logger
 	store  storageauth.Store
 
+	enableAuditLogging bool
+
 	auth.UnimplementedAuthenticationServiceServer
 }
 
-func NewServer(logger *zap.Logger, store storageauth.Store) *Server {
-	return &Server{
+type Option func(*Server)
+
+// WithAuditLoggingEnabled sets the option for enabling audit logging for the auth server.
+func WithAuditLoggingEnabled(enabled bool) Option {
+	return func(s *Server) {
+		s.enableAuditLogging = enabled
+	}
+}
+
+func NewServer(logger *zap.Logger, store storageauth.Store, opts ...Option) *Server {
+	s := &Server{
 		logger: logger,
 		store:  store,
 	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	return s
 }
 
 // RegisterGRPC registers the server as an Server on the provided grpc server.
@@ -82,6 +131,22 @@ func (s *Server) ListAuthentications(ctx context.Context, r *auth.ListAuthentica
 // DeleteAuthentication deletes the authentication with the supplied ID.
 func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthenticationRequest) (*emptypb.Empty, error) {
 	s.logger.Debug("DeleteAuthentication", zap.String("id", req.Id))
+
+	if s.enableAuditLogging {
+		actor := ActorFromContext(ctx)
+
+		a, err := s.GetAuthentication(ctx, &auth.GetAuthenticationRequest{
+			Id: req.Id,
+		})
+		if err != nil {
+			s.logger.Error("failed to get authentication for audit events", zap.Error(err))
+			return nil, err
+		}
+		if a.Method == auth.Method_METHOD_TOKEN {
+			event := audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, a.Metadata)
+			event.AddToSpan(ctx)
+		}
+	}
 
 	return &emptypb.Empty{}, s.store.DeleteAuthentications(ctx, storageauth.Delete(storageauth.WithID(req.Id)))
 }

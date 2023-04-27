@@ -5,73 +5,100 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
+	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
-	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/internal/storage/sql/mysql"
-	"go.flipt.io/flipt/internal/storage/sql/postgres"
-	"go.flipt.io/flipt/internal/storage/sql/sqlite"
 	"go.uber.org/zap"
 )
 
-var exportFilename string
+type exportCommand struct {
+	filename  string
+	address   string
+	token     string
+	namespace string
+}
 
-func runExport(ctx context.Context, logger *zap.Logger) error {
-	ctx, cancel := context.WithCancel(ctx)
+func newExportCommand() *cobra.Command {
+	export := &exportCommand{}
 
-	defer cancel()
-
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-interrupt
-		cancel()
-	}()
-
-	db, driver, err := sql.Open(*cfg)
-	if err != nil {
-		return fmt.Errorf("opening db: %w", err)
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Export flags/segments/rules to file/stdout",
+		RunE:  export.run,
 	}
 
-	defer db.Close()
+	cmd.Flags().StringVarP(
+		&export.filename,
+		"output", "o",
+		"",
+		"export to filename (default STDOUT)",
+	)
 
-	var store storage.Store
+	cmd.Flags().StringVarP(
+		&export.address,
+		"address", "a",
+		"",
+		"address of remote Flipt instance to export from (defaults to direct DB export if not supplied)",
+	)
 
-	switch driver {
-	case sql.SQLite:
-		store = sqlite.NewStore(db, logger)
-	case sql.Postgres, sql.CockroachDB:
-		store = postgres.NewStore(db, logger)
-	case sql.MySQL:
-		store = mysql.NewStore(db, logger)
-	}
+	cmd.Flags().StringVarP(
+		&export.token,
+		"token", "t",
+		"",
+		"client token used to authenticate access to remote Flipt instance when exporting.",
+	)
 
-	// default to stdout
-	var out io.WriteCloser = os.Stdout
+	cmd.Flags().StringVarP(
+		&export.namespace,
+		"namespace", "n",
+		"default",
+		"source namespace for exported resources.",
+	)
+
+	return cmd
+}
+
+func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
+	var (
+		// default to stdout
+		out    io.Writer = os.Stdout
+		logger           = zap.Must(zap.NewDevelopment())
+	)
 
 	// export to file
-	if exportFilename != "" {
-		logger.Debug("exporting", zap.String("destination_path", exportFilename))
+	if c.filename != "" {
+		logger.Debug("exporting", zap.String("destination_path", c.filename))
 
-		out, err = os.Create(exportFilename)
+		fi, err := os.Create(c.filename)
 		if err != nil {
 			return fmt.Errorf("creating output file: %w", err)
 		}
 
-		fmt.Fprintf(out, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
+		defer fi.Close()
+
+		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
+
+		out = fi
 	}
 
-	defer out.Close()
-
-	exporter := ext.NewExporter(store)
-	if err := exporter.Export(ctx, out); err != nil {
-		return fmt.Errorf("exporting: %w", err)
+	// Use client when remote address is configured.
+	if c.address != "" {
+		return c.export(cmd.Context(), out, fliptClient(logger, c.address, c.token))
 	}
 
-	return nil
+	// Otherwise, go direct to the DB using Flipt configuration file.
+	logger, cfg := buildConfig()
+	server, cleanup, err := fliptServer(logger, cfg)
+	if err != nil {
+		return err
+	}
+
+	defer cleanup()
+
+	return c.export(cmd.Context(), out, server)
+}
+
+func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
+	return ext.NewExporter(lister, c.namespace).Export(ctx, dst)
 }

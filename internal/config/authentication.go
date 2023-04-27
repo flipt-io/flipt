@@ -177,6 +177,18 @@ func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 	}
 }
 
+// EnabledMethods returns all the AuthenticationMethod instances that have been enabled.
+func (a *AuthenticationMethods) EnabledMethods() []StaticAuthenticationMethodInfo {
+	var enabled []StaticAuthenticationMethodInfo
+	for _, info := range a.AllMethods() {
+		if info.Enabled {
+			enabled = append(enabled, info)
+		}
+	}
+
+	return enabled
+}
+
 // StaticAuthenticationMethodInfo embeds an AuthenticationMethodInfo alongside
 // the other properties of an AuthenticationMethod.
 type StaticAuthenticationMethodInfo struct {

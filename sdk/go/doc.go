@@ -6,6 +6,7 @@
 // [Transport] implementations can be found in the following sub-packages:
 //
 //   - [go.flipt.io/flipt/sdk/go/grpc.NewTransport]
+//   - [go.flipt.io/flipt/sdk/go/http.NewTransport]
 //
 // # GRPC Transport
 //
@@ -14,9 +15,18 @@
 //	func main() {
 //	    conn := grpc.Dial("localhost:9090")
 //	    transport := grpc.NewTransport(conn)
-//	    sdk := sdk.New(transport)
+//	    client := sdk.New(transport)
 //	}
 //
+// # HTTP Transport
+//
+// The following is an example of creating an instance of the SDK using the HTTP transport.
+//
+//	func main() {
+//	    transport := http.NewTransport("http://localhost:8080")
+//	    client := sdk.New(transport)
+//	}
+
 // # Authenticating the SDK
 //
 // The remote procedure calls mades by this SDK are authenticated via a [ClientTokenProvider] implementation.
@@ -26,7 +36,7 @@
 //
 //	func main() {
 //	    provider := sdk.StaticClientTokenProvider("some-flipt-token")
-//	    sdk.New(transport, sdk.WithClientTokenProvider(provider))
+//	    client := sdk.New(transport, sdk.WithClientTokenProvider(provider))
 //	}
 //
 // # SDK Services
@@ -46,6 +56,7 @@
 //
 //	result, err := client.Evaluate(ctx, &flipt.EvaluationRequest{
 //	    RequestId: uuid.NewV4().String(),
+//	    NamespaceKey: sdk.DefaultNamespace,
 //	    FlagKey: "my_flag_key",
 //	    EntityId: userID,
 //	    Context: map[string]string{
@@ -55,7 +66,10 @@
 //
 // Additionally, Flipt resources can be accessed and managed directly.
 //
-//	flag, err := client.GetFlag(ctx, &flipt.GetFlagRequest{Key: "my_flag_key"})
+//	flag, err := client.GetFlag(ctx, &flipt.GetFlagRequest{
+//	    NamespaceKey: "my_namespace",
+//	    Key: "my_flag_key",
+//	})
 //	if err != nil {
 //	    panic(err)
 //	}

@@ -9,9 +9,13 @@ import (
 func ExampleNew() {
 	// see the following subpackages for transport implementations:
 	// - grpc
+	// - http
 	var transport Transport
 
 	client := New(transport)
 
-	client.Flipt().GetFlag(context.Background(), &flipt.GetFlagRequest{Key: "my_flag"})
+	client.Flipt().GetFlag(context.Background(), &flipt.GetFlagRequest{
+		NamespaceKey: "my_namespace",
+		Key:          "my_flag",
+	})
 }

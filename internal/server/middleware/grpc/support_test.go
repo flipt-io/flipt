@@ -2,11 +2,17 @@ package grpc_middleware
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/stretchr/testify/mock"
+	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/storage"
+	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/auth"
+	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ storage.Store = &storeMock{}
@@ -19,18 +25,48 @@ func (m *storeMock) String() string {
 	return "mock"
 }
 
-func (m *storeMock) GetFlag(ctx context.Context, key string) (*flipt.Flag, error) {
+func (m *storeMock) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
 	args := m.Called(ctx, key)
+	return args.Get(0).(*flipt.Namespace), args.Error(1)
+}
+
+func (m *storeMock) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Namespace], error) {
+	args := m.Called(ctx, opts)
+	return args.Get(0).(storage.ResultSet[*flipt.Namespace]), args.Error(1)
+}
+
+func (m *storeMock) CountNamespaces(ctx context.Context) (uint64, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(uint64), args.Error(1)
+}
+
+func (m *storeMock) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Namespace), args.Error(1)
+}
+
+func (m *storeMock) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Namespace), args.Error(1)
+}
+
+func (m *storeMock) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
+func (m *storeMock) GetFlag(ctx context.Context, namespaceKey string, key string) (*flipt.Flag, error) {
+	args := m.Called(ctx, namespaceKey, key)
 	return args.Get(0).(*flipt.Flag), args.Error(1)
 }
 
-func (m *storeMock) ListFlags(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
-	args := m.Called(ctx, opts)
+func (m *storeMock) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
+	args := m.Called(ctx, namespaceKey, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Flag]), args.Error(1)
 }
 
-func (m *storeMock) CountFlags(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *storeMock) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -64,18 +100,18 @@ func (m *storeMock) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantReq
 	return args.Error(0)
 }
 
-func (m *storeMock) GetSegment(ctx context.Context, key string) (*flipt.Segment, error) {
-	args := m.Called(ctx, key)
+func (m *storeMock) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
+	args := m.Called(ctx, namespaceKey, key)
 	return args.Get(0).(*flipt.Segment), args.Error(1)
 }
 
-func (m *storeMock) ListSegments(ctx context.Context, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
-	args := m.Called(ctx, opts)
+func (m *storeMock) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
+	args := m.Called(ctx, namespaceKey, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Segment]), args.Error(1)
 }
 
-func (m *storeMock) CountSegments(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *storeMock) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -109,18 +145,18 @@ func (m *storeMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
-func (m *storeMock) GetRule(ctx context.Context, id string) (*flipt.Rule, error) {
-	args := m.Called(ctx, id)
+func (m *storeMock) GetRule(ctx context.Context, namespaceKey string, id string) (*flipt.Rule, error) {
+	args := m.Called(ctx, namespaceKey, id)
 	return args.Get(0).(*flipt.Rule), args.Error(1)
 }
 
-func (m *storeMock) ListRules(ctx context.Context, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
-	args := m.Called(ctx, flagKey, opts)
+func (m *storeMock) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rule], error) {
+	args := m.Called(ctx, namespaceKey, flagKey, opts)
 	return args.Get(0).(storage.ResultSet[*flipt.Rule]), args.Error(1)
 }
 
-func (m *storeMock) CountRules(ctx context.Context) (uint64, error) {
-	args := m.Called(ctx)
+func (m *storeMock) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 
@@ -159,14 +195,46 @@ func (m *storeMock) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistr
 	return args.Error(0)
 }
 
-func (m *storeMock) GetEvaluationRules(ctx context.Context, flagKey string) ([]*storage.EvaluationRule, error) {
-	args := m.Called(ctx, flagKey)
+func (m *storeMock) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
+	args := m.Called(ctx, namespaceKey, flagKey)
 	return args.Get(0).([]*storage.EvaluationRule), args.Error(1)
 }
 
 func (m *storeMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	args := m.Called(ctx, ruleID)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
+}
+
+var _ storageauth.Store = &authStoreMock{}
+
+type authStoreMock struct {
+	mock.Mock
+}
+
+func (a *authStoreMock) CreateAuthentication(ctx context.Context, r *storageauth.CreateAuthenticationRequest) (string, *auth.Authentication, error) {
+	args := a.Called(ctx, r)
+	return args.String(0), args.Get(1).(*auth.Authentication), args.Error(2)
+}
+
+func (a *authStoreMock) GetAuthenticationByClientToken(ctx context.Context, clientToken string) (*auth.Authentication, error) {
+	return nil, nil
+}
+
+func (a *authStoreMock) GetAuthenticationByID(ctx context.Context, id string) (*auth.Authentication, error) {
+	return nil, nil
+}
+
+func (a *authStoreMock) ListAuthentications(ctx context.Context, r *storage.ListRequest[storageauth.ListAuthenticationsPredicate]) (set storage.ResultSet[*auth.Authentication], err error) {
+	return set, err
+}
+
+func (a *authStoreMock) DeleteAuthentications(ctx context.Context, r *storageauth.DeleteAuthenticationsRequest) error {
+	args := a.Called(ctx, r)
+	return args.Error(0)
+}
+
+func (a *authStoreMock) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
+	return nil
 }
 
 type cacheSpy struct {
@@ -207,4 +275,45 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 	c.deleteCalled++
 	c.deleteKeys[key] = struct{}{}
 	return c.Cacher.Delete(ctx, key)
+}
+
+type auditSinkSpy struct {
+	sendAuditsCalled int
+	events           []audit.Event
+	fmt.Stringer
+}
+
+func (a *auditSinkSpy) SendAudits(es []audit.Event) error {
+	a.sendAuditsCalled++
+	a.events = append(a.events, es...)
+	return nil
+}
+
+func (a *auditSinkSpy) String() string {
+	return "auditSinkSpy"
+}
+
+func (a *auditSinkSpy) Close() error { return nil }
+
+type auditExporterSpy struct {
+	audit.EventExporter
+	sinkSpy *auditSinkSpy
+}
+
+func newAuditExporterSpy(logger *zap.Logger) *auditExporterSpy {
+	aspy := &auditSinkSpy{events: make([]audit.Event, 0)}
+	as := []audit.Sink{aspy}
+
+	return &auditExporterSpy{
+		EventExporter: audit.NewSinkSpanExporter(logger, as),
+		sinkSpy:       aspy,
+	}
+}
+
+func (a *auditExporterSpy) GetSendAuditsCalled() int {
+	return a.sinkSpy.sendAuditsCalled
+}
+
+func (a *auditExporterSpy) GetEvents() []audit.Event {
+	return a.sinkSpy.events
 }

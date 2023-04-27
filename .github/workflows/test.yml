@@ -4,13 +4,11 @@ on:
     branches:
       - main
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
   pull_request:
     paths-ignore:
-      - "examples/**"
       - "logos/**"
       - "**.md"
       - "**.txt"
@@ -18,7 +16,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: "Tests (Go)"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -36,7 +34,25 @@ jobs:
         run: go test -race -covermode=atomic -coverprofile=coverage.txt -count=1 ./...
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v3.1.1
+        uses: codecov/codecov-action@v3.1.3
+
+  ui:
+    name: "Tests (UI)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Unit Test
+        run: |
+          npm ci
+          npm run test
+        working-directory: ui
 
   database:
     name: Database Test
