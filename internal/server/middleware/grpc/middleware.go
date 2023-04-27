@@ -114,11 +114,15 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 			return resp, err
 		}
 
+		now := timestamp.New(time.Now().UTC())
 		// set response fields
 		if resp != nil {
 			if rr, ok := resp.(*flipt.BatchEvaluationResponse); ok {
 				rr.RequestId = r.RequestId
 				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+				for _, response := range rr.Responses {
+					response.Timestamp = now
+				}
 				return resp, nil
 			}
 		}
