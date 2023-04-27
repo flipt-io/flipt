@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -75,7 +74,7 @@ func newStoreSnapshot(source fs.FS) (*storeSnapshot, []string, error) {
 			return nil
 		}
 
-		file, err := os.Open(path)
+		file, err := source.Open(path)
 		if err != nil {
 			return err
 		}

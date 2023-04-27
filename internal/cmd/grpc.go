@@ -127,15 +127,23 @@ func NewGRPCServer(
 			return nil, fmt.Errorf("unsupported driver: %s", driver)
 		}
 
-		logger.Debug("store enabled", zap.Stringer("driver", driver))
+		logger.Debug("database driver configured", zap.Stringer("driver", driver))
 	case config.LocalStorageType:
 		store, err = storefs.NewLocalDirectoryStore(logger, cfg.Storage.Local.Path)
 		if err != nil {
 			return nil, fmt.Errorf("opening local directory store: %w", err)
 		}
-
-		logger.Debug("store enabled", zap.Stringer("type", store))
+	case config.GitStorageType:
+		store, err = storefs.NewGitStore(logger,
+			storefs.NewGitStoreConfig(cfg.Storage.Git.Repository))
+		if err != nil {
+			return nil, fmt.Errorf("opening git store: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
 	}
+
+	logger.Debug("store enabled", zap.Stringer("type", store))
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
 	var tracingProvider = tracesdk.NewTracerProvider(

@@ -74,8 +74,8 @@ func Bootstrap() error {
 
 // Build builds the project similar to a release build
 func Build() error {
-	mg.Deps(Clean)
-	mg.Deps(UI)
+	//mg.Deps(Clean)
+	//mg.Deps(UI)
 	fmt.Println("Building...")
 
 	if err := build(buildModeProd); err != nil {

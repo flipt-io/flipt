@@ -10,6 +10,7 @@ type StorageType string
 const (
 	DatabaseStorageType = StorageType("database")
 	LocalStorageType    = StorageType("local")
+	GitStorageType      = StorageType("git")
 )
 
 type StorageConfig struct {
@@ -17,12 +18,16 @@ type StorageConfig struct {
 	Local struct {
 		Path string `json:"path,omitempty" mapstructure:"path"`
 	} `json:"local,omitempty" mapstructure:"local"`
+	Git struct {
+		Repository string `json:"repository,omitempty" mapstructure:"repository"`
+	} `json:"git,omitempty" mapstructure:"git"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("type", "database")
 
-	if v.GetString("type") == "local" {
+	switch v.GetString("type") {
+	case string(LocalStorageType):
 		v.SetDefault("local", map[string]any{
 			"path": ".",
 		})
