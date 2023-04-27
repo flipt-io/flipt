@@ -279,6 +279,7 @@ func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.NotEmpty(t, resp.Responses)
 	assert.Equal(t, "foo", resp.Responses[0].FlagKey)
+	assert.NotNil(t, resp.Responses[0].Timestamp)
 	// check that the requestID was propagated
 	assert.NotEmpty(t, resp.RequestId)
 	assert.Equal(t, "bar", resp.RequestId)
