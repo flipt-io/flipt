@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.19.4](https://github.com/flipt-io/flipt/releases/tag/v1.19.4) - 2023-04-27
+
+### Fixed
+
+- `grpc/middleware`: set timestamp on each batch evaluate response (#1545)
+
 ## [v1.19.3](https://github.com/flipt-io/flipt/releases/tag/v1.19.3) - 2023-03-22
 
 ### Changed
