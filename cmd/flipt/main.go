@@ -43,7 +43,28 @@ var (
 	banner       string
 )
 
-var fatal = zap.Must(zap.NewProduction()).Fatal
+var fatal = zap.Must(zap.Config{
+	Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+	Development: false,
+	Encoding:    "console",
+	EncoderConfig: zapcore.EncoderConfig{
+		// Keys can be anything except the empty string.
+		TimeKey:        "T",
+		LevelKey:       "L",
+		NameKey:        "N",
+		CallerKey:      zapcore.OmitKey,
+		FunctionKey:    zapcore.OmitKey,
+		MessageKey:     "M",
+		StacktraceKey:  zapcore.OmitKey,
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeTime:     zapcore.RFC3339TimeEncoder,
+		EncodeDuration: zapcore.StringDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	},
+	OutputPaths:      []string{"stdout"},
+	ErrorOutputPaths: []string{"stderr"},
+}.Build()).Fatal
 
 func main() {
 	var (
