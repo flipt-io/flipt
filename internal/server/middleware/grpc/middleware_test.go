@@ -1654,7 +1654,7 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 
 	event := exporterSpy.GetEvents()[0]
 	assert.Equal(t, event.Metadata.Actor["email"], "example@flipt.com")
-	assert.Equal(t, event.Metadata.Actor["method"], "oidc")
+	assert.Equal(t, event.Metadata.Actor["authentication"], "oidc")
 }
 
 func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
