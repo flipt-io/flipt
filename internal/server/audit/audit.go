@@ -118,7 +118,7 @@ func (e *Event) AddToSpan(ctx context.Context) {
 }
 
 func (e *Event) Valid() bool {
-	return e.Version != "" && e.Action != "" && e.Type != "" && e.Payload != nil
+	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != "" && e.Payload != nil
 }
 
 var errEventNotValid = errors.New("audit event not valid")
