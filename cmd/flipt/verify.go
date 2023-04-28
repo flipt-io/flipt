@@ -12,7 +12,7 @@ func newVerifyCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "verify",
-		Short: "Verify cue file against",
+		Short: "Verify cue file against list of yaml configurations",
 		RunE:  v.run,
 	}
 
