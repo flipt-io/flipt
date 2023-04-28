@@ -3,8 +3,8 @@ flags: [...#Flag]
 segments: [...#Segment]
 
 #Flag: {
-	key:         string
-	name:        string
+	key:         string & =~ "^[-_,A-Za-z0-9]+$"
+	name:        string & =~ "^.+$"
 	description: string
 	enabled:     bool | *false
 	variants: [...#Variant]
@@ -12,25 +12,25 @@ segments: [...#Segment]
 }
 
 #Variant: {
-	key:        string
-	name:       string
+	key:        string & =~ "^.+$"
+	name:       string & =~ "^.+$"
 	attachment: {...} | *null
 }
 
 #Rule: {
-	segment: string
+	segment: string & =~ "^.+$"
 	rank:    int
 	distributions: [...#Distribution]
 }
 
 #Distribution: {
-	variant: string
+	variant: string & =~ "^.+$"
 	rollout: >=0 & <=100
 }
 
 #Segment: {
-	key:         string
-	name:        string
+	key:         string & =~ "^[-_,A-Za-z0-9]+$"
+	name:        string & =~ "^.+$"
 	match_type:  string
 	description: string
 	constraints: [...#Constraint]
@@ -38,12 +38,17 @@ segments: [...#Segment]
 
 #Constraint: ({
 	type:     "STRING_COMPARISON_TYPE"
-	property: string
+	property: string & =~ "^.+$"
 	value:    string
-	operator: "eq" | "neq" | "empty" | "notempty" | "suffix" | "prefix"
+	operator: "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" & =~ "^.+$"
 } | {
 	type:     "NUMBER_COMPARISON_TYPE"
 	property: string
 	value:    string
-	operator: "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	operator: "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte" & =~ "^.+$"
+} | {
+	type: "BOOLEAN_COMPARISON_TYPE"
+	property: string & =~ "^.+$"
+	value: string & =~ "^.+$"
+	operator: "true" | "false" | "present" | "notpresent" & =~ "^.+$"
 })
