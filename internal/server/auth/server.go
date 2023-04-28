@@ -25,8 +25,8 @@ type Actor map[string]string
 
 func ActorFromContext(ctx context.Context) Actor {
 	var (
-		actor  = Actor{}
-		method = "none"
+		actor          = Actor{}
+		authentication = "none"
 	)
 
 	md, _ := metadata.FromIncomingContext(ctx)
@@ -36,13 +36,13 @@ func ActorFromContext(ctx context.Context) Actor {
 
 	auth := GetAuthenticationFrom(ctx)
 	if auth != nil {
-		method = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
+		authentication = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
 		for k, v := range auth.Metadata {
 			actor[k] = v
 		}
 	}
 
-	actor["method"] = method
+	actor["authentication"] = authentication
 	return actor
 }
 
@@ -142,7 +142,7 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 			return nil, err
 		}
 		if a.Method == auth.Method_METHOD_TOKEN {
-			event := audit.NewEvent(audit.Metadata{Type: audit.Token, Action: audit.Delete, Actor: actor}, a.Metadata)
+			event := audit.NewEvent(audit.Token, audit.Delete, actor, a.Metadata)
 			event.AddToSpan(ctx)
 		}
 	}
