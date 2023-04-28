@@ -13,7 +13,7 @@ load 'helpers/bats-assert/load'
 @test "config file does not exists results in error" {
     run ./bin/flipt --config /foo/bar.yml
     assert_failure
-    assert_output -p "loading configuration: open /foo/bar.yml: no such file or directory"
+    assert_output -p "FATAL	loading configuration	{\"error\": \"loading configuration: open /foo/bar.yml: no such file or directory\"}"
 }
 
 @test "config file not yaml results in error" {
