@@ -43,11 +43,8 @@ var (
 	banner       string
 )
 
-var fatal = zap.Must(zap.Config{
-	Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-	Development: false,
-	Encoding:    "console",
-	EncoderConfig: zapcore.EncoderConfig{
+var (
+	defaultEncoding = zapcore.EncoderConfig{
 		// Keys can be anything except the empty string.
 		TimeKey:        "T",
 		LevelKey:       "L",
@@ -61,10 +58,20 @@ var fatal = zap.Must(zap.Config{
 		EncodeTime:     zapcore.RFC3339TimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
-	},
-	OutputPaths:      []string{"stdout"},
-	ErrorOutputPaths: []string{"stderr"},
-}.Build()).Fatal
+	}
+	fatal = zap.Must(defaultConfig(defaultEncoding).Build()).Fatal
+)
+
+func defaultConfig(encoding zapcore.EncoderConfig) zap.Config {
+	return zap.Config{
+		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development:      false,
+		Encoding:         "console",
+		EncoderConfig:    defaultEncoding,
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+}
 
 func main() {
 	var (
@@ -160,28 +167,12 @@ func buildConfig() (*zap.Logger, *config.Config) {
 
 	cfg := res.Config
 
-	loggerConfig := zap.Config{
-		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-		Development: false,
-		Encoding:    "console",
-		EncoderConfig: zapcore.EncoderConfig{
-			// Keys can be anything except the empty string.
-			TimeKey:        cfg.Log.Keys.Time,
-			LevelKey:       cfg.Log.Keys.Level,
-			NameKey:        "N",
-			CallerKey:      zapcore.OmitKey,
-			FunctionKey:    zapcore.OmitKey,
-			MessageKey:     cfg.Log.Keys.Message,
-			StacktraceKey:  zapcore.OmitKey,
-			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.CapitalColorLevelEncoder,
-			EncodeTime:     zapcore.RFC3339TimeEncoder,
-			EncodeDuration: zapcore.StringDurationEncoder,
-			EncodeCaller:   zapcore.ShortCallerEncoder,
-		},
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-	}
+	encoding := defaultEncoding
+	encoding.TimeKey = cfg.Log.Keys.Time
+	encoding.LevelKey = cfg.Log.Keys.Level
+	encoding.MessageKey = cfg.Log.Keys.Message
+
+	loggerConfig := defaultConfig(encoding)
 
 	// log to file if enabled
 	if cfg.Log.File != "" {
