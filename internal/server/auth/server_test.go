@@ -2,7 +2,6 @@ package auth_test
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -37,8 +36,6 @@ func TestActorFromContext(t *testing.T) {
 	ctx = fauth.ContextWithAuthentication(ctx, &auth.Authentication{Method: auth.Method_METHOD_TOKEN})
 
 	actor := fauth.ActorFromContext(ctx)
-
-	fmt.Println(actor)
 
 	require.Equal(t, actor["ip"], ipAddress)
 	require.Equal(t, actor["method"], method)

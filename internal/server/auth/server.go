@@ -30,7 +30,6 @@ func ActorFromContext(ctx context.Context) Actor {
 	)
 
 	md, _ := metadata.FromIncomingContext(ctx)
-	fmt.Println(md)
 	if len(md[ipKey]) > 0 {
 		actor["ip"] = md[ipKey][0]
 	}
