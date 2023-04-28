@@ -39,19 +39,18 @@ func TestSinkSpanExporter(t *testing.T) {
 
 	_, span := tr.Start(context.Background(), "OnStart")
 
-	e := NewEvent(Metadata{
-		Type:   Flag,
-		Action: Create,
-		Actor: map[string]string{
-			"method": "token",
-			"ip":     "127.0.0.1",
-		},
-	}, &flipt.CreateFlagRequest{
-		Key:         "this-flag",
-		Name:        "this-flag",
-		Description: "this description",
-		Enabled:     false,
-	})
+	e := NewEvent(
+		Flag,
+		Create,
+		map[string]string{
+			"authentication": "token",
+			"ip":             "127.0.0.1",
+		}, &flipt.CreateFlagRequest{
+			Key:         "this-flag",
+			Name:        "this-flag",
+			Description: "this description",
+			Enabled:     false,
+		})
 
 	span.AddEvent("auditEvent", trace.WithAttributes(e.DecodeToAttributes()...))
 	span.End()

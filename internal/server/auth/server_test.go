@@ -28,8 +28,8 @@ import (
 
 func TestActorFromContext(t *testing.T) {
 	const (
-		ipAddress = "127.0.0.1"
-		method    = "token"
+		ipAddress      = "127.0.0.1"
+		authentication = "token"
 	)
 
 	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
@@ -38,7 +38,7 @@ func TestActorFromContext(t *testing.T) {
 	actor := fauth.ActorFromContext(ctx)
 
 	require.Equal(t, actor["ip"], ipAddress)
-	require.Equal(t, actor["method"], method)
+	require.Equal(t, actor["authentication"], authentication)
 }
 
 func TestServer(t *testing.T) {
