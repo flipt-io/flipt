@@ -33,8 +33,8 @@ import "strings"
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
 				bootstrap?: {
-					token?: string
-					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int 
+					token?:     string
+					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
 				}
 			}
 
@@ -157,4 +157,17 @@ import "strings"
 	}
 
 	#ui: enabled?: bool | *true
+
+	#audit: {
+		sinks?: {
+			log?: {
+				enabled?: bool | *false
+				file?:    string | *""
+			}
+		}
+		buffer?: {
+			capacity?:     int | *2
+			flush_period?: string | *"2m"
+		}
+	}
 }
