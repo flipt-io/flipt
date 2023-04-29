@@ -67,7 +67,7 @@ func defaultConfig(encoding zapcore.EncoderConfig) zap.Config {
 		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:      false,
 		Encoding:         "console",
-		EncoderConfig:    defaultEncoding,
+		EncoderConfig:    encoding,
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
