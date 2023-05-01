@@ -11,6 +11,9 @@
       "enum": ["1.0"],
       "default": "1.0"
     },
+    "audit": {
+      "$ref": "#/definitions/audit"
+    },
     "authentication": {
       "$ref": "#/definitions/authentication"
     },
