@@ -22,7 +22,7 @@
     "@loadable/component": "^5.15.3",
     "@tanstack/react-table": "^8.8.5",
     "buffer": "^6.0.3",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.30.0",
     "dotenv": "^16.0.3",
     "formik": "^2.2.9",
     "highlight.js": "^11.8.0",
