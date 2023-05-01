@@ -40,17 +40,17 @@ require (
 	go.flipt.io/flipt/errors v1.19.3
 	go.flipt.io/flipt/rpc/flipt v1.20.0
 	go.flipt.io/flipt/sdk/go v0.1.1
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0
-	go.opentelemetry.io/otel v1.14.0
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.41.0
+	go.opentelemetry.io/otel v1.15.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.14.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.14.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.14.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.37.0
 	go.opentelemetry.io/otel/exporters/zipkin v1.14.0
-	go.opentelemetry.io/otel/metric v0.37.0
+	go.opentelemetry.io/otel/metric v0.38.0
 	go.opentelemetry.io/otel/sdk v1.14.0
 	go.opentelemetry.io/otel/sdk/metric v0.37.0
-	go.opentelemetry.io/otel/trace v1.14.0
+	go.opentelemetry.io/otel/trace v1.15.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95
 	golang.org/x/net v0.9.0
@@ -80,7 +80,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
-	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
