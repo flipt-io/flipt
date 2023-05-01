@@ -9,6 +9,7 @@ import "strings"
 	// Flipt application.
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
 	version?:        "1.0" | *"1.0"
+	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
