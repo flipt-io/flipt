@@ -35,7 +35,7 @@
     "yup": "^0.32.11"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.21.4",
+    "@babel/preset-typescript": "^7.21.5",
     "@playwright/test": "^1.33.0",
     "@tailwindcss/forms": "^0.5.3",
     "@types/jest": "^29.5.1",
