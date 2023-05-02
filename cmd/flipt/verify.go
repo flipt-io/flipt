@@ -20,5 +20,5 @@ func newVerifyCommand() *cobra.Command {
 }
 
 func (v *verifyCommand) run(cmd *cobra.Command, args []string) error {
-	return cue.Validate(args)
+	return cue.ValidateFiles(args)
 }

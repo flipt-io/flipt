@@ -36,9 +36,9 @@ func validateHelper(b []byte, v cue.Value) error {
 	return nil
 }
 
-// Validate takes a slice of strings as filenames and validates them against
+// ValidateFiles takes a slice of strings as filenames and validates them against
 // our cue definition of features.
-func Validate(files []string) error {
+func ValidateFiles(files []string) error {
 	ctx := cuecontext.New()
 
 	v := ctx.CompileBytes(cueFile)
