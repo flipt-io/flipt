@@ -2,6 +2,7 @@ package fs
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
@@ -25,8 +26,8 @@ func (l *LocalDirectoryStore) updateSnapshot(dir string) error {
 	defer l.mu.Unlock()
 
 	l.storeSnapshot = storeSnapshot
-	for _, dir := range dirs {
-		l.watcher.Add(dir)
+	for _, d := range dirs {
+		l.watcher.Add(path.Join(dir, d))
 	}
 
 	return nil
