@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -40,12 +39,12 @@ func TestSinkSpanExporter(t *testing.T) {
 	_, span := tr.Start(context.Background(), "OnStart")
 
 	e := NewEvent(
-		Flag,
+		FlagType,
 		Create,
 		map[string]string{
 			"authentication": "token",
 			"ip":             "127.0.0.1",
-		}, &flipt.CreateFlagRequest{
+		}, &Flag{
 			Key:         "this-flag",
 			Name:        "this-flag",
 			Description: "this description",
@@ -58,4 +57,12 @@ func TestSinkSpanExporter(t *testing.T) {
 	se := <-ss.ch
 	assert.Equal(t, e.Metadata, se.Metadata)
 	assert.Equal(t, e.Version, se.Version)
+}
+
+func TestGRPCMethodToAction(t *testing.T) {
+	a := GRPCMethodToAction("CreateNamespace")
+	assert.Equal(t, Create, a)
+
+	a = GRPCMethodToAction("UpdateSegment")
+	assert.Equal(t, Update, a)
 }

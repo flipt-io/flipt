@@ -727,7 +727,7 @@ func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateFlag",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -742,7 +742,7 @@ func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 
 	span.End()
 
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
@@ -773,7 +773,7 @@ func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateFlag",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -788,7 +788,7 @@ func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 
 	span.End()
 
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
@@ -811,7 +811,7 @@ func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteFlag",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -825,7 +825,7 @@ func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
@@ -858,7 +858,7 @@ func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateVariant",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -872,7 +872,7 @@ func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
@@ -906,7 +906,7 @@ func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateVariant",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -920,7 +920,7 @@ func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
@@ -943,7 +943,7 @@ func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteVariant",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -957,7 +957,7 @@ func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
@@ -988,7 +988,7 @@ func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateDistribution",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1002,7 +1002,7 @@ func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
@@ -1034,7 +1034,7 @@ func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateDistribution",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1048,7 +1048,7 @@ func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
@@ -1074,7 +1074,7 @@ func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteDistribution",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1088,7 +1088,7 @@ func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
@@ -1119,7 +1119,7 @@ func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateSegment",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1133,7 +1133,7 @@ func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
@@ -1164,7 +1164,7 @@ func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateSegment",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1178,7 +1178,7 @@ func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
@@ -1201,7 +1201,7 @@ func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteSegment",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1215,7 +1215,7 @@ func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
@@ -1249,7 +1249,7 @@ func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateConstraint",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1263,7 +1263,7 @@ func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
@@ -1298,7 +1298,7 @@ func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateConstraint",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1312,7 +1312,7 @@ func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
@@ -1336,7 +1336,7 @@ func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteConstraint",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1350,7 +1350,7 @@ func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
@@ -1379,7 +1379,7 @@ func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateRule",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1393,7 +1393,7 @@ func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
@@ -1422,7 +1422,7 @@ func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateRule",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1436,7 +1436,7 @@ func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
@@ -1460,7 +1460,7 @@ func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteRule",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1474,7 +1474,7 @@ func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
@@ -1501,7 +1501,7 @@ func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateNamespace",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1515,7 +1515,7 @@ func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
@@ -1544,7 +1544,7 @@ func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "UpdateNamespace",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1558,7 +1558,7 @@ func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
@@ -1587,7 +1587,7 @@ func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "DeleteNamespace",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1601,7 +1601,7 @@ func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
 func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
@@ -1630,7 +1630,7 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateFlag",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1674,7 +1674,9 @@ func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
 			"io.flipt.auth.token.description": "",
 			"io.flipt.auth.token.name":        "token",
 		},
-	}).Return("", &authrpc.Authentication{}, nil)
+	}).Return("", &authrpc.Authentication{Metadata: map[string]string{
+		"email": "example@flipt.io",
+	}}, nil)
 
 	unaryInterceptor := AuditUnaryInterceptor(logger)
 
@@ -1683,7 +1685,7 @@ func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
 	}
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "FakeMethod",
+		FullMethod: "CreateToken",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -1697,5 +1699,5 @@ func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
 	assert.NotNil(t, got)
 
 	span.End()
-	assert.Equal(t, exporterSpy.GetSendAuditsCalled(), 1)
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }

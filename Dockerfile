@@ -34,14 +34,15 @@ RUN apk add --no-cache postgresql-client \
     ca-certificates
 
 RUN mkdir -p /etc/flipt && \
-    mkdir -p /var/opt/flipt
+    mkdir -p /var/opt/flipt && \
+    mkdir -p /var/log/flipt
 
 COPY --from=build /home/flipt/bin/flipt /
 COPY config/*.yml /etc/flipt/config/
 
 RUN addgroup flipt && \
     adduser -S -D -g '' -G flipt -s /bin/sh flipt && \
-    chown -R flipt:flipt /etc/flipt /var/opt/flipt
+    chown -R flipt:flipt /etc/flipt /var/opt/flipt /var/log/flipt
 
 EXPOSE 8080
 EXPOSE 9000

@@ -8,7 +8,7 @@ This works by setting the two environment variables `FLIPT_AUDIT_SINKS_LOG_ENABL
 
 ```bash
 FLIPT_AUDIT_SINKS_LOG_ENABLED=true
-FLIPT_AUDIT_SINKS_LOG_FILE=/var/log/audit.log
+FLIPT_AUDIT_SINKS_LOG_FILE=/var/log/flipt/audit.log
 ```
 
 The auditable events currently are CRUD (except for read) operations on `flags`, `variants`, `segments`, `constraints`, `rules`, `distributions`, and `namespaces`. If you do any of these operations through the API, it should emit an audit event log to the specified location.

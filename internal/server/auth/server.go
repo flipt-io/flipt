@@ -142,7 +142,7 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 			return nil, err
 		}
 		if a.Method == auth.Method_METHOD_TOKEN {
-			event := audit.NewEvent(audit.Token, audit.Delete, actor, a.Metadata)
+			event := audit.NewEvent(audit.TokenType, audit.Delete, actor, a.Metadata)
 			event.AddToSpan(ctx)
 		}
 	}
