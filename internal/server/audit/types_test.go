@@ -38,6 +38,7 @@ func TestVariant(t *testing.T) {
 }
 
 func testConstraintHelper(t *testing.T, c *flipt.Constraint) {
+	t.Helper()
 	nc := NewConstraint(c)
 	assert.Equal(t, nc.Id, c.Id)
 	assert.Equal(t, nc.SegmentKey, c.SegmentKey)
@@ -74,6 +75,7 @@ func TestNamespace(t *testing.T) {
 }
 
 func testDistributionHelper(t *testing.T, d *flipt.Distribution) {
+	t.Helper()
 	nd := NewDistribution(d)
 	assert.Equal(t, nd.Id, d.Id)
 	assert.Equal(t, nd.RuleId, d.RuleId)
