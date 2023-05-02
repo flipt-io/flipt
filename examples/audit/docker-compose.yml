@@ -6,7 +6,6 @@ services:
     command: ["./flipt", "--force-migrate"]
     volumes:
       - ./loki/:/var/log/
-      - /tmp/flipt/audit.log:/var/log/flipt/audit.log
     ports:
       - "8080:8080"
     environment:
@@ -35,7 +34,7 @@ services:
   promtail:
     image: grafana/promtail:2.7.4
     volumes:
-      - ./loki/:/var/log/flipt/
+      - ./loki/:/var/log/
       - ./promtail.yml:/etc/promtail/promtail.yml
     ports:
       - "9080:9080"

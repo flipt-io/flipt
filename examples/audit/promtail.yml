@@ -17,12 +17,12 @@ scrape_configs:
           - localhost
         labels:
           job: flipt-audit-logs
-          __path__: /var/log/flipt/audit.log
+          __path__: /var/log/flipt/*.log
     pipeline_stages:
       - json:
           expressions:
-            http_method: "method"
-            http_status: "status"
+            type: "type"
+            action: "action"
       - labels:
-          http_method:
-          http_status:
+          type:
+          action:
