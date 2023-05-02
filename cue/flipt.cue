@@ -7,7 +7,7 @@ segments: [...#Segment]
 #Flag: {
 	key:         string & =~"^[-_,A-Za-z0-9]+$"
 	name:        string & =~"^.+$"
-	description: string
+	description?: string
 	enabled:     bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
@@ -34,7 +34,7 @@ segments: [...#Segment]
 	key:         string & =~"^[-_,A-Za-z0-9]+$"
 	name:        string & =~"^.+$"
 	match_type:  "ANY_MATCH_TYPE" | "ALL_MATCH_TYPE"
-	description: string
+	description?: string
 	constraints: [...#Constraint]
 }
 
