@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -31,14 +32,14 @@ type Type string
 type Action string
 
 const (
-	Constraint   Type = "constraint"
-	Distribution Type = "distribution"
-	Flag         Type = "flag"
-	Namespace    Type = "namespace"
-	Rule         Type = "rule"
-	Segment      Type = "segment"
-	Token        Type = "token"
-	Variant      Type = "variant"
+	ConstraintType   Type = "constraint"
+	DistributionType Type = "distribution"
+	FlagType         Type = "flag"
+	NamespaceType    Type = "namespace"
+	RuleType         Type = "rule"
+	SegmentType      Type = "segment"
+	TokenType        Type = "token"
+	VariantType      Type = "variant"
 
 	Create Action = "created"
 	Delete Action = "deleted"
@@ -56,6 +57,17 @@ type Event struct {
 	Payload interface{} `json:"payload"`
 
 	Timestamp string `json:"timestamp"`
+}
+
+// GRPCMethodToAction returns the Action from the gRPC method.
+func GRPCMethodToAction(method string) Action {
+	if strings.Contains(method, "Create") {
+		return Create
+	} else if strings.Contains(method, "Update") {
+		return Update
+	}
+
+	return ""
 }
 
 // DecodeToAttributes provides a helper method for an Event that will return
