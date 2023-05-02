@@ -8,7 +8,7 @@ This example shows how you can run Flipt with audit event logging enabled to a f
 
 This works by setting the two environment variables `FLIPT_AUDIT_SINKS_LOG_ENABLED` and `FLIPT_AUDIT_SINKS_LOG_FILE`:
 
-**Note**: Support for audit events were released in [v1.21.0](https://github.com/flipt-io/flipt/releases/tag/v1.21.0) of Flipt.
+**Note**: Support for audit events were added in [v1.21.0](https://github.com/flipt-io/flipt/releases/tag/v1.21.0) of Flipt.
 
 ```bash
 FLIPT_AUDIT_SINKS_LOG_ENABLED=true
