@@ -404,6 +404,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 			Value:        r.Value,
 			CreatedAt:    now,
 			UpdatedAt:    now,
+			Description:  r.Description,
 		}
 	)
 
@@ -413,7 +414,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	}
 
 	if _, err := s.builder.Insert("constraints").
-		Columns("id", "namespace_key", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
+		Columns("id", "namespace_key", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at", "description").
 		Values(
 			c.Id,
 			c.NamespaceKey,
@@ -423,7 +424,8 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 			c.Operator,
 			c.Value,
 			&fliptsql.Timestamp{Timestamp: c.CreatedAt},
-			&fliptsql.Timestamp{Timestamp: c.UpdatedAt}).
+			&fliptsql.Timestamp{Timestamp: c.UpdatedAt},
+			c.Description).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
@@ -453,6 +455,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		Set("operator", operator).
 		Set("value", r.Value).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
+		Set("description", r.Description).
 		Where(whereClause).
 		ExecContext(ctx)
 	if err != nil {
@@ -475,11 +478,11 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		c = &flipt.Constraint{}
 	)
 
-	if err := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
+	if err := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at", "description").
 		From("constraints").
 		Where(whereClause).
 		QueryRowContext(ctx).
-		Scan(&c.Id, &c.NamespaceKey, &c.SegmentKey, &c.Type, &c.Property, &c.Operator, &c.Value, &createdAt, &updatedAt); err != nil {
+		Scan(&c.Id, &c.NamespaceKey, &c.SegmentKey, &c.Type, &c.Property, &c.Operator, &c.Value, &createdAt, &updatedAt, &c.Description); err != nil {
 		return nil, err
 	}
 
