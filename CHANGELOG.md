@@ -3,6 +3,23 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.21.0](https://github.com/flipt-io/flipt/releases/tag/v1.21.0) - 2023-05-02
+
+### Added
+
+- OTEL implementation for audit sinks (#1458)
+- Error highlighting in console (#1528)
+- Additional telemetry data captured re: database, cache and authentication (#1527)
+
+### Fixed
+
+- `cmd/flipt`: restore console logger defaults on fatal (#1550)
+- `grpc/middleware`: set timestamp on each batch evaluate response (#1545)
+
+### Changed
+
+- Dependency updates
+
 ## [v1.20.1](https://github.com/flipt-io/flipt/releases/tag/v1.20.1) - 2023-04-27
 
 ### Fixed
