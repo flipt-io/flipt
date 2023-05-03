@@ -20,7 +20,7 @@
     "@headlessui/react": "^1.7.14",
     "@heroicons/react": "^2.0.17",
     "@loadable/component": "^5.15.3",
-    "@tanstack/react-table": "^8.9.0",
+    "@tanstack/react-table": "^8.9.1",
     "buffer": "^6.0.3",
     "date-fns": "^2.30.0",
     "dotenv": "^16.0.3",
