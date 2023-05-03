@@ -2,12 +2,15 @@ package cue
 
 import (
 	_ "embed"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/pkg/encoding/yaml"
-	"github.com/hashicorp/go-multierror"
+	cueerror "cuelang.org/go/cue/errors"
+	"cuelang.org/go/encoding/yaml"
 )
 
 var (
@@ -17,9 +20,9 @@ var (
 
 // ValidateBytes takes a slice of bytes, and validates them against a cue definition.
 func ValidateBytes(b []byte) error {
-	ctx := cuecontext.New()
+	cctx := cuecontext.New()
 
-	v := ctx.CompileBytes(cueFile)
+	v := cctx.CompileBytes(cueFile)
 	if err := v.Err(); err != nil {
 		return err
 	}
@@ -28,7 +31,7 @@ func ValidateBytes(b []byte) error {
 }
 
 func validateHelper(b []byte, v cue.Value) error {
-	_, err := yaml.Validate(b, v)
+	err := yaml.Validate(b, v)
 	if err != nil {
 		return err
 	}
@@ -36,17 +39,26 @@ func validateHelper(b []byte, v cue.Value) error {
 	return nil
 }
 
+// CueError is a collection of fields that represent positions in files where the user
+// has made some kind of error.
+type CueError struct {
+	Filename string `json:"filename"`
+	Line     int    `json:"line"`
+	Column   int    `json:"column"`
+	Msg      string `json:"msg"`
+}
+
 // ValidateFiles takes a slice of strings as filenames and validates them against
 // our cue definition of features.
 func ValidateFiles(files []string) error {
-	ctx := cuecontext.New()
+	cctx := cuecontext.New()
 
-	v := ctx.CompileBytes(cueFile)
+	v := cctx.CompileBytes(cueFile)
 	if err := v.Err(); err != nil {
 		return err
 	}
 
-	var merr error
+	cerrs := make([]CueError, 0)
 
 	for _, f := range files {
 		b, err := os.ReadFile(f)
@@ -57,9 +69,32 @@ func ValidateFiles(files []string) error {
 		}
 		err = validateHelper(b, v)
 		if err != nil {
-			merr = multierror.Append(merr, err)
+			var cerr cueerror.Error
+			if errors.As(err, &cerr) {
+				ip := cerr.InputPositions()
+				for _, i := range ip {
+					if i.Filename() != "" {
+						cerrs = append(cerrs, CueError{
+							Filename: f,
+							Line:     i.Line(),
+							Column:   i.Column(),
+						})
+					}
+				}
+			}
 		}
 	}
 
-	return merr
+	if len(cerrs) > 0 {
+		b, err := json.Marshal(cerrs)
+		if err != nil {
+			return err
+		}
+
+		// Write out the json output to stdout upon error detection.
+		fmt.Fprintln(os.Stdout, string(b))
+		return fmt.Errorf("validation error")
+	}
+
+	return nil
 }

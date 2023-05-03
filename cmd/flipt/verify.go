@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/cue"
 )
@@ -13,12 +15,15 @@ func newVerifyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "verify",
 		Short: "Verify cue file against list of yaml configurations",
-		RunE:  v.run,
+		Run:   v.run,
 	}
 
 	return cmd
 }
 
-func (v *verifyCommand) run(cmd *cobra.Command, args []string) error {
-	return cue.ValidateFiles(args)
+func (v *verifyCommand) run(cmd *cobra.Command, args []string) {
+	err := cue.ValidateFiles(args)
+	if err != nil {
+		os.Exit(1)
+	}
 }
