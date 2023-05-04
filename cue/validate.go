@@ -22,30 +22,50 @@ var (
 func ValidateBytes(b []byte) error {
 	cctx := cuecontext.New()
 
-	v := cctx.CompileBytes(cueFile)
-	if err := v.Err(); err != nil {
-		return err
-	}
-
-	return validateHelper(b, v)
+	return validateHelper(b, cctx)
 }
 
-func validateHelper(b []byte, v cue.Value) error {
-	err := yaml.Validate(b, v)
+func validateHelper(b []byte, cctx *cue.Context) error {
+	v := cctx.CompileBytes(cueFile)
+
+	f, err := yaml.Extract("", b)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	yv := cctx.BuildFile(f, cue.Scope(v))
+	yv = v.Unify(yv)
+
+	return yv.Validate()
 }
 
 // CueError is a collection of fields that represent positions in files where the user
 // has made some kind of error.
 type CueError struct {
-	Filename string `json:"filename"`
+	Filename string `json:"filename,omitempty"`
 	Line     int    `json:"line"`
 	Column   int    `json:"column"`
-	Msg      string `json:"msg"`
+	Error    string `json:"error"`
+}
+
+func getCueErrors(err error, filename string) []CueError {
+	cerrs := make([]CueError, 0)
+
+	ce := cueerror.Errors(err)
+
+	for _, m := range ce {
+		fp := m.InputPositions()[0]
+		format, args := m.Msg()
+
+		cerrs = append(cerrs, CueError{
+			Filename: filename,
+			Line:     fp.Line(),
+			Column:   fp.Column(),
+			Error:    fmt.Sprintf(format, args...),
+		})
+	}
+
+	return cerrs
 }
 
 // ValidateFiles takes a slice of strings as filenames and validates them against
@@ -53,12 +73,7 @@ type CueError struct {
 func ValidateFiles(files []string) error {
 	cctx := cuecontext.New()
 
-	v := cctx.CompileBytes(cueFile)
-	if err := v.Err(); err != nil {
-		return err
-	}
-
-	cerrs := make([]CueError, 0)
+	var cerrs []CueError
 
 	for _, f := range files {
 		b, err := os.ReadFile(f)
@@ -67,21 +82,9 @@ func ValidateFiles(files []string) error {
 		if err != nil {
 			return err
 		}
-		err = validateHelper(b, v)
+		err = validateHelper(b, cctx)
 		if err != nil {
-			var cerr cueerror.Error
-			if errors.As(err, &cerr) {
-				ip := cerr.InputPositions()
-				for _, i := range ip {
-					if i.Filename() != "" {
-						cerrs = append(cerrs, CueError{
-							Filename: f,
-							Line:     i.Line(),
-							Column:   i.Column(),
-						})
-					}
-				}
-			}
+			cerrs = getCueErrors(err, f)
 		}
 	}
 
@@ -93,7 +96,7 @@ func ValidateFiles(files []string) error {
 
 		// Write out the json output to stdout upon error detection.
 		fmt.Fprintln(os.Stdout, string(b))
-		return fmt.Errorf("validation error")
+		return errors.New("validation error")
 	}
 
 	return nil
