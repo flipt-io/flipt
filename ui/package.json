@@ -43,7 +43,7 @@
     "@types/lodash": "^4.14.194",
     "@types/node": "^18.16.3",
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.1",
+    "@types/react-dom": "^18.2.3",
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
