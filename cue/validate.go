@@ -73,7 +73,7 @@ func getCueErrors(err error, filename string) []CueError {
 func ValidateFiles(files []string) error {
 	cctx := cuecontext.New()
 
-	var cerrs []CueError
+	cerrs := make([]CueError, 0)
 
 	for _, f := range files {
 		b, err := os.ReadFile(f)
@@ -84,7 +84,7 @@ func ValidateFiles(files []string) error {
 		}
 		err = validateHelper(b, cctx)
 		if err != nil {
-			cerrs = getCueErrors(err, f)
+			cerrs = append(cerrs, getCueErrors(err, f)...)
 		}
 	}
 
