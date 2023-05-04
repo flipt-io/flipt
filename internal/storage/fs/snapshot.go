@@ -1,16 +1,20 @@
 package fs
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/fs"
+	"io/ioutil"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/gofrs/uuid"
+	"go.flipt.io/flipt/cue"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
@@ -79,13 +83,26 @@ func newStoreSnapshot(source fs.FS) (*storeSnapshot, []string, error) {
 			return err
 		}
 
+		var buf bytes.Buffer
+		r := io.TeeReader(file, &buf)
+
 		var (
-			dec = yaml.NewDecoder(file)
+			dec = yaml.NewDecoder(r)
 			doc = new(ext.Document)
 		)
 
 		if err := dec.Decode(doc); err != nil {
 			return fmt.Errorf("unmarshalling document: %w", err)
+		}
+
+		b, err := ioutil.ReadAll(&buf)
+		if err != nil {
+			return err
+		}
+
+		err = cue.ValidateBytes(b)
+		if err != nil {
+			return err
 		}
 
 		return store.addDoc(doc)
