@@ -113,7 +113,7 @@ func main() {
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(newExportCommand())
 	rootCmd.AddCommand(newImportCommand())
-	rootCmd.AddCommand(newVerifyCommand())
+	rootCmd.AddCommand(newValidateCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
