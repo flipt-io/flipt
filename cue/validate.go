@@ -54,15 +54,18 @@ func getCueErrors(err error, filename string) []CueError {
 	ce := cueerror.Errors(err)
 
 	for _, m := range ce {
-		fp := m.InputPositions()[0]
-		format, args := m.Msg()
+		ips := m.InputPositions()
+		if len(ips) > 0 {
+			fp := ips[0]
+			format, args := m.Msg()
 
-		cerrs = append(cerrs, CueError{
-			Filename: filename,
-			Line:     fp.Line(),
-			Column:   fp.Column(),
-			Error:    fmt.Sprintf(format, args...),
-		})
+			cerrs = append(cerrs, CueError{
+				Filename: filename,
+				Line:     fp.Line(),
+				Column:   fp.Column(),
+				Error:    fmt.Sprintf(format, args...),
+			})
+		}
 	}
 
 	return cerrs
