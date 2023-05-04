@@ -89,13 +89,11 @@ func ValidateFiles(files []string) error {
 	}
 
 	if len(cerrs) > 0 {
-		b, err := json.Marshal(cerrs)
-		if err != nil {
+		// Write out the json output to stdout upon error detection.
+		if err := json.NewEncoder(os.Stdout).Encode(cerrs); err != nil {
 			return err
 		}
 
-		// Write out the json output to stdout upon error detection.
-		fmt.Fprintln(os.Stdout, string(b))
 		return errors.New("validation error")
 	}
 
