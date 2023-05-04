@@ -39,16 +39,22 @@ func validateHelper(b []byte, cctx *cue.Context) error {
 	return yv.Validate()
 }
 
+// Location contains information about where an error has occurred during cue
+// validation.
+type Location struct {
+	File   string `json:"file,omitempty"`
+	Line   int    `json:"line"`
+	Column int    `json:"column"`
+}
+
 // CueError is a collection of fields that represent positions in files where the user
 // has made some kind of error.
 type CueError struct {
-	Filename string `json:"filename,omitempty"`
-	Line     int    `json:"line"`
-	Column   int    `json:"column"`
-	Error    string `json:"error"`
+	Message  string   `json:"message"`
+	Location Location `json:"location"`
 }
 
-func getCueErrors(err error, filename string) []CueError {
+func getCueErrors(err error, file string) []CueError {
 	cerrs := make([]CueError, 0)
 
 	ce := cueerror.Errors(err)
@@ -60,10 +66,12 @@ func getCueErrors(err error, filename string) []CueError {
 			format, args := m.Msg()
 
 			cerrs = append(cerrs, CueError{
-				Filename: filename,
-				Line:     fp.Line(),
-				Column:   fp.Column(),
-				Error:    fmt.Sprintf(format, args...),
+				Message: fmt.Sprintf(format, args...),
+				Location: Location{
+					File:   file,
+					Line:   fp.Line(),
+					Column: fp.Column(),
+				},
 			})
 		}
 	}
@@ -92,8 +100,14 @@ func ValidateFiles(files []string) error {
 	}
 
 	if len(cerrs) > 0 {
+		allErrors := struct {
+			Errors []CueError `json:"errors"`
+		}{
+			Errors: cerrs,
+		}
+
 		// Write out the json output to stdout upon error detection.
-		if err := json.NewEncoder(os.Stdout).Encode(cerrs); err != nil {
+		if err := json.NewEncoder(os.Stdout).Encode(allErrors); err != nil {
 			return err
 		}
 
