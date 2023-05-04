@@ -116,6 +116,43 @@ Flipt supports use cases such as:
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
 </p>
 
+<br clear="both"/>
+
+## Integration
+
+Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
+
+### REST API
+
+Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
+
+The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
+
+### REST Client Libraries
+
+| Language | Version | Status |
+| -------- | ------- | ------ |
+| [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [Node/TypeScript](https://github.com/flipt-io/flipt-node) | [![npm](https://img.shields.io/npm/v/@flipt-io/flipt?label=%40flipt-io%2Fflipt)](https://www.npmjs.com/package/@flipt-io/flipt) | ![status](https://img.shields.io/badge/status-hardening-orange) |
+| [Java](https://github.com/flipt-io/flipt-java) | ![Maven Central](https://img.shields.io/maven-central/v/io.flipt/flipt-java) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
+| [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+
+### GRPC Client Libraries
+
+| Language | Version | Status |
+| -------- | ------- | ------ |
+| [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
+
+### Generate Your Own
+
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
+
+Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+
+<br clear="both"/>
+
 ## Try It
 
 Try the latest version of Flipt for yourself.
@@ -149,37 +186,6 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 ## Examples
 
 Check out the [examples](/examples) to see how Flipt works in different use cases.
-
-<br clear="both"/>
-
-## Integration
-
-Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
-
-### REST API
-
-Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
-
-The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
-
-### REST Client Libraries
-
-- [Go](./sdk/go) - supports both HTTP and GRPC (configurable based on your needs)
-- [Node/TypeScript](https://github.com/flipt-io/flipt-node)
-- [Java](https://github.com/flipt-io/flipt-java)
-- [Rust](https://github.com/flipt-io/flipt-rust)
-- [Python](https://github.com/flipt-io/flipt-python) (beta)
-
-### GRPC Client Libraries
-
-- [Go](./sdk/go) - supports both HTTP and GRPC (configurable based on your needs)
-- [Ruby](https://github.com/flipt-io/flipt-grpc-ruby)
-
-### Generate Your Own
-
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
-
-Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
 
 <br clear="both"/>
 
