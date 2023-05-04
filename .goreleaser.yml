@@ -38,7 +38,7 @@ snapshot:
 
 nightly:
   # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  name_template: "v{{ incpatch .Version }}-nightly"
+  name_template: "{{ incpatch .Version }}-nightly"
 
 sboms:
   - artifacts: archive
