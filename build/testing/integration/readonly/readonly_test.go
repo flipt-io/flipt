@@ -36,7 +36,7 @@ func TestReadOnly(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		require.Len(t, flags.Flags, 100)
+		require.Len(t, flags.Flags, 50)
 
 		flag := flags.Flags[0]
 		assert.Equal(t, namespace, flag.NamespaceKey)
@@ -54,6 +54,6 @@ func TestReadOnly(t *testing.T) {
 			NamespaceKey: namespace,
 		})
 
-		require.Len(t, segments.Segments, 100)
+		require.Len(t, segments.Segments, 50)
 	})
 }
