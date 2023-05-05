@@ -322,6 +322,84 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
+func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
+	t := s.T()
+
+	namespace := uuid.Must(uuid.NewV4()).String()
+
+	ctx := context.Background()
+	_, err := s.store.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+		Key: namespace,
+	})
+	require.NoError(t, err)
+
+	var (
+		totalFlags = 9
+		pageSize   = uint64(3)
+	)
+
+	for i := 0; i < totalFlags; i++ {
+		req := flipt.CreateFlagRequest{
+			NamespaceKey: namespace,
+			Key:          fmt.Sprintf("flag_%03d", i),
+			Name:         "foo",
+			Description:  "bar",
+		}
+
+		_, err := s.store.CreateFlag(ctx, &req)
+		require.NoError(t, err)
+
+		for i := 0; i < 2; i++ {
+			if i > 0 && s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
+
+			_, err := s.store.CreateVariant(ctx, &flipt.CreateVariantRequest{
+				NamespaceKey: namespace,
+				FlagKey:      req.Key,
+				Key:          fmt.Sprintf("variant_%d", i),
+			})
+			require.NoError(t, err)
+		}
+	}
+
+	resp, err := s.store.ListFlags(ctx, namespace,
+		storage.WithLimit(pageSize))
+	require.NoError(t, err)
+
+	found := resp.Results
+	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
+		resp, err = s.store.ListFlags(ctx, namespace,
+			storage.WithLimit(pageSize),
+			storage.WithPageToken(token),
+		)
+		require.NoError(t, err)
+
+		found = append(found, resp.Results...)
+	}
+
+	require.Len(t, found, totalFlags)
+
+	for i := 0; i < totalFlags; i++ {
+		assert.Equal(t, namespace, found[i].NamespaceKey)
+
+		expectedFlag := fmt.Sprintf("flag_%03d", i)
+		assert.Equal(t, expectedFlag, found[i].Key)
+		assert.Equal(t, "foo", found[i].Name)
+		assert.Equal(t, "bar", found[i].Description)
+
+		require.Len(t, found[i].Variants, 2)
+		assert.Equal(t, namespace, found[i].Variants[0].NamespaceKey)
+		assert.Equal(t, expectedFlag, found[i].Variants[0].FlagKey)
+		assert.Equal(t, "variant_0", found[i].Variants[0].Key)
+
+		assert.Equal(t, namespace, found[i].Variants[1].NamespaceKey)
+		assert.Equal(t, expectedFlag, found[i].Variants[1].FlagKey)
+		assert.Equal(t, "variant_1", found[i].Variants[1].Key)
+	}
+}
+
 func (s *DBTestSuite) TestCreateFlag() {
 	t := s.T()
 

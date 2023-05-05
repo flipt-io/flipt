@@ -124,6 +124,7 @@ func Open() (*Database, error) {
 		cfg.Database.Name = dbName
 		cfg.Database.User = username
 		cfg.Database.Password = password
+		cfg.Database.ConnMaxLifetime = 1 * time.Minute
 	}
 
 	db, driver, err := fliptsql.Open(cfg, fliptsql.WithMigrate, fliptsql.WithSSLDisabled)
