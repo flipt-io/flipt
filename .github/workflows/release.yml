@@ -54,6 +54,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: flipt-io/flipt-ui
+          ref: 96d9b1d7517783e2e50c53eaa5a161c85d936764
           path: .build/ui
 
       - name: Login to Docker Hub
