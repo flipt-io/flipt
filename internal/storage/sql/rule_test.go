@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/storage"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
@@ -404,6 +407,105 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 	got = res.Results
 	assert.Len(t, got, 1)
 	assert.Equal(t, reqs[0].Rank, got[0].Rank)
+}
+
+func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
+	t := s.T()
+
+	namespace := uuid.Must(uuid.NewV4()).String()
+
+	ctx := context.Background()
+	_, err := s.store.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+		Key: namespace,
+	})
+	require.NoError(t, err)
+
+	flag, err := s.store.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		NamespaceKey: namespace,
+		Key:          "flag-list-rules-full-walk",
+		Name:         "flag-list-rules-full-walk",
+	})
+	require.NoError(t, err)
+
+	variant, err := s.store.CreateVariant(ctx, &flipt.CreateVariantRequest{
+		NamespaceKey: namespace,
+		FlagKey:      flag.Key,
+		Key:          "variant-list-rules-full-walk",
+	})
+	require.NoError(t, err)
+
+	segment, err := s.store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+		NamespaceKey: namespace,
+		Key:          "segment-list-rules-full-walk",
+		Name:         "segment-list-rules-full-walk",
+	})
+	require.NoError(t, err)
+
+	var (
+		totalRules = 9
+		pageSize   = uint64(3)
+	)
+
+	for i := 0; i < totalRules; i++ {
+		req := flipt.CreateRuleRequest{
+			NamespaceKey: namespace,
+			FlagKey:      flag.Key,
+			SegmentKey:   segment.Key,
+			Rank:         int32(i + 1),
+		}
+
+		rule, err := s.store.CreateRule(ctx, &req)
+		require.NoError(t, err)
+
+		for i := 0; i < 2; i++ {
+			if i > 0 && s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
+
+			_, err := s.store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+				NamespaceKey: namespace,
+				FlagKey:      flag.Key,
+				VariantId:    variant.Id,
+				RuleId:       rule.Id,
+				Rollout:      100.0,
+			})
+			require.NoError(t, err)
+		}
+	}
+
+	resp, err := s.store.ListRules(ctx, namespace, flag.Key,
+		storage.WithLimit(pageSize))
+	require.NoError(t, err)
+
+	found := resp.Results
+	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
+		resp, err = s.store.ListRules(ctx, namespace, flag.Key,
+			storage.WithLimit(pageSize),
+			storage.WithPageToken(token),
+		)
+		require.NoError(t, err)
+
+		found = append(found, resp.Results...)
+	}
+
+	require.Len(t, found, totalRules)
+
+	for i := 0; i < totalRules; i++ {
+		assert.Equal(t, namespace, found[i].NamespaceKey)
+		assert.Equal(t, flag.Key, found[i].FlagKey)
+		assert.Equal(t, segment.Key, found[i].SegmentKey)
+		assert.Equal(t, int32(i+1), found[i].Rank)
+
+		require.Len(t, found[i].Distributions, 2)
+		assert.Equal(t, found[i].Id, found[i].Distributions[0].RuleId)
+		assert.Equal(t, variant.Id, found[i].Distributions[0].VariantId)
+		assert.Equal(t, float32(100.0), found[i].Distributions[0].Rollout)
+
+		assert.Equal(t, found[i].Id, found[i].Distributions[1].RuleId)
+		assert.Equal(t, variant.Id, found[i].Distributions[1].VariantId)
+		assert.Equal(t, float32(100.0), found[i].Distributions[1].Rollout)
+	}
 }
 
 func (s *DBTestSuite) TestCreateRuleAndDistribution() {
