@@ -120,31 +120,32 @@ func TestMain(m *testing.M) {
 
 func (s *DBTestSuite) SetupSuite() {
 	setup := func() error {
-		logger := zaptest.NewLogger(s.T())
-
-		db, err := fliptsqltesting.Open()
-		if err != nil {
-			return err
-		}
-
-		s.db = db
-
-		var store storage.Store
-
-		switch db.Driver {
-		case fliptsql.SQLite:
-			store = sqlite.NewStore(db.DB, logger)
-		case fliptsql.Postgres, fliptsql.CockroachDB:
-			store = postgres.NewStore(db.DB, logger)
-		case fliptsql.MySQL:
-			store = mysql.NewStore(db.DB, logger)
-		}
-
-		s.store = store
+		s.store, s.db = setupStore(s.T())
 		return nil
 	}
 
 	s.Require().NoError(setup())
+}
+
+func setupStore(t *testing.T) (store storage.Store, db *fliptsqltesting.Database) {
+	logger := zaptest.NewLogger(t)
+
+	var err error
+	db, err = fliptsqltesting.Open()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	switch db.Driver {
+	case fliptsql.SQLite:
+		store = sqlite.NewStore(db.DB, logger)
+	case fliptsql.Postgres, fliptsql.CockroachDB:
+		store = postgres.NewStore(db.DB, logger)
+	case fliptsql.MySQL:
+		store = mysql.NewStore(db.DB, logger)
+	}
+
+	return
 }
 
 func (s *DBTestSuite) TearDownSuite() {
