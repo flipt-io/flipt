@@ -20,7 +20,7 @@ export default defineConfig({
     proxy: {
       '/api/v1': fliptAddr,
       '/auth/v1': fliptAddr,
-      '/meta': fliptAddr,
+      '/meta': fliptAddr
     },
     origin: 'http://localhost:5173'
   }
