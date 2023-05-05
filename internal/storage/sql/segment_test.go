@@ -356,6 +356,11 @@ func (s *DBTestSuite) TestListSegementsPagination_FullWalk() {
 				Value:        "bar",
 			})
 			require.NoError(t, err)
+
+			if s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
 		}
 	}
 

@@ -361,6 +361,11 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 				Key:          fmt.Sprintf("variant_%d", i),
 			})
 			require.NoError(t, err)
+
+			if s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
 		}
 	}
 
