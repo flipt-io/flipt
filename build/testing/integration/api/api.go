@@ -244,7 +244,7 @@ func API(t *testing.T, client sdk.SDK, namespace string) {
 			assert.Equal(t, constraint.property, createdConstraint.Property)
 			assert.Equal(t, constraint.operator, createdConstraint.Operator)
 			assert.Equal(t, constraint.value, createdConstraint.Value)
-			assert.Equal(t, constraint.value, createdConstraint.Description)
+			assert.Equal(t, constraint.description, createdConstraint.Description)
 		}
 
 		t.Log(`Get segment "everyone" with constraints.`)
