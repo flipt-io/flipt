@@ -150,8 +150,8 @@ func (s *Store) ListFlags(ctx context.Context, namespaceKey string, opts ...stor
 		flags   []*flipt.Flag
 		results = storage.ResultSet[*flipt.Flag]{}
 
-		query = s.builder.Select("namespace_key, key, name, description, enabled, created_at, updated_at").
-			From("flags f").
+		query = s.builder.Select("namespace_key, \"key\", name, description, enabled, created_at, updated_at").
+			From("flags").
 			Where(sq.Eq{"namespace_key": namespaceKey}).
 			OrderBy(fmt.Sprintf("created_at %s", params.Order))
 	)
@@ -253,7 +253,7 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 		allFlagKeys = append(allFlagKeys, k)
 	}
 
-	query := s.builder.Select("id, namespace_key, key, flag_key, name, description, attachment, created_at, updated_at").
+	query := s.builder.Select("id, namespace_key, \"key\", flag_key, name, description, attachment, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"namespace_key": namespaceKey, "flag_key": allFlagKeys})
 
