@@ -264,7 +264,9 @@ func (u UI) Sync() error {
 
 // Deps installs UI deps
 func (u UI) Deps() error {
-	mg.Deps(u.Sync)
+	// NOTE: we pinned this release branch (1.19) to an older version
+	// of the UI during build phase
+	// mg.Deps(u.Sync)
 	fmt.Println("Installing UI deps...")
 
 	// TODO: only install if package.json has changed
