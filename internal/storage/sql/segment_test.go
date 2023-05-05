@@ -314,7 +314,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
-func (s *DBTestSuite) TestListSegementsPagination_FullWalk() {
+func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 	t := s.T()
 
 	namespace := uuid.Must(uuid.NewV4()).String()
