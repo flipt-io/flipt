@@ -314,6 +314,93 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Equal(t, oldest.Key, got[2].Key)
 }
 
+func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
+	t := s.T()
+
+	namespace := uuid.Must(uuid.NewV4()).String()
+
+	ctx := context.Background()
+	_, err := s.store.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+		Key: namespace,
+	})
+	require.NoError(t, err)
+
+	var (
+		totalSegments = 9
+		pageSize      = uint64(3)
+	)
+
+	for i := 0; i < totalSegments; i++ {
+		req := flipt.CreateSegmentRequest{
+			NamespaceKey: namespace,
+			Key:          fmt.Sprintf("segment_%03d", i),
+			Name:         "foo",
+			Description:  "bar",
+		}
+
+		_, err := s.store.CreateSegment(ctx, &req)
+		require.NoError(t, err)
+
+		for i := 0; i < 2; i++ {
+			if i > 0 && s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
+
+			_, err := s.store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+				NamespaceKey: namespace,
+				SegmentKey:   req.Key,
+				Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+				Property:     "foo",
+				Operator:     flipt.OpEQ,
+				Value:        "bar",
+			})
+			require.NoError(t, err)
+		}
+	}
+
+	resp, err := s.store.ListSegments(ctx, namespace,
+		storage.WithLimit(pageSize))
+	require.NoError(t, err)
+
+	found := resp.Results
+	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
+		resp, err = s.store.ListSegments(ctx, namespace,
+			storage.WithLimit(pageSize),
+			storage.WithPageToken(token),
+		)
+		require.NoError(t, err)
+
+		found = append(found, resp.Results...)
+	}
+
+	require.Len(t, found, totalSegments)
+
+	for i := 0; i < totalSegments; i++ {
+		assert.Equal(t, namespace, found[i].NamespaceKey)
+
+		expectedSegment := fmt.Sprintf("segment_%03d", i)
+		assert.Equal(t, expectedSegment, found[i].Key)
+		assert.Equal(t, "foo", found[i].Name)
+		assert.Equal(t, "bar", found[i].Description)
+
+		require.Len(t, found[i].Constraints, 2)
+		assert.Equal(t, namespace, found[i].Constraints[0].NamespaceKey)
+		assert.Equal(t, expectedSegment, found[i].Constraints[0].SegmentKey)
+		assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, found[i].Constraints[0].Type)
+		assert.Equal(t, "foo", found[i].Constraints[0].Property)
+		assert.Equal(t, flipt.OpEQ, found[i].Constraints[0].Operator)
+		assert.Equal(t, "bar", found[i].Constraints[0].Value)
+
+		assert.Equal(t, namespace, found[i].Constraints[1].NamespaceKey)
+		assert.Equal(t, expectedSegment, found[i].Constraints[1].SegmentKey)
+		assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, found[i].Constraints[1].Type)
+		assert.Equal(t, "foo", found[i].Constraints[1].Property)
+		assert.Equal(t, flipt.OpEQ, found[i].Constraints[1].Operator)
+		assert.Equal(t, "bar", found[i].Constraints[1].Value)
+	}
+}
+
 func (s *DBTestSuite) TestCreateSegment() {
 	t := s.T()
 
