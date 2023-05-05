@@ -500,16 +500,16 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 		assert.Equal(t, namespace, found[i].NamespaceKey)
 		assert.Equal(t, flag.Key, found[i].FlagKey)
 		assert.Equal(t, segment.Key, found[i].SegmentKey)
-		assert.Equal(t, i+1, found[i].Rank)
+		assert.Equal(t, int32(i+1), found[i].Rank)
 
 		require.Len(t, found[i].Distributions, 2)
 		assert.Equal(t, found[i].Id, found[i].Distributions[0].RuleId)
 		assert.Equal(t, variant.Id, found[i].Distributions[0].VariantId)
-		assert.Equal(t, 100.0, found[i].Distributions[0].Rollout)
+		assert.Equal(t, float32(100.0), found[i].Distributions[0].Rollout)
 
 		assert.Equal(t, found[i].Id, found[i].Distributions[1].RuleId)
 		assert.Equal(t, variant.Id, found[i].Distributions[1].VariantId)
-		assert.Equal(t, 100.0, found[i].Distributions[1].Rollout)
+		assert.Equal(t, float32(100.0), found[i].Distributions[1].Rollout)
 	}
 }
 
