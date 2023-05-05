@@ -321,6 +321,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Equal(t, middle.Key, got[1].Key)
 	assert.Equal(t, oldest.Key, got[2].Key)
 }
+
 func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 	t := s.T()
 
@@ -378,7 +379,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 		found = append(found, resp.Results...)
 	}
 
-	assert.Len(t, found, totalFlags)
+	require.Len(t, found, totalFlags)
 
 	for i := 0; i < totalFlags; i++ {
 		assert.Equal(t, namespace, found[i].NamespaceKey)
