@@ -3,6 +3,7 @@ package sql_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -260,6 +261,15 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 		_, err := s.store.CreateFlag(ctx, &req)
 		require.NoError(t, err)
+
+		for i := 0; i < rand.Intn(5); i++ {
+			_, err := s.store.CreateVariant(ctx, &flipt.CreateVariantRequest{
+				NamespaceKey: namespace,
+				FlagKey:      req.Key,
+				Key:          fmt.Sprintf("variant_%d", i),
+			})
+			require.NoError(t, err)
+		}
 	}
 
 	resp, err := s.store.ListFlags(ctx, namespace,
