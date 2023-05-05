@@ -231,7 +231,8 @@ func (s *Store) setConstraints(ctx context.Context, namespaceKey string, segment
 
 	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
 		From("constraints").
-		Where(sq.Eq{"namespace_key": namespaceKey, "segment_key": allSegmentKeys})
+		Where(sq.Eq{"namespace_key": namespaceKey, "segment_key": allSegmentKeys}).
+		OrderBy("created_at")
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
