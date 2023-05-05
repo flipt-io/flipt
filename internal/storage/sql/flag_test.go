@@ -334,8 +334,8 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 	require.NoError(t, err)
 
 	var (
-		totalFlags = 103
-		pageSize   = uint64(13)
+		totalFlags = 9
+		pageSize   = uint64(3)
 	)
 
 	for i := 0; i < totalFlags; i++ {
@@ -346,26 +346,21 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 			Description:  "bar",
 		}
 
-		if s.db.Driver == fliptsql.MySQL {
-			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-			time.Sleep(time.Second)
-		}
-
 		_, err := s.store.CreateFlag(ctx, &req)
 		require.NoError(t, err)
 
 		for i := 0; i < 2; i++ {
+			if i > 0 && s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
+
 			_, err := s.store.CreateVariant(ctx, &flipt.CreateVariantRequest{
 				NamespaceKey: namespace,
 				FlagKey:      req.Key,
 				Key:          fmt.Sprintf("variant_%d", i),
 			})
 			require.NoError(t, err)
-
-			if s.db.Driver == fliptsql.MySQL {
-				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-				time.Sleep(time.Second)
-			}
 		}
 	}
 

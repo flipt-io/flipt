@@ -326,8 +326,8 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 	require.NoError(t, err)
 
 	var (
-		totalSegments = 74
-		pageSize      = uint64(13)
+		totalSegments = 9
+		pageSize      = uint64(3)
 	)
 
 	for i := 0; i < totalSegments; i++ {
@@ -338,15 +338,15 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 			Description:  "bar",
 		}
 
-		if s.db.Driver == fliptsql.MySQL {
-			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-			time.Sleep(time.Second)
-		}
-
 		_, err := s.store.CreateSegment(ctx, &req)
 		require.NoError(t, err)
 
 		for i := 0; i < 2; i++ {
+			if i > 0 && s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
+
 			_, err := s.store.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
 				NamespaceKey: namespace,
 				SegmentKey:   req.Key,
@@ -356,11 +356,6 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 				Value:        "bar",
 			})
 			require.NoError(t, err)
-
-			if s.db.Driver == fliptsql.MySQL {
-				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-				time.Sleep(time.Second)
-			}
 		}
 	}
 

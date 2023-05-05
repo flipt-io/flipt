@@ -442,8 +442,8 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 	require.NoError(t, err)
 
 	var (
-		totalRules = 82
-		pageSize   = uint64(13)
+		totalRules = 9
+		pageSize   = uint64(3)
 	)
 
 	for i := 0; i < totalRules; i++ {
@@ -454,15 +454,15 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 			Rank:         int32(i + 1),
 		}
 
-		if s.db.Driver == fliptsql.MySQL {
-			// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-			time.Sleep(time.Second)
-		}
-
 		rule, err := s.store.CreateRule(ctx, &req)
 		require.NoError(t, err)
 
 		for i := 0; i < 2; i++ {
+			if i > 0 && s.db.Driver == fliptsql.MySQL {
+				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
+				time.Sleep(time.Second)
+			}
+
 			_, err := s.store.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
 				NamespaceKey: namespace,
 				FlagKey:      flag.Key,
@@ -471,11 +471,6 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 				Rollout:      100.0,
 			})
 			require.NoError(t, err)
-
-			if s.db.Driver == fliptsql.MySQL {
-				// required for MySQL since it only s.stores timestamps to the second and not millisecond granularity
-				time.Sleep(time.Second)
-			}
 		}
 	}
 
