@@ -219,10 +219,10 @@ func API(t *testing.T, client sdk.SDK, namespace string) {
 		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, updatedSegment.MatchType)
 
 		for _, constraint := range []struct {
-			property, operator, value, description string
+			property, operator, value string
 		}{
-			{"foo", "eq", "bar", "desc"},
-			{"fizz", "neq", "buzz", "desc"},
+			{"foo", "eq", "bar"},
+			{"fizz", "neq", "buzz"},
 		} {
 			t.Logf(`Create constraint with key %q %s %q.`,
 				constraint.property,
@@ -237,14 +237,12 @@ func API(t *testing.T, client sdk.SDK, namespace string) {
 				Property:     constraint.property,
 				Operator:     constraint.operator,
 				Value:        constraint.value,
-				Description:  constraint.description,
 			})
 			require.NoError(t, err)
 
 			assert.Equal(t, constraint.property, createdConstraint.Property)
 			assert.Equal(t, constraint.operator, createdConstraint.Operator)
 			assert.Equal(t, constraint.value, createdConstraint.Value)
-			assert.Equal(t, constraint.description, createdConstraint.Description)
 		}
 
 		t.Log(`Get segment "everyone" with constraints.`)
