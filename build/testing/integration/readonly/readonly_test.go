@@ -36,27 +36,24 @@ func TestReadOnly(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		require.Len(t, flags.Flags, 1)
+		require.Len(t, flags.Flags, 50)
 
 		flag := flags.Flags[0]
 		assert.Equal(t, namespace, flag.NamespaceKey)
-		assert.Equal(t, "color", flag.Key)
-		assert.Equal(t, "Color", flag.Name)
-		assert.Equal(t, "This flag represents two colors.", flag.Description)
+		assert.Equal(t, "flag_001", flag.Key)
+		assert.Equal(t, "FLAG_001", flag.Name)
+		assert.Equal(t, "Some Description", flag.Description)
 		assert.True(t, flag.Enabled)
 
 		require.Len(t, flag.Variants, 2)
 
-		assert.Equal(t, "blue", flag.Variants[0].Key)
-		assert.Equal(t, "Blue", flag.Variants[0].Name)
-
-		assert.Equal(t, "red", flag.Variants[1].Key)
-		assert.Equal(t, "Red", flag.Variants[1].Name)
+		assert.Equal(t, "variant_1", flag.Variants[0].Key)
+		assert.Equal(t, "variant_2", flag.Variants[1].Key)
 
 		segments, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
 			NamespaceKey: namespace,
 		})
 
-		require.Len(t, segments.Segments, 2)
+		require.Len(t, segments.Segments, 50)
 	})
 }
