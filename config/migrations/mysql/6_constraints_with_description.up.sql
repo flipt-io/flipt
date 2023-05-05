@@ -1,2 +1,2 @@
 -- Add description column to constraints
-ALTER TABLE constraints ADD COLUMN description TEXT NOT NULL DEFAULT 'desc';
+ALTER TABLE constraints ADD COLUMN description TEXT NOT NULL DEFAULT ('desc');
