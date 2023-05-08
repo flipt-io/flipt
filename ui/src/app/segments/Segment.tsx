@@ -255,6 +255,12 @@ export default function Segment() {
                       </th>
                       <th
                         scope="col"
+                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                      >
+                        Description
+                      </th>
+                      <th
+                        scope="col"
                         className="relative pb-3.5 pl-3 pr-4 sm:pr-6"
                       >
                         <span className="sr-only">Edit</span>
@@ -275,6 +281,9 @@ export default function Segment() {
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
                           {constraint.value}
+                        </td>
+                        <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                          {constraint.description}
                         </td>
                         <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <a

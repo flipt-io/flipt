@@ -55,7 +55,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 	segment.CreatedAt = createdAt.Timestamp
 	segment.UpdatedAt = updatedAt.Timestamp
 
-	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
+	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, description, created_at, updated_at").
 		From("constraints").
 		Where(sq.Eq{"segment_key": segment.Key}).
 		OrderBy("created_at ASC")
@@ -85,6 +85,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 			&constraint.Property,
 			&constraint.Operator,
 			&constraint.Value,
+			&constraint.Description,
 			&createdAt,
 			&updatedAt); err != nil {
 			return segment, err
@@ -106,6 +107,7 @@ type optionalConstraint struct {
 	Property     sql.NullString
 	Operator     sql.NullString
 	Value        sql.NullString
+	Description  sql.NullString
 	CreatedAt    fliptsql.NullableTimestamp
 	UpdatedAt    fliptsql.NullableTimestamp
 }
@@ -229,7 +231,7 @@ func (s *Store) setConstraints(ctx context.Context, namespaceKey string, segment
 		allSegmentKeys = append(allSegmentKeys, k)
 	}
 
-	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
+	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, description, created_at, updated_at").
 		From("constraints").
 		Where(sq.Eq{"namespace_key": namespaceKey, "segment_key": allSegmentKeys}).
 		OrderBy("created_at")
@@ -260,6 +262,7 @@ func (s *Store) setConstraints(ctx context.Context, namespaceKey string, segment
 			&constraint.Property,
 			&constraint.Operator,
 			&constraint.Value,
+			&constraint.Description,
 			&cCreatedAt,
 			&cUpdatedAt); err != nil {
 			return err
@@ -274,6 +277,7 @@ func (s *Store) setConstraints(ctx context.Context, namespaceKey string, segment
 				Property:     constraint.Property.String,
 				Operator:     constraint.Operator.String,
 				Value:        constraint.Value.String,
+				Description:  constraint.Description.String,
 				CreatedAt:    cCreatedAt.Timestamp,
 				UpdatedAt:    cUpdatedAt.Timestamp,
 			})
@@ -404,6 +408,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 			Value:        r.Value,
 			CreatedAt:    now,
 			UpdatedAt:    now,
+			Description:  r.Description,
 		}
 	)
 
@@ -413,7 +418,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	}
 
 	if _, err := s.builder.Insert("constraints").
-		Columns("id", "namespace_key", "segment_key", "type", "property", "operator", "value", "created_at", "updated_at").
+		Columns("id", "namespace_key", "segment_key", "type", "property", "operator", "value", "description", "created_at", "updated_at").
 		Values(
 			c.Id,
 			c.NamespaceKey,
@@ -422,6 +427,7 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 			c.Property,
 			c.Operator,
 			c.Value,
+			c.Description,
 			&fliptsql.Timestamp{Timestamp: c.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: c.UpdatedAt}).
 		ExecContext(ctx); err != nil {
@@ -452,6 +458,7 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		Set("property", r.Property).
 		Set("operator", operator).
 		Set("value", r.Value).
+		Set("description", r.Description).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(whereClause).
 		ExecContext(ctx)
@@ -475,11 +482,11 @@ func (s *Store) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintR
 		c = &flipt.Constraint{}
 	)
 
-	if err := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, created_at, updated_at").
+	if err := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, description, created_at, updated_at").
 		From("constraints").
 		Where(whereClause).
 		QueryRowContext(ctx).
-		Scan(&c.Id, &c.NamespaceKey, &c.SegmentKey, &c.Type, &c.Property, &c.Operator, &c.Value, &createdAt, &updatedAt); err != nil {
+		Scan(&c.Id, &c.NamespaceKey, &c.SegmentKey, &c.Type, &c.Property, &c.Operator, &c.Value, &c.Description, &createdAt, &updatedAt); err != nil {
 		return nil, err
 	}
 

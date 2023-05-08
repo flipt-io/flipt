@@ -718,11 +718,12 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	assert.NotNil(t, segment)
 
 	constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
-		SegmentKey: segment.Key,
-		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-		Property:   "foo",
-		Operator:   "EQ",
-		Value:      "bar",
+		SegmentKey:  segment.Key,
+		Type:        flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:    "foo",
+		Operator:    "EQ",
+		Value:       "bar",
+		Description: "desc",
 	})
 
 	require.NoError(t, err)
@@ -737,6 +738,7 @@ func (s *DBTestSuite) TestCreateConstraint() {
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
+	assert.Equal(t, "desc", constraint.Description)
 
 	// get the segment again
 	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
@@ -767,6 +769,7 @@ func (s *DBTestSuite) TestCreateConstraintNamespace() {
 		Property:     "foo",
 		Operator:     "EQ",
 		Value:        "bar",
+		Description:  "desc",
 	})
 
 	require.NoError(t, err)
@@ -781,6 +784,7 @@ func (s *DBTestSuite) TestCreateConstraintNamespace() {
 	assert.Equal(t, "bar", constraint.Value)
 	assert.NotZero(t, constraint.CreatedAt)
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
+	assert.Equal(t, "desc", constraint.Description)
 
 	// get the segment again
 	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)
@@ -854,12 +858,13 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
 
 	updated, err := s.store.UpdateConstraint(context.TODO(), &flipt.UpdateConstraintRequest{
-		Id:         constraint.Id,
-		SegmentKey: constraint.SegmentKey,
-		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-		Property:   "foo",
-		Operator:   "EMPTY",
-		Value:      "bar",
+		Id:          constraint.Id,
+		SegmentKey:  constraint.SegmentKey,
+		Type:        flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:    "foo",
+		Operator:    "EMPTY",
+		Value:       "bar",
+		Description: "desc",
 	})
 
 	require.NoError(t, err)
@@ -873,6 +878,7 @@ func (s *DBTestSuite) TestUpdateConstraint() {
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
+	assert.Equal(t, "desc", updated.Description)
 
 	// get the segment again
 	segment, err = s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
@@ -926,6 +932,7 @@ func (s *DBTestSuite) TestUpdateConstraintNamespace() {
 		Property:     "foo",
 		Operator:     "EMPTY",
 		Value:        "bar",
+		Description:  "desc",
 	})
 
 	require.NoError(t, err)
@@ -939,6 +946,7 @@ func (s *DBTestSuite) TestUpdateConstraintNamespace() {
 	assert.Empty(t, updated.Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
+	assert.Equal(t, "desc", updated.Description)
 
 	// get the segment again
 	segment, err = s.store.GetSegment(context.TODO(), s.namespace, segment.Key)

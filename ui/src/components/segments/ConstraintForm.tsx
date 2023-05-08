@@ -149,7 +149,8 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     property: constraint?.property || '',
     type: constraint?.type || ('STRING_COMPARISON_TYPE' as ComparisonType),
     operator: constraint?.operator || 'eq',
-    value: constraint?.value || ''
+    value: constraint?.value || '',
+    description: constraint?.description || ''
   };
 
   const handleSubmit = async (values: IConstraintBase) => {
@@ -271,6 +272,25 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 </div>
               </div>
               <ConstraintValueField name="value" id="value" />
+              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                <div>
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                  >
+                    Description
+                  </label>
+                  <span
+                    className="text-xs text-gray-400"
+                    id="description-optional"
+                  >
+                    Optional
+                  </span>
+                </div>
+                <div className="sm:col-span-2">
+                  <Input name="description" id="description" />
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
