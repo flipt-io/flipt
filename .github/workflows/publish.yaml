@@ -36,5 +36,6 @@ jobs:
         run: go run bootstrap.go
 
       - name: Publish
+        working-directory: build
         run: |
           mage publish:flipt "ghcr.io/flipt-io/flipt-private:$(echo ${GITHUB_SHA} | cut -c -7)"
