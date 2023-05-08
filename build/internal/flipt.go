@@ -126,19 +126,6 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		return nil, err
 	}
 
-	// install mage and bootstrap project tools
-	golang = golang.
-		WithWorkdir("/deps").
-		WithExec([]string{"git", "clone", "https://github.com/magefile/mage"}).
-		WithWorkdir("/deps/mage").
-		WithExec([]string{"go", "run", "bootstrap.go"}).
-		WithWorkdir("/src")
-
-	golang = golang.WithExec([]string{"mage", "bootstrap"})
-	if _, err := golang.ExitCode(ctx); err != nil {
-		return nil, err
-	}
-
 	// fetch the rest of the project (- build & ui)
 	project := client.Host().Directory(".", dagger.HostDirectoryOpts{
 		Exclude: []string{
