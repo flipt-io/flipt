@@ -3,6 +3,7 @@ export interface IConstraintBase {
   type: ComparisonType;
   operator: string;
   value?: string;
+  description?: string;
 }
 
 export interface IConstraint extends IConstraintBase {

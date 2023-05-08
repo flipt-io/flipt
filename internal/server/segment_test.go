@@ -259,22 +259,24 @@ func TestUpdateConstraint(t *testing.T) {
 			store:  store,
 		}
 		req = &flipt.UpdateConstraintRequest{
-			Id:         "1",
-			SegmentKey: "segmentKey",
-			Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-			Property:   "property",
-			Operator:   flipt.OpEQ,
-			Value:      "value",
+			Id:          "1",
+			SegmentKey:  "segmentKey",
+			Type:        flipt.ComparisonType_STRING_COMPARISON_TYPE,
+			Property:    "property",
+			Operator:    flipt.OpEQ,
+			Value:       "value",
+			Description: "desc",
 		}
 	)
 
 	store.On("UpdateConstraint", mock.Anything, req).Return(&flipt.Constraint{
-		Id:         req.Id,
-		SegmentKey: req.SegmentKey,
-		Type:       req.Type,
-		Property:   req.Property,
-		Operator:   req.Operator,
-		Value:      req.Value,
+		Id:          req.Id,
+		SegmentKey:  req.SegmentKey,
+		Type:        req.Type,
+		Property:    req.Property,
+		Operator:    req.Operator,
+		Value:       req.Value,
+		Description: req.Description,
 	}, nil)
 
 	got, err := s.UpdateConstraint(context.TODO(), req)

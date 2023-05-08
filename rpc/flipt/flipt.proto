@@ -251,6 +251,7 @@ message Constraint {
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
   string namespace_key = 9;
+  string description = 10;
 }
 
 message CreateConstraintRequest {
@@ -260,6 +261,7 @@ message CreateConstraintRequest {
   string operator = 4;
   string value = 5;
   string namespace_key = 6;
+  string description = 7;
 }
 
 message UpdateConstraintRequest {
@@ -270,6 +272,7 @@ message UpdateConstraintRequest {
   string operator = 5;
   string value = 6;
   string namespace_key = 7;
+  string description = 8;
 }
 
 message DeleteConstraintRequest {
