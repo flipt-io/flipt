@@ -1,0 +1,40 @@
+name: Publish Flipt Private
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: actions/cache@v3
+        with:
+          path: _tools/
+          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tools-
+
+      - uses: actions/checkout@v3
+        with:
+          repository: magefile/mage
+          path: mage
+
+      - name: Build mage
+        working-directory: mage
+        run: go run bootstrap.go
+
+      - name: Publish
+        run: |
+          mage publish:flipt "ghcr.io/flipt-io/flipt-private:$(echo ${GITHUB_SHA} | cut -c -7)"
