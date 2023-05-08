@@ -114,8 +114,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		cacheGoMod   = client.CacheVolume(fmt.Sprintf("go-mod-%s", sum))
 	)
 
-	golang = golang.WithEnvVariable("GOOS", req.Target.OS).
-		WithEnvVariable("GOARCH", req.Target.Architecture).
+	golang = golang.
 		WithMountedCache(goBuildCachePath, cacheGoBuild).
 		WithMountedCache(goModCachePath, cacheGoMod).
 		WithMountedDirectory("/src", src).

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"sync"
 
 	"dagger.io/dagger"
 	"github.com/magefile/mage/mg"
@@ -241,49 +240,30 @@ func (p Publish) Flipt(ctx context.Context, target string) error {
 
 	defer client.Close()
 
-	var (
-		g  errgroup.Group
-		mu sync.Mutex
-		v  = publish.Variants{}
-	)
-
-	for _, platform := range []dagger.Platform{
-		"linux/amd64",
-		"linux/arm64",
-	} {
-		platform := platform
-		g.Go(func() error {
-			req, err := newRequest(ctx, client, platform)
-			if err != nil {
-				return err
-			}
-
-			base, err := internal.Base(ctx, client, req)
-			if err != nil {
-				return err
-			}
-
-			flipt, err := internal.Package(ctx, client, base, req)
-			if err != nil {
-				return err
-			}
-
-			mu.Lock()
-			v[platform] = flipt
-			mu.Unlock()
-
-			return nil
-		})
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		return err
 	}
 
-	if err := g.Wait(); err != nil {
+	req, err := newRequest(ctx, client, platform)
+	if err != nil {
+		return err
+	}
+
+	base, err := internal.Base(ctx, client, req)
+	if err != nil {
+		return err
+	}
+
+	flipt, err := internal.Package(ctx, client, base, req)
+	if err != nil {
 		return err
 	}
 
 	ref, err := publish.Publish(ctx, publish.PublishSpec{
 		TargetType: publish.RemoteTargetType,
 		Target:     target,
-	}, client, v)
+	}, client, publish.Variants{platform: flipt})
 	if err != nil {
 		return err
 	}
