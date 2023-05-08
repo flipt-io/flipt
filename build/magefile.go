@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sync"
 
 	"dagger.io/dagger"
 	"github.com/magefile/mage/mg"
@@ -228,6 +229,68 @@ func (r Release) Changelog(ctx context.Context, module, version string) error {
 
 func (r Release) Tag(ctx context.Context, module, version string) error {
 	return release.Tag(ctx, module, version)
+}
+
+type Publish mg.Namespace
+
+func (p Publish) Flipt(ctx context.Context, target string) error {
+	client, err := daggerClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer client.Close()
+
+	var (
+		g  errgroup.Group
+		mu sync.Mutex
+		v  = publish.Variants{}
+	)
+
+	for _, platform := range []dagger.Platform{
+		"linux/amd64",
+		"linux/arm64",
+	} {
+		platform := platform
+		g.Go(func() error {
+			req, err := newRequest(ctx, client, platform)
+			if err != nil {
+				return err
+			}
+
+			base, err := internal.Base(ctx, client, req)
+			if err != nil {
+				return err
+			}
+
+			flipt, err := internal.Package(ctx, client, base, req)
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			v[platform] = flipt
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
+	}
+
+	ref, err := publish.Publish(ctx, publish.PublishSpec{
+		TargetType: publish.RemoteTargetType,
+		Target:     target,
+	}, client, v)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Published", ref)
+
+	return nil
 }
 
 func daggerClient(ctx context.Context) (*dagger.Client, error) {

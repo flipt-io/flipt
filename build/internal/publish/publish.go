@@ -186,7 +186,7 @@ func local(ctx context.Context, cli *client.Client, path string, container *dagg
 	return "", nil
 }
 
-func remote(ctx context.Context, path string, client *dagger.Client, variants Variants) (string, error) {
+func remote(ctx context.Context, target string, client *dagger.Client, variants Variants) (string, error) {
 	container := client.Container()
 	opts := dagger.ContainerPublishOpts{
 		PlatformVariants: variants.ToSlice(),
@@ -201,7 +201,16 @@ func remote(ctx context.Context, path string, client *dagger.Client, variants Va
 		}
 	}
 
-	return container.Publish(ctx, path, opts)
+	if host, _, found := strings.Cut(target, "/"); found {
+		switch host {
+		case "ghcr.io":
+			container = container.WithRegistryAuth("ghcr.io",
+				os.Getenv("GITHUB_ACTOR"),
+				client.SetSecret("password", os.Getenv("GITHUB_TOKEN")))
+		}
+	}
+
+	return container.Publish(ctx, target, opts)
 }
 
 func tempFile() (string, error) {
