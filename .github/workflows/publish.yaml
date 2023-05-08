@@ -38,4 +38,8 @@ jobs:
       - name: Publish
         working-directory: build
         run: |
-          mage publish:flipt "ghcr.io/flipt-io/flipt-private:$(echo ${GITHUB_SHA} | cut -c -7)"
+          export TAG="$(echo ${GITHUB_SHA} | cut -c -7)"
+
+          echo $TAG
+
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" mage publish:flipt "ghcr.io/flipt-io/flipt-private:$TAG"
