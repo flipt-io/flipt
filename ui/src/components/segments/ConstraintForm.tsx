@@ -1,6 +1,7 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik, useField, useFormikContext } from 'formik';
+import moment from 'moment';
 import { forwardRef, useEffect, useState } from 'react';
 import * as Yup from 'yup';
 import Button from '~/components/forms/Button';
@@ -16,6 +17,7 @@ import { requiredValidation } from '~/data/validations';
 import {
   ComparisonType,
   ConstraintBooleanOperators,
+  ConstraintDateTimeOperators,
   ConstraintNumberOperators,
   ConstraintStringOperators,
   IConstraint,
@@ -43,6 +45,9 @@ const constraintOperators = (c: string) => {
     case ComparisonType.BOOLEAN_COMPARISON_TYPE:
       opts = ConstraintBooleanOperators;
       break;
+    case ComparisonType.DATETIME_COMPARISON_TYPE:
+      opts = ConstraintDateTimeOperators;
+      break;
   }
   return Object.entries(opts).map(([k, v]) => ({
     value: k,
@@ -50,16 +55,20 @@ const constraintOperators = (c: string) => {
   }));
 };
 
-type InputProps = {
+type ConstraintInputProps = {
   name: string;
   id: string;
 };
 
-function ConstraintOperatorSelect(props: InputProps) {
-  const {
-    values: { type },
-    setFieldValue
-  } = useFormikContext<{ type: string }>();
+type ConstraintOperatorSelectProps = ConstraintInputProps & {
+  onChange: (e: React.ChangeEvent<any>) => void;
+  type: string;
+};
+
+function ConstraintOperatorSelect(props: ConstraintOperatorSelectProps) {
+  const { onChange, type } = props;
+
+  const { setFieldValue } = useFormikContext();
 
   const [field] = useField(props);
 
@@ -70,44 +79,21 @@ function ConstraintOperatorSelect(props: InputProps) {
       {...props}
       handleChange={(e) => {
         setFieldValue(field.name, e.target.value);
+        onChange(e);
       }}
       options={constraintOperators(type)}
     />
   );
 }
 
-function ConstraintValueField(props: InputProps) {
-  const [show, setShow] = useState(true);
-  const {
-    values: { type, operator },
-    dirty
-  } = useFormikContext<{ type: string; operator: string }>();
-
+function ConstraintValueInput(props: ConstraintInputProps) {
   const [field] = useField({
     ...props,
     validate: (value) => {
-      if (!show) {
-        return undefined;
-      }
-
       // value is required only if shown
       return value ? undefined : 'Value is required';
     }
   });
-
-  // show/hide value field based on operator
-  useEffect(() => {
-    if (type === 'BOOLEAN_COMPARISON_TYPE') {
-      setShow(false);
-      return;
-    }
-    const noValue = NoValueOperators.includes(operator);
-    setShow(!noValue);
-  }, [type, operator, field.name, dirty]);
-
-  if (!show) {
-    return <></>;
-  }
 
   return (
     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
@@ -122,6 +108,78 @@ function ConstraintValueField(props: InputProps) {
       <div className="sm:col-span-2">
         <Input {...props} {...field} />
       </div>
+    </div>
+  );
+}
+
+function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
+  const { setFieldValue } = useFormikContext();
+  const [field] = useField({
+    ...props,
+    validate: (value) => {
+      let m = moment(value);
+      return m.isValid() ? undefined : 'Value is not a valid datetime';
+    }
+  });
+  const [fieldDate, setFieldDate] = useState(field.value?.split('T')[0] || '');
+  const [fieldTime, setFieldTime] = useState(
+    field.value?.split('T')[1]?.slice(0, 5) || ''
+  );
+
+  useEffect(() => {
+    // if both date and time are set, then combine, parse, and set the value
+    if (
+      fieldDate &&
+      fieldDate.trim() !== '' &&
+      fieldTime &&
+      fieldTime.trim() !== ''
+    ) {
+      const m = moment(`${fieldDate} ${fieldTime}`, 'YYYY-MM-DD HH:mm');
+      setFieldValue(field.name, m.isValid() ? m.format() : '');
+      return;
+    }
+
+    // otherwise, if only date is set, then parse and set the value
+    if (fieldDate && fieldDate.trim() !== '') {
+      const m = moment(fieldDate, 'YYYY-MM-DD');
+      setFieldValue(field.name, m.isValid() ? m.format() : '');
+      return;
+    }
+  }, [field.name, fieldDate, fieldTime, setFieldValue]);
+
+  return (
+    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+      <div>
+        <label
+          htmlFor="value"
+          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+        >
+          Value
+        </label>
+      </div>
+      <div className="sm:col-span-1">
+        <Input
+          type="date"
+          id="valueDate"
+          name="valueDate"
+          value={fieldDate}
+          onChange={(e) => {
+            setFieldDate(e.target.value);
+          }}
+        />
+      </div>
+      <div className="sm:col-span-1">
+        <Input
+          type="time"
+          id="valueTime"
+          name="valueTime"
+          value={fieldTime}
+          onChange={(e) => {
+            setFieldTime(e.target.value);
+          }}
+        />
+      </div>
+      <input type="hidden" {...props} {...field} />
     </div>
   );
 }
@@ -143,9 +201,14 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
+  const [hasValue, setHasValue] = useState(true);
+  const [type, setType] = useState(
+    constraint?.type || 'STRING_COMPARISON_TYPE'
+  );
+
   const { currentNamespace } = useNamespace();
 
-  const initialValues: IConstraintBase = {
+  const initialValues = {
     property: constraint?.property || '',
     type: constraint?.type || ('STRING_COMPARISON_TYPE' as ComparisonType),
     operator: constraint?.operator || 'eq',
@@ -247,12 +310,16 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     value={formik.values.type}
                     options={constraintComparisonTypes()}
                     handleChange={(e) => {
-                      formik.setFieldValue('type', e.target.value);
+                      const type = e.target.value as ComparisonType;
+                      formik.setFieldValue('type', type);
+                      setType(type);
 
                       if (e.target.value === 'BOOLEAN_COMPARISON_TYPE') {
                         formik.setFieldValue('operator', 'true');
+                        setHasValue(false);
                       } else {
                         formik.setFieldValue('operator', 'eq');
+                        setHasValue(true);
                       }
                     }}
                   />
@@ -268,10 +335,23 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                   </label>
                 </div>
                 <div className="sm:col-span-2">
-                  <ConstraintOperatorSelect id="operator" name="operator" />
+                  <ConstraintOperatorSelect
+                    id="operator"
+                    name="operator"
+                    type={type}
+                    onChange={(e) => {
+                      const noValue = NoValueOperators.includes(e.target.value);
+                      setHasValue(!noValue);
+                    }}
+                  />
                 </div>
               </div>
-              <ConstraintValueField name="value" id="value" />
+              {hasValue && type != 'DATETIME_COMPARISON_TYPE' && (
+                <ConstraintValueInput name="value" id="value" />
+              )}
+              {hasValue && type === 'DATETIME_COMPARISON_TYPE' && (
+                <ConstraintValueDateTimeInput name="value" id="value" />
+              )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label

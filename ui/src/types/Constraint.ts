@@ -15,7 +15,8 @@ export interface IConstraint extends IConstraintBase {
 export enum ComparisonType {
   STRING_COMPARISON_TYPE = 'string',
   NUMBER_COMPARISON_TYPE = 'number',
-  BOOLEAN_COMPARISON_TYPE = 'boolean'
+  BOOLEAN_COMPARISON_TYPE = 'boolean',
+  DATETIME_COMPARISON_TYPE = 'datetime'
 }
 
 export const ConstraintStringOperators: Record<string, string> = {
@@ -45,6 +46,17 @@ export const ConstraintBooleanOperators: Record<string, string> = {
   notpresent: 'IS NOT PRESENT'
 };
 
+export const ConstraintDateTimeOperators: Record<string, string> = {
+  eq: '==',
+  neq: '!=',
+  gt: 'IS AFTER',
+  gte: 'IS AFTER OR AT',
+  lt: 'IS BEFORE',
+  lte: 'IS BEFORE OR AT',
+  present: 'IS PRESENT',
+  notpresent: 'IS NOT PRESENT'
+};
+
 export const NoValueOperators: string[] = [
   'empty',
   'notempty',
@@ -55,5 +67,6 @@ export const NoValueOperators: string[] = [
 export const ConstraintOperators: Record<string, string> = {
   ...ConstraintStringOperators,
   ...ConstraintNumberOperators,
-  ...ConstraintBooleanOperators
+  ...ConstraintBooleanOperators,
+  ...ConstraintDateTimeOperators
 };
