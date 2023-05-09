@@ -40,8 +40,8 @@
     <a href="https://discord.gg/kRhEqG2TEZ">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
     </a>
-    <a href="https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=">
-        <img alt="Public Roadmap" src="https://img.shields.io/badge/Volta-Public%20Roadmap-black">
+    <a href="https://features.flipt.io/roadmap">
+        <img alt="Public Roadmap" src="https://img.shields.io/badge/roadmap-public-violet">
     </a>
 </div>
 
@@ -116,6 +116,43 @@ Flipt supports use cases such as:
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
 </p>
 
+<br clear="both"/>
+
+## Integration
+
+Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
+
+### REST API
+
+Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
+
+The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
+
+### REST Client Libraries
+
+| Language | Version | Status |
+| -------- | ------- | ------ |
+| [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod&label=go) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [Node/TypeScript](https://github.com/flipt-io/flipt-node) | [![npm](https://img.shields.io/npm/v/@flipt-io/flipt)](https://www.npmjs.com/package/@flipt-io/flipt) | ![status](https://img.shields.io/badge/status-hardening-orange) |
+| [Java](https://github.com/flipt-io/flipt-java) | ![Maven Central](https://img.shields.io/maven-central/v/io.flipt/flipt-java) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
+| [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+
+### GRPC Client Libraries
+
+| Language | Version | Status |
+| -------- | ------- | ------ |
+| [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod&label=go) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+
+### Generate Your Own
+
+If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
+
+Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+
+<br clear="both"/>
+
 ## Try It
 
 Try the latest version of Flipt for yourself.
@@ -152,52 +189,6 @@ Check out the [examples](/examples) to see how Flipt works in different use case
 
 <br clear="both"/>
 
-## Integration
-
-Check out the [integration docs](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
-
-### REST API
-
-Flipt is equipped with a fully functional REST API. In fact, the Flipt UI is completely backed by this same API. This means that anything that can be done in the Flipt UI can also be done via the REST API.
-
-The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be used with any language that can make HTTP requests.
-
-### REST Client Libraries
-
-- [Go](./sdk/go) - supports both HTTP and GRPC (configurable based on your needs)
-- [Node/TypeScript](https://github.com/flipt-io/flipt-node)
-- [Java](https://github.com/flipt-io/flipt-java)
-- [Rust](https://github.com/flipt-io/flipt-rust)
-- [Python](https://github.com/flipt-io/flipt-python) (beta)
-
-:exclamation: Offical REST clients in more languages coming soon.
-
-### GRPC Client Libraries
-
-- [Go](./sdk/go) - supports both HTTP and GRPC (configurable based on your needs)
-- [Ruby](https://github.com/flipt-io/flipt-grpc-ruby)
-
-:exclamation: Offical GRPC clients in more languages coming soon.
-
-### Third-Party Client Libraries
-
-Client libraries built by awesome people from the Open Source community.
-
-Note: These libraries are not maintained by the Flipt team and may not be up to date with the latest version of Flipt. Please open an issue or pull request on the library’s repository if you find any issues.
-
-| Library                                                             | Language   | Author                                                   | Desc                                                                                            |
-| ------------------------------------------------------------------- | ---------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [flipt-grpc-python](https://github.com/getsentry/flipt-grpc-python) | Python     | [@getsentry](https://github.com/getsentry)               | Python GRPC bindings for Flipt                                                                  |
-| [rflipt](https://github.com/christopherdiehl/rflipt)                | React      | [@christopherdiehl](https://github.com/christopherdiehl) | Components/example project to control React features backed by Flipt                            |
-| [flipt-php](https://github.com/fetzi/flipt-php)                     | PHP        | [@fetzi](https://github.com/fetzi)                       | Package for evaluating feature flags via the Flipt REST API using [HTTPlug](http://httplug.io/) |
-| [flipt-js](https://github.com/betrybe/flipt-js)                     | Javascript | [@betrybe](https://github.com/betrybe)                   | Flipt library for JS that allows rendering components based on Feature Flags 🎉                 |
-
-### Generate Your Own
-
-If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto). The [GRPC documentation](https://grpc.io/docs/) has extensive examples of how to generate GRPC clients in each supported language.
-
-<br clear="both"/>
-
 ## Licensing
 
 There are currently two types of licenses in place for Flipt:
@@ -223,7 +214,7 @@ See [LICENSE](LICENSE).
 
 ## Logos
 
-Some of the companies depending on Flipt in production.
+Some of the organizations depending on Flipt in production.
 
 <p align="center">
     <a href="https://paradigm.co">
@@ -237,10 +228,15 @@ Some of the companies depending on Flipt in production.
     </a>&nbsp;&nbsp;
     <a href="https://prose.com">
         <img src="./logos/users/prose.png" alt="Prose" width="200"/>
+    </a>&nbsp;&nbsp;
+    <a href="https://www.gov.uk/government/organisations/ministry-of-justice">
+        <img src="./logos/users/uk-moj.png" alt="UK Ministry of Justice" width="200" />
     </a>
 </p>
 
-Using Flipt at your company? Open a PR and add your logo here!
+<p align="center">
+Using Flipt at your company? Open a [PR](https://github.com/flipt-io/flipt/pulls) and add your logo here!
+</p>
 
 <br clear="both"/>
 

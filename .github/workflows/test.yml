@@ -34,7 +34,7 @@ jobs:
         run: go test -race -covermode=atomic -coverprofile=coverage.txt -count=1 ./...
 
       - name: Upload Coverage
-        uses: codecov/codecov-action@v3.1.2
+        uses: codecov/codecov-action@v3.1.3
 
   ui:
     name: "Tests (UI)"
@@ -44,7 +44,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: "18"
           cache: "npm"
           cache-dependency-path: ui/package-lock.json
 

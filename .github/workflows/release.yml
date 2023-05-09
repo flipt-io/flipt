@@ -83,7 +83,7 @@ jobs:
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
       - name: Install Mage
-        run:
+        run: |
           git clone https://github.com/magefile/mage
           cd mage
           go run bootstrap.go

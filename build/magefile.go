@@ -37,7 +37,7 @@ func (b Build) Flipt(ctx context.Context) error {
 		return err
 	}
 
-	req, err := newRequest(ctx, client, platform)
+	req, _, err := newRequest(ctx, client, platform)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (b Build) Base(ctx context.Context) error {
 		return err
 	}
 
-	req, err := newRequest(ctx, client, platform)
+	req, _, err := newRequest(ctx, client, platform)
 	if err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func (t Test) Unit(ctx context.Context) error {
 		return err
 	}
 
-	req, err := newRequest(ctx, client, platform)
+	req, _, err := newRequest(ctx, client, platform)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (t Test) Database(ctx context.Context, db string) error {
 		return err
 	}
 
-	req, err := newRequest(ctx, client, platform)
+	req, _, err := newRequest(ctx, client, platform)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (t Test) Integration(ctx context.Context) error {
 		return err
 	}
 
-	req, err := newRequest(ctx, client, platform)
+	req, _, err := newRequest(ctx, client, platform)
 	if err != nil {
 		return err
 	}
@@ -206,6 +206,38 @@ func (t Test) Integration(ctx context.Context) error {
 	}
 
 	return testing.Integration(ctx, client, base, flipt)
+}
+
+// UI runs the entire integration test suite for the UI.
+func (t Test) UI(ctx context.Context) error {
+	client, err := daggerClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer client.Close()
+
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		return err
+	}
+
+	req, ui, err := newRequest(ctx, client, platform)
+	if err != nil {
+		return err
+	}
+
+	base, err := internal.Base(ctx, client, req)
+	if err != nil {
+		return err
+	}
+
+	flipt, err := internal.Package(ctx, client, base, req)
+	if err != nil {
+		return err
+	}
+
+	return testing.UI(ctx, client, ui, flipt)
 }
 
 type Release mg.Namespace
@@ -280,16 +312,16 @@ func daggerClient(ctx context.Context) (*dagger.Client, error) {
 	)
 }
 
-func newRequest(ctx context.Context, client *dagger.Client, platform dagger.Platform) (internal.FliptRequest, error) {
+func newRequest(ctx context.Context, client *dagger.Client, platform dagger.Platform) (internal.FliptRequest, *dagger.Container, error) {
 	ui, err := internal.UI(ctx, client)
 	if err != nil {
-		return internal.FliptRequest{}, err
+		return internal.FliptRequest{}, nil, err
 	}
 
 	// write contents of container dist/ directory to the host
 	dist := ui.Directory("./dist")
 
-	return internal.NewFliptRequest(dist, platform, internal.WithWorkDir(workDir())), nil
+	return internal.NewFliptRequest(dist, platform, internal.WithWorkDir(workDir())), ui, nil
 }
 
 func workDir() string {

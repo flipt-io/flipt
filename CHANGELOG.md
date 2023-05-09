@@ -3,6 +3,41 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.21.1](https://github.com/flipt-io/flipt/releases/tag/v1.21.1) - 2023-05-05
+
+### Fixed
+
+- `storage/sql`: paginated walk for resources using joins (#1584)
+
+## [v1.21.0](https://github.com/flipt-io/flipt/releases/tag/v1.21.0) - 2023-05-02
+
+### Added
+
+- OTEL implementation for audit sinks (#1458)
+- Error highlighting in console (#1528)
+- Additional telemetry data captured re: database, cache and authentication (#1527)
+
+### Fixed
+
+- `cmd/flipt`: restore console logger defaults on fatal (#1550)
+- `grpc/middleware`: set timestamp on each batch evaluate response (#1545)
+
+### Changed
+
+- Dependency updates
+
+## [v1.20.2](https://github.com/flipt-io/flipt/releases/tag/v1.20.2) - 2023-05-05
+
+### Fixed
+
+- `storage/sql`: paginated walk for resources using joins (#1584)
+
+## [v1.20.1](https://github.com/flipt-io/flipt/releases/tag/v1.20.1) - 2023-04-27
+
+### Fixed
+
+- `grpc/middleware`: set timestamp on each batch evaluate response (#1545)
+
 ## [v1.20.0](https://github.com/flipt-io/flipt/releases/tag/v1.20.0) - 2023-04-11
 
 ### Added
@@ -21,6 +56,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cmd/import`: re-open migration after dropping on import
 - protojson to use DiscardUnknown option for backwards compatibility (#1453)
 - `rpc/flipt`: move all openapi annotations into yaml file (#1437)
+
+## [v1.19.5](https://github.com/flipt-io/flipt/releases/tag/v1.19.5) - 2023-05-05
+
+### Fixed
+
+- `storage/sql`: paginated walk for resources using joins (#1584)
+
+## [v1.19.4](https://github.com/flipt-io/flipt/releases/tag/v1.19.4) - 2023-04-27
+
+### Fixed
+
+- `grpc/middleware`: set timestamp on each batch evaluate response (#1545)
 
 ## [v1.19.3](https://github.com/flipt-io/flipt/releases/tag/v1.19.3) - 2023-03-22
 

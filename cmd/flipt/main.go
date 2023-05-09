@@ -43,7 +43,35 @@ var (
 	banner       string
 )
 
-var fatal = zap.Must(zap.NewProduction()).Fatal
+var (
+	defaultEncoding = zapcore.EncoderConfig{
+		// Keys can be anything except the empty string.
+		TimeKey:        "T",
+		LevelKey:       "L",
+		NameKey:        "N",
+		CallerKey:      zapcore.OmitKey,
+		FunctionKey:    zapcore.OmitKey,
+		MessageKey:     "M",
+		StacktraceKey:  zapcore.OmitKey,
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeTime:     zapcore.RFC3339TimeEncoder,
+		EncodeDuration: zapcore.StringDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	}
+	fatal = zap.Must(defaultConfig(defaultEncoding).Build()).Fatal
+)
+
+func defaultConfig(encoding zapcore.EncoderConfig) zap.Config {
+	return zap.Config{
+		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development:      false,
+		Encoding:         "console",
+		EncoderConfig:    encoding,
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+}
 
 func main() {
 	var (
@@ -140,28 +168,12 @@ func buildConfig() (*zap.Logger, *config.Config) {
 
 	cfg := res.Config
 
-	loggerConfig := zap.Config{
-		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-		Development: false,
-		Encoding:    "console",
-		EncoderConfig: zapcore.EncoderConfig{
-			// Keys can be anything except the empty string.
-			TimeKey:        cfg.Log.Keys.Time,
-			LevelKey:       cfg.Log.Keys.Level,
-			NameKey:        "N",
-			CallerKey:      zapcore.OmitKey,
-			FunctionKey:    zapcore.OmitKey,
-			MessageKey:     cfg.Log.Keys.Message,
-			StacktraceKey:  zapcore.OmitKey,
-			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.CapitalColorLevelEncoder,
-			EncodeTime:     zapcore.RFC3339TimeEncoder,
-			EncodeDuration: zapcore.StringDurationEncoder,
-			EncodeCaller:   zapcore.ShortCallerEncoder,
-		},
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-	}
+	encoding := defaultEncoding
+	encoding.TimeKey = cfg.Log.Keys.Time
+	encoding.LevelKey = cfg.Log.Keys.Level
+	encoding.MessageKey = cfg.Log.Keys.Message
+
+	loggerConfig := defaultConfig(encoding)
 
 	// log to file if enabled
 	if cfg.Log.File != "" {
@@ -231,12 +243,18 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		}
 	}
 
-	if os.Getenv("CI") == "true" || os.Getenv("CI") == "1" {
+	// see: https://consoledonottrack.com/
+	if (os.Getenv("DO_NOT_TRACK") == "true" || os.Getenv("DO_NOT_TRACK") == "1") && cfg.Meta.TelemetryEnabled {
+		logger.Debug("DO_NOT_TRACK environment variable set, disabling telemetry")
+		cfg.Meta.TelemetryEnabled = false
+	}
+
+	if (os.Getenv("CI") == "true" || os.Getenv("CI") == "1") && cfg.Meta.TelemetryEnabled {
 		logger.Debug("CI detected, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
 
-	if !isRelease {
+	if !isRelease && cfg.Meta.TelemetryEnabled {
 		logger.Debug("not a release version, disabling telemetry")
 		cfg.Meta.TelemetryEnabled = false
 	}
