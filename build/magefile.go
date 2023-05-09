@@ -277,7 +277,7 @@ func (p Publish) Flipt(ctx context.Context, target string) error {
 		return err
 	}
 
-	req, err := newRequest(ctx, client, platform)
+	req, _, err := newRequest(ctx, client, platform)
 	if err != nil {
 		return err
 	}
