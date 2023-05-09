@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"cuelang.org/go/cue"
@@ -18,14 +19,18 @@ var (
 	cueFile []byte
 )
 
+var (
+	ErrValidationFailed = errors.New("validation failed")
+)
+
 // ValidateBytes takes a slice of bytes, and validates them against a cue definition.
 func ValidateBytes(b []byte) error {
 	cctx := cuecontext.New()
 
-	return validateHelper(b, cctx)
+	return validate(b, cctx)
 }
 
-func validateHelper(b []byte, cctx *cue.Context) error {
+func validate(b []byte, cctx *cue.Context) error {
 	v := cctx.CompileBytes(cueFile)
 
 	f, err := yaml.Extract("", b)
@@ -47,44 +52,19 @@ type Location struct {
 	Column int    `json:"column"`
 }
 
-// CueError is a collection of fields that represent positions in files where the user
+// Error is a collection of fields that represent positions in files where the user
 // has made some kind of error.
-type CueError struct {
+type Error struct {
 	Message  string   `json:"message"`
 	Location Location `json:"location"`
 }
 
-func getCueErrors(err error, file string) []CueError {
-	cerrs := make([]CueError, 0)
-
-	ce := cueerror.Errors(err)
-
-	for _, m := range ce {
-		ips := m.InputPositions()
-		if len(ips) > 0 {
-			fp := ips[0]
-			format, args := m.Msg()
-
-			cerrs = append(cerrs, CueError{
-				Message: fmt.Sprintf(format, args...),
-				Location: Location{
-					File:   file,
-					Line:   fp.Line(),
-					Column: fp.Column(),
-				},
-			})
-		}
-	}
-
-	return cerrs
-}
-
 // ValidateFiles takes a slice of strings as filenames and validates them against
 // our cue definition of features.
-func ValidateFiles(files []string) error {
+func ValidateFiles(dst io.Writer, files []string) error {
 	cctx := cuecontext.New()
 
-	cerrs := make([]CueError, 0)
+	cerrs := make([]Error, 0)
 
 	for _, f := range files {
 		b, err := os.ReadFile(f)
@@ -93,25 +73,43 @@ func ValidateFiles(files []string) error {
 		if err != nil {
 			return err
 		}
-		err = validateHelper(b, cctx)
+		err = validate(b, cctx)
 		if err != nil {
-			cerrs = append(cerrs, getCueErrors(err, f)...)
+
+			ce := cueerror.Errors(err)
+
+			for _, m := range ce {
+				ips := m.InputPositions()
+				if len(ips) > 0 {
+					fp := ips[0]
+					format, args := m.Msg()
+
+					cerrs = append(cerrs, Error{
+						Message: fmt.Sprintf(format, args...),
+						Location: Location{
+							File:   f,
+							Line:   fp.Line(),
+							Column: fp.Column(),
+						},
+					})
+				}
+			}
 		}
 	}
 
 	if len(cerrs) > 0 {
 		allErrors := struct {
-			Errors []CueError `json:"errors"`
+			Errors []Error `json:"errors"`
 		}{
 			Errors: cerrs,
 		}
 
-		// Write out the json output to stdout upon error detection.
-		if err := json.NewEncoder(os.Stdout).Encode(allErrors); err != nil {
+		// Write out the json output to dst upon error detection
+		if err := json.NewEncoder(dst).Encode(allErrors); err != nil {
 			return err
 		}
 
-		return errors.New("validation error")
+		return ErrValidationFailed
 	}
 
 	return nil
