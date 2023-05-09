@@ -14,19 +14,14 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	fauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	timestamp "google.golang.org/protobuf/types/known/timestamppb"
-)
-
-const (
-	ipKey        = "x-forwarded-for"
-	oidcEmailKey = "io.flipt.auth.oidc.email"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -114,11 +109,15 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 			return resp, err
 		}
 
+		now := timestamp.New(time.Now().UTC())
 		// set response fields
 		if resp != nil {
 			if rr, ok := resp.(*flipt.BatchEvaluationResponse); ok {
 				rr.RequestId = r.RequestId
 				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+				for _, response := range rr.Responses {
+					response.Timestamp = now
+				}
 				return resp, nil
 			}
 		}
@@ -245,78 +244,81 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 
 // AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
 func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
 
-		// Identity metadata for audit events. We will always include the IP address in the
-		// metadata configuration, and only include the email when it exists from the user logging
-		// into the UI via OIDC.
-		var author string
-		var ipAddress string
-
-		md, _ := metadata.FromIncomingContext(ctx)
-		if len(md[ipKey]) > 0 {
-			ipAddress = md[ipKey][0]
-		}
-
-		auth := auth.GetAuthenticationFrom(ctx)
-		if auth != nil {
-			author = auth.Metadata[oidcEmailKey]
-		}
+		actor := auth.ActorFromContext(ctx)
 
 		var event *audit.Event
 
+		defer func() {
+			if event != nil {
+				span := trace.SpanFromContext(ctx)
+				span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+			}
+		}()
+
+		// Delete request(s) have to be handled separately because they do not
+		// return the concrete type but rather an *empty.Empty response.
 		switch r := req.(type) {
-		case *flipt.CreateFlagRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateFlagRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Update, IP: ipAddress, Author: author}, r)
 		case *flipt.DeleteFlagRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Flag, Action: audit.Delete, IP: ipAddress, Author: author}, r)
-		case *flipt.CreateVariantRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateVariantRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.FlagType, audit.Delete, actor, r)
 		case *flipt.DeleteVariantRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Variant, Action: audit.Delete, IP: ipAddress, Author: author}, r)
-		case *flipt.CreateSegmentRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateSegmentRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.VariantType, audit.Delete, actor, r)
 		case *flipt.DeleteSegmentRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Segment, Action: audit.Delete, IP: ipAddress, Author: author}, r)
-		case *flipt.CreateConstraintRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateConstraintRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Update, IP: ipAddress, Author: author}, r)
-		case *flipt.DeleteConstraintRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Constraint, Action: audit.Delete, IP: ipAddress, Author: author}, r)
-		case *flipt.CreateDistributionRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateDistributionRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.SegmentType, audit.Delete, actor, r)
 		case *flipt.DeleteDistributionRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Distribution, Action: audit.Delete, IP: ipAddress, Author: author}, r)
-		case *flipt.CreateRuleRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateRuleRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Update, IP: ipAddress, Author: author}, r)
-		case *flipt.DeleteRuleRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Rule, Action: audit.Delete, IP: ipAddress, Author: author}, r)
-		case *flipt.CreateNamespaceRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Create, IP: ipAddress, Author: author}, r)
-		case *flipt.UpdateNamespaceRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Update, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.DistributionType, audit.Delete, actor, r)
+		case *flipt.DeleteConstraintRequest:
+			event = audit.NewEvent(audit.ConstraintType, audit.Delete, actor, r)
 		case *flipt.DeleteNamespaceRequest:
-			event = audit.NewEvent(audit.Metadata{Type: audit.Namespace, Action: audit.Delete, IP: ipAddress, Author: author}, r)
+			event = audit.NewEvent(audit.NamespaceType, audit.Delete, actor, r)
+		case *flipt.DeleteRuleRequest:
+			event = audit.NewEvent(audit.RuleType, audit.Delete, actor, r)
 		}
 
+		// Short circuiting the middleware here since we have a non-nil event from
+		// detecting a delete.
 		if event != nil {
-			span := trace.SpanFromContext(ctx)
-			span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+			return resp, err
+		}
+
+		action := audit.GRPCMethodToAction(info.FullMethod)
+
+		switch r := resp.(type) {
+		case *flipt.Flag:
+			if action != "" {
+				event = audit.NewEvent(audit.FlagType, action, actor, audit.NewFlag(r))
+			}
+		case *flipt.Variant:
+			if action != "" {
+				event = audit.NewEvent(audit.VariantType, action, actor, audit.NewVariant(r))
+			}
+		case *flipt.Segment:
+			if action != "" {
+				event = audit.NewEvent(audit.SegmentType, action, actor, audit.NewSegment(r))
+			}
+		case *flipt.Distribution:
+			if action != "" {
+				event = audit.NewEvent(audit.DistributionType, action, actor, audit.NewDistribution(r))
+			}
+		case *flipt.Constraint:
+			if action != "" {
+				event = audit.NewEvent(audit.ConstraintType, action, actor, audit.NewConstraint(r))
+			}
+		case *flipt.Namespace:
+			if action != "" {
+				event = audit.NewEvent(audit.NamespaceType, action, actor, audit.NewNamespace(r))
+			}
+		case *flipt.Rule:
+			if action != "" {
+				event = audit.NewEvent(audit.RuleType, action, actor, audit.NewRule(r))
+			}
+		case *fauth.CreateTokenResponse:
+			event = audit.NewEvent(audit.TokenType, audit.Create, actor, r.Authentication.Metadata)
 		}
 
 		return resp, err

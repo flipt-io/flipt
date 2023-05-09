@@ -266,6 +266,7 @@ func API(t *testing.T, client sdk.SDK, namespace string) {
 			Property:     retrievedSegment.Constraints[0].Property,
 			Operator:     retrievedSegment.Constraints[0].Operator,
 			Value:        "baz",
+			Description:  "newdesc",
 		})
 		require.NoError(t, err)
 
@@ -273,6 +274,7 @@ func API(t *testing.T, client sdk.SDK, namespace string) {
 		assert.Equal(t, "foo", updatedConstraint.Property)
 		assert.Equal(t, "eq", updatedConstraint.Operator)
 		assert.Equal(t, "baz", updatedConstraint.Value)
+		assert.Equal(t, "newdesc", updatedConstraint.Description)
 	})
 
 	t.Run("Rules and Distributions", func(t *testing.T) {

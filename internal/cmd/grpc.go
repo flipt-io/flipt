@@ -184,10 +184,18 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
+	var auditLoggingEnabled bool
+
+	// If any of the audit logging sinks are enabled, then audit logging is enabled in general.
+	if cfg.Audit.Sinks.LogFile.Enabled {
+		auditLoggingEnabled = true
+	}
+
 	register, authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
 		cfg,
+		auditLoggingEnabled,
 	)
 	if err != nil {
 		return nil, err

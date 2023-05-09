@@ -5,21 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/sdk/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 const (
-	eventVersion           = "v0.1"
-	eventVersionKey        = "flipt.event.version"
-	eventMetadataActionKey = "flipt.event.metadata.action"
-	eventMetadataTypeKey   = "flipt.event.metadata.type"
-	eventMetadataIPKey     = "flipt.event.metadata.ip"
-	eventMetadataAuthorKey = "flipt.event.metadata.author"
-	eventPayloadKey        = "flipt.event.payload"
+	eventVersion          = "0.1"
+	eventVersionKey       = "flipt.event.version"
+	eventActionKey        = "flipt.event.action"
+	eventTypeKey          = "flipt.event.type"
+	eventMetadataActorKey = "flipt.event.metadata.actor"
+	eventPayloadKey       = "flipt.event.payload"
+	eventTimestampKey     = "flipt.event.timestamp"
 )
 
 // Type represents what resource is being acted on.
@@ -29,13 +32,14 @@ type Type string
 type Action string
 
 const (
-	Constraint   Type = "constraint"
-	Distribution Type = "distribution"
-	Flag         Type = "flag"
-	Namespace    Type = "namespace"
-	Rule         Type = "rule"
-	Segment      Type = "segment"
-	Variant      Type = "variant"
+	ConstraintType   Type = "constraint"
+	DistributionType Type = "distribution"
+	FlagType         Type = "flag"
+	NamespaceType    Type = "namespace"
+	RuleType         Type = "rule"
+	SegmentType      Type = "segment"
+	TokenType        Type = "token"
+	VariantType      Type = "variant"
 
 	Create Action = "created"
 	Delete Action = "deleted"
@@ -44,9 +48,26 @@ const (
 
 // Event holds information that represents an audit internally.
 type Event struct {
-	Version  string      `json:"version"`
-	Metadata Metadata    `json:"metadata"`
-	Payload  interface{} `json:"payload"`
+	Version string `json:"version"`
+	Type    Type   `json:"type"`
+	Action  Action `json:"action"`
+
+	Metadata Metadata `json:"metadata"`
+
+	Payload interface{} `json:"payload"`
+
+	Timestamp string `json:"timestamp"`
+}
+
+// GRPCMethodToAction returns the Action from the gRPC method.
+func GRPCMethodToAction(method string) Action {
+	if strings.Contains(method, "Create") {
+		return Create
+	} else if strings.Contains(method, "Update") {
+		return Update
+	}
+
+	return ""
 }
 
 // DecodeToAttributes provides a helper method for an Event that will return
@@ -61,31 +82,32 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 		})
 	}
 
-	if e.Metadata.Action != "" {
+	if e.Action != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   eventMetadataActionKey,
-			Value: attribute.StringValue(string(e.Metadata.Action)),
+			Key:   eventActionKey,
+			Value: attribute.StringValue(string(e.Action)),
 		})
 	}
 
-	if e.Metadata.Type != "" {
+	if e.Type != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   eventMetadataTypeKey,
-			Value: attribute.StringValue(string(e.Metadata.Type)),
+			Key:   eventTypeKey,
+			Value: attribute.StringValue(string(e.Type)),
 		})
 	}
 
-	if e.Metadata.IP != "" {
+	if e.Timestamp != "" {
 		akv = append(akv, attribute.KeyValue{
-			Key:   eventMetadataIPKey,
-			Value: attribute.StringValue(e.Metadata.IP),
+			Key:   eventTimestampKey,
+			Value: attribute.StringValue(e.Timestamp),
 		})
 	}
 
-	if e.Metadata.Author != "" {
+	b, err := json.Marshal(e.Metadata.Actor)
+	if err == nil {
 		akv = append(akv, attribute.KeyValue{
-			Key:   eventMetadataAuthorKey,
-			Value: attribute.StringValue(e.Metadata.Author),
+			Key:   eventMetadataActorKey,
+			Value: attribute.StringValue(string(b)),
 		})
 	}
 
@@ -102,8 +124,13 @@ func (e Event) DecodeToAttributes() []attribute.KeyValue {
 	return akv
 }
 
+func (e *Event) AddToSpan(ctx context.Context) {
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent("event", trace.WithAttributes(e.DecodeToAttributes()...))
+}
+
 func (e *Event) Valid() bool {
-	return e.Version != "" && e.Metadata.Action != "" && e.Metadata.Type != "" && e.Payload != nil
+	return e.Version != "" && e.Action != "" && e.Type != "" && e.Timestamp != "" && e.Payload != nil
 }
 
 var errEventNotValid = errors.New("audit event not valid")
@@ -116,14 +143,18 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 		switch string(kv.Key) {
 		case eventVersionKey:
 			e.Version = kv.Value.AsString()
-		case eventMetadataActionKey:
-			e.Metadata.Action = Action(kv.Value.AsString())
-		case eventMetadataTypeKey:
-			e.Metadata.Type = Type(kv.Value.AsString())
-		case eventMetadataIPKey:
-			e.Metadata.IP = kv.Value.AsString()
-		case eventMetadataAuthorKey:
-			e.Metadata.Author = kv.Value.AsString()
+		case eventActionKey:
+			e.Action = Action(kv.Value.AsString())
+		case eventTypeKey:
+			e.Type = Type(kv.Value.AsString())
+		case eventTimestampKey:
+			e.Timestamp = kv.Value.AsString()
+		case eventMetadataActorKey:
+			var actor map[string]string
+			if err := json.Unmarshal([]byte(kv.Value.AsString()), &actor); err != nil {
+				return nil, err
+			}
+			e.Metadata.Actor = actor
 		case eventPayloadKey:
 			var payload interface{}
 			if err := json.Unmarshal([]byte(kv.Value.AsString()), &payload); err != nil {
@@ -142,10 +173,7 @@ func decodeToEvent(kvs []attribute.KeyValue) (*Event, error) {
 
 // Metadata holds information of what metadata an event will contain.
 type Metadata struct {
-	Type   Type   `json:"type"`
-	Action Action `json:"action"`
-	IP     string `json:"ip,omitempty"`
-	Author string `json:"author,omitempty"`
+	Actor map[string]string `json:"actor,omitempty"`
 }
 
 // Sink is the abstraction for various audit sink configurations
@@ -164,7 +192,7 @@ type SinkSpanExporter struct {
 
 // EventExporter provides an API for exporting spans as Event(s).
 type EventExporter interface {
-	ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error
+	ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error
 	Shutdown(ctx context.Context) error
 	SendAudits(es []Event) error
 }
@@ -178,7 +206,7 @@ func NewSinkSpanExporter(logger *zap.Logger, sinks []Sink) EventExporter {
 }
 
 // ExportSpans completes one part of the implementation of a SpanExporter. Decodes span events to audit events.
-func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []trace.ReadOnlySpan) error {
+func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
 	es := make([]Event, 0)
 
 	for _, span := range spans {
@@ -230,15 +258,15 @@ func (s *SinkSpanExporter) SendAudits(es []Event) error {
 }
 
 // NewEvent is the constructor for an audit event.
-func NewEvent(metadata Metadata, payload interface{}) *Event {
+func NewEvent(eventType Type, action Action, actor map[string]string, payload interface{}) *Event {
 	return &Event{
 		Version: eventVersion,
+		Action:  action,
+		Type:    eventType,
 		Metadata: Metadata{
-			Type:   metadata.Type,
-			Action: metadata.Action,
-			IP:     metadata.IP,
-			Author: metadata.Author,
+			Actor: actor,
 		},
-		Payload: payload,
+		Payload:   payload,
+		Timestamp: time.Now().Format(time.RFC3339),
 	}
 }

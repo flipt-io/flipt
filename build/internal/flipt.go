@@ -174,13 +174,14 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 	return client.Container().From("alpine:3.16").
 		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
+		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
 		WithFile("/bin/flipt",
 			flipt.Directory(req.binary()).File("flipt")).
 		WithFile("/etc/flipt/config/default.yml",
 			flipt.Directory("/src/config").File("default.yml")).
 		WithExec([]string{"addgroup", "flipt"}).
 		WithExec([]string{"adduser", "-S", "-D", "-g", "''", "-G", "flipt", "-s", "/bin/sh", "flipt"}).
-		WithExec([]string{"chown", "-R", "flipt:flipt", "/etc/flipt", "/var/opt/flipt"}).
+		WithExec([]string{"chown", "-R", "flipt:flipt", "/etc/flipt", "/var/opt/flipt", "/var/log/flipt"}).
 		WithUser("flipt").
 		WithDefaultArgs(dagger.ContainerWithDefaultArgsOpts{
 			Args: []string{"/bin/flipt"},

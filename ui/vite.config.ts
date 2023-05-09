@@ -2,6 +2,8 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 const path = require('path');
 
+const fliptAddr = process.env.FLIPT_ADDRESS ?? 'http://localhost:8080';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -16,9 +18,9 @@ export default defineConfig({
   envPrefix: 'FLIPT_',
   server: {
     proxy: {
-      '/api/v1': 'http://localhost:8080',
-      '/auth/v1': 'http://localhost:8080',
-      '/meta': 'http://localhost:8080'
+      '/api/v1': fliptAddr,
+      '/auth/v1': fliptAddr,
+      '/meta': fliptAddr
     },
     origin: 'http://localhost:5173'
   }

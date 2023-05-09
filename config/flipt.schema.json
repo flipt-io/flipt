@@ -11,6 +11,9 @@
       "enum": ["1.0"],
       "default": "1.0"
     },
+    "audit": {
+      "$ref": "#/definitions/audit"
+    },
     "authentication": {
       "$ref": "#/definitions/authentication"
     },
@@ -519,6 +522,48 @@
         }
       },
       "title": "UI"
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sinks": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "log": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "file": {
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "title": "Log File"
+            }
+          }
+        },
+        "buffer": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "capacity": {
+              "type": "integer",
+              "default": 2
+            },
+            "flush_period": {
+              "type": "string",
+              "default": "2m"
+            }
+          }
+        }
+      },
+      "title": "Audit"
     }
   }
 }

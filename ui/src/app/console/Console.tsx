@@ -22,6 +22,7 @@ import {
 import { IConsole } from '~/types/Console';
 import { IFlag, IFlagList } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
+import { classNames } from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
 
@@ -41,6 +42,7 @@ export default function Console() {
   const [flags, setFlags] = useState<SelectableFlag[]>([]);
   const [selectedFlag, setSelectedFlag] = useState<SelectableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
+  const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
   const { setError, clearError } = useError();
   const navigate = useNavigate();
@@ -79,10 +81,12 @@ export default function Console() {
 
     evaluate(currentNamespace.key, flagKey, rest)
       .then((resp) => {
+        setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
       })
       .catch((err) => {
-        setResponse(err.message);
+        setHasEvaluationError(true);
+        setResponse('error: ' + err.message);
       });
   };
 
@@ -130,6 +134,7 @@ export default function Console() {
                 }}
                 onReset={() => {
                   setResponse(null);
+                  setHasEvaluationError(false);
                   setSelectedFlag(null);
                 }}
               >
@@ -214,7 +219,12 @@ export default function Console() {
             <div className="mt-8 w-full overflow-hidden md:w-1/2 md:pl-4">
               {response && (
                 <pre className="p-2 text-sm md:h-full">
-                  <code className="json rounded-sm md:h-full">
+                  <code
+                    className={classNames(
+                      hasEvaluationError ? 'border-4 border-red-400' : '',
+                      'json rounded-sm md:h-full'
+                    )}
+                  >
                     {response as React.ReactNode}
                   </code>
                 </pre>

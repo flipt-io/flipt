@@ -9,6 +9,7 @@ import "strings"
 	// Flipt application.
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
 	version?:        "1.0" | *"1.0"
+	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
@@ -33,8 +34,8 @@ import "strings"
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
 				bootstrap?: {
-					token?: string
-					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int 
+					token?:     string
+					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
 				}
 			}
 
@@ -157,4 +158,17 @@ import "strings"
 	}
 
 	#ui: enabled?: bool | *true
+
+	#audit: {
+		sinks?: {
+			log?: {
+				enabled?: bool | *false
+				file?:    string | *""
+			}
+		}
+		buffer?: {
+			capacity?:     int | *2
+			flush_period?: string | *"2m"
+		}
+	}
 }

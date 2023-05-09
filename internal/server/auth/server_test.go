@@ -26,6 +26,21 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func TestActorFromContext(t *testing.T) {
+	const (
+		ipAddress      = "127.0.0.1"
+		authentication = "token"
+	)
+
+	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
+	ctx = fauth.ContextWithAuthentication(ctx, &auth.Authentication{Method: auth.Method_METHOD_TOKEN})
+
+	actor := fauth.ActorFromContext(ctx)
+
+	require.Equal(t, actor["ip"], ipAddress)
+	require.Equal(t, actor["authentication"], authentication)
+}
+
 func TestServer(t *testing.T) {
 	var (
 		logger   = zaptest.NewLogger(t)

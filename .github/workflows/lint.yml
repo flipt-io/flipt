@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: DavidAnson/markdownlint-cli2-action@v9
+      - uses: DavidAnson/markdownlint-cli2-action@v10
         with:
           command: config
           globs: |
@@ -50,6 +50,7 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1.7.0
         with:
           version: "latest"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: bufbuild/buf-lint-action@v1
         with:
@@ -68,7 +69,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: "18"
           cache: "npm"
           cache-dependency-path: ui/package-lock.json
 
@@ -111,6 +112,7 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1.7.0
         with:
           version: "latest"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: magefile/mage-action@v2
         with:
@@ -118,4 +120,4 @@ jobs:
           args: proto
 
       - name: Ensure clean git state.
-        run: git diff --quiet --exit-code || (echo "Please run 'mage proto' and commit changes." && exit 1)
+        run: git diff --quiet --exit-code sdk/ rpc/ || (echo "Please run 'mage proto' and commit changes." && exit 1)
