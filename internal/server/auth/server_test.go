@@ -65,7 +65,7 @@ func TestServer(t *testing.T) {
 
 	defer shutdown(t)
 
-	auth.RegisterAuthenticationServiceServer(server, fauth.NewServer(logger, store))
+	auth.RegisterAuthenticationServiceServer(server, fauth.NewServer(logger, store, fauth.WithAuditLoggingEnabled(true)))
 
 	go func() {
 		errC <- server.Serve(listener)
