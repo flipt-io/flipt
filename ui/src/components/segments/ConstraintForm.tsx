@@ -1,4 +1,5 @@
 import { Dialog } from '@headlessui/react';
+import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import moment from 'moment';
@@ -114,6 +115,7 @@ function ConstraintValueInput(props: ConstraintInputProps) {
 
 function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   const { setFieldValue } = useFormikContext();
+
   const [field] = useField({
     ...props,
     validate: (value) => {
@@ -121,6 +123,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       return m.isValid() ? undefined : 'Value is not a valid datetime';
     }
   });
+
   const [fieldDate, setFieldDate] = useState(field.value?.split('T')[0] || '');
   const [fieldTime, setFieldTime] = useState(
     field.value?.split('T')[1]?.slice(0, 5) || ''
@@ -156,6 +159,20 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
         >
           Value
         </label>
+        <span className="text-xs text-gray-400" id="value-utc">
+          <a
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+            className="group inline-flex items-center text-gray-400 hover:text-gray-500"
+          >
+            <QuestionMarkCircleIcon
+              className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
+              aria-hidden="true"
+            />
+            <span className="ml-1">UTC Time</span>
+          </a>
+        </span>
       </div>
       <div className="sm:col-span-1">
         <Input
