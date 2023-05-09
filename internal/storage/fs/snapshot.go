@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"github.com/gofrs/uuid"
-	"go.flipt.io/flipt/cue"
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
