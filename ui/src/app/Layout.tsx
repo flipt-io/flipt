@@ -62,14 +62,14 @@ function InnerLayout() {
 
 export default function Layout() {
   return (
-    <TimezoneProvider>
-      <NotificationProvider>
+    <NotificationProvider>
+      <TimezoneProvider>
         <NamespaceProvider>
           <InnerLayout />
         </NamespaceProvider>
-        <ErrorNotification />
-        <SuccessNotification />
-      </NotificationProvider>
-    </TimezoneProvider>
+      </TimezoneProvider>
+      <ErrorNotification />
+      <SuccessNotification />
+    </NotificationProvider>
   );
 }

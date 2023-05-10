@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext } from 'react';
 import { useLocalStorage } from '~/data/hooks/storage';
 
 interface TimezoneContextType {
@@ -13,18 +13,15 @@ export default function TimezoneProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [_, setTimezoneStorage] = useLocalStorage('timezone', 'local');
-  const [tz, setTz] = useState('local');
-
-  const setTimezone = (data: string) => {
-    setTimezoneStorage(data);
-    setTz(data);
-  };
-
-  const value = { timezone: tz, setTimezone };
+  const [timezone, setTimezone] = useLocalStorage('timezone', 'local');
 
   return (
-    <TimezoneContext.Provider value={value}>
+    <TimezoneContext.Provider
+      value={{
+        timezone,
+        setTimezone
+      }}
+    >
       {children}
     </TimezoneContext.Provider>
   );
