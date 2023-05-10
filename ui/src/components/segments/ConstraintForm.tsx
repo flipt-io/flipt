@@ -119,7 +119,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   const [field] = useField({
     ...props,
     validate: (value) => {
-      let m = moment(value);
+      let m = moment.utc(value);
       return m.isValid() ? undefined : 'Value is not a valid datetime';
     }
   });
@@ -137,14 +137,14 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       fieldTime &&
       fieldTime.trim() !== ''
     ) {
-      const m = moment(`${fieldDate} ${fieldTime}`, 'YYYY-MM-DD HH:mm');
+      const m = moment.utc(`${fieldDate} ${fieldTime}`, 'YYYY-MM-DD HH:mm');
       setFieldValue(field.name, m.isValid() ? m.format() : '');
       return;
     }
 
     // otherwise, if only date is set, then parse and set the value
     if (fieldDate && fieldDate.trim() !== '') {
-      const m = moment(fieldDate, 'YYYY-MM-DD');
+      const m = moment.utc(fieldDate, 'YYYY-MM-DD');
       setFieldValue(field.name, m.isValid() ? m.format() : '');
       return;
     }
@@ -170,7 +170,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
               className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
               aria-hidden="true"
             />
-            <span className="ml-1">UTC Time</span>
+            <span className="ml-1">UTC</span>
           </a>
         </span>
       </div>
