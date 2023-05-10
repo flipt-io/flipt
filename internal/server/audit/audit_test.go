@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -28,41 +29,82 @@ func (s *sampleSink) SendAudits(es []Event) error {
 func (s *sampleSink) Close() error { return nil }
 
 func TestSinkSpanExporter(t *testing.T) {
-	ss := &sampleSink{ch: make(chan Event)}
-	sse := NewSinkSpanExporter(zap.NewNop(), []Sink{ss})
+	cases := []struct {
+		name      string
+		fType     Type
+		action    Action
+		expectErr bool
+	}{
+		{
+			name:      "Valid",
+			fType:     FlagType,
+			action:    Create,
+			expectErr: false,
+		},
+		{
+			name:      "Invalid",
+			fType:     Type(""),
+			action:    Action(""),
+			expectErr: true,
+		},
+	}
 
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
-	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(sse))
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.Background()
 
-	tr := tp.Tracer("SpanProcessor")
+			ss := &sampleSink{ch: make(chan Event)}
+			sse := NewSinkSpanExporter(zap.NewNop(), []Sink{ss})
 
-	_, span := tr.Start(context.Background(), "OnStart")
+			defer func() {
+				_ = sse.Shutdown(ctx)
+			}()
 
-	e := NewEvent(
-		FlagType,
-		Create,
-		map[string]string{
-			"authentication": "token",
-			"ip":             "127.0.0.1",
-		}, &Flag{
-			Key:         "this-flag",
-			Name:        "this-flag",
-			Description: "this description",
-			Enabled:     false,
+			tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+			tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(sse))
+
+			tr := tp.Tracer("SpanProcessor")
+
+			_, span := tr.Start(ctx, "OnStart")
+
+			e := NewEvent(
+				c.fType,
+				c.action,
+				map[string]string{
+					"authentication": "token",
+					"ip":             "127.0.0.1",
+				}, &Flag{
+					Key:         "this-flag",
+					Name:        "this-flag",
+					Description: "this description",
+					Enabled:     false,
+				})
+
+			span.AddEvent("auditEvent", trace.WithAttributes(e.DecodeToAttributes()...))
+			span.End()
+
+			timeoutCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+
+			select {
+			case se := <-ss.ch:
+				assert.Equal(t, e.Metadata, se.Metadata)
+				assert.Equal(t, e.Version, se.Version)
+			case <-timeoutCtx.Done():
+				if !c.expectErr {
+					assert.Fail(t, "send audits should have been called")
+				}
+			}
 		})
-
-	span.AddEvent("auditEvent", trace.WithAttributes(e.DecodeToAttributes()...))
-	span.End()
-
-	se := <-ss.ch
-	assert.Equal(t, e.Metadata, se.Metadata)
-	assert.Equal(t, e.Version, se.Version)
+	}
 }
-
 func TestGRPCMethodToAction(t *testing.T) {
 	a := GRPCMethodToAction("CreateNamespace")
 	assert.Equal(t, Create, a)
 
 	a = GRPCMethodToAction("UpdateSegment")
 	assert.Equal(t, Update, a)
+
+	a = GRPCMethodToAction("NoMethodMatched")
+	assert.Equal(t, "", string(a))
 }

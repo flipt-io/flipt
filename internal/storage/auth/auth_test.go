@@ -3,8 +3,11 @@ package auth
 import (
 	"encoding/base64"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 )
 
 func FuzzHashClientToken(f *testing.F) {
@@ -26,4 +29,24 @@ func FuzzHashClientToken(f *testing.F) {
 		_, err = base64.URLEncoding.DecodeString(hashed)
 		require.NoError(t, err)
 	})
+}
+
+func TestDelete_Valid(t *testing.T) {
+	dreq := Delete(WithID("987654321"), WithMethod(auth.Method_METHOD_TOKEN), WithExpiredBefore(time.Now()))
+	err := dreq.Valid()
+
+	assert.NoError(t, err)
+}
+
+func TestDelete_Invalid(t *testing.T) {
+	dreq := Delete()
+	err := dreq.Valid()
+
+	assert.Error(t, err)
+}
+
+func TestGenerateRandomToken(t *testing.T) {
+	s := GenerateRandomToken()
+
+	assert.NotEmpty(t, s)
 }
