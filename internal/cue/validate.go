@@ -79,10 +79,6 @@ func writeErrorDetails(format string, cerrs []Error, w io.Writer) error {
   Column : %d
 `, cerrs[i].Message, cerrs[i].Location.File, cerrs[i].Location.Line, cerrs[i].Location.Column)
 
-			if i < len(cerrs)-1 {
-				errString += "\n"
-			}
-
 			sb.WriteString(errString)
 		}
 	}
@@ -108,7 +104,7 @@ func writeErrorDetails(format string, cerrs []Error, w io.Writer) error {
 		buildErrorMessage()
 	}
 
-	fmt.Fprintln(w, sb.String())
+	fmt.Fprint(w, sb.String())
 
 	return nil
 }
@@ -125,12 +121,8 @@ func ValidateFiles(dst io.Writer, files []string, format string) error {
 		// Quit execution of the cue validating against the yaml
 		// files upon failure to read file.
 		if err != nil {
-			var sb strings.Builder
-
-			sb.WriteString("❌ Validation failure!\n\n")
-			sb.WriteString(fmt.Sprintf("Failed to read file %s", f))
-
-			fmt.Fprintln(dst, sb.String())
+			fmt.Print("❌ Validation failure!\n\n")
+			fmt.Printf("Failed to read file %s", f)
 
 			return ErrValidationFailed
 		}
@@ -170,15 +162,11 @@ func ValidateFiles(dst io.Writer, files []string, format string) error {
 			return nil
 		}
 
-		var sb strings.Builder
-
 		if format != textFormat {
-			sb.WriteString("Invalid format chosen, defaulting to \"text\" format...\n")
+			fmt.Print("Invalid format chosen, defaulting to \"text\" format...\n")
 		}
 
-		sb.WriteString("✅ Validation success!")
-
-		fmt.Fprintln(dst, sb.String())
+		fmt.Println("✅ Validation success!")
 	}
 
 	return nil
