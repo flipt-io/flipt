@@ -152,7 +152,7 @@ func ValidateFiles(dst io.Writer, files []string, format string) error {
 
 			fmt.Fprintln(dst, buffer.String())
 
-			return err
+			return ErrValidationFailed
 		}
 		err = validate(b, cctx)
 		if err != nil {
@@ -183,7 +183,7 @@ func ValidateFiles(dst io.Writer, files []string, format string) error {
 			return err
 		}
 
-		return errors.New("validation error")
+		return ErrValidationFailed
 	} else {
 		if err := writeSuccessDetails(format, dst); err != nil {
 			return err
