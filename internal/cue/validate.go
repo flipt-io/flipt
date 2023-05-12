@@ -1,6 +1,7 @@
 package cue
 
 import (
+	"bytes"
 	_ "embed"
 	"encoding/json"
 	"errors"
@@ -17,6 +18,9 @@ import (
 var (
 	//go:embed flipt.cue
 	cueFile []byte
+
+	jsonFormat = "json"
+	textFormat = "text"
 )
 
 var (
@@ -59,9 +63,79 @@ type Error struct {
 	Location Location `json:"location"`
 }
 
+func writeErrorDetails(format string, cerrs []Error, w io.Writer) error {
+	if format == jsonFormat {
+		allErrors := struct {
+			Errors []Error `json:"errors"`
+		}{
+			Errors: cerrs,
+		}
+
+		if err := json.NewEncoder(os.Stdout).Encode(allErrors); err != nil {
+			fmt.Fprintln(w, "Internal error.")
+			return err
+		}
+
+		return nil
+	}
+
+	if format != textFormat {
+		fmt.Fprintln(w, "Invalid format chosen, defaulting to \"text\" format...")
+	}
+
+	var buffer bytes.Buffer
+
+	buffer.WriteString("❌ Validation failure!\n\n")
+
+	for i := 0; i < len(cerrs); i++ {
+		errString := fmt.Sprintf(`
+- Message: %s
+  File   : %s
+  Line   : %d
+  Column : %d
+`, cerrs[i].Message, cerrs[i].Location.File, cerrs[i].Location.Line, cerrs[i].Location.Column)
+
+		if i < len(cerrs)-1 {
+			errString += "\n"
+		}
+
+		buffer.WriteString(errString)
+	}
+
+	fmt.Fprintln(w, buffer.String())
+
+	return nil
+}
+
+func writeSuccessDetails(format string, w io.Writer) error {
+	if format == jsonFormat {
+		success := struct {
+			Validate string `json:"validate"`
+		}{
+			Validate: "success",
+		}
+		if err := json.NewEncoder(w).Encode(success); err != nil {
+			fmt.Fprintln(w, "Internal error.")
+			return err
+		}
+
+		return nil
+	}
+
+	if format != textFormat {
+		fmt.Fprintln(w, "Invalid format chosen, defaulting to text...")
+	}
+
+	successMessage := "✅ Validation success!"
+
+	fmt.Fprintln(w, successMessage)
+
+	return nil
+}
+
 // ValidateFiles takes a slice of strings as filenames and validates them against
 // our cue definition of features.
-func ValidateFiles(dst io.Writer, files []string) error {
+func ValidateFiles(dst io.Writer, files []string, format string) error {
 	cctx := cuecontext.New()
 
 	cerrs := make([]Error, 0)
@@ -71,6 +145,13 @@ func ValidateFiles(dst io.Writer, files []string) error {
 		// Quit execution of the cue validating against the yaml
 		// files upon failure to read file.
 		if err != nil {
+			var buffer bytes.Buffer
+
+			buffer.WriteString("❌ Validation failure!\n")
+			buffer.WriteString(fmt.Sprintf("Failed to read file %s", f))
+
+			fmt.Fprintln(dst, buffer.String())
+
 			return err
 		}
 		err = validate(b, cctx)
@@ -98,18 +179,15 @@ func ValidateFiles(dst io.Writer, files []string) error {
 	}
 
 	if len(cerrs) > 0 {
-		allErrors := struct {
-			Errors []Error `json:"errors"`
-		}{
-			Errors: cerrs,
-		}
-
-		// Write out the json output to dst upon error detection
-		if err := json.NewEncoder(dst).Encode(allErrors); err != nil {
+		if err := writeErrorDetails(format, cerrs, dst); err != nil {
 			return err
 		}
 
-		return ErrValidationFailed
+		return errors.New("validation error")
+	} else {
+		if err := writeSuccessDetails(format, dst); err != nil {
+			return err
+		}
 	}
 
 	return nil
