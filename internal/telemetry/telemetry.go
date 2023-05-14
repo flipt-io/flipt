@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.uber.org/zap"
@@ -177,8 +178,19 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 		}
 	)
 
+	var dbProtocol = r.cfg.Database.Protocol.String()
+
+	if dbProtocol == "" && r.cfg.Database.URL != "" {
+		url, err := dburl.Parse(r.cfg.Database.URL)
+		if err != nil {
+			return fmt.Errorf("error parsing url: %q, %w", url, err)
+		}
+
+		dbProtocol = url.Scheme
+	}
+
 	flipt.Storage = &storage{
-		Database: r.cfg.Database.Protocol.String(),
+		Database: dbProtocol,
 	}
 
 	// only report cache if enabled
