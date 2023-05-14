@@ -181,12 +181,13 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	var dbProtocol = r.cfg.Database.Protocol.String()
 
 	if dbProtocol == "" && r.cfg.Database.URL != "" {
-		url, err := dburl.Parse(r.cfg.Database.URL)
-		if err != nil {
-			return fmt.Errorf("error parsing url: %q, %w", url, err)
-		}
+		dbProtocol = "unknown"
 
-		dbProtocol = url.Scheme
+		url, err := dburl.Parse(r.cfg.Database.URL)
+		if err == nil {
+			// just swallow the error, we don't want to fail telemetry reporting
+			dbProtocol = url.Scheme
+		}
 	}
 
 	flipt.Storage = &storage{
