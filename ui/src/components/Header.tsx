@@ -4,7 +4,6 @@ import { getInfo } from '~/data/api';
 import { useSession } from '~/data/hooks/session';
 import { Info } from '~/types/Meta';
 import Notifications from './header/Notifications';
-import TimezonePicker from './header/TimezonePicker';
 import UserProfile from './header/UserProfile';
 
 type HeaderProps = {
@@ -42,8 +41,6 @@ export default function Header(props: HeaderProps) {
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
           {/* notifications */}
           {info && info.updateAvailable && <Notifications info={info} />}
-
-          <TimezonePicker />
 
           {/* user profile */}
           {session && session.self && (

@@ -17,7 +17,7 @@ type NamespaceContextType = {
   setNamespaces: (namespaces: INamespace[]) => void;
 };
 
-export default function Namespaces(): JSX.Element {
+export default function Namespaces() {
   const { namespaces, setNamespaces } =
     useOutletContext<NamespaceContextType>();
 
@@ -109,7 +109,7 @@ export default function Namespaces(): JSX.Element {
             <h1 className="text-xl font-semibold text-gray-700">Namespaces</h1>
             <p className="mt-2 text-sm text-gray-500">
               Namespaces allow you to group your flags, segments and rules under
-              a single name.
+              a single name
             </p>
           </div>
           <div className="mt-4">

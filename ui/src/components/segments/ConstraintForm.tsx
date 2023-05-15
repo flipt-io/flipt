@@ -2,6 +2,7 @@ import { Dialog } from '@headlessui/react';
 import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik, useField, useFormikContext } from 'formik';
+import { upperFirst } from 'lodash';
 import moment from 'moment';
 import { forwardRef, useEffect, useState } from 'react';
 import * as Yup from 'yup';
@@ -14,6 +15,7 @@ import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
+import { useTimezone } from '~/data/hooks/timezone';
 import { requiredValidation } from '~/data/validations';
 import {
   ComparisonType,
@@ -115,19 +117,19 @@ function ConstraintValueInput(props: ConstraintInputProps) {
 
 function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   const { setFieldValue } = useFormikContext();
+  const { timezone } = useTimezone();
 
   const [field] = useField({
     ...props,
     validate: (value) => {
-      let m = moment.utc(value);
+      const m = moment(value);
+      console.log('isValid', m.isValid());
       return m.isValid() ? undefined : 'Value is not a valid datetime';
     }
   });
 
   const [fieldDate, setFieldDate] = useState(field.value?.split('T')[0] || '');
-  const [fieldTime, setFieldTime] = useState(
-    field.value?.split('T')[1]?.slice(0, 5) || ''
-  );
+  const [fieldTime, setFieldTime] = useState(field.value?.split('T')[1] || '');
 
   useEffect(() => {
     // if both date and time are set, then combine, parse, and set the value
@@ -137,16 +139,28 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       fieldTime &&
       fieldTime.trim() !== ''
     ) {
-      const m = moment.utc(`${fieldDate} ${fieldTime}`, 'YYYY-MM-DD HH:mm');
-      setFieldValue(field.name, m.isValid() ? m.format() : '');
+      let m;
+      if (timezone && timezone === 'utc') {
+        m = moment.utc(`${fieldDate}T${fieldTime}`);
+      } else {
+        m = moment(`${fieldDate}T${fieldTime}`);
+      }
+
+      setFieldValue(field.name, m.format());
       return;
     }
 
     // otherwise, if only date is set, then parse and set the value
     if (fieldDate && fieldDate.trim() !== '') {
-      const m = moment.utc(fieldDate, 'YYYY-MM-DD');
-      setFieldValue(field.name, m.isValid() ? m.format() : '');
-      return;
+      let m;
+
+      if (timezone && timezone === 'utc') {
+        m = moment.utc(fieldDate);
+      } else {
+        m = moment(fieldDate);
+      }
+
+      setFieldValue(field.name, m.format());
     }
   }, [field.name, fieldDate, fieldTime, setFieldValue]);
 
@@ -159,7 +173,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
         >
           Value
         </label>
-        <span className="text-xs text-gray-400" id="value-utc">
+        <span className="text-xs text-gray-400" id="value-tz">
           <a
             href="#"
             target="_blank"
@@ -170,7 +184,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
               className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
               aria-hidden="true"
             />
-            <span className="ml-1">UTC</span>
+            <span className="ml-1">{upperFirst(timezone)}</span>
           </a>
         </span>
       </div>
@@ -190,7 +204,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
           type="time"
           id="valueTime"
           name="valueTime"
-          value={fieldTime}
+          value={fieldTime.slice(0, 5)}
           onChange={(e) => {
             setFieldTime(e.target.value);
           }}
