@@ -123,7 +123,6 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
     ...props,
     validate: (value) => {
       const m = moment(value);
-      console.log('isValid', m.isValid());
       return m.isValid() ? undefined : 'Value is not a valid datetime';
     }
   });
@@ -140,13 +139,14 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       fieldTime.trim() !== ''
     ) {
       let m;
+
       if (timezone && timezone === 'utc') {
-        m = moment.utc(`${fieldDate}T${fieldTime}`);
+        m = moment.utc;
       } else {
-        m = moment(`${fieldDate}T${fieldTime}`);
+        m = moment;
       }
 
-      setFieldValue(field.name, m.format());
+      setFieldValue(field.name, m(`${fieldDate}T${fieldTime}`).format());
       return;
     }
 
@@ -155,12 +155,12 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       let m;
 
       if (timezone && timezone === 'utc') {
-        m = moment.utc(fieldDate);
+        m = moment.utc;
       } else {
-        m = moment(fieldDate);
+        m = moment;
       }
 
-      setFieldValue(field.name, m.format());
+      setFieldValue(field.name, m(fieldDate).format());
     }
   }, [field.name, fieldDate, fieldTime, setFieldValue]);
 
