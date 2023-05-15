@@ -1,12 +1,13 @@
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
+import { TimezoneType } from '~/components/TimezoneProvider';
 import { useTimezone } from '~/data/hooks/timezone';
 import { classNames } from '~/utils/helpers';
 
 export default function Preferences() {
   const { timezone, setTimezone } = useTimezone();
   const [utcTimezoneEnabled, setUtcTimezoneEnabled] = useState(
-    timezone === 'utc'
+    timezone === TimezoneType.UTC
   );
 
   return (
@@ -38,7 +39,9 @@ export default function Preferences() {
                 checked={utcTimezoneEnabled}
                 onChange={() => {
                   setUtcTimezoneEnabled(!utcTimezoneEnabled);
-                  setTimezone(utcTimezoneEnabled ? 'local' : 'utc');
+                  setTimezone(
+                    utcTimezoneEnabled ? TimezoneType.LOCAL : TimezoneType.UTC
+                  );
                 }}
                 className={classNames(
                   utcTimezoneEnabled ? 'bg-purple-600' : 'bg-gray-200',

@@ -27,6 +27,7 @@ import {
   IConstraintBase,
   NoValueOperators
 } from '~/types/Constraint';
+import { TimezoneType } from '../TimezoneProvider';
 
 const constraintComparisonTypes = () =>
   (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(
@@ -140,7 +141,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
     ) {
       let m;
 
-      if (timezone && timezone === 'utc') {
+      if (timezone && timezone === TimezoneType.UTC) {
         m = moment.utc;
       } else {
         m = moment;
@@ -154,7 +155,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
     if (fieldDate && fieldDate.trim() !== '') {
       let m;
 
-      if (timezone && timezone === 'utc') {
+      if (timezone && timezone === TimezoneType.UTC) {
         m = moment.utc;
       } else {
         m = moment;

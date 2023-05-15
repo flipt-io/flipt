@@ -8,12 +8,20 @@ interface TimezoneContextType {
 
 export const TimezoneContext = createContext({} as TimezoneContextType);
 
+export enum TimezoneType {
+  UTC = 'utc',
+  LOCAL = 'local'
+}
+
 export default function TimezoneProvider({
   children
 }: {
   children: React.ReactNode;
 }) {
-  const [timezone, setTimezone] = useLocalStorage('timezone', 'local');
+  const [timezone, setTimezone] = useLocalStorage(
+    'timezone',
+    TimezoneType.LOCAL
+  );
 
   return (
     <TimezoneContext.Provider

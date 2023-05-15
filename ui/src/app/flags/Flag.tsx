@@ -9,10 +9,12 @@ import TabBar from '~/components/TabBar';
 import { deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import useNamespace from '~/data/hooks/namespace';
+import { useTimezone } from '~/data/hooks/timezone';
 import { IFlag } from '~/types/Flag';
 
 export default function Flag() {
   let { flagKey } = useParams();
+  const { inTimezone } = useTimezone();
 
   const [flag, setFlag] = useState<IFlag | null>(null);
   const [flagVersion, setFlagVersion] = useState(0);
@@ -83,7 +85,10 @@ export default function Flag() {
             {flag.name}
           </h2>
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div className="mt-2 flex items-center text-sm text-gray-500">
+            <div
+              title={inTimezone(flag.createdAt)}
+              className="mt-2 flex items-center text-sm text-gray-500"
+            >
               <CalendarIcon
                 className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
                 aria-hidden="true"

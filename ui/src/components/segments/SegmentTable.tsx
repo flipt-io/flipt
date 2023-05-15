@@ -11,11 +11,11 @@ import {
   SortingState,
   useReactTable
 } from '@tanstack/react-table';
-import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
+import { useTimezone } from '~/data/hooks/timezone';
 import { INamespace } from '~/types/Namespace';
 import { ISegment, SegmentMatchType } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
@@ -27,6 +27,7 @@ type SegmentTableProps = {
 
 export default function SegmentTable(props: SegmentTableProps) {
   const { namespace, segments } = props;
+  const { inTimezone } = useTimezone();
 
   const path = `/namespaces/${namespace.key}/segments`;
 
@@ -80,44 +81,38 @@ export default function SegmentTable(props: SegmentTableProps) {
         className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-500'
       }
     }),
-    columnHelper.accessor(
-      (row) => formatDistanceToNowStrict(parseISO(row.createdAt)),
-      {
-        header: 'Created',
-        id: 'createdAt',
-        meta: {
-          className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-        },
-        sortingFn: (
-          rowA: Row<ISegment>,
-          rowB: Row<ISegment>,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _columnId: string
-        ): number =>
-          new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
-            ? 1
-            : -1
-      }
-    ),
-    columnHelper.accessor(
-      (row) => formatDistanceToNowStrict(parseISO(row.updatedAt)),
-      {
-        header: 'Updated',
-        id: 'updatedAt',
-        meta: {
-          className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-        },
-        sortingFn: (
-          rowA: Row<ISegment>,
-          rowB: Row<ISegment>,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          _columnId: string
-        ): number =>
-          new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
-            ? 1
-            : -1
-      }
-    )
+    columnHelper.accessor((row) => inTimezone(row.createdAt), {
+      header: 'Created',
+      id: 'createdAt',
+      meta: {
+        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-500'
+      },
+      sortingFn: (
+        rowA: Row<ISegment>,
+        rowB: Row<ISegment>,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _columnId: string
+      ): number =>
+        new Date(rowA.original.createdAt) < new Date(rowB.original.createdAt)
+          ? 1
+          : -1
+    }),
+    columnHelper.accessor((row) => inTimezone(row.updatedAt), {
+      header: 'Updated',
+      id: 'updatedAt',
+      meta: {
+        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-500'
+      },
+      sortingFn: (
+        rowA: Row<ISegment>,
+        rowB: Row<ISegment>,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _columnId: string
+      ): number =>
+        new Date(rowA.original.updatedAt) < new Date(rowB.original.updatedAt)
+          ? 1
+          : -1
+    })
   ];
 
   const table = useReactTable({
