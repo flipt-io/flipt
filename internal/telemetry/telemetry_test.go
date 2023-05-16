@@ -108,6 +108,34 @@ func TestPing(t *testing.T) {
 			},
 		},
 		{
+			name: "with db url",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL: "sqlite:///foo.db",
+				},
+			},
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "sqlite",
+				},
+			},
+		},
+		{
+			name: "with unknown db url",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					URL: "foo:///foo.db",
+				},
+			},
+			want: map[string]interface{}{
+				"version": "1.0.0",
+				"storage": map[string]interface{}{
+					"database": "unknown",
+				},
+			},
+		},
+		{
 			name: "with cache not enabled",
 			cfg: config.Config{
 				Database: config.DatabaseConfig{
