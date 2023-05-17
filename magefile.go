@@ -78,8 +78,19 @@ func Build() error {
 	mg.Deps(UI)
 	fmt.Println("Building...")
 
-	if err := build(buildModeProd); err != nil {
-		return err
+	buildDate := time.Now().UTC().Format(time.RFC3339)
+	buildArgs := []string{"-tags", "assets"}
+
+	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
+	if err != nil {
+		return fmt.Errorf("getting git commit: %w", err)
+	}
+
+	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
+	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
+
+	if err := sh.RunV("go", buildArgs...); err != nil {
+		return fmt.Errorf("building: %w", err)
 	}
 
 	fmt.Println("Done.")
@@ -88,31 +99,10 @@ func Build() error {
 	return nil
 }
 
-// Dev builds the project for development, without bundling assets
+// Dev runs the project for development, without bundling assets
 func Dev() error {
-	mg.Deps(Clean)
-	fmt.Println("Building...")
-
-	if err := build(buildModeDev); err != nil {
-		return err
-	}
-
-	fmt.Println("Done.")
-	fmt.Printf("\nRun the following to start Flipt server:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
-	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
-	return nil
+	return sh.RunV("go", "run", "./cmd/flipt", "--config", "config/local.yml")
 }
-
-type buildMode uint8
-
-const (
-	// buildModeDev builds the project for development, without bundling assets
-	buildModeDev buildMode = iota
-	// BuildModeProd builds the project similar to a release build
-	buildModeProd
-)
 
 // UI installs UI dependencies and generates assets
 func UI() error {
@@ -135,26 +125,6 @@ func UI() error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
-}
-
-func build(mode buildMode) error {
-	buildDate := time.Now().UTC().Format(time.RFC3339)
-	buildArgs := make([]string, 0)
-
-	switch mode {
-	case buildModeProd:
-		buildArgs = append(buildArgs, "-tags", "assets")
-	}
-
-	gitCommit, err := sh.Output("git", "rev-parse", "HEAD")
-	if err != nil {
-		return fmt.Errorf("getting git commit: %w", err)
-	}
-
-	buildArgs = append([]string{"build", "-trimpath", "-ldflags", fmt.Sprintf("-X main.commit=%s -X main.date=%s", gitCommit, buildDate)}, buildArgs...)
-	buildArgs = append(buildArgs, "-o", "./bin/flipt", "./cmd/flipt/")
-
-	return sh.RunV("go", buildArgs...)
 }
 
 // Clean cleans up built files
