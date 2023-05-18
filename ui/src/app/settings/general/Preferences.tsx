@@ -1,7 +1,7 @@
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
-import { TimezoneType } from '~/components/TimezoneProvider';
 import { useTimezone } from '~/data/hooks/timezone';
+import { TimezoneType } from '~/types/Preferences';
 import { classNames } from '~/utils/helpers';
 
 export default function Preferences() {

@@ -28,7 +28,7 @@ import {
   IConstraintBase,
   NoValueOperators
 } from '~/types/Constraint';
-import { TimezoneType } from '../TimezoneProvider';
+import { TimezoneType } from '~/types/Preferences';
 
 const constraintComparisonTypes = () =>
   (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(

@@ -6,8 +6,8 @@ import NamespaceProvider from '~/components/NamespaceProvider';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
 import SuccessNotification from '~/components/notifications/SuccessNotification';
+import PreferencesProvider from '~/components/PreferencesProvider';
 import Sidebar from '~/components/Sidebar';
-import TimezoneProvider from '~/components/TimezoneProvider';
 import { listNamespaces } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
@@ -63,11 +63,11 @@ function InnerLayout() {
 export default function Layout() {
   return (
     <NotificationProvider>
-      <TimezoneProvider>
+      <PreferencesProvider>
         <NamespaceProvider>
           <InnerLayout />
         </NamespaceProvider>
-      </TimezoneProvider>
+      </PreferencesProvider>
       <ErrorNotification />
       <SuccessNotification />
     </NotificationProvider>
