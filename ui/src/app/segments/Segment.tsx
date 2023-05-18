@@ -285,7 +285,11 @@ export default function Segment() {
                           {constraintOperatorToLabel(constraint.operator)}
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {constraint.value}
+                          {constraintTypeToLabel(constraint.type) ===
+                            ComparisonType.DATETIME_COMPARISON_TYPE &&
+                          constraint.value !== undefined
+                            ? inTimezone(constraint.value)
+                            : constraint.value}
                         </td>
                         <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
                           {constraint.description}

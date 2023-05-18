@@ -17,7 +17,7 @@ export const useTimezone = () => {
   const inTimezone = (v: string) => {
     return timezone === TimezoneType.LOCAL
       ? moment(v).format('YYYY-MM-DD HH:mm:ss')
-      : moment.utc(v).format('YYYY-MM-DD HH:mm:ss');
+      : moment.utc(v).format('YYYY-MM-DD HH:mm:ss') + ' UTC';
   };
 
   return {

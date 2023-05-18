@@ -490,11 +490,11 @@ func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
 
 func tryParseDateTime(v string) (time.Time, error) {
 	if d, err := time.Parse(time.RFC3339, v); err == nil {
-		return d, nil
+		return d.UTC(), nil
 	}
 
 	if d, err := time.Parse(time.DateOnly, v); err == nil {
-		return d, nil
+		return d.UTC(), nil
 	}
 
 	return time.Time{}, errs.ErrInvalidf("parsing datetime from %q", v)

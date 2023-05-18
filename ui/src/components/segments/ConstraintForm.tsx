@@ -140,29 +140,15 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       fieldTime &&
       fieldTime.trim() !== ''
     ) {
-      let m;
-
-      if (timezone && timezone === TimezoneType.UTC) {
-        m = moment.utc;
-      } else {
-        m = moment;
-      }
-
-      setFieldValue(field.name, m(`${fieldDate}T${fieldTime}`).format());
+      const m = moment(`${fieldDate}T${fieldTime}`);
+      setFieldValue(field.name, m.utc().format());
       return;
     }
 
     // otherwise, if only date is set, then parse and set the value
     if (fieldDate && fieldDate.trim() !== '') {
-      let m;
-
-      if (timezone && timezone === TimezoneType.UTC) {
-        m = moment.utc;
-      } else {
-        m = moment;
-      }
-
-      setFieldValue(field.name, m(fieldDate).format());
+      const m = moment(fieldDate);
+      setFieldValue(field.name, m.utc().format());
     }
   }, [field.name, fieldDate, fieldTime, setFieldValue]);
 
@@ -204,7 +190,11 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
           type="time"
           id="valueTime"
           name="valueTime"
-          value={fieldTime.slice(0, 5)}
+          value={
+            timezone === TimezoneType.LOCAL
+              ? moment(fieldTime, 'HH:mm:ssZ').local().format('HH:mm')
+              : moment(fieldTime, 'HH:mm:ssZ').utc().format('HH:mm')
+          }
           onChange={(e) => {
             setFieldTime(e.target.value);
           }}
