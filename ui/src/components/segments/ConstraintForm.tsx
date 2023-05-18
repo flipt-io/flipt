@@ -5,6 +5,7 @@ import { Form, Formik, useField, useFormikContext } from 'formik';
 import { upperFirst } from 'lodash';
 import moment from 'moment';
 import { forwardRef, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
@@ -175,10 +176,8 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
           Value
         </label>
         <span className="text-xs text-gray-400" id="value-tz">
-          <a
-            href="#"
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            to="/settings"
             className="group inline-flex items-center text-gray-400 hover:text-gray-500"
           >
             <QuestionMarkCircleIcon
@@ -186,7 +185,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
               aria-hidden="true"
             />
             <span className="ml-1">{upperFirst(timezone)}</span>
-          </a>
+          </Link>
         </span>
       </div>
       <div className="sm:col-span-1">

@@ -44,7 +44,7 @@ export default function Preferences() {
                   );
                 }}
                 className={classNames(
-                  utcTimezoneEnabled ? 'bg-purple-600' : 'bg-gray-200',
+                  utcTimezoneEnabled ? 'bg-violet-400' : 'bg-gray-200',
                   'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none sm:ml-auto'
                 )}
               >
