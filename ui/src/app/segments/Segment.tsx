@@ -14,6 +14,7 @@ import Slideover from '~/components/Slideover';
 import { deleteConstraint, deleteSegment, getSegment } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import useNamespace from '~/data/hooks/namespace';
+import { useTimezone } from '~/data/hooks/timezone';
 import {
   ComparisonType,
   ConstraintOperators,
@@ -23,6 +24,7 @@ import { ISegment } from '~/types/Segment';
 
 export default function Segment() {
   let { segmentKey } = useParams();
+  const { inTimezone } = useTimezone();
 
   const [segment, setSegment] = useState<ISegment | null>(null);
   const [segmentVersion, setSegmentVersion] = useState(0);
@@ -145,7 +147,10 @@ export default function Segment() {
             {segment.name}
           </h2>
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div className="mt-2 flex items-center text-sm text-gray-500">
+            <div
+              title={inTimezone(segment.createdAt)}
+              className="mt-2 flex items-center text-sm text-gray-500"
+            >
               <CalendarIcon
                 className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
                 aria-hidden="true"
