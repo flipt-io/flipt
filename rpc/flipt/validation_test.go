@@ -1396,6 +1396,28 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 			wantErr: errors.ErrInvalid("constraint operator \"false\" is not valid for type datetime"),
 		},
 		{
+			name: "validDateTimeType",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_DATETIME_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "2019-01-01T00:00:00-07:00",
+			},
+		},
+		{
+			name: "validDateTimeType_DateOnly",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_DATETIME_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "eq",
+				Value:      "2019-01-01",
+			},
+		},
+		{
 			name: "invalidType",
 			req: &UpdateConstraintRequest{
 				Id:         "1",
