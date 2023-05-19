@@ -2,7 +2,6 @@ import { Dialog } from '@headlessui/react';
 import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik, useField, useFormikContext } from 'formik';
-import { upperFirst } from 'lodash';
 import moment from 'moment';
 import { forwardRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -140,8 +139,16 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       fieldTime &&
       fieldTime.trim() !== ''
     ) {
-      const m = moment(`${fieldDate}T${fieldTime}`);
-      setFieldValue(field.name, m.utc().format());
+      if (timezone === TimezoneType.LOCAL) {
+        // if local timezone, then parse as local (moment default) and convert to UTC
+        const m = moment(`${fieldDate}T${fieldTime}`);
+        setFieldValue(field.name, m.utc().format());
+        return;
+      }
+
+      // otherwise, parse as UTC
+      const m = moment.utc(`${fieldDate}T${fieldTime}`);
+      setFieldValue(field.name, m.format());
       return;
     }
 
@@ -170,7 +177,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
               className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
               aria-hidden="true"
             />
-            <span className="ml-1">{upperFirst(timezone)}</span>
+            <span className="ml-1">{timezone}</span>
           </Link>
         </span>
       </div>
@@ -192,8 +199,8 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
           name="valueTime"
           value={
             timezone === TimezoneType.LOCAL
-              ? moment(fieldTime, 'HH:mm:ssZ').local().format('HH:mm')
-              : moment(fieldTime, 'HH:mm:ssZ').utc().format('HH:mm')
+              ? moment(fieldTime, 'HH:mm Z').format('HH:mm')
+              : moment.utc(fieldTime, 'HH:mm Z').format('HH:mm')
           }
           onChange={(e) => {
             setFieldTime(e.target.value);
