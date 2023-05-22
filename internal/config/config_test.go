@@ -245,6 +245,10 @@ func defaultConfig() *Config {
 			GRPCPort:  9000,
 		},
 
+		Storage: StorageConfig{
+			Type: StorageType("database"),
+		},
+
 		Tracing: TracingConfig{
 			Enabled:  false,
 			Exporter: TracingJaeger,

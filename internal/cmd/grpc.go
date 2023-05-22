@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
@@ -21,7 +23,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
-	"go.flipt.io/flipt/internal/storage/sql"
+	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
@@ -88,6 +90,7 @@ func NewGRPCServer(
 	logger *zap.Logger,
 	cfg *config.Config,
 	info info.Flipt,
+	forceMigrate bool,
 ) (*GRPCServer, error) {
 	logger = logger.With(zap.String("server", "grpc"))
 	server := &GRPCServer{
@@ -105,37 +108,46 @@ func NewGRPCServer(
 		return server.ln.Close()
 	})
 
-	db, driver, err := sql.Open(*cfg)
-	if err != nil {
-		return nil, fmt.Errorf("opening db: %w", err)
-	}
-
-	if driver == sql.SQLite && cfg.Database.MaxOpenConn > 1 {
-		logger.Warn("ignoring config.db.max_open_conn due to driver limitation (sqlite)", zap.Int("attempted_max_conn", cfg.Database.MaxOpenConn))
-	}
-
-	server.onShutdown(func(context.Context) error {
-		return db.Close()
-	})
-
-	if err := db.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("pinging db: %w", err)
-	}
-
 	var store storage.Store
 
-	switch driver {
-	case sql.SQLite:
-		store = sqlite.NewStore(db, logger)
-	case sql.Postgres, sql.CockroachDB:
-		store = postgres.NewStore(db, logger)
-	case sql.MySQL:
-		store = mysql.NewStore(db, logger)
-	default:
-		return nil, fmt.Errorf("unsupported driver: %s", driver)
+	dbStoreFn := func() (storage.Store, error) {
+		db, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
+		if err != nil {
+			return nil, err
+		}
+
+		server.onShutdown(shutdown)
+
+		switch driver {
+		case fliptsql.SQLite:
+			store = sqlite.NewStore(db, logger)
+		case fliptsql.Postgres, fliptsql.CockroachDB:
+			store = postgres.NewStore(db, logger)
+		case fliptsql.MySQL:
+			store = mysql.NewStore(db, logger)
+		default:
+			return nil, fmt.Errorf("unsupported driver: %s", driver)
+		}
+
+		logger.Debug("database driver configured", zap.Stringer("driver", driver))
+
+		return store, nil
 	}
 
-	logger.Debug("store enabled", zap.Stringer("driver", driver))
+	switch cfg.Storage.Type {
+	case config.DatabaseStorageType:
+		store, err = dbStoreFn()
+		if err != nil {
+			return nil, err
+		}
+	default:
+		store, err = dbStoreFn()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	logger.Debug("store enabled", zap.Stringer("type", store))
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.
@@ -185,7 +197,7 @@ func NewGRPCServer(
 	}
 
 	var (
-		sqlBuilder           = sql.BuilderFor(db, driver)
+		sqlBuilder           = fliptsql.BuilderFor(db, driver)
 		authenticationStore  = authsql.NewStore(driver, sqlBuilder, logger)
 		operationLockService = oplocksql.New(logger, driver, sqlBuilder)
 	)
@@ -356,6 +368,54 @@ func (s *GRPCServer) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *GRPCServer) onShutdown(fn func(context.Context) error) {
+type errFunc func(context.Context) error
+
+func (s *GRPCServer) onShutdown(fn errFunc) {
 	s.shutdownFuncs = append(s.shutdownFuncs, fn)
+}
+
+var (
+	once   sync.Once
+	db     *sql.DB
+	driver fliptsql.Driver
+	dbFunc errFunc = func(context.Context) error { return nil }
+	dbErr  error
+)
+
+func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, fliptsql.Driver, errFunc, error) {
+	once.Do(func() {
+		migrator, err := fliptsql.NewMigrator(*cfg, logger)
+		if err != nil {
+			dbErr = err
+			return
+		}
+
+		if err := migrator.Up(forceMigrate); err != nil {
+			migrator.Close()
+			dbErr = err
+			return
+		}
+
+		migrator.Close()
+
+		db, driver, err = fliptsql.Open(*cfg)
+		if err != nil {
+			dbErr = fmt.Errorf("opening db: %w", err)
+			return
+		}
+
+		dbFunc = func(context.Context) error {
+			return db.Close()
+		}
+
+		if driver == fliptsql.SQLite && cfg.Database.MaxOpenConn > 1 {
+			logger.Warn("ignoring config.db.max_open_conn due to driver limitation (sqlite)", zap.Int("attempted_max_conn", cfg.Database.MaxOpenConn))
+		}
+
+		if err := db.PingContext(ctx); err != nil {
+			dbErr = fmt.Errorf("pinging db: %w", err)
+		}
+	})
+
+	return db, driver, dbFunc, dbErr
 }
