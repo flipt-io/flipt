@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import ErrorNotification from '~/components/ErrorNotification';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import NamespaceProvider from '~/components/NamespaceProvider';
 import { NotificationProvider } from '~/components/NotificationProvider';
+import ErrorNotification from '~/components/notifications/ErrorNotification';
+import SuccessNotification from '~/components/notifications/SuccessNotification';
+import PreferencesProvider from '~/components/PreferencesProvider';
 import Sidebar from '~/components/Sidebar';
-import SuccessNotification from '~/components/SuccessNotification';
 import { listNamespaces } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
@@ -62,9 +63,11 @@ function InnerLayout() {
 export default function Layout() {
   return (
     <NotificationProvider>
-      <NamespaceProvider>
-        <InnerLayout />
-      </NamespaceProvider>
+      <PreferencesProvider>
+        <NamespaceProvider>
+          <InnerLayout />
+        </NamespaceProvider>
+      </PreferencesProvider>
       <ErrorNotification />
       <SuccessNotification />
     </NotificationProvider>

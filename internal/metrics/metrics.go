@@ -6,7 +6,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/metric/instrument"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
@@ -39,21 +38,21 @@ type MustInt64Meter interface {
 	// Counter returns a new instrument identified by name and configured
 	// with options. The instrument is used to synchronously record increasing
 	// int64 measurements during a computational operation.
-	Counter(name string, options ...instrument.Int64Option) instrument.Int64Counter
+	Counter(name string, options ...metric.Int64CounterOption) metric.Int64Counter
 	// UpDownCounter returns a new instrument identified by name and
 	// configured with options. The instrument is used to synchronously record
 	// int64 measurements during a computational operation.
-	UpDownCounter(name string, options ...instrument.Int64Option) instrument.Int64UpDownCounter
+	UpDownCounter(name string, options ...metric.Int64UpDownCounterOption) metric.Int64UpDownCounter
 	// Histogram returns a new instrument identified by name and
 	// configured with options. The instrument is used to synchronously record
 	// the distribution of int64 measurements during a computational operation.
-	Histogram(name string, options ...instrument.Int64Option) instrument.Int64Histogram
+	Histogram(name string, options ...metric.Int64HistogramOption) metric.Int64Histogram
 }
 
 type mustInt64Meter struct{}
 
 // Counter creates an instrument for recording increasing values.
-func (m mustInt64Meter) Counter(name string, opts ...instrument.Int64Option) instrument.Int64Counter {
+func (m mustInt64Meter) Counter(name string, opts ...metric.Int64CounterOption) metric.Int64Counter {
 	counter, err := Meter.Int64Counter(name, opts...)
 	if err != nil {
 		panic(err)
@@ -63,7 +62,7 @@ func (m mustInt64Meter) Counter(name string, opts ...instrument.Int64Option) ins
 }
 
 // UpDownCounter creates an instrument for recording changes of a value.
-func (m mustInt64Meter) UpDownCounter(name string, opts ...instrument.Int64Option) instrument.Int64UpDownCounter {
+func (m mustInt64Meter) UpDownCounter(name string, opts ...metric.Int64UpDownCounterOption) metric.Int64UpDownCounter {
 	counter, err := Meter.Int64UpDownCounter(name, opts...)
 	if err != nil {
 		panic(err)
@@ -73,7 +72,7 @@ func (m mustInt64Meter) UpDownCounter(name string, opts ...instrument.Int64Optio
 }
 
 // Histogram creates an instrument for recording a distribution of values.
-func (m mustInt64Meter) Histogram(name string, opts ...instrument.Int64Option) instrument.Int64Histogram {
+func (m mustInt64Meter) Histogram(name string, opts ...metric.Int64HistogramOption) metric.Int64Histogram {
 	hist, err := Meter.Int64Histogram(name, opts...)
 	if err != nil {
 		panic(err)
@@ -95,21 +94,21 @@ type MustFloat64Meter interface {
 	// Counter returns a new instrument identified by name and configured
 	// with options. The instrument is used to synchronously record increasing
 	// float64 measurements during a computational operation.
-	Counter(name string, options ...instrument.Float64Option) instrument.Float64Counter
+	Counter(name string, options ...metric.Float64CounterOption) metric.Float64Counter
 	// UpDownCounter returns a new instrument identified by name and
 	// configured with options. The instrument is used to synchronously record
 	// float64 measurements during a computational operation.
-	UpDownCounter(name string, options ...instrument.Float64Option) instrument.Float64UpDownCounter
+	UpDownCounter(name string, options ...metric.Float64UpDownCounterOption) metric.Float64UpDownCounter
 	// Histogram returns a new instrument identified by name and
 	// configured with options. The instrument is used to synchronously record
 	// the distribution of float64 measurements during a computational operation.
-	Histogram(name string, options ...instrument.Float64Option) instrument.Float64Histogram
+	Histogram(name string, options ...metric.Float64HistogramOption) metric.Float64Histogram
 }
 
 type mustFloat64Meter struct{}
 
 // Counter creates an instrument for recording increasing values.
-func (m mustFloat64Meter) Counter(name string, opts ...instrument.Float64Option) instrument.Float64Counter {
+func (m mustFloat64Meter) Counter(name string, opts ...metric.Float64CounterOption) metric.Float64Counter {
 	counter, err := Meter.Float64Counter(name, opts...)
 	if err != nil {
 		panic(err)
@@ -119,7 +118,7 @@ func (m mustFloat64Meter) Counter(name string, opts ...instrument.Float64Option)
 }
 
 // UpDownCounter creates an instrument for recording changes of a value.
-func (m mustFloat64Meter) UpDownCounter(name string, opts ...instrument.Float64Option) instrument.Float64UpDownCounter {
+func (m mustFloat64Meter) UpDownCounter(name string, opts ...metric.Float64UpDownCounterOption) metric.Float64UpDownCounter {
 	counter, err := Meter.Float64UpDownCounter(name, opts...)
 	if err != nil {
 		panic(err)
@@ -129,7 +128,7 @@ func (m mustFloat64Meter) UpDownCounter(name string, opts ...instrument.Float64O
 }
 
 // Histogram creates an instrument for recording a distribution of values.
-func (m mustFloat64Meter) Histogram(name string, opts ...instrument.Float64Option) instrument.Float64Histogram {
+func (m mustFloat64Meter) Histogram(name string, opts ...metric.Float64HistogramOption) metric.Float64Histogram {
 	hist, err := Meter.Float64Histogram(name, opts...)
 	if err != nil {
 		panic(err)

@@ -2,6 +2,7 @@ package testing
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"dagger.io/dagger"
@@ -11,6 +12,7 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 	test := ui.
 		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
 		WithServiceBinding("flipt", flipt.
+			WithEnvVariable("CI", os.Getenv("CI")).
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			WithExec(nil)).
@@ -21,11 +23,9 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 		return err
 	}
 
-	if _, err := test.
+	test.
 		Directory("playwright-report").
-		Export(ctx, "playwright-report"); err != nil {
-		return err
-	}
+		Export(ctx, "playwright-report")
 
 	return nil
 }

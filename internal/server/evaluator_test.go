@@ -2206,3 +2206,239 @@ func Test_matchesBool(t *testing.T) {
 		})
 	}
 }
+
+func Test_matchesDateTime(t *testing.T) {
+	tests := []struct {
+		name       string
+		constraint storage.EvaluationConstraint
+		value      string
+		wantMatch  bool
+		wantErr    bool
+	}{
+		{
+			name: "present",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "present",
+			},
+			value:     "2006-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "negative present",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "present",
+			},
+		},
+		{
+			name: "not present",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "notpresent",
+			},
+			wantMatch: true,
+		},
+		{
+			name: "negative notpresent",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "notpresent",
+			},
+			value: "2006-01-02T15:04:05Z",
+		},
+		{
+			name: "not a datetime constraint value",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "bar",
+			},
+			value:   "2006-01-02T15:04:05Z",
+			wantErr: true,
+		},
+		{
+			name: "not a datetime context value",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:   "foo",
+			wantErr: true,
+		},
+		{
+			name: "eq",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:     "2006-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "eq date only",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "2006-01-02",
+			},
+			value:     "2006-01-02",
+			wantMatch: true,
+		},
+		{
+			name: "negative eq",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value: "2007-01-02T15:04:05Z",
+		},
+		{
+			name: "neq",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:     "2007-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "negative neq",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value: "2006-01-02T15:04:05Z",
+		},
+		{
+			name: "negative neq date only",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "neq",
+				Value:    "2006-01-02",
+			},
+			value: "2006-01-02",
+		},
+		{
+			name: "lt",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "lt",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:     "2005-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "negative lt",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "lt",
+				Value:    "2005-01-02T15:04:05Z",
+			},
+			value: "2006-01-02T15:04:05Z",
+		},
+		{
+			name: "lte",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "lte",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:     "2006-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "negative lte",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "lte",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value: "2007-01-02T15:04:05Z",
+		},
+		{
+			name: "gt",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "gt",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:     "2007-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "negative gt",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "gt",
+				Value:    "2007-01-02T15:04:05Z",
+			},
+			value: "2006-01-02T15:04:05Z",
+		},
+		{
+			name: "gte",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "gte",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value:     "2006-01-02T15:04:05Z",
+			wantMatch: true,
+		},
+		{
+			name: "negative gte",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "gte",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value: "2005-01-02T15:04:05Z",
+		},
+		{
+			name: "empty value",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "eq",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+		},
+		{
+			name: "unknown operator",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "foo",
+				Value:    "2006-01-02T15:04:05Z",
+			},
+			value: "2006-01-02T15:04:05Z",
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			constraint = tt.constraint
+			value      = tt.value
+			wantMatch  = tt.wantMatch
+			wantErr    = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			match, err := matchesDateTime(constraint, value)
+
+			if wantErr {
+				require.Error(t, err)
+				var ierr errs.ErrInvalid
+				require.ErrorAs(t, err, &ierr)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, wantMatch, match)
+		})
+	}
+}

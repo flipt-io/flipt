@@ -18,6 +18,9 @@ const Segments = loadable(() => import('./app/segments/Segments'));
 const Console = loadable(() => import('./app/console/Console'));
 const Login = loadable(() => import('./app/auth/Login'));
 const Settings = loadable(() => import('./app/settings/Settings'));
+const Preferences = loadable(
+  () => import('./app/settings/general/Preferences')
+);
 const Namespaces = loadable(
   () => import('./app/settings/namespaces/Namespaces')
 );
@@ -100,7 +103,7 @@ const router = createHashRouter([
         element: <Settings />,
         children: [
           {
-            element: <Namespaces />,
+            element: <Preferences />,
             index: true
           },
           {

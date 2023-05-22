@@ -239,6 +239,7 @@ enum ComparisonType {
   STRING_COMPARISON_TYPE = 1;
   NUMBER_COMPARISON_TYPE = 2;
   BOOLEAN_COMPARISON_TYPE = 3;
+  DATETIME_COMPARISON_TYPE = 4;
 }
 
 message Constraint {

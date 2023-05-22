@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -90,6 +91,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", test.name, config.name)))
 			flipt = flipt.
+				WithEnvVariable("CI", os.Getenv("CI")).
 				WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
 				WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
 				WithMountedCache("/var/opt/flipt/logs", logs)

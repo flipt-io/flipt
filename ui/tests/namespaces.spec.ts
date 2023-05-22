@@ -7,6 +7,7 @@ test.beforeEach(async ({ page }) => {
 
 test('can create namespace', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'Namespaces' }).click();
   await expect(page.getByRole('heading', { name: 'Namespaces' })).toBeVisible();
   await page.getByRole('button', { name: 'New Namespace' }).click();
   await page.getByLabel('Name', { exact: true }).fill('staging');
@@ -24,6 +25,7 @@ test('can switch to newly created namespace', async ({ page }) => {
 
 test('can update namespace', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'Namespaces' }).click();
   await expect(page.getByRole('heading', { name: 'Namespaces' })).toBeVisible();
   await page.getByRole('link', { name: 'staging', exact: true }).click();
   await page.getByLabel('Name', { exact: true }).fill('test');
@@ -34,6 +36,7 @@ test('can update namespace', async ({ page }) => {
 
 test('can delete namespace', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'Namespaces' }).click();
   await expect(page.getByRole('heading', { name: 'Namespaces' })).toBeVisible();
   await page.getByRole('link', { name: 'Delete , test' }).click();
   await page.getByRole('button', { name: 'Delete' }).click();
@@ -41,6 +44,7 @@ test('can delete namespace', async ({ page }) => {
 
 test('cannot delete default namespace', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'Namespaces' }).click();
   await expect(page.getByRole('heading', { name: 'Namespaces' })).toBeVisible();
   await page.getByText('Delete, default').click();
   // assert that the default namespace is still there even after clicking 'delete'
