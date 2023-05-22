@@ -30,7 +30,7 @@ func newValidateCommand() *cobra.Command {
 		&v.format,
 		"format", "F",
 		"text",
-		"output format.",
+		"output format",
 	)
 
 	return cmd
