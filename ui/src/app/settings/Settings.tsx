@@ -4,6 +4,10 @@ import TabBar from '~/components/TabBar';
 export default function Settings() {
   const tabs = [
     {
+      name: 'General',
+      to: '/settings'
+    },
+    {
       name: 'Namespaces',
       to: '/settings/namespaces'
     },

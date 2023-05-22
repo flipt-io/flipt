@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"go.flipt.io/flipt/errors"
 )
@@ -388,6 +389,10 @@ func (req *CreateConstraintRequest) Validate() error {
 		if _, ok := BooleanOperators[operator]; !ok {
 			return errors.ErrInvalidf("constraint operator %q is not valid for type boolean", req.Operator)
 		}
+	case ComparisonType_DATETIME_COMPARISON_TYPE:
+		if _, ok := NumberOperators[operator]; !ok {
+			return errors.ErrInvalidf("constraint operator %q is not valid for type datetime", req.Operator)
+		}
 	default:
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
 	}
@@ -397,6 +402,16 @@ func (req *CreateConstraintRequest) Validate() error {
 		if _, ok := NoValueOperators[operator]; !ok {
 			return errors.EmptyFieldError("value")
 		}
+	} else if req.Type == ComparisonType_DATETIME_COMPARISON_TYPE {
+		// we know that a value is set and that the type is datetime
+		// so validate that the value is a valid datetime
+		// also convert it to UTC before we save
+		// TODO: don't love that we are doing this here
+		v, err := tryParseDateTime(req.Value)
+		if err != nil {
+			return err
+		}
+		req.Value = v
 	}
 
 	return nil
@@ -434,6 +449,10 @@ func (req *UpdateConstraintRequest) Validate() error {
 		if _, ok := BooleanOperators[operator]; !ok {
 			return errors.ErrInvalidf("constraint operator %q is not valid for type boolean", req.Operator)
 		}
+	case ComparisonType_DATETIME_COMPARISON_TYPE:
+		if _, ok := NumberOperators[operator]; !ok {
+			return errors.ErrInvalidf("constraint operator %q is not valid for type datetime", req.Operator)
+		}
 	default:
 		return errors.ErrInvalidf("invalid constraint type: %q", req.Type.String())
 	}
@@ -443,6 +462,16 @@ func (req *UpdateConstraintRequest) Validate() error {
 		if _, ok := NoValueOperators[operator]; !ok {
 			return errors.EmptyFieldError("value")
 		}
+	} else if req.Type == ComparisonType_DATETIME_COMPARISON_TYPE {
+		// we know that a value is set and that the type is datetime
+		// so validate that the value is a valid datetime
+		// also convert it to UTC before we save
+		// TODO: don't love that we are doing this here
+		v, err := tryParseDateTime(req.Value)
+		if err != nil {
+			return err
+		}
+		req.Value = v
 	}
 
 	return nil
@@ -487,4 +516,16 @@ func (req *UpdateNamespaceRequest) Validate() error {
 	}
 
 	return nil
+}
+
+func tryParseDateTime(v string) (string, error) {
+	if d, err := time.Parse(time.RFC3339, v); err == nil {
+		return d.UTC().Format(time.RFC3339), nil
+	}
+
+	if d, err := time.Parse(time.DateOnly, v); err == nil {
+		return d.UTC().Format(time.DateOnly), nil
+	}
+
+	return "", errors.ErrInvalidf("parsing datetime from %q", v)
 }

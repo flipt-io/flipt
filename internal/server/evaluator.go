@@ -209,6 +209,8 @@ func (s *Server) evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp
 				match, err = matchesNumber(c, v)
 			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
 				match, err = matchesBool(c, v)
+			case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+				match, err = matchesDateTime(c, v)
 			default:
 				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 				return resp, errs.ErrInvalid("unknown constraint type")
@@ -442,4 +444,57 @@ func matchesBool(c storage.EvaluationConstraint, v string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
+	switch c.Operator {
+	case flipt.OpNotPresent:
+		return len(strings.TrimSpace(v)) == 0, nil
+	case flipt.OpPresent:
+		return len(strings.TrimSpace(v)) != 0, nil
+	}
+
+	// can't parse an empty string
+	if v == "" {
+		return false, nil
+	}
+
+	d, err := tryParseDateTime(v)
+	if err != nil {
+		return false, err
+	}
+
+	value, err := tryParseDateTime(c.Value)
+	if err != nil {
+		return false, err
+	}
+
+	switch c.Operator {
+	case flipt.OpEQ:
+		return value.Equal(d), nil
+	case flipt.OpNEQ:
+		return !value.Equal(d), nil
+	case flipt.OpLT:
+		return d.Before(value), nil
+	case flipt.OpLTE:
+		return d.Before(value) || value.Equal(d), nil
+	case flipt.OpGT:
+		return d.After(value), nil
+	case flipt.OpGTE:
+		return d.After(value) || value.Equal(d), nil
+	}
+
+	return false, nil
+}
+
+func tryParseDateTime(v string) (time.Time, error) {
+	if d, err := time.Parse(time.RFC3339, v); err == nil {
+		return d.UTC(), nil
+	}
+
+	if d, err := time.Parse(time.DateOnly, v); err == nil {
+		return d.UTC(), nil
+	}
+
+	return time.Time{}, errs.ErrInvalidf("parsing datetime from %q", v)
 }

@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { getInfo } from '~/data/api';
 import { useSession } from '~/data/hooks/session';
 import { Info } from '~/types/Meta';
-import Notifications from './Notifications';
-import UserProfile from './UserProfile';
+import Notifications from './header/Notifications';
+import UserProfile from './header/UserProfile';
 
 type HeaderProps = {
   setSidebarOpen: (sidebarOpen: boolean) => void;
@@ -38,11 +38,8 @@ export default function Header(props: HeaderProps) {
       </button>
       <div className="flex flex-1 justify-between px-4">
         <div className="flex flex-1" />
-        <div className="ml-4 flex items-center md:ml-6">
+        <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
           {/* notifications */}
-
-          {/* TODO: currently we only show the update available notification, 
-          this will need to be re-worked if we support other notifications */}
           {info && info.updateAvailable && <Notifications info={info} />}
 
           {/* user profile */}
