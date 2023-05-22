@@ -1,4 +1,4 @@
-namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
+//namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
 
 flags: [...#Flag]
 
