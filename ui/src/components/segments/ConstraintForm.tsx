@@ -157,7 +157,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       const m = moment(fieldDate);
       setFieldValue(field.name, m.utc().format());
     }
-  }, [field.name, fieldDate, fieldTime, setFieldValue]);
+  }, [timezone, field.name, fieldDate, fieldTime, setFieldValue]);
 
   return (
     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
