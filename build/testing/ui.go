@@ -23,11 +23,9 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 		return err
 	}
 
-	if _, err := test.
+	test.
 		Directory("playwright-report").
-		Export(ctx, "playwright-report"); err != nil {
-		return err
-	}
+		Export(ctx, "playwright-report")
 
 	return nil
 }
