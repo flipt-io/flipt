@@ -41,16 +41,25 @@ segments: [...#Segment]
 #Constraint: ({
 	type:     "STRING_COMPARISON_TYPE"
 	property: string & =~"^.+$"
-	value:    string
+	value?:   string 
 	operator: "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix"
+	description?: string 
 } | {
 	type:     "NUMBER_COMPARISON_TYPE"
-	property: string
-	value:    string
+	property: string & =~"^.+$"
+	value?:   string 
 	operator: "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	description?: string 
 } | {
 	type:     "BOOLEAN_COMPARISON_TYPE"
 	property: string & =~"^.+$"
-	value:    string & =~"^.+$"
+	value?:   string 
 	operator: "true" | "false" | "present" | "notpresent"
+	description?: string 
+} | {
+	type:     "DATETIME_COMPARISON_TYPE"
+	property: string & =~"^.+$"
+	value?:   string 
+	operator: "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	description?: string 
 })
