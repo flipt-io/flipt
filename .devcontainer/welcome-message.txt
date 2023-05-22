@@ -6,7 +6,10 @@
     for more contribution details.
 
 ⭐⭐ =================================  IMPORTANT!!  ================================== ⭐⭐
-    1. To run the backend server, run `mage dev` in the terminal.
-    2. To run the frontend server, from within the `ui` directory, run `npm run devs` in the terminal (in a new tab).
-    3. To run the tests, run `mage test` in the terminal.
+    - To run the backend server, run `mage dev` in the terminal.
+
+    - To run the frontend server, from within the `ui` directory, run `npm run dev` 
+      in the terminal (in a new tab).
+
+    - To run the tests, run `mage test` in the terminal.
 ⭐⭐ ================================================================================== ⭐⭐
