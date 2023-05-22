@@ -464,7 +464,6 @@ func matchesDateTime(c storage.EvaluationConstraint, v string) (bool, error) {
 		return false, err
 	}
 
-	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values
 	value, err := tryParseDateTime(c.Value)
 	if err != nil {
 		return false, err
