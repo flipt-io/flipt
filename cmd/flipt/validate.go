@@ -10,6 +10,7 @@ import (
 
 type validateCommand struct {
 	issueExitCode int
+	format        string
 }
 
 func newValidateCommand() *cobra.Command {
@@ -25,11 +26,18 @@ func newValidateCommand() *cobra.Command {
 
 	cmd.Flags().IntVar(&v.issueExitCode, "issue-exit-code", 1, "Exit code to use when issues are found")
 
+	cmd.Flags().StringVarP(
+		&v.format,
+		"format", "F",
+		"text",
+		"output format.",
+	)
+
 	return cmd
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) {
-	if err := cue.ValidateFiles(os.Stdout, args); err != nil {
+	if err := cue.ValidateFiles(os.Stdout, args, v.format); err != nil {
 		if errors.Is(err, cue.ErrValidationFailed) && v.issueExitCode != 1 {
 			os.Exit(v.issueExitCode)
 		}

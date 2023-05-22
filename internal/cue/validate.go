@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
@@ -14,12 +15,14 @@ import (
 	"cuelang.org/go/encoding/yaml"
 )
 
-var (
-	//go:embed flipt.cue
-	cueFile []byte
+const (
+	jsonFormat = "json"
+	textFormat = "text"
 )
 
 var (
+	//go:embed flipt.cue
+	cueFile             []byte
 	ErrValidationFailed = errors.New("validation failed")
 )
 
@@ -59,9 +62,53 @@ type Error struct {
 	Location Location `json:"location"`
 }
 
+func writeErrorDetails(format string, cerrs []Error, w io.Writer) error {
+	var sb strings.Builder
+
+	buildErrorMessage := func() {
+		sb.WriteString("❌ Validation failure!\n\n")
+
+		for i := 0; i < len(cerrs); i++ {
+			errString := fmt.Sprintf(`
+- Message: %s
+  File   : %s
+  Line   : %d
+  Column : %d
+`, cerrs[i].Message, cerrs[i].Location.File, cerrs[i].Location.Line, cerrs[i].Location.Column)
+
+			sb.WriteString(errString)
+		}
+	}
+
+	switch format {
+	case jsonFormat:
+		allErrors := struct {
+			Errors []Error `json:"errors"`
+		}{
+			Errors: cerrs,
+		}
+
+		if err := json.NewEncoder(os.Stdout).Encode(allErrors); err != nil {
+			fmt.Fprintln(w, "Internal error.")
+			return err
+		}
+
+		return nil
+	case textFormat:
+		buildErrorMessage()
+	default:
+		sb.WriteString("Invalid format chosen, defaulting to \"text\" format...\n")
+		buildErrorMessage()
+	}
+
+	fmt.Fprint(w, sb.String())
+
+	return nil
+}
+
 // ValidateFiles takes a slice of strings as filenames and validates them against
 // our cue definition of features.
-func ValidateFiles(dst io.Writer, files []string) error {
+func ValidateFiles(dst io.Writer, files []string, format string) error {
 	cctx := cuecontext.New()
 
 	cerrs := make([]Error, 0)
@@ -71,7 +118,10 @@ func ValidateFiles(dst io.Writer, files []string) error {
 		// Quit execution of the cue validating against the yaml
 		// files upon failure to read file.
 		if err != nil {
-			return err
+			fmt.Print("❌ Validation failure!\n\n")
+			fmt.Printf("Failed to read file %s", f)
+
+			return ErrValidationFailed
 		}
 		err = validate(b, cctx)
 		if err != nil {
@@ -98,19 +148,23 @@ func ValidateFiles(dst io.Writer, files []string) error {
 	}
 
 	if len(cerrs) > 0 {
-		allErrors := struct {
-			Errors []Error `json:"errors"`
-		}{
-			Errors: cerrs,
-		}
-
-		// Write out the json output to dst upon error detection
-		if err := json.NewEncoder(dst).Encode(allErrors); err != nil {
+		if err := writeErrorDetails(format, cerrs, dst); err != nil {
 			return err
 		}
 
 		return ErrValidationFailed
 	}
+
+	// For json format upon success, return no output to the user
+	if format == jsonFormat {
+		return nil
+	}
+
+	if format != textFormat {
+		fmt.Print("Invalid format chosen, defaulting to \"text\" format...\n")
+	}
+
+	fmt.Println("✅ Validation success!")
 
 	return nil
 }
