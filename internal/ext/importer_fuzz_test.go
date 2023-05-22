@@ -13,7 +13,7 @@ import (
 )
 
 func FuzzImport(f *testing.F) {
-	testcases := []string{"testdata/import.yml", "testdata/import_no_attachment.yml"}
+	testcases := []string{"testdata/import.yml", "testdata/import_no_attachment.yml", "testdata/export.yml"}
 
 	for _, tc := range testcases {
 		b, _ := ioutil.ReadFile(tc)

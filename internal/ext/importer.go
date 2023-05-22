@@ -47,6 +47,14 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		return fmt.Errorf("unmarshalling document: %w", err)
 	}
 
+	if doc.Version != "" && doc.Version != "1.0" {
+		return fmt.Errorf("unsupported version: %s", doc.Version)
+	}
+
+	if doc.Namespace != "" && i.namespace != "" && doc.Namespace != i.namespace {
+		return fmt.Errorf("namespace mismatch: %s != %s", doc.Namespace, i.namespace)
+	}
+
 	if i.createNS && i.namespace != "" && i.namespace != "default" {
 		_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
 			Key: i.namespace,
