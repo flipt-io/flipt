@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/spf13/viper"
 )
 
@@ -29,6 +31,14 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 	default:
 		v.SetDefault("storage.type", "database")
 	}
+}
+
+func (c *StorageConfig) validate() error {
+	if c.Type == GitStorageType && (c.Git.Ref == "" || c.Git.Repository == "") {
+		return errors.New("repository of ref not specified")
+	}
+
+	return nil
 }
 
 // Local contains configuration for referencing a local filesystem.

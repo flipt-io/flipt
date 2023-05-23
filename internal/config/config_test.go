@@ -697,11 +697,17 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: Git{
-						Ref: "main",
+						Ref:        "main",
+						Repository: "git@github.com:foo/bar.git",
 					},
 				}
 				return cfg
 			},
+		},
+		{
+			name:    "git repository not provided",
+			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
+			wantErr: errors.New("repository of ref not specified"),
 		},
 	}
 
