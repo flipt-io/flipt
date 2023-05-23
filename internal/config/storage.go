@@ -34,8 +34,19 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 }
 
 func (c *StorageConfig) validate() error {
-	if c.Type == GitStorageType && (c.Git.Ref == "" || c.Git.Repository == "") {
-		return errors.New("repository of ref not specified")
+	if c.Type == GitStorageType {
+		if c.Git.Ref == "" {
+			return errors.New("git ref must be specified")
+		}
+		if c.Git.Repository == "" {
+			return errors.New("git repository must be specified")
+		}
+	}
+
+	if c.Type == LocalStorageType {
+		if c.Local.Path == "" {
+			return errors.New("local path must be specified")
+		}
 	}
 
 	return nil
