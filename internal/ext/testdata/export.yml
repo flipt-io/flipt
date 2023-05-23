@@ -1,3 +1,5 @@
+version: "1.0"
+namespace: default
 flags:
   - key: flag1
     name: flag1
