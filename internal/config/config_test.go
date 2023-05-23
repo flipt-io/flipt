@@ -245,6 +245,10 @@ func defaultConfig() *Config {
 			GRPCPort:  9000,
 		},
 
+		Storage: StorageConfig{
+			Type: StorageType("database"),
+		},
+
 		Tracing: TracingConfig{
 			Enabled:  false,
 			Exporter: TracingJaeger,
@@ -670,6 +674,40 @@ func TestLoad(t *testing.T) {
 			name:    "file not specified",
 			path:    "./testdata/audit/invalid_enable_without_file.yml",
 			wantErr: errors.New("file not specified"),
+		},
+		{
+			name: "local config provided",
+			path: "./testdata/storage/local_provided.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Storage = StorageConfig{
+					Type: LocalStorageType,
+					Local: Local{
+						Path: ".",
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "git config provided",
+			path: "./testdata/storage/git_provided.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: Git{
+						Ref:        "main",
+						Repository: "git@github.com:foo/bar.git",
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "git repository not provided",
+			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
+			wantErr: errors.New("git repository must be specified"),
 		},
 	}
 
