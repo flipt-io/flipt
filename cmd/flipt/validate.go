@@ -38,7 +38,7 @@ func newValidateCommand() *cobra.Command {
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 	if err := cue.ValidateFiles(os.Stdout, args, v.format); err != nil {
-		if errors.Is(err, cue.ErrValidationFailed) && v.issueExitCode != 1 {
+		if errors.Is(err, cue.ErrValidationFailed) {
 			os.Exit(v.issueExitCode)
 		}
 		os.Exit(1)
