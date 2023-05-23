@@ -38,8 +38,8 @@ require (
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.14.2
 	go.flipt.io/flipt/errors v1.19.3
-	go.flipt.io/flipt/rpc/flipt v1.20.0
-	go.flipt.io/flipt/sdk/go v0.1.1
+	go.flipt.io/flipt/rpc/flipt v1.22.0
+	go.flipt.io/flipt/sdk/go v0.3.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.41.1
 	go.opentelemetry.io/otel v1.15.1
 	go.opentelemetry.io/otel/exporters/jaeger v1.15.1
@@ -133,8 +133,8 @@ require (
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.15.1 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
