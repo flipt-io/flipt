@@ -675,6 +675,34 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/audit/invalid_enable_without_file.yml",
 			wantErr: errors.New("file not specified"),
 		},
+		{
+			name: "local config provided",
+			path: "./testdata/storage/local_provided.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Storage = StorageConfig{
+					Type: LocalStorageType,
+					Local: Local{
+						Path: ".",
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "git config provided",
+			path: "./testdata/storage/git_provided.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: Git{
+						Ref: "main",
+					},
+				}
+				return cfg
+			},
+		},
 	}
 
 	for _, tt := range tests {

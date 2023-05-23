@@ -110,7 +110,8 @@ func NewGRPCServer(
 
 	var store storage.Store
 
-	dbStoreFn := func() (storage.Store, error) {
+	switch cfg.Storage.Type {
+	case config.DatabaseStorageType:
 		db, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
 		if err != nil {
 			return nil, err
@@ -130,21 +131,8 @@ func NewGRPCServer(
 		}
 
 		logger.Debug("database driver configured", zap.Stringer("driver", driver))
-
-		return store, nil
-	}
-
-	switch cfg.Storage.Type {
-	case config.DatabaseStorageType:
-		store, err = dbStoreFn()
-		if err != nil {
-			return nil, err
-		}
 	default:
-		store, err = dbStoreFn()
-		if err != nil {
-			return nil, err
-		}
+		return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
 	}
 
 	logger.Debug("store enabled", zap.Stringer("type", store))

@@ -21,22 +21,22 @@ type StorageConfig struct {
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) {
-	v.SetDefault("storage", map[string]any{
-		"type": "database",
-		"local": map[string]any{
-			"path": "",
-		},
-		"git": map[string]any{
-			"repository": "",
-			"ref":        "",
-		},
-	})
+	switch v.GetString("storage.type") {
+	case string(LocalStorageType):
+		v.SetDefault("storage.local.path", ".")
+	case string(GitStorageType):
+		v.SetDefault("storage.git.ref", "main")
+	default:
+		v.SetDefault("storage.type", "database")
+	}
 }
 
+// Local contains configuration for referencing a local filesystem.
 type Local struct {
 	Path string `json:"path,omitempty" mapstructure:"path"`
 }
 
+// Git contains configuration for referencing a git repository.
 type Git struct {
 	Repository string `json:"repository,omitempty" mapstructure:"repository"`
 	Ref        string `json:"ref,omitempty" mapstructure:"ref"`
