@@ -10,7 +10,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const defaultBatchSize = 25
+const (
+	defaultBatchSize = 25
+	version          = "1.0"
+)
 
 type Lister interface {
 	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
@@ -38,6 +41,9 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 		doc       = new(Document)
 		batchSize = e.batchSize
 	)
+
+	doc.Version = version
+	doc.Namespace = e.namespace
 
 	defer enc.Close()
 
