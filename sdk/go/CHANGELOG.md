@@ -3,6 +3,13 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.0](https://github.com/flipt-io/flipt/releases/tag/sdk/go/v0.3.0) - 2023-05-23
+
+### Added
+
+- `sdk/go`: Datetime constraint type (#1602)
+- `sdk/go`: Add optional description to constraints (#1581)
+
 ## [v0.2.0](https://github.com/flipt-io/flipt/releases/tag/sdk/go/v0.2.0) - 2023-04-11
 
 ### Added
