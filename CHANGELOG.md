@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Datetime constraint types (#1602)
-- Add description to constraints backend (#1581)
+- Datetime constraint type (#1602)
+- Add optional description to constraints (#1581)
 
 ### Changed
 
