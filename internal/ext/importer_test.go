@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -154,7 +153,7 @@ func TestImport(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
 				creator  = &mockCreator{}
-				importer = NewImporter(creator, storage.DefaultNamespace, false)
+				importer = NewImporter(creator)
 			)
 
 			in, err := os.Open(tc.path)
@@ -234,7 +233,7 @@ func TestImport(t *testing.T) {
 func TestImport_Export(t *testing.T) {
 	var (
 		creator  = &mockCreator{}
-		importer = NewImporter(creator, storage.DefaultNamespace, false)
+		importer = NewImporter(creator)
 	)
 
 	in, err := os.Open("testdata/export.yml")
@@ -249,7 +248,7 @@ func TestImport_Export(t *testing.T) {
 func TestImport_InvalidVersion(t *testing.T) {
 	var (
 		creator  = &mockCreator{}
-		importer = NewImporter(creator, storage.DefaultNamespace, false)
+		importer = NewImporter(creator)
 	)
 
 	in, err := os.Open("testdata/import_invalid_version.yml")
@@ -293,13 +292,13 @@ func TestImport_Namespaces(t *testing.T) {
 
 			var (
 				creator  = &mockCreator{}
-				importer = NewImporter(creator, tc.cliNamespace, false)
+				importer = NewImporter(creator, WithNamespace(tc.cliNamespace))
 			)
 
 			doc := fmt.Sprintf("version: 1.0\nnamespace: %s", tc.docNamespace)
 			err := importer.Import(context.Background(), strings.NewReader(doc))
 			if tc.wantError {
-				msg := fmt.Sprintf("namespace mismatch: %s != %s", tc.docNamespace, tc.cliNamespace)
+				msg := fmt.Sprintf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", tc.docNamespace, tc.cliNamespace)
 				assert.EqualError(t, err, msg)
 				return
 			}

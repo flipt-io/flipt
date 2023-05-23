@@ -29,12 +29,30 @@ type Importer struct {
 	createNS  bool
 }
 
-func NewImporter(store Creator, namespace string, createNS bool) *Importer {
-	return &Importer{
-		creator:   store,
-		namespace: namespace,
-		createNS:  createNS,
+type ImportOpt func(*Importer)
+
+func WithNamespace(ns string) ImportOpt {
+	return func(i *Importer) {
+		i.namespace = ns
 	}
+}
+
+func WithCreateNamespace() ImportOpt {
+	return func(i *Importer) {
+		i.createNS = true
+	}
+}
+
+func NewImporter(store Creator, opts ...ImportOpt) *Importer {
+	i := &Importer{
+		creator: store,
+	}
+
+	for _, opt := range opts {
+		opt(i)
+	}
+
+	return i
 }
 
 func (i *Importer) Import(ctx context.Context, r io.Reader) error {
@@ -51,13 +69,21 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		return fmt.Errorf("unsupported version: %s", doc.Version)
 	}
 
+	// check if document namespace matches cli namespace if both are set
 	if doc.Namespace != "" && i.namespace != "" && doc.Namespace != i.namespace {
-		return fmt.Errorf("namespace mismatch: %s != %s", doc.Namespace, i.namespace)
+		return fmt.Errorf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", doc.Namespace, i.namespace)
 	}
 
-	if i.createNS && i.namespace != "" && i.namespace != "default" {
+	// prefer document namespace over cli namespace, but use cli namespace if
+	// document namespace is empty
+	var namespace = doc.Namespace
+	if namespace == "" {
+		namespace = i.namespace
+	}
+
+	if i.createNS && namespace != "" && namespace != flipt.DefaultNamespace {
 		_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
-			Key: i.namespace,
+			Key: namespace,
 		})
 
 		if status.Code(err) != codes.NotFound {
@@ -65,8 +91,8 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		}
 
 		_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-			Key:  i.namespace,
-			Name: i.namespace,
+			Key:  namespace,
+			Name: namespace,
 		})
 		if err != nil {
 			return err
@@ -93,7 +119,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			Name:         f.Name,
 			Description:  f.Description,
 			Enabled:      f.Enabled,
-			NamespaceKey: i.namespace,
+			NamespaceKey: namespace,
 		})
 
 		if err != nil {
@@ -121,7 +147,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				Name:         v.Name,
 				Description:  v.Description,
 				Attachment:   string(out),
-				NamespaceKey: i.namespace,
+				NamespaceKey: namespace,
 			})
 
 			if err != nil {
@@ -145,7 +171,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			Name:         s.Name,
 			Description:  s.Description,
 			MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
-			NamespaceKey: i.namespace,
+			NamespaceKey: namespace,
 		})
 
 		if err != nil {
@@ -163,7 +189,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				Property:     c.Property,
 				Operator:     c.Operator,
 				Value:        c.Value,
-				NamespaceKey: i.namespace,
+				NamespaceKey: namespace,
 			})
 
 			if err != nil {
@@ -190,7 +216,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 				FlagKey:      f.Key,
 				SegmentKey:   r.SegmentKey,
 				Rank:         int32(r.Rank),
-				NamespaceKey: i.namespace,
+				NamespaceKey: namespace,
 			})
 
 			if err != nil {
@@ -212,7 +238,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 					RuleId:       rule.Id,
 					VariantId:    variant.Id,
 					Rollout:      d.Rollout,
-					NamespaceKey: i.namespace,
+					NamespaceKey: namespace,
 				})
 
 				if err != nil {
