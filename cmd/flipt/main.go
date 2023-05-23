@@ -32,6 +32,11 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+const (
+	defaultCfgPath = "/etc/flipt/config/default.yml"
+	localFile      = "flipt.yml"
+)
+
 var (
 	cfgPath      string
 	forceMigrate bool
@@ -115,6 +120,18 @@ func main() {
 				}
 			},
 		}
+
+		initCmd = &cobra.Command{
+			Use:   "init",
+			Short: "Create configuration file for use",
+			Run: func(cmd *cobra.Command, _ []string) {
+				logger := zap.Must(zap.NewDevelopment())
+
+				if err := initCommand(cmd.Context(), logger); err != nil {
+					logger.Fatal("flipt init", zap.Error(err))
+				}
+			},
+		}
 	)
 
 	var (
@@ -134,13 +151,14 @@ func main() {
 	banner = buf.String()
 
 	rootCmd.SetVersionTemplate(banner)
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", defaultCfgPath, "path to config file")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(newExportCommand())
 	rootCmd.AddCommand(newImportCommand())
+	rootCmd.AddCommand(initCmd)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -158,9 +176,30 @@ func main() {
 	}
 }
 
+// determinePath will figure out which path to use for Flipt configuration.
+func determinePath(cfgPath string) string {
+	if cfgPath != defaultCfgPath {
+		return cfgPath
+	}
+
+	_, err := os.Stat(localFile)
+	if err == nil {
+		return localFile
+	}
+
+	_, err = os.Stat(configFile)
+	if err == nil {
+		return configFile
+	}
+
+	return defaultCfgPath
+}
+
 func buildConfig() (*zap.Logger, *config.Config) {
+	path := determinePath(cfgPath)
+
 	// read in config
-	res, err := config.Load(cfgPath)
+	res, err := config.Load(path)
 	if err != nil {
 		fatal("loading configuration", zap.Error(err))
 	}
@@ -198,6 +237,8 @@ func buildConfig() (*zap.Logger, *config.Config) {
 	for _, warning := range res.Warnings {
 		logger.Warn("configuration warning", zap.String("message", warning))
 	}
+
+	logger.Debug("configuration source", zap.String("path", path))
 
 	return logger, cfg
 }
