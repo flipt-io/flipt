@@ -39,8 +39,8 @@ func (s *DBTestSuite) TestGetSegment() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -67,8 +67,8 @@ func (s *DBTestSuite) TestGetSegmentNamespace() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
