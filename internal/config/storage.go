@@ -59,6 +59,21 @@ type Local struct {
 
 // Git contains configuration for referencing a git repository.
 type Git struct {
-	Repository string `json:"repository,omitempty" mapstructure:"repository"`
-	Ref        string `json:"ref,omitempty" mapstructure:"ref"`
+	Repository string    `json:"repository,omitempty" mapstructure:"repository"`
+	Ref        string    `json:"ref,omitempty" mapstructure:"ref"`
+	BasicAuth  BasicAuth `json:"basicAuth,omitempty" mapstructure:"basic_auth"`
+	TokenAuth  TokenAuth `json:"tokenAuth,omitempty" mapstructure:"token_auth"`
+}
+
+// BasicAuth has configuration for authenticating with private git repositories
+// with basic auth.
+type BasicAuth struct {
+	Username string `json:"username,omitempty" mapstructure:"username"`
+	Password string `json:"password,omitempty" mapstructure:"password"`
+}
+
+// TokenAuth has configuration for authenticating with private git repositories
+// with token auth.
+type TokenAuth struct {
+	Token string `json:"token,omitempty" mapstructure:"token"`
 }
