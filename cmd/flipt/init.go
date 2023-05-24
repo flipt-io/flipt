@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -45,7 +44,7 @@ var (
 	configFile     = fmt.Sprintf("%s/config.yml", fliptDir)
 )
 
-func initCommand(ctx context.Context, logger *zap.Logger) error {
+func initCommand(logger *zap.Logger) error {
 	if _, err := os.Stat(configFile); err == nil {
 		logger.Debug("config file already exists", zap.String("file", configFile))
 		return nil
@@ -56,7 +55,7 @@ func initCommand(ctx context.Context, logger *zap.Logger) error {
 		return err
 	}
 
-	if err := os.WriteFile(configFile, []byte(initialConfigFile), 0666); err != nil {
+	if err := os.WriteFile(configFile, []byte(initialConfigFile), 0600); err != nil {
 		logger.Error("failed to write to file", zap.String("file", configFile), zap.Error(err))
 		return err
 	}

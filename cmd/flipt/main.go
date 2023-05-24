@@ -127,7 +127,7 @@ func main() {
 			Run: func(cmd *cobra.Command, _ []string) {
 				logger := zap.Must(zap.NewDevelopment())
 
-				if err := initCommand(cmd.Context(), logger); err != nil {
+				if err := initCommand(logger); err != nil {
 					logger.Fatal("flipt init", zap.Error(err))
 				}
 			},
