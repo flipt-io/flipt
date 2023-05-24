@@ -34,7 +34,6 @@ import (
 
 const (
 	defaultCfgPath = "/etc/flipt/config/default.yml"
-	localFile      = "flipt.yml"
 )
 
 var (
@@ -64,7 +63,9 @@ var (
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
-	fatal = zap.Must(defaultConfig(defaultEncoding).Build()).Fatal
+	fatal           = zap.Must(defaultConfig(defaultEncoding).Build()).Fatal
+	userHomeDir, _  = os.UserHomeDir()
+	fliptConfigFile = fmt.Sprintf("%s/.flipt/config.yml", userHomeDir)
 )
 
 func defaultConfig(encoding zapcore.EncoderConfig) zap.Config {
@@ -120,18 +121,6 @@ func main() {
 				}
 			},
 		}
-
-		initCmd = &cobra.Command{
-			Use:   "init",
-			Short: "Create configuration file for use",
-			Run: func(cmd *cobra.Command, _ []string) {
-				logger := zap.Must(zap.NewDevelopment())
-
-				if err := initCommand(logger); err != nil {
-					logger.Fatal("flipt init", zap.Error(err))
-				}
-			},
-		}
 	)
 
 	var (
@@ -151,14 +140,13 @@ func main() {
 	banner = buf.String()
 
 	rootCmd.SetVersionTemplate(banner)
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", defaultCfgPath, "path to config file")
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "path to config file")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(newExportCommand())
 	rootCmd.AddCommand(newImportCommand())
-	rootCmd.AddCommand(initCmd)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -178,18 +166,13 @@ func main() {
 
 // determinePath will figure out which path to use for Flipt configuration.
 func determinePath(cfgPath string) string {
-	if cfgPath != defaultCfgPath {
+	if cfgPath != "" {
 		return cfgPath
 	}
 
-	_, err := os.Stat(localFile)
+	_, err := os.Stat(fliptConfigFile)
 	if err == nil {
-		return localFile
-	}
-
-	_, err = os.Stat(configFile)
-	if err == nil {
-		return configFile
+		return fliptConfigFile
 	}
 
 	return defaultCfgPath
