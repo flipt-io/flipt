@@ -39,8 +39,8 @@ func (s *DBTestSuite) TestGetSegment() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -67,8 +67,8 @@ func (s *DBTestSuite) TestGetSegmentNamespace() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -99,6 +99,7 @@ func (s *DBTestSuite) TestGetSegment_WithConstraint() {
 	require.NoError(t, err)
 	assert.NotNil(t, segment)
 
+	// ensure we support older versions of Flipt where constraints have NULL descriptions.
 	_, err = s.db.DB.Exec(fmt.Sprintf(`INSERT INTO constraints (id, segment_key, type, property, operator, value) VALUES ('%s', '%s', 1, 'foo', 'eq', 'bar');`,
 		uuid.Must(uuid.NewV4()).String(),
 		segment.Key))
@@ -114,11 +115,11 @@ func (s *DBTestSuite) TestGetSegment_WithConstraint() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 
-	require.Len(t, segment.Constraints, 1)
+	require.Len(t, got.Constraints, 1)
 }
 
 func (s *DBTestSuite) TestListSegments() {
