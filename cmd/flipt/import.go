@@ -84,6 +84,10 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	)
 
 	if !c.importStdin {
+		if len(args) < 1 {
+			return errors.New("import filename required")
+		}
+
 		importFilename := args[0]
 		if importFilename == "" {
 			return errors.New("import filename required")
