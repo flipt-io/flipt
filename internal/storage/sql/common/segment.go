@@ -74,6 +74,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 	for rows.Next() {
 		var (
 			constraint           flipt.Constraint
+			description          sql.NullString
 			createdAt, updatedAt fliptsql.Timestamp
 		)
 
@@ -85,7 +86,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 			&constraint.Property,
 			&constraint.Operator,
 			&constraint.Value,
-			&constraint.Description,
+			&description,
 			&createdAt,
 			&updatedAt); err != nil {
 			return segment, err
@@ -93,6 +94,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 
 		constraint.CreatedAt = createdAt.Timestamp
 		constraint.UpdatedAt = updatedAt.Timestamp
+		constraint.Description = description.String
 		segment.Constraints = append(segment.Constraints, &constraint)
 	}
 

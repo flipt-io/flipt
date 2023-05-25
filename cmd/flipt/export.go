@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -52,7 +53,7 @@ func newExportCommand() *cobra.Command {
 	cmd.Flags().StringVarP(
 		&export.namespace,
 		"namespace", "n",
-		"default",
+		flipt.DefaultNamespace,
 		"source namespace for exported resources.",
 	)
 
