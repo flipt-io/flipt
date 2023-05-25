@@ -29,32 +29,37 @@ func TestReadOnly(t *testing.T) {
 			expected = namespace
 		}
 		assert.Equal(t, expected, ns.Name)
-
 		require.NoError(t, err)
-		flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
-			NamespaceKey: namespace,
+
+		t.Run("ListFlags", func(t *testing.T) {
+			flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+				NamespaceKey: namespace,
+			})
+			require.NoError(t, err)
+
+			require.Len(t, flags.Flags, 50)
+
+			flag := flags.Flags[0]
+			assert.Equal(t, namespace, flag.NamespaceKey)
+			assert.Equal(t, "flag_001", flag.Key)
+			assert.Equal(t, "FLAG_001", flag.Name)
+			assert.Equal(t, "Some Description", flag.Description)
+			assert.True(t, flag.Enabled)
+
+			require.Len(t, flag.Variants, 2)
+
+			assert.Equal(t, "variant_001", flag.Variants[0].Key)
+			assert.Equal(t, "variant_002", flag.Variants[1].Key)
 		})
 		require.NoError(t, err)
 
-		require.Len(t, flags.Flags, 50)
+		t.Run("ListSegments", func(t *testing.T) {
+			segments, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
+				NamespaceKey: namespace,
+			})
 
-		flag := flags.Flags[0]
-		assert.Equal(t, namespace, flag.NamespaceKey)
-		assert.Equal(t, "flag_001", flag.Key)
-		assert.Equal(t, "FLAG_001", flag.Name)
-		assert.Equal(t, "Some Description", flag.Description)
-		assert.True(t, flag.Enabled)
-
-		require.Len(t, flag.Variants, 2)
-
-		assert.Equal(t, "variant_1", flag.Variants[0].Key)
-		assert.Equal(t, "variant_2", flag.Variants[1].Key)
-
-		segments, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
-			NamespaceKey: namespace,
+			require.NoError(t, err)
+			require.Len(t, segments.Segments, 50)
 		})
-		require.NoError(t, err)
-
-		require.Len(t, segments.Segments, 50)
 	})
 }
