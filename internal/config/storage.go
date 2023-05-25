@@ -28,7 +28,6 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 		v.SetDefault("storage.local.path", ".")
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
-		v.SetDefault("storage.git.authentication.enabled", "false")
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -76,27 +75,19 @@ type Git struct {
 // not all inputs are given but only partially, we will return a validation error.
 // (e.g. if username for basic auth is given, and token is also given a validation error will be returned)
 type Authentication struct {
-	Enabled   bool       `json:"enabled,omitempty" mapstructure:"enabled"`
 	BasicAuth *BasicAuth `json:"basic,omitempty" mapstructure:"basic"`
 	TokenAuth *TokenAuth `json:"token,omitempty" mapstructure:"token"`
 }
 
 func (a *Authentication) validate() error {
-	if a.Enabled {
-		if a.BasicAuth == nil && a.TokenAuth == nil {
-			return errors.New("authentication enabled but no auth inputs provided")
+	if a.BasicAuth != nil {
+		if err := a.BasicAuth.validate(); err != nil {
+			return err
 		}
-
-		if a.BasicAuth != nil {
-			if err := a.BasicAuth.validate(); err != nil {
-				return err
-			}
-		}
-
-		if a.TokenAuth != nil {
-			if err := a.TokenAuth.validate(); err != nil {
-				return err
-			}
+	}
+	if a.TokenAuth != nil {
+		if err := a.TokenAuth.validate(); err != nil {
+			return err
 		}
 	}
 

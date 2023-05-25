@@ -3,4 +3,5 @@ storage:
   git:
     repository: "git@github.com:foo/bar.git"
     authentication:
-      enabled: true
+      basic:
+        username: foo
