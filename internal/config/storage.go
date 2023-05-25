@@ -76,38 +76,27 @@ type Git struct {
 // not all inputs are given but only partially, we will return a validation error.
 // (e.g. if username for basic auth is given, and token is also given a validation error will be returned)
 type Authentication struct {
-	Enabled   bool                              `json:"enabled,omitempty" mapstructure:"enabled"`
-	BasicAuth GitAuthentcationMethod[BasicAuth] `json:"basic,omitempty" mapstructure:"basic"`
-	TokenAuth GitAuthentcationMethod[TokenAuth] `json:"token,omitempty" mapstructure:"token"`
-}
-
-// GitAuthenticationMethod is the general structure for the various types of
-// auth methods.
-//
-// nolint:musttag
-type GitAuthentcationMethod[C AuthMethod] struct {
-	Method C `mapstructure:",squash"`
-}
-
-// AuthMethod is a type with two methods that will check validity and provision of
-// an an auth method.
-type AuthMethod interface {
-	empty() bool
-	validate() error
+	Enabled   bool       `json:"enabled,omitempty" mapstructure:"enabled"`
+	BasicAuth *BasicAuth `json:"basic,omitempty" mapstructure:"basic"`
+	TokenAuth *TokenAuth `json:"token,omitempty" mapstructure:"token"`
 }
 
 func (a *Authentication) validate() error {
 	if a.Enabled {
-		if a.BasicAuth.Method.empty() && a.TokenAuth.Method.empty() {
+		if a.BasicAuth == nil && a.TokenAuth == nil {
 			return errors.New("authentication enabled but no auth inputs provided")
 		}
 
-		if err := a.BasicAuth.Method.validate(); err != nil {
-			return err
+		if a.BasicAuth != nil {
+			if err := a.BasicAuth.validate(); err != nil {
+				return err
+			}
 		}
 
-		if err := a.TokenAuth.Method.validate(); err != nil {
-			return err
+		if a.TokenAuth != nil {
+			if err := a.TokenAuth.validate(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -119,10 +108,6 @@ func (a *Authentication) validate() error {
 type BasicAuth struct {
 	Username string `json:"username,omitempty" mapstructure:"username"`
 	Password string `json:"password,omitempty" mapstructure:"password"`
-}
-
-func (b BasicAuth) empty() bool {
-	return b.Username == "" && b.Password == ""
 }
 
 func (b BasicAuth) validate() error {
@@ -137,10 +122,6 @@ func (b BasicAuth) validate() error {
 // with token auth.
 type TokenAuth struct {
 	AccessToken string `json:"accessToken,omitempty" mapstructure:"access_token"`
-}
-
-func (t TokenAuth) empty() bool {
-	return t.AccessToken == ""
 }
 
 func (t TokenAuth) validate() error { return nil }
