@@ -175,7 +175,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 					WithEnvVariable("UNIQUE", uuid.New().String()).
 					WithExec(nil)
 
-			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
+			importCmd = append([]string{"/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
 		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
@@ -214,7 +214,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 		generated, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithServiceBinding("flipt", fliptToTest).
-			WithExec(append([]string{"/bin/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
+			WithExec(append([]string{"/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
 			File("/tmp/output.yaml").
 			Contents(ctx)
 		if err != nil {
