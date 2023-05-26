@@ -246,6 +246,8 @@ func Test() error {
 }
 
 func Dagger(command string) error {
+	fmt.Println(os.Getenv("PATH"))
+
 	if command == "help" {
 		return sh.RunV("mage", "-d", "build")
 	}
