@@ -96,11 +96,15 @@ jobs:
           check-latest: true
           cache: true
 
+      - name: Install Dagger
+        run: |
+          cd /usr/local
+          curl -L https://dl.dagger.io/dagger/install.sh | sh
+
       - uses: magefile/mage-action@v2
         with:
           version: latest
-          args: test:integration
-          workdir: build
+          args: dagger test:integration
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v3
@@ -124,8 +128,12 @@ jobs:
           check-latest: true
           cache: true
 
+      - name: Install Dagger
+        run: |
+          cd /usr/local
+          curl -L https://dl.dagger.io/dagger/install.sh | sh
+
       - uses: magefile/mage-action@v2
         with:
           version: latest
-          args: test:ui
-          workdir: build
+          args: dagger test:ui
