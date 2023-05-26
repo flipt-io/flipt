@@ -101,7 +101,7 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
-      - uses: magefile/mage-action@v2
+      - uses: GeorgeMac/mage-action@gm/tools-add-path
         with:
           version: latest
           args: dagger test:integration
@@ -133,7 +133,7 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
-      - uses: magefile/mage-action@v2
+      - uses: GeorgeMac/mage-action@gm/tools-add-path
         with:
           version: latest
           args: dagger test:ui
