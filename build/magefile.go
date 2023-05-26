@@ -264,7 +264,6 @@ func (r Release) Tag(ctx context.Context, module, version string) error {
 
 func daggerClient(ctx context.Context) (*dagger.Client, error) {
 	return dagger.Connect(ctx,
-		dagger.WithWorkdir(workDir()),
 		dagger.WithLogOutput(os.Stdout),
 	)
 }

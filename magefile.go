@@ -245,6 +245,14 @@ func Test() error {
 	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
 }
 
+func Dagger(command string) error {
+	if command == "help" {
+		return sh.RunV("mage", "-d", "build")
+	}
+
+	return sh.RunV("dagger", "run", "mage", "-d", "build", command)
+}
+
 // findFilesRecursive recursively traverses from the CWD and invokes the given
 // match function on each regular file to determine if the given path should be
 // returned as a match. It ignores files in .git directories.
