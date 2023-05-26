@@ -30,6 +30,8 @@ type testConfig struct {
 	token     string
 }
 
+type testCaseFn func(_ context.Context, base, flipt *dagger.Container, conf testConfig) func() error
+
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
 	logs := client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
 	_, err := flipt.WithUser("root").
@@ -68,11 +70,15 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, test := range []struct {
 		name string
-		fn   func(_ context.Context, base, flipt *dagger.Container, conf testConfig) func() error
+		fn   testCaseFn
 	}{
 		{
 			name: "api",
 			fn:   api,
+		},
+		{
+			name: "fs/local",
+			fn:   local,
 		},
 		{
 			name: "import/export",
@@ -132,6 +138,21 @@ func api(ctx context.Context, base, flipt *dagger.Container, conf testConfig) fu
 			WithExec(nil), conf)
 }
 
+const (
+	testdataDir     = "build/testing/integration/readonly/testdata"
+	testdataPathFmt = testdataDir + "/%s.yaml"
+)
+
+func local(ctx context.Context, base, flipt *dagger.Container, conf testConfig) func() error {
+	flipt = flipt.
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+		WithEnvVariable("FLIPT_STORAGE_LOCAL_DIR", testdataDir).
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
+
+	return suite(ctx, "readonly", base, flipt, conf)
+}
+
 func importExport(ctx context.Context, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
@@ -140,11 +161,13 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			flags = append(flags, "--token", conf.token)
 		}
 
-		seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
+		ns := "default"
 		if conf.namespace != "" {
+			ns = conf.namespace
 			flags = append(flags, "--namespace", conf.namespace)
-			seed = base.File(fmt.Sprintf("build/testing/integration/readonly/testdata/%s.yaml", conf.namespace))
 		}
+
+		seed := base.File(fmt.Sprintf(testdataPathFmt, ns))
 
 		var (
 			// create unique instance for test case
