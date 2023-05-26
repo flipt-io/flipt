@@ -709,6 +709,11 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
 			wantErr: errors.New("git repository must be specified"),
 		},
+		{
+			name:    "git basic auth partially provided",
+			path:    "./testdata/storage/git_basic_auth_invalid.yml",
+			wantErr: errors.New("both username and password need to be provided for basic auth"),
+		},
 	}
 
 	for _, tt := range tests {
