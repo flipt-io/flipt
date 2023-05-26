@@ -24,7 +24,10 @@ var (
 func main() {
 	flag.Parse()
 
-	doc := ext.Document{}
+	doc := ext.Document{
+		Version:   "1.0",
+		Namespace: *namespace,
+	}
 
 	for i := 0; i < *segmentCount; i++ {
 		key := fmt.Sprintf("segment_%03d", i+1)

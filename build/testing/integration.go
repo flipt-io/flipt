@@ -42,7 +42,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	var cases []testConfig
 
-	for _, namespace := range []string{"", fmt.Sprintf("%x", rand.Int())} {
+	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
 			for _, token := range []string{"", "some-token"} {
 				name := fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace)
@@ -140,8 +140,10 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			flags = append(flags, "--token", conf.token)
 		}
 
+		seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
 		if conf.namespace != "" {
 			flags = append(flags, "--namespace", conf.namespace)
+			seed = base.File(fmt.Sprintf("build/testing/integration/readonly/testdata/%s.yaml", conf.namespace))
 		}
 
 		var (
@@ -151,7 +153,6 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 					WithExec(nil)
 
 			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
-			seed      = base.File("build/testing/integration/readonly/testdata/seed.yaml")
 		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
@@ -182,10 +183,9 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 		namespace := conf.namespace
 		if namespace == "" {
 			namespace = "default"
+			// replace namespace in expected yaml
+			expected = strings.ReplaceAll(expected, "version: \"1.0\"\n", fmt.Sprintf("version: \"1.0\"\nnamespace: %s\n", namespace))
 		}
-
-		// replace namespace in expected yaml
-		expected = strings.ReplaceAll(expected, "version: \"1.0\"\n", fmt.Sprintf("version: \"1.0\"\nnamespace: %s\n", namespace))
 
 		// use target flipt binary to invoke import
 		generated, err := flipt.

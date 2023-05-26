@@ -61,5 +61,21 @@ func TestReadOnly(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, segments.Segments, 50)
 		})
+
+		t.Run("Evaluate", func(t *testing.T) {
+			response, err := sdk.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_001",
+				EntityId:     "some-fixed-entity-id",
+				Context: map[string]string{
+					"in_segment": "segment_005",
+				},
+			})
+			require.NoError(t, err)
+
+			assert.Equal(t, true, response.Match)
+			assert.Equal(t, "variant_002", response.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
+		})
 	})
 }

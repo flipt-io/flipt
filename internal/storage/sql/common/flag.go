@@ -256,7 +256,7 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 	query := s.builder.Select("id, namespace_key, \"key\", flag_key, name, description, attachment, created_at, updated_at").
 		From("variants").
 		Where(sq.Eq{"namespace_key": namespaceKey, "flag_key": allFlagKeys}).
-		OrderBy("created_at")
+		OrderBy("created_at ASC")
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
