@@ -339,22 +339,29 @@ message RolloutRulePercentage {
 }
 
 message CreateRolloutRuleRequest {
-  string flag_key = 1;
-  string namespace_key = 2;
-  RolloutRule rule = 3;
+  string namespace_key = 1;
+  string flag_key = 2;
+  int32 rank = 3;
+  oneof rule {
+    RolloutRuleSegment segment = 10;
+    RolloutRulePercentage percentage = 11;
+  }
 }
 
 message UpdateRolloutRuleRequest {
   string id = 1;
-  string flag_key = 2;
-  string namespace_key = 3;
-  RolloutRule rule = 4;
+  string namespace_key = 2;
+  string flag_key = 3;
+  oneof rule {
+    RolloutRuleSegment segment = 10;
+    RolloutRulePercentage percentage = 11;
+  }
 }
 
 message DeleteRolloutRuleRequest {
   string id = 1;
-  string flag_key = 2;
-  string namespace_key = 3;
+  string namespace_key = 2;
+  string flag_key = 3;
 }
 
 message GetRuleRequest {

@@ -64,7 +64,7 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, flagKey string
 
 		if err := s.builder.Select("segment_key, \"value\"").
 			From(tableRolloutSegmentRules).
-			Where(sq.Eq{"rollout_rule_id": rollout.Id}).
+			Where(sq.And{sq.Eq{"rollout_rule_id": rollout.Id}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
 			Limit(1).
 			QueryRowContext(ctx).
 			Scan(
@@ -82,7 +82,7 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, flagKey string
 
 		if err := s.builder.Select("percentage").
 			From(tableRolloutPercentageRules).
-			Where(sq.Eq{"rollout_rule_id": rollout.Id}).
+			Where(sq.And{sq.Eq{"rollout_rule_id": rollout.Id}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
 			Limit(1).
 			QueryRowContext(ctx).
 			Scan(&percentageRule.Percentage.Percentage); err != nil {
@@ -107,10 +107,10 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 	var rule RolloutRuleType
 
 	if r.GetRule() != nil {
-		if r.GetRule().GetSegment() != nil {
+		if r.GetSegment() != nil {
 			s.logger.Debug("creating rollout rule segment")
 			rule = SegmentRolloutRuleType
-		} else if r.GetRule().GetPercentage() != nil {
+		} else if r.GetPercentage() != nil {
 			s.logger.Debug("creating rollout rule percent")
 			rule = PercentageRolloutRuleType
 		}
@@ -122,6 +122,7 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 			Id:           uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey: r.NamespaceKey,
 			FlagKey:      r.FlagKey,
+			Rank:         r.Rank,
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
@@ -138,11 +139,11 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 
 	switch rule {
 	case SegmentRolloutRuleType:
-		var segmentRule = r.GetRule().GetSegment()
+		var segmentRule = r.GetSegment()
 
 		if _, err := s.builder.Insert(tableRolloutSegmentRules).
-			Columns("id", "rollout_rule_id", "segment_key", "\"value\"").
-			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, segmentRule.SegmentKey, segmentRule.Value).
+			Columns("id", "rollout_rule_id", "namespace_key", "segment_key", "\"value\"").
+			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, segmentRule.SegmentKey, segmentRule.Value).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
@@ -151,11 +152,11 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 			Segment: segmentRule,
 		}
 	case PercentageRolloutRuleType:
-		var percentageRule = r.GetRule().GetPercentage()
+		var percentageRule = r.GetPercentage()
 
 		if _, err := s.builder.Insert(tableRolloutPercentageRules).
-			Columns("id", "rollout_rule_id", "percentage", "\"value\"").
-			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, percentageRule.Percentage, percentageRule.Value).
+			Columns("id", "rollout_rule_id", "namespace_key", "percentage", "\"value\"").
+			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, percentageRule.Percentage, percentageRule.Value).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
