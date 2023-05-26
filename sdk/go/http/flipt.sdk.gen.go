@@ -651,34 +651,7 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 	return &output, nil
 }
 
-func (x *FliptClient) GetRolloutStrategy(ctx context.Context, v *flipt.GetRolloutStrategyRequest, _ ...grpc.CallOption) (*flipt.RolloutStrategy, error) {
-	var body io.Reader
-	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
-	if err != nil {
-		return nil, err
-	}
-	req.URL.RawQuery = values.Encode()
-	resp, err := x.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var output flipt.RolloutStrategy
-	respData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	if err := checkResponse(resp, respData); err != nil {
-		return nil, err
-	}
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
-		return nil, err
-	}
-	return &output, nil
-}
-
-func (x *FliptClient) CreateRolloutStrategy(ctx context.Context, v *flipt.CreateRolloutStrategyRequest, _ ...grpc.CallOption) (*flipt.RolloutStrategy, error) {
+func (x *FliptClient) CreateRolloutRule(ctx context.Context, v *flipt.CreateRolloutRuleRequest, _ ...grpc.CallOption) (*flipt.RolloutRule, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -696,7 +669,7 @@ func (x *FliptClient) CreateRolloutStrategy(ctx context.Context, v *flipt.Create
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output flipt.RolloutStrategy
+	var output flipt.RolloutRule
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -710,7 +683,7 @@ func (x *FliptClient) CreateRolloutStrategy(ctx context.Context, v *flipt.Create
 	return &output, nil
 }
 
-func (x *FliptClient) UpdateRolloutStrategy(ctx context.Context, v *flipt.UpdateRolloutStrategyRequest, _ ...grpc.CallOption) (*flipt.RolloutStrategy, error) {
+func (x *FliptClient) UpdateRolloutRule(ctx context.Context, v *flipt.UpdateRolloutRuleRequest, _ ...grpc.CallOption) (*flipt.RolloutRule, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -718,7 +691,7 @@ func (x *FliptClient) UpdateRolloutStrategy(ctx context.Context, v *flipt.Update
 		return nil, err
 	}
 	body = bytes.NewReader(reqData)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}
@@ -728,7 +701,7 @@ func (x *FliptClient) UpdateRolloutStrategy(ctx context.Context, v *flipt.Update
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output flipt.RolloutStrategy
+	var output flipt.RolloutRule
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -742,11 +715,10 @@ func (x *FliptClient) UpdateRolloutStrategy(ctx context.Context, v *flipt.Update
 	return &output, nil
 }
 
-func (x *FliptClient) DeleteRolloutStrategy(ctx context.Context, v *flipt.DeleteRolloutStrategyRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+func (x *FliptClient) DeleteRolloutRule(ctx context.Context, v *flipt.DeleteRolloutRuleRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
-	values := url.Values{}
-	values.Set("id", v.Id)
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
 	if err != nil {
 		return nil, err
 	}

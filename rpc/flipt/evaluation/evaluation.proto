@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package flipt.evaluation;
+
+import "flipt.proto";
+import "google/api/httpbody.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "go.flipt.io/flipt/rpc/flipt/evaluation";
+
+message EvaluationRequest {
+  string request_id = 1;
+  string namespace_key = 2;
+  string flag_key = 3;
+  string entity_id = 4;
+  map<string, string> context = 5;
+}
+
+message BatchEvaluationRequest {
+  string request_id = 1;
+  repeated EvaluationRequest requests = 3;
+  bool exclude_not_found = 4;
+}
+
+message BatchEvaluationResponse {
+  string request_id = 1;
+  repeated EvaluationResponse responses = 2;
+  double request_duration_millis = 3;
+}
+
+enum EvaluationReason {
+    UNKNOWN_EVALUATION_REASON = 0;
+    FLAG_DISABLED_EVALUATION_REASON = 1;
+    FLAG_NOT_FOUND_EVALUATION_REASON = 2;
+    MATCH_EVALUATION_REASON = 3;
+    ERROR_EVALUATION_REASON = 4;
+    DEFAULT_EVALUATION_REASON = 5;
+}
+
+message EvaluationResponse {
+    oneof response {
+        BooleanEvaluationResponse boolean_response = 1;
+        VariantEvaluationResponse variant_response = 2;
+    }
+}
+
+message BooleanEvaluationResponse {
+  bool value = 1;
+  oneof rule {
+    RolloutRuleSegment segment = 10;
+    RolloutRulePercentage percentage = 11;
+  }
+  EvaluationReason reason = 3;
+  double request_duration_millis = 6;
+  google.protobuf.Timestamp timestamp = 7;
+}
+
+message VariantEvaluationResponse {
+  bool match = 1;
+  string segment_key = 2;
+  EvaluationReason reason = 3;
+  string variant_key = 4;
+  string variant_attachment = 5;
+  double request_duration_millis = 6;
+  google.protobuf.Timestamp timestamp = 7;
+}
+
+
+service EvaluationService {
+  rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {}
+  rpc Variant(EvaluationRequest) returns (VariantEvaluationResponse) {}
+  rpc Batch(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
+}

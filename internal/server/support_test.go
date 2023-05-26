@@ -138,22 +138,22 @@ func (m *storeMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
-func (m *storeMock) GetRolloutStrategy(ctx context.Context, namespaceKey string, key string) (*flipt.RolloutStrategy, error) {
+func (m *storeMock) GetRolloutRule(ctx context.Context, namespaceKey string, key string) (*flipt.RolloutRule, error) {
 	args := m.Called(ctx, namespaceKey, key)
-	return args.Get(0).(*flipt.RolloutStrategy), args.Error(1)
+	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
 }
 
-func (m *storeMock) CreateRolloutStrategy(ctx context.Context, r *flipt.CreateRolloutStrategyRequest) (*flipt.RolloutStrategy, error) {
+func (m *storeMock) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error) {
 	args := m.Called(ctx, r)
-	return args.Get(0).(*flipt.RolloutStrategy), args.Error(1)
+	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
 }
 
-func (m *storeMock) UpdateRolloutStrategy(ctx context.Context, r *flipt.UpdateRolloutStrategyRequest) (*flipt.RolloutStrategy, error) {
+func (m *storeMock) UpdateRolloutRule(ctx context.Context, r *flipt.UpdateRolloutRuleRequest) (*flipt.RolloutRule, error) {
 	args := m.Called(ctx, r)
-	return args.Get(0).(*flipt.RolloutStrategy), args.Error(1)
+	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
 }
 
-func (m *storeMock) DeleteRolloutStrategy(ctx context.Context, r *flipt.DeleteRolloutStrategyRequest) error {
+func (m *storeMock) DeleteRolloutRule(ctx context.Context, r *flipt.DeleteRolloutRuleRequest) error {
 	args := m.Called(ctx, r)
 	return args.Error(0)
 }

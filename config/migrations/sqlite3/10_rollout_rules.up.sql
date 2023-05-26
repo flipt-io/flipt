@@ -1,23 +1,25 @@
-CREATE TABLE IF NOT EXISTS rollout_strategies (
+CREATE TABLE IF NOT EXISTS rollout_rules (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   namespace_key VARCHAR(255) NOT NULL REFERENCES namespaces ON DELETE CASCADE,
   flag_key VARCHAR(255) NOT NULL,
   type INTEGER DEFAULT 0 NOT NULL,
+  rank INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  UNIQUE (namespace_key, flag_key),
+  UNIQUE (namespace_key, flag_key, rank),
   FOREIGN KEY (namespace_key, flag_key) REFERENCES flags (namespace_key, key) ON DELETE CASCADE
-)
-
-CREATE TABLE IF NOT EXISTS rollout_percent_strategies (
-  id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
-  rollout_strategy_id VARCHAR(255) UNIQUE NOT NULL REFERENCES rollout_strategies ON DELETE CASCADE,
-  percentage float DEFAULT 0 NOT NULL,
 );
 
-CREATE TABLE IF NOT EXISTS rollout_segment_strategies (
+CREATE TABLE IF NOT EXISTS rollout_percent_rules (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
-  rollout_strategy_id VARCHAR(255) UNIQUE NOT NULL REFERENCES rollout_strategies ON DELETE CASCADE,
+  rollout_rule_id VARCHAR(255) UNIQUE NOT NULL REFERENCES rollout_rules ON DELETE CASCADE,
+  percentage float DEFAULT 0 NOT NULL,
+  value BOOLEAN DEFAULT FALSE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rollout_segment_rules (
+  id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
+  rollout_rule_id VARCHAR(255) NOT NULL REFERENCES rollout_rules ON DELETE CASCADE,
   segment_key VARCHAR(255) NOT NULL REFERENCES segments ON DELETE CASCADE,
-  value BOOLEAN DEFAULT FALSE NOT NULL,
+  value BOOLEAN DEFAULT FALSE NOT NULL
 );

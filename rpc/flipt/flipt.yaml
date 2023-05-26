@@ -40,6 +40,20 @@ http:
   - selector: flipt.Flipt.BatchEvaluate
     post: /api/v1/namespaces/{namespace_key}/batch-evaluate
     body: "*"
+  
+  # evaluation v2
+  #
+  - selector: flipt.evaluation.EvaluationService.Boolean
+    post: /evaluate/v1/boolean
+    body: "*"
+
+  - selector: flipt.evaluation.EvaluationService.Variant
+    post: /evaluate/v1/variant
+    body: "*"
+
+  - selector: flipt.evaluation.EvaluationService.Batch
+    post: /evaluate/v1/batch
+    body: "*"
 
   # flags
   # 
@@ -77,6 +91,19 @@ http:
   - selector: flipt.Flipt.DeleteFlag
     delete: /api/v1/namespaces/{namespace_key}/flags/{key}
 
+  ## rollout rules
+  #
+  - selector: flipt.Flipt.CreateRolloutRule
+    post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
+    body: "*"
+  
+  - selector: flipt.Flipt.UpdateRolloutRule
+    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout/{id}
+    body: "*"
+
+  - selector: flipt.Flipt.DeleteRolloutRule
+    delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout/{id}
+
   # variants
   # 
   - selector: flipt.Flipt.CreateVariant
@@ -100,22 +127,6 @@ http:
 
   - selector: flipt.Flipt.DeleteVariant
     delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}
-
-  # rollout strategies
-  #
-  - selector: flipt.Flipt.CreateRolloutStrategy
-    post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
-    body: "*"
-
-  - selector: flipt.Flipt.UpdateRolloutStrategy
-    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
-    body: "*"
-
-  - selector: flipt.Flipt.DeleteRolloutStrategy
-    delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
-
-  - selector: flipt.Flipt.GetRolloutStrategy
-    get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
 
   # rules
   # 

@@ -129,7 +129,7 @@ type Store interface {
 	FlagStore
 	SegmentStore
 	RuleStore
-	RolloutStrategyStore
+	RolloutRuleStore
 	EvaluationStore
 	fmt.Stringer
 }
@@ -199,11 +199,11 @@ type RuleStore interface {
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
 }
 
-type RolloutStrategyStore interface {
-	GetRolloutStrategy(ctx context.Context, namespaceKey, flagKey string) (*flipt.RolloutStrategy, error)
-	CreateRolloutStrategy(ctx context.Context, r *flipt.CreateRolloutStrategyRequest) (*flipt.RolloutStrategy, error)
-	UpdateRolloutStrategy(ctx context.Context, r *flipt.UpdateRolloutStrategyRequest) (*flipt.RolloutStrategy, error)
-	DeleteRolloutStrategy(ctx context.Context, r *flipt.DeleteRolloutStrategyRequest) error
+type RolloutRuleStore interface {
+	GetRolloutRule(ctx context.Context, namespaceKey, flagKey string) (*flipt.RolloutRule, error)
+	CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error)
+	UpdateRolloutRule(ctx context.Context, r *flipt.UpdateRolloutRuleRequest) (*flipt.RolloutRule, error)
+	DeleteRolloutRule(ctx context.Context, r *flipt.DeleteRolloutRuleRequest) error
 }
 
 // ListRequest is a generic container for the parameters required to perform a list operation.
