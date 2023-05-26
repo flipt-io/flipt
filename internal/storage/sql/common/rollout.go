@@ -370,5 +370,12 @@ func (s *Store) UpdateRolloutRule(ctx context.Context, r *flipt.UpdateRolloutRul
 }
 
 func (s *Store) DeleteRolloutRule(ctx context.Context, r *flipt.DeleteRolloutRuleRequest) error {
-	panic("not implemented")
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	_, err := s.builder.Delete(tableRolloutRules).
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}}).ExecContext(ctx)
+
+	return err
 }
