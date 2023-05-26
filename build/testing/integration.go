@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"dagger.io/dagger"
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
@@ -178,24 +179,33 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			return err
 		}
 
+		namespace := conf.namespace
+		if namespace == "" {
+			namespace = "default"
+		}
+
+		// replace namespace in expected yaml
+		expected = strings.ReplaceAll(expected, "version: \"1.0\"\n", fmt.Sprintf("version: \"1.0\"\nnamespace: %s\n", namespace))
+
 		// use target flipt binary to invoke import
 		generated, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithServiceBinding("flipt", fliptToTest).
-			WithExec(append([]string{"/bin/flipt", "export"}, flags...)).
-			Stdout(ctx)
+			WithExec(append([]string{"/bin/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
+			File("/tmp/output.yaml").
+			Contents(ctx)
 		if err != nil {
 			return err
 		}
 
-		if expected != generated {
-			fmt.Println("Unexpected difference in exported output:")
-			fmt.Println("Expected:")
-			fmt.Println(expected + "\n")
-			fmt.Println("Found:")
-			fmt.Println(generated)
+		// remove line that starts with comment character '#' and newline after
+		generated = generated[strings.Index(generated, "\n")+2:]
 
-			return errors.New("Exported yaml did not match.")
+		diff := cmp.Diff(expected, generated)
+		if diff != "" {
+			fmt.Println("Unexpected difference in exported output:")
+			fmt.Println(diff)
+			return errors.New("exported yaml did not match")
 		}
 
 		return nil
