@@ -1,9 +1,10 @@
 package fs
 
 import (
+	"errors"
 	iofs "io/fs"
+	"path"
 
-	"github.com/gobwas/glob"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -12,75 +13,63 @@ const (
 	indexFile = ".flipt.yml"
 )
 
-var (
-	// globDefaults will be used if index file does not exist
-	// or can not be successfully read (malformed).
-	globDefaults []string = []string{"**/features.yml", "**/features.yaml", "**/*.features.yml", "**/*.features.yaml"}
-)
-
 // FliptIndex represents the structure of a well-known file ".flipt.yml"
 // at the root of an FS.
 type FliptIndex struct {
-	Version string   `yaml:"version,omitempty"`
-	Include []string `yaml:"include,omitempty"`
-	Exclude []string `yaml:"exclude,omitempty"`
+	Version    string   `yaml:"version,omitempty"`
+	Inclusions []string `yaml:"inclusions,omitempty"`
+	Exclusions []string `yaml:"exclusions,omitempty"`
 }
 
-// Snapshot represents the flag state from an FS.
-type Snapshot struct{}
-
-func buildSnapshotHelper(logger *zap.Logger, source iofs.FS) ([]string, []glob.Glob, error) {
-	var (
-		exclusions []string
-		inclusions = globDefaults
-	)
+func buildSnapshotHelper(logger *zap.Logger, source iofs.FS) ([]string, error) {
+	// This is the default variable + value for the FliptIndex. It will preserve its value if
+	// a .flipt.yml can not be read for whatever reason.
+	idx := FliptIndex{
+		Version: "1.0",
+		Inclusions: []string{
+			"**/features.yml", "**/features.yaml", "**/*.features.yml", "**/*.features.yaml",
+		},
+	}
 
 	// Read index file
 	inFile, err := source.Open(indexFile)
 	if err == nil {
-		var fi FliptIndex
-		if err := yaml.NewDecoder(inFile).Decode(&fi); err == nil {
-			inclusions = fi.Include
-			exclusions = fi.Exclude
-		} else {
-			logger.Debug("error in index file structure, defaulting...", zap.Error(err))
+		if derr := yaml.NewDecoder(inFile).Decode(&idx); derr != nil {
+			return nil, derr
 		}
+	}
+
+	if err != nil && !errors.Is(err, iofs.ErrNotExist) {
+		return nil, err
 	} else {
-		logger.Debug("error reading index file, defaulting...", zap.String("file", indexFile), zap.Error(err))
+		logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
 	}
 
 	filenames := make([]string, 0)
-	excludeGlobs := make([]glob.Glob, 0)
 
-	for _, g := range inclusions {
+	for _, g := range idx.Inclusions {
 		f, err := iofs.Glob(source, g)
 		if err != nil {
 			logger.Error("malformed glob pattern for included files", zap.String("glob", g), zap.Error(err))
-			return nil, nil, err
+			return nil, err
 		}
 
 		filenames = append(filenames, f...)
 	}
 
-	for _, e := range exclusions {
-		g, err := glob.Compile(e)
-		if err != nil {
-			logger.Error("malformed glob pattern for excluded files", zap.String("glob", e), zap.Error(err))
-			return nil, nil, err
+	if len(idx.Exclusions) > 0 {
+		for i := range filenames {
+			anyMatch := false
+			for _, e := range idx.Exclusions {
+				match, _ := path.Match(e, filenames[i])
+				anyMatch = anyMatch || match
+			}
+
+			if anyMatch {
+				filenames = append(filenames[:i], filenames[i+1:]...)
+			}
 		}
-		excludeGlobs = append(excludeGlobs, g)
 	}
 
-	return filenames, excludeGlobs, nil
-}
-
-// BuildSnapshot will take in an FS implementation, and build the Snapshot of the flag state from the files
-// necessary within the FS.
-func BuildSnapshot(logger *zap.Logger, source iofs.FS) (*Snapshot, error) {
-	_, _, err := buildSnapshotHelper(logger, source)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Snapshot{}, nil
+	return filenames, nil
 }
