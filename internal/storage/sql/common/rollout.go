@@ -13,7 +13,6 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -33,8 +32,6 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*f
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
-
-	s.logger.Debug("get rollout rule", zap.String("namespaceKey", namespaceKey), zap.String("id", id))
 
 	var (
 		createdAt fliptsql.Timestamp
@@ -200,8 +197,6 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 		return results, err
 	}
 
-	s.logger.Debug("rollouts by id", zap.Any("rolloutsById", rolloutsById))
-	s.logger.Debug("rollouts by type", zap.Any("rolloutsByType", rolloutsByType))
 	// get all rules from rollout_segment_rules table
 	if len(rolloutsByType[SegmentRolloutRuleType]) > 0 {
 		allRuleIds := make([]string, len(rolloutsByType[SegmentRolloutRuleType]))
@@ -304,10 +299,8 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 
 	if r.GetRule() != nil {
 		if r.GetSegment() != nil {
-			s.logger.Debug("creating rollout rule segment")
 			rule = SegmentRolloutRuleType
 		} else if r.GetPercentage() != nil {
-			s.logger.Debug("creating rollout rule percent")
 			rule = PercentageRolloutRuleType
 		}
 	}
