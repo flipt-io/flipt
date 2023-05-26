@@ -185,6 +185,22 @@ func (x *Flipt) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest) erro
 	return err
 }
 
+func (x *Flipt) GetRolloutRule(ctx context.Context, v *flipt.GetRolloutRuleRequest) (*flipt.RolloutRule, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.GetRolloutRule(ctx, v)
+}
+
+func (x *Flipt) ListRolloutRules(ctx context.Context, v *flipt.ListRolloutRuleRequest) (*flipt.RolloutRuleList, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.ListRolloutRules(ctx, v)
+}
+
 func (x *Flipt) CreateRolloutRule(ctx context.Context, v *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {

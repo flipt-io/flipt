@@ -138,6 +138,11 @@ func (m *storeMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
+func (m *storeMock) ListRolloutRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.RolloutRule], error) {
+	args := m.Called(ctx, namespaceKey, flagKey, opts)
+	return args.Get(0).(storage.ResultSet[*flipt.RolloutRule]), args.Error(1)
+}
+
 func (m *storeMock) GetRolloutRule(ctx context.Context, namespaceKey string, key string) (*flipt.RolloutRule, error) {
 	args := m.Called(ctx, namespaceKey, key)
 	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
