@@ -20,38 +20,42 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Flipt_Evaluate_FullMethodName           = "/flipt.Flipt/Evaluate"
-	Flipt_BatchEvaluate_FullMethodName      = "/flipt.Flipt/BatchEvaluate"
-	Flipt_GetNamespace_FullMethodName       = "/flipt.Flipt/GetNamespace"
-	Flipt_ListNamespaces_FullMethodName     = "/flipt.Flipt/ListNamespaces"
-	Flipt_CreateNamespace_FullMethodName    = "/flipt.Flipt/CreateNamespace"
-	Flipt_UpdateNamespace_FullMethodName    = "/flipt.Flipt/UpdateNamespace"
-	Flipt_DeleteNamespace_FullMethodName    = "/flipt.Flipt/DeleteNamespace"
-	Flipt_GetFlag_FullMethodName            = "/flipt.Flipt/GetFlag"
-	Flipt_ListFlags_FullMethodName          = "/flipt.Flipt/ListFlags"
-	Flipt_CreateFlag_FullMethodName         = "/flipt.Flipt/CreateFlag"
-	Flipt_UpdateFlag_FullMethodName         = "/flipt.Flipt/UpdateFlag"
-	Flipt_DeleteFlag_FullMethodName         = "/flipt.Flipt/DeleteFlag"
-	Flipt_CreateVariant_FullMethodName      = "/flipt.Flipt/CreateVariant"
-	Flipt_UpdateVariant_FullMethodName      = "/flipt.Flipt/UpdateVariant"
-	Flipt_DeleteVariant_FullMethodName      = "/flipt.Flipt/DeleteVariant"
-	Flipt_GetRule_FullMethodName            = "/flipt.Flipt/GetRule"
-	Flipt_ListRules_FullMethodName          = "/flipt.Flipt/ListRules"
-	Flipt_CreateRule_FullMethodName         = "/flipt.Flipt/CreateRule"
-	Flipt_UpdateRule_FullMethodName         = "/flipt.Flipt/UpdateRule"
-	Flipt_OrderRules_FullMethodName         = "/flipt.Flipt/OrderRules"
-	Flipt_DeleteRule_FullMethodName         = "/flipt.Flipt/DeleteRule"
-	Flipt_CreateDistribution_FullMethodName = "/flipt.Flipt/CreateDistribution"
-	Flipt_UpdateDistribution_FullMethodName = "/flipt.Flipt/UpdateDistribution"
-	Flipt_DeleteDistribution_FullMethodName = "/flipt.Flipt/DeleteDistribution"
-	Flipt_GetSegment_FullMethodName         = "/flipt.Flipt/GetSegment"
-	Flipt_ListSegments_FullMethodName       = "/flipt.Flipt/ListSegments"
-	Flipt_CreateSegment_FullMethodName      = "/flipt.Flipt/CreateSegment"
-	Flipt_UpdateSegment_FullMethodName      = "/flipt.Flipt/UpdateSegment"
-	Flipt_DeleteSegment_FullMethodName      = "/flipt.Flipt/DeleteSegment"
-	Flipt_CreateConstraint_FullMethodName   = "/flipt.Flipt/CreateConstraint"
-	Flipt_UpdateConstraint_FullMethodName   = "/flipt.Flipt/UpdateConstraint"
-	Flipt_DeleteConstraint_FullMethodName   = "/flipt.Flipt/DeleteConstraint"
+	Flipt_Evaluate_FullMethodName              = "/flipt.Flipt/Evaluate"
+	Flipt_BatchEvaluate_FullMethodName         = "/flipt.Flipt/BatchEvaluate"
+	Flipt_GetNamespace_FullMethodName          = "/flipt.Flipt/GetNamespace"
+	Flipt_ListNamespaces_FullMethodName        = "/flipt.Flipt/ListNamespaces"
+	Flipt_CreateNamespace_FullMethodName       = "/flipt.Flipt/CreateNamespace"
+	Flipt_UpdateNamespace_FullMethodName       = "/flipt.Flipt/UpdateNamespace"
+	Flipt_DeleteNamespace_FullMethodName       = "/flipt.Flipt/DeleteNamespace"
+	Flipt_GetFlag_FullMethodName               = "/flipt.Flipt/GetFlag"
+	Flipt_ListFlags_FullMethodName             = "/flipt.Flipt/ListFlags"
+	Flipt_CreateFlag_FullMethodName            = "/flipt.Flipt/CreateFlag"
+	Flipt_UpdateFlag_FullMethodName            = "/flipt.Flipt/UpdateFlag"
+	Flipt_DeleteFlag_FullMethodName            = "/flipt.Flipt/DeleteFlag"
+	Flipt_CreateVariant_FullMethodName         = "/flipt.Flipt/CreateVariant"
+	Flipt_UpdateVariant_FullMethodName         = "/flipt.Flipt/UpdateVariant"
+	Flipt_DeleteVariant_FullMethodName         = "/flipt.Flipt/DeleteVariant"
+	Flipt_GetRule_FullMethodName               = "/flipt.Flipt/GetRule"
+	Flipt_ListRules_FullMethodName             = "/flipt.Flipt/ListRules"
+	Flipt_CreateRule_FullMethodName            = "/flipt.Flipt/CreateRule"
+	Flipt_UpdateRule_FullMethodName            = "/flipt.Flipt/UpdateRule"
+	Flipt_OrderRules_FullMethodName            = "/flipt.Flipt/OrderRules"
+	Flipt_DeleteRule_FullMethodName            = "/flipt.Flipt/DeleteRule"
+	Flipt_GetRolloutStrategy_FullMethodName    = "/flipt.Flipt/GetRolloutStrategy"
+	Flipt_CreateRolloutStrategy_FullMethodName = "/flipt.Flipt/CreateRolloutStrategy"
+	Flipt_UpdateRolloutStrategy_FullMethodName = "/flipt.Flipt/UpdateRolloutStrategy"
+	Flipt_DeleteRolloutStrategy_FullMethodName = "/flipt.Flipt/DeleteRolloutStrategy"
+	Flipt_CreateDistribution_FullMethodName    = "/flipt.Flipt/CreateDistribution"
+	Flipt_UpdateDistribution_FullMethodName    = "/flipt.Flipt/UpdateDistribution"
+	Flipt_DeleteDistribution_FullMethodName    = "/flipt.Flipt/DeleteDistribution"
+	Flipt_GetSegment_FullMethodName            = "/flipt.Flipt/GetSegment"
+	Flipt_ListSegments_FullMethodName          = "/flipt.Flipt/ListSegments"
+	Flipt_CreateSegment_FullMethodName         = "/flipt.Flipt/CreateSegment"
+	Flipt_UpdateSegment_FullMethodName         = "/flipt.Flipt/UpdateSegment"
+	Flipt_DeleteSegment_FullMethodName         = "/flipt.Flipt/DeleteSegment"
+	Flipt_CreateConstraint_FullMethodName      = "/flipt.Flipt/CreateConstraint"
+	Flipt_UpdateConstraint_FullMethodName      = "/flipt.Flipt/UpdateConstraint"
+	Flipt_DeleteConstraint_FullMethodName      = "/flipt.Flipt/DeleteConstraint"
 )
 
 // FliptClient is the client API for Flipt service.
@@ -79,6 +83,10 @@ type FliptClient interface {
 	UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*Rule, error)
 	OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetRolloutStrategy(ctx context.Context, in *GetRolloutStrategyRequest, opts ...grpc.CallOption) (*RolloutStrategy, error)
+	CreateRolloutStrategy(ctx context.Context, in *CreateRolloutStrategyRequest, opts ...grpc.CallOption) (*RolloutStrategy, error)
+	UpdateRolloutStrategy(ctx context.Context, in *UpdateRolloutStrategyRequest, opts ...grpc.CallOption) (*RolloutStrategy, error)
+	DeleteRolloutStrategy(ctx context.Context, in *DeleteRolloutStrategyRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	UpdateDistribution(ctx context.Context, in *UpdateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -289,6 +297,42 @@ func (c *fliptClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opt
 	return out, nil
 }
 
+func (c *fliptClient) GetRolloutStrategy(ctx context.Context, in *GetRolloutStrategyRequest, opts ...grpc.CallOption) (*RolloutStrategy, error) {
+	out := new(RolloutStrategy)
+	err := c.cc.Invoke(ctx, Flipt_GetRolloutStrategy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fliptClient) CreateRolloutStrategy(ctx context.Context, in *CreateRolloutStrategyRequest, opts ...grpc.CallOption) (*RolloutStrategy, error) {
+	out := new(RolloutStrategy)
+	err := c.cc.Invoke(ctx, Flipt_CreateRolloutStrategy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fliptClient) UpdateRolloutStrategy(ctx context.Context, in *UpdateRolloutStrategyRequest, opts ...grpc.CallOption) (*RolloutStrategy, error) {
+	out := new(RolloutStrategy)
+	err := c.cc.Invoke(ctx, Flipt_UpdateRolloutStrategy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fliptClient) DeleteRolloutStrategy(ctx context.Context, in *DeleteRolloutStrategyRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Flipt_DeleteRolloutStrategy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fliptClient) CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error) {
 	out := new(Distribution)
 	err := c.cc.Invoke(ctx, Flipt_CreateDistribution_FullMethodName, in, out, opts...)
@@ -413,6 +457,10 @@ type FliptServer interface {
 	UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error)
 	OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error)
 	DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error)
+	GetRolloutStrategy(context.Context, *GetRolloutStrategyRequest) (*RolloutStrategy, error)
+	CreateRolloutStrategy(context.Context, *CreateRolloutStrategyRequest) (*RolloutStrategy, error)
+	UpdateRolloutStrategy(context.Context, *UpdateRolloutStrategyRequest) (*RolloutStrategy, error)
+	DeleteRolloutStrategy(context.Context, *DeleteRolloutStrategyRequest) (*emptypb.Empty, error)
 	CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error)
 	UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error)
 	DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error)
@@ -493,6 +541,18 @@ func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) 
 }
 func (UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
+}
+func (UnimplementedFliptServer) GetRolloutStrategy(context.Context, *GetRolloutStrategyRequest) (*RolloutStrategy, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRolloutStrategy not implemented")
+}
+func (UnimplementedFliptServer) CreateRolloutStrategy(context.Context, *CreateRolloutStrategyRequest) (*RolloutStrategy, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRolloutStrategy not implemented")
+}
+func (UnimplementedFliptServer) UpdateRolloutStrategy(context.Context, *UpdateRolloutStrategyRequest) (*RolloutStrategy, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRolloutStrategy not implemented")
+}
+func (UnimplementedFliptServer) DeleteRolloutStrategy(context.Context, *DeleteRolloutStrategyRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRolloutStrategy not implemented")
 }
 func (UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDistribution not implemented")
@@ -918,6 +978,78 @@ func _Flipt_DeleteRule_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Flipt_GetRolloutStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRolloutStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).GetRolloutStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_GetRolloutStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).GetRolloutStrategy(ctx, req.(*GetRolloutStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flipt_CreateRolloutStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRolloutStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).CreateRolloutStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_CreateRolloutStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).CreateRolloutStrategy(ctx, req.(*CreateRolloutStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flipt_UpdateRolloutStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRolloutStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).UpdateRolloutStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_UpdateRolloutStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).UpdateRolloutStrategy(ctx, req.(*UpdateRolloutStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Flipt_DeleteRolloutStrategy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRolloutStrategyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).DeleteRolloutStrategy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_DeleteRolloutStrategy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).DeleteRolloutStrategy(ctx, req.(*DeleteRolloutStrategyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Flipt_CreateDistribution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateDistributionRequest)
 	if err := dec(in); err != nil {
@@ -1206,6 +1338,22 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRule",
 			Handler:    _Flipt_DeleteRule_Handler,
+		},
+		{
+			MethodName: "GetRolloutStrategy",
+			Handler:    _Flipt_GetRolloutStrategy_Handler,
+		},
+		{
+			MethodName: "CreateRolloutStrategy",
+			Handler:    _Flipt_CreateRolloutStrategy_Handler,
+		},
+		{
+			MethodName: "UpdateRolloutStrategy",
+			Handler:    _Flipt_UpdateRolloutStrategy_Handler,
+		},
+		{
+			MethodName: "DeleteRolloutStrategy",
+			Handler:    _Flipt_DeleteRolloutStrategy_Handler,
 		},
 		{
 			MethodName: "CreateDistribution",

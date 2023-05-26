@@ -15,6 +15,7 @@ import Slideover from '~/components/Slideover';
 import { deleteVariant } from '~/data/api';
 import { IVariant } from '~/types/Variant';
 import { FlagProps } from './FlagProps';
+import Variants from './Variants';
 
 export default function EditFlag() {
   const { flag, onFlagChange } = useOutletContext<FlagProps>();

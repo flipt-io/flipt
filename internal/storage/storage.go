@@ -125,11 +125,12 @@ func WithOrder(order Order) QueryOption {
 }
 
 type Store interface {
-	FlagStore
-	RuleStore
-	SegmentStore
-	EvaluationStore
 	NamespaceStore
+	FlagStore
+	SegmentStore
+	RuleStore
+	RolloutStrategyStore
+	EvaluationStore
 	fmt.Stringer
 }
 
@@ -196,6 +197,13 @@ type RuleStore interface {
 	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
+}
+
+type RolloutStrategyStore interface {
+	GetRolloutStrategy(ctx context.Context, namespaceKey, flagKey string) (*flipt.RolloutStrategy, error)
+	CreateRolloutStrategy(ctx context.Context, r *flipt.CreateRolloutStrategyRequest) (*flipt.RolloutStrategy, error)
+	UpdateRolloutStrategy(ctx context.Context, r *flipt.UpdateRolloutStrategyRequest) (*flipt.RolloutStrategy, error)
+	DeleteRolloutStrategy(ctx context.Context, r *flipt.DeleteRolloutStrategyRequest) error
 }
 
 // ListRequest is a generic container for the parameters required to perform a list operation.

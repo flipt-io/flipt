@@ -34,8 +34,9 @@ import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
   ComparisonType,
-  ConstraintOperators,
-  IConstraint
+  IConstraint,
+  toConstraintComparisonType,
+  toConstraintOperator
 } from '~/types/Constraint';
 import { ISegment } from '~/types/Segment';
 
@@ -82,11 +83,6 @@ export default function Segment() {
         setError(err);
       });
   }, [segmentVersion, namespace.key, segmentKey, clearError, setError]);
-
-  const constraintTypeToLabel = (t: string) =>
-    ComparisonType[t as keyof typeof ComparisonType];
-
-  const constraintOperatorToLabel = (o: string) => ConstraintOperators[o];
 
   const constraintFormRef = useRef(null);
 
@@ -343,13 +339,13 @@ export default function Segment() {
                           {constraint.property}
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
-                          {constraintTypeToLabel(constraint.type)}
+                          {toConstraintComparisonType(constraint.type)}
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {constraintOperatorToLabel(constraint.operator)}
+                          {toConstraintOperator(constraint.operator)}
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {constraintTypeToLabel(constraint.type) ===
+                          {toConstraintComparisonType(constraint.type) ===
                             ComparisonType.DATETIME_COMPARISON_TYPE &&
                           constraint.value !== undefined
                             ? inTimezone(constraint.value)

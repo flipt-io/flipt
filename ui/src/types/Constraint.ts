@@ -70,3 +70,8 @@ export const ConstraintOperators: Record<string, string> = {
   ...ConstraintBooleanOperators,
   ...ConstraintDateTimeOperators
 };
+
+export const toConstraintComparisonType = (t: string) =>
+  ComparisonType[t as keyof typeof ComparisonType];
+
+export const toConstraintOperator = (o: string) => ConstraintOperators[o];

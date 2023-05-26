@@ -651,6 +651,125 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 	return &output, nil
 }
 
+func (x *FliptClient) GetRolloutStrategy(ctx context.Context, v *flipt.GetRolloutStrategyRequest, _ ...grpc.CallOption) (*flipt.RolloutStrategy, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.RolloutStrategy
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) CreateRolloutStrategy(ctx context.Context, v *flipt.CreateRolloutStrategyRequest, _ ...grpc.CallOption) (*flipt.RolloutStrategy, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.RolloutStrategy
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) UpdateRolloutStrategy(ctx context.Context, v *flipt.UpdateRolloutStrategyRequest, _ ...grpc.CallOption) (*flipt.RolloutStrategy, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output flipt.RolloutStrategy
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *FliptClient) DeleteRolloutStrategy(ctx context.Context, v *flipt.DeleteRolloutStrategyRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	var body io.Reader
+	values := url.Values{}
+	values.Set("id", v.Id)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollout", v.NamespaceKey, v.FlagKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output emptypb.Empty
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDistributionRequest, _ ...grpc.CallOption) (*flipt.Distribution, error) {
 	var body io.Reader
 	var values url.Values

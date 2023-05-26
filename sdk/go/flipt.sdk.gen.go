@@ -185,6 +185,39 @@ func (x *Flipt) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest) erro
 	return err
 }
 
+func (x *Flipt) GetRolloutStrategy(ctx context.Context, v *flipt.GetRolloutStrategyRequest) (*flipt.RolloutStrategy, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.GetRolloutStrategy(ctx, v)
+}
+
+func (x *Flipt) CreateRolloutStrategy(ctx context.Context, v *flipt.CreateRolloutStrategyRequest) (*flipt.RolloutStrategy, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.CreateRolloutStrategy(ctx, v)
+}
+
+func (x *Flipt) UpdateRolloutStrategy(ctx context.Context, v *flipt.UpdateRolloutStrategyRequest) (*flipt.RolloutStrategy, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.UpdateRolloutStrategy(ctx, v)
+}
+
+func (x *Flipt) DeleteRolloutStrategy(ctx context.Context, v *flipt.DeleteRolloutStrategyRequest) error {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
+	}
+	_, err = x.transport.DeleteRolloutStrategy(ctx, v)
+	return err
+}
+
 func (x *Flipt) CreateDistribution(ctx context.Context, v *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {

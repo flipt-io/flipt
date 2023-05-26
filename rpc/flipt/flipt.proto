@@ -22,6 +22,12 @@ message BatchEvaluationRequest {
   string namespace_key = 4;
 }
 
+message BatchEvaluationResponse {
+  string request_id = 1;
+  repeated EvaluationResponse responses = 2;
+  double request_duration_millis = 3;
+}
+
 message EvaluationResponse {
   string request_id = 1;
   string entity_id = 2;
@@ -43,12 +49,6 @@ enum EvaluationReason {
   FLAG_NOT_FOUND_EVALUATION_REASON = 2;
   MATCH_EVALUATION_REASON = 3;
   ERROR_EVALUATION_REASON = 4;
-}
-
-message BatchEvaluationResponse {
-  string request_id = 1;
-  repeated EvaluationResponse responses = 2;
-  double request_duration_millis = 3;
 }
 
 message Namespace {
@@ -92,6 +92,11 @@ message DeleteNamespaceRequest {
   string key = 1;
 }
 
+enum FlagType {
+  VARIANT_FLAG_TYPE = 0;
+  BOOLEAN_FLAG_TYPE = 1;
+}
+
 message Flag {
   string key = 1;
   string name = 2;
@@ -101,6 +106,7 @@ message Flag {
   google.protobuf.Timestamp updated_at = 6;
   repeated Variant variants = 7;
   string namespace_key = 8;
+  FlagType type = 9;
 }
 
 message FlagList {
@@ -127,6 +133,7 @@ message CreateFlagRequest {
   string description = 3;
   bool enabled = 4;
   string namespace_key = 5;
+  FlagType type = 6;
 }
 
 message UpdateFlagRequest {
@@ -307,6 +314,58 @@ message ListRuleRequest {
   string namespace_key = 5;
 }
 
+message RolloutStrategy {
+  string id = 1;
+  string namespace_key = 2;
+  string flag_key = 3;
+  oneof strategy {
+    RolloutStrategySegment rollout_strategy_segment = 10;
+    RolloutStrategyPercentage rollout_strategy_percentage = 11;
+  }
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message RolloutStrategySegment {
+  string segment_key = 1;
+  bool value = 2;
+}
+
+message RolloutStrategyPercentage {
+  bool value = 1;
+  float percentage = 2;
+}
+
+message GetRolloutStrategyRequest {
+  string flag_key = 1;
+  string namespace_key = 2;
+}
+
+message CreateRolloutStrategyRequest {
+  string flag_key = 1;
+  string namespace_key = 2;
+  oneof strategy {
+    RolloutStrategySegment rollout_strategy_segment = 10;
+    RolloutStrategyPercentage rollout_strategy_percentage = 11;
+  }
+}
+
+message UpdateRolloutStrategyRequest {
+  string id = 1;
+  string flag_key = 2;
+  string namespace_key = 3;
+  oneof strategy {
+    RolloutStrategySegment rollout_strategy_segment = 10;
+    RolloutStrategyPercentage rollout_strategy_percentage = 11;
+  }
+}
+
+message DeleteRolloutStrategyRequest {
+  string id = 1;
+  string flag_key = 2;
+  string namespace_key = 3;
+}
+
 message GetRuleRequest {
   string id = 1;
   string flag_key = 2;
@@ -395,6 +454,10 @@ service Flipt {
   rpc UpdateRule(UpdateRuleRequest) returns (Rule) {}
   rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {}
   rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {}
+  rpc GetRolloutStrategy(GetRolloutStrategyRequest) returns (RolloutStrategy) {}
+  rpc CreateRolloutStrategy(CreateRolloutStrategyRequest) returns (RolloutStrategy) {}
+  rpc UpdateRolloutStrategy(UpdateRolloutStrategyRequest) returns (RolloutStrategy) {}
+  rpc DeleteRolloutStrategy(DeleteRolloutStrategyRequest) returns (google.protobuf.Empty) {}
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {}
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {}
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {}

@@ -101,6 +101,22 @@ http:
   - selector: flipt.Flipt.DeleteVariant
     delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/variants/{id}
 
+  # rollout strategies
+  #
+  - selector: flipt.Flipt.CreateRolloutStrategy
+    post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
+    body: "*"
+
+  - selector: flipt.Flipt.UpdateRolloutStrategy
+    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
+    body: "*"
+
+  - selector: flipt.Flipt.DeleteRolloutStrategy
+    delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
+
+  - selector: flipt.Flipt.GetRolloutStrategy
+    get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollout
+
   # rules
   # 
   - selector: flipt.Flipt.GetRule
