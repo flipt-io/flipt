@@ -11,7 +11,7 @@ services:
       - flipt_network
     environment:
       - FLIPT_LOG_LEVEL=debug
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
     volumes:
       - "./flipt.db:/var/opt/flipt/flipt.db"
 
