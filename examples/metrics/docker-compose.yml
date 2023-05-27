@@ -24,6 +24,7 @@ services:
       - FLIPT_CACHE_ENABLED=true
       - FLIPT_CACHE_BACKEND=memory
       - FLIPT_CACHE_TTL=1m
+      - FLIPT_META_TELEMETRY_ENABLED=false
       
   grafana:
     environment:

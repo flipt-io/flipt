@@ -21,7 +21,7 @@ services:
       - FLIPT_CACHE_REDIS_HOST=redis
       - FLIPT_CACHE_REDIS_PORT=6379
       - FLIPT_LOG_LEVEL=debug
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
     command: ["./tmp/wait-for-it.sh", "redis:6379", "--", "./flipt", "--force-migrate"]
 
 networks:

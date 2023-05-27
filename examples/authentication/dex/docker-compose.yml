@@ -20,7 +20,7 @@ services:
       - ./config.yaml:/etc/flipt/config/default.yml
     environment:
       - FLIPT_LOG_LEVEL=debug
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
     networks:
       - flipt_network
 
