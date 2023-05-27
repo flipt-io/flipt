@@ -21,7 +21,7 @@ services:
     environment:
       - FLIPT_DB_URL=postgres://postgres:password@postgres:5432/flipt?sslmode=disable
       - FLIPT_LOG_LEVEL=debug
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
     command: ["./tmp/wait-for-it.sh", "postgres:5432", "--", "./flipt", "--force-migrate"]
 
 networks:

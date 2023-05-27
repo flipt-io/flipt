@@ -32,7 +32,7 @@ services:
       - FLIPT_TRACING_ENABLED=true
       - FLIPT_TRACING_EXPORTER=jaeger
       - FLIPT_TRACING_JAEGER_HOST=jaeger
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
 
 networks:
   flipt_network:
