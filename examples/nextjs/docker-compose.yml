@@ -31,8 +31,7 @@ services:
       - "8080:8080"
     environment:
       - FLIPT_LOG_LEVEL=debug
-      - FLIPT_TELMETRY_ENABLED=false
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
     volumes:
       - type: bind
         source: ./flipt.db
