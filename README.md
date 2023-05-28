@@ -153,6 +153,18 @@ Our [integration documentation](https://www.flipt.io/docs/integration) has more 
 
 <br clear="both"/>
 
+## Development
+
+[Development](DEVELOPMENT.md) documentation is available for those interested in contributing to Flipt.
+
+We welcome contributions of any kind, including but not limited to bug fixes, feature requests, documentation improvements, and more. Just open an issue or pull request and we'll be happy to help out!
+
+<br clear="both"/>
+
+[![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
+
+<br clear="both"/>
+
 ## Try It
 
 Try the latest version of Flipt for yourself.

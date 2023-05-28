@@ -17,6 +17,7 @@ export default defineConfig({
   },
   envPrefix: 'FLIPT_',
   server: {
+    host: true,
     proxy: {
       '/api/v1': fliptAddr,
       '/auth/v1': fliptAddr,
