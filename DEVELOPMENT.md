@@ -63,6 +63,17 @@ In development, the two ports that Flipt uses are:
 
 These ports will be forwarded to your local machine automatically if you are developing Flipt in a VSCode Remote Container or GitHub Codespace.
 
+## Docker Compose
+
+If you want to develop Flipt using Docker Compose, you can use the `docker-compose.yml` file in the root of this repository. 
+
+This will start two Docker containers:
+
+- `server` will run the Flipt server, mounting the contents of this repository as a bind mount. This means that the database (SQLite by default) will be persisted between runs. Currently the server does not support hot reloading, so you'll need to restart the container to pick up any changes.
+- `ui` will run the UI development server, mounting the `ui` directory as a bind mount. This means that any changes made to the UI will be picked up by the development server and the UI will be reloaded (thanks to Vite).
+
+To start the containers, run `docker-compose up` from the root of this repository. After the containers are started, you can visit `http://localhost:8080` to see the UI.
+
 ## CDEs
 
 Flipt also supports Containerized Development Environments (CDE) [VSCode Remote Containers](https://github.com/Microsoft/vscode-dev-containers)/[GitHub Codespaces](https://github.com/features/codespaces).

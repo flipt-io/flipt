@@ -33,6 +33,11 @@ WORKDIR /flipt
 
 COPY go.mod go.mod
 COPY go.sum go.sum
+COPY ./errors ./errors
+COPY ./rpc/flipt ./rpc/flipt
+COPY ./sdk ./sdk
+
+RUN go mod download -x
 
 COPY . .
 
