@@ -224,7 +224,7 @@ func (g Go) Proto() error {
 	return sh.RunV("buf", "generate")
 }
 
-// Guns the Go unit tests
+// Runs the Go unit tests
 func (g Go) Test() error {
 	fmt.Println("Testing...")
 
