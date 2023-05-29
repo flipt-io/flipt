@@ -17,8 +17,50 @@
   </head>
 
   <body class="h-full antialiased">
-    <div id="root"></div>
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <div id="root">
+      <div class="container mx-auto my-10 max-w-7xl px-4 sm:px-6 lg:px-0">
+        <div class="mx-auto max-w-3xl">
+          <div class="flex justify-between px-4 py-5 sm:px-2">
+            <img
+              src="https://www.flipt.io/img/logo.svg"
+              alt="Flipt"
+              class="h-8 w-auto"
+            />
+          </div>
+          <div class="bg-white px-6 pt-24 sm:pt-20 lg:px-8">
+            <div class="mx-auto max-w-2xl text-center">
+              <h2
+                class="text-2xl font-bold tracking-tight text-gray-900 sm:text-5xl"
+              >
+                Not Found
+              </h2>
+              <p class="mt-4 text-lg leading-8 text-gray-500">
+                This isn't the UI you're looking for...
+              </p>
+              <p class="mt-20 text-lg leading-8 text-gray-700">
+                Run the following in another terminal:
+              </p>
+            </div>
+          </div>
+          <div
+            class="mx-auto my-8 max-w-md overflow-hidden rounded-lg bg-gray-700 text-white"
+          >
+            <div class="px-4 py-5 sm:p-6">
+              <pre><span class="text-violet-300">$</span>&nbsp;cd ui && npm run dev</pre>
+            </div>
+          </div>
+          <div class="mt-16 flex items-center justify-center gap-x-6">
+            <a
+              href="https://www.flipt.io/discord"
+              class="text-sm font-semibold text-gray-600 hover:underline hover:decoration-violet-400 hover:underline-offset-4"
+            >
+              Need Help? Join our Discord <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="http://localhost:5173/src/main.tsx"></script>
   </body>
 </html>
