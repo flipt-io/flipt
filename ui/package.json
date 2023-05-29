@@ -24,7 +24,7 @@
     "buffer": "^6.0.3",
     "date-fns": "^2.30.0",
     "dotenv": "^16.0.3",
-    "formik": "^2.2.9",
+    "formik": "^2.4.0",
     "highlight.js": "^11.8.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
