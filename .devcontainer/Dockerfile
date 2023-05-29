@@ -41,5 +41,7 @@ RUN go mod download -x
 
 COPY . .
 
+RUN mage bootstrap
+
 EXPOSE 8080
 EXPOSE 9000
