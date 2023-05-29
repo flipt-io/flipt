@@ -84,7 +84,7 @@ func Build() error {
 
 	fmt.Println("Done.")
 	fmt.Printf("\nRun the following to start Flipt:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
 	return nil
 }
 
@@ -99,7 +99,7 @@ func Dev() error {
 
 	fmt.Println("Done.")
 	fmt.Printf("\nRun the following to start Flipt server:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
 	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
 	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
 	return nil

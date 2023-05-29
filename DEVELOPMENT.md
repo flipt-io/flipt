@@ -31,9 +31,13 @@ The `bootstrap` task will install all of the necessary tools used for developmen
 
 ## Configuration
 
-Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
+A sample configuration for running and developing against Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
-`./bin/flipt --config ./config/local.yml`
+`./bin/flipt [--config ./config/local.yml`]
+
+To prevent providing the config via config flag every time, you have the option of writing configuration at the location: `$HOME/.flipt/config.yml`. The flipt binary will check in that location if a `--config` override is not provided, so you can invoke the binary as such in this scenario:
+
+`./bin/flipt`
 
 ## Changes
 
@@ -51,7 +55,7 @@ To develop the project with the UI also in development mode (with hot reloading)
 
 1. Run `npm run dev` from the `ui` directory. This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
 2. Run `mage dev` from the this repository. This will create a dev build that will serve the UI from the development server, while still making it accessible on port `8080`.
-3. Run the binary with the local config: `./bin/flipt --config ./config/local.yml`. This will enable CORS with the correct configuration and start the server on port `8080`.
+3. Run the binary with a local config: (e.g. `./bin/flipt [--config ./config/local.yml]`). The flipt binary will check these sources in order for configuration: config flag override, `$HOME/.flipt/config.yml`. If none of these are provided then it will use the default location for configuration: `/etc/flipt/config/default.yml`.
 4. Visit `http://localhost:8080` to see the UI.
 5. Any changes made in the `ui` directory will be picked up by the development server and the UI will be reloaded.
 
