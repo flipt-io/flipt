@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage/sql"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -62,7 +63,7 @@ func newImportCommand() *cobra.Command {
 	cmd.Flags().StringVarP(
 		&importCmd.namespace,
 		"namespace", "n",
-		"default",
+		flipt.DefaultNamespace,
 		"destination namespace for imported resources.",
 	)
 
@@ -83,6 +84,10 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	)
 
 	if !c.importStdin {
+		if len(args) < 1 {
+			return errors.New("import filename required")
+		}
+
 		importFilename := args[0]
 		if importFilename == "" {
 			return errors.New("import filename required")
@@ -102,12 +107,22 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		in = fi
 	}
 
+	var opts []ext.ImportOpt
+
+	// use namespace when explicitly set
+	if c.namespace != "" && cmd.Flags().Changed("namespace") {
+		opts = append(opts, ext.WithNamespace(c.namespace))
+	}
+
+	if c.createNamespace {
+		opts = append(opts, ext.WithCreateNamespace())
+	}
+
 	// Use client when remote address is configured.
 	if c.address != "" {
 		return ext.NewImporter(
 			fliptClient(logger, c.address, c.token),
-			c.namespace,
-			c.createNamespace,
+			opts...,
 		).Import(cmd.Context(), in)
 	}
 
@@ -154,7 +169,6 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	return ext.NewImporter(
 		server,
-		c.namespace,
-		c.createNamespace,
+		opts...,
 	).Import(cmd.Context(), in)
 }

@@ -2,6 +2,8 @@ package fs
 
 import (
 	"errors"
+	"io"
+<<<<<<< HEAD
 	iofs "io/fs"
 	"path"
 
@@ -19,6 +21,14 @@ type FliptIndex struct {
 	Version    string   `yaml:"version,omitempty"`
 	Inclusions []string `yaml:"inclusions,omitempty"`
 	Exclusions []string `yaml:"exclusions,omitempty"`
+}
+
+type storeSnapshot struct{}
+
+// snapshotFromFS constructs a storeSnapshot from the provided
+// fs.FS implementation.
+func snapshotFromFS(sources ...io.Reader) (*storeSnapshot, error) {
+	return nil, errors.New("not implemented")
 }
 
 func buildSnapshotHelper(logger *zap.Logger, source iofs.FS) ([]string, error) {

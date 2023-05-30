@@ -39,8 +39,8 @@ func (s *DBTestSuite) TestGetSegment() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -67,8 +67,8 @@ func (s *DBTestSuite) TestGetSegmentNamespace() {
 	assert.Equal(t, segment.Key, got.Key)
 	assert.Equal(t, segment.Name, got.Name)
 	assert.Equal(t, segment.Description, got.Description)
-	assert.NotZero(t, segment.CreatedAt)
-	assert.NotZero(t, segment.UpdatedAt)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
 	assert.Equal(t, segment.MatchType, got.MatchType)
 }
 
@@ -84,6 +84,42 @@ func (s *DBTestSuite) TestGetSegmentNamespace_NotFound() {
 
 	_, err := s.store.GetSegment(context.TODO(), s.namespace, "foo")
 	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
+}
+
+func (s *DBTestSuite) TestGetSegment_WithConstraint() {
+	t := s.T()
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		MatchType:   flipt.MatchType_ALL_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	// ensure we support older versions of Flipt where constraints have NULL descriptions.
+	_, err = s.db.DB.Exec(fmt.Sprintf(`INSERT INTO constraints (id, segment_key, type, property, operator, value) VALUES ('%s', '%s', 1, 'foo', 'eq', 'bar');`,
+		uuid.Must(uuid.NewV4()).String(),
+		segment.Key))
+
+	require.NoError(t, err)
+
+	got, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, segment.Key)
+
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, storage.DefaultNamespace, got.NamespaceKey)
+	assert.Equal(t, segment.Key, got.Key)
+	assert.Equal(t, segment.Name, got.Name)
+	assert.Equal(t, segment.Description, got.Description)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
+	assert.Equal(t, segment.MatchType, got.MatchType)
+
+	require.Len(t, got.Constraints, 1)
 }
 
 func (s *DBTestSuite) TestListSegments() {
