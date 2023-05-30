@@ -179,6 +179,15 @@ func (t Test) Database(ctx context.Context, db string) error {
 // The suite runs a number of operations via the Go SDK against Flipt
 // in various configurations using both HTTP and GRPC.
 func (t Test) Integration(ctx context.Context, cases string) error {
+	if cases == "list" {
+		fmt.Println("Integration test cases:")
+		for c := range testing.AllCases {
+			fmt.Println("\t> ", c)
+		}
+
+		return nil
+	}
+
 	client, err := daggerClient(ctx)
 	if err != nil {
 		return err

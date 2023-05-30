@@ -22,7 +22,8 @@ var (
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
 	sema          = make(chan struct{}, 6)
 
-	allCases = map[string]testCaseFn{
+	// AllCases are the top-level filterable integration test cases.
+	AllCases = map[string]testCaseFn{
 		"api":           api,
 		"import/export": importExport,
 	}
@@ -39,16 +40,16 @@ type testCaseFn func(_ context.Context, base, flipt *dagger.Container, conf test
 
 func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	if len(caseNames) == 0 {
-		return allCases, nil
+		return AllCases, nil
 	}
 
 	cases := map[string]testCaseFn{}
 	for _, filter := range caseNames {
-		if _, ok := allCases[filter]; !ok {
+		if _, ok := AllCases[filter]; !ok {
 			return nil, fmt.Errorf("unexpected test case filter: %q", filter)
 		}
 
-		cases[filter] = allCases[filter]
+		cases[filter] = AllCases[filter]
 	}
 
 	return cases, nil

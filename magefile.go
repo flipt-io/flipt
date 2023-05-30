@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -278,6 +279,16 @@ func (u UI) Build() error {
 	cmd.Stderr = os.Stderr
 
 	return cmd.Run()
+}
+
+type Dagger mg.Namespace
+
+func (d Dagger) List() error {
+	return sh.RunV("mage", "-d", "build")
+}
+
+func (d Dagger) Run(command string) error {
+	return sh.RunV("dagger", append([]string{"run", "mage", "-d", "build"}, strings.Split(command, " ")...)...)
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given
