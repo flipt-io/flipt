@@ -215,11 +215,12 @@ func (t Test) Integration(ctx context.Context, cases string) error {
 		return err
 	}
 
-	if cases == "all" {
-		cases = ""
+	var tests []string
+	if cases != "*" {
+		tests = strings.Split(cases, " ")
 	}
 
-	return testing.Integration(ctx, client, base, flipt, strings.Split(cases, " ")...)
+	return testing.Integration(ctx, client, base, flipt, tests...)
 }
 
 // UI runs the entire integration test suite for the UI.

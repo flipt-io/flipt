@@ -104,7 +104,7 @@ jobs:
       - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
           version: latest
-          args: dagger:run "test:integration all"
+          args: dagger:run "test:integration *"
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v3
