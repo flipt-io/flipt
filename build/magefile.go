@@ -255,6 +255,37 @@ func (t Test) UI(ctx context.Context) error {
 	return testing.UI(ctx, client, ui, flipt)
 }
 
+func (t Test) CLI(ctx context.Context) error {
+	client, err := daggerClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer client.Close()
+
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		return err
+	}
+
+	req, _, err := newRequest(ctx, client, platform)
+	if err != nil {
+		return err
+	}
+
+	base, err := internal.Base(ctx, client, req)
+	if err != nil {
+		return err
+	}
+
+	flipt, err := internal.Package(ctx, client, base, req)
+	if err != nil {
+		return err
+	}
+
+	return testing.CLI(ctx, flipt)
+}
+
 type Release mg.Namespace
 
 func (r Release) Next(ctx context.Context, module, versionParts string) error {

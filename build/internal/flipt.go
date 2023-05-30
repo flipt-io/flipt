@@ -132,6 +132,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 			// However, it does contain a single go package,
 			// which is used to embed the built frontend
 			// distribution directory.
+			"./.build/",
 			"./ui/",
 			"./bin/",
 			"./.git/",
