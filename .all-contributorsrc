@@ -222,6 +222,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "amweiss",
+      "name": "Adam Weiss",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30146?v=4",
+      "profile": "https://www.adamweiss.me",
+      "contributions": [
+        "example"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -230,5 +239,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular"
+  "commitConvention": "angular",
+  "commitType": "docs"
 }

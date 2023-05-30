@@ -153,6 +153,18 @@ Our [integration documentation](https://www.flipt.io/docs/integration) has more 
 
 <br clear="both"/>
 
+## Development
+
+[Development](DEVELOPMENT.md) documentation is available for those interested in contributing to Flipt.
+
+We welcome contributions of any kind, including but not limited to bug fixes, feature requests, documentation improvements, and more. Just open an issue or pull request and we'll be happy to help out!
+
+<br clear="both"/>
+
+[![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
+
+<br clear="both"/>
+
 ## Try It
 
 Try the latest version of Flipt for yourself.
@@ -302,6 +314,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://showwin.asia"><img src="https://avatars.githubusercontent.com/u/1732016?v=4?s=100" width="100px;" alt="ITO Shogo"/><br /><sub><b>ITO Shogo</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=showwin" title="Tests">⚠️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/yquansah"><img src="https://avatars.githubusercontent.com/u/13950726?v=4?s=100" width="100px;" alt="Yoofi Quansah"/><br /><sub><b>Yoofi Quansah</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=yquansah" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/darinmclain"><img src="https://avatars.githubusercontent.com/u/17811478?v=4?s=100" width="100px;" alt="Darin McLain"/><br /><sub><b>Darin McLain</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=darinmclain" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.adamweiss.me"><img src="https://avatars.githubusercontent.com/u/30146?v=4?s=100" width="100px;" alt="Adam Weiss"/><br /><sub><b>Adam Weiss</b></sub></a><br /><a href="#example-amweiss" title="Examples">💡</a></td>
     </tr>
   </tbody>
 </table>
