@@ -22,7 +22,7 @@ var (
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
 	sema          = make(chan struct{}, 6)
 
-	defaultCases = map[string]testCaseFn{
+	allCases = map[string]testCaseFn{
 		"api":           api,
 		"fs/local":      local,
 		"import/export": importExport,
@@ -40,22 +40,16 @@ type testCaseFn func(_ context.Context, base, flipt *dagger.Container, conf test
 
 func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	if len(caseNames) == 0 {
-		return defaultCases, nil
-	}
-
-	for _, filter := range caseNames {
-		if _, ok := defaultCases[filter]; !ok {
-			return nil, fmt.Errorf("unexpected test case filter: %q", filter)
-		}
+		return allCases, nil
 	}
 
 	cases := map[string]testCaseFn{}
-	for n, fn := range defaultCases {
-		for _, filter := range caseNames {
-			if n == filter {
-				cases[n] = fn
-			}
+	for _, filter := range caseNames {
+		if _, ok := allCases[filter]; !ok {
+			return nil, fmt.Errorf("unexpected test case filter: %q", filter)
 		}
+
+		cases[filter] = allCases[filter]
 	}
 
 	return cases, nil
