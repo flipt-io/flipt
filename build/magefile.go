@@ -283,7 +283,7 @@ func (t Test) CLI(ctx context.Context) error {
 		return err
 	}
 
-	return testing.CLI(ctx, flipt)
+	return testing.CLI(ctx, client, flipt)
 }
 
 type Release mg.Namespace

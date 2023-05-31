@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
@@ -151,8 +152,9 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		},
 	})
 
+	// TODO(georgemac): wire in commit and version ldflags
 	var (
-		ldflags    = "-s -w -linkmode external -extldflags -static"
+		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s", time.Now().UTC().Format(time.RFC3339))
 		goBuildCmd = fmt.Sprintf(
 			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
 			req.binary(),

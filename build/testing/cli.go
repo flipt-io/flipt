@@ -2,136 +2,171 @@ package testing
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"dagger.io/dagger"
-	"github.com/google/go-cmp/cmp"
 )
 
-func CLI(ctx context.Context, flipt *dagger.Container) error {
-	if err := assertExec(ctx, flipt, subcommand{"foo"},
-		fails,
-		stderr(equals(`Error: unknown command "foo" for "flipt"
+func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container) error {
+	{
+		container := container.Pipeline("flipt --help")
+		if _, err := assertExec(ctx, container, flipt("--help"),
+			fails,
+			stdout(equals(expectedFliptHelp))); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt --version")
+		if _, err := assertExec(ctx, container, flipt("--version"),
+			fails,
+			stdout(contains("Commit:")),
+			stdout(matches(`Build Date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z`)),
+			stdout(matches(`Go Version: go[0-9]+\.[0-9]+\.[0-9]`)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt --config")
+		if _, err := assertExec(ctx, container, flipt("foo"),
+			fails,
+			stderr(equals(`Error: unknown command "foo" for "flipt"
 Run 'flipt --help' for usage.`))); err != nil {
-		return err
-	}
-
-	expected := contains(`loading configuration	{"error": "loading configuration: open /foo/bar.yml: no such file or directory"}`)
-	if err := assertExec(ctx, flipt, subcommand{"--config", "/foo/bar.yml"},
-		fails,
-		stdout(expected)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type subcommand []string
-
-func (s subcommand) command() []string {
-	return append([]string{"/flipt"}, s...)
-}
-
-type stringAssertion interface {
-	assert(string) error
-}
-
-type assertConf struct {
-	success bool
-	stdout  stringAssertion
-	stderr  stringAssertion
-}
-
-type assertOption func(*assertConf)
-
-func fails(c *assertConf) { c.success = false }
-
-func stdout(a stringAssertion) assertOption {
-	return func(c *assertConf) {
-		c.stdout = a
-	}
-}
-
-func stderr(a stringAssertion) assertOption {
-	return func(c *assertConf) {
-		c.stderr = a
-	}
-}
-
-type equals string
-
-func (e equals) assert(t string) error {
-	if diff := cmp.Diff(string(e), t); diff != "" {
-		return fmt.Errorf("unexpected output: diff (-/+):\n%s", diff)
-	}
-
-	return nil
-}
-
-type contains string
-
-func (c contains) assert(t string) error {
-	if !strings.Contains(t, string(c)) {
-		return fmt.Errorf("unexpected output: %q does not contain %q", t, c)
-	}
-
-	return nil
-}
-
-func assertExec(ctx context.Context, flipt *dagger.Container, s subcommand, opts ...assertOption) error {
-	conf := assertConf{success: true}
-	for _, opt := range opts {
-		opt(&conf)
-	}
-
-	container, err := flipt.WithExec(s.command()).Sync(ctx)
-
-	var (
-		stdout = container.Stdout
-		stderr = container.Stderr
-	)
-
-	if err != nil {
-		if conf.success {
-			return fmt.Errorf("unexpected error running flipt %q: %w", s, err)
+			return err
 		}
 
-		var eerr *dagger.ExecError
-		// get stdout and stderr from exec error instead
-		if errors.As(err, &eerr) {
-			stdout = func(context.Context) (string, error) {
-				return eerr.Stdout, nil
-			}
+		if _, err := assertExec(ctx, container, flipt("--config", "/foo/bar.yml"),
+			fails,
+			stdout(contains(`loading configuration	{"error": "loading configuration: open /foo/bar.yml: no such file or directory"}`)),
+		); err != nil {
+			return err
+		}
 
-			stderr = func(context.Context) (string, error) {
-				return eerr.Stderr, nil
-			}
+		if _, err := assertExec(ctx, container, flipt("--config", "/tmp"),
+			fails,
+			stdout(contains(`loading configuration: Unsupported Config Type`)),
+		); err != nil {
+			return err
 		}
 	}
 
-	if conf.stdout != nil {
-		stdout, err := stdout(ctx)
+	{
+		container := container.Pipeline("flipt import/export")
+
+		var err error
+		if _, err = assertExec(ctx, container,
+			sh("echo FOOBAR | /flipt import --stdin"),
+			fails,
+		); err != nil {
+			return err
+		}
+
+		if _, err = assertExec(ctx, container,
+			flipt("import", "foo"),
+			fails,
+			stdout(contains("opening import file: open foo: no such file or directory")),
+		); err != nil {
+			return err
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			client.Host().Directory("build/testing/testdata").File("flipt.yml"))
+
+		// import via STDIN succeeds
+		if _, err = assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin")); err != nil {
+			return err
+		}
+
+		// import valid yaml path and retrieve resulting container
+		container, err = assertExec(ctx, container, flipt("import", "/tmp/flipt.yml"))
 		if err != nil {
 			return err
 		}
 
-		if err := conf.stdout.assert(string(stdout)); err != nil {
+		if _, err = assertExec(ctx, container,
+			flipt("export"),
+			stdout(contains(expectedFliptYAML)),
+		); err != nil {
 			return err
 		}
-	}
 
-	if conf.stderr != nil {
-		stderr, err := stderr(ctx)
+		container, err = assertExec(ctx, container,
+			flipt("export", "-o", "/tmp/export.yml"),
+		)
 		if err != nil {
 			return err
 		}
 
-		if err := conf.stderr.assert(string(stderr)); err != nil {
+		contents, err := container.File("/tmp/export.yml").Contents(ctx)
+		if err != nil {
+			return err
+		}
+
+		if !strings.Contains(contents, expectedFliptYAML) {
+			return fmt.Errorf("unexpected output: %q does not contain %q", contents, expectedFliptYAML)
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt migrate")
+		if _, err := assertExec(ctx, container, flipt("migrate")); err != nil {
 			return err
 		}
 	}
 
 	return nil
 }
+
+const (
+	expectedFliptHelp = `Flipt is a modern feature flag solution
+
+Usage:
+  flipt [flags]
+  flipt [command]
+
+Available Commands:
+  export      Export flags/segments/rules to file/stdout
+  help        Help about any command
+  import      Import flags/segments/rules from file
+  migrate     Run pending database migrations
+
+Flags:
+      --config string   path to config file (default "/etc/flipt/config/default.yml")
+  -h, --help            help for flipt
+  -v, --version         version for flipt
+
+Use "flipt [command] --help" for more information about a command.
+`
+	expectedFliptYAML = `flags:
+- key: zUFtS7D0UyMeueYu
+  name: UAoZRksg94r1iipa
+  description: description
+  enabled: true
+  variants:
+  - key: NGxfcVffpMhBz9n8
+    name: fhDHQ7rcxvoaWbHw
+  - key: sDGD6NvfCRyaQUn3
+  rules:
+  - segment: 08UoVJ96LhZblPEx
+    rank: 1
+    distributions:
+    - variant: NGxfcVffpMhBz9n8
+      rollout: 100
+segments:
+- key: 08UoVJ96LhZblPEx
+  name: 2oS8SHbrxyFkRg1a
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  - type: STRING_COMPARISON_TYPE
+    property: fizz
+    operator: neq
+    value: buzz`
+)
