@@ -4,7 +4,7 @@ import { Form, Formik } from 'formik';
 import { cloneDeep } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
@@ -53,7 +53,7 @@ export default function EditRuleForm(props: RuleFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 

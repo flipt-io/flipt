@@ -2,7 +2,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import FlagForm from '~/components/flags/FlagForm';
@@ -26,7 +26,7 @@ export default function EditFlag() {
 
   const variantFormRef = useRef(null);
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   return (
     <>

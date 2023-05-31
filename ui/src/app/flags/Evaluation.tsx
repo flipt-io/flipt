@@ -17,7 +17,7 @@ import { InformationCircleIcon } from '@heroicons/react/20/solid';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
@@ -59,7 +59,7 @@ export default function Evaluation() {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const loadData = useCallback(async () => {
     const segmentList = (await listSegments(namespace.key)) as ISegmentList;

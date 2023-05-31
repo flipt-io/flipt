@@ -3,7 +3,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
@@ -43,7 +43,7 @@ export default function Segment() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const incrementSegmentVersion = () => {
     setSegmentVersion(segmentVersion + 1);

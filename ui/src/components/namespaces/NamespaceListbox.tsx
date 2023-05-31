@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  currentNamespace,
   currentNamespaceChanged,
+  selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
 import Listbox, { ISelectable } from '~/components/forms/Listbox';
@@ -20,7 +20,7 @@ type NamespaceLisboxProps = {
 export default function NamespaceListbox(props: NamespaceLisboxProps) {
   const { disabled, className } = props;
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const dispatch = useAppDispatch();
   const namespaces = useSelector(selectNamespaces);

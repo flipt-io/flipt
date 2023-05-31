@@ -7,7 +7,7 @@ import { forwardRef, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
@@ -235,7 +235,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     constraint?.type || 'STRING_COMPARISON_TYPE'
   );
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const initialValues = {
     property: constraint?.property || '',

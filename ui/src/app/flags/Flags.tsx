@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import FlagTable from '~/components/flags/FlagTable';
 import Button from '~/components/forms/Button';
@@ -11,7 +11,7 @@ import { useError } from '~/data/hooks/error';
 import { IFlagList } from '~/types/Flag';
 
 export default function Flags() {
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
   const path = `/namespaces/${namespace.key}/flags`;
 
   const { data, error } = useSWR<IFlagList>(path);

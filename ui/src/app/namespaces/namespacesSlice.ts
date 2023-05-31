@@ -1,20 +1,25 @@
-import { deleteNamespace } from '~/data/api';
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { createNamespace, listNamespaces, updateNamespace } from '~/data/api';
+import {
+  createNamespace,
+  deleteNamespace,
+  listNamespaces,
+  updateNamespace
+} from '~/data/api';
 import { RootState } from '~/store';
+import { LoadingStatus } from '~/types/Meta';
 import { INamespace, INamespaceBase } from '~/types/Namespace';
 
 interface INamespacesState {
   namespaces: { [key: string]: INamespace };
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  status: LoadingStatus;
   currentNamespace: string;
   error: string | undefined;
 }
 
 const initialState: INamespacesState = {
   namespaces: {},
-  status: 'idle',
+  status: LoadingStatus.IDLE,
   currentNamespace: 'default',
   error: undefined
 };
@@ -43,14 +48,14 @@ export const namespacesSlice = createSlice({
   extraReducers(builder) {
     builder
       .addCase(fetchNamespacesAsync.pending, (state, _action) => {
-        state.status = 'loading';
+        state.status = LoadingStatus.LOADING;
       })
       .addCase(fetchNamespacesAsync.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.status = LoadingStatus.SUCCEEDED;
         state.namespaces = action.payload;
       })
       .addCase(fetchNamespacesAsync.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = LoadingStatus.FAILED;
         state.error = action.error.message;
       })
       .addCase(createNamespaceAsync.fulfilled, (state, action) => {
@@ -76,8 +81,12 @@ export const selectNamespaces = (state: RootState) =>
     ([_, value]) => value
   ) as INamespace[];
 
-export const currentNamespace = (state: RootState) =>
-  state.namespaces.namespaces[state.namespaces.currentNamespace];
+export const selectCurrentNamespace = (state: RootState) => {
+  if (state.namespaces.status === LoadingStatus.SUCCEEDED) {
+    return state.namespaces.namespaces[state.namespaces.currentNamespace];
+  }
+  return { key: '', name: '', description: '' } as INamespace;
+};
 
 export const fetchNamespacesAsync = createAsyncThunk(
   'namespaces/fetchNamespaces',

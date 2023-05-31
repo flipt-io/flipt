@@ -2,7 +2,7 @@ import { Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Loading from '~/components//Loading';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
@@ -29,7 +29,7 @@ export default function FlagForm(props: FlagFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const handleSubmit = (values: IFlagBase) => {
     if (isNew) {

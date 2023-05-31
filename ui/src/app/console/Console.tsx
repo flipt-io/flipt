@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
@@ -23,7 +24,6 @@ import { IConsole } from '~/types/Console';
 import { IFlag, IFlagList } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { classNames } from '~/utils/helpers';
-import { currentNamespace } from '../namespaces/namespacesSlice';
 
 hljs.registerLanguage('json', javascript);
 
@@ -48,7 +48,7 @@ export default function Console() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const loadData = useCallback(async () => {
     const initialFlagList = (await listFlags(namespace.key)) as IFlagList;

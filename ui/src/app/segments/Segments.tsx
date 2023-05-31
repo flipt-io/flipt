@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
@@ -11,7 +11,7 @@ import { useError } from '~/data/hooks/error';
 import { ISegmentList } from '~/types/Segment';
 
 export default function Segments() {
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const path = `/namespaces/${namespace.key}/segments`;
 

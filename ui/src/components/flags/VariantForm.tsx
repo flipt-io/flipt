@@ -4,7 +4,7 @@ import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
@@ -33,7 +33,7 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const handleSubmit = async (values: IVariantBase) => {
     if (isNew) {

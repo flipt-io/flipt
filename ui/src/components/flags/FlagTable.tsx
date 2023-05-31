@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
@@ -28,7 +28,7 @@ type FlagTableProps = {
 export default function FlagTable(props: FlagTableProps) {
   const { flags } = props;
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
   const { inTimezone } = useTimezone();
 
   const path = `/namespaces/${namespace.key}/flags`;

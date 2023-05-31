@@ -3,7 +3,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -23,7 +23,7 @@ export default function Flag() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] =
     useState<boolean>(false);

@@ -7,7 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router-dom';
-import { currentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { classNames } from '~/utils/helpers';
 import NamespaceListbox from './namespaces/NamespaceListbox';
 
@@ -80,7 +80,7 @@ export default function Nav(props: NavProps) {
   let matches = useMatches();
   let path = '';
 
-  const namespace = useSelector(currentNamespace);
+  const namespace = useSelector(selectCurrentNamespace);
   path = `/namespaces/${namespace?.key}`;
 
   // if the current route is namespaced, we want to allow the namespace nav to be selectable
