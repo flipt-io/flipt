@@ -62,9 +62,9 @@ func newNamespace(key string) *namespace {
 	}
 }
 
-// snapshotFromFS constructs a storeSnapshot from the provided
-// fs.FS implementation.
-func snapshotFromFS(sources ...io.Reader) (*storeSnapshot, error) {
+// snapshotFromReaders constructs a storeSnapshot from the provided
+// slice of io.Reader.
+func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
 	s := storeSnapshot{
 		ns: map[string]*namespace{
 			defaultNs: {
@@ -92,7 +92,7 @@ func snapshotFromFS(sources ...io.Reader) (*storeSnapshot, error) {
 	return &s, nil
 }
 
-func buildSnapshotHelper(logger *zap.Logger, source iofs.FS) ([]string, error) {
+func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
 	// This is the default variable + value for the FliptIndex. It will preserve its value if
 	// a .flipt.yml can not be read for whatever reason.
 	idx := FliptIndex{
@@ -121,23 +121,20 @@ func buildSnapshotHelper(logger *zap.Logger, source iofs.FS) ([]string, error) {
 	for _, g := range idx.Inclusions {
 		f, err := iofs.Glob(source, g)
 		if err != nil {
-			logger.Error("malformed glob pattern for included files", zap.String("glob", g), zap.Error(err))
-			return nil, err
+			return nil, fmt.Errorf("glob %q: %w", g, err)
 		}
 
 		filenames = append(filenames, f...)
 	}
 
 	if len(idx.Exclusions) > 0 {
+	OUTER:
 		for i := range filenames {
-			anyMatch := false
 			for _, e := range idx.Exclusions {
-				match, _ := path.Match(e, filenames[i])
-				anyMatch = anyMatch || match
-			}
-
-			if anyMatch {
-				filenames = append(filenames[:i], filenames[i+1:]...)
+				if match, _ := path.Match(e, filenames[i]); match {
+					filenames = append(filenames[:i], filenames[i+1:]...)
+					continue OUTER
+				}
 			}
 		}
 	}
@@ -152,6 +149,9 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
+	if len(ss.evalDists) > 0 {
+		evalDists = ss.evalDists
+	}
 
 	now := timestamppb.Now()
 
@@ -177,6 +177,7 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				Property:     constraint.Property,
 				Type:         flipt.ComparisonType(constraintType),
 				Value:        constraint.Value,
+				Description:  constraint.Description,
 				CreatedAt:    now,
 				UpdatedAt:    now,
 			})
@@ -286,6 +287,7 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 	}
 
 	ss.ns[doc.Namespace] = ns
+
 	ss.evalDists = evalDists
 
 	return nil

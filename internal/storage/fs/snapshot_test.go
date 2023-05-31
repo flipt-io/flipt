@@ -20,7 +20,7 @@ var testdata embed.FS
 func TestFSWithIndex(t *testing.T) {
 	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
 
-	filenames, err := buildSnapshotHelper(zap.NewNop(), fwi)
+	filenames, err := listStateFiles(zap.NewNop(), fwi)
 	assert.NoError(t, err)
 
 	expected := []string{
@@ -39,7 +39,7 @@ func TestFSWithIndex(t *testing.T) {
 		readers = append(readers, fr)
 	}
 
-	ss, err := snapshotFromFS(readers...)
+	ss, err := snapshotFromReaders(readers...)
 	assert.NoError(t, err)
 
 	tfs := &FSIndexSuite{
@@ -252,6 +252,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "production",
 					},
 					{
@@ -259,6 +260,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "production",
 					},
 				},
@@ -279,6 +281,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "sandbox",
 					},
 					{
@@ -286,6 +289,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "sandbox",
 					},
 				},
@@ -309,6 +313,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 				assert.Equal(t, c.Property, fc.Property)
 				assert.Equal(t, c.Operator, fc.Operator)
 				assert.Equal(t, c.Value, fc.Value)
+				assert.Equal(t, c.Description, fc.Description)
 				assert.Equal(t, c.NamespaceKey, fc.NamespaceKey)
 			}
 		})
@@ -360,6 +365,126 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 	t := fis.T()
 
 	testCases := []struct {
+		name        string
+		namespace   string
+		flagKey     string
+		constraints []*flipt.Constraint
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "prod-flag",
+			constraints: []*flipt.Constraint{
+				{
+					SegmentKey:   "segment1",
+					Property:     "foo",
+					Operator:     "eq",
+					Value:        "baz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "production",
+				},
+				{
+					SegmentKey:   "segment1",
+					Property:     "fizz",
+					Operator:     "neq",
+					Value:        "buzz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "production",
+				},
+			},
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "sandbox-flag",
+			constraints: []*flipt.Constraint{
+				{
+					SegmentKey:   "segment1",
+					Property:     "foo",
+					Operator:     "eq",
+					Value:        "baz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "sandbox",
+				},
+				{
+					SegmentKey:   "segment1",
+					Property:     "fizz",
+					Operator:     "neq",
+					Value:        "buzz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "sandbox",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dist, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
+
+			assert.Len(t, dist, 1)
+
+			assert.Equal(t, tc.namespace, dist[0].NamespaceKey)
+			assert.Equal(t, tc.flagKey, dist[0].FlagKey)
+			assert.Equal(t, int32(1), dist[0].Rank)
+			assert.Equal(t, "segment1", dist[0].SegmentKey)
+
+			for i := 0; i < len(tc.constraints); i++ {
+				fc := tc.constraints[i]
+				c := dist[0].Constraints[i]
+				assert.Equal(t, fc.Type, c.Type)
+				assert.Equal(t, fc.Property, c.Property)
+				assert.Equal(t, fc.Operator, c.Operator)
+				assert.Equal(t, fc.Value, c.Value)
+			}
+		})
+	}
+}
+
+func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
+	t := fis.T()
+
+	testCases := []struct {
+		name                string
+		namespace           string
+		flagKey             string
+		expectedVariantName string
+	}{
+		{
+			name:                "Sandbox",
+			namespace:           "sandbox",
+			flagKey:             "sandbox-flag",
+			expectedVariantName: "sandbox-variant",
+		},
+		{
+			name:                "Production",
+			namespace:           "production",
+			flagKey:             "prod-flag",
+			expectedVariantName: "prod-variant",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
+			assert.Len(t, rules.Results, 1)
+
+			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
+
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
+			assert.Equal(t, float32(100), dist[0].Rollout)
+		})
+	}
+}
+
+func (fis *FSIndexSuite) TestListAndGetRules() {
+	t := fis.T()
+
+	testCases := []struct {
 		name      string
 		namespace string
 		flagKey   string
@@ -377,10 +502,17 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 	}
 
 	for _, tc := range testCases {
-		dist, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
-		assert.NoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
+			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
 
-		assert.Len(t, dist, 1)
+			for _, rule := range rules.Results {
+				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
+				assert.NoError(t, err)
+
+				assert.Equal(t, r, rule)
+			}
+		})
 	}
 }
 
@@ -391,7 +523,7 @@ type FSWithoutIndexSuite struct {
 
 func TestFSWithoutIndex(t *testing.T) {
 	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
-	filenames, err := buildSnapshotHelper(zap.NewNop(), fwoi)
+	filenames, err := listStateFiles(zap.NewNop(), fwoi)
 	assert.NoError(t, err)
 
 	expected := []string{
@@ -414,7 +546,7 @@ func TestFSWithoutIndex(t *testing.T) {
 		readers = append(readers, fr)
 	}
 
-	ss, err := snapshotFromFS(readers...)
+	ss, err := snapshotFromReaders(readers...)
 	assert.NoError(t, err)
 
 	tfs := &FSWithoutIndexSuite{
@@ -733,6 +865,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "production",
 					},
 					{
@@ -740,6 +873,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "production",
 					},
 				},
@@ -760,6 +894,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "production",
 					},
 					{
@@ -767,6 +902,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "production",
 					},
 				},
@@ -787,6 +923,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "sandbox",
 					},
 					{
@@ -794,6 +931,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "sandbox",
 					},
 				},
@@ -814,6 +952,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "sandbox",
 					},
 					{
@@ -821,6 +960,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "sandbox",
 					},
 				},
@@ -841,6 +981,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "staging",
 					},
 					{
@@ -848,6 +989,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "staging",
 					},
 				},
@@ -868,6 +1010,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "foo",
 						Operator:     "eq",
 						Value:        "baz",
+						Description:  "desc",
 						NamespaceKey: "staging",
 					},
 					{
@@ -875,6 +1018,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 						Property:     "fizz",
 						Operator:     "neq",
 						Value:        "buzz",
+						Description:  "desc",
 						NamespaceKey: "staging",
 					},
 				},
@@ -898,6 +1042,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 				assert.Equal(t, c.Property, fc.Property)
 				assert.Equal(t, c.Operator, fc.Operator)
 				assert.Equal(t, c.Value, fc.Value)
+				assert.Equal(t, c.Description, fc.Description)
 				assert.Equal(t, c.NamespaceKey, fc.NamespaceKey)
 			}
 		})
@@ -957,6 +1102,155 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 	t := fis.T()
 
 	testCases := []struct {
+		name        string
+		namespace   string
+		flagKey     string
+		constraints []*flipt.Constraint
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "prod-flag",
+			constraints: []*flipt.Constraint{
+				{
+					SegmentKey:   "segment1",
+					Property:     "foo",
+					Operator:     "eq",
+					Value:        "baz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "production",
+				},
+				{
+					SegmentKey:   "segment1",
+					Property:     "fizz",
+					Operator:     "neq",
+					Value:        "buzz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "production",
+				},
+			},
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "sandbox-flag",
+			constraints: []*flipt.Constraint{
+				{
+					SegmentKey:   "segment1",
+					Property:     "foo",
+					Operator:     "eq",
+					Value:        "baz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "sandbox",
+				},
+				{
+					SegmentKey:   "segment1",
+					Property:     "fizz",
+					Operator:     "neq",
+					Value:        "buzz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "sandbox",
+				},
+			},
+		},
+		{
+			name:      "Staging",
+			namespace: "staging",
+			flagKey:   "staging-flag",
+			constraints: []*flipt.Constraint{
+				{
+					SegmentKey:   "segment1",
+					Property:     "foo",
+					Operator:     "eq",
+					Value:        "baz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "staging",
+				},
+				{
+					SegmentKey:   "segment1",
+					Property:     "fizz",
+					Operator:     "neq",
+					Value:        "buzz",
+					Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+					NamespaceKey: "staging",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dist, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
+
+			assert.Len(t, dist, 1)
+
+			assert.Equal(t, tc.namespace, dist[0].NamespaceKey)
+			assert.Equal(t, tc.flagKey, dist[0].FlagKey)
+			assert.Equal(t, int32(1), dist[0].Rank)
+			assert.Equal(t, "segment1", dist[0].SegmentKey)
+
+			for i := 0; i < len(tc.constraints); i++ {
+				fc := tc.constraints[i]
+				c := dist[0].Constraints[i]
+				assert.Equal(t, fc.Type, c.Type)
+				assert.Equal(t, fc.Property, c.Property)
+				assert.Equal(t, fc.Operator, c.Operator)
+				assert.Equal(t, fc.Value, c.Value)
+			}
+		})
+	}
+}
+
+func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
+	t := fis.T()
+
+	testCases := []struct {
+		name                string
+		namespace           string
+		flagKey             string
+		expectedVariantName string
+	}{
+		{
+			name:                "Production",
+			namespace:           "production",
+			flagKey:             "prod-flag",
+			expectedVariantName: "prod-variant",
+		},
+		{
+			name:                "Sandbox",
+			namespace:           "sandbox",
+			flagKey:             "sandbox-flag",
+			expectedVariantName: "sandbox-variant",
+		},
+		{
+			name:                "Staging",
+			namespace:           "staging",
+			flagKey:             "staging-flag",
+			expectedVariantName: "staging-variant",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
+			assert.Len(t, rules.Results, 2)
+
+			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
+
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
+			assert.Equal(t, float32(100), dist[0].Rollout)
+		})
+	}
+}
+
+func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
+	t := fis.T()
+
+	testCases := []struct {
 		name      string
 		namespace string
 		flagKey   string
@@ -972,16 +1266,23 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 			flagKey:   "sandbox-flag",
 		},
 		{
-			name:      "Sandbox",
+			name:      "Staging",
 			namespace: "staging",
 			flagKey:   "staging-flag",
 		},
 	}
 
 	for _, tc := range testCases {
-		dist, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
-		assert.NoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
+			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
 
-		assert.Len(t, dist, 1)
+			for _, rule := range rules.Results {
+				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
+				assert.NoError(t, err)
+
+				assert.Equal(t, r, rule)
+			}
+		})
 	}
 }
