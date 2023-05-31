@@ -35,9 +35,11 @@ A sample configuration for running and developing against Flipt can be found at 
 
 `./bin/flipt [--config ./config/local.yml`]
 
-To prevent providing the config via config flag every time, you have the option of writing configuration at the location: `$HOME/.flipt/config.yml`. The flipt binary will check in that location if a `--config` override is not provided, so you can invoke the binary as such in this scenario:
+To prevent providing the config via config flag every time, you have the option of writing configuration at the location: `{{ USER_CONFIG_DIR }}/flipt/config.yml`. The flipt binary will check in that location if a `--config` override is not provided, so you can invoke the binary as such in this scenario:
 
 `./bin/flipt`
+
+The `USER_CONFIG_DIR` is different based on your architecture, and specified [here](https://pkg.go.dev/os#UserConfigDir).
 
 ## Changes
 

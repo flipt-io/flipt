@@ -63,9 +63,9 @@ var (
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
-	defaultLogger   = zap.Must(defaultConfig(defaultEncoding).Build())
-	userHomeDir, _  = os.UserHomeDir()
-	fliptConfigFile = fmt.Sprintf("%s/.flipt/config.yml", userHomeDir)
+	defaultLogger    = zap.Must(defaultConfig(defaultEncoding).Build())
+	userConfigDir, _ = os.UserConfigDir()
+	fliptConfigFile  = filepath.Join(userConfigDir, "flipt", "config.yml")
 )
 
 func defaultConfig(encoding zapcore.EncoderConfig) zap.Config {
