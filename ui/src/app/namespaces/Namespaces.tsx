@@ -1,6 +1,6 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
@@ -8,19 +8,11 @@ import Modal from '~/components/Modal';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';
 import Slideover from '~/components/Slideover';
-import { deleteNamespace, listNamespaces } from '~/data/api';
-import { useError } from '~/data/hooks/error';
-import { INamespace, INamespaceList } from '~/types/Namespace';
-
-type NamespaceContextType = {
-  namespaces: INamespace[];
-  setNamespaces: (namespaces: INamespace[]) => void;
-};
+import { useAppDispatch } from '~/data/hooks/store';
+import { INamespace } from '~/types/Namespace';
+import { deleteNamespaceAsync, selectNamespaces } from './namespacesSlice';
 
 export default function Namespaces() {
-  const { namespaces, setNamespaces } =
-    useOutletContext<NamespaceContextType>();
-
   const [showNamespaceForm, setShowNamespaceForm] = useState<boolean>(false);
 
   const [editingNamespace, setEditingNamespace] = useState<INamespace | null>(
@@ -33,28 +25,9 @@ export default function Namespaces() {
     null
   );
 
-  const [namespacesVersion, setNamespacesVersion] = useState(0);
+  const dispatch = useAppDispatch();
 
-  const { setError } = useError();
-
-  const fetchNamespaces = useCallback(() => {
-    listNamespaces()
-      .then((resp: INamespaceList) => {
-        setNamespaces(resp.namespaces);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [setError, setNamespaces]);
-
-  const incrementNamespacesVersion = () => {
-    setNamespacesVersion(namespacesVersion + 1);
-  };
-
-  useEffect(() => {
-    fetchNamespaces();
-  }, [fetchNamespaces, namespacesVersion]);
-
+  const namespaces = useSelector(selectNamespaces);
   const namespaceFormRef = useRef(null);
 
   return (
@@ -72,7 +45,6 @@ export default function Namespaces() {
           onSuccess={() => {
             setShowNamespaceForm(false);
             setEditingNamespace(null);
-            incrementNamespacesVersion();
           }}
         />
       </Slideover>
@@ -95,11 +67,8 @@ export default function Namespaces() {
           panelType="Namespace"
           setOpen={setShowDeleteNamespaceModal}
           handleDelete={
-            () => deleteNamespace(deletingNamespace?.key ?? '') // TODO: Determine impact of blank ID param
+            () => dispatch(deleteNamespaceAsync(deletingNamespace?.key ?? '')) // TODO: Determine impact of blank ID param
           }
-          onSuccess={() => {
-            incrementNamespacesVersion();
-          }}
         />
       </Modal>
 

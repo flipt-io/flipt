@@ -9,15 +9,14 @@ import PreferencesProvider from '~/components/PreferencesProvider';
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
-import { fetchNamespaces } from './namespaces/namespacesSlice';
+import { fetchNamespacesAsync } from './namespaces/namespacesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
-
-  dispatch(fetchNamespaces());
+  dispatch(fetchNamespacesAsync());
 
   if (!session) {
     return <Navigate to="/login" />;

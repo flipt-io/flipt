@@ -1,8 +1,9 @@
+import { deleteNamespace } from '~/data/api';
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { listNamespaces } from '~/data/api';
+import { createNamespace, listNamespaces, updateNamespace } from '~/data/api';
 import { RootState } from '~/store';
-import { INamespace } from '~/types/Namespace';
+import { INamespace, INamespaceBase } from '~/types/Namespace';
 
 interface INamespacesState {
   namespaces: { [key: string]: INamespace };
@@ -26,6 +27,14 @@ export const namespacesSlice = createSlice({
       const namespace = action.payload;
       state.namespaces[namespace.key] = action.payload;
     },
+    namespaceUpdated: (state, action) => {
+      const namespace = action.payload;
+      state.namespaces[namespace.key] = action.payload;
+    },
+    namespaceDeleted: (state, action) => {
+      const namespace = action.payload;
+      delete state.namespaces[namespace.key];
+    },
     currentNamespaceChanged: (state, action) => {
       const namespace = action.payload;
       state.currentNamespace = namespace.key;
@@ -33,16 +42,28 @@ export const namespacesSlice = createSlice({
   },
   extraReducers(builder) {
     builder
-      .addCase(fetchNamespaces.pending, (state, _action) => {
+      .addCase(fetchNamespacesAsync.pending, (state, _action) => {
         state.status = 'loading';
       })
-      .addCase(fetchNamespaces.fulfilled, (state, action) => {
+      .addCase(fetchNamespacesAsync.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.namespaces = action.payload;
       })
-      .addCase(fetchNamespaces.rejected, (state, action) => {
+      .addCase(fetchNamespacesAsync.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
+      })
+      .addCase(createNamespaceAsync.fulfilled, (state, action) => {
+        const namespace = action.payload;
+        state.namespaces[namespace.key] = namespace;
+      })
+      .addCase(updateNamespaceAsync.fulfilled, (state, action) => {
+        const namespace = action.payload;
+        state.namespaces[namespace.key] = namespace;
+      })
+      .addCase(deleteNamespaceAsync.fulfilled, (state, action) => {
+        const key = action.payload;
+        delete state.namespaces[key];
       });
   }
 });
@@ -58,7 +79,7 @@ export const selectNamespaces = (state: RootState) =>
 export const currentNamespace = (state: RootState) =>
   state.namespaces.namespaces[state.namespaces.currentNamespace];
 
-export const fetchNamespaces = createAsyncThunk(
+export const fetchNamespacesAsync = createAsyncThunk(
   'namespaces/fetchNamespaces',
   async () => {
     const response = await listNamespaces();
@@ -67,6 +88,31 @@ export const fetchNamespaces = createAsyncThunk(
       namespaces[namespace.key] = namespace;
     });
     return namespaces;
+  }
+);
+
+export const createNamespaceAsync = createAsyncThunk(
+  'namespaces/createNamespace',
+  async (namespace: INamespaceBase) => {
+    const response = await createNamespace(namespace);
+    return response;
+  }
+);
+
+export const updateNamespaceAsync = createAsyncThunk(
+  'namespaces/updateNamespace',
+  async (payload: { key: string; namespace: INamespaceBase }) => {
+    const { key, namespace } = payload;
+    const response = await updateNamespace(key, namespace);
+    return response;
+  }
+);
+
+export const deleteNamespaceAsync = createAsyncThunk(
+  'namespaces/deleteNamespace',
+  async (key: string) => {
+    await deleteNamespace(key);
+    return key;
   }
 );
 
