@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  currentNamespace,
+  currentNamespaceChanged,
   fetchNamespaces,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
@@ -8,6 +11,7 @@ import Listbox, { ISelectable } from '~/components/forms/Listbox';
 import { useError } from '~/data/hooks/error';
 import { useAppDispatch, useAppSelector } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';
+import { addNamespaceToPath } from '~/utils/helpers';
 
 type SelectableNamespace = Pick<INamespace, 'key' | 'name'> & ISelectable;
 
@@ -20,6 +24,8 @@ export default function NamespaceListbox(props: NamespaceLisboxProps) {
   const { disabled, className } = props;
 
   const { setError, clearError } = useError();
+
+  const namespace = useSelector(currentNamespace);
 
   const dispatch = useAppDispatch();
   const namespaces = useSelector(selectNamespaces);
@@ -44,15 +50,16 @@ export default function NamespaceListbox(props: NamespaceLisboxProps) {
     clearError();
   }, [clearError, error, setError]);
 
-  // const location = useLocation();
-  // const navigate = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // const setCurrentNamespace = (namespace: SelectableNamespace) => {
-  //   // navigate to the current location.path with the new namespace prependend
-  //   // e.g. /namespaces/default/segments -> /namespaces/namespaceKey/segments
-  //   const newPath = addNamespaceToPath(location.pathname, namespace.key);
-  //   navigate(newPath);
-  // };
+  const setCurrentNamespace = (namespace: SelectableNamespace) => {
+    dispatch(currentNamespaceChanged(namespace));
+    // navigate to the current location.path with the new namespace prependend
+    // e.g. /namespaces/default/segments -> /namespaces/namespaceKey/segments
+    const newPath = addNamespaceToPath(location.pathname, namespace.key);
+    navigate(newPath);
+  };
 
   if (namespacesStatus === 'succeeded') {
     return (
@@ -65,14 +72,12 @@ export default function NamespaceListbox(props: NamespaceLisboxProps) {
           ...n,
           displayValue: n.name
         }))}
-        // selected={{
-        //   ...currentNamespace,
-        //   displayValue: currentNamespace.name || ''
-        // }}
-        // setSelected={setCurrentNamespace}
+        selected={{
+          ...namespace,
+          displayValue: namespace?.name || ''
+        }}
+        setSelected={setCurrentNamespace}
       />
     );
   }
-
-  return <div>Loading...</div>;
 }

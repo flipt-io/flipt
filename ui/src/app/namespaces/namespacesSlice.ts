@@ -7,14 +7,14 @@ import { INamespace } from '~/types/Namespace';
 interface INamespacesState {
   namespaces: INamespace[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  selectedNamespace: INamespace | null;
+  currentNamespace: INamespace | null;
   error: string | undefined;
 }
 
 const initialState: INamespacesState = {
   namespaces: [],
   status: 'idle',
-  selectedNamespace: null,
+  currentNamespace: null,
   error: undefined
 };
 
@@ -24,6 +24,9 @@ export const namespacesSlice = createSlice({
   reducers: {
     namespaceCreated: (state, action) => {
       state.namespaces.push(action.payload);
+    },
+    currentNamespaceChanged: (state, action) => {
+      state.currentNamespace = action.payload;
     }
   },
   extraReducers(builder) {
@@ -42,15 +45,13 @@ export const namespacesSlice = createSlice({
   }
 });
 
-export const { namespaceCreated } = namespacesSlice.actions;
+export const { namespaceCreated, currentNamespaceChanged } =
+  namespacesSlice.actions;
 
 export const selectNamespaces = (state: RootState) =>
   state.namespaces.namespaces;
-export const selectNamespace = (state: RootState, namespaceKey: string) => {
-  return state.namespaces.namespaces.find(
-    (n: INamespace) => n.key === namespaceKey
-  );
-};
+export const currentNamespace = (state: RootState) =>
+  state.namespaces.currentNamespace;
 
 export const fetchNamespaces = createAsyncThunk(
   'namespaces/fetchNamespaces',
