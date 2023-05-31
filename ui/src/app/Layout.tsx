@@ -2,17 +2,22 @@ import { useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
-import NamespaceProvider from '~/components/NamespaceProvider';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
 import SuccessNotification from '~/components/notifications/SuccessNotification';
 import PreferencesProvider from '~/components/PreferencesProvider';
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
+import { useAppDispatch } from '~/data/hooks/store';
+import { fetchNamespaces } from './namespaces/namespacesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const dispatch = useAppDispatch();
+
+  dispatch(fetchNamespaces());
 
   if (!session) {
     return <Navigate to="/login" />;
@@ -39,9 +44,7 @@ export default function Layout() {
   return (
     <NotificationProvider>
       <PreferencesProvider>
-        <NamespaceProvider>
-          <InnerLayout />
-        </NamespaceProvider>
+        <InnerLayout />
       </PreferencesProvider>
       <ErrorNotification />
       <SuccessNotification />

@@ -1,7 +1,9 @@
 import { CalendarIcon } from '@heroicons/react/20/solid';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
+import { currentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
@@ -13,7 +15,6 @@ import SegmentForm from '~/components/segments/SegmentForm';
 import Slideover from '~/components/Slideover';
 import { deleteConstraint, deleteSegment, getSegment } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
   ComparisonType,
@@ -42,7 +43,7 @@ export default function Segment() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(currentNamespace);
 
   const incrementSegmentVersion = () => {
     setSegmentVersion(segmentVersion + 1);
@@ -51,7 +52,7 @@ export default function Segment() {
   useEffect(() => {
     if (!segmentKey) return;
 
-    getSegment(currentNamespace.key, segmentKey)
+    getSegment(namespace.key, segmentKey)
       .then((segment: ISegment) => {
         setSegment(segment);
         clearError();
@@ -59,7 +60,7 @@ export default function Segment() {
       .catch((err) => {
         setError(err);
       });
-  }, [segmentVersion, currentNamespace.key, segmentKey, clearError, setError]);
+  }, [segmentVersion, namespace.key, segmentKey, clearError, setError]);
 
   const constraintTypeToLabel = (t: string) =>
     ComparisonType[t as keyof typeof ComparisonType];
@@ -110,7 +111,7 @@ export default function Segment() {
           handleDelete={
             () =>
               deleteConstraint(
-                currentNamespace.key,
+                namespace.key,
                 segment.key,
                 deletingConstraint?.id ?? ''
               ) // TODO: Determine impact of blank ID param
@@ -133,9 +134,9 @@ export default function Segment() {
           }
           panelType="Segment"
           setOpen={setShowDeleteSegmentModal}
-          handleDelete={() => deleteSegment(currentNamespace.key, segment.key)}
+          handleDelete={() => deleteSegment(namespace.key, segment.key)}
           onSuccess={() => {
-            navigate(`/namespaces/${currentNamespace.key}/segments`);
+            navigate(`/namespaces/${namespace.key}/segments`);
           }}
         />
       </Modal>

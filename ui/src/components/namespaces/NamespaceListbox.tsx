@@ -1,15 +1,12 @@
-import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   currentNamespace,
   currentNamespaceChanged,
-  fetchNamespaces,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
 import Listbox, { ISelectable } from '~/components/forms/Listbox';
-import { useError } from '~/data/hooks/error';
-import { useAppDispatch, useAppSelector } from '~/data/hooks/store';
+import { useAppDispatch } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';
 import { addNamespaceToPath } from '~/utils/helpers';
 
@@ -23,32 +20,10 @@ type NamespaceLisboxProps = {
 export default function NamespaceListbox(props: NamespaceLisboxProps) {
   const { disabled, className } = props;
 
-  const { setError, clearError } = useError();
-
   const namespace = useSelector(currentNamespace);
 
   const dispatch = useAppDispatch();
   const namespaces = useSelector(selectNamespaces);
-  const namespacesStatus = useAppSelector((state) => {
-    return state.namespaces.status;
-  });
-  const error = useAppSelector((state) => {
-    return state.namespaces.error;
-  });
-
-  useEffect(() => {
-    if (namespacesStatus === 'idle') {
-      dispatch(fetchNamespaces());
-    }
-  }, [namespacesStatus, dispatch]);
-
-  useEffect(() => {
-    if (error) {
-      setError(Error(error));
-      return;
-    }
-    clearError();
-  }, [clearError, error, setError]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -61,23 +36,21 @@ export default function NamespaceListbox(props: NamespaceLisboxProps) {
     navigate(newPath);
   };
 
-  if (namespacesStatus === 'succeeded') {
-    return (
-      <Listbox<SelectableNamespace>
-        disabled={disabled}
-        id="namespaceKey"
-        name="namespaceKey"
-        className={className}
-        values={namespaces.map((n) => ({
-          ...n,
-          displayValue: n.name
-        }))}
-        selected={{
-          ...namespace,
-          displayValue: namespace?.name || ''
-        }}
-        setSelected={setCurrentNamespace}
-      />
-    );
-  }
+  return (
+    <Listbox<SelectableNamespace>
+      disabled={disabled}
+      id="namespaceKey"
+      name="namespaceKey"
+      className={className}
+      values={namespaces.map((n) => ({
+        ...n,
+        displayValue: n.name
+      }))}
+      selected={{
+        ...namespace,
+        displayValue: namespace?.name || ''
+      }}
+      setSelected={setCurrentNamespace}
+    />
+  );
 }

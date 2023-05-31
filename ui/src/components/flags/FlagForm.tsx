@@ -1,13 +1,14 @@
 import { Form, Formik } from 'formik';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
+import { currentNamespace } from '~/app/namespaces/namespacesSlice';
 import Loading from '~/components//Loading';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import { createFlag, updateFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { IFlag, IFlagBase } from '~/types/Flag';
@@ -28,13 +29,13 @@ export default function FlagForm(props: FlagFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(currentNamespace);
 
   const handleSubmit = (values: IFlagBase) => {
     if (isNew) {
-      return createFlag(currentNamespace.key, values);
+      return createFlag(namespace.key, values);
     }
-    return updateFlag(currentNamespace.key, flag?.key, values);
+    return updateFlag(namespace.key, flag?.key, values);
   };
 
   const initialValues: IFlagBase = {
@@ -56,9 +57,7 @@ export default function FlagForm(props: FlagFormProps) {
               `Successfully ${submitPhrase.toLocaleLowerCase()}d flag`
             );
             if (isNew) {
-              navigate(
-                `/namespaces/${currentNamespace.key}/flags/${values.key}`
-              );
+              navigate(`/namespaces/${namespace.key}/flags/${values.key}`);
               return;
             }
 

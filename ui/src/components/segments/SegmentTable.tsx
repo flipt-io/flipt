@@ -12,21 +12,23 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { currentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
-import { INamespace } from '~/types/Namespace';
 import { ISegment, SegmentMatchType } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
 type SegmentTableProps = {
-  namespace: INamespace;
   segments: ISegment[];
 };
 
 export default function SegmentTable(props: SegmentTableProps) {
-  const { namespace, segments } = props;
+  const { segments } = props;
+
+  const namespace = useSelector(currentNamespace);
   const { inTimezone } = useTimezone();
 
   const path = `/namespaces/${namespace.key}/segments`;

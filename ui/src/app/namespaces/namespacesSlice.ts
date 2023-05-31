@@ -5,16 +5,16 @@ import { RootState } from '~/store';
 import { INamespace } from '~/types/Namespace';
 
 interface INamespacesState {
-  namespaces: INamespace[];
+  namespaces: { [key: string]: INamespace };
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  currentNamespace: INamespace | null;
+  currentNamespace: string;
   error: string | undefined;
 }
 
 const initialState: INamespacesState = {
-  namespaces: [],
+  namespaces: {},
   status: 'idle',
-  currentNamespace: null,
+  currentNamespace: 'default',
   error: undefined
 };
 
@@ -23,10 +23,12 @@ export const namespacesSlice = createSlice({
   initialState,
   reducers: {
     namespaceCreated: (state, action) => {
-      state.namespaces.push(action.payload);
+      const namespace = action.payload;
+      state.namespaces[namespace.key] = action.payload;
     },
     currentNamespaceChanged: (state, action) => {
-      state.currentNamespace = action.payload;
+      const namespace = action.payload;
+      state.currentNamespace = namespace.key;
     }
   },
   extraReducers(builder) {
@@ -49,15 +51,22 @@ export const { namespaceCreated, currentNamespaceChanged } =
   namespacesSlice.actions;
 
 export const selectNamespaces = (state: RootState) =>
-  state.namespaces.namespaces;
+  Object.entries(state.namespaces.namespaces).map(
+    ([_, value]) => value
+  ) as INamespace[];
+
 export const currentNamespace = (state: RootState) =>
-  state.namespaces.currentNamespace;
+  state.namespaces.namespaces[state.namespaces.currentNamespace];
 
 export const fetchNamespaces = createAsyncThunk(
   'namespaces/fetchNamespaces',
   async () => {
     const response = await listNamespaces();
-    return response.namespaces;
+    const namespaces: { [key: string]: INamespace } = {};
+    response.namespaces.forEach((namespace: INamespace) => {
+      namespaces[namespace.key] = namespace;
+    });
+    return namespaces;
   }
 );
 
