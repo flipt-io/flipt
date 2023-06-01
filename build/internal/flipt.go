@@ -16,7 +16,8 @@ import (
 
 type FliptRequest struct {
 	WorkDir     string
-	ui          *dagger.Directory
+	UI          *dagger.Container
+	Platform    dagger.Platform
 	BuildTarget specs.Platform
 	Target      specs.Platform
 }
@@ -39,11 +40,12 @@ func WithTarget(platform dagger.Platform) Option {
 	}
 }
 
-func NewFliptRequest(ui *dagger.Directory, build dagger.Platform, opts ...Option) FliptRequest {
+func NewFliptRequest(ui *dagger.Container, build dagger.Platform, opts ...Option) FliptRequest {
 	platform := platforms.MustParse(string(build))
 	req := FliptRequest{
 		WorkDir:     ".",
-		ui:          ui,
+		UI:          ui,
+		Platform:    build,
 		BuildTarget: platform,
 		// default target platform == build platform
 		Target: platform,
@@ -165,7 +167,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	// build the Flipt target binary
 	return golang.
 		WithMountedDirectory("./ui", embed.Directory("./ui")).
-		WithMountedDirectory("./ui/dist", req.ui).
+		WithMountedDirectory("./ui/dist", req.UI.Directory("./dist")).
 		WithExec([]string{"mkdir", "-p", req.binary()}).
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil
 }
