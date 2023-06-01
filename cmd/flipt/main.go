@@ -32,6 +32,10 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+const (
+	defaultCfgPath = "/etc/flipt/config/default.yml"
+)
+
 var (
 	cfgPath      string
 	forceMigrate bool
@@ -59,7 +63,9 @@ var (
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
-	fatal = zap.Must(defaultConfig(defaultEncoding).Build()).Fatal
+	defaultLogger    = zap.Must(defaultConfig(defaultEncoding).Build())
+	userConfigDir, _ = os.UserConfigDir()
+	fliptConfigFile  = filepath.Join(userConfigDir, "flipt", "config.yml")
 )
 
 func defaultConfig(encoding zapcore.EncoderConfig) zap.Config {
@@ -128,13 +134,13 @@ func main() {
 		Date:      date,
 		GoVersion: goVersion,
 	}); err != nil {
-		fatal("executing template", zap.Error(err))
+		defaultLogger.Fatal("executing template", zap.Error(err))
 	}
 
 	banner = buf.String()
 
 	rootCmd.SetVersionTemplate(banner)
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "/etc/flipt/config/default.yml", "path to config file")
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "path to config file")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
@@ -155,15 +161,31 @@ func main() {
 	}()
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
-		fatal("execute", zap.Error(err))
+		defaultLogger.Fatal("execute", zap.Error(err))
 	}
 }
 
+// determinePath will figure out which path to use for Flipt configuration.
+func determinePath(cfgPath string) string {
+	if cfgPath != "" {
+		return cfgPath
+	}
+
+	_, err := os.Stat(fliptConfigFile)
+	if !errors.Is(err, fs.ErrNotExist) {
+		defaultLogger.Warn("unexpected error checking configuration path", zap.String("config_path", fliptConfigFile), zap.Error(err))
+	}
+
+	return defaultCfgPath
+}
+
 func buildConfig() (*zap.Logger, *config.Config) {
+	path := determinePath(cfgPath)
+
 	// read in config
-	res, err := config.Load(cfgPath)
+	res, err := config.Load(path)
 	if err != nil {
-		fatal("loading configuration", zap.Error(err))
+		defaultLogger.Fatal("loading configuration", zap.Error(err), zap.String("config_path", path))
 	}
 
 	cfg := res.Config
@@ -183,7 +205,7 @@ func buildConfig() (*zap.Logger, *config.Config) {
 	// parse/set log level
 	loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
 	if err != nil {
-		fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
+		defaultLogger.Fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
 	}
 
 	if cfg.Log.Encoding > config.LogEncodingConsole {
@@ -199,6 +221,8 @@ func buildConfig() (*zap.Logger, *config.Config) {
 	for _, warning := range res.Warnings {
 		logger.Warn("configuration warning", zap.String("message", warning))
 	}
+
+	logger.Debug("configuration source", zap.String("path", path))
 
 	return logger, cfg
 }

@@ -13,7 +13,7 @@ load 'helpers/bats-assert/load'
 @test "config file does not exists results in error" {
     run ./bin/flipt --config /foo/bar.yml
     assert_failure
-    assert_output -p "loading configuration	{\"error\": \"loading configuration: open /foo/bar.yml: no such file or directory\"}"
+    assert_output -p "loading configuration	{\"error\": \"loading configuration: open /foo/bar.yml: no such file or directory\", \"config_path\": \"/foo/bar.yml\"}"
 }
 
 @test "config file not yaml results in error" {
@@ -35,7 +35,7 @@ load 'helpers/bats-assert/load'
     assert_equal "${lines[7]}" "  import      Import flags/segments/rules from file"
     assert_equal "${lines[8]}" "  migrate     Run pending database migrations"
     assert_equal "${lines[9]}" "Flags:" ]
-    assert_equal "${lines[10]}" "      --config string   path to config file (default \"/etc/flipt/config/default.yml\")"
+    assert_equal "${lines[10]}" "      --config string   path to config file"
 }
 
 @test "version flag prints version info" {
