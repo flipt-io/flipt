@@ -3,7 +3,7 @@ module go.flipt.io/flipt/build
 go 1.20
 
 require (
-	dagger.io/dagger v0.6.0
+	dagger.io/dagger v0.7.0
 	github.com/containerd/containerd v1.6.19
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/go-git/go-git/v5 v5.6.1
@@ -15,7 +15,7 @@ require (
 	go.flipt.io/flipt v1.19.1
 	go.flipt.io/flipt/sdk/go v0.0.0-00010101000000-000000000000
 	golang.org/x/mod v0.10.0
-	golang.org/x/sync v0.1.0
+	golang.org/x/sync v0.2.0
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 	sigs.k8s.io/kind v0.17.0
@@ -23,7 +23,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/Khan/genqlient v0.5.0 // indirect
+	github.com/Khan/genqlient v0.6.0 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
@@ -70,7 +70,7 @@ require (
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.9.1 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
