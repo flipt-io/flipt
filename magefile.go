@@ -246,31 +246,17 @@ type UI mg.Namespace
 func (u UI) Deps() error {
 	fmt.Println("Installing UI deps...")
 
-	changed, err := getChangedFiles()
-	if err != nil {
-		return err
+	// check if node_modules exists, if not run npm ci and return
+	if _, err := os.Stat("ui/node_modules"); err != nil && os.IsNotExist(err) {
+		cmd := exec.Command("npm", "ci")
+		cmd.Dir = "ui"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
 	}
 
-	clean := true
-	// Only install if package.json or package-lock.json changed or node_modules is missing
-	if _, ok := changed["ui/package.json"]; ok {
-		clean = false
-	}
-
-	if _, ok := changed["ui/package-lock.json"]; ok {
-		clean = false
-	}
-
-	if _, err := os.Stat("ui/node_modules"); os.IsNotExist(err) {
-		clean = false
-	}
-
-	if clean {
-		fmt.Println("No changes detected in UI dependencies. Skipping install.")
-		return nil
-	}
-
-	cmd := exec.Command("npm", "ci")
+	// only run if deps have changed
+	cmd := exec.Command("npx", "package-changed", "npm ci")
 	cmd.Dir = "ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -340,26 +326,4 @@ func findFilesRecursive(match func(path string, info os.FileInfo) bool) ([]strin
 		return nil
 	})
 	return matches, err
-}
-
-// getChangedFiles returns a list of files that have changed in the current git environment
-func getChangedFiles() (map[string]interface{}, error) {
-	// get the list of changed files from git
-	files, err := sh.Output("git", "diff", "--name-only", "HEAD")
-	if err != nil {
-		return nil, fmt.Errorf("getting changed files: %w", err)
-	}
-
-	// split the files into a slice
-	s := strings.Split(files, "\n")
-
-	// create a map of the files for easy lookup
-	changed := make(map[string]interface{}, len(s))
-	for _, f := range s {
-		if f != "" {
-			changed[f] = nil
-		}
-	}
-
-	return changed, nil
 }
