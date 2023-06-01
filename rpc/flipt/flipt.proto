@@ -289,69 +289,78 @@ message DeleteConstraintRequest {
   string namespace_key = 3;
 }
 
-message RolloutRule {
+enum RolloutType {
+  UNKNOWN_ROLLOUT_TYPE = 0;
+  SEGMENT_ROLLOUT_TYPE = 1;
+  PERCENTAGE_ROLLOUT_TYPE = 2;
+}
+
+message Rollout {
   string id = 1;
   string namespace_key = 2;
   string flag_key = 3;
-  int32 rank = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
+  RolloutType type = 4;
+  int32 rank = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
   oneof rule {
-    RolloutRuleSegment segment = 10;
-    RolloutRulePercentage percentage = 11;
+    RolloutSegment segment = 20;
+    RolloutPercentage percentage = 21;
   }
 }
 
-message RolloutRuleSegment {
+message RolloutSegment {
   string segment_key = 1;
   bool value = 2;
 }
 
-message RolloutRulePercentage {
+message RolloutPercentage {
   float percentage = 1;
   bool value = 2;
 }
 
-message RolloutRuleList {
-  repeated RolloutRule rules = 1;
+message RolloutList {
+  repeated Rollout rules = 1;
   string next_page_token = 2;
   int32 total_count = 3;
 }
 
-message ListRolloutRuleRequest {
+message ListRolloutRequest {
   string namespace_key = 1;
   string flag_key = 2;
   int32 limit = 3;
   string page_token = 4;
 }
 
-message GetRolloutRuleRequest {
+message GetRolloutRequest {
   string id = 1;
   string namespace_key = 2;
   string flag_key = 3;
 }
 
-message CreateRolloutRuleRequest {
+message CreateRolloutRequest {
   string namespace_key = 1;
   string flag_key = 2;
   int32 rank = 3;
+  RolloutType type = 4;
   oneof rule {
-    RolloutRuleSegment segment = 10;
-    RolloutRulePercentage percentage = 11;
+    RolloutSegment segment = 20;
+    RolloutPercentage percentage = 21;
   }
 }
 
-message UpdateRolloutRuleRequest {
+message UpdateRolloutRequest {
   string id = 1;
   string namespace_key = 2;
   string flag_key = 3;
+  RolloutType type = 4;
   oneof rule {
-    RolloutRuleSegment segment = 10;
-    RolloutRulePercentage percentage = 11;
+    RolloutSegment segment = 20;
+    RolloutPercentage percentage = 21;
   }
 }
 
-message DeleteRolloutRuleRequest {
+message DeleteRolloutRequest {
   string id = 1;
   string namespace_key = 2;
   string flag_key = 3;
@@ -469,11 +478,11 @@ service Flipt {
   rpc UpdateRule(UpdateRuleRequest) returns (Rule) {}
   rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {}
   rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {}
-  rpc GetRolloutRule(GetRolloutRuleRequest) returns (RolloutRule) {}
-  rpc ListRolloutRules(ListRolloutRuleRequest) returns (RolloutRuleList) {}
-  rpc CreateRolloutRule(CreateRolloutRuleRequest) returns (RolloutRule) {}
-  rpc UpdateRolloutRule(UpdateRolloutRuleRequest) returns (RolloutRule) {}
-  rpc DeleteRolloutRule(DeleteRolloutRuleRequest) returns (google.protobuf.Empty) {}
+  rpc GetRollout(GetRolloutRequest) returns (Rollout) {}
+  rpc ListRollouts(ListRolloutRequest) returns (RolloutList) {}
+  rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {}
+  rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {}
+  rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {}
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {}
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {}
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {}

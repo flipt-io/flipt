@@ -2,7 +2,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
-import VariantForm from '~/components/flags/VariantForm';
+import VariantForm from '~/components/flags/variants/VariantForm';
 import Button from '~/components/forms/Button';
 import Modal from '~/components/Modal';
 import Slideover from '~/components/Slideover';

@@ -15,7 +15,7 @@ import Slideover from '~/components/Slideover';
 import { deleteVariant } from '~/data/api';
 import { IVariant } from '~/types/Variant';
 import { FlagProps } from './FlagProps';
-import Variants from './Variants';
+import Variants from './variants/Variants';
 
 export default function EditFlag() {
   const { flag, onFlagChange } = useOutletContext<FlagProps>();
@@ -33,48 +33,6 @@ export default function EditFlag() {
 
   return (
     <>
-      {/* variant edit form */}
-      <Slideover
-        open={showVariantForm}
-        setOpen={setShowVariantForm}
-        ref={variantFormRef}
-      >
-        <VariantForm
-          ref={variantFormRef}
-          flagKey={flag.key}
-          variant={editingVariant || undefined}
-          setOpen={setShowVariantForm}
-          onSuccess={() => {
-            setShowVariantForm(false);
-            onFlagChange();
-          }}
-        />
-      </Slideover>
-
-      {/* variant delete modal */}
-      <Modal open={showDeleteVariantModal} setOpen={setShowDeleteVariantModal}>
-        <DeletePanel
-          panelMessage={
-            <>
-              Are you sure you want to delete the variant{' '}
-              <span className="font-medium text-violet-500">
-                {deletingVariant?.key}
-              </span>
-              ? This action cannot be undone.
-            </>
-          }
-          panelType="Variant"
-          setOpen={setShowDeleteVariantModal}
-          handleDelete={
-            () =>
-              deleteVariant(namespace.key, flag.key, deletingVariant?.id ?? '') // TODO: Determine impact of blank ID param
-          }
-          onSuccess={() => {
-            onFlagChange();
-          }}
-        />
-      </Modal>
-
       <div className="flex flex-col">
         {/* flag details */}
         <div className="my-10">
