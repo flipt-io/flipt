@@ -38,12 +38,12 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
 
   const handleSubmit = async (values: INamespaceBase) => {
     if (isNew) {
-      return dispatch(createNamespaceAsync(values));
+      return dispatch(createNamespaceAsync(values)).unwrap();
     }
 
     return dispatch(
       updateNamespaceAsync({ key: namespace.key, namespace: values })
-    );
+    ).unwrap();
   };
 
   return (
