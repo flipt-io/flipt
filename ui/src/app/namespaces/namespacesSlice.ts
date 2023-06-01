@@ -85,7 +85,7 @@ export const selectCurrentNamespace = (state: RootState) => {
   if (state.namespaces.status === LoadingStatus.SUCCEEDED) {
     return state.namespaces.namespaces[state.namespaces.currentNamespace];
   }
-  return { key: '', name: '', description: '' } as INamespace;
+  return { key: 'default', name: 'Default', description: '' } as INamespace;
 };
 
 export const fetchNamespacesAsync = createAsyncThunk(
