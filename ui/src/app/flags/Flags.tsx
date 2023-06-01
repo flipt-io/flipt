@@ -1,18 +1,18 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import FlagTable from '~/components/flags/FlagTable';
 import Button from '~/components/forms/Button';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { IFlagList } from '~/types/Flag';
 
 export default function Flags() {
-  const { currentNamespace } = useNamespace();
-
-  const path = `/namespaces/${currentNamespace.key}/flags`;
+  const namespace = useSelector(selectCurrentNamespace);
+  const path = `/namespaces/${namespace.key}/flags`;
 
   const { data, error } = useSWR<IFlagList>(path);
 
@@ -54,7 +54,7 @@ export default function Flags() {
       </div>
       <div className="mt-4 flex flex-col">
         {flags && flags.length > 0 ? (
-          <FlagTable namespace={currentNamespace} flags={flags} />
+          <FlagTable flags={flags} />
         ) : (
           <EmptyState
             text="Create Flag"

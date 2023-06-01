@@ -1,6 +1,8 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import FlagForm from '~/components/flags/FlagForm';
@@ -10,7 +12,6 @@ import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import Slideover from '~/components/Slideover';
 import { deleteVariant } from '~/data/api';
-import useNamespace from '~/data/hooks/namespace';
 import { IVariant } from '~/types/Variant';
 import { FlagProps } from './FlagProps';
 
@@ -25,7 +26,7 @@ export default function EditFlag() {
 
   const variantFormRef = useRef(null);
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   return (
     <>
@@ -63,11 +64,7 @@ export default function EditFlag() {
           setOpen={setShowDeleteVariantModal}
           handleDelete={
             () =>
-              deleteVariant(
-                currentNamespace.key,
-                flag.key,
-                deletingVariant?.id ?? ''
-              ) // TODO: Determine impact of blank ID param
+              deleteVariant(namespace.key, flag.key, deletingVariant?.id ?? '') // TODO: Determine impact of blank ID param
           }
           onSuccess={() => {
             onFlagChange();

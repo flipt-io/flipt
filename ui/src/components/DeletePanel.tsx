@@ -8,7 +8,7 @@ type DeletePanelProps = {
   setOpen: (open: boolean) => void;
   handleDelete: (...args: string[]) => Promise<any>;
   panelType: string;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 };
 
 export default function DeletePanel(props: DeletePanelProps) {
@@ -48,7 +48,9 @@ export default function DeletePanel(props: DeletePanelProps) {
             handleSubmit()
               ?.then(() => {
                 clearError();
-                onSuccess();
+                if (onSuccess) {
+                  onSuccess();
+                }
               })
               .catch((err) => {
                 setError(err);

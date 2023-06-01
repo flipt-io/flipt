@@ -8,3 +8,10 @@ export interface Info {
   updateAvailable: boolean;
   isRelease: boolean;
 }
+
+export enum LoadingStatus {
+  IDLE = 'idle',
+  LOADING = 'loading',
+  SUCCEEDED = 'succeeded',
+  FAILED = 'failed'
+}

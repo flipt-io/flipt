@@ -4,8 +4,10 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import moment from 'moment';
 import { forwardRef, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
@@ -13,7 +15,6 @@ import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { requiredValidation } from '~/data/validations';
@@ -234,7 +235,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     constraint?.type || 'STRING_COMPARISON_TYPE'
   );
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const initialValues = {
     property: constraint?.property || '',
@@ -246,14 +247,9 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
 
   const handleSubmit = async (values: IConstraintBase) => {
     if (isNew) {
-      return createConstraint(currentNamespace.key, segmentKey, values);
+      return createConstraint(namespace.key, segmentKey, values);
     }
-    return updateConstraint(
-      currentNamespace.key,
-      segmentKey,
-      constraint?.id,
-      values
-    );
+    return updateConstraint(namespace.key, segmentKey, constraint?.id, values);
   };
 
   return (
