@@ -256,7 +256,8 @@ func (u UI) Deps() error {
 	}
 
 	// only run if deps have changed
-	cmd := exec.Command("npx", "package-changed", "npm ci")
+	// uses: https://github.com/thdk/package-changed
+	cmd := exec.Command("npx", "--no", "package-changed", "install", "--ci")
 	cmd.Dir = "ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
