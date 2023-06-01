@@ -188,7 +188,7 @@ func testdataRepo(t *testing.T) *git.Repository {
 	require.NoError(t, err)
 
 	// copy testdata into target tmp dir
-	fs.WalkDir(dir, ".", func(path string, d fs.DirEntry, err error) error {
+	require.NoError(t, fs.WalkDir(dir, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -211,7 +211,7 @@ func testdataRepo(t *testing.T) *git.Repository {
 		require.NoError(t, fi.Close())
 
 		return nil
-	})
+	}))
 
 	tree, err := repo.Worktree()
 	require.NoError(t, err)
