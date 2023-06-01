@@ -35,7 +35,7 @@ export function Notification(props: NotificationProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+            <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white">
               <div className="p-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
@@ -56,12 +56,12 @@ export function Notification(props: NotificationProps) {
                         href={info.latestVersionURL}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-md bg-white text-sm font-medium text-violet-600 hover:text-violet-500 focus:outline-none"
+                        className="rounded-md text-sm font-medium bg-white text-violet-600 hover:text-violet-500 focus:outline-none"
                       >
                         Check It Out
                       </a>
                       <a
-                        className="rounded-md bg-white text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none"
+                        className="rounded-md text-sm font-medium bg-white text-gray-700 hover:text-gray-500 focus:outline-none"
                         onClick={(e) => {
                           e.preventDefault();
                           setShow(false);
@@ -123,7 +123,7 @@ export default function Notifications(props: NotificationsProps) {
       >
         {newNotifications && (
           <span className="absolute right-0 top-0 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 bg-white"></span>
             <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-100"></span>
           </span>
         )}

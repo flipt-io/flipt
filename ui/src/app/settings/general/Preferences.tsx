@@ -45,14 +45,14 @@ export default function Preferences() {
                 }}
                 className={classNames(
                   utcTimezoneEnabled ? 'bg-violet-400' : 'bg-gray-200',
-                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none sm:ml-auto'
+                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 transition-colors duration-200 ease-in-out border-transparent focus:outline-none sm:ml-auto'
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={classNames(
                     utcTimezoneEnabled ? 'translate-x-5' : 'translate-x-0',
-                    'inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                    'inline-block h-5 w-5 transform rounded-full shadow ring-0 transition duration-200 ease-in-out bg-white'
                   )}
                 />
               </Switch>

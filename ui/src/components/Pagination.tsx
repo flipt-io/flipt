@@ -16,7 +16,7 @@ function Page(props: PageProps) {
   // we are using '...' (string) to represent page links that should not be rendered
   if (typeof page === 'string') {
     return (
-      <span className="border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-700">
+      <span className="border-t-2 px-4 pt-4 text-sm font-medium border-transparent text-gray-700">
         &#8230; {/* ellipsis */}
       </span>
     );
@@ -27,8 +27,8 @@ function Page(props: PageProps) {
       href="#"
       className={classNames(
         page === currentPage
-          ? 'border-violet-500 text-violet-600'
-          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+          ? 'text-violet-600 border-violet-500'
+          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
         'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium'
       )}
       aria-current={page === currentPage ? 'page' : undefined}
@@ -78,13 +78,13 @@ export default function Pagination(props: PaginationProps) {
 
   return (
     <nav
-      className={`${className} flex items-center justify-between border-t border-gray-200 px-4 sm:px-0`}
+      className={`${className} flex items-center justify-between border-t px-4 border-gray-200 sm:px-0`}
     >
       <div className="flex w-0 flex-1">
         {currentPage > 1 && (
           <a
             href="#"
-            className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            className="inline-flex items-center border-t-2 pr-1 pt-4 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             onClick={(e) => {
               e.preventDefault();
               onPreviousPage();
@@ -112,7 +112,7 @@ export default function Pagination(props: PaginationProps) {
         {currentPage < lastPage && (
           <a
             href="#"
-            className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            className="inline-flex items-center border-t-2 pl-1 pt-4 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             onClick={(e) => {
               e.preventDefault();
               onNextPage();

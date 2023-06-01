@@ -45,7 +45,7 @@ export default function Toggle(props: ToggleProps) {
         <span
           className={`${
             enabled ? 'translate-x-6' : 'translate-x-1'
-          } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+          } inline-block h-4 w-4 transform rounded-full transition bg-white`}
         />
       </Switch>
     </Switch.Group>

@@ -118,9 +118,9 @@ export default function EditRuleForm(props: RuleFormProps) {
     >
       {(formik) => {
         return (
-          <Form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
+          <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
             <div className="flex-1">
-              <div className="bg-gray-50 px-4 py-6 sm:px-6">
+              <div className="px-4 py-6 bg-gray-50 sm:px-6">
                 <div className="flex items-start justify-between space-x-3">
                   <div className="space-y-1">
                     <Dialog.Title className="text-lg font-medium text-gray-900">
@@ -271,7 +271,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                         <div className="relative sm:col-span-1">
                           <input
                             type="number"
-                            className="block w-full rounded-md border-gray-300 pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
+                            className="block w-full rounded-md pl-7 pr-12 shadow-sm border-gray-300 focus:ring-violet-300 focus:border-violet-300 sm:text-sm"
                             value={dist.distribution.rollout}
                             name={dist.variant.key}
                             // eslint-disable-next-line react/no-unknown-property
@@ -310,7 +310,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                 )}
               </div>
             </div>
-            <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+            <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
               <div className="flex justify-end space-x-3">
                 <Button onClick={() => setOpen(false)}>Cancel</Button>
                 <Button

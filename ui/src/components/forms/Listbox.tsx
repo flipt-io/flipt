@@ -70,7 +70,7 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
               leaveTo="opacity-0"
             >
               <L.Options
-                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-50 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 bg-gray-50 focus:outline-none sm:text-sm"
                 id={`${id}-select-options`}
               >
                 {values?.map((v) => (
@@ -78,7 +78,7 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
                     key={v.key}
                     className={({ active }) =>
                       classNames(
-                        active ? 'bg-violet-300 text-white' : 'text-gray-900',
+                        active ? 'text-white bg-violet-300' : 'text-gray-900',
                         'relative cursor-default select-none py-2 pl-3 pr-9'
                       )
                     }
