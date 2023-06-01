@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"dagger.io/dagger"
 	"github.com/magefile/mage/mg"
@@ -177,7 +178,16 @@ func (t Test) Database(ctx context.Context, db string) error {
 // Integration runs the entire integration test suite.
 // The suite runs a number of operations via the Go SDK against Flipt
 // in various configurations using both HTTP and GRPC.
-func (t Test) Integration(ctx context.Context) error {
+func (t Test) Integration(ctx context.Context, cases string) error {
+	if cases == "list" {
+		fmt.Println("Integration test cases:")
+		for c := range testing.AllCases {
+			fmt.Println("\t> ", c)
+		}
+
+		return nil
+	}
+
 	client, err := daggerClient(ctx)
 	if err != nil {
 		return err
@@ -205,7 +215,12 @@ func (t Test) Integration(ctx context.Context) error {
 		return err
 	}
 
-	return testing.Integration(ctx, client, base, flipt)
+	var tests []string
+	if cases != "*" {
+		tests = strings.Split(cases, " ")
+	}
+
+	return testing.Integration(ctx, client, base, flipt, tests...)
 }
 
 // UI runs the entire integration test suite for the UI.
@@ -264,7 +279,6 @@ func (r Release) Tag(ctx context.Context, module, version string) error {
 
 func daggerClient(ctx context.Context) (*dagger.Client, error) {
 	return dagger.Connect(ctx,
-		dagger.WithWorkdir(workDir()),
 		dagger.WithLogOutput(os.Stdout),
 	)
 }

@@ -12,21 +12,23 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
 import { IFlag } from '~/types/Flag';
-import { INamespace } from '~/types/Namespace';
 import { truncateKey } from '~/utils/helpers';
 
 type FlagTableProps = {
-  namespace: INamespace;
   flags: IFlag[];
 };
 
 export default function FlagTable(props: FlagTableProps) {
-  const { namespace, flags } = props;
+  const { flags } = props;
+
+  const namespace = useSelector(selectCurrentNamespace);
   const { inTimezone } = useTimezone();
 
   const path = `/namespaces/${namespace.key}/flags`;

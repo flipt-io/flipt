@@ -3,9 +3,11 @@ import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/tokyo-night-dark.css';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
@@ -13,7 +15,6 @@ import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
 import { evaluate, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import {
   jsonValidation,
   keyValidation,
@@ -47,12 +48,10 @@ export default function Console() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const loadData = useCallback(async () => {
-    const initialFlagList = (await listFlags(
-      currentNamespace.key
-    )) as IFlagList;
+    const initialFlagList = (await listFlags(namespace.key)) as IFlagList;
     const { flags } = initialFlagList;
 
     setFlags(
@@ -67,7 +66,7 @@ export default function Console() {
         };
       })
     );
-  }, [currentNamespace.key]);
+  }, [namespace.key]);
 
   const handleSubmit = (values: IConsole) => {
     const { flagKey, entityId, context } = values;
@@ -79,7 +78,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluate(currentNamespace.key, flagKey, rest)
+    evaluate(namespace.key, flagKey, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
@@ -211,7 +210,7 @@ export default function Console() {
                         </Button>
                       </div>
                     </div>
-                    <ResetOnNamespaceChange namespace={currentNamespace} />
+                    <ResetOnNamespaceChange namespace={namespace} />
                   </Form>
                 )}
               </Formik>
@@ -242,9 +241,7 @@ export default function Console() {
             <EmptyState
               text="Create Flag"
               secondaryText="At least one flag must exist to use the console"
-              onClick={() =>
-                navigate(`/namespaces/${currentNamespace.key}/flags/new`)
-              }
+              onClick={() => navigate(`/namespaces/${namespace.key}/flags/new`)}
             />
           </div>
         )}

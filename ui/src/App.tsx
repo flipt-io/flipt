@@ -21,10 +21,8 @@ const Settings = loadable(() => import('./app/settings/Settings'));
 const Preferences = loadable(
   () => import('./app/settings/general/Preferences')
 );
-const Namespaces = loadable(
-  () => import('./app/settings/namespaces/Namespaces')
-);
-const Tokens = loadable(() => import('./app/settings/tokens/Tokens'));
+const Namespaces = loadable(() => import('./app/namespaces/Namespaces'));
+const Tokens = loadable(() => import('./app/tokens/Tokens'));
 
 const namespacesRoutes = [
   {

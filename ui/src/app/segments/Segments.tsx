@@ -1,18 +1,19 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { ISegmentList } from '~/types/Segment';
 
 export default function Segments() {
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
-  const path = `/namespaces/${currentNamespace.key}/segments`;
+  const path = `/namespaces/${namespace.key}/segments`;
 
   const { data, error } = useSWR<ISegmentList>(path);
 
@@ -54,7 +55,7 @@ export default function Segments() {
       </div>
       <div className="mt-4 flex flex-col">
         {segments && segments.length > 0 ? (
-          <SegmentTable namespace={currentNamespace} segments={segments} />
+          <SegmentTable segments={segments} />
         ) : (
           <EmptyState
             text="Create Segment"

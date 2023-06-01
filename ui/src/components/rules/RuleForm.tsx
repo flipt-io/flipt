@@ -2,15 +2,16 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createDistribution, createRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 import { IDistributionVariant } from '~/types/Distribution';
@@ -74,7 +75,7 @@ export default function RuleForm(props: RuleFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
@@ -108,7 +109,7 @@ export default function RuleForm(props: RuleFormProps) {
       throw new Error('No segment selected');
     }
 
-    const rule = await createRule(currentNamespace.key, flag.key, {
+    const rule = await createRule(namespace.key, flag.key, {
       flagKey: flag.key,
       segmentKey: selectedSegment.key,
       rank
@@ -116,7 +117,7 @@ export default function RuleForm(props: RuleFormProps) {
 
     if (ruleType === 'multi') {
       const distPromises = distributions?.map((dist: IDistributionVariant) =>
-        createDistribution(currentNamespace.key, flag.key, rule.id, {
+        createDistribution(namespace.key, flag.key, rule.id, {
           variantId: dist.variantId,
           rollout: dist.rollout
         })
@@ -126,7 +127,7 @@ export default function RuleForm(props: RuleFormProps) {
       if (selectedVariant) {
         // we allow creating rules without variants
 
-        await createDistribution(currentNamespace.key, flag.key, rule.id, {
+        await createDistribution(namespace.key, flag.key, rule.id, {
           variantId: selectedVariant.id,
           rollout: 100
         });
