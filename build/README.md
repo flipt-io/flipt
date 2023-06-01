@@ -8,9 +8,28 @@ It is currently under active development. We're experimenting with it as our eng
 - Go 1.20 (required for Dagger 0.4+)
 - Mage
 
+## Tips
+
+All the commands in this directory can be invoked from the root of the Flipt repo using `mage dagger:run` as a prefixed.
+For example:
+
+```sh
+cd ..
+
+mage dagger:run test:ui
+```
+
+This version of the command runs using the `dagger` cli (`brew install dagger/tap/dagger`).
+It comes with a nice TUI.
+
 ## Build
 
 The `build` namespace within the Mage targets can be used to build Flipt into a target Docker container.
+
+```sh
+  build:base           builds Flipts base image via Dagger and buildkit.
+  build:flipt          builds a development version of Flipt as a Docker image and loads it into a local Docker instance.
+```
 
 There exist two sub-targets in this namespace `base` and `flipt`.
 
@@ -23,10 +42,34 @@ Where `<sha>` is the local head SHA for this project.
 
 The test section of the Mage targets handles running Flipts various unit tests with different configurations.
 
-`mage test:unit` runs the entire test suite with `SQLite` as the backing database.
+```sh
+  test:all             runs Flipt's unit test suite against all the databases Flipt supports.
+  test:cli             runs a suite of test cases which exercise the `flipt` binary CLI.
+  test:database        runs the unit test suite against the desired database (one of ["sqlite" "postgres" "mysql" "cockroach"]).
+  test:integration     runs the entire integration test suite (one of ["*", "list", "<test-case>"] use "list" to see available cases).
+  test:ui              runs the entire integration test suite for the UI.
+  test:unit            runs the base suite of tests for all of Flipt.
+```
 
-`mage test:database <db>` runs the entire test suite with the desired database (`sqlite`, `postgres`, `mysql` and `cockroach` available).
+### Unit Tests
 
 `mage test:all` runs the entire suite for each database concurrently.
+`mage test:unit` runs the entire test suite with `SQLite` as the backing database.
+`mage test:database <db>` runs the entire test suite with the desired database (`sqlite`, `postgres`, `mysql` and `cockroach` available).
 
-`mage test:integration` run the [integration test suite](./build/integration) against an instance of Flipt.
+These tests run [Flipts Go suite](testing/test.go) of unit tests.
+There are a number of ways to invoke them with different backing databases.
+
+### Integration Tests (End to End)
+
+`mage test:integration` runs the [integration test suite](./testing/integration.go) against an instance of Flipt.
+
+These tests exercise the Flipt Go SDK against a matrix of Flipt configurations.
+
+### UI Tests
+
+`mage test:ui` runs the UIs [playwright test suite](../ui/tests) against a configure instance of Flipt.
+
+### CLI Tests
+
+`mage test:cli` runs a suite of [CLI tests](./testing/cli.go) invoking the `flipt` binary and its subcommands.
