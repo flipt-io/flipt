@@ -85,8 +85,8 @@ func assertExec(ctx context.Context, flipt *dagger.Container, args []string, opt
 	container, err := flipt.WithExec(args).Sync(ctx)
 
 	var (
-		stdout = container.Stdout
-		stderr = container.Stderr
+		execStdout = container.Stdout
+		execStderr = container.Stderr
 	)
 
 	if err != nil {
@@ -97,18 +97,18 @@ func assertExec(ctx context.Context, flipt *dagger.Container, args []string, opt
 		var eerr *dagger.ExecError
 		// get stdout and stderr from exec error instead
 		if errors.As(err, &eerr) {
-			stdout = func(context.Context) (string, error) {
+			execStdout = func(context.Context) (string, error) {
 				return eerr.Stdout, nil
 			}
 
-			stderr = func(context.Context) (string, error) {
+			execStderr = func(context.Context) (string, error) {
 				return eerr.Stderr, nil
 			}
 		}
 	}
 
 	for _, a := range conf.stdout {
-		stdout, err := stdout(ctx)
+		stdout, err := execStdout(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +119,7 @@ func assertExec(ctx context.Context, flipt *dagger.Container, args []string, opt
 	}
 
 	for _, a := range conf.stderr {
-		stderr, err := stderr(ctx)
+		stderr, err := execStderr(ctx)
 		if err != nil {
 			return nil, err
 		}
