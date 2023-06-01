@@ -131,10 +131,19 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 				return nil, err
 			}
 
-			entries = append(entries, DirEntry{
+			dEntry := DirEntry{
 				entry: entry,
 				mode:  mode,
-			})
+			}
+
+			if entry.Mode != filemode.Dir {
+				dEntry.fi, err = f.tree.TreeEntryFile(&entry)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			entries = append(entries, dEntry)
 		}
 
 		return &Dir{info: info, entries: entries}, nil
@@ -229,7 +238,7 @@ func (d *Dir) Close() error {
 // If it encounters an error before the end of the directory,
 // ReadDir returns the DirEntry list read until that point and a non-nil error.
 func (d *Dir) ReadDir(n int) (dst []fs.DirEntry, err error) {
-	if n < 0 {
+	if n <= 0 {
 		return d.entries, nil
 	}
 
@@ -298,6 +307,7 @@ func (f FileInfo) Sys() any {
 // The entry could itself be a directory or another type of file.
 type DirEntry struct {
 	entry object.TreeEntry
+	fi    *object.File
 	mode  fs.FileMode
 }
 
@@ -326,8 +336,14 @@ func (d DirEntry) Type() fs.FileMode {
 // If the entry denotes a symbolic link, Info reports the information about the link itself,
 // not the link's target.
 func (d DirEntry) Info() (fs.FileInfo, error) {
-	return FileInfo{
+	info := FileInfo{
 		name: d.entry.Name,
 		mode: d.mode,
-	}, nil
+	}
+
+	if d.entry.Mode != filemode.Dir && d.fi != nil {
+		info.size = d.fi.Blob.Size
+	}
+
+	return info, nil
 }

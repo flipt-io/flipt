@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io"
 	"io/fs"
+	"strings"
 	"testing"
 
 	"github.com/go-git/go-billy/v5/memfs"
@@ -25,7 +26,7 @@ func Test_FS(t *testing.T) {
 	filesystem, err := NewFromRepo(repo)
 	require.NoError(t, err)
 
-	t.Run("Ensure invalid and non existent paths error", func(t *testing.T) {
+	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
 		_, err := filesystem.Open("..")
 		require.Equal(t, err, &fs.PathError{
 			Op:   "Open",
@@ -43,19 +44,28 @@ func Test_FS(t *testing.T) {
 
 	t.Run("Ensure files exist with expected contents", func(t *testing.T) {
 		seen := map[string]string{}
-		err = fs.WalkDir(filesystem, ".", func(path string, d fs.DirEntry, err error) error {
+		dirs := map[string]int{}
+
+		err := fs.WalkDir(filesystem, ".", func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
-			}
-
-			if d.IsDir() {
-				return nil
 			}
 
 			fi, err := filesystem.Open(path)
 			require.NoError(t, err)
 
 			defer fi.Close()
+
+			if d.IsDir() {
+				dir := requireCast[*Dir](t, fi)
+
+				entries, err := dir.ReadDir(0)
+				require.NoError(t, err)
+
+				dirs[path] = len(entries)
+
+				return nil
+			}
 
 			contents, err := io.ReadAll(fi)
 			require.NoError(t, err)
@@ -67,7 +77,99 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, expected, seen)
+		assert.Equal(t, map[string]int{
+			".":         3,
+			"two":       1,
+			"four":      1,
+			"four/five": 1,
+		}, dirs)
 	})
+
+	t.Run("Walk root directory using ReadDir", func(t *testing.T) {
+		fi, err := filesystem.Open(".")
+		require.NoError(t, err)
+		defer fi.Close()
+
+		dir := requireCast[*Dir](t, fi)
+
+		var ent, all []fs.DirEntry
+		for ent, err = dir.ReadDir(1); err == nil; ent, err = dir.ReadDir(1) {
+			require.NoError(t, err)
+			assert.Len(t, ent, 1)
+
+			all = append(all, ent...)
+		}
+		assert.Equal(t, io.EOF, err, "expected ReadDir to end in io.EOF")
+		assert.Len(t, all, 3, "expected root dir to contain three entries")
+
+		var (
+			infos    []fs.FileInfo
+			expected = []fs.FileInfo{
+				FileInfo{name: "four", size: int64(0), mode: fs.ModeDir | fs.ModePerm},
+				FileInfo{name: "one.txt", size: int64(8), mode: fs.FileMode(0644)},
+				FileInfo{name: "two", size: int64(0), mode: fs.ModeDir | fs.ModePerm},
+			}
+		)
+		for _, e := range all {
+			info, err := e.Info()
+			require.NoError(t, err)
+			infos = append(infos, info)
+		}
+
+		assert.Equal(t, expected, infos)
+	})
+
+	t.Run("File.Stat returns as expected", func(t *testing.T) {
+		fi, err := filesystem.Open("one.txt")
+		require.NoError(t, err)
+		defer fi.Close()
+
+		stat, err := fi.Stat()
+		require.NoError(t, err)
+
+		assert.Equal(t, "one.txt", stat.Name())
+		assert.Equal(t, int64(8), stat.Size())
+		assert.Equal(t, fs.FileMode(0644), stat.Mode())
+		assert.False(t, stat.IsDir(), "file stat reports expected file is a directory")
+	})
+
+	t.Run("File.Seek", func(t *testing.T) {
+		fi := &File{ReadCloser: readCloser("cannot be seeked")}
+		n, err := fi.Seek(4, io.SeekStart)
+		require.Error(t, err, "seeker cannot seek")
+		assert.Zero(t, n)
+
+		fi = &File{ReadCloser: closer{strings.NewReader("seeker can seek")}}
+		n, err = fi.Seek(7, io.SeekStart)
+		require.NoError(t, err)
+		assert.Equal(t, int64(7), n)
+
+		contents, err := io.ReadAll(fi)
+		require.NoError(t, err)
+		assert.Equal(t, "can seek", string(contents))
+	})
+}
+
+type closer struct {
+	io.ReadSeeker
+}
+
+func (c closer) Close() error { return nil }
+
+// readCloser is a strings reader which does not implement Seek
+type readCloser string
+
+func (r readCloser) Read(d []byte) (int, error) {
+	copy(d, []byte(r))
+	return len(r), nil
+}
+
+func (r readCloser) Close() error { return nil }
+
+func requireCast[T any](t *testing.T, v any) (c T) {
+	c, ok := v.(T)
+	require.True(t, ok, "expected %T, found %T", c, v)
+	return c
 }
 
 //go:embed all:testdata/*
