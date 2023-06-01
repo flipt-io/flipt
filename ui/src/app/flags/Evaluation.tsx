@@ -15,7 +15,9 @@ import {
 } from '@dnd-kit/sortable';
 import { InformationCircleIcon } from '@heroicons/react/20/solid';
 import { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/Button';
@@ -27,7 +29,6 @@ import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
 import { deleteRule, listRules, listSegments, orderRules } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
@@ -58,19 +59,14 @@ export default function Evaluation() {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const loadData = useCallback(async () => {
-    const segmentList = (await listSegments(
-      currentNamespace.key
-    )) as ISegmentList;
+    const segmentList = (await listSegments(namespace.key)) as ISegmentList;
     const { segments } = segmentList;
     setSegments(segments);
 
-    const ruleList = (await listRules(
-      currentNamespace.key,
-      flag.key
-    )) as IRuleList;
+    const ruleList = (await listRules(namespace.key, flag.key)) as IRuleList;
 
     const rules = ruleList.rules.flatMap((rule: IRule) => {
       const rollouts = rule.distributions.flatMap(
@@ -109,7 +105,7 @@ export default function Evaluation() {
     });
 
     setRules(rules);
-  }, [currentNamespace.key, flag]);
+  }, [namespace.key, flag]);
 
   const incrementRulesVersion = () => {
     setRulesVersion(rulesVersion + 1);
@@ -124,7 +120,7 @@ export default function Evaluation() {
 
   const reorderRules = (rules: IEvaluatable[]) => {
     orderRules(
-      currentNamespace.key,
+      namespace.key,
       flag.key,
       rules.map((rule) => rule.id)
     )
@@ -190,7 +186,7 @@ export default function Evaluation() {
           panelType="Rule"
           setOpen={setShowDeleteRuleModal}
           handleDelete={() =>
-            deleteRule(currentNamespace.key, flag.key, deletingRule?.id ?? '')
+            deleteRule(namespace.key, flag.key, deletingRule?.id ?? '')
           }
           onSuccess={() => {
             incrementRulesVersion();
@@ -284,7 +280,7 @@ export default function Evaluation() {
                       rules.map((rule) => (
                         <SortableRule
                           key={rule.id}
-                          namespace={currentNamespace}
+                          namespace={namespace}
                           rule={rule}
                           onEdit={() => {
                             setEditingRule(rule);
@@ -300,7 +296,7 @@ export default function Evaluation() {
                 </SortableContext>
                 <DragOverlay>
                   {activeRule ? (
-                    <Rule namespace={currentNamespace} rule={activeRule} />
+                    <Rule namespace={namespace} rule={activeRule} />
                   ) : null}
                 </DragOverlay>
               </DndContext>

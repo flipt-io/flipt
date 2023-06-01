@@ -2,7 +2,9 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
+import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
@@ -10,7 +12,6 @@ import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createVariant, updateVariant } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { jsonValidation, keyValidation } from '~/data/validations';
 import { IVariant, IVariantBase } from '~/types/Variant';
@@ -32,14 +33,14 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const handleSubmit = async (values: IVariantBase) => {
     if (isNew) {
-      return createVariant(currentNamespace.key, flagKey, values);
+      return createVariant(namespace.key, flagKey, values);
     }
 
-    return updateVariant(currentNamespace.key, flagKey, variant?.id, values);
+    return updateVariant(namespace.key, flagKey, variant?.id, values);
   };
 
   return (

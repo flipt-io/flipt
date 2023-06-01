@@ -5,11 +5,11 @@ import {
   FlagIcon,
   UsersIcon
 } from '@heroicons/react/24/outline';
+import { useSelector } from 'react-redux';
 import { NavLink, useMatches } from 'react-router-dom';
-import useNamespace from '~/data/hooks/namespace';
-import { INamespace } from '~/types/Namespace';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { classNames } from '~/utils/helpers';
-import NamespaceListbox from './settings/namespaces/NamespaceListbox';
+import NamespaceListbox from './namespaces/NamespaceListbox';
 
 type Icon = (
   props: React.PropsWithoutRef<React.SVGProps<SVGSVGElement>>
@@ -67,7 +67,6 @@ type NavProps = {
   className?: string;
   sidebarOpen?: boolean;
   setSidebarOpen?: (open: boolean) => void;
-  namespaces: INamespace[];
 };
 
 // allows us to add custom properties to the route object
@@ -76,18 +75,19 @@ interface RouteMatches {
 }
 
 export default function Nav(props: NavProps) {
-  const { className, sidebarOpen, setSidebarOpen, namespaces } = props;
+  const { className, sidebarOpen, setSidebarOpen } = props;
 
   let matches = useMatches();
-  const { currentNamespace } = useNamespace();
+  let path = '';
+
+  const namespace = useSelector(selectCurrentNamespace);
+  path = `/namespaces/${namespace?.key}`;
 
   // if the current route is namespaced, we want to allow the namespace nav to be selectable
   let namespaceNavEnabled = matches.some((m) => {
     let r = m.handle as RouteMatches;
     return r?.namespaced;
   });
-
-  const path = `/namespaces/${currentNamespace.key}`;
 
   const navigation = [
     {
@@ -127,10 +127,7 @@ export default function Nav(props: NavProps) {
       aria-label="Sidebar"
     >
       <div className="mb-4 flex flex-shrink-0 flex-col px-2">
-        <NamespaceListbox
-          namespaces={namespaces}
-          disabled={!namespaceNavEnabled}
-        />
+        <NamespaceListbox disabled={!namespaceNavEnabled} />
       </div>
       <div className="flex flex-grow flex-col space-y-1 px-2">
         {navigation.map((item) => (

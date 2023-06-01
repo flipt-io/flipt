@@ -25,7 +25,7 @@ func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
 
 	return client.Container().From("node:18").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
-		WithMountedCache("./ui/node_modules", cache).
-		WithExec([]string{"npm", "ci"}).
+		WithMountedCache("/src/node_modules", cache).
+		WithExec([]string{"npm", "install"}).
 		WithExec([]string{"npm", "run", "build"}), nil
 }

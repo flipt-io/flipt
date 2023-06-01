@@ -1,12 +1,13 @@
 import { Form, Formik } from 'formik';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import { createSegment, updateSegment } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
@@ -40,13 +41,13 @@ export default function SegmentForm(props: SegmentFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const handleSubmit = (values: ISegmentBase) => {
     if (isNew) {
-      return createSegment(currentNamespace.key, values);
+      return createSegment(namespace.key, values);
     }
-    return updateSegment(currentNamespace.key, segment?.key, values);
+    return updateSegment(namespace.key, segment?.key, values);
   };
 
   const initialValues: ISegmentBase = {
@@ -69,9 +70,7 @@ export default function SegmentForm(props: SegmentFormProps) {
             );
 
             if (isNew) {
-              navigate(
-                `/namespaces/${currentNamespace.key}/segments/${values.key}`
-              );
+              navigate(`/namespaces/${namespace.key}/segments/${values.key}`);
               return;
             }
             segmentChanged && segmentChanged();
