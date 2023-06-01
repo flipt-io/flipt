@@ -106,14 +106,16 @@ func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
 	inFile, err := source.Open(indexFile)
 	if err == nil {
 		if derr := yaml.NewDecoder(inFile).Decode(&idx); derr != nil {
-			return nil, derr
+			return nil, fmt.Errorf("yaml: %w", derr)
 		}
 	}
 
-	if err != nil && !errors.Is(err, iofs.ErrNotExist) {
-		return nil, err
-	} else {
-		logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
+	if err != nil {
+		if !errors.Is(err, iofs.ErrNotExist) {
+			return nil, err
+		} else {
+			logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
+		}
 	}
 
 	filenames := make([]string, 0)
