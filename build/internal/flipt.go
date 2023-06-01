@@ -87,7 +87,6 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	includes := []string{
 		"./go.work",
 		"./go.work.sum",
-		"./magefile.go",
 	}
 
 	for _, use := range workFile.Use {
@@ -122,19 +121,6 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithWorkdir("/src")
 
 	golang = golang.WithExec([]string{"go", "mod", "download"})
-	if _, err := golang.ExitCode(ctx); err != nil {
-		return nil, err
-	}
-
-	// install mage and bootstrap project tools
-	golang = golang.
-		WithWorkdir("/deps").
-		WithExec([]string{"git", "clone", "https://github.com/magefile/mage"}).
-		WithWorkdir("/deps/mage").
-		WithExec([]string{"go", "run", "bootstrap.go"}).
-		WithWorkdir("/src")
-
-	golang = golang.WithExec([]string{"mage", "bootstrap"})
 	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
@@ -189,7 +175,7 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).
-		WithFile("/bin/flipt",
+		WithFile("/flipt",
 			flipt.Directory(req.binary()).File("flipt")).
 		WithFile("/etc/flipt/config/default.yml",
 			flipt.Directory("/src/config").File("default.yml")).
@@ -198,6 +184,6 @@ func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container
 		WithExec([]string{"chown", "-R", "flipt:flipt", "/etc/flipt", "/var/opt/flipt", "/var/log/flipt"}).
 		WithUser("flipt").
 		WithDefaultArgs(dagger.ContainerWithDefaultArgsOpts{
-			Args: []string{"/bin/flipt"},
+			Args: []string{"/flipt"},
 		}), nil
 }

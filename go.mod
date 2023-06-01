@@ -25,7 +25,7 @@ require (
 	github.com/hashicorp/cap v0.3.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lib/pq v1.10.9
-	github.com/magefile/mage v1.14.0
+	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -34,8 +34,8 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
-	github.com/stretchr/testify v1.8.2
-	github.com/testcontainers/testcontainers-go v0.20.0
+	github.com/stretchr/testify v1.8.3
+	github.com/testcontainers/testcontainers-go v0.20.1
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xo/dburl v0.14.2
 	go.flipt.io/flipt/errors v1.19.3

@@ -3,12 +3,16 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
 import * as Yup from 'yup';
+import {
+  createNamespaceAsync,
+  updateNamespaceAsync
+} from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { createNamespace, updateNamespace } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { INamespace, INamespaceBase } from '~/types/Namespace';
@@ -22,18 +26,24 @@ type NamespaceFormProps = {
 
 const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
   const { setOpen, namespace, onSuccess } = props;
+
   const isNew = namespace === undefined;
   const title = isNew ? 'New Namespace' : 'Edit Namespace';
   const submitPhrase = isNew ? 'Create' : 'Update';
+
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
+  const dispatch = useAppDispatch();
+
   const handleSubmit = async (values: INamespaceBase) => {
     if (isNew) {
-      return createNamespace(values);
+      return dispatch(createNamespaceAsync(values));
     }
 
-    return updateNamespace(namespace.key, values);
+    return dispatch(
+      updateNamespaceAsync({ key: namespace.key, namespace: values })
+    );
   };
 
   return (
