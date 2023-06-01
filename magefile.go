@@ -251,10 +251,6 @@ func (u UI) Deps() error {
 		return err
 	}
 
-	if len(changed) == 0 {
-		return nil
-	}
-
 	clean := true
 	// Only install if package.json or package-lock.json changed or node_modules is missing
 	if _, ok := changed["ui/package.json"]; ok {
