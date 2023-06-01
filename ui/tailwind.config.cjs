@@ -4,6 +4,7 @@ module.exports = {
   theme: {
     nightwind: {
       colors: {
+        white: 'gray.950',
         black: 'gray.100',
         violet: {
           400: '#8B5CF6',
