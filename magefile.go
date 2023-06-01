@@ -246,8 +246,18 @@ type UI mg.Namespace
 func (u UI) Deps() error {
 	fmt.Println("Installing UI deps...")
 
-	// TODO: only install if package.json has changed
-	cmd := exec.Command("npm", "ci")
+	// check if node_modules exists, if not run npm ci and return
+	if _, err := os.Stat("ui/node_modules"); err != nil && os.IsNotExist(err) {
+		cmd := exec.Command("npm", "ci")
+		cmd.Dir = "ui"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
+	}
+
+	// only run if deps have changed
+	// uses: https://github.com/thdk/package-changed
+	cmd := exec.Command("npx", "--no", "package-changed", "install", "--ci")
 	cmd.Dir = "ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
