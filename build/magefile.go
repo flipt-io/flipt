@@ -105,7 +105,7 @@ func (t Test) Database(ctx context.Context, db string) error {
 	})
 }
 
-// Integration runs the entire integration test suite.
+// Integration runs the entire integration test suite (one of ["*", "list", "<test-case>"] use "list" to see available cases).
 // The suite runs a number of operations via the Go SDK against Flipt
 // in various configurations using both HTTP and GRPC.
 func (t Test) Integration(ctx context.Context, cases string) error {
@@ -135,6 +135,7 @@ func (t Test) UI(ctx context.Context) error {
 	})
 }
 
+// CLI runs a suite of test cases which exercise the `flipt` binary CLI.
 func (t Test) CLI(ctx context.Context) error {
 	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
 		return testing.CLI(ctx, client, flipt)
