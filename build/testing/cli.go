@@ -41,7 +41,7 @@ Run 'flipt --help' for usage.`))); err != nil {
 
 		if _, err := assertExec(ctx, container, flipt("--config", "/foo/bar.yml"),
 			fails,
-			stdout(contains(`loading configuration	{"error": "loading configuration: open /foo/bar.yml: no such file or directory"}`)),
+			stdout(contains(`loading configuration	{"error": "loading configuration: open /foo/bar.yml: no such file or directory", "config_path": "/foo/bar.yml"}`)),
 		); err != nil {
 			return err
 		}
@@ -135,7 +135,7 @@ Available Commands:
   migrate     Run pending database migrations
 
 Flags:
-      --config string   path to config file (default "/etc/flipt/config/default.yml")
+      --config string   path to config file
   -h, --help            help for flipt
   -v, --version         version for flipt
 
