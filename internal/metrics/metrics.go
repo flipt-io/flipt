@@ -3,9 +3,9 @@ package metrics
 import (
 	"log"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/global"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
@@ -20,7 +20,7 @@ func init() {
 	}
 
 	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(exporter))
-	global.SetMeterProvider(provider)
+	otel.SetMeterProvider(provider)
 
 	Meter = provider.Meter("github.com/flipt-io/flipt")
 }

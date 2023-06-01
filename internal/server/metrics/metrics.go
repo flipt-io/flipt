@@ -4,7 +4,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.flipt.io/flipt/internal/metrics"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric/instrument"
+	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -19,7 +19,7 @@ var (
 	ErrorsTotal = metrics.MustInt64().
 		Counter(
 			prometheus.BuildFQName(namespace, serverSubsystem, "errors"),
-			instrument.WithDescription("The total number of server errors"),
+			metric.WithDescription("The total number of server errors"),
 		)
 )
 
@@ -29,28 +29,28 @@ var (
 	EvaluationsTotal = metrics.MustInt64().
 				Counter(
 			prometheus.BuildFQName(namespace, evaluationsSubsystem, "requests"),
-			instrument.WithDescription("The total number of requested evaluations"),
+			metric.WithDescription("The total number of requested evaluations"),
 		)
 
 	// EvaluationErrorsTotal is the total number of evaluation errors
 	EvaluationErrorsTotal = metrics.MustInt64().
 				Counter(
 			prometheus.BuildFQName(namespace, evaluationsSubsystem, "errors"),
-			instrument.WithDescription("The total number of requested evaluations"),
+			metric.WithDescription("The total number of requested evaluations"),
 		)
 
 	// EvaluationResultsTotal is the total number of evaluation results
 	EvaluationResultsTotal = metrics.MustInt64().
 				Counter(
 			prometheus.BuildFQName(namespace, evaluationsSubsystem, "results"),
-			instrument.WithDescription("Count of results including match, flag, segment, reason and value attributes"),
+			metric.WithDescription("Count of results including match, flag, segment, reason and value attributes"),
 		)
 
 	// EvaluationLatency is the latency of individual evaluations
 	EvaluationLatency = metrics.MustFloat64().Histogram(
 		prometheus.BuildFQName(namespace, evaluationsSubsystem, "latency"),
-		instrument.WithDescription("The latency of inidividual evaluations in milliseconds"),
-		instrument.WithUnit("ms"),
+		metric.WithDescription("The latency of inidividual evaluations in milliseconds"),
+		metric.WithUnit("ms"),
 	)
 
 	// Attributes used in evaluation metrics

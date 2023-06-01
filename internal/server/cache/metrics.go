@@ -7,7 +7,6 @@ import (
 	"go.flipt.io/flipt/internal/metrics"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/instrument"
 )
 
 const (
@@ -38,7 +37,7 @@ var (
 
 // Observe adds one to the provided counter and records the
 // cache type attribute supplied by typ.
-func Observe(ctx context.Context, typ string, counter instrument.Int64Counter) {
+func Observe(ctx context.Context, typ string, counter metric.Int64Counter) {
 	counter.Add(ctx, 1, metric.WithAttributeSet(
 		attribute.NewSet(attribute.Key("cache").String(typ)),
 	))
