@@ -1,0 +1,6 @@
+version: 1.0
+inclusions:
+  - "**/*.features.yaml"
+  - "**/*.features.yml"
+exclusions:
+  - "**/staging.features.yml"

@@ -1,13 +1,12 @@
-version: "1.0"
-namespace: default
+namespace: production
 flags:
-  - key: flag1
-    name: flag1
+  - key: prod-flag-1
+    name: Prod Flag 1
     description: description
     enabled: true
     variants:
-      - key: variant1
-        name: variant1
+      - key: prod-variant
+        name: Prod Variant
         attachment:
           pi: 3.141
           happy: true
@@ -24,14 +23,14 @@ flags:
             value: 42.99
       - key: foo
     rules:
-      - segment: segment1
+      - segment: segment2
         rank: 1
         distributions:
-          - variant: variant1
+          - variant: prod-variant
             rollout: 100
 segments:
-  - key: segment1
-    name: segment1
+  - key: segment2
+    name: segment2
     match_type: "ANY_MATCH_TYPE"
     description: description
     constraints:
