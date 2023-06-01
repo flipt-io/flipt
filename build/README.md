@@ -12,7 +12,8 @@ It is currently under active development. We're experimenting with it as our eng
 
 All the commands in this directory can be invoked from the root of the Flipt repo using `mage dagger:run` as a prefixed.
 For example:
-```
+
+```sh
 cd ..
 
 mage dagger:run test:ui
@@ -25,7 +26,7 @@ It comes with a nice TUI.
 
 The `build` namespace within the Mage targets can be used to build Flipt into a target Docker container.
 
-```
+```sh
   build:base           builds Flipts base image via Dagger and buildkit.
   build:flipt          builds a development version of Flipt as a Docker image and loads it into a local Docker instance.
 ```
@@ -41,7 +42,7 @@ Where `<sha>` is the local head SHA for this project.
 
 The test section of the Mage targets handles running Flipts various unit tests with different configurations.
 
-```
+```sh
   test:all             runs Flipt's unit test suite against all the databases Flipt supports.
   test:cli             runs a suite of test cases which exercise the `flipt` binary CLI.
   test:database        runs the unit test suite against the desired database (one of ["sqlite" "postgres" "mysql" "cockroach"]).
