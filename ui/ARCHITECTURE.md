@@ -50,7 +50,7 @@ We use [Jest](https://jestjs.io/) for unit testing and [Playwright](https://play
 
 The end-to-end tests are run in a Docker container via Dagger. To run the tests locally, you will need to have Docker installed. You can run the tests locally by running the following command from the root of the repository:
 
-TODO
+    mage dagger:run test:ui
 
 ### Linting
 
