@@ -42,7 +42,7 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
               className={classNames(
                 disabled
                   ? 'bg-gray-100'
-                  : 'bg-gray-50 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-violet-600',
+                  : 'shadow-sm ring-1 ring-inset ring-gray-300 bg-gray-50 focus:ring-1 focus:ring-violet-600',
                 'relative w-full cursor-default rounded-md px-2 py-2 pl-3 pr-10 text-left text-gray-900 focus:outline-none sm:text-sm sm:leading-6'
               )}
               id={`${id}-select-button`}
