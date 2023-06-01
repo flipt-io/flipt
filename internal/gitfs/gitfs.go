@@ -44,7 +44,7 @@ func WithReference(ref plumbing.ReferenceName) containers.Option[Options] {
 	}
 }
 
-// NewFromRepo is a convience utility which constructs an isntance of FS
+// NewFromRepo is a convenience utility which constructs an instance of FS
 // from the provided git repository.
 // By default the returned FS serves the content from the root tree
 // for the commit at reference HEAD.
@@ -60,7 +60,7 @@ func NewFromRepo(repo *git.Repository, opts ...containers.Option[Options]) (FS, 
 	return NewFromRepoHash(repo, ref.Hash())
 }
 
-// NewFromRepoHash is a convience utility which constructs an isntance of FS
+// NewFromRepoHash is a convenience utility which constructs an instance of FS
 // from the provided git repository and hash.
 func NewFromRepoHash(repo *git.Repository, hash plumbing.Hash) (FS, error) {
 	commit, err := repo.CommitObject(hash)
