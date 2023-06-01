@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
@@ -15,7 +16,8 @@ import (
 
 type FliptRequest struct {
 	WorkDir     string
-	ui          *dagger.Directory
+	UI          *dagger.Container
+	Platform    dagger.Platform
 	BuildTarget specs.Platform
 	Target      specs.Platform
 }
@@ -38,11 +40,12 @@ func WithTarget(platform dagger.Platform) Option {
 	}
 }
 
-func NewFliptRequest(ui *dagger.Directory, build dagger.Platform, opts ...Option) FliptRequest {
+func NewFliptRequest(ui *dagger.Container, build dagger.Platform, opts ...Option) FliptRequest {
 	platform := platforms.MustParse(string(build))
 	req := FliptRequest{
 		WorkDir:     ".",
-		ui:          ui,
+		UI:          ui,
+		Platform:    build,
 		BuildTarget: platform,
 		// default target platform == build platform
 		Target: platform,
@@ -132,6 +135,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 			// However, it does contain a single go package,
 			// which is used to embed the built frontend
 			// distribution directory.
+			"./.build/",
 			"./ui/",
 			"./bin/",
 			"./.git/",
@@ -150,8 +154,9 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		},
 	})
 
+	// TODO(georgemac): wire in commit and version ldflags
 	var (
-		ldflags    = "-s -w -linkmode external -extldflags -static"
+		ldflags    = fmt.Sprintf("-s -w -linkmode external -extldflags -static -X main.date=%s", time.Now().UTC().Format(time.RFC3339))
 		goBuildCmd = fmt.Sprintf(
 			"go build -trimpath -tags assets,netgo -o %s -ldflags='%s' ./...",
 			req.binary(),
@@ -162,7 +167,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	// build the Flipt target binary
 	return golang.
 		WithMountedDirectory("./ui", embed.Directory("./ui")).
-		WithMountedDirectory("./ui/dist", req.ui).
+		WithMountedDirectory("./ui/dist", req.UI.Directory("./dist")).
 		WithExec([]string{"mkdir", "-p", req.binary()}).
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil
 }
