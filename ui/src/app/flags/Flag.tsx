@@ -1,14 +1,15 @@
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import TabBar from '~/components/TabBar';
 import { deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useTimezone } from '~/data/hooks/timezone';
 import { IFlag } from '~/types/Flag';
 
@@ -22,7 +23,7 @@ export default function Flag() {
   const { setError, clearError } = useError();
   const navigate = useNavigate();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] =
     useState<boolean>(false);
@@ -45,7 +46,7 @@ export default function Flag() {
   useEffect(() => {
     if (!flagKey) return;
 
-    getFlag(currentNamespace.key, flagKey)
+    getFlag(namespace.key, flagKey)
       .then((flag: IFlag) => {
         setFlag(flag);
         clearError();
@@ -53,7 +54,7 @@ export default function Flag() {
       .catch((err) => {
         setError(err);
       });
-  }, [flagVersion, flagKey, currentNamespace.key, clearError, setError]);
+  }, [flagVersion, flagKey, namespace.key, clearError, setError]);
 
   if (!flag) return <Loading />;
 
@@ -71,9 +72,9 @@ export default function Flag() {
           }
           panelType="Flag"
           setOpen={setShowDeleteFlagModal}
-          handleDelete={() => deleteFlag(currentNamespace.key, flag.key)}
+          handleDelete={() => deleteFlag(namespace.key, flag.key)}
           onSuccess={() => {
-            navigate(`/namespaces/${currentNamespace.key}/flags`);
+            navigate(`/namespaces/${namespace.key}/flags`);
           }}
         />
       </Modal>

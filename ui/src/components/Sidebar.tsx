@@ -3,17 +3,15 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import logoLight from '~/assets/logo-light.png';
-import { INamespace } from '~/types/Namespace';
 import Nav from './Nav';
 
 type SidebarProps = {
-  namespaces: INamespace[];
   sidebarOpen: boolean;
   setSidebarOpen: (sidebarOpen: boolean) => void;
 };
 
 export default function Sidebar(props: SidebarProps) {
-  const { namespaces, sidebarOpen, setSidebarOpen } = props;
+  const { sidebarOpen, setSidebarOpen } = props;
 
   return (
     <>
@@ -82,7 +80,6 @@ export default function Sidebar(props: SidebarProps) {
                   <Nav
                     sidebarOpen={sidebarOpen}
                     setSidebarOpen={setSidebarOpen}
-                    namespaces={namespaces}
                   />
                 </div>
               </Dialog.Panel>
@@ -109,7 +106,7 @@ export default function Sidebar(props: SidebarProps) {
             </Link>
           </div>
           <div className="flex flex-1 flex-col overflow-y-auto">
-            <Nav className="py-4" namespaces={namespaces} />
+            <Nav className="py-4" />
           </div>
         </div>
       </div>

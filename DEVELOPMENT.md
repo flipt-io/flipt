@@ -31,9 +31,15 @@ The `bootstrap` task will install all of the necessary tools used for developmen
 
 ## Configuration
 
-Configuration for running when developing Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
+A sample configuration for running and developing against Flipt can be found at `./config/local.yml`. To run Flipt with this configuration, run:
 
-`./bin/flipt --config ./config/local.yml`
+`./bin/flipt [--config ./config/local.yml`]
+
+To prevent providing the config via config flag every time, you have the option of writing configuration at the location: `{{ USER_CONFIG_DIR }}/flipt/config.yml`. The flipt binary will check in that location if a `--config` override is not provided, so you can invoke the binary as such in this scenario:
+
+`./bin/flipt`
+
+The `USER_CONFIG_DIR` is different based on your architecture, and specified [here](https://pkg.go.dev/os#UserConfigDir).
 
 ## Changes
 
