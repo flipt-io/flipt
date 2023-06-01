@@ -20,6 +20,7 @@ paths = [
     '''node_modules''',
     '''vendor''',
     '''script/''',
+    '''flipt.yml''',
     '''flipt.yaml''',
 ]
 
