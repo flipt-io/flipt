@@ -1,11 +1,11 @@
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
+import nightwind from 'nightwind/helper';
 import { useEffect, useState } from 'react';
 import { getInfo } from '~/data/api';
 import { useSession } from '~/data/hooks/session';
 import { Info } from '~/types/Meta';
 import Notifications from './header/Notifications';
 import UserProfile from './header/UserProfile';
-
 type HeaderProps = {
   setSidebarOpen: (sidebarOpen: boolean) => void;
 };
@@ -36,9 +36,17 @@ export default function Header(props: HeaderProps) {
         <span className="sr-only">Open sidebar</span>
         <Bars3BottomLeftIcon className="h-6 w-6" aria-hidden="true" />
       </button>
+
       <div className="flex flex-1 justify-between px-4">
         <div className="flex flex-1" />
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
+          <button
+            type="button"
+            className="without-ring rounded-lg border px-4 text-white"
+            onClick={() => nightwind.toggle()}
+          >
+            Colorscheme
+          </button>
           {/* notifications */}
           {info && info.updateAvailable && <Notifications info={info} />}
 

@@ -1,4 +1,6 @@
 import loadable from '@loadable/component';
+import nightwind from 'nightwind/helper';
+import { Helmet } from 'react-helmet';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import { SWRConfig } from 'swr';
 import ErrorLayout from './app/ErrorLayout';
@@ -12,7 +14,6 @@ import NewSegment from './app/segments/NewSegment';
 import Segment from './app/segments/Segment';
 import SessionProvider from './components/SessionProvider';
 import { request } from './data/api';
-
 const Flags = loadable(() => import('./app/flags/Flags'));
 const Segments = loadable(() => import('./app/segments/Segments'));
 const Console = loadable(() => import('./app/console/Console'));
@@ -129,14 +130,23 @@ const fetcher = async (uri: String) => {
 
 export default function App() {
   return (
-    <SWRConfig
-      value={{
-        fetcher
-      }}
-    >
-      <SessionProvider>
-        <RouterProvider router={router} />
-      </SessionProvider>
-    </SWRConfig>
+    <>
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>Flipt</title>
+        <link rel="icon" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script dangerouslySetInnerHTML={{ __html: nightwind.init() }} />
+      </Helmet>
+      <SWRConfig
+        value={{
+          fetcher
+        }}
+      >
+        <SessionProvider>
+          <RouterProvider router={router} />
+        </SessionProvider>
+      </SWRConfig>
+    </>
   );
 }
