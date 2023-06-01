@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -218,7 +219,9 @@ func testdataRepo(t *testing.T) *git.Repository {
 	err = tree.AddWithOptions(&git.AddOptions{All: true})
 	require.NoError(t, err)
 
-	_, err = tree.Commit("feat: add entire contents", &git.CommitOptions{})
+	_, err = tree.Commit("feat: add entire contents", &git.CommitOptions{
+		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
+	})
 	require.NoError(t, err)
 
 	return repo
