@@ -104,7 +104,7 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col justify-center sm:px-6 lg:px-8">
+      <div className="flex min-h-screen flex-col justify-center bg-white sm:px-6 lg:px-8">
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -166,7 +166,7 @@ export default function Login() {
                           href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
                           className="font-semibold text-violet-600 hover:text-violet-500"
                         >
-                          Configuring authentication
+                          Configuring Authentication
                           <span aria-hidden="true"> &rarr;</span>
                         </a>
                       </div>
