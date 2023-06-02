@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	iofs "io/fs"
 	"path"
 	"sort"
@@ -60,6 +61,29 @@ func newNamespace(key string) *namespace {
 		rules:     map[string]*flipt.Rule{},
 		evalRules: map[string][]*storage.EvaluationRule{},
 	}
+}
+
+// snapshotFromFS is a convenience function for building a snapshot
+// directly from an implementation of fs.FS using the list state files
+// function to source the relevant Flipt configuration files.
+func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
+	files, err := listStateFiles(logger, fs)
+	if err != nil {
+		return nil, err
+	}
+
+	var rds []io.Reader
+	for _, file := range files {
+		fi, err := fs.Open(file)
+		if err != nil {
+			return nil, err
+		}
+
+		defer fi.Close()
+		rds = append(rds, fi)
+	}
+
+	return snapshotFromReaders(rds...)
 }
 
 // snapshotFromReaders constructs a storeSnapshot from the provided
