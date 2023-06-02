@@ -61,6 +61,12 @@ func NewFromRepo(repo *git.Repository, opts ...containers.Option[Options]) (FS, 
 }
 
 // NewFromRepoHash is a convenience utility which constructs an instance of FS
+// from the provided git repository and hash string.
+func NewFromRepoHashString(repo *git.Repository, hash string) (FS, error) {
+	return NewFromRepoHash(repo, plumbing.NewHash(hash))
+}
+
+// NewFromRepoHash is a convenience utility which constructs an instance of FS
 // from the provided git repository and hash.
 func NewFromRepoHash(repo *git.Repository, hash plumbing.Hash) (FS, error) {
 	commit, err := repo.CommitObject(hash)
