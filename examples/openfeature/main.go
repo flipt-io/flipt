@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -14,11 +15,8 @@ import (
 	"github.com/gorilla/mux"
 	otelHook "github.com/open-feature/go-sdk-contrib/hooks/open-telemetry/pkg"
 	"github.com/open-feature/go-sdk/pkg/openfeature"
-	fliptgrpc "go.flipt.io/flipt-grpc"
 	"go.flipt.io/flipt-openfeature-provider/pkg/provider/flipt"
-	servicegrpc "go.flipt.io/flipt-openfeature-provider/pkg/service/flipt/grpc"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -26,8 +24,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type response struct {
@@ -97,45 +93,33 @@ func main() {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
-	// set the opentelemetry hook
+	// add the opentelemetry hook
 	openfeature.AddHooks(otelHook.NewHook())
 
-	// need to use our own grpc dialer to add the opentelemetry grpc client interceptor
-	conn, err := grpc.Dial(
-		fliptServer,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
-		grpc.WithBlock(),
-	)
-	if err != nil {
-		log.Fatalf("dialing %v", err)
-	}
-
-	svc := servicegrpc.New(servicegrpc.WithGRPCClient(fliptgrpc.NewFliptClient(conn)))
-
-	// setup Flipt OpenFeature provider with GRPC client
-	provider := flipt.NewProvider(
-		flipt.WithService(svc),
-		flipt.WithServiceType(flipt.ServiceTypeGRPC),
-	)
-
+	// setup Flipt OpenFeature provider
+	provider := flipt.NewProvider(flipt.WithAddress(fliptServer))
 	openfeature.SetProvider(provider)
-
 	client := openfeature.NewClient(service + "-client")
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/api/greeting", func(w http.ResponseWriter, r *http.Request) {
+		// otelHook requires the context to have a span so it can add an event
+		newCtx, span := tp.Tracer("").Start(r.Context(), fmt.Sprintf("%s handler", r.URL.Path))
+		defer span.End()
+
 		requestID := r.Header.Get("X-Request-ID")
 		if requestID == "" {
 			requestID = uuid.Must(uuid.NewV4()).String()
 		}
+		span.SetAttributes(attribute.String("request_id", requestID))
 
 		key := r.URL.Query().Get("user")
 		if key == "" {
 			key = uuid.Must(uuid.NewV4()).String()
 		}
+		span.SetAttributes(attribute.String("user_id", key))
 
-		value, err := client.StringValue(r.Context(), "language", "en", openfeature.NewEvaluationContext(
+		value, err := client.StringValue(newCtx, "language", "en", openfeature.NewEvaluationContext(
 			key,
 			map[string]interface{}{},
 		))

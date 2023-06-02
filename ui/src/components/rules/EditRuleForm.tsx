@@ -3,13 +3,14 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { cloneDeep } from 'lodash';
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { updateDistribution } from '~/data/api';
 import { useError } from '~/data/hooks/error';
-import useNamespace from '~/data/hooks/namespace';
 import { useSuccess } from '~/data/hooks/success';
 import { IEvaluatable, IRollout } from '~/types/Evaluatable';
 import { ISegment } from '~/types/Segment';
@@ -52,7 +53,7 @@ export default function EditRuleForm(props: RuleFormProps) {
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
-  const { currentNamespace } = useNamespace();
+  const namespace = useSelector(selectCurrentNamespace);
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
@@ -82,7 +83,7 @@ export default function EditRuleForm(props: RuleFormProps) {
           found.distribution.rollout !== rollout.distribution.rollout
         ) {
           return updateDistribution(
-            currentNamespace.key,
+            namespace.key,
             rule.flag.key,
             rule.id,
             rollout.distribution.id,

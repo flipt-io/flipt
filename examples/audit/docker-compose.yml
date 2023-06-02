@@ -12,7 +12,7 @@ services:
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_AUDIT_SINKS_LOG_ENABLED=true
       - FLIPT_AUDIT_SINKS_LOG_FILE=/var/log/flipt/audit.log
-      - FLIPT_META_TELMETRY_ENABLED=false
+      - FLIPT_META_TELEMETRY_ENABLED=false
     networks:
       - flipt_network
 

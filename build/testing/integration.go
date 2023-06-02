@@ -21,6 +21,12 @@ var (
 	protocolPorts = map[string]string{"http": "8080", "grpc": "9000"}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
 	sema          = make(chan struct{}, 6)
+
+	// AllCases are the top-level filterable integration test cases.
+	AllCases = map[string]testCaseFn{
+		"api":           api,
+		"import/export": importExport,
+	}
 )
 
 type testConfig struct {
@@ -30,9 +36,33 @@ type testConfig struct {
 	token     string
 }
 
-func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
+type testCaseFn func(_ context.Context, base, flipt *dagger.Container, conf testConfig) func() error
+
+func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
+	if len(caseNames) == 0 {
+		return AllCases, nil
+	}
+
+	cases := map[string]testCaseFn{}
+	for _, filter := range caseNames {
+		if _, ok := AllCases[filter]; !ok {
+			return nil, fmt.Errorf("unexpected test case filter: %q", filter)
+		}
+
+		cases[filter] = AllCases[filter]
+	}
+
+	return cases, nil
+}
+
+func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
+	cases, err := filterCases(caseNames...)
+	if err != nil {
+		return err
+	}
+
 	logs := client.CacheVolume(fmt.Sprintf("logs-%s", uuid.New()))
-	_, err := flipt.WithUser("root").
+	_, err = flipt.WithUser("root").
 		WithMountedCache("/logs", logs).
 		WithExec([]string{"chown", "flipt:flipt", "/logs"}).
 		ExitCode(ctx)
@@ -40,9 +70,9 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 		return err
 	}
 
-	var cases []testConfig
+	var configs []testConfig
 
-	for _, namespace := range []string{"", fmt.Sprintf("%x", rand.Int())} {
+	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
 			for _, token := range []string{"", "some-token"} {
 				name := fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace)
@@ -50,7 +80,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					name = fmt.Sprintf("%s with token %s", name, token)
 				}
 
-				cases = append(cases,
+				configs = append(configs,
 					testConfig{
 						name:      name,
 						namespace: namespace,
@@ -66,21 +96,12 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	var g errgroup.Group
 
-	for _, test := range []struct {
-		name string
-		fn   func(_ context.Context, base, flipt *dagger.Container, conf testConfig) func() error
-	}{
-		{
-			name: "api",
-			fn:   api,
-		},
-		{
-			name: "import/export",
-			fn:   importExport,
-		},
-	} {
-		for _, config := range cases {
-			config := config
+	for caseName, fn := range cases {
+		for _, config := range configs {
+			var (
+				fn     = fn
+				config = config
+			)
 
 			flipt := flipt
 			if config.token != "" {
@@ -90,14 +111,14 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", config.token)
 			}
 
-			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", test.name, config.name)))
+			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
 			flipt = flipt.
 				WithEnvVariable("CI", os.Getenv("CI")).
 				WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
 				WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
 				WithMountedCache("/var/opt/flipt/logs", logs)
 
-			g.Go(take(test.fn(ctx, base, flipt, config)))
+			g.Go(take(fn(ctx, base, flipt, config)))
 		}
 	}
 
@@ -132,6 +153,11 @@ func api(ctx context.Context, base, flipt *dagger.Container, conf testConfig) fu
 			WithExec(nil), conf)
 }
 
+const (
+	testdataDir     = "build/testing/integration/readonly/testdata"
+	testdataPathFmt = testdataDir + "/%s.yaml"
+)
+
 func importExport(ctx context.Context, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
@@ -140,9 +166,13 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 			flags = append(flags, "--token", conf.token)
 		}
 
+		ns := "default"
 		if conf.namespace != "" {
+			ns = conf.namespace
 			flags = append(flags, "--namespace", conf.namespace)
 		}
+
+		seed := base.File(fmt.Sprintf(testdataPathFmt, ns))
 
 		var (
 			// create unique instance for test case
@@ -150,8 +180,7 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 					WithEnvVariable("UNIQUE", uuid.New().String()).
 					WithExec(nil)
 
-			importCmd = append([]string{"/bin/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
-			seed      = base.File("build/testing/integration/readonly/testdata/seed.yaml")
+			importCmd = append([]string{"/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
 		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
@@ -182,16 +211,15 @@ func importExport(ctx context.Context, base, flipt *dagger.Container, conf testC
 		namespace := conf.namespace
 		if namespace == "" {
 			namespace = "default"
+			// replace namespace in expected yaml
+			expected = strings.ReplaceAll(expected, "version: \"1.0\"\n", fmt.Sprintf("version: \"1.0\"\nnamespace: %s\n", namespace))
 		}
-
-		// replace namespace in expected yaml
-		expected = strings.ReplaceAll(expected, "version: \"1.0\"\n", fmt.Sprintf("version: \"1.0\"\nnamespace: %s\n", namespace))
 
 		// use target flipt binary to invoke import
 		generated, err := flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithServiceBinding("flipt", fliptToTest).
-			WithExec(append([]string{"/bin/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
+			WithExec(append([]string{"/flipt", "export", "-o", "/tmp/output.yaml"}, flags...)).
 			File("/tmp/output.yaml").
 			Contents(ctx)
 		if err != nil {

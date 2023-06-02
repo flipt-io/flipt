@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -33,18 +34,7 @@ var (
 	Default = Build
 )
 
-func Bench() error {
-	fmt.Println("Running benchmarks...")
-
-	if err := sh.RunV("go", "test", "-run", "XXX", "-bench", ".", "-benchmem", "-short", "./..."); err != nil {
-		return err
-	}
-
-	fmt.Println("Done.")
-	return nil
-}
-
-// Bootstrap installs tools required for development
+// Installs tools required for development
 func Bootstrap() error {
 	fmt.Println("Bootstrapping tools...")
 	if err := os.MkdirAll("_tools", 0755); err != nil {
@@ -72,10 +62,9 @@ func Bootstrap() error {
 	return cmd.Run()
 }
 
-// Build builds the project similar to a release build
+// Builds the project similar to a release build
 func Build() error {
-	mg.Deps(Clean)
-	mg.Deps(UI)
+	mg.Deps(Prep)
 	fmt.Println("Building...")
 
 	if err := build(buildModeProd); err != nil {
@@ -84,24 +73,33 @@ func Build() error {
 
 	fmt.Println("Done.")
 	fmt.Printf("\nRun the following to start Flipt:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
 	return nil
 }
 
-// Dev builds the project for development, without bundling assets
-func Dev() error {
-	mg.Deps(Clean)
-	fmt.Println("Building...")
+// Cleans up built files
+func Clean() error {
+	fmt.Println("Cleaning...")
 
-	if err := build(buildModeDev); err != nil {
-		return err
+	if err := sh.RunV("go", "mod", "tidy"); err != nil {
+		return fmt.Errorf("tidying go.mod: %w", err)
 	}
 
-	fmt.Println("Done.")
-	fmt.Printf("\nRun the following to start Flipt server:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt --config config/local.yml`))
-	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
+	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
+	for _, dir := range clean {
+		if err := os.RemoveAll(dir); err != nil {
+			return fmt.Errorf("removing dir %q: %w", dir, err)
+		}
+	}
+
+	return nil
+}
+
+// Prepares the project for building
+func Prep() error {
+	fmt.Println("Preparing...")
+	mg.Deps(Clean)
+	mg.Deps(UI.Build)
 	return nil
 }
 
@@ -113,29 +111,6 @@ const (
 	// BuildModeProd builds the project similar to a release build
 	buildModeProd
 )
-
-// UI installs UI dependencies and generates assets
-func UI() error {
-	fmt.Println("Installing UI deps...")
-
-	// TODO: only install if package.json has changed
-	cmd := exec.Command("npm", "ci")
-	cmd.Dir = "ui"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("installing UI deps: %w", err)
-	}
-
-	fmt.Println("Generating assets...")
-
-	cmd = exec.Command("npm", "run", "build")
-	cmd.Dir = "ui"
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
-}
 
 func build(mode buildMode) error {
 	buildDate := time.Now().UTC().Format(time.RFC3339)
@@ -157,43 +132,63 @@ func build(mode buildMode) error {
 	return sh.RunV("go", buildArgs...)
 }
 
-// Clean cleans up built files
-func Clean() error {
-	fmt.Println("Cleaning...")
+type Go mg.Namespace
 
-	if err := sh.RunV("go", "mod", "tidy"); err != nil {
-		return fmt.Errorf("tidying go.mod: %w", err)
+// Keeping these aliases for backwards compatibility for now
+var Aliases = map[string]interface{}{
+	"dev":   Go.Run,
+	"test":  Go.Test,
+	"bench": Go.Bench,
+	"lint":  Go.Lint,
+	"fmt":   Go.Fmt,
+	"proto": Go.Proto,
+}
+
+// Runs Go benchmarking tests
+func (g Go) Bench() error {
+	fmt.Println("Running benchmarks...")
+
+	if err := sh.RunV("go", "test", "-run", "XXX", "-bench", ".", "-benchmem", "-short", "./..."); err != nil {
+		return err
 	}
 
-	clean := []string{"dist/*", "pkg/*", "bin/*", "ui/dist"}
-	for _, dir := range clean {
-		if err := os.RemoveAll(dir); err != nil {
-			return fmt.Errorf("removing dir %q: %w", dir, err)
-		}
-	}
-
+	fmt.Println("Done.")
 	return nil
 }
 
-// Prep prepares the project for building
-func Prep() error {
-	fmt.Println("Preparing...")
+// Runs the Go server in development mode using the local config, without bundling assets
+func (g Go) Run() error {
+	return sh.RunV("go", "run", "./cmd/flipt/...", "--config", "config/local.yml")
+}
+
+// Builds the Go server for development, without bundling assets
+func (g Go) Build() error {
 	mg.Deps(Clean)
-	mg.Deps(UI)
+	fmt.Println("Building...")
+
+	if err := build(buildModeDev); err != nil {
+		return err
+	}
+
+	fmt.Println("Done.")
+	fmt.Printf("\nRun the following to start Flipt server:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
+	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
+	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
 	return nil
 }
 
-// Cover runs the tests and generates a coverage report
-func Cover() error {
-	mg.Deps(Test)
+// Runs the Go tests and generates a coverage report
+func (g Go) Cover() error {
+	mg.Deps(Go.Test)
 	fmt.Println("Running coverage...")
 	return sh.RunV("go", "tool", "cover", "-html=coverage.txt")
 }
 
 var ignoreFmt = []string{"rpc/", "sdk/"}
 
-// Fmt formats code
-func Fmt() error {
+// Formats Go code
+func (g Go) Fmt() error {
 	fmt.Println("Formatting...")
 	files, err := findFilesRecursive(func(path string, _ os.FileInfo) bool {
 		// only go files, ignoring generated files
@@ -212,8 +207,8 @@ func Fmt() error {
 	return sh.RunV("goimports", args...)
 }
 
-// Lint runs the linters
-func Lint() error {
+// Runs the Go linters
+func (g Go) Lint() error {
 	fmt.Println("Linting...")
 
 	if err := sh.RunV("golangci-lint", "run"); err != nil {
@@ -223,15 +218,15 @@ func Lint() error {
 	return sh.RunV("buf", "lint")
 }
 
-// Proto generates protobuf files and gRPC stubs
-func Proto() error {
+// Generates the Go protobuf files and gRPC stubs
+func (g Go) Proto() error {
 	mg.Deps(Bootstrap)
 	fmt.Println("Generating proto files...")
 	return sh.RunV("buf", "generate")
 }
 
-// Test runs the tests
-func Test() error {
+// Runs the Go unit tests
+func (g Go) Test() error {
 	fmt.Println("Testing...")
 
 	env := map[string]string{
@@ -243,6 +238,67 @@ func Test() error {
 	}
 
 	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
+}
+
+type UI mg.Namespace
+
+// Installs UI dependencies
+func (u UI) Deps() error {
+	fmt.Println("Installing UI deps...")
+
+	// check if node_modules exists, if not run npm ci and return
+	if _, err := os.Stat("ui/node_modules"); err != nil && os.IsNotExist(err) {
+		cmd := exec.Command("npm", "ci")
+		cmd.Dir = "ui"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
+	}
+
+	// only run if deps have changed
+	// uses: https://github.com/thdk/package-changed
+	cmd := exec.Command("npx", "--no", "package-changed", "install", "--ci")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// Runs the UI in development mode
+func (u UI) Run() error {
+	mg.Deps(u.Deps)
+
+	fmt.Println("Starting UI...")
+
+	cmd := exec.Command("npm", "run", "dev")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// Builds all UI assets for release distribution
+func (u UI) Build() error {
+	mg.Deps(u.Deps)
+
+	fmt.Println("Generating assets...")
+
+	cmd := exec.Command("npm", "run", "build")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+type Dagger mg.Namespace
+
+func (d Dagger) List() error {
+	return sh.RunV("mage", "-d", "build")
+}
+
+func (d Dagger) Run(command string) error {
+	return sh.RunV("dagger", append([]string{"run", "mage", "-d", "build"}, strings.Split(command, " ")...)...)
 }
 
 // findFilesRecursive recursively traverses from the CWD and invokes the given

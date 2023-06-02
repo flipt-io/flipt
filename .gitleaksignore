@@ -1,2 +1,6 @@
 2f982591024723618a2de6e204a1a75504bcbfeb:internal/config/config_test.go:generic-api-key:446
 2f982591024723618a2de6e204a1a75504bcbfeb:internal/config/testdata/advanced.yml:generic-api-key:46
+7889c53415912316b91d1f06f6b977a7107fbeb9:build/testing/cli.go:generic-api-key:145
+7889c53415912316b91d1f06f6b977a7107fbeb9:build/testing/cli.go:generic-api-key:150
+7889c53415912316b91d1f06f6b977a7107fbeb9:build/testing/cli.go:generic-api-key:152
+7889c53415912316b91d1f06f6b977a7107fbeb9:build/testing/cli.go:generic-api-key:160

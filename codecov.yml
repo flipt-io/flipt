@@ -7,3 +7,4 @@ ignore:
   - "ui"
   - "_tools"
   - "hack"
+  - "build"
