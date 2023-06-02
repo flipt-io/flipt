@@ -48,8 +48,8 @@ message EvaluationResponse {
 message BooleanEvaluationResponse {
   bool value = 1;
   oneof rule {
-    RolloutRuleSegment segment = 10;
-    RolloutRulePercentage percentage = 11;
+    RolloutSegment segment = 10;
+    RolloutPercentage percentage = 11;
   }
   EvaluationReason reason = 3;
   double request_duration_millis = 6;

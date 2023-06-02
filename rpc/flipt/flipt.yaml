@@ -93,21 +93,21 @@ http:
 
   ## rollout rules
   #
-  - selector: flipt.Flipt.GetRolloutRule
+  - selector: flipt.Flipt.GetRollout
     get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
 
-  - selector: flipt.Flipt.ListRolloutRules
+  - selector: flipt.Flipt.ListRollouts
     get: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts
 
-  - selector: flipt.Flipt.CreateRolloutRule
+  - selector: flipt.Flipt.CreateRollout
     post: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts
     body: "*"
   
-  - selector: flipt.Flipt.UpdateRolloutRule
+  - selector: flipt.Flipt.UpdateRollout
     put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
     body: "*"
 
-  - selector: flipt.Flipt.DeleteRolloutRule
+  - selector: flipt.Flipt.DeleteRollout
     delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
 
   # variants

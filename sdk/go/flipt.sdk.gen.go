@@ -185,44 +185,44 @@ func (x *Flipt) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest) erro
 	return err
 }
 
-func (x *Flipt) GetRolloutRule(ctx context.Context, v *flipt.GetRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (x *Flipt) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest) (*flipt.Rollout, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.GetRolloutRule(ctx, v)
+	return x.transport.GetRollout(ctx, v)
 }
 
-func (x *Flipt) ListRolloutRules(ctx context.Context, v *flipt.ListRolloutRuleRequest) (*flipt.RolloutRuleList, error) {
+func (x *Flipt) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.ListRolloutRules(ctx, v)
+	return x.transport.ListRollouts(ctx, v)
 }
 
-func (x *Flipt) CreateRolloutRule(ctx context.Context, v *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (x *Flipt) CreateRollout(ctx context.Context, v *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.CreateRolloutRule(ctx, v)
+	return x.transport.CreateRollout(ctx, v)
 }
 
-func (x *Flipt) UpdateRolloutRule(ctx context.Context, v *flipt.UpdateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (x *Flipt) UpdateRollout(ctx context.Context, v *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.UpdateRolloutRule(ctx, v)
+	return x.transport.UpdateRollout(ctx, v)
 }
 
-func (x *Flipt) DeleteRolloutRule(ctx context.Context, v *flipt.DeleteRolloutRuleRequest) error {
+func (x *Flipt) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest) error {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return err
 	}
-	_, err = x.transport.DeleteRolloutRule(ctx, v)
+	_, err = x.transport.DeleteRollout(ctx, v)
 	return err
 }
 

@@ -301,8 +301,9 @@ message Rollout {
   string flag_key = 3;
   RolloutType type = 4;
   int32 rank = 5;
-  google.protobuf.Timestamp created_at = 6;
-  google.protobuf.Timestamp updated_at = 7;
+  string description = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
   oneof rule {
     RolloutSegment segment = 20;
     RolloutPercentage percentage = 21;
@@ -343,6 +344,7 @@ message CreateRolloutRequest {
   string flag_key = 2;
   int32 rank = 3;
   RolloutType type = 4;
+  string description = 5;
   oneof rule {
     RolloutSegment segment = 20;
     RolloutPercentage percentage = 21;
@@ -354,6 +356,7 @@ message UpdateRolloutRequest {
   string namespace_key = 2;
   string flag_key = 3;
   RolloutType type = 4;
+  string description = 5;
   oneof rule {
     RolloutSegment segment = 20;
     RolloutPercentage percentage = 21;

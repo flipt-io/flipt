@@ -41,11 +41,11 @@ const (
 	Flipt_UpdateRule_FullMethodName         = "/flipt.Flipt/UpdateRule"
 	Flipt_OrderRules_FullMethodName         = "/flipt.Flipt/OrderRules"
 	Flipt_DeleteRule_FullMethodName         = "/flipt.Flipt/DeleteRule"
-	Flipt_GetRolloutRule_FullMethodName     = "/flipt.Flipt/GetRolloutRule"
-	Flipt_ListRolloutRules_FullMethodName   = "/flipt.Flipt/ListRolloutRules"
-	Flipt_CreateRolloutRule_FullMethodName  = "/flipt.Flipt/CreateRolloutRule"
-	Flipt_UpdateRolloutRule_FullMethodName  = "/flipt.Flipt/UpdateRolloutRule"
-	Flipt_DeleteRolloutRule_FullMethodName  = "/flipt.Flipt/DeleteRolloutRule"
+	Flipt_GetRollout_FullMethodName         = "/flipt.Flipt/GetRollout"
+	Flipt_ListRollouts_FullMethodName       = "/flipt.Flipt/ListRollouts"
+	Flipt_CreateRollout_FullMethodName      = "/flipt.Flipt/CreateRollout"
+	Flipt_UpdateRollout_FullMethodName      = "/flipt.Flipt/UpdateRollout"
+	Flipt_DeleteRollout_FullMethodName      = "/flipt.Flipt/DeleteRollout"
 	Flipt_CreateDistribution_FullMethodName = "/flipt.Flipt/CreateDistribution"
 	Flipt_UpdateDistribution_FullMethodName = "/flipt.Flipt/UpdateDistribution"
 	Flipt_DeleteDistribution_FullMethodName = "/flipt.Flipt/DeleteDistribution"
@@ -84,11 +84,11 @@ type FliptClient interface {
 	UpdateRule(ctx context.Context, in *UpdateRuleRequest, opts ...grpc.CallOption) (*Rule, error)
 	OrderRules(ctx context.Context, in *OrderRulesRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteRule(ctx context.Context, in *DeleteRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetRolloutRule(ctx context.Context, in *GetRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRule, error)
-	ListRolloutRules(ctx context.Context, in *ListRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRuleList, error)
-	CreateRolloutRule(ctx context.Context, in *CreateRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRule, error)
-	UpdateRolloutRule(ctx context.Context, in *UpdateRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRule, error)
-	DeleteRolloutRule(ctx context.Context, in *DeleteRolloutRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetRollout(ctx context.Context, in *GetRolloutRequest, opts ...grpc.CallOption) (*Rollout, error)
+	ListRollouts(ctx context.Context, in *ListRolloutRequest, opts ...grpc.CallOption) (*RolloutList, error)
+	CreateRollout(ctx context.Context, in *CreateRolloutRequest, opts ...grpc.CallOption) (*Rollout, error)
+	UpdateRollout(ctx context.Context, in *UpdateRolloutRequest, opts ...grpc.CallOption) (*Rollout, error)
+	DeleteRollout(ctx context.Context, in *DeleteRolloutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	UpdateDistribution(ctx context.Context, in *UpdateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -299,45 +299,45 @@ func (c *fliptClient) DeleteRule(ctx context.Context, in *DeleteRuleRequest, opt
 	return out, nil
 }
 
-func (c *fliptClient) GetRolloutRule(ctx context.Context, in *GetRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRule, error) {
-	out := new(RolloutRule)
-	err := c.cc.Invoke(ctx, Flipt_GetRolloutRule_FullMethodName, in, out, opts...)
+func (c *fliptClient) GetRollout(ctx context.Context, in *GetRolloutRequest, opts ...grpc.CallOption) (*Rollout, error) {
+	out := new(Rollout)
+	err := c.cc.Invoke(ctx, Flipt_GetRollout_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fliptClient) ListRolloutRules(ctx context.Context, in *ListRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRuleList, error) {
-	out := new(RolloutRuleList)
-	err := c.cc.Invoke(ctx, Flipt_ListRolloutRules_FullMethodName, in, out, opts...)
+func (c *fliptClient) ListRollouts(ctx context.Context, in *ListRolloutRequest, opts ...grpc.CallOption) (*RolloutList, error) {
+	out := new(RolloutList)
+	err := c.cc.Invoke(ctx, Flipt_ListRollouts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fliptClient) CreateRolloutRule(ctx context.Context, in *CreateRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRule, error) {
-	out := new(RolloutRule)
-	err := c.cc.Invoke(ctx, Flipt_CreateRolloutRule_FullMethodName, in, out, opts...)
+func (c *fliptClient) CreateRollout(ctx context.Context, in *CreateRolloutRequest, opts ...grpc.CallOption) (*Rollout, error) {
+	out := new(Rollout)
+	err := c.cc.Invoke(ctx, Flipt_CreateRollout_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fliptClient) UpdateRolloutRule(ctx context.Context, in *UpdateRolloutRuleRequest, opts ...grpc.CallOption) (*RolloutRule, error) {
-	out := new(RolloutRule)
-	err := c.cc.Invoke(ctx, Flipt_UpdateRolloutRule_FullMethodName, in, out, opts...)
+func (c *fliptClient) UpdateRollout(ctx context.Context, in *UpdateRolloutRequest, opts ...grpc.CallOption) (*Rollout, error) {
+	out := new(Rollout)
+	err := c.cc.Invoke(ctx, Flipt_UpdateRollout_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fliptClient) DeleteRolloutRule(ctx context.Context, in *DeleteRolloutRuleRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *fliptClient) DeleteRollout(ctx context.Context, in *DeleteRolloutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Flipt_DeleteRolloutRule_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, Flipt_DeleteRollout_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -468,11 +468,11 @@ type FliptServer interface {
 	UpdateRule(context.Context, *UpdateRuleRequest) (*Rule, error)
 	OrderRules(context.Context, *OrderRulesRequest) (*emptypb.Empty, error)
 	DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error)
-	GetRolloutRule(context.Context, *GetRolloutRuleRequest) (*RolloutRule, error)
-	ListRolloutRules(context.Context, *ListRolloutRuleRequest) (*RolloutRuleList, error)
-	CreateRolloutRule(context.Context, *CreateRolloutRuleRequest) (*RolloutRule, error)
-	UpdateRolloutRule(context.Context, *UpdateRolloutRuleRequest) (*RolloutRule, error)
-	DeleteRolloutRule(context.Context, *DeleteRolloutRuleRequest) (*emptypb.Empty, error)
+	GetRollout(context.Context, *GetRolloutRequest) (*Rollout, error)
+	ListRollouts(context.Context, *ListRolloutRequest) (*RolloutList, error)
+	CreateRollout(context.Context, *CreateRolloutRequest) (*Rollout, error)
+	UpdateRollout(context.Context, *UpdateRolloutRequest) (*Rollout, error)
+	DeleteRollout(context.Context, *DeleteRolloutRequest) (*emptypb.Empty, error)
 	CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error)
 	UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error)
 	DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error)
@@ -554,20 +554,20 @@ func (UnimplementedFliptServer) OrderRules(context.Context, *OrderRulesRequest) 
 func (UnimplementedFliptServer) DeleteRule(context.Context, *DeleteRuleRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRule not implemented")
 }
-func (UnimplementedFliptServer) GetRolloutRule(context.Context, *GetRolloutRuleRequest) (*RolloutRule, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRolloutRule not implemented")
+func (UnimplementedFliptServer) GetRollout(context.Context, *GetRolloutRequest) (*Rollout, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRollout not implemented")
 }
-func (UnimplementedFliptServer) ListRolloutRules(context.Context, *ListRolloutRuleRequest) (*RolloutRuleList, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListRolloutRules not implemented")
+func (UnimplementedFliptServer) ListRollouts(context.Context, *ListRolloutRequest) (*RolloutList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRollouts not implemented")
 }
-func (UnimplementedFliptServer) CreateRolloutRule(context.Context, *CreateRolloutRuleRequest) (*RolloutRule, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateRolloutRule not implemented")
+func (UnimplementedFliptServer) CreateRollout(context.Context, *CreateRolloutRequest) (*Rollout, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRollout not implemented")
 }
-func (UnimplementedFliptServer) UpdateRolloutRule(context.Context, *UpdateRolloutRuleRequest) (*RolloutRule, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRolloutRule not implemented")
+func (UnimplementedFliptServer) UpdateRollout(context.Context, *UpdateRolloutRequest) (*Rollout, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRollout not implemented")
 }
-func (UnimplementedFliptServer) DeleteRolloutRule(context.Context, *DeleteRolloutRuleRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteRolloutRule not implemented")
+func (UnimplementedFliptServer) DeleteRollout(context.Context, *DeleteRolloutRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRollout not implemented")
 }
 func (UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDistribution not implemented")
@@ -993,92 +993,92 @@ func _Flipt_DeleteRule_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Flipt_GetRolloutRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRolloutRuleRequest)
+func _Flipt_GetRollout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRolloutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FliptServer).GetRolloutRule(ctx, in)
+		return srv.(FliptServer).GetRollout(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Flipt_GetRolloutRule_FullMethodName,
+		FullMethod: Flipt_GetRollout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).GetRolloutRule(ctx, req.(*GetRolloutRuleRequest))
+		return srv.(FliptServer).GetRollout(ctx, req.(*GetRolloutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Flipt_ListRolloutRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRolloutRuleRequest)
+func _Flipt_ListRollouts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRolloutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FliptServer).ListRolloutRules(ctx, in)
+		return srv.(FliptServer).ListRollouts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Flipt_ListRolloutRules_FullMethodName,
+		FullMethod: Flipt_ListRollouts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).ListRolloutRules(ctx, req.(*ListRolloutRuleRequest))
+		return srv.(FliptServer).ListRollouts(ctx, req.(*ListRolloutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Flipt_CreateRolloutRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateRolloutRuleRequest)
+func _Flipt_CreateRollout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRolloutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FliptServer).CreateRolloutRule(ctx, in)
+		return srv.(FliptServer).CreateRollout(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Flipt_CreateRolloutRule_FullMethodName,
+		FullMethod: Flipt_CreateRollout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).CreateRolloutRule(ctx, req.(*CreateRolloutRuleRequest))
+		return srv.(FliptServer).CreateRollout(ctx, req.(*CreateRolloutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Flipt_UpdateRolloutRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateRolloutRuleRequest)
+func _Flipt_UpdateRollout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRolloutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FliptServer).UpdateRolloutRule(ctx, in)
+		return srv.(FliptServer).UpdateRollout(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Flipt_UpdateRolloutRule_FullMethodName,
+		FullMethod: Flipt_UpdateRollout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).UpdateRolloutRule(ctx, req.(*UpdateRolloutRuleRequest))
+		return srv.(FliptServer).UpdateRollout(ctx, req.(*UpdateRolloutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Flipt_DeleteRolloutRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteRolloutRuleRequest)
+func _Flipt_DeleteRollout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRolloutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FliptServer).DeleteRolloutRule(ctx, in)
+		return srv.(FliptServer).DeleteRollout(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Flipt_DeleteRolloutRule_FullMethodName,
+		FullMethod: Flipt_DeleteRollout_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FliptServer).DeleteRolloutRule(ctx, req.(*DeleteRolloutRuleRequest))
+		return srv.(FliptServer).DeleteRollout(ctx, req.(*DeleteRolloutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1373,24 +1373,24 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Flipt_DeleteRule_Handler,
 		},
 		{
-			MethodName: "GetRolloutRule",
-			Handler:    _Flipt_GetRolloutRule_Handler,
+			MethodName: "GetRollout",
+			Handler:    _Flipt_GetRollout_Handler,
 		},
 		{
-			MethodName: "ListRolloutRules",
-			Handler:    _Flipt_ListRolloutRules_Handler,
+			MethodName: "ListRollouts",
+			Handler:    _Flipt_ListRollouts_Handler,
 		},
 		{
-			MethodName: "CreateRolloutRule",
-			Handler:    _Flipt_CreateRolloutRule_Handler,
+			MethodName: "CreateRollout",
+			Handler:    _Flipt_CreateRollout_Handler,
 		},
 		{
-			MethodName: "UpdateRolloutRule",
-			Handler:    _Flipt_UpdateRolloutRule_Handler,
+			MethodName: "UpdateRollout",
+			Handler:    _Flipt_UpdateRollout_Handler,
 		},
 		{
-			MethodName: "DeleteRolloutRule",
-			Handler:    _Flipt_DeleteRolloutRule_Handler,
+			MethodName: "DeleteRollout",
+			Handler:    _Flipt_DeleteRollout_Handler,
 		},
 		{
 			MethodName: "CreateDistribution",

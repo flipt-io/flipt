@@ -145,6 +145,31 @@ func (m *storeMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
+func (m *storeMock) ListRollouts(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
+	args := m.Called(ctx, namespaceKey, flagKey, opts)
+	return args.Get(0).(storage.ResultSet[*flipt.Rollout]), args.Error(1)
+}
+
+func (m *storeMock) GetRollout(ctx context.Context, namespaceKey string, key string) (*flipt.Rollout, error) {
+	args := m.Called(ctx, namespaceKey, key)
+	return args.Get(0).(*flipt.Rollout), args.Error(1)
+}
+
+func (m *storeMock) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Rollout), args.Error(1)
+}
+
+func (m *storeMock) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
+	args := m.Called(ctx, r)
+	return args.Get(0).(*flipt.Rollout), args.Error(1)
+}
+
+func (m *storeMock) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
 func (m *storeMock) GetRule(ctx context.Context, namespaceKey string, id string) (*flipt.Rule, error) {
 	args := m.Called(ctx, namespaceKey, id)
 	return args.Get(0).(*flipt.Rule), args.Error(1)

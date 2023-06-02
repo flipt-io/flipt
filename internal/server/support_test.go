@@ -138,27 +138,27 @@ func (m *storeMock) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstra
 	return args.Error(0)
 }
 
-func (m *storeMock) ListRolloutRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.RolloutRule], error) {
+func (m *storeMock) ListRollouts(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
 	args := m.Called(ctx, namespaceKey, flagKey, opts)
-	return args.Get(0).(storage.ResultSet[*flipt.RolloutRule]), args.Error(1)
+	return args.Get(0).(storage.ResultSet[*flipt.Rollout]), args.Error(1)
 }
 
-func (m *storeMock) GetRolloutRule(ctx context.Context, namespaceKey string, key string) (*flipt.RolloutRule, error) {
+func (m *storeMock) GetRollout(ctx context.Context, namespaceKey string, key string) (*flipt.Rollout, error) {
 	args := m.Called(ctx, namespaceKey, key)
-	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
+	return args.Get(0).(*flipt.Rollout), args.Error(1)
 }
 
-func (m *storeMock) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (m *storeMock) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
 	args := m.Called(ctx, r)
-	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
+	return args.Get(0).(*flipt.Rollout), args.Error(1)
 }
 
-func (m *storeMock) UpdateRolloutRule(ctx context.Context, r *flipt.UpdateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (m *storeMock) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
 	args := m.Called(ctx, r)
-	return args.Get(0).(*flipt.RolloutRule), args.Error(1)
+	return args.Get(0).(*flipt.Rollout), args.Error(1)
 }
 
-func (m *storeMock) DeleteRolloutRule(ctx context.Context, r *flipt.DeleteRolloutRuleRequest) error {
+func (m *storeMock) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
 	args := m.Called(ctx, r)
 	return args.Error(0)
 }

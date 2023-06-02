@@ -651,7 +651,7 @@ func (x *FliptClient) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest
 	return &output, nil
 }
 
-func (x *FliptClient) GetRolloutRule(ctx context.Context, v *flipt.GetRolloutRuleRequest, _ ...grpc.CallOption) (*flipt.RolloutRule, error) {
+func (x *FliptClient) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest, _ ...grpc.CallOption) (*flipt.Rollout, error) {
 	var body io.Reader
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts/%v", v.NamespaceKey, v.FlagKey, v.Id), body)
@@ -664,7 +664,7 @@ func (x *FliptClient) GetRolloutRule(ctx context.Context, v *flipt.GetRolloutRul
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output flipt.RolloutRule
+	var output flipt.Rollout
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -678,7 +678,7 @@ func (x *FliptClient) GetRolloutRule(ctx context.Context, v *flipt.GetRolloutRul
 	return &output, nil
 }
 
-func (x *FliptClient) ListRolloutRules(ctx context.Context, v *flipt.ListRolloutRuleRequest, _ ...grpc.CallOption) (*flipt.RolloutRuleList, error) {
+func (x *FliptClient) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequest, _ ...grpc.CallOption) (*flipt.RolloutList, error) {
 	var body io.Reader
 	values := url.Values{}
 	values.Set("limit", fmt.Sprintf("%v", v.Limit))
@@ -693,7 +693,7 @@ func (x *FliptClient) ListRolloutRules(ctx context.Context, v *flipt.ListRollout
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output flipt.RolloutRuleList
+	var output flipt.RolloutList
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -707,7 +707,7 @@ func (x *FliptClient) ListRolloutRules(ctx context.Context, v *flipt.ListRollout
 	return &output, nil
 }
 
-func (x *FliptClient) CreateRolloutRule(ctx context.Context, v *flipt.CreateRolloutRuleRequest, _ ...grpc.CallOption) (*flipt.RolloutRule, error) {
+func (x *FliptClient) CreateRollout(ctx context.Context, v *flipt.CreateRolloutRequest, _ ...grpc.CallOption) (*flipt.Rollout, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -725,7 +725,7 @@ func (x *FliptClient) CreateRolloutRule(ctx context.Context, v *flipt.CreateRoll
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output flipt.RolloutRule
+	var output flipt.Rollout
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -739,7 +739,7 @@ func (x *FliptClient) CreateRolloutRule(ctx context.Context, v *flipt.CreateRoll
 	return &output, nil
 }
 
-func (x *FliptClient) UpdateRolloutRule(ctx context.Context, v *flipt.UpdateRolloutRuleRequest, _ ...grpc.CallOption) (*flipt.RolloutRule, error) {
+func (x *FliptClient) UpdateRollout(ctx context.Context, v *flipt.UpdateRolloutRequest, _ ...grpc.CallOption) (*flipt.Rollout, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -757,7 +757,7 @@ func (x *FliptClient) UpdateRolloutRule(ctx context.Context, v *flipt.UpdateRoll
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output flipt.RolloutRule
+	var output flipt.Rollout
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -771,7 +771,7 @@ func (x *FliptClient) UpdateRolloutRule(ctx context.Context, v *flipt.UpdateRoll
 	return &output, nil
 }
 
-func (x *FliptClient) DeleteRolloutRule(ctx context.Context, v *flipt.DeleteRolloutRuleRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+func (x *FliptClient) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
 	var body io.Reader
 	var values url.Values
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts/%v", v.NamespaceKey, v.FlagKey, v.Id), body)

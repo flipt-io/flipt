@@ -11,14 +11,14 @@ import (
 	empty "google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s *Server) GetRolloutRule(ctx context.Context, r *flipt.GetRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (s *Server) GetRollout(ctx context.Context, r *flipt.GetRolloutRequest) (*flipt.Rollout, error) {
 	s.logger.Debug("get rollout rule", zap.Stringer("request", r))
-	rollout, err := s.store.GetRolloutRule(ctx, r.NamespaceKey, r.Id)
+	rollout, err := s.store.GetRollout(ctx, r.NamespaceKey, r.Id)
 	s.logger.Debug("get rollout rule", zap.Stringer("response", rollout))
 	return rollout, err
 }
 
-func (s *Server) ListRolloutRules(ctx context.Context, r *flipt.ListRolloutRuleRequest) (*flipt.RolloutRuleList, error) {
+func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
 	s.logger.Debug("list rollout rules", zap.Stringer("request", r))
 
 	opts := []storage.QueryOption{storage.WithLimit(uint64(r.GetLimit()))}
@@ -32,12 +32,12 @@ func (s *Server) ListRolloutRules(ctx context.Context, r *flipt.ListRolloutRuleR
 		opts = append(opts, storage.WithPageToken(string(tok)))
 	}
 
-	results, err := s.store.ListRolloutRules(ctx, r.NamespaceKey, r.FlagKey, opts...)
+	results, err := s.store.ListRollouts(ctx, r.NamespaceKey, r.FlagKey, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := flipt.RolloutRuleList{
+	resp := flipt.RolloutList{
 		Rules: results.Results,
 	}
 
@@ -53,23 +53,23 @@ func (s *Server) ListRolloutRules(ctx context.Context, r *flipt.ListRolloutRuleR
 	return &resp, nil
 }
 
-func (s *Server) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (s *Server) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
 	s.logger.Debug("create rollout rule", zap.Stringer("request", r))
-	rollout, err := s.store.CreateRolloutRule(ctx, r)
+	rollout, err := s.store.CreateRollout(ctx, r)
 	s.logger.Debug("create rollout rule", zap.Stringer("response", rollout))
 	return rollout, err
 }
 
-func (s *Server) UpdateRolloutRule(ctx context.Context, r *flipt.UpdateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (s *Server) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
 	s.logger.Debug("update rollout rule", zap.Stringer("request", r))
-	rollout, err := s.store.UpdateRolloutRule(ctx, r)
+	rollout, err := s.store.UpdateRollout(ctx, r)
 	s.logger.Debug("update rollout rule", zap.Stringer("response", rollout))
 	return rollout, err
 }
 
-func (s *Server) DeleteRolloutRule(ctx context.Context, r *flipt.DeleteRolloutRuleRequest) (*empty.Empty, error) {
+func (s *Server) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) (*empty.Empty, error) {
 	s.logger.Debug("delete rollout rule", zap.Stringer("request", r))
-	err := s.store.DeleteRolloutRule(ctx, r)
+	err := s.store.DeleteRollout(ctx, r)
 	s.logger.Debug("delete rollout rule", zap.Error(err))
 	return &empty.Empty{}, err
 }

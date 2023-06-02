@@ -16,19 +16,19 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type RolloutRuleType uint8
+type RolloutType uint8
 
 const (
-	UnknownRolloutRuleType RolloutRuleType = iota
-	SegmentRolloutRuleType
-	PercentageRolloutRuleType
+	UnknownRolloutType RolloutType = iota
+	SegmentRolloutType
+	PercentageRolloutType
 
-	tableRolloutRules           = "rollout_rules"
-	tableRolloutPercentageRules = "rollout_percent_rules"
-	tableRolloutSegmentRules    = "rollout_segment_rules"
+	tableRollouts               = "rollouts"
+	tableRolloutPercentageRules = "rollout_percentages"
+	tableRolloutSegmentRules    = "rollout_segments"
 )
 
-func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*flipt.RolloutRule, error) {
+func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
@@ -37,11 +37,11 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*f
 		createdAt fliptsql.Timestamp
 		updatedAt fliptsql.Timestamp
 
-		ruleType RolloutRuleType
-		rollout  = &flipt.RolloutRule{}
+		ruleType RolloutType
+		rollout  = &flipt.Rollout{}
 
-		err = s.builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", created_at, updated_at").
-			From(tableRolloutRules).
+		err = s.builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", description, created_at, updated_at").
+			From(tableRollouts).
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
 			QueryRowContext(ctx).
 			Scan(
@@ -50,6 +50,7 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*f
 				&rollout.FlagKey,
 				&ruleType,
 				&rollout.Rank,
+				&rollout.Description,
 				&createdAt,
 				&updatedAt)
 	)
@@ -66,9 +67,9 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*f
 	rollout.UpdatedAt = updatedAt.Timestamp
 
 	switch ruleType {
-	case SegmentRolloutRuleType:
-		var segmentRule = &flipt.RolloutRule_Segment{
-			Segment: &flipt.RolloutRuleSegment{},
+	case SegmentRolloutType:
+		var segmentRule = &flipt.Rollout_Segment{
+			Segment: &flipt.RolloutSegment{},
 		}
 
 		if err := s.builder.Select("segment_key, \"value\"").
@@ -84,9 +85,9 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*f
 		}
 
 		rollout.Rule = segmentRule
-	case PercentageRolloutRuleType:
-		var percentageRule = &flipt.RolloutRule_Percentage{
-			Percentage: &flipt.RolloutRulePercentage{},
+	case PercentageRolloutType:
+		var percentageRule = &flipt.Rollout_Percentage{
+			Percentage: &flipt.RolloutPercentage{},
 		}
 
 		if err := s.builder.Select("percentage").
@@ -108,7 +109,7 @@ func (s *Store) GetRolloutRule(ctx context.Context, namespaceKey, id string) (*f
 	return rollout, nil
 }
 
-func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.RolloutRule], error) {
+func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
@@ -120,11 +121,11 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 	}
 
 	var (
-		rollouts []*flipt.RolloutRule
-		results  = storage.ResultSet[*flipt.RolloutRule]{}
+		rollouts []*flipt.Rollout
+		results  = storage.ResultSet[*flipt.Rollout]{}
 
-		query = s.builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", created_at, updated_at").
-			From(tableRolloutRules).
+		query = s.builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", description, created_at, updated_at").
+			From(tableRollouts).
 			Where(sq.Eq{"flag_key": flagKey, "namespace_key": namespaceKey}).
 			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
 	)
@@ -158,14 +159,14 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 	}()
 
 	var (
-		rolloutsById   = map[string]*flipt.RolloutRule{}
-		rolloutsByType = map[RolloutRuleType][]*flipt.RolloutRule{}
+		rolloutsById   = map[string]*flipt.Rollout{}
+		rolloutsByType = map[RolloutType][]*flipt.Rollout{}
 	)
 
 	for rows.Next() {
 		var (
-			rollout     = &flipt.RolloutRule{}
-			rolloutType RolloutRuleType
+			rollout     = &flipt.Rollout{}
+			rolloutType RolloutType
 			rCreatedAt  fliptsql.Timestamp
 			rUpdatedAt  fliptsql.Timestamp
 		)
@@ -176,6 +177,7 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 			&rollout.FlagKey,
 			&rolloutType,
 			&rollout.Rank,
+			&rollout.Description,
 			&rCreatedAt,
 			&rUpdatedAt); err != nil {
 			return results, err
@@ -198,9 +200,9 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 	}
 
 	// get all rules from rollout_segment_rules table
-	if len(rolloutsByType[SegmentRolloutRuleType]) > 0 {
-		allRuleIds := make([]string, len(rolloutsByType[SegmentRolloutRuleType]))
-		for _, rollout := range rolloutsByType[SegmentRolloutRuleType] {
+	if len(rolloutsByType[SegmentRolloutType]) > 0 {
+		allRuleIds := make([]string, len(rolloutsByType[SegmentRolloutType]))
+		for _, rollout := range rolloutsByType[SegmentRolloutType] {
 			allRuleIds = append(allRuleIds, rollout.Id)
 		}
 
@@ -222,7 +224,7 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 		for rows.Next() {
 			var (
 				rolloutId string
-				rule      = &flipt.RolloutRuleSegment{}
+				rule      = &flipt.RolloutSegment{}
 			)
 
 			if err := rows.Scan(&rolloutId, &rule.SegmentKey, &rule.Value); err != nil {
@@ -230,13 +232,13 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 			}
 
 			rollout := rolloutsById[rolloutId]
-			rollout.Rule = &flipt.RolloutRule_Segment{Segment: rule}
+			rollout.Rule = &flipt.Rollout_Segment{Segment: rule}
 		}
 	}
 	// get all rules from rollout_percentage_rules table
-	if len(rolloutsByType[PercentageRolloutRuleType]) > 0 {
-		allRuleIds := make([]string, len(rolloutsByType[PercentageRolloutRuleType]))
-		for _, rollout := range rolloutsByType[PercentageRolloutRuleType] {
+	if len(rolloutsByType[PercentageRolloutType]) > 0 {
+		allRuleIds := make([]string, len(rolloutsByType[PercentageRolloutType]))
+		for _, rollout := range rolloutsByType[PercentageRolloutType] {
 			allRuleIds = append(allRuleIds, rollout.Id)
 		}
 
@@ -258,7 +260,7 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 		for rows.Next() {
 			var (
 				rolloutId string
-				rule      = &flipt.RolloutRulePercentage{}
+				rule      = &flipt.RolloutPercentage{}
 			)
 
 			if err := rows.Scan(&rolloutId, &rule.Percentage, &rule.Value); err != nil {
@@ -266,11 +268,11 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 			}
 
 			rollout := rolloutsById[rolloutId]
-			rollout.Rule = &flipt.RolloutRule_Percentage{Percentage: rule}
+			rollout.Rule = &flipt.Rollout_Percentage{Percentage: rule}
 		}
 	}
 
-	var next *flipt.RolloutRule
+	var next *flipt.Rollout
 
 	if len(rollouts) > int(params.Limit) && params.Limit > 0 {
 		next = rollouts[len(rollouts)-1]
@@ -290,36 +292,37 @@ func (s *Store) ListRolloutRules(ctx context.Context, namespaceKey, flagKey stri
 	return results, nil
 }
 
-func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	var rule RolloutRuleType
+	var rule RolloutType
 
 	if r.GetRule() != nil {
 		if r.GetSegment() != nil {
-			rule = SegmentRolloutRuleType
+			rule = SegmentRolloutType
 		} else if r.GetPercentage() != nil {
-			rule = PercentageRolloutRuleType
+			rule = PercentageRolloutType
 		}
 	}
 
 	var (
 		now     = timestamppb.Now()
-		rollout = &flipt.RolloutRule{
+		rollout = &flipt.Rollout{
 			Id:           uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey: r.NamespaceKey,
 			FlagKey:      r.FlagKey,
 			Rank:         r.Rank,
+			Description:  r.Description,
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
 	)
 
-	if _, err := s.builder.Insert(tableRolloutRules).
-		Columns("id", "namespace_key", "flag_key", "\"type\"", "rank", "created_at", "updated_at").
-		Values(rollout.Id, rollout.NamespaceKey, rollout.FlagKey, rule, rollout.Rank,
+	if _, err := s.builder.Insert(tableRollouts).
+		Columns("id", "namespace_key", "flag_key", "\"type\"", "rank", "description", "created_at", "updated_at").
+		Values(rollout.Id, rollout.NamespaceKey, rollout.FlagKey, rule, rollout.Rank, rollout.Description,
 			&fliptsql.Timestamp{Timestamp: rollout.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rollout.UpdatedAt},
 		).ExecContext(ctx); err != nil {
@@ -327,7 +330,7 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 	}
 
 	switch rule {
-	case SegmentRolloutRuleType:
+	case SegmentRolloutType:
 		var segmentRule = r.GetSegment()
 
 		if _, err := s.builder.Insert(tableRolloutSegmentRules).
@@ -337,10 +340,10 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 			return nil, err
 		}
 
-		rollout.Rule = &flipt.RolloutRule_Segment{
+		rollout.Rule = &flipt.Rollout_Segment{
 			Segment: segmentRule,
 		}
-	case PercentageRolloutRuleType:
+	case PercentageRolloutType:
 		var percentageRule = r.GetPercentage()
 
 		if _, err := s.builder.Insert(tableRolloutPercentageRules).
@@ -350,7 +353,7 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 			return nil, err
 		}
 
-		rollout.Rule = &flipt.RolloutRule_Percentage{
+		rollout.Rule = &flipt.Rollout_Percentage{
 			Percentage: percentageRule,
 		}
 	}
@@ -358,16 +361,16 @@ func (s *Store) CreateRolloutRule(ctx context.Context, r *flipt.CreateRolloutRul
 	return rollout, nil
 }
 
-func (s *Store) UpdateRolloutRule(ctx context.Context, r *flipt.UpdateRolloutRuleRequest) (*flipt.RolloutRule, error) {
+func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
 	panic("not implemented")
 }
 
-func (s *Store) DeleteRolloutRule(ctx context.Context, r *flipt.DeleteRolloutRuleRequest) error {
+func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	_, err := s.builder.Delete(tableRolloutRules).
+	_, err := s.builder.Delete(tableRollouts).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}}).ExecContext(ctx)
 
 	return err
