@@ -1,6 +1,4 @@
-import nightwind from 'nightwind/helper';
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
@@ -10,9 +8,7 @@ import SuccessNotification from '~/components/notifications/SuccessNotification'
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
-import { Theme } from '~/types/Preferences';
 import { fetchNamespacesAsync } from './namespaces/namespacesSlice';
-import { selectTheme } from './preferences/preferencesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -23,23 +19,6 @@ function InnerLayout() {
   useEffect(() => {
     dispatch(fetchNamespacesAsync());
   }, [dispatch]);
-
-  const theme = useSelector(selectTheme);
-  const [systemPrefersDark, setSystemPrefersDark] = useState(
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  );
-
-  useEffect(() => {
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', (e) => setSystemPrefersDark(e.matches));
-  }, []);
-
-  useEffect(() => {
-    if (theme === Theme.SYSTEM) {
-      nightwind.enable(systemPrefersDark);
-    }
-  }, [theme, systemPrefersDark]);
 
   if (!session) {
     return <Navigate to="/login" />;
