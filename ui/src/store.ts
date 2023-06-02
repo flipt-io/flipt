@@ -26,7 +26,7 @@ listenerMiddleware.startListening({
 });
 
 const preferencesState = JSON.parse(
-  localStorage.getItem(preferencesKey) || 'null'
+  localStorage.getItem(preferencesKey) || '{}'
 );
 
 export const store = configureStore({
