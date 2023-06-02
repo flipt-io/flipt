@@ -1,7 +1,6 @@
 import nightwind from 'nightwind/helper';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useMediaQuery } from 'react-responsive';
 import { Navigate, Outlet } from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
@@ -20,25 +19,27 @@ function InnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
-  dispatch(fetchNamespacesAsync());
+
+  useEffect(() => {
+    dispatch(fetchNamespacesAsync());
+  }, [dispatch]);
 
   const theme = useSelector(selectTheme);
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
 
-  const useColorScheme = () => {
-    useMediaQuery(
-      {
-        query: '(prefers-color-scheme: dark)'
-      },
-      undefined,
-      (prefersDark) => {
-        if (theme === Theme.SYSTEM) {
-          nightwind.enable(prefersDark);
-        }
-      }
-    );
-  };
+  useEffect(() => {
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', (e) => setSystemPrefersDark(e.matches));
+  }, []);
 
-  useColorScheme();
+  useEffect(() => {
+    if (theme === Theme.SYSTEM) {
+      nightwind.enable(systemPrefersDark);
+    }
+  }, [theme, systemPrefersDark]);
 
   if (!session) {
     return <Navigate to="/login" />;

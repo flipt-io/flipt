@@ -45,8 +45,7 @@ export default function Preferences() {
               <Select
                 id="location"
                 name="location"
-                defaultValue={Theme.LIGHT}
-                value={theme}
+                value={theme || Theme.LIGHT}
                 options={[
                   { value: Theme.LIGHT, label: 'Light' },
                   { value: Theme.DARK, label: 'Dark' },
