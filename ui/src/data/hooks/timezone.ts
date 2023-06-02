@@ -1,28 +1,18 @@
 import moment from 'moment';
-import { useContext } from 'react';
-import { PreferencesContext } from '~/components/PreferencesProvider';
-import { TimezoneType } from '~/types/Preferences';
+import { useSelector } from 'react-redux';
+import { selectTimezone } from '~/app/preferences/preferencesSlice';
+import { Timezone } from '~/types/Preferences';
 
 export const useTimezone = () => {
-  const { preferences, setPreferences } = useContext(PreferencesContext);
-  const timezone = preferences.timezone;
-
-  const setTimezone = (v: TimezoneType) => {
-    setPreferences({
-      ...preferences,
-      timezone: v
-    });
-  };
+  const timezone = useSelector(selectTimezone);
 
   const inTimezone = (v: string) => {
-    return timezone === TimezoneType.LOCAL
+    return timezone === Timezone.LOCAL
       ? moment(v).format('YYYY-MM-DD HH:mm:ss')
       : moment.utc(v).format('YYYY-MM-DD HH:mm:ss') + ' UTC';
   };
 
   return {
-    timezone,
-    setTimezone,
     inTimezone
   };
 };

@@ -8,11 +8,11 @@ type SelectProps = {
   className?: string;
   value?: string;
   defaultValue?: string;
-  handleChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
 export default function Select(props: SelectProps) {
-  const { id, name, options, children, className, defaultValue, handleChange } =
+  const { id, name, options, children, className, defaultValue, onChange } =
     props;
 
   const [field] = useField({
@@ -26,7 +26,7 @@ export default function Select(props: SelectProps) {
       className={`${className} block rounded-md py-2 pl-3 pr-10 text-base border-gray-300 focus:outline-none focus:ring-violet-300 focus:border-violet-300 sm:text-sm`}
       defaultValue={defaultValue}
       {...field}
-      onChange={handleChange || field.onChange}
+      onChange={onChange || field.onChange}
     >
       {options &&
         options.map((option) => (

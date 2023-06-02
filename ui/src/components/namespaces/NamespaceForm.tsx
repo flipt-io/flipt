@@ -115,7 +115,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                     id="name"
                     forwardRef={ref}
                     autoFocus={isNew}
-                    handleChange={(e) => {
+                    onChange={(e) => {
                       // check if the name and key are currently in sync
                       // we do this so we don't override a custom key value
                       if (
@@ -147,7 +147,7 @@ const NamespaceForm = forwardRef((props: NamespaceFormProps, ref: any) => {
                     name="key"
                     id="key"
                     disabled={!isNew}
-                    handleChange={(e) => {
+                    onChange={(e) => {
                       const formatted = stringAsKey(e.target.value);
                       formik.setFieldValue('key', formatted);
                     }}

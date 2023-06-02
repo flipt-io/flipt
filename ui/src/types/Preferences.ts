@@ -1,8 +1,10 @@
-export enum TimezoneType {
+export enum Timezone {
   UTC = 'utc',
   LOCAL = 'local'
 }
 
-export type Preferences = {
-  timezone: TimezoneType;
-};
+export enum Theme {
+  LIGHT = 'light',
+  DARK = 'dark',
+  SYSTEM = 'system'
+}

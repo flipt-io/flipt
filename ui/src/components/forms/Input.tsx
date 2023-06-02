@@ -8,7 +8,7 @@ type InputProps = {
   className?: string;
   autoComplete?: boolean;
   forwardRef?: React.RefObject<HTMLInputElement>;
-  handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
 export default function Input(props: InputProps) {
@@ -16,7 +16,7 @@ export default function Input(props: InputProps) {
     id,
     type = 'text',
     className = '',
-    handleChange,
+    onChange,
     autoComplete = false,
     forwardRef,
     ...rest
@@ -38,7 +38,7 @@ export default function Input(props: InputProps) {
         {...field}
         onChange={(e) => {
           field.onChange(e);
-          handleChange && handleChange(e);
+          onChange && onChange(e);
         }}
         autoComplete={autoComplete ? 'on' : 'off'}
         {...rest}

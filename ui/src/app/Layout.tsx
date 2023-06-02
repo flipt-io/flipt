@@ -1,15 +1,19 @@
+import nightwind from 'nightwind/helper';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useMediaQuery } from 'react-responsive';
 import { Navigate, Outlet } from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
 import SuccessNotification from '~/components/notifications/SuccessNotification';
-import PreferencesProvider from '~/components/PreferencesProvider';
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
+import { Theme } from '~/types/Preferences';
 import { fetchNamespacesAsync } from './namespaces/namespacesSlice';
+import { selectTheme } from './preferences/preferencesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
@@ -17,6 +21,24 @@ function InnerLayout() {
 
   const dispatch = useAppDispatch();
   dispatch(fetchNamespacesAsync());
+
+  const theme = useSelector(selectTheme);
+
+  const useColorScheme = () => {
+    useMediaQuery(
+      {
+        query: '(prefers-color-scheme: dark)'
+      },
+      undefined,
+      (prefersDark) => {
+        if (theme === Theme.SYSTEM) {
+          nightwind.enable(prefersDark);
+        }
+      }
+    );
+  };
+
+  useColorScheme();
 
   if (!session) {
     return <Navigate to="/login" />;
@@ -42,9 +64,7 @@ function InnerLayout() {
 export default function Layout() {
   return (
     <NotificationProvider>
-      <PreferencesProvider>
-        <InnerLayout />
-      </PreferencesProvider>
+      <InnerLayout />
       <ErrorNotification />
       <SuccessNotification />
     </NotificationProvider>

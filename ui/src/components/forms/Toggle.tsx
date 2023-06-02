@@ -7,11 +7,11 @@ type ToggleProps = {
   label: string;
   description?: string;
   enabled: boolean;
-  handleChange?: (e: boolean) => void;
+  onChange?: (e: any) => void;
 };
 
 export default function Toggle(props: ToggleProps) {
-  const { id, label, description, enabled, handleChange } = props;
+  const { id, label, description, enabled, onChange } = props;
   const [field] = useField(props);
 
   return (
@@ -35,7 +35,7 @@ export default function Toggle(props: ToggleProps) {
         id={id}
         {...field}
         onChange={(e: boolean) => {
-          handleChange && handleChange(e);
+          onChange && onChange(e);
         }}
         className={`${
           enabled ? 'bg-green-400' : 'bg-violet-200'
