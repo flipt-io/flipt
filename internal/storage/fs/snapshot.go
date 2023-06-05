@@ -155,6 +155,10 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 
 	filenames := make([]string, 0)
 	if err := fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if d.IsDir() {
 			return nil
 		}

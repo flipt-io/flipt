@@ -35,6 +35,10 @@ type Store struct {
 	logger *zap.Logger
 	source FSSource
 
+	// notify is used for test purposes
+	// it is invoked if defined when a snapshot update finishes
+	notify func()
+
 	cancel context.CancelFunc
 	done   chan struct{}
 }
@@ -48,6 +52,14 @@ func (l *Store) updateSnapshot(fs fs.FS) error {
 	l.mu.Lock()
 	l.storeSnapshot = storeSnapshot
 	l.mu.Unlock()
+
+	// NOTE: this is really just a trick for unit tests
+	// It is used to signal that an update occurred
+	// so we dont have to e.g. sleep to know when
+	// to check state.
+	if l.notify != nil {
+		l.notify()
+	}
 
 	return nil
 }
