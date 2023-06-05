@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"path"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/gobwas/glob"
 	"github.com/gofrs/uuid"
 	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
@@ -71,6 +71,8 @@ func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
 		return nil, err
 	}
 
+	logger.Debug("opening state files", zap.Strings("paths", files))
+
 	var rds []io.Reader
 	for _, file := range files {
 		fi, err := fs.Open(file)
@@ -121,7 +123,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	idx := FliptIndex{
 		Version: "1.0",
 		Inclusions: []string{
-			"**/features.yml", "**/features.yaml", "**/*.features.yml", "**/*.features.yaml",
+			"**features.yml", "**features.yaml", "**.features.yml", "**.features.yaml",
 		},
 	}
 
@@ -141,22 +143,49 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 		}
 	}
 
-	filenames := make([]string, 0)
-
+	var includes []glob.Glob
 	for _, g := range idx.Inclusions {
-		f, err := fs.Glob(source, g)
+		glob, err := glob.Compile(g)
 		if err != nil {
-			return nil, fmt.Errorf("glob %q: %w", g, err)
+			return nil, fmt.Errorf("compiling include glob: %w", err)
 		}
 
-		filenames = append(filenames, f...)
+		includes = append(includes, glob)
+	}
+
+	filenames := make([]string, 0)
+	if err := fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		for _, glob := range includes {
+			if glob.Match(path) {
+				filenames = append(filenames, path)
+				return nil
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	if len(idx.Exclusions) > 0 {
+		var excludes []glob.Glob
+		for _, g := range idx.Exclusions {
+			glob, err := glob.Compile(g)
+			if err != nil {
+				return nil, fmt.Errorf("compiling include glob: %w", err)
+			}
+
+			excludes = append(excludes, glob)
+		}
+
 	OUTER:
 		for i := range filenames {
-			for _, e := range idx.Exclusions {
-				if match, _ := path.Match(e, filenames[i]); match {
+			for _, glob := range excludes {
+				if glob.Match(filenames[i]) {
 					filenames = append(filenames[:i], filenames[i+1:]...)
 					continue OUTER
 				}

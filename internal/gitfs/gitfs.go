@@ -97,7 +97,7 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 		}
 	}()
 
-	f.logger.Debug("Open", zap.String("path", name))
+	f.logger.Debug("open", zap.String("path", name))
 
 	if !fs.ValidPath(name) {
 		return nil, fs.ErrInvalid
