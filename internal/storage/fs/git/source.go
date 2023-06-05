@@ -17,6 +17,10 @@ import (
 	"go.uber.org/zap"
 )
 
+// Source is an implementation of storage/fs.FSSource
+// This implementation is backed by a Git repository and it tracks an upstream reference.
+// When subscribing to this source, the upstream reference is tracked
+// by polling the upstream on a configurable interval.
 type Source struct {
 	logger *zap.Logger
 	repo   *git.Repository
