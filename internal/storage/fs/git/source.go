@@ -3,10 +3,12 @@ package git
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
 	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/storage/memory"
@@ -20,7 +22,7 @@ type Source struct {
 	repo   *git.Repository
 
 	url      string
-	ref      plumbing.ReferenceName
+	ref      string
 	hash     plumbing.Hash
 	interval time.Duration
 	auth     transport.AuthMethod
@@ -37,7 +39,7 @@ func WithRef(ref string) containers.Option[Source] {
 			return
 		}
 
-		s.ref = plumbing.NewRemoteReferenceName("origin", ref)
+		s.ref = ref
 	}
 }
 
@@ -64,12 +66,12 @@ func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]
 	source := &Source{
 		logger:   logger.With(zap.String("repository", url)),
 		url:      url,
-		ref:      plumbing.NewRemoteReferenceName("origin", "main"),
+		ref:      "main",
 		interval: 10 * time.Second,
 	}
 	containers.ApplyAll(source, opts...)
 
-	field := zap.Stringer("ref", source.ref)
+	field := zap.Stringer("ref", plumbing.NewBranchReferenceName(source.ref))
 	if source.hash != plumbing.ZeroHash {
 		field = zap.Stringer("SHA", source.hash)
 	}
@@ -89,10 +91,10 @@ func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]
 // Get builds a new fs.FS based on the configure Git remote and reference.
 func (s *Source) Get() (fs.FS, error) {
 	if s.hash != plumbing.ZeroHash {
-		return gitfs.NewFromRepoHash(s.repo, s.hash)
+		return gitfs.NewFromRepoHash(s.logger, s.repo, s.hash)
 	}
 
-	return gitfs.NewFromRepo(s.repo, gitfs.WithReference(s.ref))
+	return gitfs.NewFromRepo(s.logger, s.repo, gitfs.WithReference(plumbing.NewRemoteReferenceName("origin", s.ref)))
 }
 
 // Subscribe feeds gitfs implementations of fs.FS onto the provided channel.
@@ -114,10 +116,16 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- fs.FS) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-
 			s.logger.Debug("fetching from remote")
 			if err := s.repo.Fetch(&git.FetchOptions{
 				Auth: s.auth,
+				RefSpecs: []config.RefSpec{
+					config.RefSpec(fmt.Sprintf(
+						"+%s:%s",
+						plumbing.NewBranchReferenceName(s.ref),
+						plumbing.NewRemoteReferenceName("origin", s.ref),
+					)),
+				},
 			}); err != nil {
 				if errors.Is(err, git.NoErrAlreadyUpToDate) {
 					s.logger.Debug("store already up to date")

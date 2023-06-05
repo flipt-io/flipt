@@ -13,6 +13,7 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 )
 
 var expected = map[string]string{
@@ -24,7 +25,7 @@ var expected = map[string]string{
 func Test_FS(t *testing.T) {
 	repo := testdataRepo(t)
 
-	filesystem, err := NewFromRepo(repo)
+	filesystem, err := NewFromRepo(zaptest.NewLogger(t), repo)
 	require.NoError(t, err)
 
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {

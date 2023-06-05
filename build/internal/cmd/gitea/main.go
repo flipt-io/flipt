@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -34,7 +35,7 @@ func main() {
 		log.Fatal("Must supply non-empty --gitea-url flag value.")
 	}
 
-	fmt.Println("Configuring Gitea at", *giteaURL)
+	fmt.Fprintln(os.Stderr, "Configuring Gitea at", *giteaURL)
 
 	resp, err := http.Post(*giteaURL, "application/x-www-form-urlencoded", strings.NewReader(giteaSetupForm))
 	fatalOnError(err)
@@ -60,7 +61,7 @@ func main() {
 
 	workdir := memfs.New()
 
-	fmt.Println("Creating Repository from", *testdataDir)
+	fmt.Fprintln(os.Stderr, "Creating Repository from", *testdataDir)
 
 	repo, err := git.InitWithOptions(memory.NewStorage(), workdir, git.InitOptions{
 		DefaultBranch: "main",
@@ -69,7 +70,7 @@ func main() {
 
 	repo.CreateRemote(&config.RemoteConfig{
 		Name: "origin",
-		URLs: []string{origin.CloneURL},
+		URLs: []string{fmt.Sprintf("%s/root/features.git", *giteaURL)},
 	})
 
 	tree, err := repo.Worktree()
@@ -87,6 +88,8 @@ func main() {
 		if d.IsDir() {
 			return workdir.MkdirAll(path, 0755)
 		}
+
+		fmt.Fprintln(os.Stderr, "Copying", path)
 
 		contents, err := fs.ReadFile(dir, path)
 		if err != nil {
@@ -110,17 +113,22 @@ func main() {
 	err = tree.AddWithOptions(&git.AddOptions{All: true})
 	fatalOnError(err)
 
-	_, err = tree.Commit("feat: add entire contents", &git.CommitOptions{
+	commit, err := tree.Commit("feat: add entire contents", &git.CommitOptions{
 		Author: &object.Signature{Email: "dev@flipt.io", Name: "dev"},
 	})
 	fatalOnError(err)
 
-	fmt.Println("Pushing to", origin.CloneURL)
+	fmt.Fprintln(os.Stderr, "Pushing to", origin.CloneURL)
 	repo.Push(&git.PushOptions{
 		Auth:       &githttp.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
 		RefSpecs:   []config.RefSpec{"main:refs/heads/main"},
 	})
+	fmt.Fprintln(os.Stderr, "Pushed")
+
+	if err := json.NewEncoder(os.Stdout).Encode(map[string]string{"HEAD": commit.String()}); err != nil {
+		log.Fatal(err)
+	}
 }
 
 const giteaSetupForm = "db_type=sqlite3&db_host=localhost%3A3306&db_user=root&db_passwd=&db_name=gitea&ssl_mode=disable&db_schema=&charset=utf8&db_path=%2Fdata%2Fgitea%2Fgitea.db&app_name=Gitea%3A+Git+with+a+cup+of+tea&repo_root_path=%2Fdata%2Fgit%2Frepositories&lfs_root_path=%2Fdata%2Fgit%2Flfs&run_user=git&domain=localhost&ssh_port=22&http_port=3000&app_url=http%3A%2F%2Flocalhost%3A3000%2F&log_root_path=%2Fdata%2Fgitea%2Flog&smtp_addr=&smtp_port=&smtp_from=&smtp_user=&smtp_passwd=&enable_federated_avatar=on&enable_open_id_sign_in=on&enable_open_id_sign_up=on&default_allow_create_organization=on&default_enable_timetracking=on&no_reply_address=noreply.localhost&password_algorithm=pbkdf2&admin_name=root&admin_passwd=password&admin_confirm_passwd=password&admin_email=dev%40flipt.io"
