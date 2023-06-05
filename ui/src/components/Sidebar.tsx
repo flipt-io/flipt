@@ -30,7 +30,7 @@ export default function Sidebar(props: SidebarProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-300 bg-opacity-75" />
+            <div className="fixed inset-0 bg-opacity-75 bg-gray-300" />
           </Transition.Child>
 
           <div className="fixed inset-0 z-40 flex">
@@ -43,7 +43,7 @@ export default function Sidebar(props: SidebarProps) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-violet-300 pb-4 pt-5">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col pb-4 pt-5 bg-violet-300">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -94,7 +94,7 @@ export default function Sidebar(props: SidebarProps) {
       {/* Static sidebar for desktop */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-gray-200">
-          <div className="relative flex h-16 flex-shrink-0 items-center bg-violet-400 px-4 pt-2">
+          <div className="relative flex h-16 flex-shrink-0 items-center px-4 pt-2 bg-violet-400">
             <Link to="/">
               <img
                 src={logoLight}

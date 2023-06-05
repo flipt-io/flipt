@@ -66,9 +66,9 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
       }}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
           <div className="flex-1">
-            <div className="bg-gray-50 px-4 py-6 sm:px-6">
+            <div className="px-4 py-6 bg-gray-50 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
                   <Dialog.Title className="text-lg font-medium text-gray-900">
@@ -142,7 +142,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+          <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
                 onClick={() => {

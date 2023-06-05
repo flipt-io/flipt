@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { selectTimezone } from '~/app/preferences/preferencesSlice';
 import Button from '~/components/forms/Button';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
@@ -16,7 +17,6 @@ import MoreInfo from '~/components/MoreInfo';
 import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { useTimezone } from '~/data/hooks/timezone';
 import { requiredValidation } from '~/data/validations';
 import {
   ComparisonType,
@@ -28,7 +28,7 @@ import {
   IConstraintBase,
   NoValueOperators
 } from '~/types/Constraint';
-import { TimezoneType } from '~/types/Preferences';
+import { Timezone } from '~/types/Preferences';
 
 const constraintComparisonTypes = () =>
   (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(
@@ -82,7 +82,7 @@ function ConstraintOperatorSelect(props: ConstraintOperatorSelectProps) {
       className="mt-1"
       {...field}
       {...props}
-      handleChange={(e) => {
+      onChange={(e) => {
         setFieldValue(field.name, e.target.value);
         onChange(e);
       }}
@@ -119,7 +119,7 @@ function ConstraintValueInput(props: ConstraintInputProps) {
 
 function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   const { setFieldValue } = useFormikContext();
-  const { timezone } = useTimezone();
+  const timezone = useSelector(selectTimezone);
 
   const [field] = useField({
     ...props,
@@ -140,7 +140,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       fieldTime &&
       fieldTime.trim() !== ''
     ) {
-      if (timezone === TimezoneType.LOCAL) {
+      if (timezone === Timezone.LOCAL) {
         // if local timezone, then parse as local (moment default) and convert to UTC
         const m = moment(`${fieldDate}T${fieldTime}`);
         setFieldValue(field.name, m.utc().format());
@@ -199,7 +199,7 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
           id="valueTime"
           name="valueTime"
           value={
-            timezone === TimezoneType.LOCAL
+            timezone === Timezone.LOCAL
               ? moment(fieldTime, 'HH:mm Z').format('HH:mm')
               : moment.utc(fieldTime, 'HH:mm Z').format('HH:mm')
           }
@@ -277,9 +277,9 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
       })}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
+        <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
           <div className="flex-1">
-            <div className="bg-gray-50 px-4 py-6 sm:px-6">
+            <div className="px-4 py-6 bg-gray-50 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
                   <Dialog.Title className="text-lg font-medium text-gray-900">
@@ -333,7 +333,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     className="mt-1"
                     value={formik.values.type}
                     options={constraintComparisonTypes()}
-                    handleChange={(e) => {
+                    onChange={(e) => {
                       const type = e.target.value as ComparisonType;
                       formik.setFieldValue('type', type);
                       setType(type);
@@ -397,7 +397,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
+          <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
                 onClick={() => {

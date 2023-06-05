@@ -20,7 +20,7 @@ export default function EmptyState(props: EmptyStateProps) {
 
   return (
     <button
-      className={`${className} relative block h-full w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none`}
+      className={`${className} relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center border-gray-300 hover:border-gray-400 focus:outline-none`}
       disabled={!onClick}
       onClick={onClick}
     >

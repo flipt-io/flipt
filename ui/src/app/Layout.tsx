@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import { NotificationProvider } from '~/components/NotificationProvider';
 import ErrorNotification from '~/components/notifications/ErrorNotification';
 import SuccessNotification from '~/components/notifications/SuccessNotification';
-import PreferencesProvider from '~/components/PreferencesProvider';
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
@@ -16,7 +15,10 @@ function InnerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
-  dispatch(fetchNamespacesAsync());
+
+  useEffect(() => {
+    dispatch(fetchNamespacesAsync());
+  }, [dispatch]);
 
   if (!session) {
     return <Navigate to="/login" />;
@@ -42,9 +44,7 @@ function InnerLayout() {
 export default function Layout() {
   return (
     <NotificationProvider>
-      <PreferencesProvider>
-        <InnerLayout />
-      </PreferencesProvider>
+      <InnerLayout />
       <ErrorNotification />
       <SuccessNotification />
     </NotificationProvider>

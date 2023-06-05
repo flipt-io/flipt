@@ -22,13 +22,13 @@ Read more about the reasoning behind the choice of React/TypeScript on our [blog
 
 1. **App**: These files contain the 'pages for the application. This folder is further divided into subfolders for each page. The `App.tsx` file is the entry point for the application. It contains the routes for the application and the top-level components that are rendered on each page.
 
-    We use [React Router](https://reactrouter.com/web/guides/quick-start) for routing. [HashRouter](https://reactrouter.com/web/api/HashRouter) is used for client-side routing to maintain backward compatability with the previous version of the UI.
+   We use [React Router](https://reactrouter.com/web/guides/quick-start) for routing. [HashRouter](https://reactrouter.com/web/api/HashRouter) is used for client-side routing to maintain backward compatability with the previous version of the UI.
 
 2. **Components**: These are reusable pieces of code that return a React element to be rendered to the page. The components for this application are located in the `components` directory. This directory is further divided into subdirectories which roughly correspond to the pages of the application. For example, the `namespaces` directory contains components that are used on the Namespaces page.
 
 3. **State**: Redux is used for global state management in the application. The `store.ts` file is where the Redux store is configured. This store is the single source of truth for global state data in the application (ie: `namespacesSlice.ts` contains the Redux slice for managing the namespaces state).
 
-    Most other state in the application is managed locally by React components via the `useState` hook and the [`Context`](https://react.dev/learn/passing-data-deeply-with-context) API.
+   Most other state in the application is managed locally by React components via the `useState` hook and the [`Context`](https://react.dev/learn/passing-data-deeply-with-context) API.
 
 4. **Data**: This folder contains `api.ts` which is our thin wrapper around the [Flipt REST API](https://www.flipt.io/docs/reference/overview). It also contains [custom `hooks/`](https://react.dev/learn/reusing-logic-with-custom-hooks#extracting-your-own-custom-hook-from-a-component) and other 'data' related functionality such as `validations.ts` for Yup validation.
 

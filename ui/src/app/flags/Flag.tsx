@@ -104,7 +104,7 @@ export default function Flag() {
         <div className="flex flex-none">
           <button
             type="button"
-            className="mb-1 mt-5 inline-flex items-center justify-center rounded-md border border-red-200 px-4 py-2 text-sm font-medium text-red-400 focus:outline-none enabled:hover:bg-red-50 sm:mt-0"
+            className="mb-1 mt-5 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium text-red-400 border-red-200 focus:outline-none enabled:hover:bg-red-50 sm:mt-0"
             onClick={() => setShowDeleteFlagModal(true)}
           >
             Delete

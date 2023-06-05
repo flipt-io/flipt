@@ -47,7 +47,7 @@ function NavItem(props: NavItemProps) {
       className={({ isActive }) =>
         classNames(
           isActive
-            ? 'bg-violet-100 text-gray-600 md:bg-gray-50'
+            ? 'text-gray-600 bg-violet-100 md:bg-gray-50'
             : 'text-white hover:bg-violet-400 md:text-gray-600 md:hover:bg-gray-50',
           'group flex items-center rounded-md px-2 py-2 text-sm font-medium'
         )
