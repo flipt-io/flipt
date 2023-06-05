@@ -9,17 +9,23 @@ export interface IInfo {
   isRelease: boolean;
 }
 
-export interface IDb {
-  url: string;
+export interface IStorage {
+  type: StorageType;
 }
 
-export interface IAuthentication {
-  required?: boolean;
-}
+// export interface IAuthentication {
+//   required?: boolean;
+// }
 
 export interface IConfig {
-  db: IDb;
-  authentication: IAuthentication;
+  storage: IStorage;
+  //authentication: IAuthentication;
+}
+
+export enum StorageType {
+  DATABASE = 'database',
+  GIT = 'git',
+  LOCAL = 'local'
 }
 
 export enum LoadingStatus {

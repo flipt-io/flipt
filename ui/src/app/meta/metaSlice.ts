@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getConfig, getInfo } from '~/data/api';
-import { IConfig, IInfo } from '~/types/Meta';
+import { IConfig, IInfo, StorageType } from '~/types/Meta';
 
 interface IMetaSlice {
   info: IInfo;
@@ -21,11 +21,8 @@ const initialState: IMetaSlice = {
     isRelease: false
   },
   config: {
-    db: {
-      url: ''
-    },
-    authentication: {
-      required: false
+    storage: {
+      type: StorageType.DATABASE
     }
   },
   readonly: false
@@ -34,14 +31,7 @@ const initialState: IMetaSlice = {
 export const metaSlice = createSlice({
   name: 'meta',
   initialState,
-  reducers: {
-    setInfo: (state, action) => {
-      state.info = action.payload;
-    },
-    setReadonly: (state, action) => {
-      state.readonly = action.payload;
-    }
-  },
+  reducers: {},
   extraReducers(builder) {
     builder
       .addCase(fetchInfoAsync.fulfilled, (state, action) => {
@@ -49,11 +39,10 @@ export const metaSlice = createSlice({
       })
       .addCase(fetchConfigAsync.fulfilled, (state, action) => {
         state.config = action.payload;
+        state.readonly = action.payload.storage.type !== StorageType.DATABASE;
       });
   }
 });
-
-export const { setInfo } = metaSlice.actions;
 
 export const selectInfo = (state: { meta: IMetaSlice }) => state.meta.info;
 export const selectReadonly = (state: { meta: IMetaSlice }) =>
