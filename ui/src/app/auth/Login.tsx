@@ -104,7 +104,7 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col justify-center sm:px-6 lg:px-8">
+      <div className="flex min-h-screen flex-col justify-center bg-white sm:px-6 lg:px-8">
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -127,7 +127,7 @@ export default function Login() {
                       <div key={provider.name}>
                         <a
                           href="#"
-                          className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:text-violet-500 hover:shadow-violet-300"
+                          className="inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm bg-white text-gray-500 border-gray-300 hover:shadow-violet-300 hover:text-violet-500"
                           onClick={(e) => {
                             e.preventDefault();
                             authorize(provider.authorize_url);
@@ -148,7 +148,7 @@ export default function Login() {
                   </div>
                 )}
                 {(!providers || providers.length === 0) && (
-                  <div className="bg-white shadow sm:rounded-lg">
+                  <div className="shadow bg-white sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
                       <h3 className="text-base font-semibold leading-6 text-gray-900">
                         No Providers
@@ -166,7 +166,7 @@ export default function Login() {
                           href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
                           className="font-semibold text-violet-600 hover:text-violet-500"
                         >
-                          Configuring authentication
+                          Configuring Authentication
                           <span aria-hidden="true"> &rarr;</span>
                         </a>
                       </div>

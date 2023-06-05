@@ -72,8 +72,8 @@ export default function FlagTable(props: FlagTableProps) {
         <span
           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold leading-5 ${
             info.getValue()
-              ? 'bg-green-100 text-green-600'
-              : 'bg-gray-100 text-gray-500'
+              ? 'text-green-600 bg-green-100'
+              : 'text-gray-500 bg-gray-100'
           }`}
         >
           {info.getValue() ? 'Enabled' : 'Disabled'}

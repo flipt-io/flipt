@@ -74,13 +74,13 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
                 >
                   <CheckIcon
                     className={classNames(
-                      'absolute m-auto h-6 w-6 justify-center align-middle text-green-400 transition-opacity duration-300 ease-in-out hover:text-white',
+                      'absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out text-green-400 hover:text-white',
                       copied ? 'visible opacity-100' : 'invisible opacity-0'
                     )}
                   />
                   <ClipboardDocumentIcon
                     className={classNames(
-                      'm-auto h-6 w-6 justify-center align-middle text-gray-400 transition-opacity duration-300 ease-in-out hover:text-white',
+                      'm-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out text-gray-400 hover:text-white',
                       copied ? 'invisible opacity-0' : 'visible opacity-100'
                     )}
                   />

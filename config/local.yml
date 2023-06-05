@@ -4,6 +4,9 @@
 log:
   level: DEBUG
 
+# authentication:
+#   required: false
+
 # ui:
 #   enabled: true
 

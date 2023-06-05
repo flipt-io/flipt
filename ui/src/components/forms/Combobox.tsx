@@ -57,7 +57,7 @@ export default function Combobox<T extends ISelectable>(
       <div className="relative flex w-full flex-row">
         <C.Input
           id={id}
-          className="w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm"
+          className="w-full rounded-md border py-2 pl-3 pr-10 shadow-sm border-gray-300 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
           }}
@@ -75,7 +75,7 @@ export default function Combobox<T extends ISelectable>(
         </C.Button>
       </div>
       <C.Options
-        className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+        className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 bg-white focus:outline-none sm:text-sm"
         id={`${id}-select-options`}
       >
         {filteredValues &&

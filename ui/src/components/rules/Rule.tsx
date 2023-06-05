@@ -27,7 +27,7 @@ const Rule = forwardRef(
       key={rule.id}
       ref={ref}
       style={style}
-      className={`${className} flex rounded-md border border-gray-200 bg-white p-6 hover:border-violet-200 hover:shadow hover:shadow-violet-100`}
+      className={`${className} flex rounded-md border p-6 bg-white border-gray-200 hover:shadow hover:shadow-violet-100 hover:border-violet-200`}
     >
       <div
         className="flex items-center justify-start text-center hover:cursor-move"
