@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	iofs "io/fs"
 	"path"
 	"sort"
 	"strconv"
@@ -116,7 +115,7 @@ func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
 	return &s, nil
 }
 
-func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
+func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// This is the default variable + value for the FliptIndex. It will preserve its value if
 	// a .flipt.yml can not be read for whatever reason.
 	idx := FliptIndex{
@@ -135,7 +134,7 @@ func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
 	}
 
 	if err != nil {
-		if !errors.Is(err, iofs.ErrNotExist) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return nil, err
 		} else {
 			logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
@@ -145,7 +144,7 @@ func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
 	filenames := make([]string, 0)
 
 	for _, g := range idx.Inclusions {
-		f, err := iofs.Glob(source, g)
+		f, err := fs.Glob(source, g)
 		if err != nil {
 			return nil, fmt.Errorf("glob %q: %w", g, err)
 		}

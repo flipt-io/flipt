@@ -154,6 +154,6 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- fs.FS) {
 }
 
 // String returns an identifier string for the store type.
-func (l *Source) String() string {
+func (*Source) String() string {
 	return "git"
 }

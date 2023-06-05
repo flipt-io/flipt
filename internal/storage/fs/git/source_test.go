@@ -13,7 +13,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
-	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -105,7 +104,8 @@ func Test_SourceSubscribe(t *testing.T) {
 flags:
     - key: foo`)
 
-	fi.Write(updated)
+	_, err = fi.Write(updated)
+	require.NoError(t, err)
 	require.NoError(t, fi.Close())
 
 	// commit changes
@@ -117,7 +117,7 @@ flags:
 
 	// push new commit
 	require.NoError(t, repo.Push(&git.PushOptions{
-		Auth:       &githttp.BasicAuth{Username: "root", Password: "password"},
+		Auth:       &http.BasicAuth{Username: "root", Password: "password"},
 		RemoteName: "origin",
 	}))
 
@@ -154,7 +154,7 @@ func testSource(t *testing.T, opts ...containers.Option[Source]) (*Source, bool)
 		append([]containers.Option[Source]{
 			WithRef("main"),
 			WithPollInterval(5 * time.Second),
-			WithAuth(&githttp.BasicAuth{
+			WithAuth(&http.BasicAuth{
 				Username: "root",
 				Password: "password",
 			}),
