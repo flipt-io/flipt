@@ -33,14 +33,21 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		return err
 	}
 
-	_, err = flipt.
+	flipt, err = flipt.
 		WithServiceBinding("redis", redisSrv).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
 		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
 		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
-		WithExec([]string{"go", "test", "-race", "-p", "1", "-v", "./..."}).
-		ExitCode(ctx)
-	return err
+		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
+		Sync(ctx)
+	if err != nil {
+		return err
+	}
+
+	// attempt to export coverage if its exists
+	_, _ = flipt.File("coverage.txt").Export(ctx, "coverage.txt")
+
+	return nil
 }
 
 var All = map[string]Wrapper{
