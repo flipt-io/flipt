@@ -63,7 +63,7 @@ func WithAuth(auth transport.AuthMethod) containers.Option[Source] {
 	}
 }
 
-// NewSource constructs and configure a Source.
+// NewSource constructs and configures a Source.
 // The source uses the connection and credential details provided to build
 // fs.FS implementations around a target git repository.
 func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]) (_ *Source, err error) {
