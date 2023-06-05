@@ -1,27 +1,18 @@
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
-import { getInfo } from '~/data/api';
+import { useSelector } from 'react-redux';
+import { selectInfo } from '~/app/meta/metaSlice';
 import { useSession } from '~/data/hooks/session';
-import { Info } from '~/types/Meta';
 import Notifications from './header/Notifications';
 import UserProfile from './header/UserProfile';
+
 type HeaderProps = {
   setSidebarOpen: (sidebarOpen: boolean) => void;
 };
 
 export default function Header(props: HeaderProps) {
   const { setSidebarOpen } = props;
-  const [info, setInfo] = useState<Info | null>(null);
 
-  useEffect(() => {
-    getInfo()
-      .then((info: Info) => {
-        setInfo(info);
-      })
-      .catch(() => {
-        // nothing to do, component will degrade gracefully
-      });
-  }, []);
+  const info = useSelector(selectInfo);
 
   const { session } = useSession();
 

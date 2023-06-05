@@ -1,4 +1,4 @@
-export interface Info {
+export interface IInfo {
   version: string;
   latestVersion?: string;
   latestVersionURL?: string;
@@ -7,6 +7,19 @@ export interface Info {
   goVersion: string;
   updateAvailable: boolean;
   isRelease: boolean;
+}
+
+export interface IDb {
+  url: string;
+}
+
+export interface IAuthentication {
+  required?: boolean;
+}
+
+export interface IConfig {
+  db: IDb;
+  authentication: IAuthentication;
 }
 
 export enum LoadingStatus {
