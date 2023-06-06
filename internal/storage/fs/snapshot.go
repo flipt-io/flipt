@@ -377,7 +377,9 @@ func (ss *storeSnapshot) ListRules(ctx context.Context, namespaceKey string, fla
 
 	rules := make([]*flipt.Rule, 0, len(ns.rules))
 	for _, rule := range ns.rules {
-		rules = append(rules, rule)
+		if rule.FlagKey == flagKey {
+			rules = append(rules, rule)
+		}
 	}
 
 	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {

@@ -110,6 +110,56 @@ func TestReadOnly(t *testing.T) {
 			})
 		})
 
+		t.Run("ListRules", func(t *testing.T) {
+			rules, err := sdk.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_001",
+			})
+			require.NoError(t, err)
+			require.Len(t, rules.Rules, 50, "unexpected number of rules returned")
+
+			rule := rules.Rules[0]
+			assert.Equal(t, namespace, rule.NamespaceKey)
+			assert.Equal(t, "flag_001", rule.FlagKey)
+			assert.Equal(t, "segment_001", rule.SegmentKey)
+			assert.NotEmpty(t, rule.Id)
+			assert.Equal(t, int32(1), rule.Rank)
+
+			require.Len(t, rule.Distributions, 2)
+
+			assert.NotEmpty(t, rule.Distributions[0].Id)
+			assert.Equal(t, float32(50.0), rule.Distributions[0].Rollout)
+			assert.NotEmpty(t, rule.Distributions[1].Id)
+			assert.Equal(t, float32(50.0), rule.Distributions[1].Rollout)
+
+			t.Run("Paginated (page size 10)", func(t *testing.T) {
+				var (
+					found    []*flipt.Rule
+					nextPage string
+				)
+				for {
+					rules, err := sdk.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_001",
+						Limit:        10,
+						PageToken:    nextPage,
+					})
+					require.NoError(t, err)
+
+					found = append(found, rules.Rules...)
+
+					if rules.NextPageToken == "" {
+						break
+					}
+
+					nextPage = rules.NextPageToken
+				}
+
+				require.Len(t, found, 50)
+				assert.Equal(t, rules.Rules, found)
+			})
+		})
+
 		t.Run("Evaluate", func(t *testing.T) {
 			response, err := sdk.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
 				NamespaceKey: namespace,
