@@ -96,3 +96,48 @@ test.describe('Flags', () => {
     });
   });
 });
+
+test.describe('Flags - Read Only', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route(/\/meta\/config/, async (route) => {
+      const response = await route.fetch();
+      const json = await response.json();
+      json.storage = { type: 'git' };
+      // Fulfill using the original response, while patching the
+      // response body with our changes to mock git storage for read only mode
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Flags' }).click();
+  });
+
+  test('can not create flag', async ({ page }) => {
+    await expect(page.getByRole('button', { name: 'New Flag' })).toBeDisabled();
+  });
+
+  test('can not update flag', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByLabel('Description').click();
+    await page.getByLabel('Description').fill('Test flag description 2');
+    await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
+  });
+
+  test('can not add variants to flag', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+
+    await expect(
+      page.getByRole('button', { name: 'New Variant' })
+    ).toBeDisabled();
+  });
+
+  test('can not edit variant description', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await expect(page.getByRole('link', { name: 'Edit ,chrome' })).toBeHidden();
+  });
+
+  test('can not delete flag', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeDisabled();
+  });
+});
