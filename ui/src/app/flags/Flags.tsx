@@ -65,6 +65,7 @@ export default function Flags() {
         ) : (
           <EmptyState
             text="Create Flag"
+            disabled={readOnly}
             onClick={() => navigate(`${path}/new`)}
           />
         )}

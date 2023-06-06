@@ -33,7 +33,7 @@ export default function Header(props: HeaderProps) {
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
           {/* read-only mode */}
           {readOnly && (
-            <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100">
+            <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-purple-900 bg-purple-100">
               Read-Only
             </span>
           )}

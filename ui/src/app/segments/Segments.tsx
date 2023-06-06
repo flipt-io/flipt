@@ -66,6 +66,7 @@ export default function Segments() {
         ) : (
           <EmptyState
             text="Create Segment"
+            disabled={readOnly}
             onClick={() => navigate(`${path}/new`)}
           />
         )}

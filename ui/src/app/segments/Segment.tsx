@@ -340,6 +340,7 @@ export default function Segment() {
               ) : (
                 <EmptyState
                   text="New Constraint"
+                  disabled={readOnly}
                   onClick={() => {
                     setEditingConstraint(null);
                     setShowConstraintForm(true);
