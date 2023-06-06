@@ -161,6 +161,41 @@ func TestReadOnly(t *testing.T) {
 			})
 		})
 
+		t.Run("GetRule", func(t *testing.T) {
+			_, err := sdk.Flipt().GetRule(ctx, &flipt.GetRuleRequest{
+				NamespaceKey: namespace,
+				Id:           "notfound",
+			})
+			require.Error(t, err, "not found")
+
+			rules, err := sdk.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_001",
+				Limit:        1,
+			})
+			require.NoError(t, err)
+
+			rule, err := sdk.Flipt().GetRule(ctx, &flipt.GetRuleRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_001",
+				Id:           rules.Rules[0].Id,
+			})
+			require.NoError(t, err)
+
+			assert.Equal(t, namespace, rule.NamespaceKey)
+			assert.Equal(t, "flag_001", rule.FlagKey)
+			assert.Equal(t, "segment_001", rule.SegmentKey)
+			assert.NotEmpty(t, rule.Id)
+			assert.Equal(t, int32(1), rule.Rank)
+
+			require.Len(t, rule.Distributions, 2)
+
+			assert.NotEmpty(t, rule.Distributions[0].Id)
+			assert.Equal(t, float32(50.0), rule.Distributions[0].Rollout)
+			assert.NotEmpty(t, rule.Distributions[1].Id)
+			assert.Equal(t, float32(50.0), rule.Distributions[1].Rollout)
+		})
+
 		t.Run("ListRules", func(t *testing.T) {
 			rules, err := sdk.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
 				NamespaceKey: namespace,
