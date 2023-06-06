@@ -36,7 +36,6 @@ func TestReadOnly(t *testing.T) {
 				NamespaceKey: namespace,
 			})
 			require.NoError(t, err)
-
 			require.Len(t, flags.Flags, 50)
 
 			flag := flags.Flags[0]
@@ -50,8 +49,32 @@ func TestReadOnly(t *testing.T) {
 
 			assert.Equal(t, "variant_001", flag.Variants[0].Key)
 			assert.Equal(t, "variant_002", flag.Variants[1].Key)
+
+			t.Run("Paginated (page size 10)", func(t *testing.T) {
+				var (
+					found    []*flipt.Flag
+					nextPage string
+				)
+				for {
+					flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+						NamespaceKey: namespace,
+						Limit:        10,
+						PageToken:    nextPage,
+					})
+					require.NoError(t, err)
+
+					found = append(found, flags.Flags...)
+
+					if flags.NextPageToken == "" {
+						break
+					}
+
+					nextPage = flags.NextPageToken
+				}
+
+				require.Len(t, found, 50)
+			})
 		})
-		require.NoError(t, err)
 
 		t.Run("ListSegments", func(t *testing.T) {
 			segments, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
@@ -60,6 +83,31 @@ func TestReadOnly(t *testing.T) {
 
 			require.NoError(t, err)
 			require.Len(t, segments.Segments, 50)
+
+			t.Run("Paginated (page size 10)", func(t *testing.T) {
+				var (
+					found    []*flipt.Segment
+					nextPage string
+				)
+				for {
+					segments, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
+						NamespaceKey: namespace,
+						Limit:        10,
+						PageToken:    nextPage,
+					})
+					require.NoError(t, err)
+
+					found = append(found, segments.Segments...)
+
+					if segments.NextPageToken == "" {
+						break
+					}
+
+					nextPage = segments.NextPageToken
+				}
+
+				require.Len(t, found, 50)
+			})
 		})
 
 		t.Run("Evaluate", func(t *testing.T) {
