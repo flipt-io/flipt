@@ -33,7 +33,14 @@ export default function Header(props: HeaderProps) {
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
           {/* read-only mode */}
           {readOnly && (
-            <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-purple-900 bg-purple-100">
+            <span className="nightwind-prevent inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium text-violet-950 bg-violet-200">
+              <svg
+                className="h-1.5 w-1.5 fill-orange-400"
+                viewBox="0 0 6 6"
+                aria-hidden="true"
+              >
+                <circle cx={3} cy={3} r={3} />
+              </svg>
               Read-Only
             </span>
           )}
