@@ -55,13 +55,11 @@ type QueryParams struct {
 
 // Normalize adjusts query parameters within the enforced boundaries.
 // For example, limit is adjusted to be in the range (0, max].
+// Given the limit is not supplied (0) it is set to the default limit.
 func (q *QueryParams) Normalize() {
-	// NOTE: currently we dont support pagination by default
-	// when limit is not supplied. This means we default to
-	// 0 limit, meaning infinite page size.
-	//if q.Limit == 0 {
-	//	q.Limit = DefaultListLimit
-	//}
+	if q.Limit == 0 {
+		q.Limit = DefaultListLimit
+	}
 
 	if q.Limit > MaxListLimit {
 		q.Limit = MaxListLimit
@@ -75,7 +73,12 @@ func NewQueryParams(opts ...QueryOption) (params QueryParams) {
 		opt(&params)
 	}
 
-	params.Normalize()
+	// NOTE(georgemac): I wanted to normalize under all circumstances
+	// However, for legacy reasons the core flag state APIs expect
+	// the default limit to be == 0. Normalize sets it to the default
+	// constant which is > 0.
+	// If we ever break this contract then we can normalize here.
+	// params.Normalize()
 
 	return params
 }
