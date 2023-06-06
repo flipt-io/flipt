@@ -17,7 +17,7 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			WithExec(nil)).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080").
-		WithExec([]string{"npx", "playwright", "test"})
+		WithExec([]string{"npx", "playwright", "test", "base/"})
 	_, err := test.ExitCode(ctx)
 	if err != nil {
 		return err
