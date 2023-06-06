@@ -14,6 +14,11 @@ type AuditConfig struct {
 	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
 }
 
+// Enabled returns true if any nested sink is enabled
+func (c *AuditConfig) Enabled() bool {
+	return c.Sinks.LogFile.Enabled
+}
+
 func (c *AuditConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
