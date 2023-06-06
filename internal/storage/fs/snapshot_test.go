@@ -183,19 +183,19 @@ func (fis *FSIndexSuite) TestGetNamespace() {
 		fliptNs      *flipt.Namespace
 	}{
 		{
-			name:         "Production",
+			name:         "production",
 			namespaceKey: "production",
 			fliptNs: &flipt.Namespace{
 				Key:  "production",
-				Name: "Production",
+				Name: "production",
 			},
 		},
 		{
-			name:         "Sandbox",
+			name:         "sandbox",
 			namespaceKey: "sandbox",
 			fliptNs: &flipt.Namespace{
 				Key:  "sandbox",
-				Name: "Sandbox",
+				Name: "sandbox",
 			},
 		},
 	}
@@ -786,27 +786,27 @@ func (fis *FSWithoutIndexSuite) TestGetNamespace() {
 		fliptNs      *flipt.Namespace
 	}{
 		{
-			name:         "Production",
+			name:         "production",
 			namespaceKey: "production",
 			fliptNs: &flipt.Namespace{
 				Key:  "production",
-				Name: "Production",
+				Name: "production",
 			},
 		},
 		{
-			name:         "Sandbox",
+			name:         "sandbox",
 			namespaceKey: "sandbox",
 			fliptNs: &flipt.Namespace{
 				Key:  "sandbox",
-				Name: "Sandbox",
+				Name: "sandbox",
 			},
 		},
 		{
-			name:         "Staging",
+			name:         "staging",
 			namespaceKey: "staging",
 			fliptNs: &flipt.Namespace{
 				Key:  "staging",
-				Name: "Staging",
+				Name: "staging",
 			},
 		},
 	}
