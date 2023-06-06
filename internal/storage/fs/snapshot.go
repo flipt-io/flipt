@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	iofs "io/fs"
-	"path"
+	"io/fs"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/gobwas/glob"
 	"github.com/gofrs/uuid"
 	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
@@ -62,6 +62,31 @@ func newNamespace(key string) *namespace {
 	}
 }
 
+// snapshotFromFS is a convenience function for building a snapshot
+// directly from an implementation of fs.FS using the list state files
+// function to source the relevant Flipt configuration files.
+func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
+	files, err := listStateFiles(logger, fs)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug("opening state files", zap.Strings("paths", files))
+
+	var rds []io.Reader
+	for _, file := range files {
+		fi, err := fs.Open(file)
+		if err != nil {
+			return nil, err
+		}
+
+		defer fi.Close()
+		rds = append(rds, fi)
+	}
+
+	return snapshotFromReaders(rds...)
+}
+
 // snapshotFromReaders constructs a storeSnapshot from the provided
 // slice of io.Reader.
 func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
@@ -92,13 +117,13 @@ func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
 	return &s, nil
 }
 
-func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
+func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// This is the default variable + value for the FliptIndex. It will preserve its value if
 	// a .flipt.yml can not be read for whatever reason.
 	idx := FliptIndex{
 		Version: "1.0",
 		Inclusions: []string{
-			"**/features.yml", "**/features.yaml", "**/*.features.yml", "**/*.features.yaml",
+			"**features.yml", "**features.yaml", "**.features.yml", "**.features.yaml",
 		},
 	}
 
@@ -111,29 +136,60 @@ func listStateFiles(logger *zap.Logger, source iofs.FS) ([]string, error) {
 	}
 
 	if err != nil {
-		if !errors.Is(err, iofs.ErrNotExist) {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return nil, err
 		} else {
 			logger.Debug("index file does not exist, defaulting...", zap.String("file", indexFile), zap.Error(err))
 		}
 	}
 
-	filenames := make([]string, 0)
-
+	var includes []glob.Glob
 	for _, g := range idx.Inclusions {
-		f, err := iofs.Glob(source, g)
+		glob, err := glob.Compile(g)
 		if err != nil {
-			return nil, fmt.Errorf("glob %q: %w", g, err)
+			return nil, fmt.Errorf("compiling include glob: %w", err)
 		}
 
-		filenames = append(filenames, f...)
+		includes = append(includes, glob)
+	}
+
+	filenames := make([]string, 0)
+	if err := fs.WalkDir(source, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		for _, glob := range includes {
+			if glob.Match(path) {
+				filenames = append(filenames, path)
+				return nil
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	if len(idx.Exclusions) > 0 {
+		var excludes []glob.Glob
+		for _, g := range idx.Exclusions {
+			glob, err := glob.Compile(g)
+			if err != nil {
+				return nil, fmt.Errorf("compiling include glob: %w", err)
+			}
+
+			excludes = append(excludes, glob)
+		}
+
 	OUTER:
 		for i := range filenames {
-			for _, e := range idx.Exclusions {
-				if match, _ := path.Match(e, filenames[i]); match {
+			for _, glob := range excludes {
+				if glob.Match(filenames[i]) {
 					filenames = append(filenames[:i], filenames[i+1:]...)
 					continue OUTER
 				}

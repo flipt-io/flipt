@@ -28,8 +28,8 @@ type FS struct {
 
 // New instantiates and instance of storage which retrieves files from
 // the provided storage.Storer implementation and instance of *object.Tree.
-func New(storage storage.Storer, tree *object.Tree) FS {
-	return FS{zap.NewNop(), storage, tree}
+func New(logger *zap.Logger, storage storage.Storer, tree *object.Tree) FS {
+	return FS{logger, storage, tree}
 }
 
 // Options configures call to NewFromRepo.
@@ -48,7 +48,7 @@ func WithReference(ref plumbing.ReferenceName) containers.Option[Options] {
 // from the provided git repository.
 // By default the returned FS serves the content from the root tree
 // for the commit at reference HEAD.
-func NewFromRepo(repo *git.Repository, opts ...containers.Option[Options]) (FS, error) {
+func NewFromRepo(logger *zap.Logger, repo *git.Repository, opts ...containers.Option[Options]) (FS, error) {
 	o := Options{ref: plumbing.HEAD}
 	containers.ApplyAll(&o, opts...)
 
@@ -57,12 +57,18 @@ func NewFromRepo(repo *git.Repository, opts ...containers.Option[Options]) (FS, 
 		return FS{}, fmt.Errorf("resolving reference (%q): %w", o.ref, err)
 	}
 
-	return NewFromRepoHash(repo, ref.Hash())
+	return NewFromRepoHash(logger, repo, ref.Hash())
+}
+
+// NewFromRepoHash is a convenience utility which constructs an instance of FS
+// from the provided git repository and hash string.
+func NewFromRepoHashString(logger *zap.Logger, repo *git.Repository, hash string) (FS, error) {
+	return NewFromRepoHash(logger, repo, plumbing.NewHash(hash))
 }
 
 // NewFromRepoHash is a convenience utility which constructs an instance of FS
 // from the provided git repository and hash.
-func NewFromRepoHash(repo *git.Repository, hash plumbing.Hash) (FS, error) {
+func NewFromRepoHash(logger *zap.Logger, repo *git.Repository, hash plumbing.Hash) (FS, error) {
 	commit, err := repo.CommitObject(hash)
 	if err != nil {
 		return FS{}, fmt.Errorf("fetching commit (%q): %w", hash, err)
@@ -73,7 +79,7 @@ func NewFromRepoHash(repo *git.Repository, hash plumbing.Hash) (FS, error) {
 		return FS{}, fmt.Errorf("retrieving root tree (%q): %w", commit.TreeHash, err)
 	}
 
-	return New(repo.Storer, tree), nil
+	return New(logger.With(zap.Stringer("SHA", hash)), repo.Storer, tree), nil
 }
 
 // Open opens the named file.
@@ -90,6 +96,8 @@ func (f FS) Open(name string) (_ fs.File, err error) {
 			err = opPathError("Open", name)(err)
 		}
 	}()
+
+	f.logger.Debug("open", zap.String("path", name))
 
 	if !fs.ValidPath(name) {
 		return nil, fs.ErrInvalid

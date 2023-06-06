@@ -529,10 +529,10 @@ func TestFSWithoutIndex(t *testing.T) {
 	expected := []string{
 		"prod/prod.features.yaml",
 		"prod/features.yml",
-		"sandbox/sandbox.features.yml",
-		"sandbox/features.yaml",
 		"staging/staging.features.yaml",
 		"staging/features.yml",
+		"staging/sandbox/sandbox.features.yml",
+		"staging/sandbox/features.yaml",
 	}
 	assert.Len(t, filenames, 6)
 	assert.ElementsMatch(t, filenames, expected)
