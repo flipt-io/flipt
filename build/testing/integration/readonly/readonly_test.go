@@ -31,6 +31,30 @@ func TestReadOnly(t *testing.T) {
 		assert.Equal(t, expected, ns.Name)
 		require.NoError(t, err)
 
+		t.Run("GetFlag", func(t *testing.T) {
+			_, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+				NamespaceKey: namespace,
+				Key:          "flag_999",
+			})
+			require.Error(t, err, "not found")
+
+			flag, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
+				NamespaceKey: namespace,
+				Key:          "flag_013",
+			})
+			require.NoError(t, err)
+
+			assert.Equal(t, namespace, flag.NamespaceKey)
+			assert.Equal(t, "flag_013", flag.Key)
+			assert.Equal(t, "FLAG_013", flag.Name)
+			assert.Equal(t, "Some Description", flag.Description)
+			assert.True(t, flag.Enabled)
+
+			require.Len(t, flag.Variants, 2)
+			assert.Equal(t, "variant_001", flag.Variants[0].Key)
+			assert.Equal(t, "variant_002", flag.Variants[1].Key)
+		})
+
 		t.Run("ListFlags", func(t *testing.T) {
 			flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 				NamespaceKey: namespace,
@@ -46,7 +70,6 @@ func TestReadOnly(t *testing.T) {
 			assert.True(t, flag.Enabled)
 
 			require.Len(t, flag.Variants, 2)
-
 			assert.Equal(t, "variant_001", flag.Variants[0].Key)
 			assert.Equal(t, "variant_002", flag.Variants[1].Key)
 
@@ -74,6 +97,34 @@ func TestReadOnly(t *testing.T) {
 
 				require.Len(t, found, 50)
 			})
+		})
+
+		t.Run("GetSegment", func(t *testing.T) {
+			_, err := sdk.Flipt().GetSegment(ctx, &flipt.GetSegmentRequest{
+				NamespaceKey: namespace,
+				Key:          "segment_999",
+			})
+			require.Error(t, err, "not found")
+
+			segment, err := sdk.Flipt().GetSegment(ctx, &flipt.GetSegmentRequest{
+				NamespaceKey: namespace,
+				Key:          "segment_013",
+			})
+			require.NoError(t, err)
+
+			assert.Equal(t, namespace, segment.NamespaceKey)
+			assert.Equal(t, "segment_013", segment.Key)
+			assert.Equal(t, "SEGMENT_013", segment.Name)
+			assert.Equal(t, "Some Segment Description", segment.Description)
+
+			assert.Len(t, segment.Constraints, 2)
+			for _, constraint := range segment.Constraints {
+				assert.NotEmpty(t, constraint.Id)
+				assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
+				assert.Equal(t, "in_segment", constraint.Property)
+				assert.Equal(t, "eq", constraint.Operator)
+				assert.Equal(t, "segment_013", constraint.Value)
+			}
 		})
 
 		t.Run("ListSegments", func(t *testing.T) {
@@ -174,6 +225,38 @@ func TestReadOnly(t *testing.T) {
 			assert.Equal(t, true, response.Match)
 			assert.Equal(t, "variant_002", response.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
+		})
+
+		t.Run("BatchEvaluate", func(t *testing.T) {
+			response, err := sdk.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
+				Requests: []*flipt.EvaluationRequest{
+					{
+						FlagKey:  "flag_001",
+						EntityId: "some-fixed-entity-id",
+						Context: map[string]string{
+							"in_segment": "segment_005",
+						},
+					},
+					{
+						FlagKey:  "flag_002",
+						EntityId: "some-fixed-entity-id",
+						Context: map[string]string{
+							"in_segment": "segment_006",
+						},
+					},
+				},
+			})
+			require.NoError(t, err)
+			require.Len(t, response.Responses, 2)
+
+			assert.Equal(t, true, response.Responses[0].Match)
+			assert.Equal(t, "variant_002", response.Responses[0].Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[0].Reason)
+
+			assert.Equal(t, true, response.Responses[1].Match)
+			assert.Equal(t, "variant_001", response.Responses[1].Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[1].Reason)
 		})
 	})
 }

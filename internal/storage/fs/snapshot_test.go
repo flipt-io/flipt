@@ -1235,7 +1235,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 		t.Run(tc.name, func(t *testing.T) {
 			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
 			assert.NoError(t, err)
-			assert.Len(t, rules.Results, 2)
+			assert.Len(t, rules.Results, 1)
 
 			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
 
