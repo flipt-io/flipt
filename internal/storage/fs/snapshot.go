@@ -162,8 +162,6 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 			return nil
 		}
 
-		logger.Debug("checking", zap.String("path", path))
-
 		for _, glob := range includes {
 			if glob.Match(path) {
 				filenames = append(filenames, path)
