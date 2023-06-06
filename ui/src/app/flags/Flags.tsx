@@ -6,9 +6,10 @@ import useSWR from 'swr';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import FlagTable from '~/components/flags/FlagTable';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import { useError } from '~/data/hooks/error';
 import { IFlagList } from '~/types/Flag';
+import { selectReadonly } from '../meta/metaSlice';
 
 export default function Flags() {
   const namespace = useSelector(selectCurrentNamespace);
@@ -20,6 +21,8 @@ export default function Flags() {
 
   const navigate = useNavigate();
   const { setError, clearError } = useError();
+
+  const readOnly = useSelector(selectReadonly);
 
   useEffect(() => {
     if (error) {
@@ -42,7 +45,11 @@ export default function Flags() {
         </div>
         <div className="mt-4">
           <Link to={`${path}/new`}>
-            <Button primary>
+            <Button
+              primary
+              disabled={readOnly}
+              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+            >
               <PlusIcon
                 className="-ml-1.5 mr-1 h-5 w-5 text-white"
                 aria-hidden="true"

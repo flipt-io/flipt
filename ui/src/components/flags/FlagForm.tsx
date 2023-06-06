@@ -2,9 +2,10 @@ import { Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Loading from '~/components//Loading';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import { createFlag, updateFlag } from '~/data/api';
@@ -30,6 +31,7 @@ export default function FlagForm(props: FlagFormProps) {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
+  const readOnly = useSelector(selectReadonly);
 
   const handleSubmit = (values: IFlagBase) => {
     if (isNew) {
@@ -165,8 +167,10 @@ export default function FlagForm(props: FlagFormProps) {
                   primary
                   className="ml-3 min-w-[80px]"
                   type="submit"
+                  title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                   disabled={
-                    !(formik.dirty && formik.isValid && !formik.isSubmitting)
+                    !(formik.dirty && formik.isValid && !formik.isSubmitting) ||
+                    readOnly
                   }
                 >
                   {formik.isSubmitting ? <Loading isPrimary /> : submitPhrase}

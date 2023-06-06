@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';

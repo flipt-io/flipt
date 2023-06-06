@@ -16,11 +16,21 @@ type RuleProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
+  readOnly?: boolean;
 };
 
 const Rule = forwardRef(
   (
-    { namespace, rule, onEdit, onDelete, style, className, ...rest }: RuleProps,
+    {
+      namespace,
+      rule,
+      onEdit,
+      onDelete,
+      style,
+      className,
+      readOnly,
+      ...rest
+    }: RuleProps,
     ref: Ref<HTMLLIElement>
   ) => (
     <li
@@ -99,7 +109,7 @@ const Rule = forwardRef(
       </div>
 
       <div className="flex items-center justify-end text-center">
-        {rule.rollouts.length > 1 && (
+        {!readOnly && rule.rollouts.length > 1 && (
           <a
             href="#"
             onClick={(e) => {
@@ -111,16 +121,18 @@ const Rule = forwardRef(
             Edit&nbsp;|&nbsp;
           </a>
         )}
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            onDelete && onDelete();
-          }}
-          className="text-xs text-violet-600 hover:text-violet-900"
-        >
-          Delete
-        </a>
+        {!readOnly && (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onDelete && onDelete();
+            }}
+            className="text-xs text-violet-600 hover:text-violet-900"
+          >
+            Delete
+          </a>
+        )}
       </div>
     </li>
   )

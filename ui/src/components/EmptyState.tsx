@@ -5,6 +5,7 @@ type EmptyStateProps = {
   className?: string;
   text?: string;
   secondaryText?: string;
+  disabled?: boolean;
   Icon?: Icon;
   onClick?: () => void;
 };
@@ -14,6 +15,7 @@ export default function EmptyState(props: EmptyStateProps) {
     text,
     secondaryText,
     className = '',
+    disabled = false,
     Icon = PlusCircleIcon,
     onClick
   } = props;
@@ -21,7 +23,7 @@ export default function EmptyState(props: EmptyStateProps) {
   return (
     <button
       className={`${className} relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center border-gray-300 hover:border-gray-400 focus:outline-none`}
-      disabled={!onClick}
+      disabled={!onClick || disabled}
       onClick={onClick}
     >
       {Icon && onClick && (

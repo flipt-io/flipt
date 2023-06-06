@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';

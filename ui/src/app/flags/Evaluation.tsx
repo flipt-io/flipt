@@ -20,7 +20,7 @@ import { useOutletContext } from 'react-router-dom';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import EditRuleForm from '~/components/rules/EditRuleForm';
 import Rule from '~/components/rules/Rule';
@@ -36,6 +36,7 @@ import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentList } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
 import { classNames } from '~/utils/helpers';
+import { selectReadonly } from '../meta/metaSlice';
 import { FlagProps } from './FlagProps';
 
 export default function Evaluation() {
@@ -60,6 +61,7 @@ export default function Evaluation() {
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
+  const readOnly = useSelector(selectReadonly);
 
   const loadData = useCallback(async () => {
     const segmentList = (await listSegments(namespace.key)) as ISegmentList;
@@ -236,6 +238,8 @@ export default function Evaluation() {
                 primary
                 type="button"
                 onClick={() => setShowRuleForm(true)}
+                disabled={readOnly}
+                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
                 New Rule
               </Button>
@@ -290,6 +294,7 @@ export default function Evaluation() {
                             setDeletingRule(rule);
                             setShowDeleteRuleModal(true);
                           }}
+                          readOnly={readOnly}
                         />
                       ))}
                   </ul>
@@ -304,6 +309,7 @@ export default function Evaluation() {
           ) : (
             <EmptyState
               text="New Rule"
+              disabled={readOnly}
               onClick={() => {
                 setEditingRule(null);
                 setShowRuleForm(true);

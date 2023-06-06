@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import SegmentTable from '~/components/segments/SegmentTable';
 import { useError } from '~/data/hooks/error';
 import { ISegmentList } from '~/types/Segment';

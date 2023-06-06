@@ -1,11 +1,12 @@
 import { classNames } from '~/utils/helpers';
 
-type ButtonProps = {
+export type ButtonProps = {
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   type?: 'button' | 'submit' | 'reset';
   primary?: boolean;
   className?: string;
+  title?: string;
   disabled?: boolean;
 };
 
@@ -16,6 +17,7 @@ export default function Button(props: ButtonProps) {
     children,
     type = 'button',
     primary = false,
+    title,
     disabled = false
   } = props;
 
@@ -30,6 +32,7 @@ export default function Button(props: ButtonProps) {
         `mb-1 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-1 ${className}`
       )}
       disabled={disabled}
+      title={title}
     >
       {children}
     </button>

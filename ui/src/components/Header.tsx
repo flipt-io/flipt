@@ -1,6 +1,6 @@
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
-import { selectInfo } from '~/app/meta/metaSlice';
+import { selectInfo, selectReadonly } from '~/app/meta/metaSlice';
 import { useSession } from '~/data/hooks/session';
 import Notifications from './header/Notifications';
 import UserProfile from './header/UserProfile';
@@ -13,6 +13,7 @@ export default function Header(props: HeaderProps) {
   const { setSidebarOpen } = props;
 
   const info = useSelector(selectInfo);
+  const readOnly = useSelector(selectReadonly);
 
   const { session } = useSession();
 
@@ -30,6 +31,12 @@ export default function Header(props: HeaderProps) {
       <div className="flex flex-1 justify-between px-4">
         <div className="flex flex-1" />
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
+          {/* read-only mode */}
+          {readOnly && (
+            <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100">
+              Read-Only
+            </span>
+          )}
           {/* notifications */}
           {info && info.updateAvailable && <Notifications info={info} />}
 

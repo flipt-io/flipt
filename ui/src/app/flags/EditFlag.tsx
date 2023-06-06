@@ -7,12 +7,13 @@ import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import FlagForm from '~/components/flags/FlagForm';
 import VariantForm from '~/components/flags/VariantForm';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import Slideover from '~/components/Slideover';
 import { deleteVariant } from '~/data/api';
 import { IVariant } from '~/types/Variant';
+import { selectReadonly } from '../meta/metaSlice';
 import { FlagProps } from './FlagProps';
 
 export default function EditFlag() {
@@ -27,6 +28,7 @@ export default function EditFlag() {
   const variantFormRef = useRef(null);
 
   const namespace = useSelector(selectCurrentNamespace);
+  const readOnly = useSelector(selectReadonly);
 
   return (
     <>
@@ -109,6 +111,8 @@ export default function EditFlag() {
                 <Button
                   primary
                   type="button"
+                  disabled={readOnly}
+                  title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                   onClick={() => {
                     setEditingVariant(null);
                     setShowVariantForm(true);
@@ -201,6 +205,7 @@ export default function EditFlag() {
             ) : (
               <EmptyState
                 text="New Variant"
+                disabled={readOnly}
                 onClick={() => {
                   setEditingVariant(null);
                   setShowVariantForm(true);

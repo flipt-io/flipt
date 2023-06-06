@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import { createSegment, updateSegment } from '~/data/api';

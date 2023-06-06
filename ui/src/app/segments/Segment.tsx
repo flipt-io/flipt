@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
