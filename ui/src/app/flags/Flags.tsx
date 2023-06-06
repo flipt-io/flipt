@@ -3,13 +3,13 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import useSWR from 'swr';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import FlagTable from '~/components/flags/FlagTable';
 import Button from '~/components/forms/buttons/Button';
 import { useError } from '~/data/hooks/error';
 import { IFlagList } from '~/types/Flag';
-import { selectReadonly } from '../meta/metaSlice';
 
 export default function Flags() {
   const namespace = useSelector(selectCurrentNamespace);

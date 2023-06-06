@@ -17,6 +17,7 @@ import { InformationCircleIcon } from '@heroicons/react/20/solid';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
@@ -36,7 +37,6 @@ import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentList } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
 import { classNames } from '~/utils/helpers';
-import { selectReadonly } from '../meta/metaSlice';
 import { FlagProps } from './FlagProps';
 
 export default function Evaluation() {

@@ -3,6 +3,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import { DeleteButton } from '~/components/forms/buttons/DeleteButton';
@@ -13,7 +14,6 @@ import { deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useTimezone } from '~/data/hooks/timezone';
 import { IFlag } from '~/types/Flag';
-import { selectReadonly } from '../meta/metaSlice';
 
 export default function Flag() {
   let { flagKey } = useParams();
