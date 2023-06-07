@@ -245,10 +245,6 @@ func defaultConfig() *Config {
 			GRPCPort:  9000,
 		},
 
-		Storage: StorageConfig{
-			Type: StorageType("database"),
-		},
-
 		Tracing: TracingConfig{
 			Enabled:  false,
 			Exporter: TracingJaeger,
@@ -544,6 +540,9 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
+
+				cfg.Experimental.FilesystemStorage.Enabled = true
+
 				cfg.Log = LogConfig{
 					Level:     "WARN",
 					File:      "testLogFile.txt",
@@ -587,6 +586,9 @@ func TestLoad(t *testing.T) {
 					OTLP: OTLPTracingConfig{
 						Endpoint: "localhost:4317",
 					},
+				}
+				cfg.Storage = StorageConfig{
+					Type: StorageType("database"),
 				}
 				cfg.Database = DatabaseConfig{
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
@@ -680,6 +682,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/local_provided.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
+				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: LocalStorageType,
 					Local: Local{
@@ -694,6 +697,7 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/git_provided.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
+				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: Git{

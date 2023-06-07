@@ -114,7 +114,7 @@ func NewGRPCServer(
 	var store storage.Store
 
 	switch cfg.Storage.Type {
-	case config.DatabaseStorageType:
+	case "", config.DatabaseStorageType:
 		db, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
 		if err != nil {
 			return nil, err
