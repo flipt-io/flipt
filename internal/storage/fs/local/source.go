@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"go.flipt.io/flipt/internal/containers"
 	"go.uber.org/zap"
 )
 
@@ -19,12 +20,24 @@ type Source struct {
 }
 
 // NewSource constructs a Source.
-func NewSource(logger *zap.Logger, dir string, duration time.Duration) (*Source, error) {
-	return &Source{
+func NewSource(logger *zap.Logger, dir string, opts ...containers.Option[Source]) (*Source, error) {
+	s := &Source{
 		logger:   logger,
 		dir:      dir,
-		interval: duration,
-	}, nil
+		interval: 10 * time.Second,
+	}
+
+	containers.ApplyAll(s, opts...)
+
+	return s, nil
+}
+
+// WithPollInterval configures the interval in which we will restore
+// the local fs.
+func WithPollInterval(tick time.Duration) containers.Option[Source] {
+	return func(s *Source) {
+		s.interval = tick
+	}
 }
 
 // Get returns an fs.FS for the local filesystem.

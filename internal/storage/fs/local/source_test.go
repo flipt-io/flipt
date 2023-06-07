@@ -17,7 +17,7 @@ func Test_SourceString(t *testing.T) {
 }
 
 func Test_SourceGet(t *testing.T) {
-	s, err := NewSource(zap.NewNop(), "testdata", 5*time.Second)
+	s, err := NewSource(zap.NewNop(), "testdata", WithPollInterval(5*time.Second))
 	assert.NoError(t, err)
 
 	tfs, err := s.Get()
@@ -30,7 +30,7 @@ func Test_SourceGet(t *testing.T) {
 }
 
 func Test_SourceSubscribe(t *testing.T) {
-	s, err := NewSource(zap.NewNop(), "testdata", 5*time.Second)
+	s, err := NewSource(zap.NewNop(), "testdata", WithPollInterval(5*time.Second))
 	assert.NoError(t, err)
 
 	dir, err := os.Getwd()
