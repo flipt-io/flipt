@@ -176,6 +176,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	flipt = flipt.
 		WithServiceBinding("gitea", gitea).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
