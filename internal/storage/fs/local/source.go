@@ -4,8 +4,8 @@ import (
 	"context"
 	"io/fs"
 	"os"
+	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"go.uber.org/zap"
 )
 
@@ -14,72 +14,48 @@ import (
 type Source struct {
 	logger *zap.Logger
 
-	dir     string
-	watcher *fsnotify.Watcher
+	dir      string
+	interval time.Duration
 }
 
 // NewSource constructs a Source.
-func NewSource(logger *zap.Logger, dir string) (*Source, error) {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return nil, err
-	}
-
-	err = watcher.Add(dir)
-	if err != nil {
-		return nil, err
-	}
+func NewSource(logger *zap.Logger, dir string, duration time.Duration) (*Source, error) {
 	return &Source{
-		logger:  logger,
-		dir:     dir,
-		watcher: watcher,
+		logger:   logger,
+		dir:      dir,
+		interval: duration,
 	}, nil
 }
 
 // Get returns an fs.FS for the local filesystem.
 func (s *Source) Get() (fs.FS, error) {
-	fs := os.DirFS(s.dir)
-	return fs, nil
+	return os.DirFS(s.dir), nil
 }
 
 // Subscribe feeds local fs.FS implementations onto the provided channel.
 // It blocks until the provided context is cancelled.
 func (s *Source) Subscribe(ctx context.Context, ch chan<- fs.FS) {
 	defer close(ch)
-	s.logger.Debug("watching", zap.Strings("paths", s.watcher.WatchList()))
 
+	ticker := time.NewTicker(s.interval)
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case event, ok := <-s.watcher.Events:
-			if !ok {
-				s.logger.Debug("local directory watcher closed")
-				return
+		case <-ticker.C:
+			fs, err := s.Get()
+			if err != nil {
+				s.logger.Error("error getting file system from directory", zap.Error(err))
+				continue
 			}
 
-			if event.Has(fsnotify.Create) || event.Has(fsnotify.Write) || event.Has(fsnotify.Remove) {
-				fs, err := s.Get()
-				if err != nil {
-					s.logger.Error("error getting filesystem from directory", zap.Error(err))
-					continue
-				}
-
-				s.logger.Debug("updating local store snapshot")
-				ch <- fs
-			}
-		case err, ok := <-s.watcher.Errors:
-			if !ok {
-				s.logger.Debug("local directory watcher closed")
-				return
-			}
-
-			s.logger.Error("local directory store watcher", zap.Error(err))
+			s.logger.Debug("updating local store snapshot")
+			ch <- fs
 		}
 	}
 }
 
-// String returns an identifier string for the store type
+// String returns an identifier string for the store type.
 func (s *Source) String() string {
 	return "local"
 }

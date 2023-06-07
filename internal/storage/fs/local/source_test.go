@@ -12,8 +12,12 @@ import (
 	"go.uber.org/zap"
 )
 
+func Test_SourceString(t *testing.T) {
+	assert.Equal(t, "local", (&Source{}).String())
+}
+
 func Test_SourceGet(t *testing.T) {
-	s, err := NewSource(zap.NewNop(), "testdata")
+	s, err := NewSource(zap.NewNop(), "testdata", 5*time.Second)
 	assert.NoError(t, err)
 
 	tfs, err := s.Get()
@@ -26,7 +30,7 @@ func Test_SourceGet(t *testing.T) {
 }
 
 func Test_SourceSubscribe(t *testing.T) {
-	s, err := NewSource(zap.NewNop(), "testdata")
+	s, err := NewSource(zap.NewNop(), "testdata", 5*time.Second)
 	assert.NoError(t, err)
 
 	dir, err := os.Getwd()
@@ -42,8 +46,10 @@ func Test_SourceSubscribe(t *testing.T) {
 		}
 	}()
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	fsCh := make(chan fs.FS)
-	go s.Subscribe(context.Background(), fsCh)
+	go s.Subscribe(ctx, fsCh)
 
 	// Create event
 	_, err = os.Create(ftc)
@@ -51,9 +57,13 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	select {
 	case f := <-fsCh:
-		file, err := f.Open("features.yml")
+		file, err := f.Open("a.features.yml")
 		assert.NoError(t, err)
 		assert.NotNil(t, file)
+		cancel()
+
+		_, open := <-fsCh
+		assert.False(t, open, "expected channel to be closed after cancel")
 	case <-time.After(10 * time.Second):
 		t.Fatal("event not caught")
 	}
