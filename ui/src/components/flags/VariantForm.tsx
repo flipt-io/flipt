@@ -5,7 +5,7 @@ import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
 import Loading from '~/components/Loading';

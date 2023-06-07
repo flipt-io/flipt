@@ -4,6 +4,7 @@ import {
   isAnyOf
 } from '@reduxjs/toolkit';
 
+import { metaSlice } from './app/meta/metaSlice';
 import { namespacesSlice } from './app/namespaces/namespacesSlice';
 import { preferencesSlice } from './app/preferences/preferencesSlice';
 
@@ -35,7 +36,8 @@ export const store = configureStore({
   },
   reducer: {
     namespaces: namespacesSlice.reducer,
-    preferences: preferencesSlice.reducer
+    preferences: preferencesSlice.reducer,
+    meta: metaSlice.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().prepend(listenerMiddleware.middleware)

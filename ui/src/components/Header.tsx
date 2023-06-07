@@ -1,27 +1,19 @@
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
-import { getInfo } from '~/data/api';
+import { useSelector } from 'react-redux';
+import { selectInfo, selectReadonly } from '~/app/meta/metaSlice';
 import { useSession } from '~/data/hooks/session';
-import { Info } from '~/types/Meta';
 import Notifications from './header/Notifications';
 import UserProfile from './header/UserProfile';
+
 type HeaderProps = {
   setSidebarOpen: (sidebarOpen: boolean) => void;
 };
 
 export default function Header(props: HeaderProps) {
   const { setSidebarOpen } = props;
-  const [info, setInfo] = useState<Info | null>(null);
 
-  useEffect(() => {
-    getInfo()
-      .then((info: Info) => {
-        setInfo(info);
-      })
-      .catch(() => {
-        // nothing to do, component will degrade gracefully
-      });
-  }, []);
+  const info = useSelector(selectInfo);
+  const readOnly = useSelector(selectReadonly);
 
   const { session } = useSession();
 
@@ -39,6 +31,19 @@ export default function Header(props: HeaderProps) {
       <div className="flex flex-1 justify-between px-4">
         <div className="flex flex-1" />
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
+          {/* read-only mode */}
+          {readOnly && (
+            <span className="nightwind-prevent inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium text-violet-950 bg-violet-200">
+              <svg
+                className="h-1.5 w-1.5 fill-orange-400"
+                viewBox="0 0 6 6"
+                aria-hidden="true"
+              >
+                <circle cx={3} cy={3} r={3} />
+              </svg>
+              Read-Only
+            </span>
+          )}
           {/* notifications */}
           {info && info.updateAvailable && <Notifications info={info} />}
 

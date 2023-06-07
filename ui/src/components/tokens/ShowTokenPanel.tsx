@@ -4,7 +4,7 @@ import hljs from 'highlight.js';
 import text from 'highlight.js/lib/languages/plaintext';
 import 'highlight.js/styles/tokyo-night-dark.css';
 import { useEffect, useState } from 'react';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import { IAuthTokenSecret } from '~/types/auth/Token';
 import { classNames } from '~/utils/helpers';
 
