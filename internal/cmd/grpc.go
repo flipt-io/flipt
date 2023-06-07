@@ -45,6 +45,7 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"go.flipt.io/flipt/internal/storage/fs/git"
+	"go.flipt.io/flipt/internal/storage/fs/local"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -153,6 +154,16 @@ func NewGRPCServer(
 		}
 
 		source, err := git.NewSource(logger, cfg.Storage.Git.Repository, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
+	case config.LocalStorageType:
+		source, err := local.NewSource(logger, cfg.Storage.Local.Path)
 		if err != nil {
 			return nil, err
 		}
