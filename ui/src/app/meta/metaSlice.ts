@@ -39,7 +39,7 @@ export const metaSlice = createSlice({
       })
       .addCase(fetchConfigAsync.fulfilled, (state, action) => {
         state.config = action.payload;
-        state.readonly = action.payload.storage.type !== StorageType.DATABASE;
+        state.readonly = action.payload.storage?.type !== StorageType.DATABASE;
       });
   }
 });
