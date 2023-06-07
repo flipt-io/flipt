@@ -9,7 +9,6 @@ import (
 	"io/fs"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/gobwas/glob"
 	"github.com/gofrs/uuid"
@@ -32,9 +31,9 @@ var ErrNotImplemented = errors.New("not implemented")
 // FliptIndex represents the structure of a well-known file ".flipt.yml"
 // at the root of an FS.
 type FliptIndex struct {
-	Version    string   `yaml:"version,omitempty"`
-	Inclusions []string `yaml:"inclusions,omitempty"`
-	Exclusions []string `yaml:"exclusions,omitempty"`
+	Version string   `yaml:"version,omitempty"`
+	Include []string `yaml:"include,omitempty"`
+	Exclude []string `yaml:"exclude,omitempty"`
 }
 
 // storeSnapshot contains the structures necessary for serving
@@ -52,9 +51,9 @@ type namespace struct {
 	evalRules map[string][]*storage.EvaluationRule
 }
 
-func newNamespace(key string) *namespace {
+func newNamespace(key, name string) *namespace {
 	return &namespace{
-		resource:  &flipt.Namespace{Key: key, Name: strings.Title(key)},
+		resource:  &flipt.Namespace{Key: key, Name: name},
 		flags:     map[string]*flipt.Flag{},
 		segments:  map[string]*flipt.Segment{},
 		rules:     map[string]*flipt.Rule{},
@@ -92,12 +91,7 @@ func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
 func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
 	s := storeSnapshot{
 		ns: map[string]*namespace{
-			defaultNs: {
-				resource: &flipt.Namespace{
-					Key:  defaultNs,
-					Name: "Default",
-				},
-			},
+			defaultNs: newNamespace("default", "Default"),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
 	}
@@ -107,6 +101,11 @@ func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
 
 		if err := yaml.NewDecoder(reader).Decode(doc); err != nil {
 			return nil, err
+		}
+
+		// set namespace to default if empty in document
+		if doc.Namespace == "" {
+			doc.Namespace = "default"
 		}
 
 		if err := s.addDoc(doc); err != nil {
@@ -122,7 +121,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// a .flipt.yml can not be read for whatever reason.
 	idx := FliptIndex{
 		Version: "1.0",
-		Inclusions: []string{
+		Include: []string{
 			"**features.yml", "**features.yaml", "**.features.yml", "**.features.yaml",
 		},
 	}
@@ -144,7 +143,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	}
 
 	var includes []glob.Glob
-	for _, g := range idx.Inclusions {
+	for _, g := range idx.Include {
 		glob, err := glob.Compile(g)
 		if err != nil {
 			return nil, fmt.Errorf("compiling include glob: %w", err)
@@ -175,9 +174,9 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 		return nil, err
 	}
 
-	if len(idx.Exclusions) > 0 {
+	if len(idx.Exclude) > 0 {
 		var excludes []glob.Glob
-		for _, g := range idx.Exclusions {
+		for _, g := range idx.Exclude {
 			glob, err := glob.Compile(g)
 			if err != nil {
 				return nil, fmt.Errorf("compiling include glob: %w", err)
@@ -203,7 +202,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 	ns := ss.ns[doc.Namespace]
 	if ns == nil {
-		ns = newNamespace(doc.Namespace)
+		ns = newNamespace(doc.Namespace, doc.Namespace)
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
@@ -378,7 +377,9 @@ func (ss *storeSnapshot) ListRules(ctx context.Context, namespaceKey string, fla
 
 	rules := make([]*flipt.Rule, 0, len(ns.rules))
 	for _, rule := range ns.rules {
-		rules = append(rules, rule)
+		if rule.FlagKey == flagKey {
+			rules = append(rules, rule)
+		}
 	}
 
 	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
@@ -451,7 +452,7 @@ func (ss *storeSnapshot) ListSegments(ctx context.Context, namespaceKey string, 
 	}
 
 	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
-		return segments[i].CreatedAt.AsTime().Before(segments[j].CreatedAt.AsTime())
+		return segments[i].Key < segments[j].Key
 	}, segments...)
 
 	return set, nil
@@ -500,14 +501,14 @@ func (ss *storeSnapshot) GetNamespace(ctx context.Context, key string) (*flipt.N
 }
 
 func (ss *storeSnapshot) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Namespace], err error) {
-	set.Results = make([]*flipt.Namespace, 0, len(ss.ns))
-	for _, ns := range ss.ns {
-		set.Results = append(set.Results, ns.resource)
+	ns := make([]*flipt.Namespace, 0, len(ss.ns))
+	for _, n := range ss.ns {
+		ns = append(ns, n.resource)
 	}
 
 	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
-		return set.Results[i].CreatedAt.AsTime().Before(set.Results[j].CreatedAt.AsTime())
-	}, set.Results...)
+		return ns[i].Key < ns[j].Key
+	}, ns...)
 
 	return set, err
 }
@@ -554,7 +555,7 @@ func (ss *storeSnapshot) ListFlags(ctx context.Context, namespaceKey string, opt
 	}
 
 	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
-		return flags[i].CreatedAt.AsTime().Before(flags[j].CreatedAt.AsTime())
+		return flags[i].Key < flags[j].Key
 	}, flags...)
 
 	return set, nil
@@ -640,10 +641,9 @@ func find[T any](match func(T) bool, ts ...T) (t T, _ bool) {
 }
 
 func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items ...T) storage.ResultSet[T] {
-	var set storage.ResultSet[T]
-
-	set.Results = make([]T, 0, len(items))
-	set.Results = append(set.Results, items...)
+	set := storage.ResultSet[T]{
+		Results: items,
+	}
 
 	// sort by created_at and specified order
 	sort.Slice(set.Results, func(i, j int) bool {
@@ -658,6 +658,16 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 	var offset int
 	if v, err := strconv.ParseInt(params.PageToken, 10, 64); err == nil {
 		offset = int(v)
+	}
+
+	if offset >= len(set.Results) {
+		return storage.ResultSet[T]{}
+	}
+
+	// 0 means no limit on page size (all items from offset)
+	if params.Limit == 0 {
+		set.Results = set.Results[offset:]
+		return set
 	}
 
 	// ensure end of page does not exceed entire set

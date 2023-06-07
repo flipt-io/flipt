@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -21,8 +22,7 @@ import (
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
-	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
-	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
+	"go.flipt.io/flipt/internal/storage/fs"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
@@ -42,6 +42,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"go.flipt.io/flipt/internal/storage/fs/git"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -131,6 +134,33 @@ func NewGRPCServer(
 		}
 
 		logger.Debug("database driver configured", zap.Stringer("driver", driver))
+	case config.GitStorageType:
+		opts := []containers.Option[git.Source]{
+			git.WithRef(cfg.Storage.Git.Ref),
+		}
+
+		auth := cfg.Storage.Git.Authentication
+		switch {
+		case auth.BasicAuth != nil:
+			opts = append(opts, git.WithAuth(&http.BasicAuth{
+				Username: auth.BasicAuth.Username,
+				Password: auth.BasicAuth.Password,
+			}))
+		case auth.TokenAuth != nil:
+			opts = append(opts, git.WithAuth(&http.TokenAuth{
+				Token: auth.TokenAuth.AccessToken,
+			}))
+		}
+
+		source, err := git.NewSource(logger, cfg.Storage.Git.Repository, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
 	}
@@ -177,26 +207,11 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
-	var auditLoggingEnabled bool
-
-	// If any of the audit logging sinks are enabled, then audit logging is enabled in general.
-	if cfg.Audit.Sinks.LogFile.Enabled {
-		auditLoggingEnabled = true
-	}
-
-	var (
-		sqlBuilder           = fliptsql.BuilderFor(db, driver)
-		authenticationStore  = authsql.NewStore(driver, sqlBuilder, logger)
-		operationLockService = oplocksql.New(logger, driver, sqlBuilder)
-	)
-
 	register, authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
-		cfg.Authentication,
-		auditLoggingEnabled,
-		authenticationStore,
-		operationLockService,
+		cfg,
+		forceMigrate,
 	)
 	if err != nil {
 		return nil, err

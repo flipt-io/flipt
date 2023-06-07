@@ -73,7 +73,12 @@ func NewQueryParams(opts ...QueryOption) (params QueryParams) {
 		opt(&params)
 	}
 
-	params.Normalize()
+	// NOTE(georgemac): I wanted to normalize under all circumstances
+	// However, for legacy reasons the core flag state APIs expect
+	// the default limit to be == 0. Normalize sets it to the default
+	// constant which is > 0.
+	// If we ever break this contract then we can normalize here.
+	// params.Normalize()
 
 	return params
 }

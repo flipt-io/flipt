@@ -45,12 +45,16 @@ func main() {
 	}
 
 	var cli *gitea.Client
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		cli, err = gitea.NewClient(*giteaURL, gitea.SetBasicAuth("root", "password"))
 		if err != nil {
 			time.Sleep(time.Second)
 			continue
 		}
+	}
+
+	if cli == nil {
+		log.Fatal("Couldn't connect to Gitea in 20 attempts")
 	}
 
 	origin, _, err := cli.CreateRepo(gitea.CreateRepoOption{
