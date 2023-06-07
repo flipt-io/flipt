@@ -45,13 +45,18 @@ type AuthenticationConfig struct {
 
 // Enabled returns true if authentication is marked as required
 // or any of the authentication methods are enabled.
-func (c AuthenticationConfig) Enabled() (required bool) {
-	required = c.Required
-	for _, info := range c.Methods.AllMethods() {
-		required = required || info.Enabled
+func (c AuthenticationConfig) Enabled() bool {
+	if c.Required {
+		return true
 	}
 
-	return
+	for _, info := range c.Methods.AllMethods() {
+		if info.Enabled {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ShouldRunCleanup returns true if the cleanup background process should be started.
