@@ -26,6 +26,7 @@ var (
 	AllCases = map[string]testCaseFn{
 		"api":           api,
 		"fs/git":        git,
+		"fs/local":      local,
 		"import/export": importExport,
 	}
 )
@@ -158,6 +159,19 @@ const (
 	testdataDir     = "build/testing/integration/readonly/testdata"
 	testdataPathFmt = testdataDir + "/%s.yaml"
 )
+
+func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	flipt = flipt.
+		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
+
+	return suite(ctx, "readonly", base, flipt, conf)
+}
 
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	gitea := client.Container().
