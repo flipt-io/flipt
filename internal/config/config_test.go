@@ -701,8 +701,9 @@ func TestLoad(t *testing.T) {
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: Git{
-						Ref:        "main",
-						Repository: "git@github.com:foo/bar.git",
+						Ref:          "main",
+						Repository:   "git@github.com:foo/bar.git",
+						PollInterval: 30 * time.Second,
 					},
 				}
 				return cfg

@@ -138,6 +138,7 @@ func NewGRPCServer(
 	case config.GitStorageType:
 		opts := []containers.Option[git.Source]{
 			git.WithRef(cfg.Storage.Git.Ref),
+			git.WithPollInterval(cfg.Storage.Git.PollInterval),
 		}
 
 		auth := cfg.Storage.Git.Authentication
