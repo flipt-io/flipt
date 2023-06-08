@@ -860,7 +860,7 @@ func (s *DBTestSuite) TestCreateConstraintNamespace_SegmentNotFound() {
 	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
 }
 
-// bug: two segments created with same key with same constraint keys in two different namespaces, we return both constraints when getting a single segment
+// see: https://github.com/flipt-io/flipt/pull/1721/
 func (s *DBTestSuite) TestGetSegmentWithConstraintMultiNamespace() {
 	t := s.T()
 
