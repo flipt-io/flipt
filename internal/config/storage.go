@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -28,6 +29,7 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 		v.SetDefault("storage.local.path", ".")
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
+		v.SetDefault("storage.git.poll_interval", "30s")
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -65,6 +67,7 @@ type Local struct {
 type Git struct {
 	Repository     string         `json:"repository,omitempty" mapstructure:"repository"`
 	Ref            string         `json:"ref,omitempty" mapstructure:"ref"`
+	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
 	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication"`
 }
 

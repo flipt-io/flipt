@@ -71,7 +71,7 @@ func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]
 		logger:   logger.With(zap.String("repository", url)),
 		url:      url,
 		ref:      "main",
-		interval: 10 * time.Second,
+		interval: 30 * time.Second,
 	}
 	containers.ApplyAll(source, opts...)
 
