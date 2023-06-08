@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"dagger.io/dagger"
 )
@@ -119,12 +120,28 @@ Run 'flipt --help' for usage.`))); err != nil {
 	}
 
 	{
-		container := container.
-			Pipeline("flipt").
-			WithExec([]string{"rm", "/etc/flipt/config/default.yml"})
-		if _, err := assertExec(ctx, container, flipt(),
+		container := container.Pipeline("flipt")
+		if _, err := assertExec(ctx, container.WithExec([]string{"rm", "/etc/flipt/config/default.yml"}), flipt(),
 			fails,
 			stdout(contains(`loading configuration	{"error": "loading configuration: open /etc/flipt/config/default.yml: no such file or directory", "config_path": "/etc/flipt/config/default.yml"}`)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt")
+		ctx, cancel := context.WithTimeout(ctx, 4*time.Second)
+		defer cancel()
+
+		container = container.
+			WithExec([]string{"mkdir", "-p", "/home/flipt/.config/flipt"}).
+			WithFile("/home/flipt/.config/flipt/config.yml", client.Host().Directory("build/testing/testdata").File("default.yml")).
+			WithEnvVariable("FLIPT_LOG_LEVEL", "debug")
+
+		if _, err := assertExec(ctx, container, flipt(),
+			fails,
+			stdout(contains(`configuration source    {"path": "/home/flipt/.config/flipt/config.yml"}`)),
 		); err != nil {
 			return err
 		}
