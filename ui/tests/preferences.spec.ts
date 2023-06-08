@@ -18,6 +18,8 @@ test('can change timezone preferences', async ({ page }) => {
 
 test('can change theme preferences', async ({ page }) => {
   await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'General' }).click();
+  await page.getByRole('heading', { name: 'Preferences' }).click();
   await page.getByRole('combobox', { name: 'Theme' }).selectOption('dark');
   await expect(page.getByRole('combobox', { name: 'Theme' })).toHaveValue(
     'dark'
