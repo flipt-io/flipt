@@ -166,7 +166,6 @@ export async function copyFlag(
   await post(`/namespaces/${to.namespaceKey}/flags`, flag);
 
   // then copy the variants
-
   for (let variant of flag.variants) {
     await createVariant(to.namespaceKey, flag.key, variant);
   }
@@ -304,6 +303,26 @@ export async function updateSegment(
 
 export async function deleteSegment(namespaceKey: string, key: string) {
   return del(`/namespaces/${namespaceKey}/segments/${key}`);
+}
+
+export async function copySegment(
+  from: { namespaceKey: string; key: string },
+  to: { namespaceKey: string; key?: string }
+) {
+  let segment = await get(
+    `/namespaces/${from.namespaceKey}/segments/${from.key}`
+  );
+  if (to.key) {
+    segment.key = to.key;
+  }
+
+  // first create the segment
+  await post(`/namespaces/${to.namespaceKey}/segments`, segment);
+
+  // then copy the constraints
+  for (let constraint of segment.constraints) {
+    await createConstraint(to.namespaceKey, segment.key, constraint);
+  }
 }
 
 //

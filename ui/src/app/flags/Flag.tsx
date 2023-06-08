@@ -38,7 +38,6 @@ export default function Flag() {
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] =
     useState<boolean>(false);
-
   const [showCopyFlagModal, setShowCopyFlagModal] = useState<boolean>(false);
 
   const incrementFlagVersion = () => {
@@ -98,7 +97,7 @@ export default function Flag() {
             <>
               Copy the flag{' '}
               <span className="font-medium text-violet-500">{flag.key}</span> to
-              namespace.
+              the namespace:
             </>
           }
           panelType="Flag"
