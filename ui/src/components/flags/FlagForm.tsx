@@ -88,7 +88,8 @@ export default function FlagForm(props: FlagFormProps) {
                     id="enabled"
                     name="enabled"
                     label="Enabled"
-                    enabled={enabled}
+                    disabled={readOnly}
+                    checked={enabled}
                     onChange={(e) => {
                       formik.setFieldValue('enabled', e);
                     }}
