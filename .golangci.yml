@@ -61,10 +61,11 @@ issues:
 
 linters-settings:
   depguard:
-    list-type: blacklist
-    include-go-root: false
-    packages:
-      - github.com/pkg/errors
+    rules:
+      main:
+        deny:
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by standard lib errors package
   staticcheck:
     checks:
       - all
@@ -77,3 +78,5 @@ linters-settings:
     excludes: # exclude gosec messages about weak crypto
       - "G501"
       - "G401"
+  goconst:
+    ignore-tests: true

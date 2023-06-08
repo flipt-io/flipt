@@ -947,6 +947,65 @@ func (s *DBTestSuite) TestCreateVariantNamespace_DuplicateFlag_DuplicateKey() {
 	assert.Equal(t, "foo", variant2.Key)
 }
 
+func (s *DBTestSuite) TestGetFlagWithVariantsMultiNamespace() {
+	t := s.T()
+
+	for _, namespace := range []string{storage.DefaultNamespace, s.namespace} {
+		flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+			NamespaceKey: namespace,
+			Key:          t.Name(),
+			Name:         "foo",
+			Description:  "bar",
+			Enabled:      true,
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, flag)
+
+		attachment := `{"key":"value"}`
+		variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+			NamespaceKey: namespace,
+			FlagKey:      flag.Key,
+			Key:          t.Name(),
+			Name:         "foo",
+			Description:  "bar",
+			Attachment:   attachment,
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, variant)
+
+		assert.NotZero(t, variant.Id)
+		assert.Equal(t, namespace, variant.NamespaceKey)
+		assert.Equal(t, flag.Key, variant.FlagKey)
+		assert.Equal(t, t.Name(), variant.Key)
+		assert.Equal(t, "foo", variant.Name)
+		assert.Equal(t, "bar", variant.Description)
+		assert.Equal(t, attachment, variant.Attachment)
+		assert.NotZero(t, variant.CreatedAt)
+		assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
+	}
+
+	// get the default namespaced flag
+	flag, err := s.store.GetFlag(context.TODO(), storage.DefaultNamespace, t.Name())
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	assert.Len(t, flag.Variants, 1)
+
+	variant := flag.Variants[0]
+	assert.NotZero(t, variant.Id)
+	assert.Equal(t, storage.DefaultNamespace, variant.NamespaceKey)
+	assert.Equal(t, flag.Key, variant.FlagKey)
+	assert.Equal(t, t.Name(), variant.Key)
+	assert.Equal(t, "foo", variant.Name)
+	assert.Equal(t, "bar", variant.Description)
+	assert.Equal(t, `{"key":"value"}`, variant.Attachment)
+	assert.NotZero(t, variant.CreatedAt)
+	assert.Equal(t, variant.CreatedAt.Seconds, variant.UpdatedAt.Seconds)
+}
+
 func (s *DBTestSuite) TestUpdateVariant() {
 	t := s.T()
 
