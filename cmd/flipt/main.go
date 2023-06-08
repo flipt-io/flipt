@@ -172,11 +172,14 @@ func determinePath(cfgPath string) string {
 	}
 
 	_, err := os.Stat(fliptConfigFile)
-	if !errors.Is(err, fs.ErrNotExist) {
-		defaultLogger.Warn("unexpected error checking configuration path", zap.String("config_path", fliptConfigFile), zap.Error(err))
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			defaultLogger.Warn("unexpected error checking configuration path", zap.String("config_path", fliptConfigFile), zap.Error(err))
+		}
+		return defaultCfgPath
 	}
 
-	return defaultCfgPath
+	return fliptConfigFile
 }
 
 func buildConfig() (*zap.Logger, *config.Config) {

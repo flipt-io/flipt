@@ -118,6 +118,18 @@ Run 'flipt --help' for usage.`))); err != nil {
 		}
 	}
 
+	{
+		container := container.
+			Pipeline("flipt").
+			WithExec([]string{"rm", "/etc/flipt/config/default.yml"})
+		if _, err := assertExec(ctx, container, flipt(),
+			fails,
+			stdout(contains(`loading configuration	{"error": "loading configuration: open /etc/flipt/config/default.yml: no such file or directory", "config_path": "/etc/flipt/config/default.yml"}`)),
+		); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
