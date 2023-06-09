@@ -860,6 +860,68 @@ func (s *DBTestSuite) TestCreateConstraintNamespace_SegmentNotFound() {
 	assert.EqualError(t, err, fmt.Sprintf("segment \"%s/foo\" not found", s.namespace))
 }
 
+// see: https://github.com/flipt-io/flipt/pull/1721/
+func (s *DBTestSuite) TestGetSegmentWithConstraintMultiNamespace() {
+	t := s.T()
+
+	for _, namespace := range []string{storage.DefaultNamespace, s.namespace} {
+		segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+			NamespaceKey: namespace,
+			Key:          t.Name(),
+			Name:         "foo",
+			Description:  "bar",
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, segment)
+
+		constraint, err := s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+			NamespaceKey: namespace,
+			SegmentKey:   segment.Key,
+			Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+			Property:     "foo",
+			Operator:     "EQ",
+			Value:        "bar",
+			Description:  "desc",
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, constraint)
+
+		assert.NotZero(t, constraint.Id)
+		assert.Equal(t, namespace, constraint.NamespaceKey)
+		assert.Equal(t, segment.Key, constraint.SegmentKey)
+		assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
+		assert.Equal(t, "foo", constraint.Property)
+		assert.Equal(t, flipt.OpEQ, constraint.Operator)
+		assert.Equal(t, "bar", constraint.Value)
+		assert.NotZero(t, constraint.CreatedAt)
+		assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
+		assert.Equal(t, "desc", constraint.Description)
+	}
+
+	// get the default namespaced segment
+	segment, err := s.store.GetSegment(context.TODO(), storage.DefaultNamespace, t.Name())
+
+	require.NoError(t, err)
+	assert.NotNil(t, segment)
+
+	// ensure we aren't crossing namespaces
+	assert.Len(t, segment.Constraints, 1)
+
+	constraint := segment.Constraints[0]
+	assert.NotZero(t, constraint.Id)
+	assert.Equal(t, storage.DefaultNamespace, constraint.NamespaceKey)
+	assert.Equal(t, segment.Key, constraint.SegmentKey)
+	assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
+	assert.Equal(t, "foo", constraint.Property)
+	assert.Equal(t, flipt.OpEQ, constraint.Operator)
+	assert.Equal(t, "bar", constraint.Value)
+	assert.NotZero(t, constraint.CreatedAt)
+	assert.Equal(t, constraint.CreatedAt.Seconds, constraint.UpdatedAt.Seconds)
+	assert.Equal(t, "desc", constraint.Description)
+}
+
 func (s *DBTestSuite) TestUpdateConstraint() {
 	t := s.T()
 
