@@ -55,6 +55,48 @@ Run 'flipt --help' for usage.`))); err != nil {
 	}
 
 	{
+		container := container.Pipeline("flipt (no config)")
+		if _, err := assertExec(ctx, container.WithExec([]string{"rm", "/etc/flipt/config/default.yml"}), flipt(),
+			fails,
+			stdout(contains(`loading configuration	{"error": "loading configuration: open /etc/flipt/config/default.yml: no such file or directory", "config_path": "/etc/flipt/config/default.yml"}`)),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt (user config directory)")
+		container = container.
+			WithExec([]string{"mkdir", "-p", "/home/flipt/.config/flipt"}).
+			WithFile("/home/flipt/.config/flipt/config.yml", client.Host().Directory("build/testing/testdata").File("default.yml")).
+			// in order to stop a blocking process via SIGTERM and capture a successful exit code
+			// we use a shell script to start flipt in the background, sleep for two seconds,
+			// send the SIGTERM signal, wait for process to exit and then propagate Flipts exit code
+			WithNewFile("/test.sh", dagger.ContainerWithNewFileOpts{
+				Contents: `#!/bin/sh
+
+/flipt &
+
+sleep 2
+
+kill -s TERM $!
+
+wait $!
+
+exit $?`,
+				Owner:       "flipt",
+				Permissions: 0777,
+			}).
+			WithEnvVariable("FLIPT_LOG_LEVEL", "debug")
+
+		if _, err := assertExec(ctx, container, []string{"/test.sh"},
+			stdout(contains("configuration source\t{\"path\": \"/home/flipt/.config/flipt/config.yml\"}")),
+		); err != nil {
+			return err
+		}
+	}
+
+	{
 		container := container.Pipeline("flipt import/export")
 
 		var err error
