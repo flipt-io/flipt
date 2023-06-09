@@ -10,16 +10,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
-<<<<<<< HEAD
 import Button from '~/components/forms/buttons/Button';
-import { DeleteButton } from '~/components/forms/buttons/DeleteButton';
 import Dropdown from '~/components/forms/Dropdown';
-||||||| parent of 93d3e5cd (feat(wip): copy segment)
-import Button from '~/components/forms/Button';
-=======
-import Button from '~/components/forms/Button';
-import Dropdown from '~/components/forms/Dropdown';
->>>>>>> 93d3e5cd (feat(wip): copy segment)
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
