@@ -120,6 +120,7 @@ test.describe('Flags - Read Only', () => {
     await page.getByRole('link', { name: 'test-flag' }).click();
     await page.getByLabel('Description').click();
     await page.getByLabel('Description').fill('Test flag description 2');
+    await expect(page.getByRole('switch', { name: 'Enabled' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
   });
 

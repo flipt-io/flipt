@@ -1,17 +1,19 @@
 import { Switch } from '@headlessui/react';
 import { useField } from 'formik';
+import { classNames } from '~/utils/helpers';
 
 type ToggleProps = {
   id: string;
   name: string;
   label: string;
   description?: string;
-  enabled: boolean;
+  checked: boolean;
+  disabled?: boolean;
   onChange?: (e: any) => void;
 };
 
 export default function Toggle(props: ToggleProps) {
-  const { id, label, description, enabled, onChange } = props;
+  const { id, label, description, checked, disabled = false, onChange } = props;
   const [field] = useField(props);
 
   return (
@@ -31,21 +33,25 @@ export default function Toggle(props: ToggleProps) {
         )}
       </span>
       <Switch
-        checked={enabled}
+        disabled={disabled}
+        checked={checked}
         id={id}
         {...field}
         onChange={(e: boolean) => {
           onChange && onChange(e);
         }}
-        className={`${
-          enabled ? 'bg-green-400' : 'bg-violet-200'
-        } relative inline-flex h-6 w-11 items-center rounded-full`}
+        className={classNames(
+          checked ? 'bg-green-400' : 'bg-violet-200',
+          disabled ? 'hover:cursor-not-allowed' : 'hover:cursor-pointer',
+          'relative inline-flex h-6 w-11 items-center rounded-full'
+        )}
       >
         <span className="sr-only">Enable</span>
         <span
-          className={`${
-            enabled ? 'translate-x-6' : 'translate-x-1'
-          } inline-block h-4 w-4 transform rounded-full transition bg-white`}
+          className={classNames(
+            checked ? 'translate-x-6' : 'translate-x-1',
+            'inline-block h-4 w-4 transform rounded-full transition bg-white'
+          )}
         />
       </Switch>
     </Switch.Group>
