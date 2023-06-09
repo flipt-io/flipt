@@ -29,7 +29,31 @@ func TestReadOnly(t *testing.T) {
 			expected = namespace
 		}
 		assert.Equal(t, expected, ns.Name)
-		require.NoError(t, err)
+		assert.NotZero(t, ns.CreatedAt)
+		assert.NotZero(t, ns.UpdatedAt)
+
+		t.Run("ListNamespaces", func(t *testing.T) {
+			// NOTE: different cases load different amount of Namespaces
+			// so we're just interested in the shape of the response as
+			// opposed to the specific contents of namespaces
+			ns, err := sdk.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
+			require.NoError(t, err)
+
+			// we at-least want to ensure that the namespace used in
+			// the context of this test invocation is present in the
+			// list response
+			var foundNamespaceInContext bool
+
+			assert.NotZero(t, ns.Namespaces)
+			for _, n := range ns.Namespaces {
+				assert.NotZero(t, n.CreatedAt)
+				assert.NotZero(t, n.UpdatedAt)
+
+				foundNamespaceInContext = foundNamespaceInContext || n.Key == namespace
+			}
+
+			require.True(t, foundNamespaceInContext, "%q was not found in list response", namespace)
+		})
 
 		t.Run("GetFlag", func(t *testing.T) {
 			_, err := sdk.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
