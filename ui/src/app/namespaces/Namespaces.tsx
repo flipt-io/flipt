@@ -69,8 +69,10 @@ export default function Namespaces() {
           }
           panelType="Namespace"
           setOpen={setShowDeleteNamespaceModal}
-          handleDelete={
-            () => dispatch(deleteNamespaceAsync(deletingNamespace?.key ?? '')) // TODO: Determine impact of blank ID param
+          handleDelete={() =>
+            dispatch(
+              deleteNamespaceAsync(deletingNamespace?.key ?? '')
+            ).unwrap()
           }
         />
       </Modal>

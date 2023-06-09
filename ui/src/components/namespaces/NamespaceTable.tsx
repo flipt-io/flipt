@@ -48,7 +48,10 @@ type NamespaceDeleteActionProps = {
 function NamespaceDeleteAction(props: NamespaceDeleteActionProps) {
   const { row, setDeletingNamespace, setShowDeleteNamespaceModal } = props;
   return row.original.protected ? (
-    <span className="text-gray-400">
+    <span
+      title="Cannot deleting the default namespace"
+      className="text-gray-400 hover:cursor-not-allowed"
+    >
       Delete
       <span className="sr-only">, {row.original.name}</span>
     </span>

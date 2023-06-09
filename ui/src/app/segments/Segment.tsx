@@ -8,7 +8,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import {
+  selectCurrentNamespace,
+  selectNamespaces
+} from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Dropdown from '~/components/forms/Dropdown';
@@ -60,6 +63,7 @@ export default function Segment() {
 
   const navigate = useNavigate();
 
+  const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
@@ -73,7 +77,6 @@ export default function Segment() {
     getSegment(namespace.key, segmentKey)
       .then((segment: ISegment) => {
         setSegment(segment);
-        clearError();
       })
       .catch((err) => {
         setError(err);
@@ -214,7 +217,7 @@ export default function Segment() {
               {
                 id: 'copy',
                 label: 'Copy to Namespace',
-                disabled: readOnly,
+                disabled: readOnly || namespaces.length < 2,
                 onClick: () => setShowCopySegmentModal(true),
                 icon: DocumentDuplicateIcon
               },
@@ -224,8 +227,8 @@ export default function Segment() {
                 disabled: readOnly,
                 onClick: () => setShowDeleteSegmentModal(true),
                 icon: TrashIcon,
-                activeClassName: 'text-red-700',
-                inActiveClassName: 'text-red-600'
+                activeClassName: readOnly ? 'text-red-500' : 'text-red-700',
+                inActiveClassName: readOnly ? 'text-red-400' : 'text-red-600'
               }
             ]}
           />

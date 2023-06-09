@@ -8,7 +8,10 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import {
+  selectCurrentNamespace,
+  selectNamespaces
+} from '~/app/namespaces/namespacesSlice';
 import Dropdown from '~/components/forms/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
@@ -33,12 +36,12 @@ export default function Flag() {
 
   const navigate = useNavigate();
 
+  const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
-  const [showDeleteFlagModal, setShowDeleteFlagModal] =
-    useState<boolean>(false);
-  const [showCopyFlagModal, setShowCopyFlagModal] = useState<boolean>(false);
+  const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
+  const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
 
   const incrementFlagVersion = () => {
     setFlagVersion(flagVersion + 1);
@@ -90,7 +93,7 @@ export default function Flag() {
         />
       </Modal>
 
-      {/* flag copy modal */}
+      {/* segment copy modal */}
       <Modal open={showCopyFlagModal} setOpen={setShowCopyFlagModal}>
         <CopyToNamespacePanel
           panelMessage={
@@ -100,7 +103,7 @@ export default function Flag() {
               the namespace:
             </>
           }
-          panelType="Flag"
+          panelType="Segment"
           setOpen={setShowCopyFlagModal}
           handleCopy={(namespaceKey: string) =>
             copyFlag(
@@ -145,12 +148,10 @@ export default function Flag() {
               {
                 id: 'copy',
                 label: 'Copy to Namespace',
-                disabled: readOnly,
-                onClick: () =>
-                  copyFlag(
-                    { namespaceKey: namespace.key, key: flag.key },
-                    { namespaceKey: 'adsfdsafdsaf' }
-                  ),
+                disabled: readOnly || namespaces.length < 2,
+                onClick: () => {
+                  setShowCopyFlagModal(true);
+                },
                 icon: DocumentDuplicateIcon
               },
               {
@@ -159,8 +160,8 @@ export default function Flag() {
                 disabled: readOnly,
                 onClick: () => setShowDeleteFlagModal(true),
                 icon: TrashIcon,
-                activeClassName: 'text-red-700',
-                inActiveClassName: 'text-red-600'
+                activeClassName: readOnly ? 'text-red-500' : 'text-red-700',
+                inActiveClassName: readOnly ? 'text-red-400' : 'text-red-600'
               }
             ]}
           />

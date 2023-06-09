@@ -86,13 +86,19 @@ export default function Dropdown(props: DropdownProps) {
                         active
                           ? action.activeClassName
                             ? action.activeClassName
-                            : 'text-gray-900 bg-gray-100'
+                            : 'text-gray-700 bg-gray-100'
                           : action.inActiveClassName
                           ? action.inActiveClassName
-                          : 'text-gray-700',
-                        `${action.className} group flex items-center px-4 py-2 text-sm`
+                          : 'text-gray-500',
+                        `${action.className} group flex items-center px-4 py-2 text-sm hover:cursor-not-allowed`
                       )}
                     >
+                      {action.icon && (
+                        <action.icon
+                          className="mr-3 h-5 w-5 text-gray-300 group-hover:text-gray-400"
+                          aria-hidden="true"
+                        />
+                      )}
                       {action.label}
                     </span>
                   )}
