@@ -43,7 +43,12 @@ test.describe('Namespaces', () => {
     ).toBeVisible();
   });
 
-  test('can delete namespace', async ({ page }) => {
+  test('deleting current namespace switches to default namespace', async ({
+    page
+  }) => {
+    await page.getByRole('link', { name: 'logo' }).click();
+    await page.getByRole('button', { name: 'Default' }).click();
+    await page.getByText('test', { exact: true }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();
     await expect(
@@ -51,6 +56,7 @@ test.describe('Namespaces', () => {
     ).toBeVisible();
     await page.getByRole('link', { name: 'Delete , test' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByRole('button', { name: 'Default' })).toBeVisible();
   });
 
   test('cannot delete default namespace', async ({ page }) => {
@@ -65,7 +71,6 @@ test.describe('Namespaces', () => {
   });
 
   test('cannot switch namespace while on settings page', async ({ page }) => {
-    await page.getByRole('button', { name: 'default' }).click();
     await page.getByRole('button', { name: 'default' }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
   });

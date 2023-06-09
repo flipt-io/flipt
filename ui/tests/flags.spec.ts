@@ -139,6 +139,9 @@ test.describe('Flags - Read Only', () => {
 
   test('can not delete flag', async ({ page }) => {
     await page.getByRole('link', { name: 'test-flag' }).click();
-    await expect(page.getByRole('button', { name: 'Delete' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    // assert nothing happens
+    await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeHidden();
   });
 });
