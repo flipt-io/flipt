@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"context"
 	"testing"
 
 	"go.flipt.io/flipt/build/testing/integration"
@@ -10,7 +11,9 @@ import (
 
 func TestAPI(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, namespace string, authentication bool) {
-		api.API(t, sdk, namespace)
+		ctx := context.Background()
+
+		api.API(t, ctx, sdk, namespace, authentication)
 
 		// run extra tests in authenticated context
 		if authentication {

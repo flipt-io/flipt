@@ -3,7 +3,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
 import * as Yup from 'yup';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';

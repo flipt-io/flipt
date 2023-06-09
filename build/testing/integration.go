@@ -25,6 +25,8 @@ var (
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
 		"api":           api,
+		"fs/git":        git,
+		"fs/local":      local,
 		"import/export": importExport,
 	}
 )
@@ -36,7 +38,7 @@ type testConfig struct {
 	token     string
 }
 
-type testCaseFn func(_ context.Context, base, flipt *dagger.Container, conf testConfig) func() error
+type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error
 
 func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	if len(caseNames) == 0 {
@@ -118,7 +120,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
 				WithMountedCache("/var/opt/flipt/logs", logs)
 
-			g.Go(take(fn(ctx, base, flipt, config)))
+			g.Go(take(fn(ctx, client, base, flipt, config)))
 		}
 	}
 
@@ -145,7 +147,7 @@ func take(fn func() error) func() error {
 	}
 }
 
-func api(ctx context.Context, base, flipt *dagger.Container, conf testConfig) func() error {
+func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return suite(ctx, "api", base,
 		// create unique instance for test case
 		flipt.
@@ -158,7 +160,46 @@ const (
 	testdataPathFmt = testdataDir + "/%s.yaml"
 )
 
-func importExport(ctx context.Context, base, flipt *dagger.Container, conf testConfig) func() error {
+func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	flipt = flipt.
+		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
+		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
+
+	return suite(ctx, "readonly", base, flipt, conf)
+}
+
+func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	gitea := client.Container().
+		From("gitea/gitea:latest").
+		WithExposedPort(3000).
+		WithExec(nil)
+
+	_, err := base.
+		WithServiceBinding("gitea", gitea).
+		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", testdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("gitea", gitea).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
+		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
+
+	return suite(ctx, "readonly", base, flipt, conf)
+}
+
+func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
 		flags := []string{"--address", conf.address}

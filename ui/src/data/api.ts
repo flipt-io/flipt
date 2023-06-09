@@ -338,7 +338,7 @@ export async function evaluate(
 
 //
 // meta
-export async function getInfo() {
+async function getMeta(path: string) {
   const req = {
     method: 'GET',
     headers: {
@@ -347,7 +347,7 @@ export async function getInfo() {
     }
   };
 
-  const res = await fetch(`${metaURL}/info`, req);
+  const res = await fetch(`${metaURL}${path}`, req);
   if (!res.ok) {
     const contentType = res.headers.get('content-type');
 
@@ -366,4 +366,12 @@ export async function getInfo() {
   }
 
   return res.json();
+}
+
+export async function getInfo() {
+  return getMeta('/info');
+}
+
+export async function getConfig() {
+  return getMeta('/config');
 }

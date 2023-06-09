@@ -2,6 +2,7 @@ package testing
 
 import (
 	"context"
+	"encoding/json"
 
 	"dagger.io/dagger"
 )
@@ -13,12 +14,40 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 		WithExposedPort(6379).
 		WithExec(nil)
 
-	_, err := flipt.
+	gitea := client.Container().
+		From("gitea/gitea:latest").
+		WithExposedPort(3000).
+		WithExec(nil)
+
+	flipt = flipt.
+		WithServiceBinding("gitea", gitea).
+		WithExec([]string{"go", "run", "./build/internal/cmd/gitea/...", "-gitea-url", "http://gitea:3000", "-testdata-dir", "./internal/storage/fs/git/testdata"})
+
+	out, err := flipt.Stdout(ctx)
+	if err != nil {
+		return err
+	}
+
+	var push map[string]string
+	if err := json.Unmarshal([]byte(out), &push); err != nil {
+		return err
+	}
+
+	flipt, err = flipt.
 		WithServiceBinding("redis", redisSrv).
 		WithEnvVariable("REDIS_HOST", "redis:6379").
-		WithExec([]string{"go", "test", "-race", "-p", "1", "./..."}).
-		ExitCode(ctx)
-	return err
+		WithEnvVariable("TEST_GIT_REPO_URL", "http://gitea:3000/root/features.git").
+		WithEnvVariable("TEST_GIT_REPO_HEAD", push["HEAD"]).
+		WithExec([]string{"go", "test", "-race", "-p", "1", "-coverprofile=coverage.txt", "-covermode=atomic", "./..."}).
+		Sync(ctx)
+	if err != nil {
+		return err
+	}
+
+	// attempt to export coverage if its exists
+	_, _ = flipt.File("coverage.txt").Export(ctx, "coverage.txt")
+
+	return nil
 }
 
 var All = map[string]Wrapper{

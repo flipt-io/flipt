@@ -1,0 +1,7 @@
+experimental:
+  filesystem_storage:
+    enabled: true
+storage:
+  type: git
+  git:
+    repository: "git@github.com:foo/bar.git"

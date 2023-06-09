@@ -6,13 +6,13 @@ import {
 } from '@heroicons/react/24/outline';
 import { Fragment, useState } from 'react';
 import { useSessionStorage } from '~/data/hooks/storage';
-import { Info } from '~/types/Meta';
+import { IInfo } from '~/types/Meta';
 
 type NotificationProps = {
   show: boolean;
   setShow: (show: boolean) => void;
   markSeen: () => void;
-  info: Info;
+  info: IInfo;
 };
 
 export function Notification(props: NotificationProps) {
@@ -96,7 +96,7 @@ export function Notification(props: NotificationProps) {
 }
 
 type NotificationsProps = {
-  info: Info;
+  info: IInfo;
 };
 
 export default function Notifications(props: NotificationsProps) {

@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';

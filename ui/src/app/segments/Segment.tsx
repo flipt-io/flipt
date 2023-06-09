@@ -3,10 +3,12 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
+import { DeleteButton } from '~/components/forms/buttons/DeleteButton';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
@@ -44,6 +46,7 @@ export default function Segment() {
   const navigate = useNavigate();
 
   const namespace = useSelector(selectCurrentNamespace);
+  const readOnly = useSelector(selectReadonly);
 
   const incrementSegmentVersion = () => {
     setSegmentVersion(segmentVersion + 1);
@@ -164,15 +167,11 @@ export default function Segment() {
           </div>
         </div>
         <div className="flex flex-none">
-          <button
-            type="button"
-            className="mb-1 mt-5 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium text-red-400 border-red-200 focus:outline-none enabled:hover:bg-red-50 sm:mt-0"
-            onClick={() => {
-              setShowDeleteSegmentModal(true);
-            }}
-          >
-            Delete
-          </button>
+          <DeleteButton
+            disabled={readOnly}
+            title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+            onClick={() => setShowDeleteSegmentModal(true)}
+          />
         </div>
       </div>
 
@@ -220,6 +219,10 @@ export default function Segment() {
                   <Button
                     primary
                     type="button"
+                    disabled={readOnly}
+                    title={
+                      readOnly ? 'Not allowed in Read-Only mode' : undefined
+                    }
                     onClick={() => {
                       setEditingConstraint(null);
                       setShowConstraintForm(true);
@@ -296,35 +299,39 @@ export default function Segment() {
                           {constraint.description}
                         </td>
                         <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <a
-                            href="#"
-                            className="pr-2 text-violet-600 hover:text-violet-900"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setEditingConstraint(constraint);
-                              setShowConstraintForm(true);
-                            }}
-                          >
-                            Edit
-                            <span className="sr-only">
-                              , {constraint.property}
-                            </span>
-                          </a>
-                          |
-                          <a
-                            href="#"
-                            className="pl-2 text-violet-600 hover:text-violet-900"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setDeletingConstraint(constraint);
-                              setShowDeleteConstraintModal(true);
-                            }}
-                          >
-                            Delete
-                            <span className="sr-only">
-                              , {constraint.property}
-                            </span>
-                          </a>
+                          {!readOnly && (
+                            <>
+                              <a
+                                href="#"
+                                className="pr-2 text-violet-600 hover:text-violet-900"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setEditingConstraint(constraint);
+                                  setShowConstraintForm(true);
+                                }}
+                              >
+                                Edit
+                                <span className="sr-only">
+                                  , {constraint.property}
+                                </span>
+                              </a>
+                              <span aria-hidden="true"> | </span>
+                              <a
+                                href="#"
+                                className="pl-2 text-violet-600 hover:text-violet-900"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setDeletingConstraint(constraint);
+                                  setShowDeleteConstraintModal(true);
+                                }}
+                              >
+                                Delete
+                                <span className="sr-only">
+                                  , {constraint.property}
+                                </span>
+                              </a>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -333,6 +340,7 @@ export default function Segment() {
               ) : (
                 <EmptyState
                   text="New Constraint"
+                  disabled={readOnly}
                   onClick={() => {
                     setEditingConstraint(null);
                     setShowConstraintForm(true);

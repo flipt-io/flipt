@@ -5,7 +5,7 @@ import { cloneDeep } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/Button';
+import Button from '~/components/forms/buttons/Button';
 import Combobox, { ISelectable } from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';

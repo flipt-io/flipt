@@ -13,9 +13,7 @@ import (
 	sdk "go.flipt.io/flipt/sdk/go"
 )
 
-func API(t *testing.T, client sdk.SDK, namespace string) {
-	ctx := context.Background()
-
+func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, authenticated bool) {
 	t.Run("Namespaces", func(t *testing.T) {
 		if !namespaceIsDefault(namespace) {
 			t.Log(`Create namespace.`)
@@ -622,6 +620,21 @@ func API(t *testing.T, client sdk.SDK, namespace string) {
 			assert.True(t, ok, "Missing %s.", name)
 			assert.NotEmpty(t, field)
 		}
+	})
+
+	t.Run("Auth", func(t *testing.T) {
+		t.Run("Self", func(t *testing.T) {
+			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+			if authenticated {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+			}
+		})
+		t.Run("Public", func(t *testing.T) {
+			_, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
+			require.NoError(t, err)
+		})
 	})
 }
 

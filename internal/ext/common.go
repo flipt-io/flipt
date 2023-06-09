@@ -43,8 +43,9 @@ type Segment struct {
 }
 
 type Constraint struct {
-	Type     string `yaml:"type,omitempty"`
-	Property string `yaml:"property,omitempty"`
-	Operator string `yaml:"operator,omitempty"`
-	Value    string `yaml:"value,omitempty"`
+	Type        string `yaml:"type,omitempty"`
+	Property    string `yaml:"property,omitempty"`
+	Operator    string `yaml:"operator,omitempty"`
+	Value       string `yaml:"value,omitempty"`
+	Description string `yaml:"description,omitempty"`
 }
