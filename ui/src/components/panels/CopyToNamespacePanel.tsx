@@ -62,7 +62,7 @@ export default function CopyToNamespacePanel(props: CopyToNamespacePanelProps) {
           </div>
           <div className="mt-4">
             <Listbox<SelectableNamespace>
-              id="namespaceKey"
+              id="copyToNamespace"
               name="namespaceKey"
               values={namespaces.map((n) => ({
                 ...n,

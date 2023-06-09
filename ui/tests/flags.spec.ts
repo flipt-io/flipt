@@ -100,7 +100,7 @@ test.describe('Flags', () => {
     await page.getByRole('link', { name: 'Settings' }).click();
     await page.getByRole('link', { name: 'Namespaces' }).click();
     await page.getByRole('button', { name: 'New Namespace' }).click();
-    await page.getByLabel('Name', { exact: true }).fill('copy');
+    await page.getByLabel('Name', { exact: true }).fill('copy flag');
     await page.getByLabel('Description').fill('Copy Namespace');
     await page.getByRole('button', { name: 'Create' }).click();
     await page.getByRole('link', { name: 'Flags' }).click();
@@ -109,14 +109,15 @@ test.describe('Flags', () => {
     // perform copy to new namespace
     await page.getByRole('button', { name: 'Actions' }).click();
     await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
-    await page.getByRole('button', { name: 'copy', exact: true }).dblclick();
+    await page.locator('#copyToNamespace-select-button').click();
+    await page.getByRole('option', { name: 'copy flag', exact: true }).click();
     await page.getByRole('button', { name: 'Copy', exact: true }).click();
     await expect(page.getByText('Successfully copied flag')).toBeVisible();
 
     // switch to new namespace
     await page.getByRole('link', { name: 'Flags', exact: true }).click();
     await page.getByRole('button', { name: 'Default' }).click();
-    await page.getByText('copy').click();
+    await page.getByText('copy flag').click();
 
     // verify flag was copied
     await page.getByRole('link', { name: 'test-flag' }).click();
@@ -178,5 +179,15 @@ test.describe('Flags - Read Only', () => {
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     // assert nothing happens
     await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeHidden();
+  });
+
+  test('can not copy flag to new namespace', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
+    // assert nothing happens
+    await expect(
+      page.getByRole('menuitem', { name: 'Copy to Namespace' })
+    ).toBeHidden();
   });
 });

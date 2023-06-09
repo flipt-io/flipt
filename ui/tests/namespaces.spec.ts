@@ -70,9 +70,34 @@ test.describe('Namespaces', () => {
     await page.getByRole('cell', { name: 'default' }).first().click();
   });
 
-  test('cannot switch namespace while on settings page', async ({ page }) => {
-    await page.getByRole('button', { name: 'default' }).click();
+  test('cannot delete namespace with flags', async ({ page }) => {
+    await page.getByRole('button', { name: 'Default' }).click();
     await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Namespaces' }).click();
+    await page.getByRole('button', { name: 'New Namespace' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('no delete');
+    await page.getByLabel('Description').click();
+    await page.getByRole('button', { name: 'Create' }).click();
+
+    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('button', { name: 'Default' }).click();
+    await page.getByText('no delete').click();
+
+    await page.getByRole('button', { name: 'Create Flag' }).click();
+    await page.getByLabel('Name').fill('foo');
+    await page.getByLabel('Description').click();
+    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByText('Successfully created flag').click();
+
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Namespaces' }).click();
+    await page.getByRole('link', { name: 'Delete , no delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await expect(
+      page.getByText(
+        'namespace "no-delete" cannot be deleted; flags must be deleted first'
+      )
+    ).toBeVisible();
   });
 });
 
