@@ -95,6 +95,41 @@ test.describe('Flags', () => {
       ).toBeVisible();
     });
   });
+
+  test('can copy flag to new namespace', async ({ page }) => {
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Namespaces' }).click();
+    await page.getByRole('button', { name: 'New Namespace' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('copy');
+    await page.getByLabel('Description').fill('Copy Namespace');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'test-flag' }).click();
+
+    // perform copy to new namespace
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
+    await page.getByRole('button', { name: 'copy', exact: true }).dblclick();
+    await page.getByRole('button', { name: 'Copy', exact: true }).click();
+    await expect(page.getByText('Successfully copied flag')).toBeVisible();
+
+    // switch to new namespace
+    await page.getByRole('link', { name: 'Flags', exact: true }).click();
+    await page.getByRole('button', { name: 'Default' }).click();
+    await page.getByText('copy').click();
+
+    // verify flag was copied
+    await page.getByRole('link', { name: 'test-flag' }).click();
+    await expect(page.getByText('Test Flag')).toBeVisible();
+
+    // verify variants were copied
+    await expect(
+      page.getByRole('cell', { name: 'chrome', exact: true })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('cell', { name: 'firefox', exact: true })
+    ).toBeVisible();
+  });
 });
 
 test.describe('Flags - Read Only', () => {
