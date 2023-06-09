@@ -43,6 +43,22 @@ type AuthenticationConfig struct {
 	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`
 }
 
+// Enabled returns true if authentication is marked as required
+// or any of the authentication methods are enabled.
+func (c AuthenticationConfig) Enabled() bool {
+	if c.Required {
+		return true
+	}
+
+	for _, info := range c.Methods.AllMethods() {
+		if info.Enabled {
+			return true
+		}
+	}
+
+	return false
+}
+
 // ShouldRunCleanup returns true if the cleanup background process should be started.
 // It returns true given at-least 1 method is enabled and it's associated schedule
 // has been configured (non-nil).

@@ -5,22 +5,11 @@ import {
   faTwitter
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useEffect, useState } from 'react';
-import { getInfo } from '~/data/api';
-import { Info } from '~/types/Meta';
+import { useSelector } from 'react-redux';
+import { selectInfo } from '~/app/meta/metaSlice';
 
 export default function Footer() {
-  const [info, setInfo] = useState<Info | null>(null);
-
-  useEffect(() => {
-    getInfo()
-      .then((info: Info) => {
-        setInfo(info);
-      })
-      .catch(() => {
-        // nothing to do, component will degrade gracefully
-      });
-  }, []);
+  const info = useSelector(selectInfo);
 
   const ref = () => {
     if (info?.isRelease && info?.version) {

@@ -164,10 +164,11 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 			for _, c := range s.Constraints {
 				segment.Constraints = append(segment.Constraints, &Constraint{
-					Type:     c.Type.String(),
-					Property: c.Property,
-					Operator: c.Operator,
-					Value:    c.Value,
+					Type:        c.Type.String(),
+					Property:    c.Property,
+					Operator:    c.Operator,
+					Value:       c.Value,
+					Description: c.Description,
 				})
 			}
 

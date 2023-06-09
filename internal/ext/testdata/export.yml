@@ -39,7 +39,9 @@ segments:
         property: foo
         operator: eq
         value: baz
+        description: desc
       - type: STRING_COMPARISON_TYPE
         property: fizz
         operator: neq
         value: buzz
+        description: desc

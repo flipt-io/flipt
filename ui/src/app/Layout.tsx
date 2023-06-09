@@ -8,6 +8,7 @@ import SuccessNotification from '~/components/notifications/SuccessNotification'
 import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
+import { fetchConfigAsync, fetchInfoAsync } from './meta/metaSlice';
 import { fetchNamespacesAsync } from './namespaces/namespacesSlice';
 
 function InnerLayout() {
@@ -18,6 +19,8 @@ function InnerLayout() {
 
   useEffect(() => {
     dispatch(fetchNamespacesAsync());
+    dispatch(fetchInfoAsync());
+    dispatch(fetchConfigAsync());
   }, [dispatch]);
 
   if (!session) {

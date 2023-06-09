@@ -8,6 +8,7 @@ import { forwardRef, Ref } from 'react';
 import { Link } from 'react-router-dom';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { INamespace } from '~/types/Namespace';
+import { classNames } from '~/utils/helpers';
 
 type RuleProps = {
   namespace: INamespace;
@@ -16,11 +17,21 @@ type RuleProps = {
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
+  readOnly?: boolean;
 };
 
 const Rule = forwardRef(
   (
-    { namespace, rule, onEdit, onDelete, style, className, ...rest }: RuleProps,
+    {
+      namespace,
+      rule,
+      onEdit,
+      onDelete,
+      style,
+      className,
+      readOnly,
+      ...rest
+    }: RuleProps,
     ref: Ref<HTMLLIElement>
   ) => (
     <li
@@ -30,7 +41,10 @@ const Rule = forwardRef(
       className={`${className} flex rounded-md border p-6 bg-white border-gray-200 hover:shadow hover:shadow-violet-100 hover:border-violet-200`}
     >
       <div
-        className="flex items-center justify-start text-center hover:cursor-move"
+        className={classNames(
+          readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+          'flex items-center justify-start text-center'
+        )}
         {...rest}
       >
         <ArrowsUpDownIcon className="hidden h-6 w-6 text-gray-400 lg:flex" />
@@ -40,7 +54,10 @@ const Rule = forwardRef(
         <div className="flex">
           <div>
             <p
-              className="text-sm leading-tight text-gray-500 hover:cursor-move"
+              className={classNames(
+                readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+                'text-sm leading-tight text-gray-500'
+              )}
               {...rest}
             >
               <span className="text-gray-900">IF</span> Match Segment
@@ -57,11 +74,20 @@ const Rule = forwardRef(
         </div>
 
         <ArrowLongRightIcon
-          className="hidden h-6 w-6 text-violet-300 hover:cursor-move lg:flex"
+          className={classNames(
+            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+            'hidden h-6 w-6 text-violet-300 lg:flex'
+          )}
           {...rest}
         />
 
-        <div className="flex hover:cursor-move" {...rest}>
+        <div
+          className={classNames(
+            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+            'flex'
+          )}
+          {...rest}
+        >
           <div>
             <p className="text-sm leading-tight text-gray-500">
               <span className="text-gray-900">THEN</span> Return
@@ -70,7 +96,12 @@ const Rule = forwardRef(
           </div>
         </div>
 
-        <div className="hover:cursor-move" {...rest}>
+        <div
+          className={classNames(
+            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move'
+          )}
+          {...rest}
+        >
           {rule.rollouts.length == 1 && (
             <Bars2Icon className="hidden h-6 w-6 text-violet-300 lg:flex" />
           )}
@@ -79,7 +110,13 @@ const Rule = forwardRef(
           )}
         </div>
 
-        <div className="flex flex-col hover:cursor-move lg:flex-row" {...rest}>
+        <div
+          className={classNames(
+            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+            'flex flex-col lg:flex-row'
+          )}
+          {...rest}
+        >
           <div className="flex flex-col divide-y divide-dotted divide-violet-200 text-sm">
             {rule.rollouts.map((rollout) => (
               <div
@@ -99,7 +136,7 @@ const Rule = forwardRef(
       </div>
 
       <div className="flex items-center justify-end text-center">
-        {rule.rollouts.length > 1 && (
+        {!readOnly && rule.rollouts.length > 1 && (
           <a
             href="#"
             onClick={(e) => {
@@ -111,16 +148,18 @@ const Rule = forwardRef(
             Edit&nbsp;|&nbsp;
           </a>
         )}
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            onDelete && onDelete();
-          }}
-          className="text-xs text-violet-600 hover:text-violet-900"
-        >
-          Delete
-        </a>
+        {!readOnly && (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onDelete && onDelete();
+            }}
+            className="text-xs text-violet-600 hover:text-violet-900"
+          >
+            Delete
+          </a>
+        )}
       </div>
     </li>
   )

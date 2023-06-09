@@ -8,10 +8,11 @@ type SortableRuleProps = {
   rule: IEvaluatable;
   onEdit: () => void;
   onDelete: () => void;
+  readOnly?: boolean;
 };
 
 export default function SortableRule(props: SortableRuleProps) {
-  const { namespace, rule, onEdit, onDelete } = props;
+  const { namespace, rule, onEdit, onDelete, readOnly } = props;
   const {
     isDragging,
     attributes,
@@ -20,7 +21,8 @@ export default function SortableRule(props: SortableRuleProps) {
     transform,
     transition
   } = useSortable({
-    id: rule.id
+    id: rule.id,
+    disabled: readOnly
   });
 
   const style = transform
@@ -44,6 +46,7 @@ export default function SortableRule(props: SortableRuleProps) {
       rule={rule}
       onEdit={onEdit}
       onDelete={onDelete}
+      readOnly={readOnly}
     />
   );
 }

@@ -540,6 +540,9 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/advanced.yml",
 			expected: func() *Config {
 				cfg := defaultConfig()
+
+				cfg.Experimental.FilesystemStorage.Enabled = true
+
 				cfg.Log = LogConfig{
 					Level:     "WARN",
 					File:      "testLogFile.txt",
@@ -583,6 +586,9 @@ func TestLoad(t *testing.T) {
 					OTLP: OTLPTracingConfig{
 						Endpoint: "localhost:4317",
 					},
+				}
+				cfg.Storage = StorageConfig{
+					Type: StorageType("database"),
 				}
 				cfg.Database = DatabaseConfig{
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
@@ -670,6 +676,48 @@ func TestLoad(t *testing.T) {
 			name:    "file not specified",
 			path:    "./testdata/audit/invalid_enable_without_file.yml",
 			wantErr: errors.New("file not specified"),
+		},
+		{
+			name: "local config provided",
+			path: "./testdata/storage/local_provided.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Experimental.FilesystemStorage.Enabled = true
+				cfg.Storage = StorageConfig{
+					Type: LocalStorageType,
+					Local: Local{
+						Path: ".",
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name: "git config provided",
+			path: "./testdata/storage/git_provided.yml",
+			expected: func() *Config {
+				cfg := defaultConfig()
+				cfg.Experimental.FilesystemStorage.Enabled = true
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: Git{
+						Ref:          "main",
+						Repository:   "git@github.com:foo/bar.git",
+						PollInterval: 30 * time.Second,
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "git repository not provided",
+			path:    "./testdata/storage/invalid_git_repo_not_specified.yml",
+			wantErr: errors.New("git repository must be specified"),
+		},
+		{
+			name:    "git basic auth partially provided",
+			path:    "./testdata/storage/git_basic_auth_invalid.yml",
+			wantErr: errors.New("both username and password need to be provided for basic auth"),
 		},
 	}
 

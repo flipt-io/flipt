@@ -13,7 +13,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-var decodeHooks = mapstructure.ComposeDecodeHookFunc(
+var decodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
 	stringToEnumHookFunc(stringToLogEncoding),
@@ -22,7 +22,7 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 	stringToEnumHookFunc(stringToScheme),
 	stringToEnumHookFunc(stringToDatabaseProtocol),
 	stringToEnumHookFunc(stringToAuthMethod),
-)
+}
 
 // Config contains all of Flipts configuration needs.
 //
@@ -38,11 +38,13 @@ var decodeHooks = mapstructure.ComposeDecodeHookFunc(
 // any errors derived from the resulting state of the configuration.
 type Config struct {
 	Version        string               `json:"version,omitempty"`
+	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental"`
 	Log            LogConfig            `json:"log,omitempty" mapstructure:"log"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui"`
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache"`
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server"`
+	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" experiment:"filesystem_storage"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing"`
 	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db"`
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
@@ -101,16 +103,25 @@ func Load(path string) (*Result, error) {
 	root := reflect.ValueOf(cfg).Interface()
 	f(root)
 
+	// these are reflected config top-level types for fields where
+	// they have been marked as experimental and their associated
+	// flag has enabled set to false.
+	var skippedTypes []reflect.Type
+
 	val := reflect.ValueOf(cfg).Elem()
 	for i := 0; i < val.NumField(); i++ {
 		// search for all expected env vars since Viper cannot
 		// infer when doing Unmarshal + AutomaticEnv.
 		// see: https://github.com/spf13/viper/issues/761
-		var (
-			structField = val.Type().Field(i)
-			key         = fieldKey(structField)
-		)
+		structField := val.Type().Field(i)
+		if exp := structField.Tag.Get("experiment"); exp != "" {
+			// TODO(georgemac): register target for skipping
+			if !v.GetBool(fmt.Sprintf("experimental.%s.enabled", exp)) {
+				skippedTypes = append(skippedTypes, structField.Type)
+			}
+		}
 
+		key := fieldKey(structField)
 		bindEnvVars(v, getFliptEnvs(), []string{key}, structField.Type)
 
 		field := val.Field(i).Addr().Interface()
@@ -130,7 +141,11 @@ func Load(path string) (*Result, error) {
 		defaulter.setDefaults(v)
 	}
 
-	if err := v.Unmarshal(cfg, viper.DecodeHook(decodeHooks)); err != nil {
+	if err := v.Unmarshal(cfg, viper.DecodeHook(
+		mapstructure.ComposeDecodeHookFunc(
+			append(decodeHooks, experimentalFieldSkipHookFunc(skippedTypes...))...,
+		),
+	)); err != nil {
 		return nil, err
 	}
 
@@ -345,6 +360,30 @@ func stringToEnumHookFunc[T constraints.Integer](mappings map[string]T) mapstruc
 		enum := mappings[data.(string)]
 
 		return enum, nil
+	}
+}
+
+func experimentalFieldSkipHookFunc(types ...reflect.Type) mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{}) (interface{}, error) {
+		if len(types) == 0 {
+			return data, nil
+		}
+
+		if t.Kind() != reflect.Struct {
+			return data, nil
+		}
+
+		// skip any types that match a type in the provided set
+		for _, typ := range types {
+			if t == typ {
+				return reflect.New(typ).Interface(), nil
+			}
+		}
+
+		return data, nil
 	}
 }
 

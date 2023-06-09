@@ -15,45 +15,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
-
-      - uses: actions/cache@v3
-        with:
-          path: _tools/
-          key: ${{ runner.os }}-go-tools${{ hashFiles('_tools/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-tools-
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - uses: magefile/mage-action@v2
-        with:
-          version: latest
-
-      - name: Upload the binary
-        uses: actions/upload-artifact@v3
-        with:
-          name: flipt
-          path: bin/flipt
-          if-no-files-found: error
-          retention-days: 1
-
   cli:
-    name: Test CLI
+    name: CLI Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -77,10 +40,12 @@ jobs:
           args: dagger:run test:cli
 
   test:
-    name: API Integration Tests
+    name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
+    strategy:
+      matrix:
+        test: ["api", "fs/git", "fs/local", "import/export"]
     steps:
       - uses: actions/checkout@v3
 
@@ -98,7 +63,7 @@ jobs:
       - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
           version: latest
-          args: dagger:run "test:integration *"
+          args: dagger:run "test:integration ${{ matrix.test }}"
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v3

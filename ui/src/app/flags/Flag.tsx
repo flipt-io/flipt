@@ -3,8 +3,10 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
+import { DeleteButton } from '~/components/forms/buttons/DeleteButton';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import TabBar from '~/components/TabBar';
@@ -24,6 +26,7 @@ export default function Flag() {
   const navigate = useNavigate();
 
   const namespace = useSelector(selectCurrentNamespace);
+  const readOnly = useSelector(selectReadonly);
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] =
     useState<boolean>(false);
@@ -102,13 +105,11 @@ export default function Flag() {
           </div>
         </div>
         <div className="flex flex-none">
-          <button
-            type="button"
-            className="mb-1 mt-5 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium text-red-400 border-red-200 focus:outline-none enabled:hover:bg-red-50 sm:mt-0"
+          <DeleteButton
+            disabled={readOnly}
+            title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
             onClick={() => setShowDeleteFlagModal(true)}
-          >
-            Delete
-          </button>
+          />
         </div>
       </div>
       <TabBar tabs={tabs} />
