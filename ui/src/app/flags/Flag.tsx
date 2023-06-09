@@ -93,7 +93,7 @@ export default function Flag() {
         />
       </Modal>
 
-      {/* segment copy modal */}
+      {/* flag copy modal */}
       <Modal open={showCopyFlagModal} setOpen={setShowCopyFlagModal}>
         <CopyToNamespacePanel
           panelMessage={
