@@ -9,13 +9,15 @@ import { useSelector } from 'react-redux';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import DeletePanel from '~/components/DeletePanel';
 import Dropdown from '~/components/forms/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
+import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
+import DeletePanel from '~/components/panels/DeletePanel';
 import TabBar from '~/components/TabBar';
 import { copyFlag, deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { IFlag } from '~/types/Flag';
 
@@ -27,6 +29,8 @@ export default function Flag() {
   const [flagVersion, setFlagVersion] = useState(0);
 
   const { setError, clearError } = useError();
+  const { setSuccess } = useSuccess();
+
   const navigate = useNavigate();
 
   const namespace = useSelector(selectCurrentNamespace);
@@ -34,6 +38,8 @@ export default function Flag() {
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] =
     useState<boolean>(false);
+
+  const [showCopyFlagModal, setShowCopyFlagModal] = useState<boolean>(false);
 
   const incrementFlagVersion = () => {
     setFlagVersion(flagVersion + 1);
@@ -56,7 +62,6 @@ export default function Flag() {
     getFlag(namespace.key, flagKey)
       .then((flag: IFlag) => {
         setFlag(flag);
-        clearError();
       })
       .catch((err) => {
         setError(err);
@@ -82,6 +87,32 @@ export default function Flag() {
           handleDelete={() => deleteFlag(namespace.key, flag.key)}
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/flags`);
+          }}
+        />
+      </Modal>
+
+      {/* flag copy modal */}
+      <Modal open={showCopyFlagModal} setOpen={setShowCopyFlagModal}>
+        <CopyToNamespacePanel
+          panelMessage={
+            <>
+              Copy the flag{' '}
+              <span className="font-medium text-violet-500">{flag.key}</span> to
+              namespace.
+            </>
+          }
+          panelType="Flag"
+          setOpen={setShowCopyFlagModal}
+          handleCopy={(namespaceKey: string) =>
+            copyFlag(
+              { namespaceKey: namespace.key, key: flag.key },
+              { namespaceKey: namespaceKey, key: flag.key }
+            )
+          }
+          onSuccess={() => {
+            clearError();
+            setShowCopyFlagModal(false);
+            setSuccess('Successfully copied flag');
           }}
         />
       </Modal>

@@ -10,7 +10,8 @@ import { useAppDispatch } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';
 import { addNamespaceToPath } from '~/utils/helpers';
 
-type SelectableNamespace = Pick<INamespace, 'key' | 'name'> & ISelectable;
+export type SelectableNamespace = Pick<INamespace, 'key' | 'name'> &
+  ISelectable;
 
 type NamespaceLisboxProps = {
   disabled: boolean;

@@ -6,7 +6,6 @@ import { classNames } from '~/utils/helpers';
 type ListBoxProps<T extends ISelectable> = {
   id: string;
   name: string;
-  placeholder?: string;
   values?: T[];
   selected: T;
   setSelected?: (v: T) => void;
@@ -20,7 +19,7 @@ export interface ISelectable {
 }
 
 export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
-  const { id, name, className, values, selected, setSelected, disabled } =
+  const { id, name, values, selected, setSelected, disabled, className } =
     props;
 
   return (
