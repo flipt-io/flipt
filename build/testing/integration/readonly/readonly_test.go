@@ -15,7 +15,7 @@ import (
 // folder has been loaded into the target instance being tested.
 // It then exercises a bunch of read operations via the provided SDK in the target namespace.
 func TestReadOnly(t *testing.T) {
-	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, namespace string, _ bool) {
+	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, namespace string, authenticated bool) {
 		ctx := context.Background()
 		ns, err := sdk.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
 			Key: namespace,
@@ -292,6 +292,21 @@ func TestReadOnly(t *testing.T) {
 			assert.Equal(t, true, response.Responses[1].Match)
 			assert.Equal(t, "variant_001", response.Responses[1].Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, response.Responses[1].Reason)
+		})
+
+		t.Run("Auth", func(t *testing.T) {
+			t.Run("Self", func(t *testing.T) {
+				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
+				if authenticated {
+					assert.NoError(t, err)
+				} else {
+					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+				}
+			})
+			t.Run("Public", func(t *testing.T) {
+				_, err := sdk.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
+				require.NoError(t, err)
+			})
 		})
 	})
 }
