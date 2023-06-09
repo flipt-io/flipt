@@ -57,7 +57,7 @@ func (s *Store) GetSegment(ctx context.Context, namespaceKey, key string) (*flip
 
 	query := s.builder.Select("id, namespace_key, segment_key, type, property, operator, value, description, created_at, updated_at").
 		From("constraints").
-		Where(sq.Eq{"segment_key": segment.Key}).
+		Where(sq.And{sq.Eq{"namespace_key": segment.NamespaceKey}, sq.Eq{"segment_key": segment.Key}}).
 		OrderBy("created_at ASC")
 
 	rows, err := query.QueryContext(ctx)
