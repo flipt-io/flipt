@@ -41,6 +41,7 @@ type FliptIndex struct {
 type storeSnapshot struct {
 	ns        map[string]*namespace
 	evalDists map[string][]*storage.EvaluationDistribution
+	now       *timestamppb.Timestamp
 }
 
 type namespace struct {
@@ -51,9 +52,14 @@ type namespace struct {
 	evalRules map[string][]*storage.EvaluationRule
 }
 
-func newNamespace(key, name string) *namespace {
+func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 	return &namespace{
-		resource:  &flipt.Namespace{Key: key, Name: name},
+		resource: &flipt.Namespace{
+			Key:       key,
+			Name:      name,
+			CreatedAt: created,
+			UpdatedAt: created,
+		},
 		flags:     map[string]*flipt.Flag{},
 		segments:  map[string]*flipt.Segment{},
 		rules:     map[string]*flipt.Rule{},
@@ -89,11 +95,13 @@ func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
 // snapshotFromReaders constructs a storeSnapshot from the provided
 // slice of io.Reader.
 func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
+	now := timestamppb.Now()
 	s := storeSnapshot{
 		ns: map[string]*namespace{
-			defaultNs: newNamespace("default", "Default"),
+			defaultNs: newNamespace("default", "Default", now),
 		},
 		evalDists: map[string][]*storage.EvaluationDistribution{},
+		now:       now,
 	}
 
 	for _, reader := range sources {
@@ -202,15 +210,13 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 	ns := ss.ns[doc.Namespace]
 	if ns == nil {
-		ns = newNamespace(doc.Namespace, doc.Namespace)
+		ns = newNamespace(doc.Namespace, doc.Namespace, ss.now)
 	}
 
 	evalDists := map[string][]*storage.EvaluationDistribution{}
 	if len(ss.evalDists) > 0 {
 		evalDists = ss.evalDists
 	}
-
-	now := timestamppb.Now()
 
 	for _, s := range doc.Segments {
 		matchType := flipt.MatchType_value[s.MatchType]
@@ -220,8 +226,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 			Key:          s.Key,
 			Description:  s.Description,
 			MatchType:    flipt.MatchType(matchType),
-			CreatedAt:    now,
-			UpdatedAt:    now,
+			CreatedAt:    ss.now,
+			UpdatedAt:    ss.now,
 		}
 
 		for _, constraint := range s.Constraints {
@@ -235,8 +241,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				Type:         flipt.ComparisonType(constraintType),
 				Value:        constraint.Value,
 				Description:  constraint.Description,
-				CreatedAt:    now,
-				UpdatedAt:    now,
+				CreatedAt:    ss.now,
+				UpdatedAt:    ss.now,
 			})
 		}
 
@@ -250,8 +256,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 			Name:         f.Name,
 			Description:  f.Description,
 			Enabled:      f.Enabled,
-			CreatedAt:    now,
-			UpdatedAt:    now,
+			CreatedAt:    ss.now,
+			UpdatedAt:    ss.now,
 		}
 
 		for _, v := range f.Variants {
@@ -267,8 +273,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				Name:         v.Name,
 				Description:  v.Description,
 				Attachment:   string(attachment),
-				CreatedAt:    now,
-				UpdatedAt:    now,
+				CreatedAt:    ss.now,
+				UpdatedAt:    ss.now,
 			})
 		}
 
@@ -282,8 +288,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				FlagKey:      f.Key,
 				SegmentKey:   r.SegmentKey,
 				Rank:         int32(r.Rank),
-				CreatedAt:    now,
-				UpdatedAt:    now,
+				CreatedAt:    ss.now,
+				UpdatedAt:    ss.now,
 			}
 
 			evalRule := &storage.EvaluationRule{
@@ -324,8 +330,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 					Rollout:   d.Rollout,
 					RuleId:    rule.Id,
 					VariantId: variant.Id,
-					CreatedAt: now,
-					UpdatedAt: now,
+					CreatedAt: ss.now,
+					UpdatedAt: ss.now,
 				})
 
 				evalDists[evalRule.ID] = append(evalDists[evalRule.ID], &storage.EvaluationDistribution{
