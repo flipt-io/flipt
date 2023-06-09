@@ -1,4 +1,8 @@
-import { CalendarIcon } from '@heroicons/react/20/solid';
+import {
+  CalendarIcon,
+  DocumentDuplicateIcon,
+  TrashIcon
+} from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -6,17 +10,32 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
+<<<<<<< HEAD
 import Button from '~/components/forms/buttons/Button';
 import { DeleteButton } from '~/components/forms/buttons/DeleteButton';
+import Dropdown from '~/components/forms/Dropdown';
+||||||| parent of 93d3e5cd (feat(wip): copy segment)
+import Button from '~/components/forms/Button';
+=======
+import Button from '~/components/forms/Button';
+import Dropdown from '~/components/forms/Dropdown';
+>>>>>>> 93d3e5cd (feat(wip): copy segment)
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
+import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
 import ConstraintForm from '~/components/segments/ConstraintForm';
 import SegmentForm from '~/components/segments/SegmentForm';
 import Slideover from '~/components/Slideover';
-import { deleteConstraint, deleteSegment, getSegment } from '~/data/api';
+import {
+  copySegment,
+  deleteConstraint,
+  deleteSegment,
+  getSegment
+} from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
   ComparisonType,
@@ -41,8 +60,12 @@ export default function Segment() {
     useState<IConstraint | null>(null);
   const [showDeleteSegmentModal, setShowDeleteSegmentModal] =
     useState<boolean>(false);
+  const [showCopySegmentModal, setShowCopySegmentModal] =
+    useState<boolean>(false);
 
   const { setError, clearError } = useError();
+  const { setSuccess } = useSuccess();
+
   const navigate = useNavigate();
 
   const namespace = useSelector(selectCurrentNamespace);
@@ -144,6 +167,32 @@ export default function Segment() {
         />
       </Modal>
 
+      {/* segment copy modal */}
+      <Modal open={showCopySegmentModal} setOpen={setShowCopySegmentModal}>
+        <CopyToNamespacePanel
+          panelMessage={
+            <>
+              Copy the segment{' '}
+              <span className="font-medium text-violet-500">{segment.key}</span>{' '}
+              to the namespace:
+            </>
+          }
+          panelType="Segment"
+          setOpen={setShowCopySegmentModal}
+          handleCopy={(namespaceKey: string) =>
+            copySegment(
+              { namespaceKey: namespace.key, key: segment.key },
+              { namespaceKey: namespaceKey, key: segment.key }
+            )
+          }
+          onSuccess={() => {
+            clearError();
+            setShowCopySegmentModal(false);
+            setSuccess('Successfully copied segment');
+          }}
+        />
+      </Modal>
+
       {/* segment header / delete button */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
@@ -167,10 +216,26 @@ export default function Segment() {
           </div>
         </div>
         <div className="flex flex-none">
-          <DeleteButton
-            disabled={readOnly}
-            title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-            onClick={() => setShowDeleteSegmentModal(true)}
+          <Dropdown
+            label="Actions"
+            actions={[
+              {
+                id: 'copy',
+                label: 'Copy to Namespace',
+                disabled: readOnly,
+                onClick: () => setShowCopySegmentModal(true),
+                icon: DocumentDuplicateIcon
+              },
+              {
+                id: 'delete',
+                label: 'Delete',
+                disabled: readOnly,
+                onClick: () => setShowDeleteSegmentModal(true),
+                icon: TrashIcon,
+                activeClassName: 'text-red-700',
+                inActiveClassName: 'text-red-600'
+              }
+            ]}
           />
         </div>
       </div>
