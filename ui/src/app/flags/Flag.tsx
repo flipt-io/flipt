@@ -1,4 +1,8 @@
-import { CalendarIcon } from '@heroicons/react/24/outline';
+import {
+  CalendarIcon,
+  DocumentDuplicateIcon,
+  TrashIcon
+} from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -6,11 +10,11 @@ import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import DeletePanel from '~/components/DeletePanel';
-import { DeleteButton } from '~/components/forms/buttons/DeleteButton';
+import Dropdown from '~/components/forms/Dropdown';
 import Loading from '~/components/Loading';
 import Modal from '~/components/Modal';
 import TabBar from '~/components/TabBar';
-import { deleteFlag, getFlag } from '~/data/api';
+import { copyFlag, deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useTimezone } from '~/data/hooks/timezone';
 import { IFlag } from '~/types/Flag';
@@ -82,7 +86,7 @@ export default function Flag() {
         />
       </Modal>
 
-      {/* flag header / delete button */}
+      {/* flag header / actions */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
@@ -105,10 +109,30 @@ export default function Flag() {
           </div>
         </div>
         <div className="flex flex-none">
-          <DeleteButton
-            disabled={readOnly}
-            title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-            onClick={() => setShowDeleteFlagModal(true)}
+          <Dropdown
+            label="Actions"
+            actions={[
+              {
+                id: 'copy',
+                label: 'Copy to Namespace',
+                disabled: readOnly,
+                onClick: () =>
+                  copyFlag(
+                    { namespaceKey: namespace.key, key: flag.key },
+                    { namespaceKey: 'adsfdsafdsaf' }
+                  ),
+                icon: DocumentDuplicateIcon
+              },
+              {
+                id: 'delete',
+                label: 'Delete',
+                disabled: readOnly,
+                onClick: () => setShowDeleteFlagModal(true),
+                icon: TrashIcon,
+                activeClassName: 'text-red-700',
+                inActiveClassName: 'text-red-600'
+              }
+            ]}
           />
         </div>
       </div>

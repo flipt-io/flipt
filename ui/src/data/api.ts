@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { IAuthTokenBase } from 'types/auth/Token';
 import { IConstraintBase } from 'types/Constraint';
 import { IDistributionBase } from 'types/Distribution';
@@ -150,6 +151,25 @@ export async function updateFlag(
 
 export async function deleteFlag(namespaceKey: string, key: string) {
   return del(`/namespaces/${namespaceKey}/flags/${key}`);
+}
+
+export async function copyFlag(
+  from: { namespaceKey: string; key: string },
+  to: { namespaceKey: string; key?: string }
+) {
+  let flag = await get(`/namespaces/${from.namespaceKey}/flags/${from.key}`);
+  if (to.key) {
+    flag.key = to.key;
+  }
+
+  // first create the flag
+  await post(`/namespaces/${to.namespaceKey}/flags`, flag);
+
+  // then copy the variants
+
+  for (let variant of flag.variants) {
+    await createVariant(to.namespaceKey, flag.key, variant);
+  }
 }
 
 //
