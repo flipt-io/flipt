@@ -17,6 +17,7 @@ import (
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
+	"go.flipt.io/flipt/internal/storage/auth/memory"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
@@ -31,8 +32,15 @@ func authenticationGRPC(
 	cfg *config.Config,
 	forceMigrate bool,
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
-	if !cfg.Authentication.Enabled() {
-		return grpcRegisterers{}, nil, func(ctx context.Context) error { return nil }, nil
+	// NOTE: we skip attempting to connect to any database in the situation that either the git or local
+	// FS backends are configured.
+	// All that is required to establish a connection for authentication is to either make auth required
+	// or configure at-least one authentication method (e.g. enable token method).
+	if !cfg.Authentication.Enabled() && (cfg.Storage.Type == config.GitStorageType || cfg.Storage.Type == config.LocalStorageType) {
+		return grpcRegisterers{
+			public.NewServer(logger, cfg.Authentication),
+			auth.NewServer(logger, memory.NewStore()),
+		}, nil, func(ctx context.Context) error { return nil }, nil
 	}
 
 	db, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
