@@ -103,7 +103,7 @@ export default function Flag() {
               the namespace:
             </>
           }
-          panelType="Segment"
+          panelType="Flag"
           setOpen={setShowCopyFlagModal}
           handleCopy={(namespaceKey: string) =>
             copyFlag(
