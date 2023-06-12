@@ -202,6 +202,7 @@ type RuleStore interface {
 type RolloutStore interface {
 	GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error)
 	ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rollout], error)
+	CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
 	CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error)
 	UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error)
 	DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error

@@ -8,6 +8,8 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
+var _ storage.Store = (*syncedStore)(nil)
+
 // syncedStore embeds a storeSnapshot and wraps the Store methods with a read-write mutex
 // to synchronize reads with swapping out the storeSnapshot.
 type syncedStore struct {
@@ -112,4 +114,28 @@ func (s *syncedStore) CountNamespaces(ctx context.Context) (uint64, error) {
 	defer s.mu.RUnlock()
 
 	return s.storeSnapshot.CountNamespaces(ctx)
+}
+
+func (s *syncedStore) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
+	panic("not implemented")
+}
+
+func (s *syncedStore) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
+	panic("not implemented")
+}
+
+func (s *syncedStore) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
+	panic("not implemented")
+}
+
+func (s *syncedStore) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+	panic("not implemented")
+}
+
+func (s *syncedStore) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
+	panic("not implemented")
+}
+
+func (s *syncedStore) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
+	panic("not implemented")
 }

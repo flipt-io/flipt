@@ -284,6 +284,25 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 	return results, nil
 }
 
+// CountRollouts counts all rollouts
+func (s *Store) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
+	var count uint64
+
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
+	if err := s.builder.Select("COUNT(*)").
+		From(tableRollouts).
+		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"flag_key": flagKey}}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace

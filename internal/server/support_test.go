@@ -143,6 +143,11 @@ func (m *storeMock) ListRollouts(ctx context.Context, namespaceKey string, flagK
 	return args.Get(0).(storage.ResultSet[*flipt.Rollout]), args.Error(1)
 }
 
+func (m *storeMock) CountRollouts(ctx context.Context, namespaceKey string, flagKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey, flagKey)
+	return args.Get(0).(uint64), args.Error(1)
+}
+
 func (m *storeMock) GetRollout(ctx context.Context, namespaceKey string, key string) (*flipt.Rollout, error) {
 	args := m.Called(ctx, namespaceKey, key)
 	return args.Get(0).(*flipt.Rollout), args.Error(1)

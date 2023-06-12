@@ -26,7 +26,10 @@ const (
 	defaultNs = "default"
 )
 
-var ErrNotImplemented = errors.New("not implemented")
+var (
+	_                 storage.Store = (*storeSnapshot)(nil)
+	ErrNotImplemented               = errors.New("not implemented")
+)
 
 // FliptIndex represents the structure of a well-known file ".flipt.yml"
 // at the root of an FS.
@@ -599,15 +602,6 @@ func (ss *storeSnapshot) DeleteVariant(ctx context.Context, r *flipt.DeleteVaria
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) getNamespace(key string) (namespace, error) {
-	ns, ok := ss.ns[key]
-	if !ok {
-		return namespace{}, ferrors.ErrNotFoundf("namespace %q", key)
-	}
-
-	return *ns, nil
-}
-
 func (ss *storeSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
 	ns, ok := ss.ns[namespaceKey]
 	if !ok {
@@ -629,6 +623,30 @@ func (ss *storeSnapshot) GetEvaluationDistributions(ctx context.Context, ruleID 
 	}
 
 	return dists, nil
+}
+
+func (ss *storeSnapshot) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
+	panic("not implemented")
+}
+
+func (ss *storeSnapshot) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
+	panic("not implemented")
+}
+
+func (ss *storeSnapshot) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
+	panic("not implemented")
+}
+
+func (ss *storeSnapshot) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+	return nil, ErrNotImplemented
+}
+
+func (ss *storeSnapshot) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
+	return nil, ErrNotImplemented
+}
+
+func (ss *storeSnapshot) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
+	return ErrNotImplemented
 }
 
 func findByKey[T interface{ GetKey() string }](key string, ts ...T) (t T, _ bool) {
@@ -691,4 +709,13 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 	set.Results = set.Results[offset:end]
 
 	return set, nil
+}
+
+func (ss *storeSnapshot) getNamespace(key string) (namespace, error) {
+	ns, ok := ss.ns[key]
+	if !ok {
+		return namespace{}, ferrors.ErrNotFoundf("namespace %q", key)
+	}
+
+	return *ns, nil
 }
