@@ -41,7 +41,7 @@ func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) 
 		Rules: results.Results,
 	}
 
-	total, err := s.store.CountRules(ctx, r.NamespaceKey)
+	total, err := s.store.CountRollouts(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		return nil, err
 	}
