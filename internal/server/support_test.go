@@ -168,6 +168,11 @@ func (m *storeMock) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutReq
 	return args.Error(0)
 }
 
+func (m *storeMock) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
+	args := m.Called(ctx, r)
+	return args.Error(0)
+}
+
 func (m *storeMock) GetRule(ctx context.Context, namespaceKey string, id string) (*flipt.Rule, error) {
 	args := m.Called(ctx, namespaceKey, id)
 	return args.Get(0).(*flipt.Rule), args.Error(1)

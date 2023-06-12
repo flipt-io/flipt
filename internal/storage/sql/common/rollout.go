@@ -322,12 +322,19 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		}
 	)
 
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
 	if _, err := s.builder.Insert(tableRollouts).
+		RunWith(tx).
 		Columns("id", "namespace_key", "flag_key", "\"type\"", "rank", "description", "created_at", "updated_at").
 		Values(rollout.Id, rollout.NamespaceKey, rollout.FlagKey, rollout.Type, rollout.Rank, rollout.Description,
 			&fliptsql.Timestamp{Timestamp: rollout.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rollout.UpdatedAt},
 		).ExecContext(ctx); err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 
@@ -336,9 +343,11 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		var segmentRule = r.GetSegment()
 
 		if _, err := s.builder.Insert(tableRolloutSegments).
+			RunWith(tx).
 			Columns("id", "rollout_id", "namespace_key", "segment_key", "\"value\"").
 			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, segmentRule.SegmentKey, segmentRule.Value).
 			ExecContext(ctx); err != nil {
+			_ = tx.Rollback()
 			return nil, err
 		}
 
@@ -349,9 +358,11 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		var percentageRule = r.GetPercentage()
 
 		if _, err := s.builder.Insert(tableRolloutPercentages).
+			RunWith(tx).
 			Columns("id", "rollout_id", "namespace_key", "percentage", "\"value\"").
 			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, percentageRule.Percentage, percentageRule.Value).
 			ExecContext(ctx); err != nil {
+			_ = tx.Rollback()
 			return nil, err
 		}
 
@@ -359,10 +370,11 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			Percentage: percentageRule,
 		}
 	default:
+		_ = tx.Rollback()
 		return nil, fmt.Errorf("invalid rollout rule type %v", r.GetType())
 	}
 
-	return rollout, nil
+	return rollout, tx.Commit()
 }
 
 func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
@@ -370,25 +382,33 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	// TODO: transaction
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
 	whereClause := sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}, sq.Eq{"namespace_key": r.NamespaceKey}}
 
 	query := s.builder.Update(tableRollouts).
+		RunWith(tx).
 		Set("description", r.Description).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(whereClause)
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 
 	if count != 1 {
+		_ = tx.Rollback()
 		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, r.NamespaceKey, r.Id)
 	}
 
@@ -397,22 +417,31 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		var segmentRule = r.GetSegment()
 
 		if _, err := s.builder.Update(tableRolloutSegments).
+			RunWith(tx).
 			Set("segment_key", segmentRule.SegmentKey).
 			Set("value", segmentRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
+			_ = tx.Rollback()
 			return nil, err
 		}
 	case flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE:
 		var percentageRule = r.GetPercentage()
 
 		if _, err := s.builder.Update(tableRolloutPercentages).
+			RunWith(tx).
 			Set("percentage", percentageRule.Percentage).
 			Set("value", percentageRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
+			_ = tx.Rollback()
 			return nil, err
 		}
 	default:
+		_ = tx.Rollback()
 		return nil, errs.InvalidFieldError("rule", "invalid rollout rule type")
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return s.GetRollout(ctx, r.NamespaceKey, r.Id)
@@ -423,9 +452,98 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	_, err := s.builder.Delete(tableRollouts).
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.builder.Delete(tableRollouts).
+		RunWith(tx).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}, sq.Eq{"namespace_key": r.NamespaceKey}}).
 		ExecContext(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
 
-	return err
+	// reorder existing rollouts after deletion
+	rows, err := s.builder.Select("id").
+		RunWith(tx).
+		From(tableRollouts).
+		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
+		OrderBy("\"rank\" ASC").
+		QueryContext(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	defer func() {
+		if cerr := rows.Close(); cerr != nil && err == nil {
+			_ = tx.Rollback()
+			err = cerr
+		}
+	}()
+
+	var rolloutIDs []string
+
+	for rows.Next() {
+		var rolloutID string
+
+		if err := rows.Scan(&rolloutID); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+
+		rolloutIDs = append(rolloutIDs, rolloutID)
+	}
+
+	if err := rows.Err(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := s.orderRollouts(ctx, tx, r.NamespaceKey, r.FlagKey, rolloutIDs); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// OrderRollouts orders rollouts
+func (s *Store) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
+	if r.NamespaceKey == "" {
+		r.NamespaceKey = storage.DefaultNamespace
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := s.orderRollouts(ctx, tx, r.NamespaceKey, r.FlagKey, r.RolloutIds); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *Store) orderRollouts(ctx context.Context, runner sq.BaseRunner, namespaceKey, flagKey string, rolloutIDs []string) error {
+	updatedAt := timestamppb.Now()
+
+	for i, id := range rolloutIDs {
+		_, err := s.builder.Update(tableRollouts).
+			RunWith(runner).
+			Set("\"rank\"", i+1).
+			Set("updated_at", &fliptsql.Timestamp{Timestamp: updatedAt}).
+			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"flag_key": flagKey}}).
+			ExecContext(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

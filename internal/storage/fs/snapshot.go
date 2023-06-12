@@ -649,6 +649,10 @@ func (ss *storeSnapshot) DeleteRollout(ctx context.Context, r *flipt.DeleteRollo
 	return ErrNotImplemented
 }
 
+func (ss *storeSnapshot) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
+	return ErrNotImplemented
+}
+
 func findByKey[T interface{ GetKey() string }](key string, ts ...T) (t T, _ bool) {
 	return find(func(t T) bool { return t.GetKey() == key }, ts...)
 }

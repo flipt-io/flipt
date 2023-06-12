@@ -139,3 +139,7 @@ func (s *syncedStore) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutR
 func (s *syncedStore) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
 	panic("not implemented")
 }
+
+func (s *syncedStore) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
+	panic("not implemented")
+}

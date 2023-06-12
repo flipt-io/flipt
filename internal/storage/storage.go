@@ -206,6 +206,7 @@ type RolloutStore interface {
 	CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error)
 	UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error)
 	DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error
+	OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error
 }
 
 // ListRequest is a generic container for the parameters required to perform a list operation.

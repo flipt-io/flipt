@@ -429,12 +429,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
 	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, rollout.Type)
-
-	assert.Equal(t, &flipt.RolloutPercentage{
-		Value:      true,
-		Percentage: 40,
-	}, rollout.Rule)
-
+	assert.Equal(t, float32(40), rollout.GetPercentage().Percentage)
+	assert.Equal(t, true, rollout.GetPercentage().Value)
 	assert.NotZero(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
@@ -459,10 +455,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, int32(1), updated.Rank)
 	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, updated.Type)
-	assert.Equal(t, &flipt.RolloutPercentage{
-		Value:      false,
-		Percentage: 80,
-	}, updated.Rule)
+	assert.Equal(t, float32(80), updated.GetPercentage().Percentage)
+	assert.Equal(t, false, updated.GetPercentage().Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }
@@ -502,12 +496,8 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
 	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, rollout.Type)
-
-	assert.Equal(t, &flipt.RolloutPercentage{
-		Value:      true,
-		Percentage: 40,
-	}, rollout.Rule)
-
+	assert.Equal(t, float32(40), rollout.GetPercentage().Percentage)
+	assert.Equal(t, true, rollout.GetPercentage().Value)
 	assert.NotZero(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
@@ -533,13 +523,12 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, int32(1), updated.Rank)
 	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, updated.Type)
-	assert.Equal(t, &flipt.RolloutPercentage{
-		Value:      false,
-		Percentage: 80,
-	}, updated.Rule)
+	assert.Equal(t, float32(80), updated.GetPercentage().Percentage)
+	assert.Equal(t, false, updated.GetPercentage().Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }
+
 func (s *DBTestSuite) TestUpdateRollout_NotFound() {
 	t := s.T()
 
@@ -632,8 +621,6 @@ func (s *DBTestSuite) TestDeleteRollout() {
 	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
 	// ensure rollouts are in correct order
 	require.NoError(t, err)
-
-	// TODO: need to reorder rollouts after delete like we do for rules
 
 	got := res.Results
 	assert.NotNil(t, got)

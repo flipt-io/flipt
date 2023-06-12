@@ -369,6 +369,12 @@ message DeleteRolloutRequest {
   string flag_key = 3;
 }
 
+message OrderRolloutsRequest {
+  string flag_key = 1;
+  string namespace_key = 2;
+  repeated string rollout_ids = 3;
+}
+
 message Rule {
   string id = 1;
   string flag_key = 2;
