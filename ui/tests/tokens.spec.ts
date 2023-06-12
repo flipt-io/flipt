@@ -18,7 +18,7 @@ test.describe('API Tokens', () => {
     await page.getByRole('button', { name: 'Create' }).click();
     await page.getByRole('button', { name: 'Copy' }).click();
     await expect(page.locator('pre')).toContainText('Copied to clipboard');
-    await page.getByRole('button', { name: 'Close' }).click();
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
     await page.getByRole('cell', { name: 'abcdef', exact: true }).click();
   });
 
@@ -29,6 +29,6 @@ test.describe('API Tokens', () => {
       page.getByRole('heading', { name: 'Static Tokens' })
     ).toBeVisible();
     await page.getByRole('link', { name: 'Delete , abcdef' }).click();
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete', exact: true }).click();
   });
 });
