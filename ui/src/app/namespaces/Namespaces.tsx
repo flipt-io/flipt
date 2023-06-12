@@ -2,12 +2,12 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
-import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import NamespaceForm from '~/components/namespaces/NamespaceForm';
 import NamespaceTable from '~/components/namespaces/NamespaceTable';
+import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
 import { useAppDispatch } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';
@@ -69,8 +69,10 @@ export default function Namespaces() {
           }
           panelType="Namespace"
           setOpen={setShowDeleteNamespaceModal}
-          handleDelete={
-            () => dispatch(deleteNamespaceAsync(deletingNamespace?.key ?? '')) // TODO: Determine impact of blank ID param
+          handleDelete={() =>
+            dispatch(
+              deleteNamespaceAsync(deletingNamespace?.key ?? '')
+            ).unwrap()
           }
         />
       </Modal>

@@ -56,6 +56,41 @@ test.describe('Segments', () => {
       ).toBeVisible();
     });
   });
+
+  test('can copy segment to new namespace', async ({ page }) => {
+    await page.getByRole('link', { name: 'Settings' }).click();
+    await page.getByRole('link', { name: 'Namespaces' }).click();
+    await page.getByRole('button', { name: 'New Namespace' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('copy segment');
+    await page.getByLabel('Description').fill('Copy Namespace');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByRole('link', { name: 'Segments' }).click();
+    await page.getByRole('link', { name: 'test-segment' }).click();
+
+    // perform copy to new namespace
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
+    await page.locator('#copyToNamespace-select-button').click();
+    await page
+      .getByRole('option', { name: 'copy segment', exact: true })
+      .click();
+    await page.getByRole('button', { name: 'Copy', exact: true }).click();
+    await expect(page.getByText('Successfully copied segment')).toBeVisible();
+
+    // switch to new namespace
+    await page.getByRole('link', { name: 'Segments', exact: true }).click();
+    await page.getByRole('button', { name: 'Default' }).click();
+    await page.getByText('copy segment').click();
+
+    // verify segment was copied
+    await page.getByRole('link', { name: 'test-segment' }).click();
+    await expect(page.getByText('Test Segment')).toBeVisible();
+
+    // verify constraints were copied
+    await expect(
+      page.getByRole('cell', { name: 'foo', exact: true })
+    ).toBeVisible();
+  });
 });
 
 test.describe('Segments - Read Only', () => {
@@ -96,6 +131,20 @@ test.describe('Segments - Read Only', () => {
 
   test('can not delete segment', async ({ page }) => {
     await page.getByRole('link', { name: 'test-segment' }).click();
-    await expect(page.getByRole('button', { name: 'Delete' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    // assert nothing happens
+    await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeHidden();
+  });
+
+  test('can not copy segment to new namespace', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-segment' }).click();
+
+    await page.getByRole('button', { name: 'Actions' }).click();
+    await page.getByRole('menuitem', { name: 'Copy to Namespace' }).click();
+    // assert nothing happens
+    await expect(
+      page.getByRole('menuitem', { name: 'Copy to Namespace' })
+    ).toBeHidden();
   });
 });

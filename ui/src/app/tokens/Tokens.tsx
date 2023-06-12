@@ -1,9 +1,9 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import DeletePanel from '~/components/DeletePanel';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
+import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
 import ShowTokenPanel from '~/components/tokens/ShowTokenPanel';
 import TokenForm from '~/components/tokens/TokenForm';
