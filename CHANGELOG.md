@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Copy to namespace (#1731)
 - UI: Support for read-only mode (#1709)
 - check source file from different places for configuration if they exist (#1650)
-- Expiremental: support for filesystem/git backends (#1714)
+- Experimental: support for filesystem/git backends (#1714)
 - Flipt Validate (#1642)
 - add namespace to export, check for match on import (#1645)
 - add storage configuration to support multiple backend types (#1644)
