@@ -64,7 +64,7 @@ func TestListRules_PaginationOffset(t *testing.T) {
 			NextPageToken: "bar",
 		}, nil)
 
-	store.On("CountRules", mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountRules", mock.Anything, mock.Anything, mock.Anything).Return(uint64(1), nil)
 
 	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
 		Offset: 10,
@@ -107,7 +107,7 @@ func TestListRules_PaginationPageToken(t *testing.T) {
 			NextPageToken: "bar",
 		}, nil)
 
-	store.On("CountRules", mock.Anything, mock.Anything).Return(uint64(1), nil)
+	store.On("CountRules", mock.Anything, mock.Anything, mock.Anything).Return(uint64(1), nil)
 
 	got, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
 		PageToken: "Zm9v",
