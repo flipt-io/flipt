@@ -54,12 +54,9 @@ export default function Dropdown(props: DropdownProps) {
                       href="#"
                       className={classNames(
                         active
-                          ? action.activeClassName
-                            ? action.activeClassName
-                            : 'text-gray-900 bg-gray-100'
-                          : action.inActiveClassName
-                          ? action.inActiveClassName
-                          : 'text-gray-700',
+                          ? action.activeClassName ??
+                              'text-gray-900 bg-gray-100'
+                          : action.inActiveClassName ?? 'text-gray-700',
                         `${action.className} group flex items-center px-4 py-2 text-sm`
                       )}
                       onClick={(e) => {
@@ -84,12 +81,9 @@ export default function Dropdown(props: DropdownProps) {
                     <span
                       className={classNames(
                         active
-                          ? action.activeClassName
-                            ? action.activeClassName
-                            : 'text-gray-700 bg-gray-100'
-                          : action.inActiveClassName
-                          ? action.inActiveClassName
-                          : 'text-gray-500',
+                          ? action.activeClassName ??
+                              'text-gray-700 bg-gray-100'
+                          : action.inActiveClassName ?? 'text-gray-500',
                         `${action.className} group flex items-center px-4 py-2 text-sm hover:cursor-not-allowed`
                       )}
                     >
