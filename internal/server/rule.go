@@ -50,7 +50,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 		Rules: results.Results,
 	}
 
-	total, err := s.store.CountRules(ctx, r.NamespaceKey)
+	total, err := s.store.CountRules(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		return nil, err
 	}

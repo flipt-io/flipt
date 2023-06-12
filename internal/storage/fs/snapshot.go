@@ -395,13 +395,20 @@ func (ss *storeSnapshot) ListRules(ctx context.Context, namespaceKey string, fla
 	return set, err
 }
 
-func (ss *storeSnapshot) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
+func (ss *storeSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return 0, err
 	}
 
-	return uint64(len(ns.rules)), nil
+	rules := make([]*flipt.Rule, 0, len(ns.rules))
+	for _, rule := range ns.rules {
+		if rule.FlagKey == flagKey {
+			rules = append(rules, rule)
+		}
+	}
+
+	return uint64(len(rules)), nil
 }
 
 func (ss *storeSnapshot) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {

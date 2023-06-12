@@ -188,7 +188,7 @@ type SegmentStore interface {
 type RuleStore interface {
 	GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Rule, error)
 	ListRules(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rule], error)
-	CountRules(ctx context.Context, namespaceKey string) (uint64, error)
+	CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
 	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
 	UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error)
 	DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error
