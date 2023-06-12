@@ -3,6 +3,37 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.23.0](https://github.com/flipt-io/flipt/releases/tag/v1.23.0) - 2023-06-12
+
+### Added
+
+- UI: Darkmode (#1692)
+- UI: Copy to namespace (#1731)
+- UI: Support for read-only mode (#1709)
+- check source file from different places for configuration if they exist (#1650)
+- Experimental: support for filesystem/git backends (#1714)
+- Flipt Validate (#1642)
+- add namespace to export, check for match on import (#1645)
+- add storage configuration to support multiple backend types (#1644)
+
+### Changed
+
+- `integration`: ensure public and auth self routes are reachable (#1729)
+- `cli`: ensure user configuration path supported (#1727)
+- `storage/sql`: handle null description on constraint during GetSegment (#1654)
+- UI: switch namespaces to use Redux (#1680)
+- `build`: define CLI tests using dagger pipelines (#1679)
+- Dependency updates
+
+### Fixed
+
+- UI: disable flag toggle in read-only mode (#1719)
+- cross namespaced constraints (#1721)
+- `mage`: install package-changed as dev dependency (#1716)
+- UI: catch errs on call to namespaces API in namespace form (#1687)
+- Get the openfeature example working (#1665)
+- panic if no import file name provided (#1658)
+
 ## [v1.22.1](https://github.com/flipt-io/flipt/releases/tag/v1.22.1) - 2023-05-24
 
 ### Fixed
