@@ -43,14 +43,14 @@ export default function Toggle(props: ToggleProps) {
         className={classNames(
           checked ? 'bg-green-400' : 'bg-violet-200',
           disabled ? 'hover:cursor-not-allowed' : 'hover:cursor-pointer',
-          'relative inline-flex h-6 w-11 items-center rounded-full'
+          'relative inline-flex h-6 w-11 items-center rounded-full focus:ring-0'
         )}
       >
         <span className="sr-only">Enable</span>
         <span
           className={classNames(
             checked ? 'translate-x-6' : 'translate-x-1',
-            'inline-block h-4 w-4 transform rounded-full transition bg-white'
+            'inline-block h-4 w-4 transform rounded-full ring-0 transition bg-white'
           )}
         />
       </Switch>

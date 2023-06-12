@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { IAuthTokenBase } from 'types/auth/Token';
 import { IConstraintBase } from 'types/Constraint';
 import { IDistributionBase } from 'types/Distribution';
@@ -152,6 +153,24 @@ export async function deleteFlag(namespaceKey: string, key: string) {
   return del(`/namespaces/${namespaceKey}/flags/${key}`);
 }
 
+export async function copyFlag(
+  from: { namespaceKey: string; key: string },
+  to: { namespaceKey: string; key?: string }
+) {
+  let flag = await get(`/namespaces/${from.namespaceKey}/flags/${from.key}`);
+  if (to.key) {
+    flag.key = to.key;
+  }
+
+  // first create the flag
+  await post(`/namespaces/${to.namespaceKey}/flags`, flag);
+
+  // then copy the variants
+  for (let variant of flag.variants) {
+    await createVariant(to.namespaceKey, flag.key, variant);
+  }
+}
+
 //
 // rules
 export async function listRules(namespaceKey: string, flagKey: string) {
@@ -284,6 +303,26 @@ export async function updateSegment(
 
 export async function deleteSegment(namespaceKey: string, key: string) {
   return del(`/namespaces/${namespaceKey}/segments/${key}`);
+}
+
+export async function copySegment(
+  from: { namespaceKey: string; key: string },
+  to: { namespaceKey: string; key?: string }
+) {
+  let segment = await get(
+    `/namespaces/${from.namespaceKey}/segments/${from.key}`
+  );
+  if (to.key) {
+    segment.key = to.key;
+  }
+
+  // first create the segment
+  await post(`/namespaces/${to.namespaceKey}/segments`, segment);
+
+  // then copy the constraints
+  for (let constraint of segment.constraints) {
+    await createConstraint(to.namespaceKey, segment.key, constraint);
+  }
 }
 
 //

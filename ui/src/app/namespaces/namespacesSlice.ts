@@ -28,18 +28,6 @@ export const namespacesSlice = createSlice({
   name: 'namespaces',
   initialState,
   reducers: {
-    namespaceCreated: (state, action) => {
-      const namespace = action.payload;
-      state.namespaces[namespace.key] = action.payload;
-    },
-    namespaceUpdated: (state, action) => {
-      const namespace = action.payload;
-      state.namespaces[namespace.key] = action.payload;
-    },
-    namespaceDeleted: (state, action) => {
-      const namespace = action.payload;
-      delete state.namespaces[namespace.key];
-    },
     currentNamespaceChanged: (state, action) => {
       const namespace = action.payload;
       state.currentNamespace = namespace.key;
@@ -69,12 +57,16 @@ export const namespacesSlice = createSlice({
       .addCase(deleteNamespaceAsync.fulfilled, (state, action) => {
         const key = action.payload;
         delete state.namespaces[key];
+        // if the current namespace is the one being deleted, set the current namespace to the first one
+        if (state.currentNamespace === key) {
+          state.currentNamespace =
+            state.namespaces[Object.keys(state.namespaces)[0]].key;
+        }
       });
   }
 });
 
-export const { namespaceCreated, currentNamespaceChanged } =
-  namespacesSlice.actions;
+export const { currentNamespaceChanged } = namespacesSlice.actions;
 
 export const selectNamespaces = (state: RootState) =>
   Object.entries(state.namespaces.namespaces).map(
