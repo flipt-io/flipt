@@ -91,7 +91,7 @@ func TestPing(t *testing.T) {
 	test := []struct {
 		name string
 		cfg  config.Config
-		want map[string]interface{}
+		want map[string]any
 	}{
 		{
 			name: "basic",
@@ -100,10 +100,13 @@ func TestPing(t *testing.T) {
 					Protocol: config.DatabaseSQLite,
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "file",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
 				},
 			},
 		},
@@ -114,10 +117,13 @@ func TestPing(t *testing.T) {
 					URL: "sqlite:///foo.db",
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "sqlite",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
 				},
 			},
 		},
@@ -128,10 +134,13 @@ func TestPing(t *testing.T) {
 					URL: "foo:///foo.db",
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "unknown",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
 				},
 			},
 		},
@@ -146,10 +155,13 @@ func TestPing(t *testing.T) {
 					Backend: config.CacheRedis,
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "file",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
 				},
 			},
 		},
@@ -164,11 +176,14 @@ func TestPing(t *testing.T) {
 					Backend: config.CacheRedis,
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "file",
 					"cache":    "redis",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
 				},
 			},
 		},
@@ -187,10 +202,13 @@ func TestPing(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "file",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
 				},
 			},
 		},
@@ -209,15 +227,40 @@ func TestPing(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"version": "1.0.0",
-				"storage": map[string]interface{}{
+				"storage": map[string]any{
 					"database": "file",
 				},
-				"authentication": map[string]interface{}{
-					"methods": []interface{}{
+				"authentication": map[string]any{
+					"methods": []any{
 						"token",
 					},
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{},
+				},
+			},
+		},
+		{
+			name: "with experimental filesystem_storage enabled",
+			cfg: config.Config{
+				Database: config.DatabaseConfig{
+					Protocol: config.DatabaseSQLite,
+				},
+				Experimental: config.ExperimentalConfig{
+					FilesystemStorage: config.ExperimentalFlag{
+						Enabled: true,
+					},
+				},
+			},
+			want: map[string]any{
+				"version": "1.0.0",
+				"storage": map[string]any{
+					"database": "file",
+				},
+				"experimental": map[string]any{
+					"filesystem_storage": map[string]any{"enabled": true},
 				},
 			},
 		},
@@ -303,7 +346,7 @@ func TestPing_Existing(t *testing.T) {
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.AnonymousId)
 	assert.Equal(t, "1545d8a8-7a66-4d8d-a158-0a1c576c68a6", msg.Properties["uuid"])
 	assert.Equal(t, "1.1", msg.Properties["version"])
-	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
+	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]any)["version"])
 
 	assert.NotEmpty(t, out.String())
 }
@@ -367,7 +410,7 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 	assert.NotEmpty(t, msg.AnonymousId)
 	assert.Equal(t, msg.AnonymousId, msg.Properties["uuid"])
 	assert.Equal(t, "1.1", msg.Properties["version"])
-	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]interface{})["version"])
+	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]any)["version"])
 
 	b, _ := ioutil.ReadFile(path)
 	assert.NotEmpty(t, b)
