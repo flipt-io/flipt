@@ -33,6 +33,7 @@ type ping struct {
 }
 
 type storage struct {
+	Type     string `json:"type,omitempty"`
 	Database string `json:"database,omitempty"`
 	Cache    string `json:"cache,omitempty"`
 }
@@ -191,6 +192,7 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	}
 
 	flipt.Storage = &storage{
+		Type:     string(r.cfg.Storage.Type),
 		Database: dbProtocol,
 	}
 
