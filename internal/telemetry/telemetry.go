@@ -22,7 +22,7 @@ import (
 
 const (
 	filename = "telemetry.json"
-	version  = "1.1"
+	version  = "1.2"
 	event    = "flipt.ping"
 )
 
