@@ -3,7 +3,6 @@ name: Feature request
 about: Suggest an idea for this project
 title: ""
 labels: enhancement
-assignees: markphelps
 ---
 
 ### Problem
@@ -29,7 +28,7 @@ Add any other context about the feature request here.
 Examples:
 
 - Screenshots
-- Exported data from the database
+- Exported data from the database (see below)
 
 <!--
 #### Screenshots
