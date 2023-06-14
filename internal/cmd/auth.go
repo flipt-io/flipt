@@ -50,7 +50,7 @@ func authenticationGRPC(
 
 	var (
 		authCfg    = cfg.Authentication
-		sqlBuilder = fliptsql.BuilderFor(db, driver)
+		sqlBuilder = fliptsql.BuilderFor(db, driver, cfg.Database.PreparedStatementsEnabled)
 		store      = authsql.NewStore(driver, sqlBuilder, logger)
 		oplock     = oplocksql.New(logger, driver, sqlBuilder)
 		public     = public.NewServer(logger, authCfg)

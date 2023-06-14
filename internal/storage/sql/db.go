@@ -39,8 +39,13 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 
 // BuilderFor returns a squirrel statement builder which decorates
 // the provided sql.DB configured for the provided driver.
-func BuilderFor(db *sql.DB, driver Driver) sq.StatementBuilderType {
-	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+func BuilderFor(db *sql.DB, driver Driver, preparedStatementsEnabled bool) sq.StatementBuilderType {
+	var brdb sq.BaseRunner = db
+	if preparedStatementsEnabled {
+		brdb = sq.NewStmtCacher(db)
+	}
+
+	builder := sq.StatementBuilder.RunWith(brdb)
 	if driver == Postgres || driver == CockroachDB {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
