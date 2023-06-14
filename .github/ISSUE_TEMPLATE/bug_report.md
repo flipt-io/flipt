@@ -3,7 +3,6 @@ name: Bug report
 about: Create a report to help us improve
 title: ""
 labels: bug
-assignees: markphelps
 ---
 
 ### Describe the Bug
@@ -36,9 +35,9 @@ Examples:
 
 - OS
 - Config file used
-- Database used (SQLite, MySQL, or Postgres)
+- Database used (SQLite, MySQL, Postgres, etc.)
 - Screenshots
-- Exported data from the database
+- Exported data from the database (see below)
 
 <!--
 #### Screenshots
