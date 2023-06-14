@@ -4,7 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
@@ -13,11 +17,18 @@ import (
 	sdk "go.flipt.io/flipt/sdk/go"
 )
 
-func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, authenticated bool) {
+var (
+	httpClient = &http.Client{
+		Timeout: 5 * time.Second,
+	}
+)
+
+func API(t *testing.T, ctx context.Context, client sdk.SDK, fliptAddr string, namespace string, authenticated bool) {
 	t.Run("Namespaces", func(t *testing.T) {
 		if !namespaceIsDefault(namespace) {
 			t.Log(`Create namespace.`)
 
+			fmt.Println("The namespace is: ", namespace)
 			created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
 				Key:  namespace,
 				Name: namespace,
@@ -55,6 +66,20 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			require.NoError(t, err)
 
 			assert.Equal(t, "Some kind of description", updated.Description)
+
+			t.Log(`Namespace request with trailing slash should succeed.`)
+
+			if isHTTPProtocol(fliptAddr) {
+				reader := makeRequestWithTrailingSlash(t, ctx, http.MethodGet, fmt.Sprintf("%s/api/v1/namespaces", fliptAddr))
+
+				var fliptNamespaces *flipt.NamespaceList
+
+				err = json.NewDecoder(reader).Decode(&fliptNamespaces)
+				assert.NoError(t, err)
+
+				assert.Equal(t, "default", fliptNamespaces.Namespaces[0].Key)
+				assert.Equal(t, namespace, fliptNamespaces.Namespaces[1].Key)
+			}
 		} else {
 			t.Log(`Ensure default cannot be created.`)
 
@@ -640,4 +665,22 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 func namespaceIsDefault(ns string) bool {
 	return ns == "" || ns == "default"
+}
+
+func isHTTPProtocol(fliptAddr string) bool {
+	protocol, _, _ := strings.Cut(fliptAddr, "://")
+
+	return protocol == "http" || protocol == "https"
+}
+
+func makeRequestWithTrailingSlash(t *testing.T, ctx context.Context, method string, fliptAddrWithPath string) io.Reader {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(ctx, method, fliptAddrWithPath+"/", nil)
+	assert.NoError(t, err)
+
+	res, err := httpClient.Do(req)
+	assert.NoError(t, err)
+
+	return res.Body
 }
