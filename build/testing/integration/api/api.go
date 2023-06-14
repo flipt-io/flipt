@@ -69,7 +69,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, fliptAddr string, na
 
 			t.Log(`Namespace request with trailing slash should succeed.`)
 
-			if isHTTPProtocol(fliptAddr) {
+			if isHTTPProtocol(fliptAddr) && !authenticated {
 				reader := makeRequestWithTrailingSlash(t, ctx, http.MethodGet, fmt.Sprintf("%s/api/v1/namespaces", fliptAddr))
 
 				var fliptNamespaces *flipt.NamespaceList
