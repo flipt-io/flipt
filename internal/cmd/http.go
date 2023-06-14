@@ -104,6 +104,24 @@ func NewHTTPServer(
 	r.Mount("/debug", middleware.Profiler())
 	r.Mount("/metrics", promhttp.Handler())
 
+	// Middleware to trim the trailing slash off of the request URL if it
+	// exists.
+	// r.Use(func(h http.Handler) http.Handler {
+	// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		if strings.HasSuffix(r.URL.Path, "/") {
+	// 			fmt.Println("GETTING IN HERE...")
+	// 			nurl, err := url.Parse(strings.TrimSuffix(r.URL.String(), "/"))
+	// 			if err != nil {
+	// 				panic(err)
+	// 			}
+
+	// 			fmt.Println("NEW URL: ", nurl)
+	// 			r.URL = nurl
+	// 		}
+	// 		h.ServeHTTP(w, r)
+	// 	})
+	// })
+
 	r.Group(func(r chi.Router) {
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
