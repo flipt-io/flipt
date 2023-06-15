@@ -48,7 +48,7 @@
     "@types/loadable__component": "^5.13.4",
     "@types/lodash": "^4.14.195",
     "@types/node": "^18.16.18",
-    "@types/react": "^18.2.11",
+    "@types/react": "^18.2.12",
     "@types/react-dom": "^18.2.5",
     "@types/react-helmet": "^6.1.6",
     "@types/react-router-dom": "^5.3.3",
