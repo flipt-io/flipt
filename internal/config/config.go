@@ -179,7 +179,7 @@ type deprecator interface {
 func fieldKey(field reflect.StructField) string {
 	if tag := field.Tag.Get("mapstructure"); tag != "" {
 		tag, attr, ok := strings.Cut(tag, ",")
-		if !ok || attr == "squash" {
+		if !ok || attr == "squash" || attr == "omitempty" {
 			return tag
 		}
 	}
