@@ -25,15 +25,19 @@ func fliptServer(logger *zap.Logger, cfg *config.Config) (*server.Server, func()
 		return nil, nil, fmt.Errorf("opening db: %w", err)
 	}
 
+	logger.Debug("constructing builder", zap.Bool("prepared_statements", cfg.Database.PreparedStatementsEnabled))
+
+	builder := sql.BuilderFor(db, driver, cfg.Database.PreparedStatementsEnabled)
+
 	var store storage.Store
 
 	switch driver {
 	case sql.SQLite:
-		store = sqlite.NewStore(db, logger)
+		store = sqlite.NewStore(db, builder, logger)
 	case sql.Postgres, sql.CockroachDB:
-		store = postgres.NewStore(db, logger)
+		store = postgres.NewStore(db, builder, logger)
 	case sql.MySQL:
-		store = mysql.NewStore(db, logger)
+		store = mysql.NewStore(db, builder, logger)
 	}
 
 	return server.New(logger, store), func() { _ = db.Close() }, nil
