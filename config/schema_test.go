@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -33,8 +32,6 @@ func Test_CUE(t *testing.T) {
 	// adapt converts instances of time.Duration to their
 	// string representation, which CUE is going to validate
 	adapt(conf)
-
-	fmt.Println(conf)
 
 	dflt := ctx.Encode(conf)
 
