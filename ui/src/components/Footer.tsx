@@ -13,7 +13,7 @@ export default function Footer() {
 
   const ref = () => {
     if (info?.isRelease && info?.version) {
-      return `v${info.version}`;
+      return info.version;
     }
     if (info?.commit) {
       return info.commit.substring(0, 7);
@@ -23,7 +23,7 @@ export default function Footer() {
 
   const refURL = () => {
     if (info?.isRelease && info?.version) {
-      return `https://github.com/flipt-io/flipt/releases/tag/v${info.version}`;
+      return `https://github.com/flipt-io/flipt/releases/tag/${info.version}`;
     }
     if (info?.commit) {
       return `https://github.com/flipt-io/flipt/commit/${info?.commit}`;
