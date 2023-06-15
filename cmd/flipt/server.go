@@ -8,7 +8,6 @@ import (
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/sql"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
 	"go.flipt.io/flipt/internal/storage/sql/sqlite"
@@ -28,7 +27,7 @@ func fliptServer(logger *zap.Logger, cfg *config.Config) (*server.Server, func()
 
 	logger.Debug("constructing builder", zap.Bool("prepared_statements", cfg.Database.PreparedStatementsEnabled))
 
-	builder := fliptsql.BuilderFor(db, driver, cfg.Database.PreparedStatementsEnabled)
+	builder := sql.BuilderFor(db, driver, cfg.Database.PreparedStatementsEnabled)
 
 	var store storage.Store
 
