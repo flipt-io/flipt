@@ -18,7 +18,6 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		if !namespaceIsDefault(namespace) {
 			t.Log(`Create namespace.`)
 
-			fmt.Println("The namespace is: ", namespace)
 			created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
 				Key:  namespace,
 				Name: namespace,
