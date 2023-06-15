@@ -460,6 +460,7 @@ func TestLoad(t *testing.T) {
 						FlushPeriod: 3 * time.Minute,
 					},
 				}
+
 				cfg.Log = LogConfig{
 					Level:     "WARN",
 					File:      "testLogFile.txt",

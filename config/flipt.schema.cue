@@ -36,9 +36,7 @@ import "strings"
 			}
 		}
 
-		// Methods
 		methods?: {
-			// Token
 			token?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
@@ -48,7 +46,6 @@ import "strings"
 				}
 			}
 
-			// OIDC
 			oidc?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup

@@ -39,7 +39,7 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 // then this will be called after unmarshalling, such that the function can emit
 // any errors derived from the resulting state of the configuration.
 type Config struct {
-	Version        string               `json:"version,omitempty" mapstructure:"-"`
+	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty"`
 	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental"`
 	Log            LogConfig            `json:"log,omitempty" mapstructure:"log"`
 	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui"`
