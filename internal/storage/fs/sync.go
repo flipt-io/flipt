@@ -51,11 +51,11 @@ func (s *syncedStore) ListRules(ctx context.Context, namespaceKey string, flagKe
 	return s.storeSnapshot.ListRules(ctx, namespaceKey, flagKey, opts...)
 }
 
-func (s *syncedStore) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
+func (s *syncedStore) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return s.storeSnapshot.CountRules(ctx, namespaceKey)
+	return s.storeSnapshot.CountRules(ctx, namespaceKey, flagKey)
 }
 
 func (s *syncedStore) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {

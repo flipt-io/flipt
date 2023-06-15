@@ -148,8 +148,8 @@ func (m *storeMock) ListRules(ctx context.Context, namespaceKey string, flagKey 
 	return args.Get(0).(storage.ResultSet[*flipt.Rule]), args.Error(1)
 }
 
-func (m *storeMock) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
-	args := m.Called(ctx, namespaceKey)
+func (m *storeMock) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
+	args := m.Called(ctx, namespaceKey, flagKey)
 	return args.Get(0).(uint64), args.Error(1)
 }
 

@@ -22,7 +22,7 @@ import (
 
 const (
 	filename = "telemetry.json"
-	version  = "1.1"
+	version  = "1.2"
 	event    = "flipt.ping"
 )
 
@@ -33,6 +33,7 @@ type ping struct {
 }
 
 type storage struct {
+	Type     string `json:"type,omitempty"`
 	Database string `json:"database,omitempty"`
 	Cache    string `json:"cache,omitempty"`
 }
@@ -42,9 +43,10 @@ type authentication struct {
 }
 
 type flipt struct {
-	Version        string          `json:"version"`
-	Storage        *storage        `json:"storage,omitempty"`
-	Authentication *authentication `json:"authentication,omitempty"`
+	Version        string                    `json:"version"`
+	Storage        *storage                  `json:"storage,omitempty"`
+	Authentication *authentication           `json:"authentication,omitempty"`
+	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
 }
 
 type state struct {
@@ -174,7 +176,8 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	var (
 		props = analytics.NewProperties()
 		flipt = flipt{
-			Version: info.Version,
+			Version:      info.Version,
+			Experimental: r.cfg.Experimental,
 		}
 	)
 
@@ -191,6 +194,7 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	}
 
 	flipt.Storage = &storage{
+		Type:     string(r.cfg.Storage.Type),
 		Database: dbProtocol,
 	}
 

@@ -22,7 +22,7 @@ export default function Select(props: SelectProps) {
     <select
       {...field}
       id={id}
-      className={`${className} block rounded-md py-2 pl-3 pr-10 text-base border-gray-300 focus:outline-none focus:ring-violet-300 focus:border-violet-300 sm:text-sm`}
+      className={`${className} block rounded-md py-2 pl-3 pr-10 text-base text-gray-900 bg-gray-50 border-gray-300 focus:outline-none focus:ring-violet-300 focus:border-violet-300 sm:text-sm`}
       value={value}
       onChange={onChange || field.onChange}
     >

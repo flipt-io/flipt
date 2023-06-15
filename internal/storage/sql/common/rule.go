@@ -267,7 +267,7 @@ func (s *Store) setDistributions(ctx context.Context, rulesById map[string]*flip
 }
 
 // CountRules counts all rules
-func (s *Store) CountRules(ctx context.Context, namespaceKey string) (uint64, error) {
+func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
 	var count uint64
 
 	if namespaceKey == "" {
@@ -276,7 +276,7 @@ func (s *Store) CountRules(ctx context.Context, namespaceKey string) (uint64, er
 
 	if err := s.builder.Select("COUNT(*)").
 		From("rules").
-		Where(sq.Eq{"namespace_key": namespaceKey}).
+		Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"flag_key": flagKey}}).
 		QueryRowContext(ctx).
 		Scan(&count); err != nil {
 		return 0, err
@@ -362,11 +362,14 @@ func (s *Store) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) erro
 	}
 
 	// delete rule
-	//nolint
 	_, err = s.builder.Delete("rules").
 		RunWith(tx).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
 
 	// reorder existing rules after deletion
 	rows, err := s.builder.Select("id").
