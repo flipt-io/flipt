@@ -23,7 +23,7 @@ export default function Footer() {
 
   const refURL = () => {
     if (info?.isRelease && info?.version) {
-      return `https://github.com/flipt-io/flipt/releases/tag/${info.version}`;
+      return `https://github.com/flipt-io/flipt/releases/tag/v${info.version}`;
     }
     if (info?.commit) {
       return `https://github.com/flipt-io/flipt/commit/${info?.commit}`;
