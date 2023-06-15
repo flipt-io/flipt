@@ -101,6 +101,7 @@ import "strings"
 		max_idle_conn?:     int | *2
 		max_open_conn?:     int
 		conn_max_lifetime?: int
+		prepared_statements_enabled?: boolean | *true
 	}
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
