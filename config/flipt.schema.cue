@@ -27,8 +27,10 @@ import "strings"
 	#authentication: {
 		required?: bool | *false
 		session?: {
-			domain?: string
-			secure?: bool
+			domain?:        string
+			secure?:        bool
+			token_lifetime: =~#duration | *"24h"
+			state_lifetime: =~#duration | *"10m"
 			csrf?: {
 				key: string
 			}
@@ -42,7 +44,7 @@ import "strings"
 				cleanup?: #authentication.#authentication_cleanup
 				bootstrap?: {
 					token?:     string
-					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
+					expiration: =~#duration | int
 				}
 			}
 
@@ -66,8 +68,8 @@ import "strings"
 
 		#authentication_cleanup: {
 			@jsonschema(id="authentication_cleanup")
-			interval?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"1h"
-			grace_period?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"30m"
+			interval?:     =~#duration | int | *"1h"
+			grace_period?: =~#duration | int | *"30m"
 		}
 
 		#authentication_oidc_provider: {
@@ -82,7 +84,7 @@ import "strings"
 	#cache: {
 		enabled?: bool | *false
 		backend?: *"memory" | "redis"
-		ttl?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
+		ttl?:     =~#duration | int | *"60s"
 
 		// Redis
 		redis?: {
@@ -95,8 +97,8 @@ import "strings"
 		// Memory
 		memory?: {
 			enabled?:           bool | *false
-			eviction_interval?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"5m"
-			expiration?:        =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
+			eviction_interval?: =~#duration | int | *"5m"
+			expiration?:        =~#duration | int | *"60s"
 		}
 	}
 
@@ -106,12 +108,12 @@ import "strings"
 	}
 
 	#storage: {
-		type: "database" | "git" | "local"
+		type: "database" | "git" | "local" | *""
 		local?: path: string | *"."
 		git?: {
 			repository:      string
 			ref?:            string | *"main"
-			poll_interval?:  =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | *"30s"
+			poll_interval?:  =~#duration | *"30s"
 			authentication?: ({
 				basic: {
 					username: string
@@ -124,17 +126,19 @@ import "strings"
 	}
 
 	#db: {
-		url?:               string | *"file:/var/opt/flipt/flipt.db"
-		protocol?:          *"sqlite" | "cockroach" | "cockroachdb" | "file" | "mysql" | "postgres"
-		host?:              string
-		port?:              int
-		name?:              string
-		user?:              string
 		password?:          string
 		max_idle_conn?:     int | *2
 		max_open_conn?:     int
-		conn_max_lifetime?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
-	}
+		conn_max_lifetime?: =~#duration | int
+	} & ({
+		url?: string | *"file:/var/opt/flipt/flipt.db"
+	} | {
+		protocol?: *"sqlite" | "cockroach" | "cockroachdb" | "file" | "mysql" | "postgres"
+		host?:     string
+		port?:     int
+		name?:     string
+		user?:     string
+	})
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
 	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
@@ -204,4 +208,6 @@ import "strings"
 			flush_period?: string | *"2m"
 		}
 	}
+
+	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
 }
