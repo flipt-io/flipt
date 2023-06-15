@@ -20,7 +20,7 @@ var (
 	fliptNamespace = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
 )
 
-func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, fliptAddr string, ns string, authenticated bool)) {
+func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, ns string, authenticated bool)) {
 	var transport sdk.Transport
 
 	protocol, host, _ := strings.Cut(*fliptAddr, "://")
@@ -54,6 +54,6 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, fliptAddr string, 
 
 	name := fmt.Sprintf("[Protocol %q; Namespace %q; Authentication %v]", protocol, namespace, authentication)
 	t.Run(name, func(t *testing.T) {
-		fn(t, sdk.New(transport, opts...), *fliptAddr, namespace, authentication)
+		fn(t, sdk.New(transport, opts...), namespace, authentication)
 	})
 }
