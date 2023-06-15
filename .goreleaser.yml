@@ -6,7 +6,7 @@ monorepo:
 builds:
   - main: ./cmd/flipt/.
     ldflags:
-      - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
+      - -s -w -X main.version={{ .PrefixedTag }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
       - -linkmode external -extldflags -static
     goos:
       - linux
