@@ -240,6 +240,15 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "dstotijn",
+      "name": "David Stotijn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/983924?v=4",
+      "profile": "https://v0x.nl",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
