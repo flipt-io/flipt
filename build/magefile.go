@@ -142,6 +142,13 @@ func (t Test) CLI(ctx context.Context) error {
 	})
 }
 
+// Config runs a suite of test cases which exercise Flipt server configuration validation.
+func (t Test) Config(ctx context.Context) error {
+	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
+		return testing.Config(ctx, client, base)
+	})
+}
+
 type Release mg.Namespace
 
 func (r Release) Next(ctx context.Context, module, versionParts string) error {

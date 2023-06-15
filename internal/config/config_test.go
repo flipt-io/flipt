@@ -542,7 +542,18 @@ func TestLoad(t *testing.T) {
 				cfg := defaultConfig()
 
 				cfg.Experimental.FilesystemStorage.Enabled = true
-
+				cfg.Audit = AuditConfig{
+					Sinks: SinksConfig{
+						LogFile: LogFileSinkConfig{
+							Enabled: true,
+							File:    "/path/to/logs.txt",
+						},
+					},
+					Buffer: BufferConfig{
+						Capacity:    10,
+						FlushPeriod: 3 * time.Minute,
+					},
+				}
 				cfg.Log = LogConfig{
 					Level:     "WARN",
 					File:      "testLogFile.txt",
@@ -575,7 +586,7 @@ func TestLoad(t *testing.T) {
 				}
 				cfg.Tracing = TracingConfig{
 					Enabled:  true,
-					Exporter: TracingJaeger,
+					Exporter: TracingOTLP,
 					Jaeger: JaegerTracingConfig{
 						Host: "localhost",
 						Port: 6831,
@@ -584,11 +595,22 @@ func TestLoad(t *testing.T) {
 						Endpoint: "http://localhost:9411/api/v2/spans",
 					},
 					OTLP: OTLPTracingConfig{
-						Endpoint: "localhost:4317",
+						Endpoint: "localhost:4318",
 					},
 				}
 				cfg.Storage = StorageConfig{
-					Type: StorageType("database"),
+					Type: GitStorageType,
+					Git: Git{
+						Repository:   "https://github.com/flipt-io/flipt.git",
+						Ref:          "production",
+						PollInterval: 5 * time.Second,
+						Authentication: Authentication{
+							BasicAuth: &BasicAuth{
+								Username: "user",
+								Password: "pass",
+							},
+						},
+					},
 				}
 				cfg.Database = DatabaseConfig{
 					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",

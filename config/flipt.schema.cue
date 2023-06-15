@@ -9,10 +9,12 @@ import "strings"
 	// Flipt application.
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
 	version?:        "1.0" | *"1.0"
+	experimental?:   #experimental
 	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
+	storage?:        #storage
 	db?:             #db
 	log?:            #log
 	meta?:           #meta
@@ -20,11 +22,16 @@ import "strings"
 	tracing?:        #tracing
 	ui?:             #ui
 
+	#experimental: filesystem_storage?: enabled?: bool
+
 	#authentication: {
 		required?: bool | *false
 		session?: {
 			domain?: string
 			secure?: bool
+			csrf?: {
+				key: string
+			}
 		}
 
 		// Methods
@@ -46,6 +53,14 @@ import "strings"
 				providers?: {
 					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
 				}
+			}
+
+			kubernetes?: {
+				enabled?:                   bool | *false
+				discovery_url:              string
+				ca_path:                    string
+				service_account_token_path: string
+				cleanup?:                   #authentication.#authentication_cleanup
 			}
 		}
 
@@ -87,7 +102,25 @@ import "strings"
 
 	#cors: {
 		enabled?:         bool | *false
-		allowed_origins?: [...] | *["*"]
+		allowed_origins?: [...] | string | *["*"]
+	}
+
+	#storage: {
+		type: "database" | "git" | "local"
+		local?: path: string | *"."
+		git?: {
+			repository:      string
+			ref?:            string | *"main"
+			poll_interval?:  =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | *"30s"
+			authentication?: ({
+				basic: {
+					username: string
+					password: string
+				}
+			} | {
+				token: access_token: string
+			})
+		}
 	}
 
 	#db: {
@@ -100,7 +133,7 @@ import "strings"
 		password?:          string
 		max_idle_conn?:     int | *2
 		max_open_conn?:     int
-		conn_max_lifetime?: int
+		conn_max_lifetime?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
 	}
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
