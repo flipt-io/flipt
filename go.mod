@@ -29,11 +29,11 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.15.0
-	github.com/mattn/go-sqlite3 v1.14.16
+	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.15.1
-	github.com/redis/go-redis/v9 v9.0.3
+	github.com/redis/go-redis/v9 v9.0.5
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.16.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.16.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.38.1
-	go.opentelemetry.io/otel/exporters/zipkin v1.14.0
+	go.opentelemetry.io/otel/exporters/zipkin v1.16.0
 	go.opentelemetry.io/otel/metric v1.16.0
 	go.opentelemetry.io/otel/sdk v1.16.0
 	go.opentelemetry.io/otel/sdk/metric v0.39.0
@@ -58,7 +58,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/net v0.10.0
-	golang.org/x/sync v0.2.0
+	golang.org/x/sync v0.3.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
