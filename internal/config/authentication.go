@@ -263,7 +263,7 @@ type AuthenticationMethodInfoProvider interface {
 type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
 	Method  C                              `mapstructure:",squash"`
 	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`
-	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup"`
+	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup,omitempty"`
 }
 
 func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {

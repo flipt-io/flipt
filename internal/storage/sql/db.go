@@ -39,8 +39,13 @@ func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
 
 // BuilderFor returns a squirrel statement builder which decorates
 // the provided sql.DB configured for the provided driver.
-func BuilderFor(db *sql.DB, driver Driver) sq.StatementBuilderType {
-	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
+func BuilderFor(db *sql.DB, driver Driver, preparedStatementsEnabled bool) sq.StatementBuilderType {
+	var brdb sq.BaseRunner = db
+	if preparedStatementsEnabled {
+		brdb = sq.NewStmtCacher(db)
+	}
+
+	builder := sq.StatementBuilder.RunWith(brdb)
 	if driver == Postgres || driver == CockroachDB {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
@@ -203,36 +208,32 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 		return 0, nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
 	}
 
+	v := url.Query()
 	switch driver {
 	case Postgres, CockroachDB:
 		if opts.sslDisabled {
-			v := url.Query()
 			v.Set("sslmode", "disable")
-			url.RawQuery = v.Encode()
-			// we need to re-parse since we modified the query params
-			url, err = dburl.Parse(url.URL.String())
+		}
+
+		// see: https://github.com/lib/pq/issues/389
+		if !cfg.Database.PreparedStatementsEnabled {
+			v.Set("binary_parameters", "yes")
 		}
 	case MySQL:
-		v := url.Query()
 		v.Set("multiStatements", "true")
 		v.Set("parseTime", "true")
 		if !opts.migrate {
 			v.Set("sql_mode", "ANSI")
 		}
-		url.RawQuery = v.Encode()
-		// we need to re-parse since we modified the query params
-		url, err = dburl.Parse(url.URL.String())
-
 	case SQLite:
-		v := url.Query()
 		v.Set("cache", "shared")
 		v.Set("mode", "rwc")
 		v.Set("_fk", "true")
-		url.RawQuery = v.Encode()
-
-		// we need to re-parse since we modified the query params
-		url, err = dburl.Parse(url.URL.String())
 	}
+
+	url.RawQuery = v.Encode()
+	// we need to re-parse since we modified the query params
+	url, err = dburl.Parse(url.URL.String())
 
 	return driver, url, err
 }

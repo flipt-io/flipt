@@ -359,7 +359,7 @@ func newTestStore(t *testing.T, seed ...authentication) func(...Option) *Store {
 		storeFn = func(opts ...Option) *Store {
 			return NewStore(
 				db.Driver,
-				storagesql.BuilderFor(db.DB, db.Driver),
+				storagesql.BuilderFor(db.DB, db.Driver, true),
 				logger,
 				opts...,
 			)

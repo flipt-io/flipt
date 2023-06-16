@@ -35,12 +35,21 @@ func TestParse(t *testing.T) {
 			dsn:    "flipt.db?_fk=true&cache=shared&mode=rwc",
 		},
 		{
+			name: "postgres url prepared statements enabled",
+			cfg: config.DatabaseConfig{
+				URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+				PreparedStatementsEnabled: true,
+			},
+			driver: Postgres,
+			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+		},
+		{
 			name: "postgres url",
 			cfg: config.DatabaseConfig{
 				URL: "postgres://postgres@localhost:5432/flipt?sslmode=disable",
 			},
 			driver: Postgres,
-			dsn:    "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+			dsn:    "binary_parameters=yes dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
 		},
 		{
 			name: "postgres no disable sslmode",
@@ -48,7 +57,7 @@ func TestParse(t *testing.T) {
 				URL: "postgres://postgres@localhost:5432/flipt",
 			},
 			driver: Postgres,
-			dsn:    "dbname=flipt host=localhost port=5432 user=postgres",
+			dsn:    "binary_parameters=yes dbname=flipt host=localhost port=5432 user=postgres",
 		},
 		{
 			name: "postgres disable sslmode via opts",
@@ -61,7 +70,7 @@ func TestParse(t *testing.T) {
 			},
 			options: []Option{WithSSLDisabled},
 			driver:  Postgres,
-			dsn:     "dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
+			dsn:     "binary_parameters=yes dbname=flipt host=localhost port=5432 sslmode=disable user=postgres",
 		},
 		{
 			name: "postgres no port",
@@ -72,7 +81,7 @@ func TestParse(t *testing.T) {
 				User:     "postgres",
 			},
 			driver: Postgres,
-			dsn:    "dbname=flipt host=localhost user=postgres",
+			dsn:    "binary_parameters=yes dbname=flipt host=localhost user=postgres",
 		},
 		{
 			name: "postgres no password",
@@ -84,7 +93,7 @@ func TestParse(t *testing.T) {
 				User:     "postgres",
 			},
 			driver: Postgres,
-			dsn:    "dbname=flipt host=localhost port=5432 user=postgres",
+			dsn:    "binary_parameters=yes dbname=flipt host=localhost port=5432 user=postgres",
 		},
 		{
 			name: "postgres with password",
@@ -97,7 +106,7 @@ func TestParse(t *testing.T) {
 				Password: "foo",
 			},
 			driver: Postgres,
-			dsn:    "dbname=flipt host=localhost password=foo port=5432 user=postgres",
+			dsn:    "binary_parameters=yes dbname=flipt host=localhost password=foo port=5432 user=postgres",
 		},
 		{
 			name: "mysql url",
@@ -160,12 +169,21 @@ func TestParse(t *testing.T) {
 			dsn:    "mysql:foo@tcp(localhost:3306)/flipt?multiStatements=true&parseTime=true&sql_mode=ANSI",
 		},
 		{
+			name: "cockroachdb url prepared statements enabled",
+			cfg: config.DatabaseConfig{
+				URL:                       "cockroachdb://cockroachdb@localhost:26257/flipt?sslmode=disable",
+				PreparedStatementsEnabled: true,
+			},
+			driver: CockroachDB,
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+		},
+		{
 			name: "cockroachdb url",
 			cfg: config.DatabaseConfig{
 				URL: "cockroachdb://cockroachdb@localhost:26257/flipt?sslmode=disable",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb url alternative (cockroach://",
@@ -173,7 +191,7 @@ func TestParse(t *testing.T) {
 				URL: "cockroach://cockroachdb@localhost:26257/flipt?sslmode=disable",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb url alternative (crdb://",
@@ -181,7 +199,7 @@ func TestParse(t *testing.T) {
 				URL: "crdb://cockroachdb@localhost:26257/flipt?sslmode=disable",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb default disable sslmode",
@@ -191,7 +209,7 @@ func TestParse(t *testing.T) {
 				URL: "cockroachdb://cockroachdb@localhost:26257/flipt",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb disable sslmode via opts",
@@ -206,7 +224,7 @@ func TestParse(t *testing.T) {
 				WithSSLDisabled,
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb no port",
@@ -217,7 +235,7 @@ func TestParse(t *testing.T) {
 				User:     "cockroachdb",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb no password",
@@ -229,7 +247,7 @@ func TestParse(t *testing.T) {
 				User:     "cockroachdb",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "cockroachdb with password",
@@ -242,7 +260,7 @@ func TestParse(t *testing.T) {
 				Password: "foo",
 			},
 			driver: CockroachDB,
-			dsn:    "postgres://cockroachdb:foo@localhost:26257/flipt?sslmode=disable",
+			dsn:    "postgres://cockroachdb:foo@localhost:26257/flipt?binary_parameters=yes&sslmode=disable",
 		},
 		{
 			name: "invalid url",

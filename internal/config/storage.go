@@ -19,8 +19,8 @@ const (
 // flag state.
 type StorageConfig struct {
 	Type  StorageType `json:"type,omitempty" mapstructure:"type"`
-	Local Local       `json:"local,omitempty" mapstructure:"local"`
-	Git   Git         `json:"git,omitempty" mapstructure:"git"`
+	Local *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
+	Git   *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) {
@@ -68,7 +68,7 @@ type Git struct {
 	Repository     string         `json:"repository,omitempty" mapstructure:"repository"`
 	Ref            string         `json:"ref,omitempty" mapstructure:"ref"`
 	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
-	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication"`
+	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication,omitempty"`
 }
 
 // Authentication holds structures for various types of auth we support.
@@ -78,8 +78,8 @@ type Git struct {
 // not all inputs are given but only partially, we will return a validation error.
 // (e.g. if username for basic auth is given, and token is also given a validation error will be returned)
 type Authentication struct {
-	BasicAuth *BasicAuth `json:"basic,omitempty" mapstructure:"basic"`
-	TokenAuth *TokenAuth `json:"token,omitempty" mapstructure:"token"`
+	BasicAuth *BasicAuth `json:"basic,omitempty" mapstructure:"basic,omitempty"`
+	TokenAuth *TokenAuth `json:"token,omitempty" mapstructure:"token,omitempty"`
 }
 
 func (a *Authentication) validate() error {
