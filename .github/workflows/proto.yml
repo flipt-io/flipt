@@ -1,0 +1,58 @@
+name: Proto
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sdk/**"
+      - "rpc/**"
+  pull_request:
+    paths:
+      - "sdk/**"
+      - "rpc/**"
+
+jobs:
+  proto-lint:
+    name: "Lint Proto"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: bufbuild/buf-setup-action@v1.7.0
+        with:
+          version: "latest"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: bufbuild/buf-lint-action@v1
+        with:
+          input: "rpc/flipt"
+
+      - uses: bufbuild/buf-breaking-action@v1
+        with:
+          input: "rpc/flipt"
+          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
+
+  proto-check:
+    name: "Proto Check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: bufbuild/buf-setup-action@v1.7.0
+        with:
+          version: "latest"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: proto
+
+      - name: Ensure clean git state.
+        run: git diff --quiet --exit-code sdk/ rpc/ || (echo "Please run 'mage proto' and commit changes." && exit 1)
