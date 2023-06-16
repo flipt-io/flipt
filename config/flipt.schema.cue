@@ -123,10 +123,11 @@ import "strings"
 	}
 
 	#db: {
-		password?:          string
-		max_idle_conn?:     int | *2
-		max_open_conn?:     int
-		conn_max_lifetime?: =~#duration | int
+		password?:                    string
+		max_idle_conn?:               int | *2
+		max_open_conn?:               int
+		conn_max_lifetime?:           =~#duration | int
+		prepared_statements_enabled?: bool | *true
 	} & ({
 		url?: string | *"file:/var/opt/flipt/flipt.db"
 	} | {

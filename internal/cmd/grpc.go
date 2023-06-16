@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
@@ -116,7 +117,7 @@ func NewGRPCServer(
 
 	switch cfg.Storage.Type {
 	case "", config.DatabaseStorageType:
-		db, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
+		db, builder, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
 		if err != nil {
 			return nil, err
 		}
@@ -125,11 +126,11 @@ func NewGRPCServer(
 
 		switch driver {
 		case fliptsql.SQLite:
-			store = sqlite.NewStore(db, logger)
+			store = sqlite.NewStore(db, builder, logger)
 		case fliptsql.Postgres, fliptsql.CockroachDB:
-			store = postgres.NewStore(db, logger)
+			store = postgres.NewStore(db, builder, logger)
 		case fliptsql.MySQL:
-			store = mysql.NewStore(db, logger)
+			store = mysql.NewStore(db, builder, logger)
 		default:
 			return nil, fmt.Errorf("unsupported driver: %s", driver)
 		}
@@ -390,14 +391,15 @@ func (s *GRPCServer) onShutdown(fn errFunc) {
 }
 
 var (
-	once   sync.Once
-	db     *sql.DB
-	driver fliptsql.Driver
-	dbFunc errFunc = func(context.Context) error { return nil }
-	dbErr  error
+	once    sync.Once
+	db      *sql.DB
+	builder sq.StatementBuilderType
+	driver  fliptsql.Driver
+	dbFunc  errFunc = func(context.Context) error { return nil }
+	dbErr   error
 )
 
-func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, fliptsql.Driver, errFunc, error) {
+func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, sq.StatementBuilderType, fliptsql.Driver, errFunc, error) {
 	once.Do(func() {
 		migrator, err := fliptsql.NewMigrator(*cfg, logger)
 		if err != nil {
@@ -419,6 +421,10 @@ func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMig
 			return
 		}
 
+		logger.Debug("constructing builder", zap.Bool("prepared_statements", cfg.Database.PreparedStatementsEnabled))
+
+		builder = fliptsql.BuilderFor(db, driver, cfg.Database.PreparedStatementsEnabled)
+
 		dbFunc = func(context.Context) error {
 			return db.Close()
 		}
@@ -432,5 +438,5 @@ func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMig
 		}
 	})
 
-	return db, driver, dbFunc, dbErr
+	return db, builder, driver, dbFunc, dbErr
 }

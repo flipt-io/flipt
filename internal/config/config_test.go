@@ -325,13 +325,14 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := DefaultConfig()
 				cfg.Database = DatabaseConfig{
-					Protocol:    DatabaseMySQL,
-					Host:        "localhost",
-					Port:        3306,
-					User:        "flipt",
-					Password:    "s3cr3t!",
-					Name:        "flipt",
-					MaxIdleConn: 2,
+					Protocol:                  DatabaseMySQL,
+					Host:                      "localhost",
+					Port:                      3306,
+					User:                      "flipt",
+					Password:                  "s3cr3t!",
+					Name:                      "flipt",
+					MaxIdleConn:               2,
+					PreparedStatementsEnabled: true,
 				}
 				return cfg
 			},
@@ -520,10 +521,11 @@ func TestLoad(t *testing.T) {
 					},
 				}
 				cfg.Database = DatabaseConfig{
-					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
-					MaxIdleConn:     10,
-					MaxOpenConn:     50,
-					ConnMaxLifetime: 30 * time.Minute,
+					URL:                       "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+					MaxIdleConn:               10,
+					MaxOpenConn:               50,
+					ConnMaxLifetime:           30 * time.Minute,
+					PreparedStatementsEnabled: true,
 				}
 				cfg.Meta = MetaConfig{
 					CheckForUpdates:  false,

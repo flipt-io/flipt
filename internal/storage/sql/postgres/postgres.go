@@ -22,11 +22,9 @@ const (
 
 var _ storage.Store = &Store{}
 
-func NewStore(db *sql.DB, logger *zap.Logger) *Store {
-	builder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(sq.NewStmtCacher(db))
-
+func NewStore(db *sql.DB, builder sq.StatementBuilderType, logger *zap.Logger) *Store {
 	return &Store{
-		Store: common.NewStore(db, builder, logger),
+		Store: common.NewStore(db, builder.PlaceholderFormat(sq.Dollar), logger),
 	}
 }
 

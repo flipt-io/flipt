@@ -471,8 +471,9 @@ func DefaultConfig() *Config {
 		},
 
 		Database: DatabaseConfig{
-			URL:         "file:/var/opt/flipt/flipt.db",
-			MaxIdleConn: 2,
+			URL:                       "file:/var/opt/flipt/flipt.db",
+			MaxIdleConn:               2,
+			PreparedStatementsEnabled: true,
 		},
 
 		Meta: MetaConfig{
