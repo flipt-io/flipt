@@ -21,6 +21,6 @@ func Test_Harness(t *testing.T) {
 		New(
 			logger,
 			db.Driver,
-			storagesql.BuilderFor(db.DB, db.Driver),
+			storagesql.BuilderFor(db.DB, db.Driver, true),
 		))
 }

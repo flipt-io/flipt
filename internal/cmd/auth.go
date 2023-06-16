@@ -20,7 +20,6 @@ import (
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
-	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -43,18 +42,17 @@ func authenticationGRPC(
 		}, nil, func(ctx context.Context) error { return nil }, nil
 	}
 
-	db, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
+	_, builder, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	var (
-		authCfg    = cfg.Authentication
-		sqlBuilder = fliptsql.BuilderFor(db, driver)
-		store      = authsql.NewStore(driver, sqlBuilder, logger)
-		oplock     = oplocksql.New(logger, driver, sqlBuilder)
-		public     = public.NewServer(logger, authCfg)
-		register   = grpcRegisterers{
+		authCfg  = cfg.Authentication
+		store    = authsql.NewStore(driver, builder, logger)
+		oplock   = oplocksql.New(logger, driver, builder)
+		public   = public.NewServer(logger, authCfg)
+		register = grpcRegisterers{
 			public,
 			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(cfg.Audit.Enabled())),
 		}
