@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -99,6 +101,7 @@ func NewHTTPServer(
 			h.ServeHTTP(w, r)
 		})
 	})
+	r.Use(removeTrailingSlash)
 	r.Use(middleware.Compress(gzip.DefaultCompression))
 	r.Use(middleware.Recoverer)
 	r.Mount("/debug", middleware.Profiler())
@@ -234,4 +237,16 @@ func (h *HTTPServer) Shutdown(ctx context.Context) error {
 	h.logger.Info("shutting down HTTP server...")
 
 	return h.Server.Shutdown(ctx)
+}
+
+func removeTrailingSlash(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u, err := url.Parse(strings.TrimSuffix(r.URL.Path, "/"))
+		// Panic if URL can not be parsed if a trailing slash is trimmed.
+		if err != nil {
+			panic(err)
+		}
+		r.URL = u
+		h.ServeHTTP(w, r)
+	})
 }
