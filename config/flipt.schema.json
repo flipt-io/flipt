@@ -325,6 +325,9 @@
         },
         "conn_max_lifetime": {
           "type": "integer"
+        },
+        "prepared_statements_enabled": {
+          "type": "boolean"
         }
       },
       "required": [],

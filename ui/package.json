@@ -26,7 +26,7 @@
     "buffer": "^6.0.3",
     "date-fns": "^2.30.0",
     "dotenv": "^16.1.4",
-    "formik": "^2.4.1",
+    "formik": "^2.4.2",
     "highlight.js": "^11.8.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
@@ -35,7 +35,7 @@
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
     "react-redux": "^8.0.7",
-    "react-router-dom": "^6.12.1",
+    "react-router-dom": "^6.13.0",
     "swr": "^2.1.5",
     "uuid": "^9.0.0",
     "yup": "^0.32.11"

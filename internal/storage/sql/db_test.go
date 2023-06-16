@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -134,15 +135,17 @@ func (s *DBTestSuite) SetupSuite() {
 
 		s.db = db
 
+		builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db.DB))
+
 		var store storage.Store
 
 		switch db.Driver {
 		case fliptsql.SQLite:
-			store = sqlite.NewStore(db.DB, logger)
+			store = sqlite.NewStore(db.DB, builder, logger)
 		case fliptsql.Postgres, fliptsql.CockroachDB:
-			store = postgres.NewStore(db.DB, logger)
+			store = postgres.NewStore(db.DB, builder, logger)
 		case fliptsql.MySQL:
-			store = mysql.NewStore(db.DB, logger)
+			store = mysql.NewStore(db.DB, builder, logger)
 		}
 
 		namespace := randomString(6)
