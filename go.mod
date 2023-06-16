@@ -33,7 +33,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.15.1
-	github.com/redis/go-redis/v9 v9.0.3
+	github.com/redis/go-redis/v9 v9.0.5
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
@@ -50,7 +50,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.16.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.16.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.38.1
-	go.opentelemetry.io/otel/exporters/zipkin v1.14.0
+	go.opentelemetry.io/otel/exporters/zipkin v1.16.0
 	go.opentelemetry.io/otel/metric v1.16.0
 	go.opentelemetry.io/otel/sdk v1.16.0
 	go.opentelemetry.io/otel/sdk/metric v0.39.0
