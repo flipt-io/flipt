@@ -27,16 +27,16 @@ const (
 //
 // Flipt currently supports SQLite, Postgres and MySQL backends.
 type DatabaseConfig struct {
-	URL                       string           `json:"url,omitempty" mapstructure:"url"`
+	URL                       string           `json:"url,omitempty" mapstructure:"url,omitempty"`
 	MaxIdleConn               int              `json:"maxIdleConn,omitempty" mapstructure:"max_idle_conn"`
 	MaxOpenConn               int              `json:"maxOpenConn,omitempty" mapstructure:"max_open_conn"`
 	ConnMaxLifetime           time.Duration    `json:"connMaxLifetime,omitempty" mapstructure:"conn_max_lifetime"`
-	Name                      string           `json:"name,omitempty" mapstructure:"name"`
-	User                      string           `json:"user,omitempty" mapstructure:"user"`
-	Password                  string           `json:"password,omitempty" mapstructure:"password"`
-	Host                      string           `json:"host,omitempty" mapstructure:"host"`
-	Port                      int              `json:"port,omitempty" mapstructure:"port"`
-	Protocol                  DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol"`
+	Name                      string           `json:"name,omitempty" mapstructure:"name,omitempty"`
+	User                      string           `json:"user,omitempty" mapstructure:"user,omitempty"`
+	Password                  string           `json:"password,omitempty" mapstructure:"password,omitempty"`
+	Host                      string           `json:"host,omitempty" mapstructure:"host,omitempty"`
+	Port                      int              `json:"port,omitempty" mapstructure:"port,omitempty"`
+	Protocol                  DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol,omitempty"`
 	PreparedStatementsEnabled bool             `json:"preparedStatementsEnabled,omitempty" mapstructure:"prepared_statements_enabled"`
 }
 
