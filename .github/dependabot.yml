@@ -12,7 +12,6 @@ updates:
       - dependency-name: github.com/golangci/golangci-lint
         versions:
           - "> 1.26.0"
-    rebase-strategy: disabled
     labels:
       - "dependencies"
       - "go"
@@ -31,7 +30,6 @@ updates:
       - dependency-name: github.com/golangci/golangci-lint
         versions:
           - "> 1.26.0"
-    rebase-strategy: disabled
     labels:
       - "dependencies"
       - "go"
@@ -47,7 +45,6 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
-    rebase-strategy: disabled
     labels:
       - "dependencies"
       - "javascript"
@@ -61,7 +58,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    rebase-strategy: disabled
     labels:
       - "dependencies"
       - "github_actions"
@@ -73,7 +69,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    rebase-strategy: disabled
     labels:
       - "dependencies"
       - "docker"
