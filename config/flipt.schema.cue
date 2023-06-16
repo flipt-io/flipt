@@ -9,10 +9,12 @@ import "strings"
 	// Flipt application.
 	@jsonschema(schema="http://json-schema.org/draft/2019-09/schema#")
 	version?:        "1.0" | *"1.0"
+	experimental?:   #experimental
 	audit?:          #audit
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
+	storage?:        #storage
 	db?:             #db
 	log?:            #log
 	meta?:           #meta
@@ -20,26 +22,30 @@ import "strings"
 	tracing?:        #tracing
 	ui?:             #ui
 
+	#experimental: filesystem_storage?: enabled?: bool
+
 	#authentication: {
 		required?: bool | *false
 		session?: {
-			domain?: string
-			secure?: bool
+			domain?:        string
+			secure?:        bool
+			token_lifetime: =~#duration | *"24h"
+			state_lifetime: =~#duration | *"10m"
+			csrf?: {
+				key: string
+			}
 		}
 
-		// Methods
 		methods?: {
-			// Token
 			token?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
 				bootstrap?: {
 					token?:     string
-					expiration: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int
+					expiration: =~#duration | int
 				}
 			}
 
-			// OIDC
 			oidc?: {
 				enabled?: bool | *false
 				cleanup?: #authentication.#authentication_cleanup
@@ -47,12 +53,20 @@ import "strings"
 					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
 				}
 			}
+
+			kubernetes?: {
+				enabled?:                   bool | *false
+				discovery_url:              string
+				ca_path:                    string
+				service_account_token_path: string
+				cleanup?:                   #authentication.#authentication_cleanup
+			}
 		}
 
 		#authentication_cleanup: {
 			@jsonschema(id="authentication_cleanup")
-			interval?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"1h"
-			grace_period?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"30m"
+			interval?:     =~#duration | int | *"1h"
+			grace_period?: =~#duration | int | *"30m"
 		}
 
 		#authentication_oidc_provider: {
@@ -67,7 +81,7 @@ import "strings"
 	#cache: {
 		enabled?: bool | *false
 		backend?: *"memory" | "redis"
-		ttl?:     =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
+		ttl?:     =~#duration | int | *"60s"
 
 		// Redis
 		redis?: {
@@ -80,28 +94,49 @@ import "strings"
 		// Memory
 		memory?: {
 			enabled?:           bool | *false
-			eviction_interval?: =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"5m"
-			expiration?:        =~"^([0-9]+(ns|us|µs|ms|s|m|h))+$" | int | *"60s"
+			eviction_interval?: =~#duration | int | *"5m"
+			expiration?:        =~#duration | int | *"60s"
 		}
 	}
 
 	#cors: {
 		enabled?:         bool | *false
-		allowed_origins?: [...] | *["*"]
+		allowed_origins?: [...] | string | *["*"]
+	}
+
+	#storage: {
+		type: "database" | "git" | "local" | *""
+		local?: path: string | *"."
+		git?: {
+			repository:      string
+			ref?:            string | *"main"
+			poll_interval?:  =~#duration | *"30s"
+			authentication?: ({
+				basic: {
+					username: string
+					password: string
+				}
+			} | {
+				token: access_token: string
+			})
+		}
 	}
 
 	#db: {
-		url?:               string | *"file:/var/opt/flipt/flipt.db"
-		protocol?:          *"sqlite" | "cockroach" | "cockroachdb" | "file" | "mysql" | "postgres"
-		host?:              string
-		port?:              int
-		name?:              string
-		user?:              string
-		password?:          string
-		max_idle_conn?:     int | *2
-		max_open_conn?:     int
-		conn_max_lifetime?: int
-	}
+		password?:                    string
+		max_idle_conn?:               int | *2
+		max_open_conn?:               int
+		conn_max_lifetime?:           =~#duration | int
+		prepared_statements_enabled?: bool | *true
+	} & ({
+		url?: string | *"file:/var/opt/flipt/flipt.db"
+	} | {
+		protocol?: *"sqlite" | "cockroach" | "cockroachdb" | "file" | "mysql" | "postgres"
+		host?:     string
+		port?:     int
+		name?:     string
+		user?:     string
+	})
 
 	_#lower: ["debug", "error", "fatal", "info", "panic", "trace", "warn"]
 	_#all: _#lower + [ for x in _#lower {strings.ToUpper(x)}]
@@ -171,4 +206,6 @@ import "strings"
 			flush_period?: string | *"2m"
 		}
 	}
+
+	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
 }

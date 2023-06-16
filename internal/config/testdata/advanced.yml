@@ -2,6 +2,15 @@ experimental:
   filesystem_storage:
     enabled: true
 
+audit:
+  sinks:
+    log:
+      enabled: true
+      file: "/path/to/logs.txt"
+  buffer:
+    capacity: 10
+    flush_period: 3m
+
 log:
   level: WARN
   file: "testLogFile.txt"
@@ -33,7 +42,20 @@ server:
 
 tracing:
   enabled: true
-  backend: jaeger
+  exporter: otlp
+  otlp:
+    endpoint: "localhost:4318"
+
+storage:
+  type: git
+  git:
+    repository: https://github.com/flipt-io/flipt.git
+    ref: production
+    poll_interval: 5s
+    authentication:
+      basic:
+        username: user
+        password: pass
 
 db:
   url: postgres://postgres@localhost:5432/flipt?sslmode=disable

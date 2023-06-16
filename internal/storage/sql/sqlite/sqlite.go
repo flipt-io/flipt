@@ -18,9 +18,7 @@ import (
 var _ storage.Store = &Store{}
 
 // NewStore creates a new sqlite.Store
-func NewStore(db *sql.DB, logger *zap.Logger) *Store {
-	builder := sq.StatementBuilder.RunWith(sq.NewStmtCacher(db))
-
+func NewStore(db *sql.DB, builder sq.StatementBuilderType, logger *zap.Logger) *Store {
 	return &Store{
 		Store: common.NewStore(db, builder, logger),
 	}

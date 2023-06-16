@@ -3,6 +3,24 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.23.1](https://github.com/flipt-io/flipt/releases/tag/v1.23.1) - 2023-06-15
+
+### Added
+
+- Ability to configure use of prepared statements (for enabling PGBouncer) (#1750)
+- `telemetry`: track storage type and experimental features (#1745)
+
+### Changed
+
+- Dependency updates
+
+### Fixed
+
+- `storage/sql`: set binary_parameters=yes for lib/pq when prepared statements disabled (#1753)
+- UI: input bg / text in darkmode (#1752)
+- count rules was not taking flagKey into account (#1738)
+- tag prefix for build info/release links (#1757)
+
 ## [v1.23.0](https://github.com/flipt-io/flipt/releases/tag/v1.23.0) - 2023-06-12
 
 ### Added
