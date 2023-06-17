@@ -275,3 +275,11 @@ func (x *Flipt) DeleteConstraint(ctx context.Context, v *flipt.DeleteConstraintR
 	_, err = x.transport.DeleteConstraint(ctx, v)
 	return err
 }
+
+func (x *Flipt) Propose(ctx context.Context, v *flipt.ProposeRequest) (*flipt.Proposal, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.Propose(ctx, v)
+}

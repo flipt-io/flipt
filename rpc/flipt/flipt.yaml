@@ -229,6 +229,12 @@ http:
   - selector: flipt.Flipt.DeleteConstraint
     delete: /api/v1/namespaces/{namespace_key}/segments/{segment_key}/constraints/{id}
 
+  # proposal
+  #
+  - selector: flipt.Flipt.Propose
+    put: /api/v1/namespaces/{namespace_key}/propose
+    body: "*"
+
   # metadata
   # 
   - selector: flipt.meta.MetadataService.GetConfiguration

@@ -52,6 +52,7 @@ const (
 	Flipt_CreateConstraint_FullMethodName   = "/flipt.Flipt/CreateConstraint"
 	Flipt_UpdateConstraint_FullMethodName   = "/flipt.Flipt/UpdateConstraint"
 	Flipt_DeleteConstraint_FullMethodName   = "/flipt.Flipt/DeleteConstraint"
+	Flipt_Propose_FullMethodName            = "/flipt.Flipt/Propose"
 )
 
 // FliptClient is the client API for Flipt service.
@@ -90,6 +91,7 @@ type FliptClient interface {
 	CreateConstraint(ctx context.Context, in *CreateConstraintRequest, opts ...grpc.CallOption) (*Constraint, error)
 	UpdateConstraint(ctx context.Context, in *UpdateConstraintRequest, opts ...grpc.CallOption) (*Constraint, error)
 	DeleteConstraint(ctx context.Context, in *DeleteConstraintRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Propose(ctx context.Context, in *ProposeRequest, opts ...grpc.CallOption) (*Proposal, error)
 }
 
 type fliptClient struct {
@@ -388,6 +390,15 @@ func (c *fliptClient) DeleteConstraint(ctx context.Context, in *DeleteConstraint
 	return out, nil
 }
 
+func (c *fliptClient) Propose(ctx context.Context, in *ProposeRequest, opts ...grpc.CallOption) (*Proposal, error) {
+	out := new(Proposal)
+	err := c.cc.Invoke(ctx, Flipt_Propose_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FliptServer is the server API for Flipt service.
 // All implementations must embed UnimplementedFliptServer
 // for forward compatibility
@@ -424,6 +435,7 @@ type FliptServer interface {
 	CreateConstraint(context.Context, *CreateConstraintRequest) (*Constraint, error)
 	UpdateConstraint(context.Context, *UpdateConstraintRequest) (*Constraint, error)
 	DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error)
+	Propose(context.Context, *ProposeRequest) (*Proposal, error)
 	mustEmbedUnimplementedFliptServer()
 }
 
@@ -526,6 +538,9 @@ func (UnimplementedFliptServer) UpdateConstraint(context.Context, *UpdateConstra
 }
 func (UnimplementedFliptServer) DeleteConstraint(context.Context, *DeleteConstraintRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteConstraint not implemented")
+}
+func (UnimplementedFliptServer) Propose(context.Context, *ProposeRequest) (*Proposal, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Propose not implemented")
 }
 func (UnimplementedFliptServer) mustEmbedUnimplementedFliptServer() {}
 
@@ -1116,6 +1131,24 @@ func _Flipt_DeleteConstraint_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Flipt_Propose_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProposeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).Propose(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_Propose_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).Propose(ctx, req.(*ProposeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Flipt_ServiceDesc is the grpc.ServiceDesc for Flipt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1250,6 +1283,10 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteConstraint",
 			Handler:    _Flipt_DeleteConstraint_Handler,
+		},
+		{
+			MethodName: "Propose",
+			Handler:    _Flipt_Propose_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

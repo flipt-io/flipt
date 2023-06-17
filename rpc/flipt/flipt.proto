@@ -373,6 +373,43 @@ message DeleteDistributionRequest {
   string namespace_key = 5;
 }
 
+message ProposeRequest {
+  string namespace_key = 1;
+  string revision = 2;
+  repeated AnyRequest requests = 3; 
+}
+
+message AnyRequest {
+  oneof request {
+    CreateNamespaceRequest create_namespace = 1;
+    UpdateNamespaceRequest update_namespace = 2;
+    DeleteNamespaceRequest delete_namespace = 3;
+    CreateFlagRequest create_flag = 4;
+    UpdateFlagRequest update_flag = 5;
+    DeleteFlagRequest delete_flag = 6;
+    CreateVariantRequest create_variant = 7;
+    UpdateVariantRequest update_variant = 8;
+    DeleteVariantRequest delete_variant = 9;
+    CreateRuleRequest create_rule = 10;
+    UpdateRuleRequest update_rule = 11;
+    OrderRulesRequest order_rules = 12;
+    DeleteRuleRequest delete_rule = 13;
+    CreateDistributionRequest create_distribution = 14;
+    UpdateDistributionRequest update_distribution = 15;
+    DeleteDistributionRequest delete_distribution = 16;
+    CreateSegmentRequest create_segment = 17;
+    UpdateSegmentRequest update_segment = 18;
+    DeleteSegmentRequest delete_segment = 19;
+    CreateConstraintRequest create_constraint = 20;
+    UpdateConstraintRequest update_constraint = 21;
+    DeleteConstraintRequest delete_constraint = 22;
+  }
+}
+
+message Proposal {
+  string id = 1;
+}
+
 service Flipt {
   rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {}
   rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
@@ -406,4 +443,5 @@ service Flipt {
   rpc CreateConstraint(CreateConstraintRequest) returns (Constraint) {}
   rpc UpdateConstraint(UpdateConstraintRequest) returns (Constraint) {}
   rpc DeleteConstraint(DeleteConstraintRequest) returns (google.protobuf.Empty) {}
+  rpc Propose(ProposeRequest) returns (Proposal) {}
 }
