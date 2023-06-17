@@ -36,9 +36,9 @@ type FliptIndex struct {
 	Exclude []string `yaml:"exclude,omitempty"`
 }
 
-// storeSnapshot contains the structures necessary for serving
+// Snapshot contains the structures necessary for serving
 // flag state to a client.
-type storeSnapshot struct {
+type Snapshot struct {
 	ns        map[string]*namespace
 	evalDists map[string][]*storage.EvaluationDistribution
 	now       *timestamppb.Timestamp
@@ -67,11 +67,11 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 	}
 }
 
-// snapshotFromFS is a convenience function for building a snapshot
+// SnapshotFromFS is a convenience function for building a snapshot
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
-func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
-	files, err := listStateFiles(logger, fs)
+func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*Snapshot, error) {
+	files, err := ListStateFiles(logger, fs)
 	if err != nil {
 		return nil, err
 	}
@@ -89,14 +89,14 @@ func snapshotFromFS(logger *zap.Logger, fs fs.FS) (*storeSnapshot, error) {
 		rds = append(rds, fi)
 	}
 
-	return snapshotFromReaders(rds...)
+	return SnapshotFromReaders(rds...)
 }
 
-// snapshotFromReaders constructs a storeSnapshot from the provided
+// SnapshotFromReaders constructs a storeSnapshot from the provided
 // slice of io.Reader.
-func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
+func SnapshotFromReaders(sources ...io.Reader) (*Snapshot, error) {
 	now := timestamppb.Now()
-	s := storeSnapshot{
+	s := Snapshot{
 		ns: map[string]*namespace{
 			defaultNs: newNamespace("default", "Default", now),
 		},
@@ -124,7 +124,7 @@ func snapshotFromReaders(sources ...io.Reader) (*storeSnapshot, error) {
 	return &s, nil
 }
 
-func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
+func ListStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// This is the default variable + value for the FliptIndex. It will preserve its value if
 	// a .flipt.yml can not be read for whatever reason.
 	idx := FliptIndex{
@@ -207,7 +207,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	return filenames, nil
 }
 
-func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
+func (ss *Snapshot) addDoc(doc *ext.Document) error {
 	ns := ss.ns[doc.Namespace]
 	if ns == nil {
 		ns = newNamespace(doc.Namespace, doc.Namespace, ss.now)
@@ -356,11 +356,11 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 	return nil
 }
 
-func (ss storeSnapshot) String() string {
+func (ss Snapshot) String() string {
 	return "snapshot"
 }
 
-func (ss *storeSnapshot) GetRule(ctx context.Context, namespaceKey string, id string) (rule *flipt.Rule, _ error) {
+func (ss *Snapshot) GetRule(ctx context.Context, namespaceKey string, id string) (rule *flipt.Rule, _ error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return nil, err
@@ -375,7 +375,7 @@ func (ss *storeSnapshot) GetRule(ctx context.Context, namespaceKey string, id st
 	return rule, nil
 }
 
-func (ss *storeSnapshot) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rule], _ error) {
+func (ss *Snapshot) ListRules(ctx context.Context, namespaceKey string, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rule], _ error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return set, err
@@ -395,7 +395,7 @@ func (ss *storeSnapshot) ListRules(ctx context.Context, namespaceKey string, fla
 	return set, err
 }
 
-func (ss *storeSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
+func (ss *Snapshot) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return 0, err
@@ -411,35 +411,35 @@ func (ss *storeSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey s
 	return uint64(len(rules)), nil
 }
 
-func (ss *storeSnapshot) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+func (ss *Snapshot) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+func (ss *Snapshot) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
+func (ss *Snapshot) DeleteRule(ctx context.Context, r *flipt.DeleteRuleRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
+func (ss *Snapshot) OrderRules(ctx context.Context, r *flipt.OrderRulesRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
+func (ss *Snapshot) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
+func (ss *Snapshot) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
+func (ss *Snapshot) DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
+func (ss *Snapshot) GetSegment(ctx context.Context, namespaceKey string, key string) (*flipt.Segment, error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return nil, err
@@ -453,7 +453,7 @@ func (ss *storeSnapshot) GetSegment(ctx context.Context, namespaceKey string, ke
 	return segment, nil
 }
 
-func (ss *storeSnapshot) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Segment], err error) {
+func (ss *Snapshot) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Segment], err error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return set, err
@@ -471,7 +471,7 @@ func (ss *storeSnapshot) ListSegments(ctx context.Context, namespaceKey string, 
 	return set, nil
 }
 
-func (ss *storeSnapshot) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
+func (ss *Snapshot) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return 0, err
@@ -480,31 +480,31 @@ func (ss *storeSnapshot) CountSegments(ctx context.Context, namespaceKey string)
 	return uint64(len(ns.segments)), nil
 }
 
-func (ss *storeSnapshot) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
+func (ss *Snapshot) CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
+func (ss *Snapshot) UpdateSegment(ctx context.Context, r *flipt.UpdateSegmentRequest) (*flipt.Segment, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
+func (ss *Snapshot) DeleteSegment(ctx context.Context, r *flipt.DeleteSegmentRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
+func (ss *Snapshot) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
+func (ss *Snapshot) UpdateConstraint(ctx context.Context, r *flipt.UpdateConstraintRequest) (*flipt.Constraint, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
+func (ss *Snapshot) DeleteConstraint(ctx context.Context, r *flipt.DeleteConstraintRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
+func (ss *Snapshot) GetNamespace(ctx context.Context, key string) (*flipt.Namespace, error) {
 	ns, err := ss.getNamespace(key)
 	if err != nil {
 		return nil, err
@@ -513,7 +513,7 @@ func (ss *storeSnapshot) GetNamespace(ctx context.Context, key string) (*flipt.N
 	return ns.resource, nil
 }
 
-func (ss *storeSnapshot) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Namespace], err error) {
+func (ss *Snapshot) ListNamespaces(ctx context.Context, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Namespace], err error) {
 	ns := make([]*flipt.Namespace, 0, len(ss.ns))
 	for _, n := range ss.ns {
 		ns = append(ns, n.resource)
@@ -526,23 +526,23 @@ func (ss *storeSnapshot) ListNamespaces(ctx context.Context, opts ...storage.Que
 	return set, err
 }
 
-func (ss *storeSnapshot) CountNamespaces(ctx context.Context) (uint64, error) {
+func (ss *Snapshot) CountNamespaces(ctx context.Context) (uint64, error) {
 	return uint64(len(ss.ns)), nil
 }
 
-func (ss *storeSnapshot) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
+func (ss *Snapshot) CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
+func (ss *Snapshot) UpdateNamespace(ctx context.Context, r *flipt.UpdateNamespaceRequest) (*flipt.Namespace, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
+func (ss *Snapshot) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) GetFlag(ctx context.Context, namespaceKey string, key string) (*flipt.Flag, error) {
+func (ss *Snapshot) GetFlag(ctx context.Context, namespaceKey string, key string) (*flipt.Flag, error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return nil, err
@@ -556,7 +556,7 @@ func (ss *storeSnapshot) GetFlag(ctx context.Context, namespaceKey string, key s
 	return flag, nil
 }
 
-func (ss *storeSnapshot) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Flag], err error) {
+func (ss *Snapshot) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Flag], err error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return set, err
@@ -574,7 +574,7 @@ func (ss *storeSnapshot) ListFlags(ctx context.Context, namespaceKey string, opt
 	return set, nil
 }
 
-func (ss *storeSnapshot) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
+func (ss *Snapshot) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
 	ns, err := ss.getNamespace(namespaceKey)
 	if err != nil {
 		return 0, err
@@ -583,31 +583,31 @@ func (ss *storeSnapshot) CountFlags(ctx context.Context, namespaceKey string) (u
 	return uint64(len(ns.flags)), nil
 }
 
-func (ss *storeSnapshot) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
+func (ss *Snapshot) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
+func (ss *Snapshot) UpdateFlag(ctx context.Context, r *flipt.UpdateFlagRequest) (*flipt.Flag, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
+func (ss *Snapshot) DeleteFlag(ctx context.Context, r *flipt.DeleteFlagRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
+func (ss *Snapshot) CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
+func (ss *Snapshot) UpdateVariant(ctx context.Context, r *flipt.UpdateVariantRequest) (*flipt.Variant, error) {
 	return nil, ErrNotImplemented
 }
 
-func (ss *storeSnapshot) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
+func (ss *Snapshot) DeleteVariant(ctx context.Context, r *flipt.DeleteVariantRequest) error {
 	return ErrNotImplemented
 }
 
-func (ss *storeSnapshot) getNamespace(key string) (namespace, error) {
+func (ss *Snapshot) getNamespace(key string) (namespace, error) {
 	ns, ok := ss.ns[key]
 	if !ok {
 		return namespace{}, ferrors.ErrNotFoundf("namespace %q", key)
@@ -616,7 +616,7 @@ func (ss *storeSnapshot) getNamespace(key string) (namespace, error) {
 	return *ns, nil
 }
 
-func (ss *storeSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
+func (ss *Snapshot) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
 	ns, ok := ss.ns[namespaceKey]
 	if !ok {
 		return nil, ferrors.ErrNotFoundf("namespaced %q", namespaceKey)
@@ -630,7 +630,7 @@ func (ss *storeSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey st
 	return rules, nil
 }
 
-func (ss *storeSnapshot) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (ss *Snapshot) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	dists, ok := ss.evalDists[ruleID]
 	if !ok {
 		return nil, ferrors.ErrNotFoundf("rule %q", ruleID)

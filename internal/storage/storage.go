@@ -198,6 +198,10 @@ type RuleStore interface {
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
 }
 
+type ProposalStore interface {
+	Propose(context.Context, *flipt.ProposeRequest) (*flipt.Proposal, error)
+}
+
 // ListRequest is a generic container for the parameters required to perform a list operation.
 // It contains a generic type T intended for a list predicate.
 // It also contains a QueryParams object containing pagination constraints.

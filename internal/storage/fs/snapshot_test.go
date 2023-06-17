@@ -20,7 +20,7 @@ var testdata embed.FS
 func TestFSWithIndex(t *testing.T) {
 	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
 
-	filenames, err := listStateFiles(zap.NewNop(), fwi)
+	filenames, err := ListStateFiles(zap.NewNop(), fwi)
 	assert.NoError(t, err)
 
 	expected := []string{
@@ -39,7 +39,7 @@ func TestFSWithIndex(t *testing.T) {
 		readers = append(readers, fr)
 	}
 
-	ss, err := snapshotFromReaders(readers...)
+	ss, err := SnapshotFromReaders(readers...)
 	assert.NoError(t, err)
 
 	tfs := &FSIndexSuite{
@@ -530,7 +530,7 @@ type FSWithoutIndexSuite struct {
 
 func TestFSWithoutIndex(t *testing.T) {
 	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
-	filenames, err := listStateFiles(zap.NewNop(), fwoi)
+	filenames, err := ListStateFiles(zap.NewNop(), fwoi)
 	assert.NoError(t, err)
 
 	expected := []string{
@@ -553,7 +553,7 @@ func TestFSWithoutIndex(t *testing.T) {
 		readers = append(readers, fr)
 	}
 
-	ss, err := snapshotFromReaders(readers...)
+	ss, err := SnapshotFromReaders(readers...)
 	assert.NoError(t, err)
 
 	tfs := &FSWithoutIndexSuite{

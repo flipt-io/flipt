@@ -3,37 +3,38 @@ package fs
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"path"
 
+	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
-// FSSource produces implementations of fs.FS.
-// A single FS can be produced via Get or a channel
+// Source produces Snapshot types.
+// A single Snapshot can be produced via Get or a channel
 // may be provided to Subscribe in order to received
 // new instances when new state becomes available.
-type FSSource interface {
+type Source interface {
 	fmt.Stringer
 
-	// Get builds a single instance of an fs.FS
-	Get() (fs.FS, error)
+	// Get builds a single instance of an Snapshot
+	Get() (*Snapshot, error)
 
-	// Subscribe feeds implementations of fs.FS onto the provided channel.
+	// Subscribe feeds implementations of Snapshot onto the provided channel.
 	// It should block until the provided context is cancelled (it will be called in a goroutine).
 	// It should close the provided channel before it returns.
-	Subscribe(context.Context, chan<- fs.FS)
+	Subscribe(context.Context, chan<- *Snapshot)
 }
 
-// Store is an implementation of storage.Store backed by an FSSource.
-// The store subscribes to the source for instances of fs.FS with new contents.
+// Store is an implementation of storage.Store backed by an Source.
+// The store subscribes to the source for instances of Snapshot with new contents.
 // When a new fs is received the contents is fetched and built into a snapshot
 // of Flipt feature flag state.
 type Store struct {
 	*syncedStore
 
 	logger *zap.Logger
-	source FSSource
+	source Source
 
 	// notify is used for test purposes
 	// it is invoked if defined when a snapshot update finishes
@@ -43,14 +44,9 @@ type Store struct {
 	done   chan struct{}
 }
 
-func (l *Store) updateSnapshot(fs fs.FS) error {
-	storeSnapshot, err := snapshotFromFS(l.logger, fs)
-	if err != nil {
-		return err
-	}
-
+func (l *Store) updateSnapshot(s *Snapshot) error {
 	l.mu.Lock()
-	l.storeSnapshot = storeSnapshot
+	l.Snapshot = s
 	l.mu.Unlock()
 
 	// NOTE: this is really just a trick for unit tests
@@ -65,8 +61,8 @@ func (l *Store) updateSnapshot(fs fs.FS) error {
 }
 
 // NewStore constructs and configure a Store.
-// The store creates a background goroutine which feeds a channel of fs.FS.
-func NewStore(logger *zap.Logger, source FSSource) (*Store, error) {
+// The store creates a background goroutine which feeds a channel of *Snapshot.
+func NewStore(logger *zap.Logger, source Source) (*Store, error) {
 	store := &Store{
 		syncedStore: &syncedStore{},
 		logger:      logger,
@@ -75,27 +71,27 @@ func NewStore(logger *zap.Logger, source FSSource) (*Store, error) {
 	}
 
 	// get an initial FS from source.
-	f, err := source.Get()
+	s, err := source.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := store.updateSnapshot(f); err != nil {
+	if err := store.updateSnapshot(s); err != nil {
 		return nil, err
 	}
 
 	var ctx context.Context
 	ctx, store.cancel = context.WithCancel(context.Background())
 
-	ch := make(chan fs.FS)
+	ch := make(chan *Snapshot)
 	go source.Subscribe(ctx, ch)
 
 	go func() {
 		defer close(store.done)
-		for fs := range ch {
+		for s := range ch {
 			logger.Debug("received new fs")
 
-			if err = store.updateSnapshot(fs); err != nil {
+			if err = store.updateSnapshot(s); err != nil {
 				logger.Error("failed updating snapshot", zap.Error(err))
 				continue
 			}
@@ -121,4 +117,18 @@ func (l *Store) Close() error {
 // String returns an identifier string for the store type.
 func (l *Store) String() string {
 	return path.Join("filesystem", l.source.String())
+}
+
+type ProposableSource interface {
+	Source
+
+	storage.ProposalStore
+}
+
+func (s *Store) Propose(ctx context.Context, r *flipt.ProposeRequest) (*flipt.Proposal, error) {
+	if ps, ok := s.source.(ProposableSource); ok {
+		return ps.Propose(ctx, r)
+	}
+
+	return nil, ErrNotImplemented
 }
