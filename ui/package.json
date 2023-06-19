@@ -69,7 +69,7 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-no-relative-import-paths": "^1.5.2",
-    "eslint-plugin-playwright": "^0.12.0",
+    "eslint-plugin-playwright": "^0.14.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.32.2",
