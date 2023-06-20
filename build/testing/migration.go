@@ -40,7 +40,6 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 
 	// run migration with edge Flipt build
 	flipt, err = flipt.
-		// WithEnvVariable("FLIPT_LOG_FILE", "/var/log/flipt/output.txt").
 		// persist state between latest and new version
 		WithMountedCache("/var/opt/flipt", dir, dagger.ContainerWithMountedCacheOpts{
 			Owner: "flipt",
