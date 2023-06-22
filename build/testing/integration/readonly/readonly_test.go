@@ -110,6 +110,9 @@ func TestReadOnly(t *testing.T) {
 					})
 					require.NoError(t, err)
 
+					// ensure each page is of length 10
+					assert.Len(t, flags.Flags, 10)
+
 					found = append(found, flags.Flags...)
 
 					if flags.NextPageToken == "" {
@@ -171,6 +174,9 @@ func TestReadOnly(t *testing.T) {
 						PageToken:    nextPage,
 					})
 					require.NoError(t, err)
+
+					// ensure each page is of length 10
+					assert.Len(t, segments.Segments, 10)
 
 					found = append(found, segments.Segments...)
 
@@ -255,6 +261,9 @@ func TestReadOnly(t *testing.T) {
 						PageToken:    nextPage,
 					})
 					require.NoError(t, err)
+
+					// ensure each page is of length 10
+					assert.Len(t, rules.Rules, 10)
 
 					found = append(found, rules.Rules...)
 
