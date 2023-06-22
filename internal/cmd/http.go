@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -241,12 +240,7 @@ func (h *HTTPServer) Shutdown(ctx context.Context) error {
 
 func removeTrailingSlash(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		u, err := url.Parse(strings.TrimSuffix(r.URL.Path, "/"))
-		// Panic if URL can not be parsed if a trailing slash is trimmed.
-		if err != nil {
-			panic(err)
-		}
-		r.URL = u
+		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
 		h.ServeHTTP(w, r)
 	})
 }
