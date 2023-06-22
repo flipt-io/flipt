@@ -317,6 +317,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://www.adamweiss.me"><img src="https://avatars.githubusercontent.com/u/30146?v=4?s=100" width="100px;" alt="Adam Weiss"/><br /><sub><b>Adam Weiss</b></sub></a><br /><a href="#example-amweiss" title="Examples">💡</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/yuvalg99"><img src="https://avatars.githubusercontent.com/u/23092765?v=4?s=100" width="100px;" alt="Yuval Goihberg"/><br /><sub><b>Yuval Goihberg</b></sub></a><br /><a href="#design-yuvalg99" title="Design">🎨</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://v0x.nl"><img src="https://avatars.githubusercontent.com/u/983924?v=4?s=100" width="100px;" alt="David Stotijn"/><br /><sub><b>David Stotijn</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=dstotijn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MattNotarangelo"><img src="https://avatars.githubusercontent.com/u/81910488?v=4?s=100" width="100px;" alt="Matthew Notarangelo"/><br /><sub><b>Matthew Notarangelo</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=MattNotarangelo" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
