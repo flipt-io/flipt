@@ -3,8 +3,10 @@ package server
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 
-	"go.flipt.io/flipt/errors"
+	ferrors "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -54,7 +56,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 	if r.PageToken != "" {
 		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
 		if err != nil {
-			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
+			return nil, ferrors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
 		}
 
 		opts = append(opts, storage.WithPageToken(string(tok)))
@@ -65,6 +67,14 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 
 	results, err := s.store.ListFlags(ctx, r.NamespaceKey, opts...)
 	if err != nil {
+		var jerr *json.SyntaxError
+
+		// Handle special case for failure to decode page token.
+		if errors.As(err, &jerr) {
+			s.logger.Debug("Failed to decode page token", zap.Error(err))
+			return nil, ferrors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
+		}
+
 		return nil, err
 	}
 
