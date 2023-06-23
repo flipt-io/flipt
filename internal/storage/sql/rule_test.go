@@ -397,13 +397,16 @@ func (s *DBTestSuite) TestListRulesPagination_LimitWithNextPage() {
 	assert.Equal(t, reqs[1].Rank, got[0].Rank)
 	assert.NotEmpty(t, res.NextPageToken)
 
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	assert.NotEmpty(t, pageToken.Key)
 	assert.Equal(t, uint64(1), pageToken.Offset)
 
-	opts = append(opts, storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken))))
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	res, err = s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, opts...)
 	require.NoError(t, err)
@@ -486,7 +489,7 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
 		resp, err = s.store.ListRules(ctx, namespace, flag.Key,
 			storage.WithLimit(pageSize),
-			storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(token))),
+			storage.WithPageToken(token),
 		)
 		require.NoError(t, err)
 

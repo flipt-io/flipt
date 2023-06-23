@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -201,7 +202,7 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 		if err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
-		results.NextPageToken = string(out)
+		results.NextPageToken = base64.StdEncoding.EncodeToString(out)
 	}
 
 	return results, nil

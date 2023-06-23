@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -51,7 +50,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 	}
 
 	resp.TotalCount = int32(total)
-	resp.NextPageToken = base64.StdEncoding.EncodeToString([]byte(results.NextPageToken))
+	resp.NextPageToken = results.NextPageToken
 
 	s.logger.Debug("list namespaces", zap.Stringer("response", &resp))
 	return &resp, nil

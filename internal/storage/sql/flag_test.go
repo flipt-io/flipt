@@ -282,13 +282,16 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the middle flag
 	assert.Equal(t, middle.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = append(opts, storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken))))
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	// get middle flag
 	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
@@ -298,13 +301,17 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Len(t, got, 1)
 	assert.Equal(t, middle.Key, got[0].Key)
 
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
+
 	require.NoError(t, err)
 	// next page should be the oldest flag
 	assert.Equal(t, oldest.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken)))}
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
 	// get oldest flag
 	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
@@ -376,7 +383,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
 		resp, err = s.store.ListFlags(ctx, namespace,
 			storage.WithLimit(pageSize),
-			storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(token))),
+			storage.WithPageToken(token),
 		)
 		require.NoError(t, err)
 

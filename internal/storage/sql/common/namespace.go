@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -142,7 +143,7 @@ func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption)
 		if err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
-		results.NextPageToken = string(out)
+		results.NextPageToken = base64.StdEncoding.EncodeToString(out)
 	}
 
 	return results, nil

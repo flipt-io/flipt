@@ -62,7 +62,7 @@ func TestListNamespaces_PaginationOffset(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountNamespaces", mock.Anything).Return(uint64(1), nil)
@@ -105,7 +105,7 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountNamespaces", mock.Anything).Return(uint64(1), nil)

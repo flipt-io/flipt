@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
@@ -72,7 +71,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 	}
 
 	resp.TotalCount = int32(total)
-	resp.NextPageToken = base64.StdEncoding.EncodeToString([]byte(results.NextPageToken))
+	resp.NextPageToken = results.NextPageToken
 
 	s.logger.Debug("list flags", zap.Stringer("response", &resp))
 	return &resp, nil

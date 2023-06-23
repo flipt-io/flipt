@@ -61,7 +61,7 @@ func TestListSegments_PaginationOffset(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountSegments", mock.Anything, mock.Anything).Return(uint64(1), nil)
@@ -104,7 +104,7 @@ func TestListSegments_PaginationPageToken(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountSegments", mock.Anything, mock.Anything).Return(uint64(1), nil)

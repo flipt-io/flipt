@@ -64,7 +64,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)
@@ -107,7 +107,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)

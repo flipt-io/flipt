@@ -187,14 +187,17 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	assert.Equal(t, newest.Key, got[0].Key)
 	assert.NotEmpty(t, res.NextPageToken)
 
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the middle namespace
 	assert.Equal(t, middle.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = append(opts, storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken))))
+	opts = append(opts, storage.WithPageToken(res.NextPageToken))
 
 	// get middle namespace
 	res, err = s.store.ListNamespaces(context.TODO(), opts...)
@@ -204,13 +207,16 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	assert.Len(t, got, 1)
 	assert.Equal(t, middle.Key, got[0].Key)
 
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the oldest namespace
 	assert.Equal(t, oldest.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken)))}
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
 
 	// get oldest namespace
 	res, err = s.store.ListNamespaces(context.TODO(), opts...)
