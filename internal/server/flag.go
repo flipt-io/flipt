@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 
-	"go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -52,12 +51,7 @@ func (s *Server) ListFlags(ctx context.Context, r *flipt.ListFlagRequest) (*flip
 	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
 
 	if r.PageToken != "" {
-		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
-		if err != nil {
-			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
-		}
-
-		opts = append(opts, storage.WithPageToken(string(tok)))
+		opts = append(opts, storage.WithPageToken(r.PageToken))
 	} else if r.Offset >= 0 {
 		// TODO: deprecate
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))

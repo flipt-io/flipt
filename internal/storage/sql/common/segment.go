@@ -143,10 +143,9 @@ func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...s
 	var offset uint64
 
 	if params.PageToken != "" {
-		var token PageToken
-
-		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
-			return results, fmt.Errorf("decoding page token %w", err)
+		token, err := decodePageToken(params.PageToken)
+		if err != nil {
+			return results, err
 		}
 
 		offset = token.Offset

@@ -122,28 +122,6 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 	assert.Equal(t, int32(1), got.TotalCount)
 }
 
-func TestListNamespaces_PaginationInvalidPageToken(t *testing.T) {
-	var (
-		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	defer store.AssertExpectations(t)
-
-	store.AssertNotCalled(t, "ListNamespaces")
-
-	_, err := s.ListNamespaces(context.TODO(), &flipt.ListNamespaceRequest{
-		PageToken: "Invalid string",
-		Offset:    10,
-	})
-
-	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
-}
-
 func TestCreateNamespace(t *testing.T) {
 	var (
 		store  = &storeMock{}

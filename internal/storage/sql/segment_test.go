@@ -143,6 +143,9 @@ func (s *DBTestSuite) TestListSegments() {
 		require.NoError(t, err)
 	}
 
+	_, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, []storage.QueryOption{storage.WithPageToken("Hello World")}...)
+	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+
 	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
 	got := res.Results

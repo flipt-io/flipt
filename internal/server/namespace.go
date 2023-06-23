@@ -30,12 +30,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
 
 	if r.PageToken != "" {
-		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
-		if err != nil {
-			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
-		}
-
-		opts = append(opts, storage.WithPageToken(string(tok)))
+		opts = append(opts, storage.WithPageToken(r.PageToken))
 	} else if r.Offset >= 0 {
 		// TODO: deprecate
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))

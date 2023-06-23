@@ -121,28 +121,6 @@ func TestListRules_PaginationPageToken(t *testing.T) {
 	assert.Equal(t, int32(1), got.TotalCount)
 }
 
-func TestListRules_PaginationInvalidPageToken(t *testing.T) {
-	var (
-		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	defer store.AssertExpectations(t)
-
-	store.AssertNotCalled(t, "ListRules")
-
-	_, err := s.ListRules(context.TODO(), &flipt.ListRuleRequest{FlagKey: "flagKey",
-		PageToken: "Invalid string",
-		Offset:    10,
-	})
-
-	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
-}
-
 func TestCreateRule(t *testing.T) {
 	var (
 		store  = &storeMock{}

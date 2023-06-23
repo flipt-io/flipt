@@ -108,6 +108,9 @@ func (s *DBTestSuite) TestListFlags() {
 		require.NoError(t, err)
 	}
 
+	_, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, []storage.QueryOption{storage.WithPageToken("Hello World")}...)
+	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+
 	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
 
