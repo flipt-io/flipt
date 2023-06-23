@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/gofrs/uuid"
@@ -64,7 +65,7 @@ func (s *DBTestSuite) TestListNamespaces() {
 		require.NoError(t, err)
 	}
 
-	_, err := s.store.ListNamespaces(context.TODO(), []storage.QueryOption{storage.WithPageToken("Hello World")}...)
+	_, err := s.store.ListNamespaces(context.TODO(), storage.WithPageToken("Hello World"))
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListNamespaces(context.TODO())
@@ -193,7 +194,7 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	assert.Equal(t, middle.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+	opts = append(opts, storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken))))
 
 	// get middle namespace
 	res, err = s.store.ListNamespaces(context.TODO(), opts...)
@@ -209,7 +210,7 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	assert.Equal(t, oldest.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken)))}
 
 	// get oldest namespace
 	res, err = s.store.ListNamespaces(context.TODO(), opts...)

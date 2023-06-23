@@ -3,6 +3,7 @@ package fs
 import (
 	"context"
 	"embed"
+	"errors"
 	"io"
 	"io/fs"
 	"testing"
@@ -153,6 +154,7 @@ func (fis *FSIndexSuite) TestListFlags() {
 		name      string
 		namespace string
 		pageToken string
+		listError error
 	}{
 		{
 			name:      "Production",
@@ -162,11 +164,26 @@ func (fis *FSIndexSuite) TestListFlags() {
 			name:      "Sandbox",
 			namespace: "sandbox",
 		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flags, err := fis.store.ListFlags(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken("0"))
-			assert.NoError(t, err)
+			flags, err := fis.store.ListFlags(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken(tc.pageToken))
+			if err != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
 
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
@@ -334,20 +351,38 @@ func (fis *FSIndexSuite) TestListSegments() {
 		name      string
 		namespace string
 		pageToken string
+		listError error
 	}{
 		{
 			name:      "Production",
 			namespace: "production",
+			pageToken: "0",
 		},
 		{
 			name:      "Sandbox",
 			namespace: "sandbox",
+			pageToken: "0",
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			flags, err := fis.store.ListSegments(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken("0"))
-			assert.NoError(t, err)
+			flags, err := fis.store.ListSegments(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken(tc.pageToken))
+			if err != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
 
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
@@ -495,6 +530,8 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 		name      string
 		namespace string
 		flagKey   string
+		pageToken string
+		listError error
 	}{
 		{
 			name:      "Production",
@@ -506,12 +543,27 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 			namespace: "sandbox",
 			flagKey:   "sandbox-flag",
 		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			if err != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
 
 			for _, rule := range rules.Results {
 				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
@@ -759,6 +811,7 @@ func (fis *FSWithoutIndexSuite) TestListFlags() {
 		name      string
 		namespace string
 		pageToken string
+		listError error
 	}{
 		{
 			name:      "Production",
@@ -772,11 +825,26 @@ func (fis *FSWithoutIndexSuite) TestListFlags() {
 			name:      "Staging",
 			namespace: "staging",
 		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			flags, err := fis.store.ListFlags(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken("0"))
-			assert.NoError(t, err)
+			if err != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
 
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
@@ -1080,6 +1148,7 @@ func (fis *FSWithoutIndexSuite) TestListSegments() {
 		name      string
 		namespace string
 		pageToken string
+		listError error
 	}{
 		{
 			name:      "Production",
@@ -1093,11 +1162,26 @@ func (fis *FSWithoutIndexSuite) TestListSegments() {
 			name:      "Staging",
 			namespace: "staging",
 		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			flags, err := fis.store.ListSegments(context.TODO(), tc.namespace, storage.WithLimit(5), storage.WithPageToken("0"))
-			assert.NoError(t, err)
+			if err != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
 
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
@@ -1261,6 +1345,8 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 		name      string
 		namespace string
 		flagKey   string
+		pageToken string
+		listError error
 	}{
 		{
 			name:      "Production",
@@ -1277,12 +1363,27 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 			namespace: "staging",
 			flagKey:   "staging-flag",
 		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Production",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			if err != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
 
 			for _, rule := range rules.Results {
 				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)

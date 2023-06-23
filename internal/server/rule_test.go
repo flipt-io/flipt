@@ -96,7 +96,7 @@ func TestListRules_PaginationPageToken(t *testing.T) {
 		}
 
 		// assert page token is preferred over offset
-		return params.PageToken == "foo" && params.Offset == 0
+		return params.PageToken == "Zm9v" && params.Offset == 0
 	})).Return(
 		storage.ResultSet[*flipt.Rule]{
 			Results: []*flipt.Rule{

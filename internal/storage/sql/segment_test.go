@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -143,7 +144,7 @@ func (s *DBTestSuite) TestListSegments() {
 		require.NoError(t, err)
 	}
 
-	_, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, []storage.QueryOption{storage.WithPageToken("Hello World")}...)
+	_, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithPageToken("Hello World"))
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
@@ -315,7 +316,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Equal(t, middle.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+	opts = append(opts, storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken))))
 
 	// get middle segment
 	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
@@ -331,7 +332,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Equal(t, oldest.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken)))}
 
 	// get oldest segment
 	res, err = s.store.ListSegments(context.TODO(), storage.DefaultNamespace, opts...)
@@ -406,7 +407,7 @@ func (s *DBTestSuite) TestListSegmentsPagination_FullWalk() {
 	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
 		resp, err = s.store.ListSegments(ctx, namespace,
 			storage.WithLimit(pageSize),
-			storage.WithPageToken(token),
+			storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(token))),
 		)
 		require.NoError(t, err)
 

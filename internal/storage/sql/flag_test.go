@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -108,7 +109,7 @@ func (s *DBTestSuite) TestListFlags() {
 		require.NoError(t, err)
 	}
 
-	_, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, []storage.QueryOption{storage.WithPageToken("Hello World")}...)
+	_, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithPageToken("Hello World"))
 	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace)
@@ -287,7 +288,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Equal(t, middle.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = append(opts, storage.WithPageToken(res.NextPageToken))
+	opts = append(opts, storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken))))
 
 	// get middle flag
 	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
@@ -303,7 +304,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Equal(t, oldest.Key, pageToken.Key)
 	assert.NotZero(t, pageToken.Offset)
 
-	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(res.NextPageToken)}
+	opts = []storage.QueryOption{storage.WithOrder(storage.OrderDesc), storage.WithLimit(1), storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(res.NextPageToken)))}
 
 	// get oldest flag
 	res, err = s.store.ListFlags(context.TODO(), storage.DefaultNamespace, opts...)
@@ -375,7 +376,7 @@ func (s *DBTestSuite) TestListFlagsPagination_FullWalk() {
 	for token := resp.NextPageToken; token != ""; token = resp.NextPageToken {
 		resp, err = s.store.ListFlags(ctx, namespace,
 			storage.WithLimit(pageSize),
-			storage.WithPageToken(token),
+			storage.WithPageToken(base64.StdEncoding.EncodeToString([]byte(token))),
 		)
 		require.NoError(t, err)
 

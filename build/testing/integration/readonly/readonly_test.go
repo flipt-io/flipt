@@ -33,6 +33,13 @@ func TestReadOnly(t *testing.T) {
 		assert.NotZero(t, ns.UpdatedAt)
 
 		t.Run("ListNamespaces", func(t *testing.T) {
+			// Ensure that invalid page token returns an appropriate response.
+			_, err := sdk.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{
+				Limit:     10,
+				PageToken: "Hello World",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+
 			// NOTE: different cases load different amount of Namespaces
 			// so we're just interested in the shape of the response as
 			// opposed to the specific contents of namespaces
@@ -80,6 +87,14 @@ func TestReadOnly(t *testing.T) {
 		})
 
 		t.Run("ListFlags", func(t *testing.T) {
+			// Ensure that invalid page token returns an appropriate response.
+			_, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+				NamespaceKey: namespace,
+				Limit:        10,
+				PageToken:    "Hello World",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+
 			flags, err := sdk.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 				NamespaceKey: namespace,
 			})
@@ -155,6 +170,13 @@ func TestReadOnly(t *testing.T) {
 		})
 
 		t.Run("ListSegments", func(t *testing.T) {
+			_, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
+				NamespaceKey: namespace,
+				Limit:        10,
+				PageToken:    "Hello World",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+
 			segments, err := sdk.Flipt().ListSegments(ctx, &flipt.ListSegmentRequest{
 				NamespaceKey: namespace,
 			})
@@ -227,6 +249,14 @@ func TestReadOnly(t *testing.T) {
 		})
 
 		t.Run("ListRules", func(t *testing.T) {
+			_, err := sdk.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_001",
+				Limit:        10,
+				PageToken:    "Hello World",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+
 			rules, err := sdk.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
 				NamespaceKey: namespace,
 				FlagKey:      "flag_001",

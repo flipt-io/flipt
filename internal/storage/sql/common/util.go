@@ -3,7 +3,6 @@ package common
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	ferrors "go.flipt.io/flipt/errors"
@@ -20,13 +19,11 @@ func decodePageToken(pageToken string) (PageToken, error) {
 	}
 
 	if err := json.Unmarshal(tok, &token); err != nil {
-		var jerr *json.SyntaxError
-
-		if errors.As(err, &jerr) {
+		if _, ok := ferrors.As[*json.SyntaxError](err); ok {
 			return token, ferrors.ErrInvalidf("pageToken is not valid: %q", pageToken)
 		}
 
-		return token, fmt.Errorf("decoding page token %w", err)
+		return token, fmt.Errorf("decoding page token: %w", err)
 	}
 
 	return token, nil
