@@ -3,7 +3,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,40 +144,6 @@ func TestListFlags_PaginationInvalidPageToken(t *testing.T) {
 	})
 
 	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
-}
-
-func TestListFlags_PaginationInvalidPageToken_InvalidJSONFromBase64(t *testing.T) {
-	var (
-		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	defer store.AssertExpectations(t)
-
-	params := storage.QueryParams{}
-	results := storage.ResultSet[*flipt.Flag]{}
-
-	store.On("ListFlags", mock.Anything, mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		return params.PageToken == "InvalidJSON" && params.Offset == 0
-	})).Return(
-		results, &json.SyntaxError{})
-
-	store.AssertNotCalled(t, "CountFlags")
-
-	_, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
-		PageToken: "SW52YWxpZEpTT04=",
-		Offset:    10,
-	})
-
-	assert.EqualError(t, err, `pageToken is not valid: "SW52YWxpZEpTT04="`)
 }
 
 func TestCreateFlag(t *testing.T) {

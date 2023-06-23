@@ -3,10 +3,8 @@ package server
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
-	"errors"
 
-	ferrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -34,7 +32,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 	if r.PageToken != "" {
 		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
 		if err != nil {
-			return nil, ferrors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
+			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
 		}
 
 		opts = append(opts, storage.WithPageToken(string(tok)))
@@ -45,14 +43,6 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 
 	results, err := s.store.ListNamespaces(ctx, opts...)
 	if err != nil {
-		var jerr *json.SyntaxError
-
-		// Handle special case for failure to decode page token.
-		if errors.As(err, &jerr) {
-			s.logger.Debug("Failed to decode page token", zap.Error(err))
-			return nil, ferrors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
-		}
-
 		return nil, err
 	}
 
@@ -102,7 +92,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 	}
 
 	if namespace.Protected {
-		return nil, ferrors.ErrInvalidf("namespace %q is protected", r.Key)
+		return nil, errors.ErrInvalidf("namespace %q is protected", r.Key)
 	}
 
 	// if any flags exist under the namespace then it cannot be deleted
@@ -112,7 +102,7 @@ func (s *Server) DeleteNamespace(ctx context.Context, r *flipt.DeleteNamespaceRe
 	}
 
 	if count > 0 {
-		return nil, ferrors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key)
+		return nil, errors.ErrInvalidf("namespace %q cannot be deleted; flags must be deleted first", r.Key)
 	}
 
 	if err := s.store.DeleteNamespace(ctx, r); err != nil {

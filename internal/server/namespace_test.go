@@ -3,7 +3,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -143,40 +142,6 @@ func TestListNamespaces_PaginationInvalidPageToken(t *testing.T) {
 	})
 
 	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
-}
-
-func TestListNamespaces_PaginationInvalidPageToken_InvalidJSONFromBase64(t *testing.T) {
-	var (
-		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	defer store.AssertExpectations(t)
-
-	params := storage.QueryParams{}
-	results := storage.ResultSet[*flipt.Namespace]{}
-
-	store.On("ListNamespaces", mock.Anything, mock.MatchedBy(func(opts []storage.QueryOption) bool {
-		for _, opt := range opts {
-			opt(&params)
-		}
-
-		return params.PageToken == "InvalidJSON" && params.Offset == 0
-	})).Return(
-		results, &json.SyntaxError{})
-
-	store.AssertNotCalled(t, "CountNamespaces")
-
-	_, err := s.ListNamespaces(context.TODO(), &flipt.ListNamespaceRequest{
-		PageToken: "SW52YWxpZEpTT04=",
-		Offset:    10,
-	})
-
-	assert.EqualError(t, err, `pageToken is not valid: "SW52YWxpZEpTT04="`)
 }
 
 func TestCreateNamespace(t *testing.T) {
