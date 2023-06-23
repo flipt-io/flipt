@@ -56,7 +56,16 @@
           "type": "object",
           "properties": {
             "domain": { "type": "string" },
-            "secure": { "type": "boolean" }
+            "secure": { "type": "boolean" },
+            "token_lifetime": {"type": "string"},
+            "state_lifetime": {"type": "string"},
+            "csrf": {
+              "type": "object",
+              "properties": {
+                "key": { "type": "string" }
+              },
+              "required": []
+            }
           },
           "additionalProperties": false
         },
@@ -109,17 +118,45 @@
                   "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
                 },
                 "providers": {
-                  "type": "object",
+                  "type": ["object", "null"],
                   "patternProperties": {
                     "^.*$": {
                       "$ref": "#/definitions/authentication/$defs/authentication_oidc_provider"
                     }
                   },
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "required": []
                 }
               },
               "required": [],
               "title": "OIDC",
+              "additionalProperties": false
+            },
+            "kubernetes": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "discovery_url": {
+                  "type": "string",
+                  "default": "https://kubernetes.default.svc.cluster.local"
+                },
+                "ca_path": {
+                  "type": "string",
+                  "default": "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+                },
+                "service_account_token_path": {
+                  "type": "string",
+                  "default": "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                },
+                "cleanup": {
+                  "$ref": "#/definitions/authentication/$defs/authentication_cleanup"
+                }
+              },
+              "required": [],
+              "title": "Kubernetes",
               "additionalProperties": false
             }
           },
@@ -324,7 +361,10 @@
           "type": "integer"
         },
         "conn_max_lifetime": {
-          "type": "integer"
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "string"}
+          ]
         },
         "prepared_statements_enabled": {
           "type": "boolean"
