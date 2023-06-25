@@ -144,7 +144,7 @@ func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...s
 	var offset uint64
 
 	if params.PageToken != "" {
-		token, err := decodePageToken(params.PageToken)
+		token, err := decodePageToken(s.logger, params.PageToken)
 		if err != nil {
 			return results, err
 		}

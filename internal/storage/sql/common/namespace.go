@@ -73,7 +73,7 @@ func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption)
 	var offset uint64
 
 	if params.PageToken != "" {
-		token, err := decodePageToken(params.PageToken)
+		token, err := decodePageToken(s.logger, params.PageToken)
 		if err != nil {
 			return results, err
 		}
