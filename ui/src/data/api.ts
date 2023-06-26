@@ -6,7 +6,6 @@ import { IFlagBase } from 'types/Flag';
 import { IRuleBase } from 'types/Rule';
 import { ISegmentBase } from 'types/Segment';
 import { IVariantBase } from 'types/Variant';
-import { IRolloutBase } from '~/types/Rollout';
 
 const apiURL = '/api/v1';
 const authURL = '/auth/v1';
@@ -242,53 +241,6 @@ export async function updateDistribution(
   return put(
     `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}/distributions/${distributionId}`,
     values
-  );
-}
-
-// rollouts
-//
-
-export async function listRollouts(namespaceKey: string, flagKey: string) {
-  return get(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`);
-}
-
-export async function getRollout(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutId: string
-) {
-  return get(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`
-  );
-}
-
-export async function createRollout(
-  namespaceKey: string,
-  flagKey: string,
-  values: IRolloutBase
-) {
-  return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`, values);
-}
-
-export async function updateRollout(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutId: string,
-  values: IRolloutBase
-) {
-  return put(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`,
-    values
-  );
-}
-
-export async function deleteRollout(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutId: string
-) {
-  return del(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`
   );
 }
 
