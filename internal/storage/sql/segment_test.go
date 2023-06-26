@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -142,6 +143,9 @@ func (s *DBTestSuite) TestListSegments() {
 		_, err := s.store.CreateSegment(context.TODO(), req)
 		require.NoError(t, err)
 	}
+
+	_, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace, storage.WithPageToken("Hello World"))
+	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListSegments(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
@@ -305,8 +309,11 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Equal(t, newest.Key, got[0].Key)
 	assert.NotEmpty(t, res.NextPageToken)
 
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the middle segment
 	assert.Equal(t, middle.Key, pageToken.Key)
@@ -322,7 +329,10 @@ func (s *DBTestSuite) TestListSegmentsPagination_LimitWithNextPage() {
 	assert.Len(t, got, 1)
 	assert.Equal(t, middle.Key, got[0].Key)
 
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the oldest segment
 	assert.Equal(t, oldest.Key, pageToken.Key)

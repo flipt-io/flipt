@@ -64,7 +64,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)
@@ -99,7 +99,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 		}
 
 		// assert page token is preferred over offset
-		return params.PageToken == "foo" && params.Offset == 0
+		return params.PageToken == "Zm9v" && params.Offset == 0
 	})).Return(
 		storage.ResultSet[*flipt.Flag]{
 			Results: []*flipt.Flag{
@@ -107,7 +107,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountFlags", mock.Anything, mock.Anything).Return(uint64(1), nil)
@@ -122,28 +122,6 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 	assert.NotEmpty(t, got.Flags)
 	assert.Equal(t, "YmFy", got.NextPageToken)
 	assert.Equal(t, int32(1), got.TotalCount)
-}
-
-func TestListFlags_PaginationInvalidPageToken(t *testing.T) {
-	var (
-		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	defer store.AssertExpectations(t)
-
-	store.AssertNotCalled(t, "ListFlags")
-
-	_, err := s.ListFlags(context.TODO(), &flipt.ListFlagRequest{
-		PageToken: "Invalid string",
-		Offset:    10,
-	})
-
-	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
 }
 
 func TestCreateFlag(t *testing.T) {
