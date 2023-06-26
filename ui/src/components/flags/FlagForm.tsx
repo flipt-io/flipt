@@ -12,20 +12,8 @@ import { createFlag, updateFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
+import { IFlag, IFlagBase } from '~/types/Flag';
 import { stringAsKey } from '~/utils/helpers';
-import Select from '../forms/Select';
-
-const flagTypes = [
-  {
-    id: 'VARIANT_FLAG_TYPE',
-    name: FlagType.VARIANT_FLAG_TYPE
-  },
-  {
-    id: 'BOOLEAN_FLAG_TYPE',
-    name: FlagType.BOOLEAN_FLAG_TYPE
-  }
-];
 
 type FlagFormProps = {
   flag?: IFlag;
@@ -152,24 +140,6 @@ export default function FlagForm(props: FlagFormProps) {
                       const formatted = stringAsKey(e.target.value);
                       formik.setFieldValue('key', formatted);
                     }}
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label
-                    htmlFor="type"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Type
-                  </label>
-                  <Select
-                    className="mt-1"
-                    name="type"
-                    id="type"
-                    disabled={!isNew}
-                    options={flagTypes.map((type) => ({
-                      label: type.name,
-                      value: type.id
-                    }))}
                   />
                 </div>
                 <div className="col-span-3">

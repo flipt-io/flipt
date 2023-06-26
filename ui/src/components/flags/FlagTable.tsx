@@ -59,13 +59,6 @@ export default function FlagTable(props: FlagTableProps) {
           'truncate whitespace-nowrap py-4 px-3 text-sm font-medium text-gray-900'
       }
     }),
-    columnHelper.accessor('type', {
-      header: 'Type',
-      cell: (info) => toFlagType(info.getValue()),
-      meta: {
-        className: 'truncate whitespace-nowrap py-4 px-3 text-sm text-gray-500'
-      }
-    }),
     columnHelper.accessor('name', {
       header: 'Name',
       cell: (info) => info.getValue(),

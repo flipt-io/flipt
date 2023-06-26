@@ -68,7 +68,10 @@ export default function SegmentTable(props: SegmentTableProps) {
     }),
     columnHelper.accessor('matchType', {
       header: 'Match Type',
-      cell: (info) => toSegmentMatchType(info.getValue()),
+      cell: (info) =>
+        SegmentMatchType[
+          info.getValue() as unknown as keyof typeof SegmentMatchType
+        ],
       meta: {
         className: 'whitespace-nowrap py-4 px-3 text-sm'
       }

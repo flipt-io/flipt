@@ -22,6 +22,3 @@ export enum SegmentMatchType {
 export interface ISegmentList extends IPageable {
   segments: ISegment[];
 }
-
-export const toSegmentMatchType = (t: string) =>
-  SegmentMatchType[t as keyof typeof SegmentMatchType];
