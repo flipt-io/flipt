@@ -193,7 +193,7 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 
 	// get all rules from rollout_segment_rules table
 	if len(rolloutsByType[flipt.RolloutType_SEGMENT_ROLLOUT_TYPE]) > 0 {
-		allRuleIds := make([]string, len(rolloutsByType[flipt.RolloutType_SEGMENT_ROLLOUT_TYPE]))
+		allRuleIds := make([]string, 0, len(rolloutsByType[flipt.RolloutType_SEGMENT_ROLLOUT_TYPE]))
 		for _, rollout := range rolloutsByType[flipt.RolloutType_SEGMENT_ROLLOUT_TYPE] {
 			allRuleIds = append(allRuleIds, rollout.Id)
 		}
@@ -229,7 +229,7 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 	}
 	// get all rules from rollout_percentage_rules table
 	if len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]) > 0 {
-		allRuleIds := make([]string, len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]))
+		allRuleIds := make([]string, 0, len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]))
 		for _, rollout := range rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE] {
 			allRuleIds = append(allRuleIds, rollout.Id)
 		}

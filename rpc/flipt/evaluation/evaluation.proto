@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package flipt.evaluation;
 
-import "flipt.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/evaluation";
@@ -36,22 +35,24 @@ enum EvaluationReason {
     DEFAULT_EVALUATION_REASON = 5;
 }
 
+enum EvaluationFlagType {
+  VARIANT_FLAG_TYPE = 0;
+  BOOLEAN_FLAG_TYPE = 1;
+}
+
 message EvaluationResponse {
+    EvaluationFlagType flag_type = 1;
     oneof response {
-        BooleanEvaluationResponse boolean_response = 1;
-        VariantEvaluationResponse variant_response = 2;
+        BooleanEvaluationResponse boolean_response = 2;
+        VariantEvaluationResponse variant_response = 3;
     }
 }
 
 message BooleanEvaluationResponse {
   bool value = 1;
-  oneof rule {
-    RolloutSegment segment = 10;
-    RolloutPercentage percentage = 11;
-  }
-  EvaluationReason reason = 3;
-  double request_duration_millis = 6;
-  google.protobuf.Timestamp timestamp = 7;
+  EvaluationReason reason = 2;
+  double request_duration_millis = 3;
+  google.protobuf.Timestamp timestamp = 4;
 }
 
 message VariantEvaluationResponse {
