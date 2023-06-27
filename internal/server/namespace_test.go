@@ -62,7 +62,7 @@ func TestListNamespaces_PaginationOffset(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountNamespaces", mock.Anything).Return(uint64(1), nil)
@@ -97,7 +97,7 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 		}
 
 		// assert page token is preferred over offset
-		return params.PageToken == "foo" && params.Offset == 0
+		return params.PageToken == "Zm9v" && params.Offset == 0
 	})).Return(
 		storage.ResultSet[*flipt.Namespace]{
 			Results: []*flipt.Namespace{
@@ -105,7 +105,7 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 					Key: "foo",
 				},
 			},
-			NextPageToken: "bar",
+			NextPageToken: "YmFy",
 		}, nil)
 
 	store.On("CountNamespaces", mock.Anything).Return(uint64(1), nil)
@@ -120,28 +120,6 @@ func TestListNamespaces_PaginationPageToken(t *testing.T) {
 	assert.NotEmpty(t, got.Namespaces)
 	assert.Equal(t, "YmFy", got.NextPageToken)
 	assert.Equal(t, int32(1), got.TotalCount)
-}
-
-func TestListNamespaces_PaginationInvalidPageToken(t *testing.T) {
-	var (
-		store  = &storeMock{}
-		logger = zaptest.NewLogger(t)
-		s      = &Server{
-			logger: logger,
-			store:  store,
-		}
-	)
-
-	defer store.AssertExpectations(t)
-
-	store.AssertNotCalled(t, "ListNamespaces")
-
-	_, err := s.ListNamespaces(context.TODO(), &flipt.ListNamespaceRequest{
-		PageToken: "Invalid string",
-		Offset:    10,
-	})
-
-	assert.EqualError(t, err, `pageToken is not valid: "Invalid string"`)
 }
 
 func TestCreateNamespace(t *testing.T) {

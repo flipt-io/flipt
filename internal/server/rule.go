@@ -2,9 +2,7 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 
-	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -30,12 +28,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
 
 	if r.PageToken != "" {
-		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
-		if err != nil {
-			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
-		}
-
-		opts = append(opts, storage.WithPageToken(string(tok)))
+		opts = append(opts, storage.WithPageToken(r.PageToken))
 	} else if r.Offset >= 0 {
 		// TODO: deprecate
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
@@ -56,7 +49,7 @@ func (s *Server) ListRules(ctx context.Context, r *flipt.ListRuleRequest) (*flip
 	}
 
 	resp.TotalCount = int32(total)
-	resp.NextPageToken = base64.StdEncoding.EncodeToString([]byte(results.NextPageToken))
+	resp.NextPageToken = results.NextPageToken
 
 	s.logger.Debug("list rules", zap.Stringer("response", &resp))
 	return &resp, nil
