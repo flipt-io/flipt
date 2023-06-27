@@ -20,6 +20,7 @@ import (
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
+	evaluation "go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
@@ -342,6 +343,8 @@ func NewGRPCServer(
 	// initialize server
 	register.Add(fliptserver.New(logger, store))
 	register.Add(metadata.NewServer(cfg, info))
+
+	register.Add(evaluation.NewEvaluateServer(logger, store))
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)

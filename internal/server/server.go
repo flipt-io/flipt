@@ -1,6 +1,7 @@
 package server
 
 import (
+	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -14,13 +15,15 @@ type Server struct {
 	logger *zap.Logger
 	store  storage.Store
 	flipt.UnimplementedFliptServer
+	mvEvaluator evaluation.MultiVariateEvaluator
 }
 
 // New creates a new Server
 func New(logger *zap.Logger, store storage.Store) *Server {
 	return &Server{
-		logger: logger,
-		store:  store,
+		logger:      logger,
+		store:       store,
+		mvEvaluator: evaluation.NewEvaluator(logger, store),
 	}
 }
 
