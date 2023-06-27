@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 
 	"github.com/gofrs/uuid"
@@ -63,6 +64,9 @@ func (s *DBTestSuite) TestListNamespaces() {
 		_, err := s.store.CreateNamespace(context.TODO(), req)
 		require.NoError(t, err)
 	}
+
+	_, err := s.store.ListNamespaces(context.TODO(), storage.WithPageToken("Hello World"))
+	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListNamespaces(context.TODO())
 	require.NoError(t, err)
@@ -183,8 +187,11 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	assert.Equal(t, newest.Key, got[0].Key)
 	assert.NotEmpty(t, res.NextPageToken)
 
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the middle namespace
 	assert.Equal(t, middle.Key, pageToken.Key)
@@ -200,7 +207,10 @@ func (s *DBTestSuite) TestListNamespacesPagination_LimitWithNextPage() {
 	assert.Len(t, got, 1)
 	assert.Equal(t, middle.Key, got[0].Key)
 
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the oldest namespace
 	assert.Equal(t, oldest.Key, pageToken.Key)

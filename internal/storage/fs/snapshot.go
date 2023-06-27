@@ -388,11 +388,9 @@ func (ss *storeSnapshot) ListRules(ctx context.Context, namespaceKey string, fla
 		}
 	}
 
-	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
 		return rules[i].Rank < rules[j].Rank
 	}, rules...)
-
-	return set, err
 }
 
 func (ss *storeSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
@@ -464,11 +462,9 @@ func (ss *storeSnapshot) ListSegments(ctx context.Context, namespaceKey string, 
 		segments = append(segments, segment)
 	}
 
-	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
 		return segments[i].Key < segments[j].Key
 	}, segments...)
-
-	return set, nil
 }
 
 func (ss *storeSnapshot) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
@@ -519,11 +515,9 @@ func (ss *storeSnapshot) ListNamespaces(ctx context.Context, opts ...storage.Que
 		ns = append(ns, n.resource)
 	}
 
-	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
 		return ns[i].Key < ns[j].Key
 	}, ns...)
-
-	return set, err
 }
 
 func (ss *storeSnapshot) CountNamespaces(ctx context.Context) (uint64, error) {
@@ -567,11 +561,9 @@ func (ss *storeSnapshot) ListFlags(ctx context.Context, namespaceKey string, opt
 		flags = append(flags, flag)
 	}
 
-	set = paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
 		return flags[i].Key < flags[j].Key
 	}, flags...)
-
-	return set, nil
 }
 
 func (ss *storeSnapshot) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
@@ -653,7 +645,7 @@ func find[T any](match func(T) bool, ts ...T) (t T, _ bool) {
 	return t, false
 }
 
-func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items ...T) storage.ResultSet[T] {
+func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items ...T) (storage.ResultSet[T], error) {
 	set := storage.ResultSet[T]{
 		Results: items,
 	}
@@ -669,18 +661,21 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 
 	// parse page token as an offset integer
 	var offset int
-	if v, err := strconv.ParseInt(params.PageToken, 10, 64); err == nil {
-		offset = int(v)
+	v, err := strconv.ParseInt(params.PageToken, 10, 64)
+	if params.PageToken != "" && err != nil {
+		return storage.ResultSet[T]{}, ferrors.ErrInvalidf("pageToken is not valid: %q", params.PageToken)
 	}
 
+	offset = int(v)
+
 	if offset >= len(set.Results) {
-		return storage.ResultSet[T]{}
+		return storage.ResultSet[T]{}, ferrors.ErrInvalidf("invalid offset: %d", offset)
 	}
 
 	// 0 means no limit on page size (all items from offset)
 	if params.Limit == 0 {
 		set.Results = set.Results[offset:]
-		return set
+		return set, nil
 	}
 
 	// ensure end of page does not exceed entire set
@@ -695,5 +690,5 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 	// reduce results set to requested page
 	set.Results = set.Results[offset:end]
 
-	return set
+	return set, nil
 }
