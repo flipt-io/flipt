@@ -226,7 +226,12 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 			rollout := rolloutsById[rolloutId]
 			rollout.Rule = &flipt.Rollout_Segment{Segment: rule}
 		}
+
+		if err := rows.Err(); err != nil {
+			return results, err
+		}
 	}
+
 	// get all rules from rollout_percentage_rules table
 	if len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]) > 0 {
 		allRuleIds := make([]string, 0, len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]))
@@ -261,6 +266,10 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 
 			rollout := rolloutsById[rolloutId]
 			rollout.Rule = &flipt.Rollout_Percentage{Percentage: rule}
+		}
+
+		if err := rows.Err(); err != nil {
+			return results, err
 		}
 	}
 
