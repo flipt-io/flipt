@@ -27,6 +27,29 @@ type EvaluationRule struct {
 	Constraints      []EvaluationConstraint
 }
 
+// EvaluationRollout represents a rollout in the form that helps with evaluation.
+type EvaluationRollout struct {
+	NamespaceKey string
+	RolloutType  flipt.RolloutType
+	Rank         int32
+	Percentage   *RolloutPercentage
+	Segment      *RolloutSegment
+}
+
+// RolloutPercentage represents Percentage(s) for use in evaluation.
+type RolloutPercentage struct {
+	Percentage float32
+	Value      bool
+}
+
+// RolloutSegment represents Segment(s) for use in evaluation.
+type RolloutSegment struct {
+	SegmentKey       string
+	SegmentMatchType flipt.MatchType
+	Value            bool
+	Constraints      []EvaluationConstraint
+}
+
 // EvaluationConstraint represents a segment constraint that is used for evaluation
 type EvaluationConstraint struct {
 	ID       string
@@ -147,6 +170,7 @@ type EvaluationStore interface {
 	// Note: Rules MUST be returned in order by Rank
 	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
+	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRollout, error)
 }
 
 // NamespaceStore stores and retrieves namespaces

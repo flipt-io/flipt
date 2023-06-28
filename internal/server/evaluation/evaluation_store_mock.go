@@ -32,3 +32,8 @@ func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ru
 	args := e.Called(ctx, ruleID)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
 }
+
+func (e *evaluationStoreMock) GetEvaluationRollouts(ctx context.Context, flagKey string, namespaceKey string) ([]*storage.EvaluationRollout, error) {
+	args := e.Called(ctx, flagKey, namespaceKey)
+	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
+}

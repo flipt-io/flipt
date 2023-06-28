@@ -625,6 +625,10 @@ func (ss *storeSnapshot) GetEvaluationDistributions(ctx context.Context, ruleID 
 	return dists, nil
 }
 
+func (ss *storeSnapshot) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey string) ([]*storage.EvaluationRollout, error) {
+	panic("not implemented")
+}
+
 func (ss *storeSnapshot) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
 	panic("not implemented")
 }

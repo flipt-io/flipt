@@ -23,6 +23,7 @@ type EvaluationStorer interface {
 	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
 	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
+	GetEvaluationRollouts(ctx context.Context, flagKey string, namespaceKey string) ([]*storage.EvaluationRollout, error)
 }
 
 // Evaluator is an implementation of the MultiVariateEvaluator.
@@ -131,81 +132,13 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 
 		lastRank = rule.Rank
 
-		constraintMatches := 0
+		matched, err := doConstraintsMatch(e.logger, r.Context, rule.Constraints, rule.SegmentMatchType)
+		if err != nil {
+			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+			return resp, err
+		}
 
-		// constraint loop
-		for _, c := range rule.Constraints {
-			v := r.Context[c.Property]
-
-			var (
-				match bool
-				err   error
-			)
-
-			switch c.Type {
-			case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-				match = matchesString(c, v)
-			case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-				match, err = matchesNumber(c, v)
-			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-				match, err = matchesBool(c, v)
-			case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
-				match, err = matchesDateTime(c, v)
-			default:
-				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-				return resp, errs.ErrInvalid("unknown constraint type")
-			}
-
-			if err != nil {
-				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-				return resp, err
-			}
-
-			if match {
-				e.logger.Debug("constraint matches", zap.Reflect("constraint", c))
-
-				// increase the matchCount
-				constraintMatches++
-
-				switch rule.SegmentMatchType {
-				case flipt.MatchType_ANY_MATCH_TYPE:
-					// can short circuit here since we had at least one match
-					break
-				default:
-					// keep looping as we need to match all constraints
-					continue
-				}
-			} else {
-				// no match
-				e.logger.Debug("constraint does not match", zap.Reflect("constraint", c))
-
-				switch rule.SegmentMatchType {
-				case flipt.MatchType_ALL_MATCH_TYPE:
-					// we can short circuit because we must match all constraints
-					break
-				default:
-					// keep looping to see if we match the next constraint
-					continue
-				}
-			}
-		} // end constraint loop
-
-		switch rule.SegmentMatchType {
-		case flipt.MatchType_ALL_MATCH_TYPE:
-			if len(rule.Constraints) != constraintMatches {
-				// all constraints did not match, continue to next rule
-				e.logger.Debug("did not match ALL constraints")
-				continue
-			}
-
-		case flipt.MatchType_ANY_MATCH_TYPE:
-			if len(rule.Constraints) > 0 && constraintMatches == 0 {
-				// no constraints matched, continue to next rule
-				e.logger.Debug("did not match ANY constraints")
-				continue
-			}
-		default:
-			e.logger.Error("unknown match type", zap.Int32("match_type", int32(rule.SegmentMatchType)))
+		if !matched {
 			continue
 		}
 
@@ -273,6 +206,83 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 	} // end rule loop
 
 	return resp, nil
+}
+
+// doConstraintsMatch is a utility function that will return if all or any constraints have matched for a segment depending
+// on the match type.
+func doConstraintsMatch(logger *zap.Logger, evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
+	constraintMatches := 0
+
+	for _, c := range constraints {
+		v := evalCtx[c.Property]
+
+		var (
+			match bool
+			err   error
+		)
+
+		switch c.Type {
+		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
+			match = matchesString(c, v)
+		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
+			match, err = matchesNumber(c, v)
+		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
+			match, err = matchesBool(c, v)
+		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+			match, err = matchesDateTime(c, v)
+		default:
+			return false, errs.ErrInvalid("unknown constraint type")
+		}
+
+		if err != nil {
+			return false, err
+		}
+
+		if match {
+			// increase the matchCount
+			constraintMatches++
+
+			switch segmentMatchType {
+			case flipt.MatchType_ANY_MATCH_TYPE:
+				// can short circuit here since we had at least one match
+				break
+			default:
+				// keep looping as we need to match all constraints
+				continue
+			}
+		} else {
+			// no match
+			switch segmentMatchType {
+			case flipt.MatchType_ALL_MATCH_TYPE:
+				// we can short circuit because we must match all constraints
+				break
+			default:
+				// keep looping to see if we match the next constraint
+				continue
+			}
+		}
+	}
+
+	var matched bool = true
+
+	switch segmentMatchType {
+	case flipt.MatchType_ALL_MATCH_TYPE:
+		if len(constraints) == constraintMatches {
+			logger.Debug("did not match ALL constraints")
+			matched = false
+		}
+
+	case flipt.MatchType_ANY_MATCH_TYPE:
+		if len(constraints) > 0 && constraintMatches == 0 {
+			logger.Debug("did not match ANY constraints")
+			matched = false
+		}
+	default:
+		logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
+		matched = false
+	}
+
+	return matched, nil
 }
 
 func crc32Num(entityID string, salt string) uint {
