@@ -1,12 +1,17 @@
 package evaluation
 
 import (
+	"context"
+	"errors"
 	"testing"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	errs "go.flipt.io/flipt/errors"
+	"github.com/stretchr/testify/mock"
+	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt"
+	"go.uber.org/zap/zaptest"
 )
 
 func Test_matchesString(t *testing.T) {
@@ -363,13 +368,13 @@ func Test_matchesNumber(t *testing.T) {
 			match, err := matchesNumber(constraint, value)
 
 			if wantErr {
-				require.Error(t, err)
-				var ierr errs.ErrInvalid
-				require.ErrorAs(t, err, &ierr)
+				assert.Error(t, err)
+				var ierr ferrors.ErrInvalid
+				assert.ErrorAs(t, err, &ierr)
 				return
 			}
 
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -487,13 +492,13 @@ func Test_matchesBool(t *testing.T) {
 			match, err := matchesBool(constraint, value)
 
 			if wantErr {
-				require.Error(t, err)
-				var ierr errs.ErrInvalid
-				require.ErrorAs(t, err, &ierr)
+				assert.Error(t, err)
+				var ierr ferrors.ErrInvalid
+				assert.ErrorAs(t, err, &ierr)
 				return
 			}
 
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
 		})
 	}
@@ -723,14 +728,1497 @@ func Test_matchesDateTime(t *testing.T) {
 			match, err := matchesDateTime(constraint, value)
 
 			if wantErr {
-				require.Error(t, err)
-				var ierr errs.ErrInvalid
-				require.ErrorAs(t, err, &ierr)
+				assert.Error(t, err)
+				var ierr ferrors.ErrInvalid
+				assert.ErrorAs(t, err, &ierr)
 				return
 			}
 
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, wantMatch, match)
+		})
+	}
+}
+
+var (
+	enabledFlag = &flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
+	}
+	disabledFlag = &flipt.Flag{
+		Key:     "foo",
+		Enabled: false,
+	}
+)
+
+func TestEvaluator_FlagNotFound(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{}, ferrors.ErrNotFoundf("flag %q", "foo"))
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "flag \"foo\" not found")
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_FlagDisabled(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(disabledFlag, nil)
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_FlagNoRules(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_UNKNOWN_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_ErrorGettingRules(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return([]*storage.EvaluationRule{}, errors.New("error getting rules!"))
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.Error(t, err)
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_RulesOutOfOrder(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+			{
+				ID:               "2",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "rule rank: 0 detected out of order")
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, errors.New("error getting distributions!"))
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "baz",
+		},
+	})
+
+	assert.Error(t, err)
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+}
+
+// Match ALL constraints
+func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+
+	tests := []struct {
+		name      string
+		req       *flipt.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Empty(t, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+					// constraint: admin (bool) == true
+					{
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           100,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
+			},
+		}, nil)
+
+	tests := []struct {
+		name      string
+		req       *flipt.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "matches all",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match all",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, "boz", resp.Value)
+			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "booz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "boz",
+			wantMatch:         true,
+		},
+		{
+			name: "match string value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "2",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "booz",
+			wantMatch:         true,
+		},
+		{
+			name: "no match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "subscribers",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: premium_user (bool) == true
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "premium_user",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+			{
+				ID:               "2",
+				FlagKey:          "foo",
+				SegmentKey:       "all_users",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "released",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "unreleased",
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: uuid.Must(uuid.NewV4()).String(),
+		Context: map[string]string{
+			"premium_user": "true",
+		},
+	})
+
+	assert.NoError(t, err)
+
+	assert.NotNil(t, resp)
+	assert.True(t, resp.Match)
+	assert.Equal(t, "subscribers", resp.SegmentKey)
+	assert.Equal(t, "foo", resp.FlagKey)
+	assert.NotEmpty(t, resp.Value)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "moz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match no value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "10",
+				Context:  map[string]string{},
+			},
+			matchesVariantKey: "boz",
+			wantMatch:         true,
+		},
+		{
+			name: "match no value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "01",
+				Context:  map[string]string{},
+			},
+			matchesVariantKey: "moz",
+			wantMatch:         true,
+		},
+		{
+			name: "match string value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "01",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+			matchesVariantKey: "moz",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+// Match ANY constraints
+
+func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+
+	tests := []struct {
+		name      string
+		req       *flipt.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Empty(t, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+					// constraint: admin (bool) == true
+					{
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    100,
+				VariantKey: "boz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name      string
+		req       *flipt.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "matches all",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "matches one",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "matches just bool value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "matches just string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no matches wrong bool value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "false",
+				},
+			},
+		},
+		{
+			name: "no matches wrong string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+		{
+			name: "no match none",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"boss": "boz",
+					"user": "true",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, "boz", resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "booz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "boz",
+			wantMatch:         true,
+		},
+		{
+			name: "match string value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "2",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "booz",
+			wantMatch:         true,
+		},
+		{
+			name: "no match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "subscribers",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: premium_user (bool) == true
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "premium_user",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+			{
+				ID:               "2",
+				FlagKey:          "foo",
+				SegmentKey:       "all_users",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "released",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "unreleased",
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: uuid.Must(uuid.NewV4()).String(),
+		Context: map[string]string{
+			"premium_user": "true",
+		},
+	})
+
+	assert.NoError(t, err)
+
+	assert.NotNil(t, resp)
+	assert.True(t, resp.Match)
+	assert.Equal(t, "subscribers", resp.SegmentKey)
+	assert.Equal(t, "foo", resp.FlagKey)
+	assert.NotEmpty(t, resp.Value)
+	assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+}
+
+func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Rank:             0,
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    50,
+				VariantKey: "boz",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    50,
+				VariantKey: "moz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match no value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "10",
+				Context:  map[string]string{},
+			},
+			matchesVariantKey: "boz",
+			wantMatch:         true,
+		},
+		{
+			name: "match no value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "01",
+				Context:  map[string]string{},
+			},
+			matchesVariantKey: "moz",
+			wantMatch:         true,
+		},
+		{
+			name: "match string value - variant 2",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "01",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+			matchesVariantKey: "moz",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+// Since we skip rollout buckets that have 0% distribution, ensure that things still work
+// when a 0% distribution is the first available one.
+func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "4",
+				RuleID:     "1",
+				VariantID:  "5",
+				Rollout:    0,
+				VariantKey: "boz",
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "7",
+				Rollout:    100,
+				VariantKey: "booz",
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "booz",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
+// Ensure things work properly when many rollout distributions have a 0% value.
+func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(enabledFlag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:         "1",
+				RuleID:     "1",
+				VariantID:  "1",
+				VariantKey: "1",
+				Rollout:    0,
+			},
+			{
+				ID:         "2",
+				RuleID:     "1",
+				VariantID:  "2",
+				VariantKey: "2",
+				Rollout:    0,
+			},
+			{
+				ID:         "3",
+				RuleID:     "1",
+				VariantID:  "3",
+				VariantKey: "3",
+				Rollout:    50,
+			},
+			{
+				ID:         "4",
+				RuleID:     "4",
+				VariantID:  "4",
+				VariantKey: "4",
+				Rollout:    0,
+			},
+			{
+				ID:         "5",
+				RuleID:     "1",
+				VariantID:  "5",
+				VariantKey: "5",
+				Rollout:    0,
+			},
+			{
+				ID:         "6",
+				RuleID:     "1",
+				VariantID:  "6",
+				VariantKey: "6",
+				Rollout:    50,
+			},
+		}, nil)
+
+	tests := []struct {
+		name              string
+		req               *flipt.EvaluationRequest
+		matchesVariantKey string
+		wantMatch         bool
+	}{
+		{
+			name: "match string value - variant 1",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+			matchesVariantKey: "3",
+			wantMatch:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req               = tt.req
+			matchesVariantKey = tt.matchesVariantKey
+			wantMatch         = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, matchesVariantKey, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }

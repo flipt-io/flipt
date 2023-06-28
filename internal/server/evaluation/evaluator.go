@@ -18,14 +18,21 @@ import (
 	"go.uber.org/zap"
 )
 
+// EvaluationStorer is the minimal abstraction for interacting with the storage layer for evaluation.
+type EvaluationStorer interface {
+	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
+	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
+	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
+}
+
 // Evaluator is an implementation of the MultiVariateEvaluator.
 type Evaluator struct {
 	logger *zap.Logger
-	store  storage.Store
+	store  EvaluationStorer
 }
 
-// NewEvalutor is the constructor for an Evaluator.
-func NewEvaluator(logger *zap.Logger, store storage.Store) *Evaluator {
+// NewEvaluator is the constructor for an Evaluator.
+func NewEvaluator(logger *zap.Logger, store EvaluationStorer) *Evaluator {
 	return &Evaluator{
 		logger: logger,
 		store:  store,
