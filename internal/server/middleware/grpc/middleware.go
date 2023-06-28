@@ -74,34 +74,18 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
 func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	switch r := req.(type) {
-	case *evaluation.EvaluationRequest:
+	case *flipt.EvaluationRequest, *evaluation.EvaluationRequest:
 		startTime := time.Now()
 
 		// set request ID if not present
-		if r.RequestId == "" {
-			r.RequestId = uuid.Must(uuid.NewV4()).String()
-		}
-
-		resp, err = handler(ctx, req)
-		if err != nil {
-			return resp, err
-		}
-
-		// set response fields
-		if resp != nil {
-			if rr, ok := resp.(*evaluation.VariantEvaluationResponse); ok {
-				rr.Timestamp = timestamp.New(time.Now().UTC())
-				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+		if re, ok := r.(*flipt.EvaluationRequest); ok {
+			if re.RequestId == "" {
+				re.RequestId = uuid.Must(uuid.NewV4()).String()
 			}
-			return resp, nil
-		}
-
-	case *flipt.EvaluationRequest:
-		startTime := time.Now()
-
-		// set request ID if not present
-		if r.RequestId == "" {
-			r.RequestId = uuid.Must(uuid.NewV4()).String()
+		} else if re, ok := r.(*evaluation.EvaluationRequest); ok {
+			if re.RequestId == "" {
+				re.RequestId = uuid.Must(uuid.NewV4()).String()
+			}
 		}
 
 		resp, err = handler(ctx, req)
@@ -112,10 +96,13 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 		// set response fields
 		if resp != nil {
 			if rr, ok := resp.(*flipt.EvaluationResponse); ok {
-				rr.RequestId = r.RequestId
+				rr.Timestamp = timestamp.New(time.Now().UTC())
+				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+			} else if rr, ok := resp.(*evaluation.VariantEvaluationResponse); ok {
 				rr.Timestamp = timestamp.New(time.Now().UTC())
 				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 			}
+
 			return resp, nil
 		}
 

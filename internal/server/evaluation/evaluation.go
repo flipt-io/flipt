@@ -42,6 +42,7 @@ func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.Evaluatio
 			fliptotel.AttributeMatch.Bool(resp.Match),
 			fliptotel.AttributeValue.String(resp.Value),
 			fliptotel.AttributeReason.String(resp.Reason.String()),
+			fliptotel.AttributeSegment.String(resp.SegmentKey),
 		)
 	}
 

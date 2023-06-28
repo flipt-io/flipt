@@ -12,7 +12,6 @@ var _ EvaluationStorer = &evaluationStoreMock{}
 
 type evaluationStoreMock struct {
 	mock.Mock
-	storage.Store
 }
 
 func (e *evaluationStoreMock) String() string {
