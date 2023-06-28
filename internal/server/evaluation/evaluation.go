@@ -9,7 +9,7 @@ import (
 
 // Variant evaluates a request for a multi-variate flag and entity.
 func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
-	resp, err := e.mvEvaluator.Evaluate(ctx, &flipt.EvaluationRequest{
+	resp, err := e.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
 		RequestId:    v.RequestId,
 		FlagKey:      v.FlagKey,
 		EntityId:     v.EntityId,

@@ -21,7 +21,7 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	resp, err := s.mvEvaluator.Evaluate(ctx, r)
+	resp, err := s.evaluator.Evaluate(ctx, r)
 	if err != nil {
 		return resp, err
 	}
@@ -82,7 +82,7 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 		}
 
 		// TODO: we also need to validate each request, we should likely do this in the validation middleware
-		f, err := s.mvEvaluator.Evaluate(ctx, req)
+		f, err := s.evaluator.Evaluate(ctx, req)
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if r.GetExcludeNotFound() && errors.As(err, &errnf) {

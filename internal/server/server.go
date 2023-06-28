@@ -15,15 +15,15 @@ type Server struct {
 	logger *zap.Logger
 	store  storage.Store
 	flipt.UnimplementedFliptServer
-	mvEvaluator evaluation.MultiVariateEvaluator
+	evaluator evaluation.MultiVariateEvaluator
 }
 
 // New creates a new Server
 func New(logger *zap.Logger, store storage.Store) *Server {
 	return &Server{
-		logger:      logger,
-		store:       store,
-		mvEvaluator: evaluation.NewEvaluator(logger, store),
+		logger:    logger,
+		store:     store,
+		evaluator: evaluation.NewEvaluator(logger, store),
 	}
 }
 

@@ -9,18 +9,18 @@ import (
 
 // EvaluateServer serves the Flipt evaluate v2 gRPC Server.
 type EvaluateServer struct {
-	logger      *zap.Logger
-	store       storage.Store
-	mvEvaluator MultiVariateEvaluator
+	logger    *zap.Logger
+	store     storage.Store
+	evaluator MultiVariateEvaluator
 	rpcEvalution.UnimplementedEvaluationServiceServer
 }
 
 // NewEvaluateServer is constructs a new EvaluateServer.
 func NewEvaluateServer(logger *zap.Logger, store storage.Store) *EvaluateServer {
 	return &EvaluateServer{
-		logger:      logger,
-		store:       store,
-		mvEvaluator: NewEvaluator(logger, store),
+		logger:    logger,
+		store:     store,
+		evaluator: NewEvaluator(logger, store),
 	}
 }
 
