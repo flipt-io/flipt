@@ -364,7 +364,7 @@ flags:
 - key: flag_002
   name: FLAG_002
   description: Some Description
-  enabled: true
+  nabled: true
   variants:
   - key: variant_001
     name: VARIANT_001

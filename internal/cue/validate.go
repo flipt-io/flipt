@@ -111,7 +111,7 @@ func writeErrorDetails(format string, cerrs []Error, w io.Writer) error {
 func ValidateFiles(dst io.Writer, files []string, format string) error {
 	cctx := cuecontext.New()
 
-	cerrs := make([]Error, 0)
+	var cerrs []Error
 
 	for _, f := range files {
 		b, err := os.ReadFile(f)
@@ -130,6 +130,11 @@ func ValidateFiles(dst io.Writer, files []string, format string) error {
 
 			for _, m := range ce {
 				ips := m.InputPositions()
+				fmt.Printf("Pos: [line: %d, col: %d]\n", m.Position().Line(), m.Position().Column())
+				for _, ip := range ips {
+					fmt.Printf("Input position: [line: %d, col: %d]\n", ip.Line(), ip.Column())
+				}
+
 				if len(ips) > 0 {
 					fp := ips[0]
 					format, args := m.Msg()
