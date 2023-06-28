@@ -22,6 +22,12 @@ message BatchEvaluationRequest {
   string namespace_key = 4;
 }
 
+message BatchEvaluationResponse {
+  string request_id = 1;
+  repeated EvaluationResponse responses = 2;
+  double request_duration_millis = 3;
+}
+
 message EvaluationResponse {
   string request_id = 1;
   string entity_id = 2;
@@ -43,12 +49,6 @@ enum EvaluationReason {
   FLAG_NOT_FOUND_EVALUATION_REASON = 2;
   MATCH_EVALUATION_REASON = 3;
   ERROR_EVALUATION_REASON = 4;
-}
-
-message BatchEvaluationResponse {
-  string request_id = 1;
-  repeated EvaluationResponse responses = 2;
-  double request_duration_millis = 3;
 }
 
 message Namespace {
@@ -92,6 +92,11 @@ message DeleteNamespaceRequest {
   string key = 1;
 }
 
+enum FlagType {
+  VARIANT_FLAG_TYPE = 0;
+  BOOLEAN_FLAG_TYPE = 1;
+}
+
 message Flag {
   string key = 1;
   string name = 2;
@@ -101,7 +106,8 @@ message Flag {
   google.protobuf.Timestamp updated_at = 6;
   repeated Variant variants = 7;
   string namespace_key = 8;
-}
+  FlagType type = 9;
+ }
 
 message FlagList {
   repeated Flag flags = 1;
@@ -127,6 +133,7 @@ message CreateFlagRequest {
   string description = 3;
   bool enabled = 4;
   string namespace_key = 5;
+  FlagType type = 6;
 }
 
 message UpdateFlagRequest {
@@ -282,6 +289,92 @@ message DeleteConstraintRequest {
   string namespace_key = 3;
 }
 
+enum RolloutType {
+  UNKNOWN_ROLLOUT_TYPE = 0;
+  SEGMENT_ROLLOUT_TYPE = 1;
+  PERCENTAGE_ROLLOUT_TYPE = 2;
+}
+
+message Rollout {
+  string id = 1;
+  string namespace_key = 2;
+  string flag_key = 3;
+  RolloutType type = 4;
+  int32 rank = 5;
+  string description = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  oneof rule {
+    RolloutSegment segment = 20;
+    RolloutPercentage percentage = 21;
+  }
+}
+
+message RolloutSegment {
+  string segment_key = 1;
+  bool value = 2;
+}
+
+message RolloutPercentage {
+  float percentage = 1;
+  bool value = 2;
+}
+
+message RolloutList {
+  repeated Rollout rules = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message ListRolloutRequest {
+  string namespace_key = 1;
+  string flag_key = 2;
+  int32 limit = 3;
+  string page_token = 4;
+}
+
+message GetRolloutRequest {
+  string id = 1;
+  string namespace_key = 2;
+  string flag_key = 3;
+}
+
+message CreateRolloutRequest {
+  string namespace_key = 1;
+  string flag_key = 2;
+  int32 rank = 3;
+  RolloutType type = 4;
+  string description = 5;
+  oneof rule {
+    RolloutSegment segment = 20;
+    RolloutPercentage percentage = 21;
+  }
+}
+
+message UpdateRolloutRequest {
+  string id = 1;
+  string namespace_key = 2;
+  string flag_key = 3;
+  RolloutType type = 4;
+  string description = 5;
+  oneof rule {
+    RolloutSegment segment = 20;
+    RolloutPercentage percentage = 21;
+  }
+}
+
+message DeleteRolloutRequest {
+  string id = 1;
+  string namespace_key = 2;
+  string flag_key = 3;
+}
+
+message OrderRolloutsRequest {
+  string flag_key = 1;
+  string namespace_key = 2;
+  repeated string rollout_ids = 3;
+}
+
 message Rule {
   string id = 1;
   string flag_key = 2;
@@ -306,7 +399,6 @@ message ListRuleRequest {
   string page_token = 4;
   string namespace_key = 5;
 }
-
 message GetRuleRequest {
   string id = 1;
   string flag_key = 2;
@@ -395,6 +487,11 @@ service Flipt {
   rpc UpdateRule(UpdateRuleRequest) returns (Rule) {}
   rpc OrderRules(OrderRulesRequest) returns (google.protobuf.Empty) {}
   rpc DeleteRule(DeleteRuleRequest) returns (google.protobuf.Empty) {}
+  rpc GetRollout(GetRolloutRequest) returns (Rollout) {}
+  rpc ListRollouts(ListRolloutRequest) returns (RolloutList) {}
+  rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {}
+  rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {}
+  rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {}
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {}
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {}
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {}
