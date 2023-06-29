@@ -4,6 +4,7 @@ import (
 	"context"
 	"hash/crc32"
 
+	"go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -14,13 +15,13 @@ import (
 )
 
 // Variant evaluates a request for a multi-variate flag and entity.
-func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
-	e.logger.Debug("evaluate", zap.Stringer("request", v))
+func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
+	s.logger.Debug("evaluate", zap.Stringer("request", v))
 	if v.NamespaceKey == "" {
 		v.NamespaceKey = storage.DefaultNamespace
 	}
 
-	resp, err := e.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
+	resp, err := s.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
 		RequestId:    v.RequestId,
 		FlagKey:      v.FlagKey,
 		EntityId:     v.EntityId,
@@ -59,20 +60,29 @@ func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.Evaluatio
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	e.logger.Debug("evaluate", zap.Stringer("response", resp))
+	s.logger.Debug("evaluate", zap.Stringer("response", resp))
 	return ver, nil
 }
 
 // Boolean evaluates a request for a boolean flag and entity.
-func (e *EvaluateServer) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.BooleanEvaluationResponse, error) {
-	rollouts, err := e.store.GetEvaluationRollouts(ctx, r.FlagKey, r.NamespaceKey)
+func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.BooleanEvaluationResponse, error) {
+	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.FlagKey, r.NamespaceKey)
 	if err != nil {
 		return nil, err
 	}
 
 	resp := &rpcEvaluation.BooleanEvaluationResponse{}
 
+	var lastRank int32
+
 	for _, rollout := range rollouts {
+		if rollout.Rank < lastRank {
+			resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
+			return resp, errors.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
+		}
+
+		lastRank = rollout.Rank
+
 		if rollout.Percentage != nil {
 			// consistent hashing based on the entity id and flag key.
 			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
@@ -83,11 +93,12 @@ func (e *EvaluateServer) Boolean(ctx context.Context, r *rpcEvaluation.Evaluatio
 			if normalizedValue < rollout.Percentage.Percentage {
 				resp.Value = rollout.Percentage.Value
 				resp.Reason = rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON
+				s.logger.Debug("percentage based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "percentage"))
 
 				return resp, nil
 			}
 		} else if rollout.Segment != nil {
-			matched, err := doConstraintsMatch(e.logger, r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
+			matched, err := doConstraintsMatch(s.logger, r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
 			if err != nil {
 				resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
 				return resp, err
@@ -101,11 +112,13 @@ func (e *EvaluateServer) Boolean(ctx context.Context, r *rpcEvaluation.Evaluatio
 			resp.Value = rollout.Segment.Value
 			resp.Reason = rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON
 
+			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.SegmentKey))
+
 			return resp, nil
 		}
 	}
 
-	f, err := e.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	f, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
 		return resp, err
@@ -114,6 +127,7 @@ func (e *EvaluateServer) Boolean(ctx context.Context, r *rpcEvaluation.Evaluatio
 	// If we have exhausted all rollouts and we still don't have a match, return the default value.
 	resp.Reason = rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
 	resp.Value = f.Enabled
+	s.logger.Debug("default rollout matched", zap.Bool("value", f.Enabled))
 
 	return resp, nil
 }

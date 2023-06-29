@@ -18,22 +18,14 @@ import (
 	"go.uber.org/zap"
 )
 
-// EvaluationStorer is the minimal abstraction for interacting with the storage layer for evaluation.
-type EvaluationStorer interface {
-	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
-	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
-	GetEvaluationRollouts(ctx context.Context, flagKey string, namespaceKey string) ([]*storage.EvaluationRollout, error)
-}
-
 // Evaluator is an implementation of the MultiVariateEvaluator.
 type Evaluator struct {
 	logger *zap.Logger
-	store  EvaluationStorer
+	store  Storer
 }
 
 // NewEvaluator is the constructor for an Evaluator.
-func NewEvaluator(logger *zap.Logger, store EvaluationStorer) *Evaluator {
+func NewEvaluator(logger *zap.Logger, store Storer) *Evaluator {
 	return &Evaluator{
 		logger: logger,
 		store:  store,
@@ -263,11 +255,11 @@ func doConstraintsMatch(logger *zap.Logger, evalCtx map[string]string, constrain
 		}
 	}
 
-	var matched bool = true
+	var matched = true
 
 	switch segmentMatchType {
 	case flipt.MatchType_ALL_MATCH_TYPE:
-		if len(constraints) == constraintMatches {
+		if len(constraints) != constraintMatches {
 			logger.Debug("did not match ALL constraints")
 			matched = false
 		}

@@ -95,10 +95,15 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 
 		// set response fields
 		if resp != nil {
-			if rr, ok := resp.(*flipt.EvaluationResponse); ok {
+			switch rr := resp.(type) {
+			case *flipt.EvaluationResponse:
+				rr.RequestId = r.(*flipt.EvaluationRequest).RequestId
 				rr.Timestamp = timestamp.New(time.Now().UTC())
 				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
-			} else if rr, ok := resp.(*evaluation.VariantEvaluationResponse); ok {
+			case *evaluation.VariantEvaluationResponse:
+				rr.Timestamp = timestamp.New(time.Now().UTC())
+				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+			case *evaluation.BooleanEvaluationResponse:
 				rr.Timestamp = timestamp.New(time.Now().UTC())
 				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
 			}

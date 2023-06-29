@@ -8,7 +8,7 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-var _ EvaluationStorer = &evaluationStoreMock{}
+var _ Storer = &evaluationStoreMock{}
 
 type evaluationStoreMock struct {
 	mock.Mock

@@ -163,7 +163,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 
 func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey string) ([]*storage.EvaluationRollout, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT r.id, r.namespace_key, r."type", r."rank", rp.percentage, rp.value, rss.segment_key, rss.match_type, rss.constraint_type, rss.constraint_property, rss.constraint_operator, rss.constraint_value
+		SELECT r.id, r.namespace_key, r."type", r."rank", rp.percentage, rp.value, rss.segment_key, rss.rollout_segment_value, rss.match_type, rss.constraint_type, rss.constraint_property, rss.constraint_operator, rss.constraint_value
 		FROM rollouts r
 		LEFT JOIN rollout_percentages rp ON (r.id = rp.rollout_id)
 		LEFT JOIN (
@@ -197,6 +197,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey
 			rpPercentageNumber   sql.NullFloat64
 			rpPercentageValue    sql.NullBool
 			rsSegmentKey         sql.NullString
+			rsSegmentValue       sql.NullBool
 			rsMatchType          sql.NullInt32
 			rsConstraintType     sql.NullInt32
 			rsConstraintProperty sql.NullString
@@ -212,6 +213,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey
 			&rpPercentageNumber,
 			&rpPercentageValue,
 			&rsSegmentKey,
+			&rsSegmentValue,
 			&rsMatchType,
 			&rsConstraintType,
 			&rsConstraintProperty,
@@ -231,6 +233,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey
 		}
 
 		if rsSegmentKey.Valid &&
+			rsSegmentValue.Valid &&
 			rsMatchType.Valid &&
 			rsConstraintType.Valid &&
 			rsConstraintProperty.Valid &&
@@ -249,6 +252,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey
 
 			storageSegment := &storage.RolloutSegment{
 				SegmentKey:       rsSegmentKey.String,
+				Value:            rsSegmentValue.Bool,
 				SegmentMatchType: flipt.MatchType(rsMatchType.Int32),
 			}
 

@@ -344,7 +344,7 @@ func NewGRPCServer(
 	register.Add(fliptserver.New(logger, store))
 	register.Add(metadata.NewServer(cfg, info))
 
-	register.Add(evaluation.NewEvaluateServer(logger, store))
+	register.Add(evaluation.New(logger, store))
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)
