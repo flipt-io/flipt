@@ -7,11 +7,13 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, authenticated bool) {
@@ -530,6 +532,59 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		assert.Equal(t, ruleTwo.Id, distribution.RuleId)
 		assert.Equal(t, float32(100), distribution.Rollout)
+	})
+
+	t.Run("Boolean Rollouts", func(t *testing.T) {
+		rolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "matches a segment",
+			Rank:         1,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKey: "everyone",
+					Value:      true,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, rolloutSegment.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", rolloutSegment.FlagKey)
+		assert.Equal(t, int32(1), rolloutSegment.Rank)
+		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
+		assert.Equal(t, true, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
+
+		rolloutPercentage, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "50% enabled",
+			Rank:         2,
+			Rule: &flipt.CreateRolloutRequest_Percentage{
+				Percentage: &flipt.RolloutPercentage{
+					Percentage: 50,
+					Value:      true,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, rolloutPercentage.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", rolloutPercentage.FlagKey)
+		assert.Equal(t, int32(2), rolloutPercentage.Rank)
+		assert.Equal(t, float32(50.0), rolloutPercentage.Rule.(*flipt.Rollout_Percentage).Percentage.Percentage)
+		assert.Equal(t, true, rolloutPercentage.Rule.(*flipt.Rollout_Percentage).Percentage.Value)
+
+		rollouts, err := client.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+		})
+		require.NoError(t, err)
+
+		assert.Empty(t, cmp.Diff([]*flipt.Rollout{
+			rolloutSegment,
+			rolloutPercentage,
+		}, rollouts.Rules, protocmp.Transform()))
 	})
 
 	t.Run("Legacy", func(t *testing.T) {

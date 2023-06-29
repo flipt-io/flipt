@@ -312,7 +312,7 @@ func (s *Store) CountRollouts(ctx context.Context, namespaceKey, flagKey string)
 	return count, nil
 }
 
-func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (_ *flipt.Rollout, err error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -323,7 +323,6 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			Id:           uuid.Must(uuid.NewV4()).String(),
 			NamespaceKey: r.NamespaceKey,
 			FlagKey:      r.FlagKey,
-			Type:         r.Type,
 			Rank:         r.Rank,
 			Description:  r.Description,
 			CreatedAt:    now,
@@ -331,10 +330,25 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		}
 	)
 
+	switch r.GetRule().(type) {
+	case *flipt.CreateRolloutRequest_Segment:
+		rollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+	case *flipt.CreateRolloutRequest_Percentage:
+		rollout.Type = flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE
+	default:
+		return nil, fmt.Errorf("invalid rollout rule type %T", r.GetRule())
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
 
 	if _, err := s.builder.Insert(tableRollouts).
 		RunWith(tx).
@@ -343,12 +357,13 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			&fliptsql.Timestamp{Timestamp: rollout.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rollout.UpdatedAt},
 		).ExecContext(ctx); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
-	switch r.GetType() {
-	case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
+	switch r.GetRule().(type) {
+	case *flipt.CreateRolloutRequest_Segment:
+		rollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+
 		var segmentRule = r.GetSegment()
 
 		if _, err := s.builder.Insert(tableRolloutSegments).
@@ -356,14 +371,15 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			Columns("id", "rollout_id", "namespace_key", "segment_key", "\"value\"").
 			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, segmentRule.SegmentKey, segmentRule.Value).
 			ExecContext(ctx); err != nil {
-			_ = tx.Rollback()
 			return nil, err
 		}
 
 		rollout.Rule = &flipt.Rollout_Segment{
 			Segment: segmentRule,
 		}
-	case flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE:
+	case *flipt.CreateRolloutRequest_Percentage:
+		rollout.Type = flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE
+
 		var percentageRule = r.GetPercentage()
 
 		if _, err := s.builder.Insert(tableRolloutPercentages).
@@ -371,7 +387,6 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			Columns("id", "rollout_id", "namespace_key", "percentage", "\"value\"").
 			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, percentageRule.Percentage, percentageRule.Value).
 			ExecContext(ctx); err != nil {
-			_ = tx.Rollback()
 			return nil, err
 		}
 
@@ -379,8 +394,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			Percentage: percentageRule,
 		}
 	default:
-		_ = tx.Rollback()
-		return nil, fmt.Errorf("invalid rollout rule type %v", r.GetType())
+		return nil, fmt.Errorf("invalid rollout rule type %v", rollout.Type)
 	}
 
 	return rollout, tx.Commit()
