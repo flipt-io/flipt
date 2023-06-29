@@ -319,6 +319,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://v0x.nl"><img src="https://avatars.githubusercontent.com/u/983924?v=4?s=100" width="100px;" alt="David Stotijn"/><br /><sub><b>David Stotijn</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=dstotijn" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MattNotarangelo"><img src="https://avatars.githubusercontent.com/u/81910488?v=4?s=100" width="100px;" alt="Matthew Notarangelo"/><br /><sub><b>Matthew Notarangelo</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=MattNotarangelo" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/charles-oconor-77187455/"><img src="https://avatars.githubusercontent.com/u/8228660?v=4?s=100" width="100px;" alt="Charles OConor"/><br /><sub><b>Charles OConor</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=charlesoconor" title="Documentation">📖</a></td>
+    </tr>
   </tbody>
 </table>
 
