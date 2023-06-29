@@ -110,7 +110,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		t.Log("Create a new flag in a disabled state.")
 
-		_, err = client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+		disabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
 			NamespaceKey: namespace,
 			Key:          "disabled",
 			Name:         "Disabled",
@@ -119,10 +119,10 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, "test", created.Key)
-		assert.Equal(t, "Test", created.Name)
-		assert.Equal(t, "This is a test flag", created.Description)
-		assert.True(t, created.Enabled, "Flag should be enabled")
+		assert.Equal(t, "test", disabled.Key)
+		assert.Equal(t, "Test", disabled.Name)
+		assert.Equal(t, "This is a test flag", disabled.Description)
+		assert.True(t, disabled.Enabled, "Flag should be enabled")
 
 		t.Log("Retrieve flag with key \"test\".")
 
@@ -163,10 +163,14 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Len(t, flags.Flags, 1)
+		assert.Len(t, flags.Flags, 2)
 		assert.Equal(t, updated.Key, flags.Flags[0].Key)
 		assert.Equal(t, updated.Name, flags.Flags[0].Name)
 		assert.Equal(t, updated.Description, flags.Flags[0].Description)
+
+		assert.Equal(t, disabled.Key, flags.Flags[1].Key)
+		assert.Equal(t, disabled.Name, flags.Flags[1].Name)
+		assert.Equal(t, disabled.Description, flags.Flags[1].Description)
 
 		for _, key := range []string{"one", "two"} {
 			t.Logf("Create variant with key %q.", key)
