@@ -48,7 +48,6 @@ import (
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -247,9 +246,9 @@ func NewGRPCServer(
 		grpc_zap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
 		otelgrpc.UnaryServerInterceptor(),
+		middlewaregrpc.ErrorUnaryInterceptor,
 	},
 		append(authInterceptors,
-			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
 			middlewaregrpc.EvaluationUnaryInterceptor,
 		)...,
@@ -328,7 +327,7 @@ func NewGRPCServer(
 	otel.SetTracerProvider(tracingProvider)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
-	grpcOpts := []grpc.ServerOption{grpc_middleware.WithUnaryServerChain(interceptors...)}
+	grpcOpts := []grpc.ServerOption{grpc.ChainUnaryInterceptor(interceptors...)}
 
 	if cfg.Server.Protocol == config.HTTPS {
 		creds, err := credentials.NewServerTLSFromFile(cfg.Server.CertFile, cfg.Server.CertKey)
