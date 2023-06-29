@@ -348,7 +348,7 @@ func NewGRPCServer(
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
-		server.Server.GracefulStop()
+		server.GracefulStop()
 		return nil
 	})
 
@@ -367,7 +367,7 @@ func NewGRPCServer(
 func (s *GRPCServer) Run() error {
 	s.logger.Debug("starting grpc server")
 
-	return s.Server.Serve(s.ln)
+	return s.Serve(s.ln)
 }
 
 // Shutdown tearsdown the entire gRPC stack including dependencies.
