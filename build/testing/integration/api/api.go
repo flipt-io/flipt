@@ -92,9 +92,9 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 	})
 
 	t.Run("Flags and Variants", func(t *testing.T) {
-		t.Log("Create a new flag with key \"test\".")
+		t.Log("Create a new enabled flag with key \"test\".")
 
-		created, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+		enabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
 			NamespaceKey: namespace,
 			Key:          "test",
 			Name:         "Test",
@@ -103,10 +103,10 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, "test", created.Key)
-		assert.Equal(t, "Test", created.Name)
-		assert.Equal(t, "This is a test flag", created.Description)
-		assert.True(t, created.Enabled, "Flag should be enabled")
+		assert.Equal(t, "test", enabled.Key)
+		assert.Equal(t, "Test", enabled.Name)
+		assert.Equal(t, "This is a test flag", enabled.Description)
+		assert.True(t, enabled.Enabled, "Flag should be enabled")
 
 		t.Log("Create a new flag in a disabled state.")
 
@@ -124,6 +124,40 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "This is a disabled test flag", disabled.Description)
 		assert.False(t, disabled.Enabled, "Flag should be disabled")
 
+		t.Log("Create a new enabled boolean flag with key \"boolean_enabled\".")
+
+		booleanEnabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+			NamespaceKey: namespace,
+			Key:          "boolean_enabled",
+			Name:         "Boolean Enabled",
+			Description:  "This is an enabled boolean test flag",
+			Enabled:      true,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "boolean_enabled", booleanEnabled.Key)
+		assert.Equal(t, "Boolean Enabled", booleanEnabled.Name)
+		assert.Equal(t, "This is an enabled boolean test flag", booleanEnabled.Description)
+		assert.True(t, booleanEnabled.Enabled, "Flag should be enabled")
+
+		t.Log("Create a new flag in a disabled state.")
+
+		booleanDisabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+			NamespaceKey: namespace,
+			Key:          "boolean_disabled",
+			Name:         "Boolean Disabled",
+			Description:  "This is a disabled boolean test flag",
+			Enabled:      false,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "boolean_disabled", booleanDisabled.Key)
+		assert.Equal(t, "Boolean Disabled", booleanDisabled.Name)
+		assert.Equal(t, "This is a disabled boolean test flag", booleanDisabled.Description)
+		assert.False(t, booleanDisabled.Enabled, "Flag should be disabled")
+
 		t.Log("Retrieve flag with key \"test\".")
 
 		flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
@@ -132,15 +166,15 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, created, flag)
+		assert.Equal(t, enabled, flag)
 
 		t.Log("Update flag with key \"test\".")
 
 		updated, err := client.Flipt().UpdateFlag(ctx, &flipt.UpdateFlagRequest{
 			NamespaceKey: namespace,
-			Key:          created.Key,
+			Key:          enabled.Key,
 			Name:         "Test 2",
-			Description:  created.Description,
+			Description:  enabled.Description,
 			Enabled:      true,
 		})
 		require.NoError(t, err)
@@ -163,14 +197,18 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Len(t, flags.Flags, 2)
-		assert.Equal(t, updated.Key, flags.Flags[0].Key)
-		assert.Equal(t, updated.Name, flags.Flags[0].Name)
-		assert.Equal(t, updated.Description, flags.Flags[0].Description)
-
-		assert.Equal(t, disabled.Key, flags.Flags[1].Key)
-		assert.Equal(t, disabled.Name, flags.Flags[1].Name)
-		assert.Equal(t, disabled.Description, flags.Flags[1].Description)
+		assert.Len(t, flags.Flags, 4)
+		for i, flag := range []*flipt.Flag{
+			updated,
+			disabled,
+			booleanEnabled,
+			booleanDisabled,
+		} {
+			assert.Equal(t, flag.Key, flags.Flags[i].Key)
+			assert.Equal(t, flag.Name, flags.Flags[i].Name)
+			assert.Equal(t, flag.Description, flags.Flags[i].Description)
+			assert.Equal(t, flag.Enabled, flags.Flags[i].Enabled)
+		}
 
 		for _, key := range []string{"one", "two"} {
 			t.Logf("Create variant with key %q.", key)
@@ -674,17 +712,17 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		}
 
 		t.Log(`Flag.`)
-		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
-			NamespaceKey: namespace,
-			Key:          "test",
-		})
-		require.NoError(t, err)
 
-		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+		flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 			NamespaceKey: namespace,
-			Key:          "disabled",
 		})
-		require.NoError(t, err)
+		for _, flag := range flags.Flags {
+			err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+				NamespaceKey: namespace,
+				Key:          flag.Key,
+			})
+			require.NoError(t, err)
+		}
 
 		t.Log(`Segment.`)
 		err = client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
