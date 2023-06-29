@@ -2,9 +2,10 @@ package evaluation
 
 import (
 	"context"
+	"errors"
 	"hash/crc32"
 
-	"go.flipt.io/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -78,7 +79,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest
 	for _, rollout := range rollouts {
 		if rollout.Rank < lastRank {
 			resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-			return resp, errors.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
+			return resp, errs.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
 		}
 
 		lastRank = rollout.Rank
@@ -128,6 +129,79 @@ func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest
 	resp.Reason = rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
 	resp.Value = f.Enabled
 	s.logger.Debug("default rollout matched", zap.Bool("value", f.Enabled))
+
+	return resp, nil
+}
+
+// Batch takes ina list of *evaluation.EvaluationRequest and returns their respective responses.
+func (s *Server) Batch(ctx context.Context, b *rpcEvaluation.BatchEvaluationRequest) (*rpcEvaluation.BatchEvaluationResponse, error) {
+	resp := &rpcEvaluation.BatchEvaluationResponse{
+		Responses: []*rpcEvaluation.EvaluationResponse{},
+	}
+
+	// Abstracted utility function to check for not found errors.
+	checkNotFound := func(exludeNotFound bool, err error) error {
+		var errnf errs.ErrNotFound
+		if exludeNotFound && errors.As(err, &errnf) {
+			return nil
+		}
+
+		return err
+	}
+
+	for _, req := range b.GetRequests() {
+		f, err := s.store.GetFlag(ctx, req.NamespaceKey, req.FlagKey)
+		if err != nil {
+			err := checkNotFound(b.GetExcludeNotFound(), err)
+			if err == nil {
+				continue
+			}
+
+			return resp, err
+		}
+
+		switch f.Type {
+		case flipt.FlagType_BOOLEAN_FLAG_TYPE:
+			res, err := s.Boolean(ctx, req)
+			if err != nil {
+				err := checkNotFound(b.GetExcludeNotFound(), err)
+				if err == nil {
+					continue
+				}
+
+				return resp, err
+			}
+
+			eresp := &rpcEvaluation.EvaluationResponse{
+				FlagType: rpcEvaluation.EvaluationFlagType(flipt.FlagType_BOOLEAN_FLAG_TYPE),
+				Response: &rpcEvaluation.EvaluationResponse_BooleanResponse{
+					BooleanResponse: res,
+				},
+			}
+
+			resp.Responses = append(resp.Responses, eresp)
+		case flipt.FlagType_VARIANT_FLAG_TYPE:
+			res, err := s.Variant(ctx, req)
+			if err != nil {
+				err := checkNotFound(b.GetExcludeNotFound(), err)
+				if err == nil {
+					continue
+				}
+
+				return resp, err
+			}
+			eresp := &rpcEvaluation.EvaluationResponse{
+				FlagType: rpcEvaluation.EvaluationFlagType(flipt.FlagType_VARIANT_FLAG_TYPE),
+				Response: &rpcEvaluation.EvaluationResponse_VariantResponse{
+					VariantResponse: res,
+				},
+			}
+
+			resp.Responses = append(resp.Responses, eresp)
+		default:
+			return resp, errs.ErrInvalidf("unknown flag type: %s", f.Type)
+		}
+	}
 
 	return resp, nil
 }

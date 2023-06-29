@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcEvaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
@@ -287,4 +288,133 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "rollout rank: 0 detected out of order")
 	assert.Equal(t, rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON, res.Reason)
+}
+
+func TestBatch_UnknownFlagType(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		Key:         flagKey,
+		Enabled:     true,
+		Description: "test-flag",
+		Type:        3,
+	}, nil)
+
+	_, err := s.Batch(context.TODO(), &rpcEvaluation.BatchEvaluationRequest{
+		Requests: []*rpcEvaluation.EvaluationRequest{
+			{
+				FlagKey:      flagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+		},
+		ExcludeNotFound: false,
+	})
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "unknown flag type: 3")
+}
+
+func TestBatch_NotFoundError(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag not found"))
+
+	_, err := s.Batch(context.TODO(), &rpcEvaluation.BatchEvaluationRequest{
+		Requests: []*rpcEvaluation.EvaluationRequest{
+			{
+				FlagKey:      flagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+		},
+		ExcludeNotFound: false,
+	})
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "test-flag not found not found")
+}
+
+func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
+	var (
+		flagKey        = "test-flag"
+		anotherFlagKey = "another-test-flag"
+		namespaceKey   = "test-namespace"
+		store          = &evaluationStoreMock{}
+		logger         = zaptest.NewLogger(t)
+		s              = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil).Times(2)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, anotherFlagKey).Return(&flipt.Flag{}, errs.ErrNotFound("another-test-flag"))
+
+	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+		{
+			NamespaceKey: namespaceKey,
+			Rank:         1,
+			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
+			Percentage: &storage.RolloutPercentage{
+				Percentage: 5,
+				Value:      false,
+			},
+		},
+	}, nil)
+
+	res, err := s.Batch(context.TODO(), &rpcEvaluation.BatchEvaluationRequest{
+		Requests: []*rpcEvaluation.EvaluationRequest{
+			{
+				FlagKey:      flagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+			{
+				FlagKey:      anotherFlagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
+		},
+		ExcludeNotFound: true,
+	})
+
+	require.NoError(t, err)
+
+	assert.Len(t, res.Responses, 1)
+
+	b, ok := res.Responses[0].Response.(*rpcEvaluation.EvaluationResponse_BooleanResponse)
+	assert.True(t, ok, "response should be a boolean evaluation response")
+	assert.Equal(t, true, b.BooleanResponse.Value)
 }

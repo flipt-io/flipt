@@ -111,12 +111,20 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 			return resp, nil
 		}
 
-	case *flipt.BatchEvaluationRequest:
+	case *flipt.BatchEvaluationRequest, *evaluation.BatchEvaluationRequest:
 		startTime := time.Now()
 
 		// set request ID if not present
-		if r.RequestId == "" {
-			r.RequestId = uuid.Must(uuid.NewV4()).String()
+		switch re := r.(type) {
+		case *flipt.BatchEvaluationRequest:
+			if re.RequestId == "" {
+				re.RequestId = uuid.Must(uuid.NewV4()).String()
+			}
+		case *evaluation.BatchEvaluationRequest:
+			// set request ID if not present
+			if re.RequestId == "" {
+				re.RequestId = uuid.Must(uuid.NewV4()).String()
+			}
 		}
 
 		resp, err = handler(ctx, req)
@@ -125,16 +133,29 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 		}
 
 		now := timestamp.New(time.Now().UTC())
+
 		// set response fields
-		if resp != nil {
-			if rr, ok := resp.(*flipt.BatchEvaluationResponse); ok {
-				rr.RequestId = r.RequestId
-				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
-				for _, response := range rr.Responses {
-					response.Timestamp = now
-				}
-				return resp, nil
+		switch rr := resp.(type) {
+		case *flipt.BatchEvaluationResponse:
+			rr.RequestId = r.(*flipt.BatchEvaluationRequest).RequestId
+			rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+			for _, response := range rr.Responses {
+				response.Timestamp = now
 			}
+
+			return resp, nil
+		case *evaluation.BatchEvaluationResponse:
+			rr.RequestId = r.(*evaluation.BatchEvaluationRequest).RequestId
+			rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
+			for _, response := range rr.Responses {
+				if res, ok := response.Response.(*evaluation.EvaluationResponse_BooleanResponse); ok {
+					res.BooleanResponse.Timestamp = now
+				} else if res, ok := response.Response.(*evaluation.EvaluationResponse_VariantResponse); ok {
+					res.VariantResponse.Timestamp = now
+				}
+			}
+
+			return resp, nil
 		}
 	}
 
