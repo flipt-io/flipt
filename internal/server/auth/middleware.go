@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/containers"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -22,6 +23,8 @@ const (
 	// as a http cookie.
 	tokenCookieKey = "flipt_client_token"
 )
+
+var errUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
 
 type authenticationContextKey struct{}
 
@@ -90,7 +93,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, errs.ErrUnauthenticated("request was not authenticated")
+			return ctx, errUnauthenticated
 		}
 
 		clientToken, err := clientTokenFromMetadata(md)
@@ -99,7 +102,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				zap.String("reason", "no authorization provided"),
 				zap.Error(err))
 
-			return ctx, errs.ErrUnauthenticatedf("request was not authenticated: %w", err)
+			return ctx, errUnauthenticated
 		}
 
 		auth, err := authenticator.GetAuthenticationByClientToken(ctx, clientToken)
@@ -107,7 +110,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 			logger.Error("unauthenticated",
 				zap.String("reason", "error retrieving authentication for client token"),
 				zap.Error(err))
-			return ctx, errs.ErrUnauthenticatedf("request was not authenticated: %w", err)
+			return ctx, errUnauthenticated
 		}
 
 		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
@@ -115,7 +118,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				zap.String("reason", "authorization expired"),
 				zap.String("authentication_id", auth.Id),
 			)
-			return ctx, errs.ErrUnauthenticatedf("request was not authenticated: %w", err)
+			return ctx, errUnauthenticated
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
@@ -141,7 +144,7 @@ func clientTokenFromAuthorization(auth string) (string, error) {
 		return clientToken, nil
 	}
 
-	return "", errs.ErrUnauthenticatedf("request was not authenticated")
+	return "", errUnauthenticated
 }
 
 func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {
