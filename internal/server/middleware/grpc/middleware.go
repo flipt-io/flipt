@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -49,8 +50,13 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 		return
 	}
 
-	// given already a *status.Error then forward unchanged
-	if _, ok := status.FromError(err); ok {
+	if errors.Is(err, context.Canceled) {
+		err = status.Error(codes.Canceled, err.Error())
+		return
+	}
+
+	if errors.Is(err, context.DeadlineExceeded) {
+		err = status.Error(codes.DeadlineExceeded, err.Error())
 		return
 	}
 
