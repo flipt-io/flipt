@@ -119,10 +119,10 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, "test", disabled.Key)
-		assert.Equal(t, "Test", disabled.Name)
-		assert.Equal(t, "This is a test flag", disabled.Description)
-		assert.True(t, disabled.Enabled, "Flag should be enabled")
+		assert.Equal(t, "disabled", disabled.Key)
+		assert.Equal(t, "Disabled", disabled.Name)
+		assert.Equal(t, "This is a disabled test flag", disabled.Description)
+		assert.False(t, disabled.Enabled, "Flag should be disabled")
 
 		t.Log("Retrieve flag with key \"test\".")
 
@@ -639,12 +639,10 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 					EntityId:     uuid.Must(uuid.NewV4()).String(),
 					Context:      map[string]string{},
 				})
-				require.NoError(t, err)
 
-				assert.False(t, result.Match, "Evaluation should not have matched.")
-				assert.Equal(t, evaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, result.Reason)
-				assert.Empty(t, result.SegmentKey)
-				assert.Empty(t, result.VariantKey)
+				msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace)
+				require.EqualError(t, err, msg)
+				require.Nil(t, result)
 			})
 		})
 	})
@@ -679,6 +677,12 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
 			NamespaceKey: namespace,
 			Key:          "test",
+		})
+		require.NoError(t, err)
+
+		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+			NamespaceKey: namespace,
+			Key:          "disabled",
 		})
 		require.NoError(t, err)
 
