@@ -67,7 +67,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	golang := client.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
 	}).
-		From("golang:1.20-alpine3.16").
+		From("golang:1.20-alpine3.18").
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
@@ -168,6 +168,9 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	return golang.
 		WithMountedDirectory("./ui", embed.Directory("./ui")).
 		WithMountedDirectory("./ui/dist", req.UI.Directory("./dist")).
+		// see: https://github.com/golang/go/issues/60825
+		// should be fixed in go 1.20.6
+		WithEnvVariable("GOEXPERIMENT", "nocoverageredesign").
 		WithExec([]string{"mkdir", "-p", req.binary()}).
 		WithExec([]string{"sh", "-c", goBuildCmd}), nil
 }
@@ -176,7 +179,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 // into a thinner alpine distribution.
 func Package(ctx context.Context, client *dagger.Client, flipt *dagger.Container, req FliptRequest) (*dagger.Container, error) {
 	// build container with just Flipt + config
-	return client.Container().From("alpine:3.16").
+	return client.Container().From("alpine:3.18").
 		WithExec([]string{"apk", "add", "--no-cache", "postgresql-client", "openssl", "ca-certificates"}).
 		WithExec([]string{"mkdir", "-p", "/var/opt/flipt"}).
 		WithExec([]string{"mkdir", "-p", "/var/log/flipt"}).

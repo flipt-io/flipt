@@ -339,8 +339,10 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		rollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
 	case *flipt.CreateRolloutRequest_Percentage:
 		rollout.Type = flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE
+	case nil:
+		return nil, errs.ErrInvalid("rollout rule is missing")
 	default:
-		return nil, fmt.Errorf("invalid rollout rule type %T", r.GetRule())
+		return nil, errs.ErrInvalidf("invalid rollout rule type %T", r.GetRule())
 	}
 
 	tx, err := s.db.Begin()

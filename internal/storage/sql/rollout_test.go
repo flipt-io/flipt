@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/sql/common"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -29,7 +30,6 @@ func (s *DBTestSuite) TestGetRollout() {
 	rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
-		Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 		Rule: &flipt.CreateRolloutRequest_Percentage{
 			Percentage: &flipt.RolloutPercentage{
 				Value:      true,
@@ -75,7 +75,6 @@ func (s *DBTestSuite) TestGetRolloutNamespace() {
 		FlagKey:      flag.Key,
 		NamespaceKey: s.namespace,
 		Rank:         1,
-		Type:         flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 		Rule: &flipt.CreateRolloutRequest_Percentage{
 			Percentage: &flipt.RolloutPercentage{
 				Value:      true,
@@ -153,7 +152,6 @@ func (s *DBTestSuite) TestListRollouts() {
 		{
 			FlagKey: flag.Key,
 			Rank:    1,
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -164,7 +162,6 @@ func (s *DBTestSuite) TestListRollouts() {
 		{
 			FlagKey: flag.Key,
 			Rank:    2,
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -212,7 +209,6 @@ func (s *DBTestSuite) TestListRolloutsNamespace() {
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
 			Rank:         1,
-			Type:         flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -224,7 +220,6 @@ func (s *DBTestSuite) TestListRolloutsNamespace() {
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
 			Rank:         2,
-			Type:         flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -269,7 +264,6 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitOffset() {
 		{
 			FlagKey: flag.Key,
 			Rank:    1,
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -280,7 +274,6 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitOffset() {
 		{
 			FlagKey: flag.Key,
 			Rank:    2,
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -320,7 +313,6 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 		{
 			FlagKey: flag.Key,
 			Rank:    1,
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -331,7 +323,6 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 		{
 			FlagKey: flag.Key,
 			Rank:    2,
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -373,7 +364,7 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 	assert.Equal(t, reqs[0].Rank, got[0].Rank)
 }
 
-func (s *DBTestSuite) TestCreateRollout_FlagNotFound() {
+func (s *DBTestSuite) TestCreateRollout_InvalidRolloutType() {
 	t := s.T()
 
 	_, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
@@ -381,7 +372,36 @@ func (s *DBTestSuite) TestCreateRollout_FlagNotFound() {
 		Rank:    1,
 	})
 
+	assert.Equal(t, err, errs.ErrInvalid("rollout rule is missing"))
+}
+
+func (s *DBTestSuite) TestCreateRollout_FlagNotFound() {
+	t := s.T()
+
+	_, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		FlagKey: "foo",
+		Rank:    1,
+		Rule: &flipt.CreateRolloutRequest_Percentage{
+			Percentage: &flipt.RolloutPercentage{
+				Percentage: 50.0,
+				Value:      true,
+			},
+		},
+	})
+
 	assert.EqualError(t, err, "flag \"default/foo\" not found")
+}
+
+func (s *DBTestSuite) TestCreateRolloutNamespace_InvalidRolloutType() {
+	t := s.T()
+
+	_, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      "foo",
+		Rank:         1,
+	})
+
+	assert.Equal(t, err, errs.ErrInvalid("rollout rule is missing"))
 }
 
 func (s *DBTestSuite) TestCreateRolloutNamespace_FlagNotFound() {
@@ -391,6 +411,12 @@ func (s *DBTestSuite) TestCreateRolloutNamespace_FlagNotFound() {
 		NamespaceKey: s.namespace,
 		FlagKey:      "foo",
 		Rank:         1,
+		Rule: &flipt.CreateRolloutRequest_Percentage{
+			Percentage: &flipt.RolloutPercentage{
+				Percentage: 50.0,
+				Value:      true,
+			},
+		},
 	})
 
 	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" not found", s.namespace))
@@ -412,7 +438,6 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
-		Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 		Rule: &flipt.CreateRolloutRequest_Percentage{
 			Percentage: &flipt.RolloutPercentage{
 				Value:      true,
@@ -438,7 +463,6 @@ func (s *DBTestSuite) TestUpdateRollout() {
 		Id:          rollout.Id,
 		FlagKey:     rollout.FlagKey,
 		Description: "foobar",
-		Type:        flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 		Rule: &flipt.UpdateRolloutRequest_Percentage{
 			Percentage: &flipt.RolloutPercentage{
 				Value:      false,
@@ -479,7 +503,6 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 		FlagKey:      flag.Key,
 		NamespaceKey: s.namespace,
 		Rank:         1,
-		Type:         flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 		Rule: &flipt.CreateRolloutRequest_Percentage{
 			Percentage: &flipt.RolloutPercentage{
 				Value:      true,
@@ -506,7 +529,6 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 		FlagKey:      rollout.FlagKey,
 		NamespaceKey: s.namespace,
 		Description:  "foobar",
-		Type:         flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 		Rule: &flipt.UpdateRolloutRequest_Percentage{
 			Percentage: &flipt.RolloutPercentage{
 				Value:      false,
@@ -527,6 +549,71 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	assert.Equal(t, false, updated.GetPercentage().Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
+}
+
+func (s *DBTestSuite) TestUpdateRollout_InvalidType() {
+	t := s.T()
+
+	ctx := context.TODO()
+	flag, err := s.store.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		Key:          t.Name(),
+		NamespaceKey: s.namespace,
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	_, err = s.store.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          "segment_one",
+		Name:         "Segment One",
+		MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		FlagKey:      flag.Key,
+		NamespaceKey: s.namespace,
+		Rank:         1,
+		Rule: &flipt.CreateRolloutRequest_Segment{
+			Segment: &flipt.RolloutSegment{
+				SegmentKey: "segment_one",
+				Value:      true,
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, rollout)
+
+	assert.NotZero(t, rollout.Id)
+	assert.Equal(t, s.namespace, rollout.NamespaceKey)
+	assert.Equal(t, flag.Key, rollout.FlagKey)
+	assert.Equal(t, int32(1), rollout.Rank)
+	assert.Equal(t, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE, rollout.Type)
+	assert.Equal(t, "segment_one", rollout.GetSegment().SegmentKey)
+	assert.Equal(t, true, rollout.GetSegment().Value)
+	assert.NotZero(t, rollout.CreatedAt)
+	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
+
+	_, err = s.store.UpdateRollout(context.TODO(), &flipt.UpdateRolloutRequest{
+		Id:           rollout.Id,
+		FlagKey:      rollout.FlagKey,
+		NamespaceKey: s.namespace,
+		Description:  "foobar",
+		Rule: &flipt.UpdateRolloutRequest_Percentage{
+			Percentage: &flipt.RolloutPercentage{
+				Value:      false,
+				Percentage: 80,
+			},
+		},
+	})
+
+	require.EqualError(t, err, "cannot change type of rollout: have \"SEGMENT_ROLLOUT_TYPE\" attempted \"PERCENTAGE_ROLLOUT_TYPE\"")
 }
 
 func (s *DBTestSuite) TestUpdateRollout_NotFound() {
@@ -596,7 +683,6 @@ func (s *DBTestSuite) TestDeleteRollout() {
 		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 			FlagKey: flag.Key,
 			Rank:    int32(i + 1),
-			Type:    flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
@@ -656,7 +742,6 @@ func (s *DBTestSuite) TestDeleteRolloutNamespace() {
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
 			Rank:         int32(i + 1),
-			Type:         flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Value:      true,
