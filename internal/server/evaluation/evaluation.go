@@ -3,7 +3,6 @@ package evaluation
 import (
 	"context"
 
-	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -20,10 +19,6 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
 	if err != nil {
 		return nil, err
-	}
-
-	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
-		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
 	s.logger.Debug("variant", zap.Stringer("request", v))

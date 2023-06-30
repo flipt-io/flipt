@@ -771,6 +771,30 @@ func TestEvaluator_FlagDisabled(t *testing.T) {
 	assert.Equal(t, flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
 }
 
+func TestEvaluator_NonVariantFlag(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	resp, err := s.Evaluate(context.TODO(), &flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
+		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "boz",
+		},
+	})
+
+	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+}
+
 func TestEvaluator_FlagNoRules(t *testing.T) {
 	var (
 		store  = &evaluationStoreMock{}
