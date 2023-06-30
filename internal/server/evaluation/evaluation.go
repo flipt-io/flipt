@@ -2,7 +2,9 @@ package evaluation
 
 import (
 	"context"
+	"errors"
 
+	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -13,13 +15,33 @@ import (
 )
 
 // Variant evaluates a request for a multi-variate flag and entity.
-func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
-	e.logger.Debug("evaluate", zap.Stringer("request", v))
+func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
+	var ver = &rpcEvaluation.VariantEvaluationResponse{}
+
+	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
+	if err != nil {
+		var errnf errs.ErrNotFound
+
+		if errors.As(err, &errnf) {
+			ver.Reason = rpcEvaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
+			return ver, err
+		}
+
+		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
+		return ver, err
+	}
+
+	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
+		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
+		return ver, errs.ErrInvalidf("flag type %s invalid", flipt.FlagType_name[int32(flag.Type)])
+	}
+
+	s.logger.Debug("variant", zap.Stringer("request", v))
 	if v.NamespaceKey == "" {
 		v.NamespaceKey = storage.DefaultNamespace
 	}
 
-	resp, err := e.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
+	resp, err := s.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
 		RequestId:    v.RequestId,
 		FlagKey:      v.FlagKey,
 		EntityId:     v.EntityId,
@@ -27,7 +49,8 @@ func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.Evaluatio
 		NamespaceKey: v.NamespaceKey,
 	})
 	if err != nil {
-		return nil, err
+		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
+		return ver, err
 	}
 
 	spanAttrs := []attribute.KeyValue{
@@ -46,18 +69,16 @@ func (e *EvaluateServer) Variant(ctx context.Context, v *rpcEvaluation.Evaluatio
 		)
 	}
 
-	ver := &rpcEvaluation.VariantEvaluationResponse{
-		Match:             resp.Match,
-		SegmentKey:        resp.SegmentKey,
-		Reason:            rpcEvaluation.EvaluationReason(resp.Reason),
-		VariantKey:        resp.Value,
-		VariantAttachment: resp.Attachment,
-	}
+	ver.Match = resp.Match
+	ver.SegmentKey = resp.SegmentKey
+	ver.Reason = rpcEvaluation.EvaluationReason(resp.Reason)
+	ver.VariantKey = resp.Value
+	ver.VariantAttachment = resp.Attachment
 
 	// add otel attributes to span
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	e.logger.Debug("evaluate", zap.Stringer("response", resp))
+	s.logger.Debug("variant", zap.Stringer("response", resp))
 	return ver, nil
 }
