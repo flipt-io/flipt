@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"hash/crc32"
 
 	errs "go.flipt.io/flipt/errors"
@@ -76,34 +75,23 @@ func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest
 
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
-		var errnf errs.ErrNotFound
-
-		if errors.As(err, &errnf) {
-			resp.Reason = rpcEvaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
-			return resp, err
-		}
-
-		resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return resp, err
+		return nil, err
 	}
 
 	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
-		resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return resp, errs.ErrInvalidf("flag type %s invalid", flipt.FlagType_name[int32(flag.Type)])
+		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
 	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
-		resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return resp, err
+		return nil, err
 	}
 
 	var lastRank int32
 
 	for _, rollout := range rollouts {
 		if rollout.Rank < lastRank {
-			resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-			return resp, errs.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
+			return nil, errs.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
 		}
 
 		lastRank = rollout.Rank
@@ -125,8 +113,7 @@ func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest
 		} else if rollout.Segment != nil {
 			matched, err := s.evaluator.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
 			if err != nil {
-				resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-				return resp, err
+				return nil, err
 			}
 
 			// if we don't match the segment, fall through to the next rollout.
