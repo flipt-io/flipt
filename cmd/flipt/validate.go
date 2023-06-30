@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -12,6 +13,11 @@ type validateCommand struct {
 	issueExitCode int
 	format        string
 }
+
+const (
+	jsonFormat = "json"
+	textFormat = "text"
+)
 
 func newValidateCommand() *cobra.Command {
 	v := &validateCommand{}
@@ -37,10 +43,32 @@ func newValidateCommand() *cobra.Command {
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) {
-	if err := cue.ValidateFiles(os.Stdout, args, v.format); err != nil {
-		if errors.Is(err, cue.ErrValidationFailed) {
-			os.Exit(v.issueExitCode)
-		}
+	validator, err := cue.NewValidator(v.format)
+	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	for _, arg := range args {
+		f, err := os.ReadFile(arg)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		verrs, err := validator.Validate(arg, f)
+		if err != nil && !errors.Is(err, cue.ErrValidationFailed) {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		if len(verrs) > 0 {
+			for _, e := range verrs {
+				fmt.Printf("%s\n", e.Message)
+				fmt.Printf("%s: %d:%d\n", e.Location.File, e.Location.Line, e.Location.Column)
+			}
+			os.Exit(v.issueExitCode)
+		}
+	}
+
 }
