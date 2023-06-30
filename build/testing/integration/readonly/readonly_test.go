@@ -2,6 +2,7 @@ package readonly_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,7 +103,7 @@ func TestReadOnly(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, flags.Flags, 51)
 
-			flag := flags.Flags[0]
+			flag := flags.Flags[1]
 			assert.Equal(t, namespace, flag.NamespaceKey)
 			assert.Equal(t, "flag_001", flag.Key)
 			assert.Equal(t, "FLAG_001", flag.Name)
@@ -421,12 +422,10 @@ func TestReadOnly(t *testing.T) {
 						EntityId:     "some-fixed-entity-id",
 						Context:      map[string]string{},
 					})
-					require.NoError(t, err)
+					msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace)
+					require.EqualError(t, err, msg)
 
-					assert.False(t, result.Match, "Evaluation should not have matched.")
-					assert.Equal(t, evaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, result.Reason)
-					assert.Empty(t, result.SegmentKey)
-					assert.Empty(t, result.VariantKey)
+					require.Nil(t, result)
 				})
 			})
 		})
