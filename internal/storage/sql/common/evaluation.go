@@ -161,7 +161,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	return distributions, nil
 }
 
-func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey string) ([]*storage.EvaluationRollout, error) {
+func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT r.id, r.namespace_key, r."type", r."rank", rp.percentage, rp.value, rss.segment_key, rss.rollout_segment_value, rss.match_type, rss.constraint_type, rss.constraint_property, rss.constraint_operator, rss.constraint_value
 		FROM rollouts r
@@ -172,9 +172,9 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, flagKey, namespaceKey
 			JOIN segments s ON (rs.segment_key = s."key")
 			JOIN constraints c ON (rs.segment_key = c.segment_key)
 		) rss ON (r.id = rss.rollout_id)
-		WHERE r.flag_key = $1 AND r.namespace_key = $2
+		WHERE r.namespace_key = $1 AND r.flag_key = $2
 		ORDER BY r."rank" ASC
-		`, flagKey, namespaceKey)
+		`, namespaceKey, flagKey)
 	if err != nil {
 		return nil, err
 	}

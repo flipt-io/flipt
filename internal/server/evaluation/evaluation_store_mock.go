@@ -33,7 +33,7 @@ func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ru
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
 }
 
-func (e *evaluationStoreMock) GetEvaluationRollouts(ctx context.Context, flagKey string, namespaceKey string) ([]*storage.EvaluationRollout, error) {
-	args := e.Called(ctx, flagKey, namespaceKey)
+func (e *evaluationStoreMock) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	args := e.Called(ctx, namespaceKey, flagKey)
 	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
 }

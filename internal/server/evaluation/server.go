@@ -15,14 +15,14 @@ type Storer interface {
 	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
 	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
-	GetEvaluationRollouts(ctx context.Context, flagKey string, namespaceKey string) ([]*storage.EvaluationRollout, error)
+	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error)
 }
 
 // Server serves the Flipt evaluate v2 gRPC Server.
 type Server struct {
 	logger    *zap.Logger
 	store     Storer
-	evaluator MultiVariateEvaluator
+	evaluator *Evaluator
 	rpcEvalution.UnimplementedEvaluationServiceServer
 }
 

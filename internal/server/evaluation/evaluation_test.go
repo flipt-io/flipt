@@ -7,11 +7,67 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcEvaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
+
+func TestBoolean_FlagNotFoundError(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
+
+	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	assert.EqualError(t, err, "test-flag not found")
+	assert.Equal(t, rpcEvaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, res.Reason)
+}
+
+func TestBoolean_NonBooleanFlagError(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	assert.EqualError(t, err, "flag type VARIANT_FLAG_TYPE invalid")
+	assert.Equal(t, rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON, res.Reason)
+}
 
 func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	var (
@@ -22,13 +78,14 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{}, nil)
-
 	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
 		NamespaceKey: "test-namespace",
 		Key:          "test-flag",
 		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{}, nil)
 
 	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
 		FlagKey:      flagKey,
@@ -54,7 +111,14 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -64,12 +128,6 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 				Value:      false,
 			},
 		},
-	}, nil)
-
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
 	}, nil)
 
 	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
@@ -96,9 +154,14 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -134,9 +197,14 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -190,9 +258,15 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(
+		&flipt.Flag{
+			NamespaceKey: "test-namespace",
+			Key:          "test-flag",
+			Enabled:      true,
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
@@ -243,9 +317,15 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(
+		&flipt.Flag{
+			NamespaceKey: "test-namespace",
+			Key:          "test-flag",
+			Enabled:      true,
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,

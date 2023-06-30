@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Evaluator is an implementation of the MultiVariateEvaluator.
+// Evaluator is an evaluator for legacy flag evaluations.
 type Evaluator struct {
 	logger *zap.Logger
 	store  Storer
@@ -32,11 +32,7 @@ func NewEvaluator(logger *zap.Logger, store Storer) *Evaluator {
 	}
 }
 
-// MultiVariateEvaluator is an abstraction for evaluating a flag against a set of rules for multi-variate flags.
-type MultiVariateEvaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
-}
-
+// Evaluate takes in a information for an evaluation request, and returns the appropriate response.
 func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	var (
 		startTime     = time.Now().UTC()
@@ -124,7 +120,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 
 		lastRank = rule.Rank
 
-		matched, err := doConstraintsMatch(e.logger, r.Context, rule.Constraints, rule.SegmentMatchType)
+		matched, err := e.matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
@@ -200,9 +196,9 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 	return resp, nil
 }
 
-// doConstraintsMatch is a utility function that will return if all or any constraints have matched for a segment depending
+// matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func doConstraintsMatch(logger *zap.Logger, evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
+func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
 	constraintMatches := 0
 
 	for _, c := range constraints {
@@ -260,17 +256,17 @@ func doConstraintsMatch(logger *zap.Logger, evalCtx map[string]string, constrain
 	switch segmentMatchType {
 	case flipt.MatchType_ALL_MATCH_TYPE:
 		if len(constraints) != constraintMatches {
-			logger.Debug("did not match ALL constraints")
+			e.logger.Debug("did not match ALL constraints")
 			matched = false
 		}
 
 	case flipt.MatchType_ANY_MATCH_TYPE:
 		if len(constraints) > 0 && constraintMatches == 0 {
-			logger.Debug("did not match ANY constraints")
+			e.logger.Debug("did not match ANY constraints")
 			matched = false
 		}
 	default:
-		logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
+		e.logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
 		matched = false
 	}
 

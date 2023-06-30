@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -10,12 +12,17 @@ import (
 
 var _ flipt.FliptServer = &Server{}
 
+// MultiVariateEvaluator houses the minimal contract for legacy evaluations.
+type MultiVariateEvaluator interface {
+	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
+}
+
 // Server serves the Flipt backend
 type Server struct {
 	logger *zap.Logger
 	store  storage.Store
 	flipt.UnimplementedFliptServer
-	evaluator evaluation.MultiVariateEvaluator
+	evaluator MultiVariateEvaluator
 }
 
 // New creates a new Server
