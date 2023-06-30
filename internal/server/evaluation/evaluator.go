@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -25,7 +24,7 @@ type EvaluationStorer interface {
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
 }
 
-// Evaluator is an implementation of the MultiVariateEvaluator.
+// Evaluator is responsible for legacy evaluations.
 type Evaluator struct {
 	logger *zap.Logger
 	store  EvaluationStorer
@@ -39,12 +38,7 @@ func NewEvaluator(logger *zap.Logger, store EvaluationStorer) *Evaluator {
 	}
 }
 
-// MultiVariateEvaluator is an abstraction for evaluating a flag against a set of rules for multi-variate flags.
-type MultiVariateEvaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
-}
-
-func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
+func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	var (
 		startTime     = time.Now().UTC()
 		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
@@ -89,18 +83,6 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 		RequestContext: r.Context,
 		FlagKey:        r.FlagKey,
 		NamespaceKey:   r.NamespaceKey,
-	}
-
-	flag, err := e.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
-	if err != nil {
-		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-
-		var errnf errs.ErrNotFound
-		if errors.As(err, &errnf) {
-			resp.Reason = flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
-		}
-
-		return resp, err
 	}
 
 	if !flag.Enabled {

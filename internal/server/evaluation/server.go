@@ -17,6 +17,11 @@ type Storer interface {
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
 }
 
+// MultiVariateEvaluator is an abstraction for evaluating a flag against a set of rules for multi-variate flags.
+type MultiVariateEvaluator interface {
+	Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
+}
+
 // Server serves the Flipt evaluate v2 gRPC Server.
 type Server struct {
 	logger    *zap.Logger

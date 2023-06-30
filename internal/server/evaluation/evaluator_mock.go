@@ -15,7 +15,7 @@ func (e *evaluatorMock) String() string {
 	return "mock"
 }
 
-func (e *evaluatorMock) Evaluate(ctx context.Context, er *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
-	args := e.Called(ctx, er)
+func (e *evaluatorMock) Evaluate(ctx context.Context, flag *flipt.Flag, er *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
+	args := e.Called(ctx, flag, er)
 	return args.Get(0).(*flipt.EvaluationResponse), args.Error(1)
 }

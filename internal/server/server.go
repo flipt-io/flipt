@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -9,6 +11,11 @@ import (
 )
 
 var _ flipt.FliptServer = &Server{}
+
+// MultiVariateEvaluator is an abstraction for evaluating a flag against a set of rules for multi-variate flags.
+type MultiVariateEvaluator interface {
+	Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
+}
 
 // Server serves the Flipt backend
 type Server struct {

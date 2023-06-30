@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 
 	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
@@ -20,20 +19,11 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 
 	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
 	if err != nil {
-		var errnf errs.ErrNotFound
-
-		if errors.As(err, &errnf) {
-			ver.Reason = rpcEvaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
-			return ver, err
-		}
-
-		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return ver, err
+		return nil, err
 	}
 
 	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
-		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return ver, errs.ErrInvalidf("flag type %s invalid", flipt.FlagType_name[int32(flag.Type)])
+		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
 	s.logger.Debug("variant", zap.Stringer("request", v))
@@ -41,7 +31,7 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 		v.NamespaceKey = storage.DefaultNamespace
 	}
 
-	resp, err := s.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
+	resp, err := s.evaluator.Evaluate(ctx, flag, &flipt.EvaluationRequest{
 		RequestId:    v.RequestId,
 		FlagKey:      v.FlagKey,
 		EntityId:     v.EntityId,
@@ -49,8 +39,7 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 		NamespaceKey: v.NamespaceKey,
 	})
 	if err != nil {
-		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return ver, err
+		return nil, err
 	}
 
 	spanAttrs := []attribute.KeyValue{

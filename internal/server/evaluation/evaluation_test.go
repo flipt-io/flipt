@@ -24,7 +24,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
 
-	res, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	v, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -33,8 +33,9 @@ func TestVariant_FlagNotFound(t *testing.T) {
 		},
 	})
 
+	require.Nil(t, v)
+
 	assert.EqualError(t, err, "test-flag not found")
-	assert.Equal(t, rpcEvaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, res.Reason)
 }
 
 func TestVariant_NonVariantFlag(t *testing.T) {
@@ -53,7 +54,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	res, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	v, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -62,8 +63,9 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		},
 	})
 
+	require.Nil(t, v)
+
 	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
-	assert.Equal(t, rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON, res.Reason)
 }
 
 func TestVariant_EvaluateFailure(t *testing.T) {
@@ -78,16 +80,17 @@ func TestVariant_EvaluateFailure(t *testing.T) {
 			store:     store,
 			evaluator: evaluator,
 		}
+		flag = &flipt.Flag{
+			NamespaceKey: namespaceKey,
+			Key:          flagKey,
+			Enabled:      true,
+			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		}
 	)
 
-	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
-		NamespaceKey: namespaceKey,
-		Key:          flagKey,
-		Enabled:      true,
-		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
-	}, nil)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(flag, nil)
 
-	evaluator.On("Evaluate", mock.Anything, &flipt.EvaluationRequest{
+	evaluator.On("Evaluate", mock.Anything, flag, &flipt.EvaluationRequest{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		EntityId:     "test-entity",
@@ -105,8 +108,9 @@ func TestVariant_EvaluateFailure(t *testing.T) {
 		},
 	})
 
+	require.Nil(t, v)
+
 	assert.EqualError(t, err, "some error")
-	assert.Equal(t, rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON, v.Reason)
 }
 
 func TestVariant_Success(t *testing.T) {
@@ -121,16 +125,17 @@ func TestVariant_Success(t *testing.T) {
 			store:     store,
 			evaluator: evaluator,
 		}
+		flag = &flipt.Flag{
+			NamespaceKey: namespaceKey,
+			Key:          flagKey,
+			Enabled:      true,
+			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		}
 	)
 
-	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
-		NamespaceKey: namespaceKey,
-		Key:          flagKey,
-		Enabled:      true,
-		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
-	}, nil)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(flag, nil)
 
-	evaluator.On("Evaluate", mock.Anything, &flipt.EvaluationRequest{
+	evaluator.On("Evaluate", mock.Anything, flag, &flipt.EvaluationRequest{
 		FlagKey:      flagKey,
 		NamespaceKey: namespaceKey,
 		EntityId:     "test-entity",
