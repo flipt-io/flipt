@@ -31,34 +31,38 @@ type Error struct {
 	Location Location `json:"location"`
 }
 
-type Validator struct {
+// Result is a collection of errors that occurred during validation.
+type Result struct {
+	Errors []Error `json:"errors"`
+}
+
+type FeaturesValidator struct {
 	Format string
 	cue    *cue.Context
 	v      cue.Value
 }
 
-func NewValidator(format string) (*Validator, error) {
+func NewFeaturesValidator(format string) (*FeaturesValidator, error) {
 	cctx := cuecontext.New()
 	v := cctx.CompileBytes(cueFile)
 	if v.Err() != nil {
 		return nil, v.Err()
 	}
 
-	return &Validator{
+	return &FeaturesValidator{
 		Format: format,
 		cue:    cctx,
 		v:      v,
 	}, nil
 }
 
-// Validate takes a slice of strings as filenames and validates them against
-// our cue definition of features.
-func (v Validator) Validate(file string, b []byte) ([]Error, error) {
-	var errs []Error
+// Validate validates a YAML file against our cue definition of features.
+func (v FeaturesValidator) Validate(file string, b []byte) (Result, error) {
+	var result Result
 
 	f, err := yaml.Extract("", b)
 	if err != nil {
-		return errs, err
+		return result, err
 	}
 
 	yv := v.cue.BuildFile(f, cue.Scope(v.v))
@@ -69,7 +73,7 @@ func (v Validator) Validate(file string, b []byte) ([]Error, error) {
 		pos := cueerrors.Positions(e)
 		p := pos[len(pos)-1]
 
-		errs = append(errs, Error{
+		result.Errors = append(result.Errors, Error{
 			Message: e.Error(),
 			Location: Location{
 				File:   file,
@@ -79,5 +83,9 @@ func (v Validator) Validate(file string, b []byte) ([]Error, error) {
 		})
 	}
 
-	return errs, ErrValidationFailed
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
+
+	return result, nil
 }

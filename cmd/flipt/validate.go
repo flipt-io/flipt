@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cue"
@@ -43,7 +45,7 @@ func newValidateCommand() *cobra.Command {
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) {
-	validator, err := cue.NewValidator(v.format)
+	validator, err := cue.NewFeaturesValidator(v.format)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -56,19 +58,35 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 
-		verrs, err := validator.Validate(arg, f)
+		res, err := validator.Validate(arg, f)
 		if err != nil && !errors.Is(err, cue.ErrValidationFailed) {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		if len(verrs) > 0 {
-			for _, e := range verrs {
-				fmt.Printf("%s\n", e.Message)
-				fmt.Printf("%s: %d:%d\n", e.Location.File, e.Location.Line, e.Location.Column)
+		if len(res.Errors) > 0 {
+			if v.format == jsonFormat {
+				_ = json.NewEncoder(os.Stdout).Encode(res)
+				os.Exit(v.issueExitCode)
+				return
 			}
+
+			var sb strings.Builder
+			sb.WriteString("❌ Validation failure!\n")
+
+			for _, e := range res.Errors {
+				msg := fmt.Sprintf(`
+- Message  : %s
+	File     : %s
+	Line     : %d
+	Column   : %d
+`, e.Message, e.Location.File, e.Location.Line, e.Location.Column)
+
+				sb.WriteString(msg)
+			}
+
+			fmt.Println(sb.String())
 			os.Exit(v.issueExitCode)
 		}
 	}
-
 }

@@ -14,12 +14,12 @@ flags:
     rank: 1
     distributions:
     - variant: fromFlipt
-      rollout: 110
+      rollout: 100
   - segment: all-users
     rank: 2
     distributions:
     - variant: fromFlipt2
-      rollout: 100
+      rollout: 110
 segments:
 - key: all-users
   name: All Users
