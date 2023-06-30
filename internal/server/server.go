@@ -12,9 +12,9 @@ import (
 
 var _ flipt.FliptServer = &Server{}
 
-// MultiVariateEvaluator houses the minimal contract for legacy evaluations.
+// MultiVariateEvaluator is an abstraction for evaluating a flag against a set of rules for multi-variate flags.
 type MultiVariateEvaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
+	Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
 }
 
 // Server serves the Flipt backend

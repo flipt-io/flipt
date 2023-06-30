@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"errors"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -32,8 +31,15 @@ func NewEvaluator(logger *zap.Logger, store Storer) *Evaluator {
 	}
 }
 
-// Evaluate takes in a information for an evaluation request, and returns the appropriate response.
-func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
+func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
+	// Flag should be of variant type by default. However, for maximum backwards compatibility
+	// on this layer, we will check against the integer value of the flag type.
+	if int(flag.Type) != 0 || flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
+		resp = &flipt.EvaluationResponse{}
+		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+		return resp, errs.ErrInvalidf("flag type %s invalid", flag.Type)
+	}
+
 	var (
 		startTime     = time.Now().UTC()
 		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
@@ -78,18 +84,6 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 		RequestContext: r.Context,
 		FlagKey:        r.FlagKey,
 		NamespaceKey:   r.NamespaceKey,
-	}
-
-	flag, err := e.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
-	if err != nil {
-		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-
-		var errnf errs.ErrNotFound
-		if errors.As(err, &errnf) {
-			resp.Reason = flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
-		}
-
-		return resp, err
 	}
 
 	if !flag.Enabled {

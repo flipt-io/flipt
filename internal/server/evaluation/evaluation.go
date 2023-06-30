@@ -19,30 +19,17 @@ import (
 func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
 	var ver = &rpcEvaluation.VariantEvaluationResponse{}
 
+	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
+	if err != nil {
+		return nil, err
+	}
+
 	s.logger.Debug("variant", zap.Stringer("request", v))
 	if v.NamespaceKey == "" {
 		v.NamespaceKey = storage.DefaultNamespace
 	}
 
-	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
-	if err != nil {
-		var errnf errs.ErrNotFound
-
-		if errors.As(err, &errnf) {
-			ver.Reason = rpcEvaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
-			return ver, err
-		}
-
-		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return ver, err
-	}
-
-	if flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
-		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return ver, err
-	}
-
-	resp, err := s.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
+	resp, err := s.evaluator.Evaluate(ctx, flag, &flipt.EvaluationRequest{
 		RequestId:    v.RequestId,
 		FlagKey:      v.FlagKey,
 		EntityId:     v.EntityId,
@@ -50,8 +37,7 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 		NamespaceKey: v.NamespaceKey,
 	})
 	if err != nil {
-		ver.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return ver, err
+		return nil, err
 	}
 
 	spanAttrs := []attribute.KeyValue{
