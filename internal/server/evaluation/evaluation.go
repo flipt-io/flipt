@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"hash/crc32"
 
 	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
@@ -71,8 +70,6 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 
 // Boolean evaluates a request for a boolean flag and entity.
 func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.BooleanEvaluationResponse, error) {
-	resp := &rpcEvaluation.BooleanEvaluationResponse{}
-
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		return nil, err
@@ -87,53 +84,10 @@ func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest
 		return nil, err
 	}
 
-	var lastRank int32
-
-	for _, rollout := range rollouts {
-		if rollout.Rank < lastRank {
-			return nil, errs.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
-		}
-
-		lastRank = rollout.Rank
-
-		if rollout.Percentage != nil {
-			// consistent hashing based on the entity id and flag key.
-			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
-
-			normalizedValue := float32(int(hash) % 100)
-
-			// if this case does not hold, fall through to the next rollout.
-			if normalizedValue < rollout.Percentage.Percentage {
-				resp.Value = rollout.Percentage.Value
-				resp.Reason = rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON
-				s.logger.Debug("percentage based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "percentage"))
-
-				return resp, nil
-			}
-		} else if rollout.Segment != nil {
-			matched, err := s.evaluator.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
-			if err != nil {
-				return nil, err
-			}
-
-			// if we don't match the segment, fall through to the next rollout.
-			if !matched {
-				continue
-			}
-
-			resp.Value = rollout.Segment.Value
-			resp.Reason = rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON
-
-			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.SegmentKey))
-
-			return resp, nil
-		}
+	resp, err := s.evaluator.booleanMatch(r, flag.Enabled, rollouts)
+	if err != nil {
+		return nil, err
 	}
-
-	// If we have exhausted all rollouts and we still don't have a match, return the default value.
-	resp.Reason = rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-	resp.Value = flag.Enabled
-	s.logger.Debug("default rollout matched", zap.Bool("value", flag.Enabled))
 
 	return resp, nil
 }
