@@ -1081,10 +1081,10 @@ flags:
       rollout: 50
     - variant: variant_002
       rollout: 50
-- ey: flag_004
+- key: flag_004
   name: FLAG_004
   description: Some Description
-  nabled: true
+  enabled: true
   variants:
   - key: variant_001
     name: VARIANT_001
@@ -1443,7 +1443,7 @@ flags:
       rollout: 50
 - key: flag_005
   name: FLAG_005
-  escription: Some Description
+  description: Some Description
   enabled: true
   variants:
   - key: variant_001
