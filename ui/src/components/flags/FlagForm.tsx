@@ -4,15 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Loading from '~/components//Loading';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
+import Select from '~/components/forms/Select';
 import Toggle from '~/components/forms/Toggle';
+import Loading from '~/components/Loading';
 import { createFlag, updateFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { IFlag, IFlagBase } from '~/types/Flag';
+import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
 import { stringAsKey } from '~/utils/helpers';
 
 type FlagFormProps = {
@@ -20,6 +21,16 @@ type FlagFormProps = {
   flagChanged?: () => void;
 };
 
+const flagTypes = [
+  {
+    id: 'VARIANT_FLAG_TYPE',
+    name: FlagType.VARIANT_FLAG_TYPE
+  },
+  {
+    id: 'BOOLEAN_FLAG_TYPE',
+    name: FlagType.BOOLEAN_FLAG_TYPE
+  }
+];
 export default function FlagForm(props: FlagFormProps) {
   const { flag, flagChanged } = props;
 
@@ -44,6 +55,7 @@ export default function FlagForm(props: FlagFormProps) {
     key: flag?.key || '',
     name: flag?.name || '',
     description: flag?.description || '',
+    type: flag?.type || FlagType.VARIANT_FLAG_TYPE,
     enabled: flag?.enabled || false
   };
 
@@ -140,6 +152,25 @@ export default function FlagForm(props: FlagFormProps) {
                       const formatted = stringAsKey(e.target.value);
                       formik.setFieldValue('key', formatted);
                     }}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label
+                    htmlFor="type"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Type
+                  </label>
+                  <Select
+                    className="mt-1"
+                    name="type"
+                    id="type"
+                    // disabled={!isNew}
+                    value={flag?.type ? flag.type : FlagType.VARIANT_FLAG_TYPE}
+                    options={flagTypes.map((type) => ({
+                      label: type.name,
+                      value: type.id
+                    }))}
                   />
                 </div>
                 <div className="col-span-3">

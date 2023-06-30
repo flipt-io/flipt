@@ -1,8 +1,14 @@
 import { IPageable } from './Pageable';
 import { IVariant } from './Variant';
 
+export enum FlagType {
+  VARIANT_FLAG_TYPE = 'variant',
+  BOOLEAN_FLAG_TYPE = 'boolean'
+}
+
 export interface IFlagBase {
   key: string;
+  type: FlagType;
   name: string;
   enabled: boolean;
   description: string;
