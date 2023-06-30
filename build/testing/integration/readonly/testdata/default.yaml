@@ -1,5 +1,9 @@
 version: "1.0"
 flags:
+- key: flag_disabled
+  name: FLAG_DISABLED
+  description: Disabled Flag Description
+  enabled: false
 - key: flag_001
   name: FLAG_001
   description: Some Description

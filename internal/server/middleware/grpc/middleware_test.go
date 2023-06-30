@@ -21,9 +21,11 @@ import (
 	"github.com/stretchr/testify/require"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type validatable struct {
@@ -173,57 +175,113 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 }
 
 func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
-	var (
-		req = &flipt.EvaluationRequest{
-			FlagKey: "foo",
-		}
-
-		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
-			return &flipt.EvaluationResponse{
-				FlagKey: "foo",
-			}, nil
-		}
-
-		info = &grpc.UnaryServerInfo{
-			FullMethod: "FakeMethod",
-		}
-	)
-
-	got, err := EvaluationUnaryInterceptor(context.Background(), req, info, handler)
-	require.NoError(t, err)
-
-	assert.NotNil(t, got)
-
-	resp, ok := got.(*flipt.EvaluationResponse)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
-
-	assert.Equal(t, "foo", resp.FlagKey)
-	// check that the requestID was created and set
-	assert.NotEmpty(t, resp.RequestId)
-	assert.NotZero(t, resp.Timestamp)
-	assert.NotZero(t, resp.RequestDurationMillis)
-
-	req = &flipt.EvaluationRequest{
-		FlagKey:   "foo",
-		RequestId: "bar",
+	type request interface {
+		GetRequestId() string
 	}
 
-	got, err = EvaluationUnaryInterceptor(context.Background(), req, info, handler)
-	require.NoError(t, err)
+	type response interface {
+		request
+		GetTimestamp() *timestamppb.Timestamp
+		GetRequestDurationMillis() float64
+	}
 
-	assert.NotNil(t, got)
+	for _, test := range []struct {
+		name      string
+		requestID string
+		req       request
+		resp      response
+	}{
+		{
+			name:      "flipt.EvaluationRequest without request ID",
+			requestID: "",
+			req: &flipt.EvaluationRequest{
+				FlagKey: "foo",
+			},
+			resp: &flipt.EvaluationResponse{
+				FlagKey: "foo",
+			},
+		},
+		{
+			name:      "flipt.EvaluationRequest with request ID",
+			requestID: "bar",
+			req: &flipt.EvaluationRequest{
+				FlagKey:   "foo",
+				RequestId: "bar",
+			},
+			resp: &flipt.EvaluationResponse{
+				FlagKey: "foo",
+			},
+		},
+		{
+			name:      "Variant evaluation.EvaluationRequest without request ID",
+			requestID: "",
+			req: &evaluation.EvaluationRequest{
+				FlagKey: "foo",
+			},
+			resp: &evaluation.EvaluationResponse{
+				Response: &evaluation.EvaluationResponse_VariantResponse{
+					VariantResponse: &evaluation.VariantEvaluationResponse{},
+				},
+			},
+		},
+		{
+			name:      "Boolean evaluation.EvaluationRequest with request ID",
+			requestID: "baz",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:   "foo",
+				RequestId: "baz",
+			},
+			resp: &evaluation.EvaluationResponse{
+				Response: &evaluation.EvaluationResponse_BooleanResponse{
+					BooleanResponse: &evaluation.BooleanEvaluationResponse{},
+				},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var (
+				handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+					// ensure request has ID once it reaches the handler
+					req, ok := r.(request)
+					require.True(t, ok)
 
-	resp, ok = got.(*flipt.EvaluationResponse)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
+					if test.requestID == "" {
+						assert.NotEmpty(t, req.GetRequestId())
+						return test.resp, nil
+					}
 
-	assert.Equal(t, "foo", resp.FlagKey)
-	// check that the requestID was propagated
-	assert.NotEmpty(t, resp.RequestId)
-	assert.Equal(t, "bar", resp.RequestId)
-	assert.NotZero(t, resp.Timestamp)
-	assert.NotZero(t, resp.RequestDurationMillis)
+					assert.Equal(t, test.requestID, req.GetRequestId())
+
+					return test.resp, nil
+				}
+
+				info = &grpc.UnaryServerInfo{
+					FullMethod: "FakeMethod",
+				}
+			)
+
+			got, err := EvaluationUnaryInterceptor(context.Background(), test.req, info, handler)
+			require.NoError(t, err)
+
+			assert.NotNil(t, got)
+
+			resp, ok := got.(response)
+			assert.True(t, ok)
+			assert.NotNil(t, resp)
+
+			// check that the requestID is either non-empty
+			// or explicitly what was provided for the test
+			if test.requestID == "" {
+				assert.NotEmpty(t, resp.GetRequestId())
+			} else {
+				assert.Equal(t, test.requestID, resp.GetRequestId())
+
+			}
+
+			assert.NotZero(t, resp.GetTimestamp())
+			assert.NotZero(t, resp.GetRequestDurationMillis())
+		})
+	}
 }
 
 func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {

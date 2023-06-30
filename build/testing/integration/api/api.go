@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
 )
 
@@ -107,6 +108,22 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "This is a test flag", created.Description)
 		assert.True(t, created.Enabled, "Flag should be enabled")
 
+		t.Log("Create a new flag in a disabled state.")
+
+		disabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+			NamespaceKey: namespace,
+			Key:          "disabled",
+			Name:         "Disabled",
+			Description:  "This is a disabled test flag",
+			Enabled:      false,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "disabled", disabled.Key)
+		assert.Equal(t, "Disabled", disabled.Name)
+		assert.Equal(t, "This is a disabled test flag", disabled.Description)
+		assert.False(t, disabled.Enabled, "Flag should be disabled")
+
 		t.Log("Retrieve flag with key \"test\".")
 
 		flag, err := client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
@@ -146,10 +163,14 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Len(t, flags.Flags, 1)
+		assert.Len(t, flags.Flags, 2)
 		assert.Equal(t, updated.Key, flags.Flags[0].Key)
 		assert.Equal(t, updated.Name, flags.Flags[0].Name)
 		assert.Equal(t, updated.Description, flags.Flags[0].Description)
+
+		assert.Equal(t, disabled.Key, flags.Flags[1].Key)
+		assert.Equal(t, disabled.Name, flags.Flags[1].Name)
+		assert.Equal(t, disabled.Description, flags.Flags[1].Description)
 
 		for _, key := range []string{"one", "two"} {
 			t.Logf("Create variant with key %q.", key)
@@ -473,47 +494,96 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, float32(100), distribution.Rollout)
 	})
 
-	t.Run("Evaluation", func(t *testing.T) {
-		t.Log(`Successful match.`)
+	t.Run("Legacy", func(t *testing.T) {
+		t.Run("Evaluation", func(t *testing.T) {
+			t.Log(`Successful match.`)
 
-		result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-			NamespaceKey: namespace,
-			FlagKey:      "test",
-			EntityId:     uuid.Must(uuid.NewV4()).String(),
-			Context: map[string]string{
-				"foo":  "baz",
-				"fizz": "bozz",
-			},
+			result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				EntityId:     uuid.Must(uuid.NewV4()).String(),
+				Context: map[string]string{
+					"foo":  "baz",
+					"fizz": "bozz",
+				},
+			})
+			require.NoError(t, err)
+
+			require.True(t, result.Match, "Evaluation should have matched.")
+			assert.Equal(t, "everyone", result.SegmentKey)
+			assert.Equal(t, "one", result.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+
+			t.Log(`Unsuccessful match.`)
+
+			result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				EntityId:     uuid.Must(uuid.NewV4()).String(),
+				Context: map[string]string{
+					"fizz": "buzz",
+				},
+			})
+			require.NoError(t, err)
+
+			assert.False(t, result.Match, "Evaluation should not have matched.")
 		})
-		require.NoError(t, err)
 
-		require.True(t, result.Match, "Evaluation should have matched.")
-		assert.Equal(t, "everyone", result.SegmentKey)
-		assert.Equal(t, "one", result.Value)
-		assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+		t.Run("Batch Evaluation", func(t *testing.T) {
+			t.Log(`Successful match.`)
 
-		t.Log(`Unsuccessful match.`)
+			results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
+				Requests: []*flipt.EvaluationRequest{
+					{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     uuid.Must(uuid.NewV4()).String(),
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					},
+				},
+			})
+			require.NoError(t, err)
 
-		result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
-			NamespaceKey: namespace,
-			FlagKey:      "test",
-			EntityId:     uuid.Must(uuid.NewV4()).String(),
-			Context: map[string]string{
-				"fizz": "buzz",
-			},
+			require.Len(t, results.Responses, 1)
+			result := results.Responses[0]
+
+			require.True(t, result.Match, "Evaluation should have matched.")
+			assert.Equal(t, "everyone", result.SegmentKey)
+			assert.Equal(t, "one", result.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+
+			t.Log(`Unsuccessful match.`)
+
+			results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
+				Requests: []*flipt.EvaluationRequest{
+					{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     uuid.Must(uuid.NewV4()).String(),
+						Context: map[string]string{
+							"fizz": "buzz",
+						},
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			require.Len(t, results.Responses, 1)
+			result = results.Responses[0]
+
+			assert.False(t, result.Match, "Evaluation should not have matched.")
 		})
-		require.NoError(t, err)
-
-		assert.False(t, result.Match, "Evaluation should not have matched.")
 	})
 
-	t.Run("Batch Evaluation", func(t *testing.T) {
-		t.Log(`Successful match.`)
-
-		results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-			NamespaceKey: namespace,
-			Requests: []*flipt.EvaluationRequest{
-				{
+	t.Run("Evaluation", func(t *testing.T) {
+		t.Run("Variant", func(t *testing.T) {
+			t.Run("successful match", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 					NamespaceKey: namespace,
 					FlagKey:      "test",
 					EntityId:     uuid.Must(uuid.NewV4()).String(),
@@ -521,40 +591,60 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 						"foo":  "baz",
 						"fizz": "bozz",
 					},
-				},
-			},
-		})
-		require.NoError(t, err)
+				})
+				require.NoError(t, err)
 
-		require.Len(t, results.Responses, 1)
-		result := results.Responses[0]
+				require.True(t, result.Match, "Evaluation should have matched.")
+				assert.Equal(t, "everyone", result.SegmentKey)
+				assert.Equal(t, "one", result.VariantKey)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+			})
 
-		require.True(t, result.Match, "Evaluation should have matched.")
-		assert.Equal(t, "everyone", result.SegmentKey)
-		assert.Equal(t, "one", result.Value)
-		assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-
-		t.Log(`Unsuccessful match.`)
-
-		results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-			NamespaceKey: namespace,
-			Requests: []*flipt.EvaluationRequest{
-				{
+			t.Run("no match", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 					NamespaceKey: namespace,
 					FlagKey:      "test",
 					EntityId:     uuid.Must(uuid.NewV4()).String(),
 					Context: map[string]string{
 						"fizz": "buzz",
 					},
-				},
-			},
+				})
+				require.NoError(t, err)
+
+				assert.False(t, result.Match, "Evaluation should not have matched.")
+				assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, result.Reason)
+				assert.Empty(t, result.SegmentKey)
+				assert.Empty(t, result.VariantKey)
+			})
+
+			t.Run("flag disabled", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "disabled",
+					EntityId:     uuid.Must(uuid.NewV4()).String(),
+					Context:      map[string]string{},
+				})
+				require.NoError(t, err)
+
+				assert.False(t, result.Match, "Evaluation should not have matched.")
+				assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
+				assert.Empty(t, result.SegmentKey)
+				assert.Empty(t, result.VariantKey)
+			})
+
+			t.Run("flag not found", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "unknown_flag",
+					EntityId:     uuid.Must(uuid.NewV4()).String(),
+					Context:      map[string]string{},
+				})
+
+				msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace)
+				require.EqualError(t, err, msg)
+				require.Nil(t, result)
+			})
 		})
-		require.NoError(t, err)
-
-		require.Len(t, results.Responses, 1)
-		result = results.Responses[0]
-
-		assert.False(t, result.Match, "Evaluation should not have matched.")
 	})
 
 	t.Run("Delete", func(t *testing.T) {
@@ -587,6 +677,12 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
 			NamespaceKey: namespace,
 			Key:          "test",
+		})
+		require.NoError(t, err)
+
+		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+			NamespaceKey: namespace,
+			Key:          "disabled",
 		})
 		require.NoError(t, err)
 
