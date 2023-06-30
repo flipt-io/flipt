@@ -45,7 +45,7 @@ func newValidateCommand() *cobra.Command {
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) {
-	validator, err := cue.NewFeaturesValidator(v.format)
+	validator, err := cue.NewFeaturesValidator()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

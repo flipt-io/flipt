@@ -37,12 +37,11 @@ type Result struct {
 }
 
 type FeaturesValidator struct {
-	Format string
-	cue    *cue.Context
-	v      cue.Value
+	cue *cue.Context
+	v   cue.Value
 }
 
-func NewFeaturesValidator(format string) (*FeaturesValidator, error) {
+func NewFeaturesValidator() (*FeaturesValidator, error) {
 	cctx := cuecontext.New()
 	v := cctx.CompileBytes(cueFile)
 	if v.Err() != nil {
@@ -50,9 +49,8 @@ func NewFeaturesValidator(format string) (*FeaturesValidator, error) {
 	}
 
 	return &FeaturesValidator{
-		Format: format,
-		cue:    cctx,
-		v:      v,
+		cue: cctx,
+		v:   v,
 	}, nil
 }
 
