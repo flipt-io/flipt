@@ -23,6 +23,10 @@ const (
 )
 
 func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
+	return getRollout(ctx, s.builder, namespaceKey, id)
+}
+
+func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceKey, id string) (*flipt.Rollout, error) {
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
@@ -33,7 +37,7 @@ func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt
 
 		rollout = &flipt.Rollout{}
 
-		err = s.builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", description, created_at, updated_at").
+		err = builder.Select("id, namespace_key, flag_key, \"type\", \"rank\", description, created_at, updated_at").
 			From(tableRollouts).
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
 			QueryRowContext(ctx).
@@ -65,7 +69,7 @@ func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt
 			Segment: &flipt.RolloutSegment{},
 		}
 
-		if err := s.builder.Select("segment_key, \"value\"").
+		if err := builder.Select("segment_key, \"value\"").
 			From(tableRolloutSegments).
 			Where(sq.And{sq.Eq{"rollout_id": rollout.Id}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
 			Limit(1).
@@ -82,7 +86,7 @@ func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt
 			Percentage: &flipt.RolloutPercentage{},
 		}
 
-		if err := s.builder.Select("percentage, \"value\"").
+		if err := builder.Select("percentage, \"value\"").
 			From(tableRolloutPercentages).
 			Where(sq.And{sq.Eq{"rollout_id": rollout.Id}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
 			Limit(1).
@@ -400,12 +404,28 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	return rollout, tx.Commit()
 }
 
-func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
+func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (_ *flipt.Rollout, err error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
+	if r.Id == "" {
+		return nil, errs.ErrInvalid("rollout ID not supplied")
+	}
+
 	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	// get current state for rollout
+	rollout, err := getRollout(ctx, s.builder.RunWith(tx), r.NamespaceKey, r.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -420,23 +440,25 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
 	if count != 1 {
-		_ = tx.Rollback()
 		return nil, errs.ErrNotFoundf(`rollout "%s/%s"`, r.NamespaceKey, r.Id)
 	}
 
-	switch r.GetType() {
-	case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
+	switch r.Rule.(type) {
+	case *flipt.UpdateRolloutRequest_Segment:
+		// enforce that rollout type is consistent with the DB
+		if err := ensureRolloutType(rollout, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE); err != nil {
+			return nil, err
+		}
+
 		var segmentRule = r.GetSegment()
 
 		if _, err := s.builder.Update(tableRolloutSegments).
@@ -444,10 +466,14 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			Set("segment_key", segmentRule.SegmentKey).
 			Set("value", segmentRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
-			_ = tx.Rollback()
 			return nil, err
 		}
-	case flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE:
+	case *flipt.UpdateRolloutRequest_Percentage:
+		// enforce that rollout type is consistent with the DB
+		if err := ensureRolloutType(rollout, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE); err != nil {
+			return nil, err
+		}
+
 		var percentageRule = r.GetPercentage()
 
 		if _, err := s.builder.Update(tableRolloutPercentages).
@@ -455,19 +481,30 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			Set("percentage", percentageRule.Percentage).
 			Set("value", percentageRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
-			_ = tx.Rollback()
 			return nil, err
 		}
 	default:
-		_ = tx.Rollback()
 		return nil, errs.InvalidFieldError("rule", "invalid rollout rule type")
 	}
 
-	if err := tx.Commit(); err != nil {
+	rollout, err = getRollout(ctx, s.builder.RunWith(tx), r.NamespaceKey, r.Id)
+	if err != nil {
 		return nil, err
 	}
 
-	return s.GetRollout(ctx, r.NamespaceKey, r.Id)
+	return rollout, tx.Commit()
+}
+
+func ensureRolloutType(rollout *flipt.Rollout, typ flipt.RolloutType) error {
+	if rollout.Type == typ {
+		return nil
+	}
+
+	return errs.ErrInvalidf(
+		"cannot change type of rollout: have %q attempted %q",
+		rollout.Type,
+		typ,
+	)
 }
 
 func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {

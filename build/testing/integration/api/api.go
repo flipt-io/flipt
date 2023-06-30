@@ -558,12 +558,12 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		rolloutPercentage, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 			NamespaceKey: namespace,
 			FlagKey:      "boolean_disabled",
-			Description:  "50% enabled",
+			Description:  "50% disabled",
 			Rank:         2,
 			Rule: &flipt.CreateRolloutRequest_Percentage{
 				Percentage: &flipt.RolloutPercentage{
 					Percentage: 50,
-					Value:      true,
+					Value:      false,
 				},
 			},
 		})
@@ -571,9 +571,10 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		assert.Equal(t, namespace, rolloutPercentage.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", rolloutPercentage.FlagKey)
+		assert.Equal(t, "50% disabled", rolloutPercentage.Description)
 		assert.Equal(t, int32(2), rolloutPercentage.Rank)
 		assert.Equal(t, float32(50.0), rolloutPercentage.Rule.(*flipt.Rollout_Percentage).Percentage.Percentage)
-		assert.Equal(t, true, rolloutPercentage.Rule.(*flipt.Rollout_Percentage).Percentage.Value)
+		assert.Equal(t, false, rolloutPercentage.Rule.(*flipt.Rollout_Percentage).Percentage.Value)
 
 		rollouts, err := client.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
 			NamespaceKey: namespace,
@@ -585,6 +586,44 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			rolloutSegment,
 			rolloutPercentage,
 		}, rollouts.Rules, protocmp.Transform()))
+
+		updatedRollout, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Id:           rolloutPercentage.Id,
+			Description:  "50% enabled",
+			Rule: &flipt.UpdateRolloutRequest_Percentage{
+				Percentage: &flipt.RolloutPercentage{
+					Percentage: 50,
+					Value:      true,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, updatedRollout.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", updatedRollout.FlagKey)
+		assert.Equal(t, "50% enabled", updatedRollout.Description)
+		assert.Equal(t, int32(2), updatedRollout.Rank)
+		assert.Equal(t, float32(50.0), updatedRollout.Rule.(*flipt.Rollout_Percentage).Percentage.Percentage)
+		assert.Equal(t, true, updatedRollout.Rule.(*flipt.Rollout_Percentage).Percentage.Value)
+
+		t.Run("Cannot change rollout type", func(t *testing.T) {
+			_, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "boolean_disabled",
+				Id:           rolloutPercentage.Id,
+				Description:  "50% enabled",
+				Rule: &flipt.UpdateRolloutRequest_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentKey: "everyone",
+						Value:      true,
+					},
+				},
+			})
+
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = cannot change type of rollout: have \"PERCENTAGE_ROLLOUT_TYPE\" attempted \"SEGMENT_ROLLOUT_TYPE\"")
+		})
 	})
 
 	t.Run("Legacy", func(t *testing.T) {
