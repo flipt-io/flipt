@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cue"
@@ -66,26 +65,26 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 
 		if len(res.Errors) > 0 {
 			if v.format == jsonFormat {
-				_ = json.NewEncoder(os.Stdout).Encode(res)
+				if err := json.NewEncoder(os.Stdout).Encode(res); err != nil {
+					fmt.Println(err)
+					os.Exit(1)
+				}
 				os.Exit(v.issueExitCode)
 				return
 			}
 
-			var sb strings.Builder
-			sb.WriteString("❌ Validation failure!\n")
+			fmt.Println("❌ Validation failure!")
 
 			for _, e := range res.Errors {
-				msg := fmt.Sprintf(`
+				fmt.Printf(
+					`
 - Message  : %s
-	File     : %s
-	Line     : %d
-	Column   : %d
+  File     : %s
+  Line     : %d
+  Column   : %d
 `, e.Message, e.Location.File, e.Location.Line, e.Location.Column)
-
-				sb.WriteString(msg)
 			}
 
-			fmt.Println(sb.String())
 			os.Exit(v.issueExitCode)
 		}
 	}
