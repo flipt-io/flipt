@@ -86,7 +86,7 @@ Flipt supports use cases such as:
 - Powerful REST API with native [SDKs](#rest-client-libraries) for easy integration
 - Modern, mobile-friendly 📱 UI and debug console
 - Dark mode 🌙
-- Supports multiple databases (Postgres, MySQL, SQLite, CockroachDB)
+- Supports multiple databases: Postgres, MySQL, SQLite, CockroachDB
 - Import and export to allow storing your data as code
 - Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box
