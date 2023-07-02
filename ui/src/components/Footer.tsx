@@ -78,7 +78,7 @@ export default function Footer() {
             <span className="hidden sm:inline">
               <a
                 target="_blank"
-                rel="noopener"
+                rel="noreferrer"
                 href="https://features.flipt.io"
                 className="text-violet-500"
               >
