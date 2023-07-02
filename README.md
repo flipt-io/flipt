@@ -8,9 +8,9 @@
 
 <hr />
 
-<p align="center">
+<div align="center">
     <img src=".github/images/flags.png" alt="Flipt Dashboard" width=600 />
-</p>
+</div>
 
 <div align="center">
     <a href="https://github.com/flipt-io/flipt/releases">
@@ -116,11 +116,17 @@ Flipt supports use cases such as:
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
 </p>
 
-<br clear="both"/>
-
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
+
+<br clear="both"/>
+
+<div align="center">
+    <a href="https://github.com/flipt-io/labs"><img src=".github/images/labs.png" alt="Flipt Labs" width=960 /></a>
+</div>
+
+<br clear="both"/>
 
 ### REST API
 
