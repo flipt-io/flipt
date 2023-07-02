@@ -8,9 +8,9 @@
 
 <hr />
 
-<div align="center">
+<p align="center">
     <img src=".github/images/flags.png" alt="Flipt Dashboard" width=600 />
-</div>
+</p>
 
 <div align="center">
     <a href="https://github.com/flipt-io/flipt/releases">
@@ -122,9 +122,9 @@ Check out the [integration documentation](https://flipt.io/docs/integration/) fo
 
 <br clear="both"/>
 
-<div align="center">
+<p align="center">
     <a href="https://github.com/flipt-io/labs"><img src=".github/images/labs.png" alt="Flipt Labs" width=960 /></a>
-</div>
+</p>
 
 <br clear="both"/>
 
