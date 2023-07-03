@@ -21,6 +21,14 @@ Before starting, make sure you have the following installed:
 1. Run `mage` to build the binary with embedded assets.
 1. Run `mage -l` to see a full list of possible commands.
 
+## Conventional Commits
+
+Flipt uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for commit messages. This allows us to automatically generate changelogs and releases. To help with this, we use [pre-commit](https://pre-commit.com/) to automatically lint commit messages. To install pre-commit, run:
+
+`pip install pre-commit` or `brew install pre-commit` (if you're on a Mac)
+
+Then run `pre-commit install` to install the git hook.
+
 ## Go
 
 Flipt is built with Go 1.20+.
@@ -35,7 +43,13 @@ A sample configuration for running and developing against Flipt can be found at 
 
 `./bin/flipt [--config ./config/local.yml`]
 
-To prevent providing the config via config flag every time, you have the option of writing configuration at the location: `{{ USER_CONFIG_DIR }}/flipt/config.yml`. The flipt binary will check in that location if a `--config` override is not provided, so you can invoke the binary as such in this scenario:
+To prevent providing the config via config flag every time, you have the option of writing configuration at the location:
+
+```shell
+{{ USER_CONFIG_DIR }}/flipt/config.yml
+```
+
+The flipt binary will check in that location if a `--config` override is not provided, so you can just invoke the binary:
 
 `./bin/flipt`
 
