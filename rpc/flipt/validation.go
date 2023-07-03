@@ -518,6 +518,50 @@ func (req *UpdateNamespaceRequest) Validate() error {
 	return nil
 }
 
+func (req *CreateRolloutRequest) Validate() error {
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	return nil
+}
+
+func (req *UpdateRolloutRequest) Validate() error {
+	if req.Id == "" {
+		return errors.EmptyFieldError("id")
+	}
+
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	return nil
+}
+
+func (req *DeleteRolloutRequest) Validate() error {
+	if req.Id == "" {
+		return errors.EmptyFieldError("id")
+	}
+
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	return nil
+}
+
+func (req *OrderRolloutsRequest) Validate() error {
+	if req.FlagKey == "" {
+		return errors.EmptyFieldError("flagKey")
+	}
+
+	if len(req.RolloutIds) < 2 {
+		return errors.InvalidFieldError("rolloutIds", "must contain atleast 2 elements")
+	}
+
+	return nil
+}
+
 func tryParseDateTime(v string) (string, error) {
 	if d, err := time.Parse(time.RFC3339, v); err == nil {
 		return d.UTC().Format(time.RFC3339), nil
