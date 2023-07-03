@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	ferrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/errors"
 	"go.uber.org/zap"
 )
 
@@ -16,13 +16,13 @@ func decodePageToken(logger *zap.Logger, pageToken string) (PageToken, error) {
 	tok, err := base64.StdEncoding.DecodeString(pageToken)
 	if err != nil {
 		logger.Warn("invalid page token provided", zap.Error(err))
-		return token, ferrors.ErrInvalidf("pageToken is not valid: %q", pageToken)
+		return token, errors.ErrInvalidf("pageToken is not valid: %q", pageToken)
 	}
 
 	if err := json.Unmarshal(tok, &token); err != nil {
 		logger.Warn("invalid page token provided", zap.Error(err))
 
-		return token, ferrors.ErrInvalidf("pageToken is not valid: %q", pageToken)
+		return token, errors.ErrInvalidf("pageToken is not valid: %q", pageToken)
 	}
 
 	return token, nil
