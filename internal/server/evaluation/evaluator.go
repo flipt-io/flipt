@@ -2,7 +2,7 @@ package evaluation
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -13,12 +13,13 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 )
 
-// Evaluator is an implementation of the MultiVariateEvaluator.
+// Evaluator is an evaluator for legacy flag evaluations.
 type Evaluator struct {
 	logger *zap.Logger
 	store  Storer
@@ -32,12 +33,15 @@ func NewEvaluator(logger *zap.Logger, store Storer) *Evaluator {
 	}
 }
 
-// MultiVariateEvaluator is an abstraction for evaluating a flag against a set of rules for multi-variate flags.
-type MultiVariateEvaluator interface {
-	Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error)
-}
+func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
+	// Flag should be of variant type by default. However, for maximum backwards compatibility
+	// on this layer, we will check against the integer value of the flag type.
+	if int(flag.Type) != 0 || flag.Type != flipt.FlagType_VARIANT_FLAG_TYPE {
+		resp = &flipt.EvaluationResponse{}
+		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+		return resp, errs.ErrInvalidf("flag type %s invalid", flag.Type)
+	}
 
-func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (resp *flipt.EvaluationResponse, err error) {
 	var (
 		startTime     = time.Now().UTC()
 		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
@@ -84,18 +88,6 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 		NamespaceKey:   r.NamespaceKey,
 	}
 
-	flag, err := e.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
-	if err != nil {
-		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-
-		var errnf errs.ErrNotFound
-		if errors.As(err, &errnf) {
-			resp.Reason = flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
-		}
-
-		return resp, err
-	}
-
 	if !flag.Enabled {
 		resp.Match = false
 		resp.Reason = flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
@@ -124,7 +116,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 
 		lastRank = rule.Rank
 
-		matched, err := doConstraintsMatch(e.logger, r.Context, rule.Constraints, rule.SegmentMatchType)
+		matched, err := e.matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
@@ -200,9 +192,63 @@ func (e *Evaluator) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (r
 	return resp, nil
 }
 
-// doConstraintsMatch is a utility function that will return if all or any constraints have matched for a segment depending
+func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (*rpcevaluation.BooleanEvaluationResponse, error) {
+	resp := &rpcevaluation.BooleanEvaluationResponse{}
+
+	var lastRank int32
+
+	for _, rollout := range rollouts {
+		if rollout.Rank < lastRank {
+			return nil, fmt.Errorf("rollout rank: %d detected out of order", rollout.Rank)
+		}
+
+		lastRank = rollout.Rank
+
+		if rollout.Percentage != nil {
+			// consistent hashing based on the entity id and flag key.
+			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
+
+			normalizedValue := float32(int(hash) % 100)
+
+			// if this case does not hold, fall through to the next rollout.
+			if normalizedValue < rollout.Percentage.Percentage {
+				resp.Value = rollout.Percentage.Value
+				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+				e.logger.Debug("percentage based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "percentage"))
+
+				return resp, nil
+			}
+		} else if rollout.Segment != nil {
+			matched, err := e.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
+			if err != nil {
+				return nil, err
+			}
+
+			// if we don't match the segment, fall through to the next rollout.
+			if !matched {
+				continue
+			}
+
+			resp.Value = rollout.Segment.Value
+			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+
+			e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.SegmentKey))
+
+			return resp, nil
+		}
+	}
+
+	// If we have exhausted all rollouts and we still don't have a match, return the default value.
+	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
+	resp.Value = flagValue
+	e.logger.Debug("default rollout matched", zap.Bool("value", flagValue))
+
+	return resp, nil
+}
+
+// matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func doConstraintsMatch(logger *zap.Logger, evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
+func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
 	constraintMatches := 0
 
 	for _, c := range constraints {
@@ -260,17 +306,17 @@ func doConstraintsMatch(logger *zap.Logger, evalCtx map[string]string, constrain
 	switch segmentMatchType {
 	case flipt.MatchType_ALL_MATCH_TYPE:
 		if len(constraints) != constraintMatches {
-			logger.Debug("did not match ALL constraints")
+			e.logger.Debug("did not match ALL constraints")
 			matched = false
 		}
 
 	case flipt.MatchType_ANY_MATCH_TYPE:
 		if len(constraints) > 0 && constraintMatches == 0 {
-			logger.Debug("did not match ANY constraints")
+			e.logger.Debug("did not match ANY constraints")
 			matched = false
 		}
 	default:
-		logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
+		e.logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
 		matched = false
 	}
 

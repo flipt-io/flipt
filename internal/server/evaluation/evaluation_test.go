@@ -10,9 +10,209 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	rpcEvaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
+
+func TestVariant_FlagNotFound(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
+
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, v)
+
+	assert.EqualError(t, err, "test-flag not found")
+}
+
+func TestVariant_NonVariantFlag(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		NamespaceKey: namespaceKey,
+		Key:          flagKey,
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, v)
+
+	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
+}
+
+func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+		flag         = &flipt.Flag{
+			NamespaceKey: namespaceKey,
+			Key:          flagKey,
+			Enabled:      true,
+			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		}
+	)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(flag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRule{}, errs.ErrInvalid("some invalid error"))
+
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, v)
+
+	assert.EqualError(t, err, "some invalid error")
+}
+
+func TestVariant_Success(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+		flag         = &flipt.Flag{
+			NamespaceKey: namespaceKey,
+			Key:          flagKey,
+			Enabled:      true,
+			Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+		}
+	)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(flag, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, namespaceKey, flagKey).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          flagKey,
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "hello",
+						Operator: flipt.OpEQ,
+						Value:    "world",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, true, v.Match)
+	assert.Equal(t, "bar", v.SegmentKey)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.Reason)
+}
+
+func TestBoolean_FlagNotFoundError(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
+
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, res)
+
+	assert.EqualError(t, err, "test-flag not found")
+}
+
+func TestBoolean_NonBooleanFlagError(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.Nil(t, res)
+
+	assert.EqualError(t, err, "flag type VARIANT_FLAG_TYPE invalid")
+}
 
 func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	var (
@@ -23,15 +223,16 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{}, nil)
-
 	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
 		NamespaceKey: "test-namespace",
 		Key:          "test-flag",
 		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{}, nil)
+
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -43,7 +244,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
@@ -55,7 +256,14 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -67,13 +275,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		},
 	}, nil)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
-		NamespaceKey: "test-namespace",
-		Key:          "test-flag",
-		Enabled:      true,
-	}, nil)
-
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -85,7 +287,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_PercentageRuleMatch(t *testing.T) {
@@ -97,9 +299,14 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -111,7 +318,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -123,7 +330,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, false, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
@@ -135,9 +342,14 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -167,7 +379,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -179,7 +391,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
@@ -191,9 +403,15 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(
+		&flipt.Flag{
+			NamespaceKey: "test-namespace",
+			Key:          "test-flag",
+			Enabled:      true,
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
@@ -220,7 +438,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -232,7 +450,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_RulesOutOfOrder(t *testing.T) {
@@ -244,9 +462,15 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		s            = New(logger, store)
 	)
 
-	defer store.AssertNotCalled(t, "GetFlag", flagKey, namespaceKey)
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(
+		&flipt.Flag{
+			NamespaceKey: "test-namespace",
+			Key:          "test-flag",
+			Enabled:      true,
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		}, nil)
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -276,7 +500,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -285,9 +509,9 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
+	require.Nil(t, res)
+
 	assert.EqualError(t, err, "rollout rank: 0 detected out of order")
-	assert.Equal(t, rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON, res.Reason)
 }
 
 func TestBatch_UnknownFlagType(t *testing.T) {
@@ -308,8 +532,8 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 		Type:        3,
 	}, nil)
 
-	_, err := s.Batch(context.TODO(), &rpcEvaluation.BatchEvaluationRequest{
-		Requests: []*rpcEvaluation.EvaluationRequest{
+	_, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
+		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
 				EntityId:     "test-entity",
@@ -339,8 +563,8 @@ func TestBatch_NotFoundError(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag not found"))
 
-	_, err := s.Batch(context.TODO(), &rpcEvaluation.BatchEvaluationRequest{
-		Requests: []*rpcEvaluation.EvaluationRequest{
+	_, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
+		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
 				EntityId:     "test-entity",
@@ -361,22 +585,30 @@ func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
 		anotherFlagKey = "another-test-flag"
+		variantFlagKey = "variant-test-flag"
 		namespaceKey   = "test-namespace"
 		store          = &evaluationStoreMock{}
 		logger         = zaptest.NewLogger(t)
 		s              = New(logger, store)
 	)
 
-	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
 		NamespaceKey: "test-namespace",
 		Key:          "test-flag",
 		Enabled:      true,
 		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
-	}, nil).Times(2)
+	}, nil)
 
 	store.On("GetFlag", mock.Anything, namespaceKey, anotherFlagKey).Return(&flipt.Flag{}, errs.ErrNotFound("another-test-flag"))
 
-	store.On("GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey).Return([]*storage.EvaluationRollout{
+	store.On("GetFlag", mock.Anything, namespaceKey, variantFlagKey).Return(&flipt.Flag{
+		NamespaceKey: "test-namespace",
+		Key:          "variant-test-flag",
+		Enabled:      true,
+		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
@@ -388,8 +620,30 @@ func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Batch(context.TODO(), &rpcEvaluation.BatchEvaluationRequest{
-		Requests: []*rpcEvaluation.EvaluationRequest{
+	store.On("GetEvaluationRules", mock.Anything, namespaceKey, variantFlagKey).Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          variantFlagKey,
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "hello",
+						Operator: flipt.OpEQ,
+						Value:    "world",
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+
+	res, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
+		Requests: []*rpcevaluation.EvaluationRequest{
 			{
 				FlagKey:      flagKey,
 				EntityId:     "test-entity",
@@ -406,15 +660,30 @@ func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
 					"hello": "world",
 				},
 			},
+			{
+				FlagKey:      variantFlagKey,
+				EntityId:     "test-entity",
+				NamespaceKey: namespaceKey,
+				Context: map[string]string{
+					"hello": "world",
+				},
+			},
 		},
 		ExcludeNotFound: true,
 	})
 
 	require.NoError(t, err)
 
-	assert.Len(t, res.Responses, 1)
+	assert.Len(t, res.Responses, 2)
 
-	b, ok := res.Responses[0].Response.(*rpcEvaluation.EvaluationResponse_BooleanResponse)
+	b, ok := res.Responses[0].Response.(*rpcevaluation.EvaluationResponse_BooleanResponse)
 	assert.True(t, ok, "response should be a boolean evaluation response")
-	assert.Equal(t, true, b.BooleanResponse.Value)
+	assert.True(t, b.BooleanResponse.Value, "value should be true from match")
+
+	v, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
+	assert.True(t, ok, "response should be a variant evaluation response")
+
+	assert.True(t, v.VariantResponse.Match, "variant response should have matched")
+	assert.Equal(t, "bar", v.VariantResponse.SegmentKey)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 }

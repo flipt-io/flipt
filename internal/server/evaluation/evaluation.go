@@ -3,32 +3,31 @@ package evaluation
 import (
 	"context"
 	"errors"
-	"hash/crc32"
 
 	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	rpcEvaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // Variant evaluates a request for a multi-variate flag and entity.
-func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
-	s.logger.Debug("evaluate", zap.Stringer("request", v))
+func (s *Server) Variant(ctx context.Context, v *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
+	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Debug("variant", zap.Stringer("request", v))
+
 	if v.NamespaceKey == "" {
 		v.NamespaceKey = storage.DefaultNamespace
 	}
 
-	resp, err := s.evaluator.Evaluate(ctx, &flipt.EvaluationRequest{
-		RequestId:    v.RequestId,
-		FlagKey:      v.FlagKey,
-		EntityId:     v.EntityId,
-		Context:      v.Context,
-		NamespaceKey: v.NamespaceKey,
-	})
+	ver, err := s.variant(ctx, flag, v)
 	if err != nil {
 		return nil, err
 	}
@@ -40,166 +39,127 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 		fliptotel.AttributeRequestID.String(v.RequestId),
 	}
 
-	if resp != nil {
+	if ver != nil {
 		spanAttrs = append(spanAttrs,
-			fliptotel.AttributeMatch.Bool(resp.Match),
-			fliptotel.AttributeValue.String(resp.Value),
-			fliptotel.AttributeReason.String(resp.Reason.String()),
-			fliptotel.AttributeSegment.String(resp.SegmentKey),
+			fliptotel.AttributeMatch.Bool(ver.Match),
+			fliptotel.AttributeValue.String(ver.VariantKey),
+			fliptotel.AttributeReason.String(ver.Reason.String()),
+			fliptotel.AttributeSegment.String(ver.SegmentKey),
 		)
-	}
-
-	ver := &rpcEvaluation.VariantEvaluationResponse{
-		Match:             resp.Match,
-		SegmentKey:        resp.SegmentKey,
-		Reason:            rpcEvaluation.EvaluationReason(resp.Reason),
-		VariantKey:        resp.Value,
-		VariantAttachment: resp.Attachment,
 	}
 
 	// add otel attributes to span
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	s.logger.Debug("evaluate", zap.Stringer("response", resp))
+	s.logger.Debug("variant", zap.Stringer("response", ver))
 	return ver, nil
 }
 
-// Boolean evaluates a request for a boolean flag and entity.
-func (s *Server) Boolean(ctx context.Context, r *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.BooleanEvaluationResponse, error) {
-	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.FlagKey, r.NamespaceKey)
+func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
+	resp, err := s.evaluator.Evaluate(ctx, flag, &flipt.EvaluationRequest{
+		RequestId:    r.RequestId,
+		FlagKey:      r.FlagKey,
+		EntityId:     r.EntityId,
+		Context:      r.Context,
+		NamespaceKey: r.NamespaceKey,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	resp := &rpcEvaluation.BooleanEvaluationResponse{}
-
-	var lastRank int32
-
-	for _, rollout := range rollouts {
-		if rollout.Rank < lastRank {
-			resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-			return resp, errs.ErrInvalidf("rollout rank: %d detected out of order", rollout.Rank)
-		}
-
-		lastRank = rollout.Rank
-
-		if rollout.Percentage != nil {
-			// consistent hashing based on the entity id and flag key.
-			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
-
-			normalizedValue := float32(int(hash) % 100)
-
-			// if this case does not hold, fall through to the next rollout.
-			if normalizedValue < rollout.Percentage.Percentage {
-				resp.Value = rollout.Percentage.Value
-				resp.Reason = rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON
-				s.logger.Debug("percentage based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "percentage"))
-
-				return resp, nil
-			}
-		} else if rollout.Segment != nil {
-			matched, err := doConstraintsMatch(s.logger, r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
-			if err != nil {
-				resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-				return resp, err
-			}
-
-			// if we don't match the segment, fall through to the next rollout.
-			if !matched {
-				continue
-			}
-
-			resp.Value = rollout.Segment.Value
-			resp.Reason = rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON
-
-			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.SegmentKey))
-
-			return resp, nil
-		}
+	ver := &rpcevaluation.VariantEvaluationResponse{
+		Match:             resp.Match,
+		SegmentKey:        resp.SegmentKey,
+		Reason:            rpcevaluation.EvaluationReason(resp.Reason),
+		VariantKey:        resp.Value,
+		VariantAttachment: resp.Attachment,
 	}
 
-	f, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	ver.Match = resp.Match
+	ver.SegmentKey = resp.SegmentKey
+	ver.Reason = rpcevaluation.EvaluationReason(resp.Reason)
+	ver.VariantKey = resp.Value
+	ver.VariantAttachment = resp.Attachment
+
+	return ver, nil
+}
+
+// Boolean evaluates a request for a boolean flag and entity.
+func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
-		resp.Reason = rpcEvaluation.EvaluationReason_ERROR_EVALUATION_REASON
-		return resp, err
+		return nil, err
 	}
 
-	// If we have exhausted all rollouts and we still don't have a match, return the default value.
-	resp.Reason = rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-	resp.Value = f.Enabled
-	s.logger.Debug("default rollout matched", zap.Bool("value", f.Enabled))
+	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
+		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
+	}
+
+	return s.boolean(ctx, flag, r)
+}
+
+func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
+	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.NamespaceKey, flag.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.evaluator.booleanMatch(r, flag.Enabled, rollouts)
+	if err != nil {
+		return nil, err
+	}
 
 	return resp, nil
 }
 
 // Batch takes ina list of *evaluation.EvaluationRequest and returns their respective responses.
-func (s *Server) Batch(ctx context.Context, b *rpcEvaluation.BatchEvaluationRequest) (*rpcEvaluation.BatchEvaluationResponse, error) {
-	resp := &rpcEvaluation.BatchEvaluationResponse{
-		Responses: []*rpcEvaluation.EvaluationResponse{},
-	}
-
-	// Abstracted utility function to check for not found errors.
-	checkNotFound := func(exludeNotFound bool, err error) error {
-		var errnf errs.ErrNotFound
-		if exludeNotFound && errors.As(err, &errnf) {
-			return nil
-		}
-
-		return err
+func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequest) (*rpcevaluation.BatchEvaluationResponse, error) {
+	resp := &rpcevaluation.BatchEvaluationResponse{
+		Responses: []*rpcevaluation.EvaluationResponse{},
 	}
 
 	for _, req := range b.GetRequests() {
 		f, err := s.store.GetFlag(ctx, req.NamespaceKey, req.FlagKey)
 		if err != nil {
-			err := checkNotFound(b.GetExcludeNotFound(), err)
-			if err == nil {
+			var errnf errs.ErrNotFound
+			if b.GetExcludeNotFound() && errors.As(err, &errnf) {
 				continue
 			}
 
-			return resp, err
+			return nil, err
 		}
 
 		switch f.Type {
 		case flipt.FlagType_BOOLEAN_FLAG_TYPE:
-			res, err := s.Boolean(ctx, req)
+			res, err := s.boolean(ctx, f, req)
 			if err != nil {
-				err := checkNotFound(b.GetExcludeNotFound(), err)
-				if err == nil {
-					continue
-				}
-
-				return resp, err
+				return nil, err
 			}
 
-			eresp := &rpcEvaluation.EvaluationResponse{
-				FlagType: rpcEvaluation.EvaluationFlagType(flipt.FlagType_BOOLEAN_FLAG_TYPE),
-				Response: &rpcEvaluation.EvaluationResponse_BooleanResponse{
+			eresp := &rpcevaluation.EvaluationResponse{
+				FlagType: rpcevaluation.EvaluationFlagType(flipt.FlagType_BOOLEAN_FLAG_TYPE),
+				Response: &rpcevaluation.EvaluationResponse_BooleanResponse{
 					BooleanResponse: res,
 				},
 			}
 
 			resp.Responses = append(resp.Responses, eresp)
 		case flipt.FlagType_VARIANT_FLAG_TYPE:
-			res, err := s.Variant(ctx, req)
+			res, err := s.variant(ctx, f, req)
 			if err != nil {
-				err := checkNotFound(b.GetExcludeNotFound(), err)
-				if err == nil {
-					continue
-				}
-
-				return resp, err
+				return nil, err
 			}
-			eresp := &rpcEvaluation.EvaluationResponse{
-				FlagType: rpcEvaluation.EvaluationFlagType(flipt.FlagType_VARIANT_FLAG_TYPE),
-				Response: &rpcEvaluation.EvaluationResponse_VariantResponse{
+			eresp := &rpcevaluation.EvaluationResponse{
+				FlagType: rpcevaluation.EvaluationFlagType(flipt.FlagType_VARIANT_FLAG_TYPE),
+				Response: &rpcevaluation.EvaluationResponse_VariantResponse{
 					VariantResponse: res,
 				},
 			}
 
 			resp.Responses = append(resp.Responses, eresp)
 		default:
-			return resp, errs.ErrInvalidf("unknown flag type: %s", f.Type)
+			return nil, errs.ErrInvalidf("unknown flag type: %s", f.Type)
 		}
 	}
 

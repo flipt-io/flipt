@@ -21,7 +21,20 @@ func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*fli
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	resp, err := s.evaluator.Evaluate(ctx, r)
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	if err != nil {
+		var resp = &flipt.EvaluationResponse{}
+		resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+
+		var errnf errs.ErrNotFound
+		if errors.As(err, &errnf) {
+			resp.Reason = flipt.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON
+		}
+
+		return resp, err
+	}
+
+	resp, err := s.evaluator.Evaluate(ctx, flag, r)
 	if err != nil {
 		return resp, err
 	}
@@ -81,15 +94,23 @@ func (s *Server) batchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 			return &res, errs.InvalidFieldError("namespace_key", "must be the same for all requests if specified")
 		}
 
-		// TODO: we also need to validate each request, we should likely do this in the validation middleware
-		f, err := s.evaluator.Evaluate(ctx, req)
+		flag, err := s.store.GetFlag(ctx, req.NamespaceKey, req.FlagKey)
 		if err != nil {
 			var errnf errs.ErrNotFound
 			if r.GetExcludeNotFound() && errors.As(err, &errnf) {
 				continue
 			}
+
 			return &res, err
 		}
+
+		// TODO: we also need to validate each request, we should likely do this in the validation middleware
+		f, err := s.evaluator.Evaluate(ctx, flag, req)
+		if err != nil {
+			s.logger.Error("error evaluating flag", zap.Error(err))
+			return &res, err
+		}
+
 		f.RequestId = ""
 		res.Responses = append(res.Responses, f)
 	}
