@@ -7,15 +7,15 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattn/go-sqlite3"
-	flipterrors "go.flipt.io/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 )
 
 var (
-	errNotFound           = flipterrors.ErrNotFound("resource")
-	errConstraintViolated = flipterrors.ErrInvalid("contraint violated")
-	errNotUnique          = flipterrors.ErrInvalid("not unique")
-	errForeignKeyNotFound = flipterrors.ErrNotFound("associated resource not found")
-	errCanceled           = flipterrors.ErrCanceled("query canceled")
+	errNotFound           = errs.ErrNotFound("resource")
+	errConstraintViolated = errs.ErrInvalid("contraint violated")
+	errNotUnique          = errs.ErrInvalid("not unique")
+	errForeignKeyNotFound = errs.ErrNotFound("associated resource not found")
+	errCanceled           = errs.ErrCanceled("query canceled")
 )
 
 // AdaptError converts specific known-driver errors into wrapped storage errors.

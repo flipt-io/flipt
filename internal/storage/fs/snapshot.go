@@ -12,7 +12,7 @@ import (
 
 	"github.com/gobwas/glob"
 	"github.com/gofrs/uuid"
-	ferrors "go.flipt.io/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -302,7 +302,7 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 
 			segment := ns.segments[rule.SegmentKey]
 			if segment == nil {
-				return ferrors.ErrNotFoundf("segment %q in rule %d", rule.SegmentKey, rule.Rank)
+				return errs.ErrNotFoundf("segment %q in rule %d", rule.SegmentKey, rule.Rank)
 			}
 
 			evalRule.SegmentMatchType = segment.MatchType
@@ -369,7 +369,7 @@ func (ss *storeSnapshot) GetRule(ctx context.Context, namespaceKey string, id st
 	var ok bool
 	rule, ok = ns.rules[id]
 	if !ok {
-		return nil, ferrors.ErrNotFoundf(`rule "%s/%s"`, namespaceKey, id)
+		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, namespaceKey, id)
 	}
 
 	return rule, nil
@@ -445,7 +445,7 @@ func (ss *storeSnapshot) GetSegment(ctx context.Context, namespaceKey string, ke
 
 	segment, ok := ns.segments[key]
 	if !ok {
-		return nil, ferrors.ErrNotFoundf(`segment "%s/%s"`, namespaceKey, key)
+		return nil, errs.ErrNotFoundf(`segment "%s/%s"`, namespaceKey, key)
 	}
 
 	return segment, nil
@@ -544,7 +544,7 @@ func (ss *storeSnapshot) GetFlag(ctx context.Context, namespaceKey string, key s
 
 	flag, ok := ns.flags[key]
 	if !ok {
-		return nil, ferrors.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, key)
+		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, key)
 	}
 
 	return flag, nil
@@ -602,7 +602,7 @@ func (ss *storeSnapshot) DeleteVariant(ctx context.Context, r *flipt.DeleteVaria
 func (ss *storeSnapshot) getNamespace(key string) (namespace, error) {
 	ns, ok := ss.ns[key]
 	if !ok {
-		return namespace{}, ferrors.ErrNotFoundf("namespace %q", key)
+		return namespace{}, errs.ErrNotFoundf("namespace %q", key)
 	}
 
 	return *ns, nil
@@ -611,12 +611,12 @@ func (ss *storeSnapshot) getNamespace(key string) (namespace, error) {
 func (ss *storeSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
 	ns, ok := ss.ns[namespaceKey]
 	if !ok {
-		return nil, ferrors.ErrNotFoundf("namespaced %q", namespaceKey)
+		return nil, errs.ErrNotFoundf("namespaced %q", namespaceKey)
 	}
 
 	rules, ok := ns.evalRules[flagKey]
 	if !ok {
-		return nil, ferrors.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
 	}
 
 	return rules, nil
@@ -625,7 +625,7 @@ func (ss *storeSnapshot) GetEvaluationRules(ctx context.Context, namespaceKey st
 func (ss *storeSnapshot) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	dists, ok := ss.evalDists[ruleID]
 	if !ok {
-		return nil, ferrors.ErrNotFoundf("rule %q", ruleID)
+		return nil, errs.ErrNotFoundf("rule %q", ruleID)
 	}
 
 	return dists, nil
@@ -663,13 +663,13 @@ func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items
 	var offset int
 	v, err := strconv.ParseInt(params.PageToken, 10, 64)
 	if params.PageToken != "" && err != nil {
-		return storage.ResultSet[T]{}, ferrors.ErrInvalidf("pageToken is not valid: %q", params.PageToken)
+		return storage.ResultSet[T]{}, errs.ErrInvalidf("pageToken is not valid: %q", params.PageToken)
 	}
 
 	offset = int(v)
 
 	if offset >= len(set.Results) {
-		return storage.ResultSet[T]{}, ferrors.ErrInvalidf("invalid offset: %d", offset)
+		return storage.ResultSet[T]{}, errs.ErrInvalidf("invalid offset: %d", offset)
 	}
 
 	// 0 means no limit on page size (all items from offset)
