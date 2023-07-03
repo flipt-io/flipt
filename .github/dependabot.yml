@@ -37,19 +37,19 @@ updates:
       - "automerge"
 
   - package-ecosystem: npm
-    directory: '/ui'
+    directory: "/ui"
     schedule:
-      interval: daily
-    open-pull-requests-limit: 10
+      interval: weekly
+    open-pull-requests-limit: 5
     ignore:
-      - dependency-name: '*'
+      - dependency-name: "*"
         update-types:
           - version-update:semver-major
     labels:
-      - 'dependencies'
-      - 'javascript'
+      - "dependencies"
+      - "javascript"
       # kodiak `merge.automerge_label`
-      - 'automerge'
+      - "automerge"
 
   - package-ecosystem: "github-actions"
     # Workflow files stored in the
@@ -67,7 +67,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/build"
     schedule:
-      interval: daily
+      interval: weekly
     open-pull-requests-limit: 5
     labels:
       - "dependencies"

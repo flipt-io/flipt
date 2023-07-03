@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
@@ -30,12 +29,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 	opts := []storage.QueryOption{storage.WithLimit(uint64(r.Limit))}
 
 	if r.PageToken != "" {
-		tok, err := base64.StdEncoding.DecodeString(r.PageToken)
-		if err != nil {
-			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.PageToken)
-		}
-
-		opts = append(opts, storage.WithPageToken(string(tok)))
+		opts = append(opts, storage.WithPageToken(r.PageToken))
 	} else if r.Offset >= 0 {
 		// TODO: deprecate
 		opts = append(opts, storage.WithOffset(uint64(r.Offset)))
@@ -56,7 +50,7 @@ func (s *Server) ListNamespaces(ctx context.Context, r *flipt.ListNamespaceReque
 	}
 
 	resp.TotalCount = int32(total)
-	resp.NextPageToken = base64.StdEncoding.EncodeToString([]byte(results.NextPageToken))
+	resp.NextPageToken = results.NextPageToken
 
 	s.logger.Debug("list namespaces", zap.Stringer("response", &resp))
 	return &resp, nil

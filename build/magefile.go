@@ -142,6 +142,14 @@ func (t Test) CLI(ctx context.Context) error {
 	})
 }
 
+// Migration runs the latest Flipts migration against a database built upon the latest Flipt release.
+// It ensures that migrations runs successfully and Flipt continues to pass readonly tests.
+func (t Test) Migration(ctx context.Context) error {
+	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
+		return testing.Migration(ctx, client, base, flipt)
+	})
+}
+
 type Release mg.Namespace
 
 func (r Release) Next(ctx context.Context, module, versionParts string) error {

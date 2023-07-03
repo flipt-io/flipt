@@ -249,6 +249,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "MattNotarangelo",
+      "name": "Matthew Notarangelo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/81910488?v=4",
+      "profile": "https://github.com/MattNotarangelo",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "charlesoconor",
+      "name": "Charles OConor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8228660?v=4",
+      "profile": "https://www.linkedin.com/in/charles-oconor-77187455/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

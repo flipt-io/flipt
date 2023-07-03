@@ -20,7 +20,7 @@ jobs:
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.5.0
+        uses: golangci/golangci-lint-action@v3.6.0
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
           version: v1.52.1
@@ -33,33 +33,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: DavidAnson/markdownlint-cli2-action@v10
+      - uses: DavidAnson/markdownlint-cli2-action@v11
         with:
-          command: config
+          config: .markdownlint.yaml
           globs: |
-            .markdownlint.yaml
             **/*.md
             !**/test/**/*
-
-  proto-lint:
-    name: "Lint Proto"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: bufbuild/buf-setup-action@v1.7.0
-        with:
-          version: "latest"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: bufbuild/buf-lint-action@v1
-        with:
-          input: "rpc/flipt"
-
-      - uses: bufbuild/buf-breaking-action@v1
-        with:
-          input: "rpc/flipt"
-          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
 
   ui-lint:
     name: "Lint UI"
@@ -96,28 +75,3 @@ jobs:
 
       - name: Ensure clean git state.
         run: git diff-index --quiet HEAD -- || (echo "Please run 'go mod tidy' and commit changes." && exit 1)
-
-  proto-check:
-    name: "Proto Check"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
-
-      - uses: bufbuild/buf-setup-action@v1.7.0
-        with:
-          version: "latest"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: magefile/mage-action@v2
-        with:
-          version: latest
-          args: proto
-
-      - name: Ensure clean git state.
-        run: git diff --quiet --exit-code sdk/ rpc/ || (echo "Please run 'mage proto' and commit changes." && exit 1)

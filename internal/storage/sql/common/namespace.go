@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -72,10 +73,9 @@ func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption)
 	var offset uint64
 
 	if params.PageToken != "" {
-		var token PageToken
-
-		if err := json.Unmarshal([]byte(params.PageToken), &token); err != nil {
-			return results, fmt.Errorf("decoding page token %w", err)
+		token, err := decodePageToken(s.logger, params.PageToken)
+		if err != nil {
+			return results, err
 		}
 
 		offset = token.Offset
@@ -143,7 +143,7 @@ func (s *Store) ListNamespaces(ctx context.Context, opts ...storage.QueryOption)
 		if err != nil {
 			return results, fmt.Errorf("encoding page token %w", err)
 		}
-		results.NextPageToken = string(out)
+		results.NextPageToken = base64.StdEncoding.EncodeToString(out)
 	}
 
 	return results, nil

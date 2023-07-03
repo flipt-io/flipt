@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -107,6 +108,9 @@ func (s *DBTestSuite) TestListFlags() {
 		_, err := s.store.CreateFlag(context.TODO(), req)
 		require.NoError(t, err)
 	}
+
+	_, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace, storage.WithPageToken("Hello World"))
+	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
 
 	res, err := s.store.ListFlags(context.TODO(), storage.DefaultNamespace)
 	require.NoError(t, err)
@@ -278,7 +282,10 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)
 	// next page should be the middle flag
 	assert.Equal(t, middle.Key, pageToken.Key)
@@ -294,7 +301,11 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 	assert.Len(t, got, 1)
 	assert.Equal(t, middle.Key, got[0].Key)
 
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err = base64.StdEncoding.DecodeString(res.NextPageToken)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
+
 	require.NoError(t, err)
 	// next page should be the oldest flag
 	assert.Equal(t, oldest.Key, pageToken.Key)

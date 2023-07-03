@@ -35,6 +35,13 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 			assert.Equal(t, created.Name, retrieved.Name)
 
+			t.Log(`List namespaces error with invalid page token`)
+
+			_, err = client.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{
+				PageToken: "Hello World",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+
 			t.Log(`List namespaces.`)
 
 			namespaces, err := client.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
@@ -122,6 +129,15 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		require.NoError(t, err)
 
 		assert.Equal(t, "Test 2", updated.Name)
+
+		t.Log("List all Flags error with invalid page token")
+
+		_, err = client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
+			NamespaceKey: namespace,
+			PageToken:    "Hello World",
+			Limit:        10,
+		})
+		require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
 
 		t.Log("List all flags.")
 
@@ -331,6 +347,16 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			msg := "rpc error: code = NotFound desc = flag \"default/test\" or segment \"default/everyone\" not found"
 			require.EqualError(t, err, msg)
 		}
+		t.Log(`List rules error with invalid page token.`)
+
+		_, err = client.Flipt().ListRules(ctx, &flipt.ListRuleRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "test",
+			PageToken:    "Hello World",
+			Limit:        10,
+		})
+
+		require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
 
 		t.Log(`List rules.`)
 
