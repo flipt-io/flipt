@@ -17,7 +17,6 @@ message EvaluationRequest {
 message BatchEvaluationRequest {
   string request_id = 1;
   repeated EvaluationRequest requests = 3;
-  bool exclude_not_found = 4;
 }
 
 message BatchEvaluationResponse {
@@ -38,6 +37,7 @@ enum EvaluationReason {
 enum EvaluationFlagType {
   VARIANT_FLAG_TYPE = 0;
   BOOLEAN_FLAG_TYPE = 1;
+  ERROR_FLAG_TYPE = 2;
 }
 
 message EvaluationResponse {
@@ -45,6 +45,7 @@ message EvaluationResponse {
     oneof response {
         BooleanEvaluationResponse boolean_response = 2;
         VariantEvaluationResponse variant_response = 3;
+        ErrorEvaluationResponse error_response = 4;
     }
 }
 
@@ -65,6 +66,11 @@ message VariantEvaluationResponse {
   string request_id = 6;
   double request_duration_millis = 7;
   google.protobuf.Timestamp timestamp = 8;
+}
+
+message ErrorEvaluationResponse {
+  string flag_key = 1;
+  EvaluationReason reason = 2;
 }
 
 

@@ -2,6 +2,7 @@ package evaluation
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -543,14 +544,13 @@ func TestBatch_UnknownFlagType(t *testing.T) {
 				},
 			},
 		},
-		ExcludeNotFound: false,
 	})
 
 	assert.Error(t, err)
 	assert.EqualError(t, err, "unknown flag type: 3")
 }
 
-func TestBatch_NotFoundError(t *testing.T) {
+func TestBatch_InternalError_GetFlag(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
 		namespaceKey = "test-namespace"
@@ -561,7 +561,7 @@ func TestBatch_NotFoundError(t *testing.T) {
 
 	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, flagKey, namespaceKey)
 
-	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag not found"))
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errors.New("internal error"))
 
 	_, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
@@ -574,11 +574,10 @@ func TestBatch_NotFoundError(t *testing.T) {
 				},
 			},
 		},
-		ExcludeNotFound: false,
 	})
 
 	assert.Error(t, err)
-	assert.EqualError(t, err, "test-flag not found not found")
+	assert.EqualError(t, err, "internal error")
 }
 
 func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
@@ -669,18 +668,22 @@ func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
 				},
 			},
 		},
-		ExcludeNotFound: true,
 	})
 
 	require.NoError(t, err)
 
-	assert.Len(t, res.Responses, 2)
+	assert.Len(t, res.Responses, 3)
 
 	b, ok := res.Responses[0].Response.(*rpcevaluation.EvaluationResponse_BooleanResponse)
 	assert.True(t, ok, "response should be a boolean evaluation response")
 	assert.True(t, b.BooleanResponse.Value, "value should be true from match")
 
-	v, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
+	e, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_ErrorResponse)
+	assert.True(t, ok, "response should be a error evaluation response")
+	assert.Equal(t, anotherFlagKey, e.ErrorResponse.FlagKey)
+	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, e.ErrorResponse.Reason)
+
+	v, ok := res.Responses[2].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
 	assert.True(t, ok, "response should be a variant evaluation response")
 
 	assert.True(t, v.VariantResponse.Match, "variant response should have matched")
