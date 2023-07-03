@@ -80,14 +80,20 @@ Flipt supports use cases such as:
 <img align="right" src=".github/images/console.png" alt="Flipt Console" width=40% />
 
 - Fast. Written in Go. Optimized for performance
-- Stand alone, easy to run and configure
+- Stand alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
-- Native [GRPC](https://grpc.io/) client SDKs to integrate with your existing applications easily
-- Powerful REST API
+- Native [GRPC](https://grpc.io/) client [SDKs](#grpc-client-libraries) to integrate with your existing GRPC architecture
+- Powerful REST API with native [SDKs](#rest-client-libraries) for easy integration
 - Modern, mobile-friendly 📱 UI and debug console
-- Support for multiple databases (Postgres, MySQL, SQLite, CockroachDB)
-- Data import and export to allow storing your data as code
-- Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without.
+- Dark mode 🌙
+- Supports multiple databases: Postgres, MySQL, SQLite, CockroachDB
+- Import and export to allow storing your data as code
+- Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
+- Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box
+- [Filesystem + Git storage backends](https://www.flipt.io/docs/experimental/filesystem-backends) (experimental)
+- Audit logging to track changes to your data
+
+Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
 
 <br clear="both"/>
 
