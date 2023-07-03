@@ -10,7 +10,7 @@ import (
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	rpcEvaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -25,7 +25,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
 
-	v, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -55,7 +55,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	v, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -88,7 +88,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 
 	store.On("GetEvaluationRules", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRule{}, errs.ErrInvalid("some invalid error"))
 
-	v, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -141,7 +141,7 @@ func TestVariant_Success(t *testing.T) {
 
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
 
-	v, err := s.Variant(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -154,7 +154,7 @@ func TestVariant_Success(t *testing.T) {
 
 	assert.Equal(t, true, v.Match)
 	assert.Equal(t, "bar", v.SegmentKey)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.Reason)
 }
 
 func TestBoolean_FlagNotFoundError(t *testing.T) {
@@ -169,7 +169,7 @@ func TestBoolean_FlagNotFoundError(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -200,7 +200,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -232,7 +232,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 
 	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -244,7 +244,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
@@ -275,7 +275,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -287,7 +287,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_PercentageRuleMatch(t *testing.T) {
@@ -318,7 +318,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -330,7 +330,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, false, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
@@ -379,7 +379,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -391,7 +391,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
@@ -438,7 +438,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -450,7 +450,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Value)
-	assert.Equal(t, rpcEvaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_RulesOutOfOrder(t *testing.T) {
@@ -500,7 +500,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		},
 	}, nil)
 
-	res, err := s.Boolean(context.TODO(), &rpcEvaluation.EvaluationRequest{
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
