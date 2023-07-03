@@ -3,6 +3,26 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.23.2](https://github.com/flipt-io/flipt/releases/tag/v1.23.2) - 2023-07-03
+
+### Added
+
+- 'Share Feedback' link in app footer (#1812)
+
+### Changed
+
+- trim trailing slash off of http request if exists
+- `config`: ensure JSON schema validates the default configuration (#1788)
+- `config`: ensure default config passes CUE validation (#1758)
+- return 400 for invalid page token"
+- `integration`: ensure all list limits are enforced correctly
+
+### Fixed
+
+- Fix `flipt validate` command (#1811)
+- context cancelled/deadline exceeded errors coming back internal (#1803)
+- prevent overwriting URL struct (#1784) for trailing slash change
+
 ## [v1.23.1](https://github.com/flipt-io/flipt/releases/tag/v1.23.1) - 2023-06-15
 
 ### Added
