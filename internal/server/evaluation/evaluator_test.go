@@ -896,6 +896,87 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
 }
 
+func TestEvaluator_ErrorParsingNumber(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "boz",
+					},
+				},
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "baz",
+		},
+	})
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "parsing number from \"baz\"")
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+}
+func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             1,
+				Constraints: []storage.EvaluationConstraint{
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_DATETIME_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "boz",
+					},
+				},
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+		EntityId: "1",
+		FlagKey:  "foo",
+		Context: map[string]string{
+			"bar": "baz",
+		},
+	})
+
+	assert.Error(t, err)
+	assert.EqualError(t, err, "parsing datetime from \"baz\"")
+	assert.False(t, resp.Match)
+	assert.Equal(t, flipt.EvaluationReason_ERROR_EVALUATION_REASON, resp.Reason)
+}
+
 func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 	var (
 		store  = &evaluationStoreMock{}
@@ -1021,6 +1102,69 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
+}
+
+func TestEvaluator_DistributionNotMatched(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+					// constraint: admin (bool) == true
+					{
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           10,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
+			},
+		}, nil)
+
+	resp, err := s.Evaluate(context.TODO(), enabledFlag, &flipt.EvaluationRequest{
+		FlagKey:  "foo",
+		EntityId: "123",
+		Context: map[string]string{
+			"bar":   "baz",
+			"admin": "true",
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, "foo", resp.FlagKey)
+
+	assert.False(t, resp.Match, "distribution not matched")
 }
 
 func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {

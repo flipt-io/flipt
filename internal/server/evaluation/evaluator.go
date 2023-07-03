@@ -2,6 +2,7 @@ package evaluation
 
 import (
 	"context"
+	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -12,26 +13,20 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 )
 
-// EvaluationStorer is the minimal abstraction for interacting with the storage layer for evaluation.
-type EvaluationStorer interface {
-	GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error)
-	GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error)
-	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error)
-}
-
-// Evaluator is responsible for legacy evaluations.
+// Evaluator is an evaluator for legacy flag evaluations.
 type Evaluator struct {
 	logger *zap.Logger
-	store  EvaluationStorer
+	store  Storer
 }
 
 // NewEvaluator is the constructor for an Evaluator.
-func NewEvaluator(logger *zap.Logger, store EvaluationStorer) *Evaluator {
+func NewEvaluator(logger *zap.Logger, store Storer) *Evaluator {
 	return &Evaluator{
 		logger: logger,
 		store:  store,
@@ -121,81 +116,13 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 		lastRank = rule.Rank
 
-		constraintMatches := 0
+		matched, err := e.matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
+		if err != nil {
+			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+			return resp, err
+		}
 
-		// constraint loop
-		for _, c := range rule.Constraints {
-			v := r.Context[c.Property]
-
-			var (
-				match bool
-				err   error
-			)
-
-			switch c.Type {
-			case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-				match = matchesString(c, v)
-			case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-				match, err = matchesNumber(c, v)
-			case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-				match, err = matchesBool(c, v)
-			case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
-				match, err = matchesDateTime(c, v)
-			default:
-				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-				return resp, errs.ErrInvalid("unknown constraint type")
-			}
-
-			if err != nil {
-				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-				return resp, err
-			}
-
-			if match {
-				e.logger.Debug("constraint matches", zap.Reflect("constraint", c))
-
-				// increase the matchCount
-				constraintMatches++
-
-				switch rule.SegmentMatchType {
-				case flipt.MatchType_ANY_MATCH_TYPE:
-					// can short circuit here since we had at least one match
-					break
-				default:
-					// keep looping as we need to match all constraints
-					continue
-				}
-			} else {
-				// no match
-				e.logger.Debug("constraint does not match", zap.Reflect("constraint", c))
-
-				switch rule.SegmentMatchType {
-				case flipt.MatchType_ALL_MATCH_TYPE:
-					// we can short circuit because we must match all constraints
-					break
-				default:
-					// keep looping to see if we match the next constraint
-					continue
-				}
-			}
-		} // end constraint loop
-
-		switch rule.SegmentMatchType {
-		case flipt.MatchType_ALL_MATCH_TYPE:
-			if len(rule.Constraints) != constraintMatches {
-				// all constraints did not match, continue to next rule
-				e.logger.Debug("did not match ALL constraints")
-				continue
-			}
-
-		case flipt.MatchType_ANY_MATCH_TYPE:
-			if len(rule.Constraints) > 0 && constraintMatches == 0 {
-				// no constraints matched, continue to next rule
-				e.logger.Debug("did not match ANY constraints")
-				continue
-			}
-		default:
-			e.logger.Error("unknown match type", zap.Int32("match_type", int32(rule.SegmentMatchType)))
+		if !matched {
 			continue
 		}
 
@@ -263,6 +190,137 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 	} // end rule loop
 
 	return resp, nil
+}
+
+func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (*rpcevaluation.BooleanEvaluationResponse, error) {
+	resp := &rpcevaluation.BooleanEvaluationResponse{}
+
+	var lastRank int32
+
+	for _, rollout := range rollouts {
+		if rollout.Rank < lastRank {
+			return nil, fmt.Errorf("rollout rank: %d detected out of order", rollout.Rank)
+		}
+
+		lastRank = rollout.Rank
+
+		if rollout.Percentage != nil {
+			// consistent hashing based on the entity id and flag key.
+			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
+
+			normalizedValue := float32(int(hash) % 100)
+
+			// if this case does not hold, fall through to the next rollout.
+			if normalizedValue < rollout.Percentage.Percentage {
+				resp.Value = rollout.Percentage.Value
+				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+				e.logger.Debug("percentage based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "percentage"))
+
+				return resp, nil
+			}
+		} else if rollout.Segment != nil {
+			matched, err := e.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
+			if err != nil {
+				return nil, err
+			}
+
+			// if we don't match the segment, fall through to the next rollout.
+			if !matched {
+				continue
+			}
+
+			resp.Value = rollout.Segment.Value
+			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+
+			e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.SegmentKey))
+
+			return resp, nil
+		}
+	}
+
+	// If we have exhausted all rollouts and we still don't have a match, return the default value.
+	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
+	resp.Value = flagValue
+	e.logger.Debug("default rollout matched", zap.Bool("value", flagValue))
+
+	return resp, nil
+}
+
+// matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
+// on the match type.
+func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
+	constraintMatches := 0
+
+	for _, c := range constraints {
+		v := evalCtx[c.Property]
+
+		var (
+			match bool
+			err   error
+		)
+
+		switch c.Type {
+		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
+			match = matchesString(c, v)
+		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
+			match, err = matchesNumber(c, v)
+		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
+			match, err = matchesBool(c, v)
+		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+			match, err = matchesDateTime(c, v)
+		default:
+			return false, errs.ErrInvalid("unknown constraint type")
+		}
+
+		if err != nil {
+			return false, err
+		}
+
+		if match {
+			// increase the matchCount
+			constraintMatches++
+
+			switch segmentMatchType {
+			case flipt.MatchType_ANY_MATCH_TYPE:
+				// can short circuit here since we had at least one match
+				break
+			default:
+				// keep looping as we need to match all constraints
+				continue
+			}
+		} else {
+			// no match
+			switch segmentMatchType {
+			case flipt.MatchType_ALL_MATCH_TYPE:
+				// we can short circuit because we must match all constraints
+				break
+			default:
+				// keep looping to see if we match the next constraint
+				continue
+			}
+		}
+	}
+
+	var matched = true
+
+	switch segmentMatchType {
+	case flipt.MatchType_ALL_MATCH_TYPE:
+		if len(constraints) != constraintMatches {
+			e.logger.Debug("did not match ALL constraints")
+			matched = false
+		}
+
+	case flipt.MatchType_ANY_MATCH_TYPE:
+		if len(constraints) > 0 && constraintMatches == 0 {
+			e.logger.Debug("did not match ANY constraints")
+			matched = false
+		}
+	default:
+		e.logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
+		matched = false
+	}
+
+	return matched, nil
 }
 
 func crc32Num(entityID string, salt string) uint {

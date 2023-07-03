@@ -3,18 +3,19 @@ package evaluation
 import (
 	"context"
 
+	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	rpcEvaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // Variant evaluates a request for a multi-variate flag and entity.
-func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest) (*rpcEvaluation.VariantEvaluationResponse, error) {
-	var ver = &rpcEvaluation.VariantEvaluationResponse{}
+func (s *Server) Variant(ctx context.Context, v *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
+	var ver = &rpcevaluation.VariantEvaluationResponse{}
 
 	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
 	if err != nil {
@@ -55,7 +56,7 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 
 	ver.Match = resp.Match
 	ver.SegmentKey = resp.SegmentKey
-	ver.Reason = rpcEvaluation.EvaluationReason(resp.Reason)
+	ver.Reason = rpcevaluation.EvaluationReason(resp.Reason)
 	ver.VariantKey = resp.Value
 	ver.VariantAttachment = resp.Attachment
 
@@ -65,4 +66,28 @@ func (s *Server) Variant(ctx context.Context, v *rpcEvaluation.EvaluationRequest
 
 	s.logger.Debug("variant", zap.Stringer("response", resp))
 	return ver, nil
+}
+
+// Boolean evaluates a request for a boolean flag and entity.
+func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
+		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
+	}
+
+	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.NamespaceKey, r.FlagKey)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.evaluator.booleanMatch(r, flag.Enabled, rollouts)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }

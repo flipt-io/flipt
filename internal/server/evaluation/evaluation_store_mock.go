@@ -8,7 +8,7 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-var _ EvaluationStorer = &evaluationStoreMock{}
+var _ Storer = &evaluationStoreMock{}
 
 type evaluationStoreMock struct {
 	mock.Mock
@@ -31,4 +31,9 @@ func (e *evaluationStoreMock) GetEvaluationRules(ctx context.Context, namespaceK
 func (e *evaluationStoreMock) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
 	args := e.Called(ctx, ruleID)
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
+}
+
+func (e *evaluationStoreMock) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	args := e.Called(ctx, namespaceKey, flagKey)
+	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
 }
