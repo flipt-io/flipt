@@ -122,11 +122,17 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
 </p>
 
-<br clear="both"/>
-
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
+
+<br clear="both"/>
+
+<p align="center">
+    <a href="https://github.com/flipt-io/labs"><img src=".github/images/labs.png" alt="Flipt Labs" width=960 /></a>
+</p>
+
+<br clear="both"/>
 
 ### REST API
 
