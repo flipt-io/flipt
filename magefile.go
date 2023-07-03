@@ -26,6 +26,7 @@ var (
 		"github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2",
 		"golang.org/x/tools/cmd/cover",
 		"golang.org/x/tools/cmd/goimports",
+		"github.com/rakyll/gotest",
 		"google.golang.org/grpc/cmd/protoc-gen-go-grpc",
 		"google.golang.org/protobuf/cmd/protoc-gen-go",
 		"../internal/cmd/protoc-gen-go-flipt-sdk/...",
@@ -237,7 +238,7 @@ func (g Go) Test() error {
 		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	}
 
-	return sh.RunWithV(env, "go", "test", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
+	return sh.RunWithV(env, "gotest", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
 }
 
 type UI mg.Namespace
