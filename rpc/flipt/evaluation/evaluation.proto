@@ -34,14 +34,14 @@ enum EvaluationReason {
     DEFAULT_EVALUATION_REASON = 5;
 }
 
-enum EvaluationFlagType {
-  VARIANT_FLAG_TYPE = 0;
-  BOOLEAN_FLAG_TYPE = 1;
-  ERROR_FLAG_TYPE = 2;
+enum EvaluationResponseType {
+  VARIANT_EVALUATION_RESPONSE_TYPE = 0;
+  BOOLEAN_EVALUATION_RESPONSE_TYPE = 1;
+  ERROR_EVALUATION_RESPONSE_TYPE = 2;
 }
 
 message EvaluationResponse {
-    EvaluationFlagType flag_type = 1;
+    EvaluationResponseType type = 1;
     oneof response {
         BooleanEvaluationResponse boolean_response = 2;
         VariantEvaluationResponse variant_response = 3;

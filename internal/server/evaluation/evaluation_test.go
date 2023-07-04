@@ -580,7 +580,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 	assert.EqualError(t, err, "internal error")
 }
 
-func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
+func TestBatch_Evaluations_Success(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
 		anotherFlagKey = "another-test-flag"
@@ -613,8 +613,8 @@ func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
 			Rank:         1,
 			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
 			Percentage: &storage.RolloutPercentage{
-				Percentage: 5,
-				Value:      false,
+				Percentage: 80,
+				Value:      true,
 			},
 		},
 	}, nil)
@@ -677,16 +677,19 @@ func TestBatch_EvaluationsExludingNotFound(t *testing.T) {
 	b, ok := res.Responses[0].Response.(*rpcevaluation.EvaluationResponse_BooleanResponse)
 	assert.True(t, ok, "response should be a boolean evaluation response")
 	assert.True(t, b.BooleanResponse.Value, "value should be true from match")
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, res.Responses[0].Type)
 
 	e, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_ErrorResponse)
 	assert.True(t, ok, "response should be a error evaluation response")
 	assert.Equal(t, anotherFlagKey, e.ErrorResponse.FlagKey)
 	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, e.ErrorResponse.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, res.Responses[1].Type)
 
 	v, ok := res.Responses[2].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
 	assert.True(t, ok, "response should be a variant evaluation response")
-
 	assert.True(t, v.VariantResponse.Match, "variant response should have matched")
 	assert.Equal(t, "bar", v.VariantResponse.SegmentKey)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
+	assert.Equal(t, rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, res.Responses[2].Type)
 }

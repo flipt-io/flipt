@@ -125,7 +125,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			var errnf errs.ErrNotFound
 			if errors.As(err, &errnf) {
 				eresp := &rpcevaluation.EvaluationResponse{
-					FlagType: rpcevaluation.EvaluationFlagType_ERROR_FLAG_TYPE,
+					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
 					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
 							FlagKey: req.FlagKey,
@@ -149,7 +149,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 			}
 
 			eresp := &rpcevaluation.EvaluationResponse{
-				FlagType: rpcevaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE,
+				Type: rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_BooleanResponse{
 					BooleanResponse: res,
 				},
@@ -162,7 +162,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 				return nil, err
 			}
 			eresp := &rpcevaluation.EvaluationResponse{
-				FlagType: rpcevaluation.EvaluationFlagType_VARIANT_FLAG_TYPE,
+				Type: rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE,
 				Response: &rpcevaluation.EvaluationResponse_VariantResponse{
 					VariantResponse: res,
 				},
