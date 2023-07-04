@@ -6,6 +6,7 @@ require (
 	github.com/bufbuild/buf v1.9.0
 	github.com/golangci/golangci-lint v1.51.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0
+	github.com/rakyll/gotest v0.0.6
 	golang.org/x/tools v0.10.0
 	golang.org/x/tools/cmd/cover v0.1.0-deprecated
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
