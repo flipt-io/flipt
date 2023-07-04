@@ -47,7 +47,7 @@ archives:
   - id: main
     name_template: >-
       {{ .ProjectName }}_
-      {{- title .Os }}_
+      {{- tolower .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else }}{{ .Arch }}{{ end }}
     files:
