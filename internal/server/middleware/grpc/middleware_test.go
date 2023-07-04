@@ -2,6 +2,7 @@ package grpc_middleware
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -89,6 +90,16 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 			name:     "not found error",
 			wantErr:  errors.ErrNotFound("foo"),
 			wantCode: codes.NotFound,
+		},
+		{
+			name:     "deadline exceeded error",
+			wantErr:  fmt.Errorf("foo: %w", context.DeadlineExceeded),
+			wantCode: codes.DeadlineExceeded,
+		},
+		{
+			name:     "context cancelled error",
+			wantErr:  fmt.Errorf("foo: %w", context.Canceled),
+			wantCode: codes.Canceled,
 		},
 		{
 			name:     "invalid error",

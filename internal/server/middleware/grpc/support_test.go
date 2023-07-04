@@ -240,6 +240,11 @@ func (m *storeMock) GetEvaluationDistributions(ctx context.Context, ruleID strin
 	return args.Get(0).([]*storage.EvaluationDistribution), args.Error(1)
 }
 
+func (m *storeMock) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	args := m.Called(ctx, namespaceKey, flagKey)
+	return args.Get(0).([]*storage.EvaluationRollout), args.Error(1)
+}
+
 var _ storageauth.Store = &authStoreMock{}
 
 type authStoreMock struct {

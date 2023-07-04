@@ -45,8 +45,11 @@ sboms:
 
 archives:
   - id: main
-    replacements:
-      amd64: x86_64
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
     files:
       - LICENSE
       - README.md

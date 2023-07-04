@@ -45,6 +45,14 @@ func (x *VariantEvaluationResponse) SetRequestIDIfNotBlank(id string) string {
 	return x.RequestId
 }
 
+func (x *BooleanEvaluationResponse) SetRequestIDIfNotBlank(id string) string {
+	if x.RequestId == "" {
+		x.RequestId = id
+	}
+
+	return x.RequestId
+}
+
 // SetRequestIDIfNotBlank attempts to set the provided ID on the instance
 // If the ID was blank, it returns the ID provided to this call.
 // If the ID was not blank, it returns the ID found on the instance.
@@ -102,6 +110,11 @@ func (x *EvaluationResponse) SetTimestamps(start, end time.Time) {
 }
 
 func (x *VariantEvaluationResponse) SetTimestamps(start, end time.Time) {
+	x.Timestamp = timestamppb.New(end)
+	x.RequestDurationMillis = float64(end.Sub(start)) / float64(time.Millisecond)
+}
+
+func (x *BooleanEvaluationResponse) SetTimestamps(start, end time.Time) {
 	x.Timestamp = timestamppb.New(end)
 	x.RequestDurationMillis = float64(end.Sub(start)) / float64(time.Millisecond)
 }

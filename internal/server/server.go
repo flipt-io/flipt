@@ -22,7 +22,7 @@ type Server struct {
 	logger *zap.Logger
 	store  storage.Store
 	flipt.UnimplementedFliptServer
-	evaluator evaluation.MultiVariateEvaluator
+	evaluator MultiVariateEvaluator
 }
 
 // New creates a new Server

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -110,6 +111,17 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 			logger.Error("unauthenticated",
 				zap.String("reason", "error retrieving authentication for client token"),
 				zap.Error(err))
+
+			if errors.Is(err, context.Canceled) {
+				err = status.Error(codes.Canceled, err.Error())
+				return ctx, err
+			}
+
+			if errors.Is(err, context.DeadlineExceeded) {
+				err = status.Error(codes.DeadlineExceeded, err.Error())
+				return ctx, err
+			}
+
 			return ctx, errUnauthenticated
 		}
 

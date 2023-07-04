@@ -160,3 +160,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 
 	return distributions, nil
 }
+
+func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	return []*storage.EvaluationRollout{}, nil
+}
