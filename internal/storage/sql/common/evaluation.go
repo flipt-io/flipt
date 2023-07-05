@@ -162,5 +162,112 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 }
 
 func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	return []*storage.EvaluationRollout{}, nil
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT r.id, r.namespace_key, r."type", r."rank", rt.percentage, rt.value, rss.segment_key, rss.rollout_segment_value, rss.match_type, rss.constraint_type, rss.constraint_property, rss.constraint_operator, rss.constraint_value
+		FROM rollouts r
+		LEFT JOIN rollout_thresholds rt ON (r.id = rt.rollout_id)
+		LEFT JOIN (
+			SELECT rs.rollout_id, rs.segment_key, s.match_type, rs.value AS rollout_segment_value, c."type" AS constraint_type, c.property AS constraint_property, c.operator AS constraint_operator, c.value AS constraint_value
+			FROM rollout_segments rs
+			JOIN segments s ON (rs.segment_key = s."key")
+			JOIN constraints c ON (rs.segment_key = c.segment_key)
+		) rss ON (r.id = rss.rollout_id)
+		WHERE r.namespace_key = $1 AND r.flag_key = $2
+		ORDER BY r."rank" ASC
+		`, namespaceKey, flagKey)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if cerr := rows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	var (
+		uniqueSegmentedRollouts = make(map[string]*storage.EvaluationRollout)
+		rollouts                = []*storage.EvaluationRollout{}
+	)
+
+	for rows.Next() {
+		var (
+			rolloutId            string
+			evaluationRollout    storage.EvaluationRollout
+			rtPercentageNumber   sql.NullFloat64
+			rtPercentageValue    sql.NullBool
+			rsSegmentKey         sql.NullString
+			rsSegmentValue       sql.NullBool
+			rsMatchType          sql.NullInt32
+			rsConstraintType     sql.NullInt32
+			rsConstraintProperty sql.NullString
+			rsConstraintOperator sql.NullString
+			rsConstraintValue    sql.NullString
+		)
+
+		if err := rows.Scan(
+			&rolloutId,
+			&evaluationRollout.NamespaceKey,
+			&evaluationRollout.RolloutType,
+			&evaluationRollout.Rank,
+			&rtPercentageNumber,
+			&rtPercentageValue,
+			&rsSegmentKey,
+			&rsSegmentValue,
+			&rsMatchType,
+			&rsConstraintType,
+			&rsConstraintProperty,
+			&rsConstraintOperator,
+			&rsConstraintValue,
+		); err != nil {
+			return rollouts, err
+		}
+
+		if rtPercentageNumber.Valid && rtPercentageValue.Valid {
+			storageThreshold := &storage.RolloutThreshold{
+				Percentage: float32(rtPercentageNumber.Float64),
+				Value:      rtPercentageValue.Bool,
+			}
+
+			evaluationRollout.Threshold = storageThreshold
+		}
+
+		if rsSegmentKey.Valid &&
+			rsSegmentValue.Valid &&
+			rsMatchType.Valid &&
+			rsConstraintType.Valid &&
+			rsConstraintProperty.Valid &&
+			rsConstraintOperator.Valid && rsConstraintValue.Valid {
+			c := storage.EvaluationConstraint{
+				Type:     flipt.ComparisonType(rsConstraintType.Int32),
+				Property: rsConstraintProperty.String,
+				Operator: rsConstraintOperator.String,
+				Value:    rsConstraintValue.String,
+			}
+
+			if existingSegment, ok := uniqueSegmentedRollouts[rolloutId]; ok {
+				existingSegment.Segment.Constraints = append(existingSegment.Segment.Constraints, c)
+				continue
+			}
+
+			storageSegment := &storage.RolloutSegment{
+				Key:       rsSegmentKey.String,
+				Value:     rsSegmentValue.Bool,
+				MatchType: flipt.MatchType(rsMatchType.Int32),
+			}
+
+			storageSegment.Constraints = append(storageSegment.Constraints, c)
+
+			evaluationRollout.Segment = storageSegment
+			uniqueSegmentedRollouts[rolloutId] = &evaluationRollout
+		}
+
+		rollouts = append(rollouts, &evaluationRollout)
+	}
+
+	if err := rows.Err(); err != nil {
+		return rollouts, err
+	}
+
+	return rollouts, nil
 }

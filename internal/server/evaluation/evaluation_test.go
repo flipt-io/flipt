@@ -364,9 +364,9 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         2,
 			Segment: &storage.RolloutSegment{
-				SegmentKey:       "test-segment",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Value:            true,
+				Key:       "test-segment",
+				MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Value:     true,
 				Constraints: []storage.EvaluationConstraint{
 					{
 						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
@@ -417,9 +417,9 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         1,
 			Segment: &storage.RolloutSegment{
-				SegmentKey:       "test-segment",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Value:            true,
+				Key:       "test-segment",
+				MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Value:     true,
 				Constraints: []storage.EvaluationConstraint{
 					{
 						Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
@@ -485,9 +485,9 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         0,
 			Segment: &storage.RolloutSegment{
-				SegmentKey:       "test-segment",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Value:            true,
+				Key:       "test-segment",
+				MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+				Value:     true,
 				Constraints: []storage.EvaluationConstraint{
 					{
 						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,

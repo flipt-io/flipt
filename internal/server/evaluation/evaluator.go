@@ -219,7 +219,7 @@ func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue b
 				return resp, nil
 			}
 		} else if rollout.Segment != nil {
-			matched, err := e.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.SegmentMatchType)
+			matched, err := e.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
 			if err != nil {
 				return nil, err
 			}
@@ -232,7 +232,7 @@ func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue b
 			resp.Value = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 
-			e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.SegmentKey))
+			e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
 
 			return resp, nil
 		}
