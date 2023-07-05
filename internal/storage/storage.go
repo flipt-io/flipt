@@ -32,12 +32,12 @@ type EvaluationRollout struct {
 	NamespaceKey string
 	RolloutType  flipt.RolloutType
 	Rank         int32
-	Percentage   *RolloutPercentage
+	Threshold    *RolloutThreshold
 	Segment      *RolloutSegment
 }
 
-// RolloutPercentage represents Percentage(s) for use in evaluation.
-type RolloutPercentage struct {
+// RolloutThreshold represents Percentage(s) for use in evaluation.
+type RolloutThreshold struct {
 	Percentage float32
 	Value      bool
 }
