@@ -158,11 +158,11 @@ func TestExport(t *testing.T) {
 			{
 				Id:          "2",
 				FlagKey:     "flag2",
-				Type:        flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
+				Type:        flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 				Description: "enabled for 50%",
 				Rank:        int32(2),
-				Rule: &flipt.Rollout_Percentage{
-					Percentage: &flipt.RolloutPercentage{
+				Rule: &flipt.Rollout_Threshold{
+					Threshold: &flipt.RolloutThreshold{
 						Percentage: float32(50.0),
 						Value:      true,
 					},

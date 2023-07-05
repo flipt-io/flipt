@@ -151,9 +151,9 @@ func (m *mockCreator) CreateRollout(ctx context.Context, r *flipt.CreateRolloutR
 	}
 
 	switch rule := r.Rule.(type) {
-	case *flipt.CreateRolloutRequest_Percentage:
-		rollout.Rule = &flipt.Rollout_Percentage{
-			Percentage: rule.Percentage,
+	case *flipt.CreateRolloutRequest_Threshold:
+		rollout.Rule = &flipt.Rollout_Threshold{
+			Threshold: rule.Threshold,
 		}
 	case *flipt.CreateRolloutRequest_Segment:
 		rollout.Rule = &flipt.Rollout_Segment{
@@ -280,9 +280,9 @@ func TestImport(t *testing.T) {
 			assert.Equal(t, "flag2", percentageRollout.FlagKey)
 			assert.Equal(t, "enabled for 50%", percentageRollout.Description)
 			assert.Equal(t, int32(2), percentageRollout.Rank)
-			require.NotNil(t, percentageRollout.GetPercentage())
-			assert.Equal(t, float32(50.0), percentageRollout.GetPercentage().Percentage)
-			assert.Equal(t, true, percentageRollout.GetPercentage().Value)
+			require.NotNil(t, percentageRollout.GetThreshold())
+			assert.Equal(t, float32(50.0), percentageRollout.GetThreshold().Percentage)
+			assert.Equal(t, true, percentageRollout.GetThreshold().Value)
 		})
 	}
 }

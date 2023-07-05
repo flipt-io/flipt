@@ -41,8 +41,8 @@ flags:
           key: internal_users
           value: true
       - description: enabled for 50%
-        percentage:
-          threshold: 50
+        threshold:
+          percentage: 50
           value: true
 segments:
   - key: segment1

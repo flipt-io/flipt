@@ -37,9 +37,9 @@ type Distribution struct {
 }
 
 type Rollout struct {
-	Description string          `yaml:"description,omitempty"`
-	Segment     *SegmentRule    `yaml:"segment,omitempty"`
-	Percentage  *PercentageRule `yaml:"percentage,omitempty"`
+	Description string         `yaml:"description,omitempty"`
+	Segment     *SegmentRule   `yaml:"segment,omitempty"`
+	Threshold   *ThresholdRule `yaml:"threshold,omitempty"`
 }
 
 type SegmentRule struct {
@@ -47,9 +47,9 @@ type SegmentRule struct {
 	Value bool   `yaml:"value,omitempty"`
 }
 
-type PercentageRule struct {
-	Threshold float32 `yaml:"threshold,omitempty"`
-	Value     bool    `yaml:"value,omitempty"`
+type ThresholdRule struct {
+	Percentage float32 `yaml:"percentage,omitempty"`
+	Value      bool    `yaml:"value,omitempty"`
 }
 
 type Segment struct {

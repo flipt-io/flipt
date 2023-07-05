@@ -163,10 +163,10 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 						Key:   rule.Segment.SegmentKey,
 						Value: rule.Segment.Value,
 					}
-				case *flipt.Rollout_Percentage:
-					rollout.Percentage = &PercentageRule{
-						Threshold: rule.Percentage.Percentage,
-						Value:     rule.Percentage.Value,
+				case *flipt.Rollout_Threshold:
+					rollout.Threshold = &ThresholdRule{
+						Percentage: rule.Threshold.Percentage,
+						Value:      rule.Threshold.Value,
 					}
 				}
 

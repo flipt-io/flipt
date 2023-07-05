@@ -281,7 +281,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			}
 
 			for idx, r := range f.Rollouts {
-				if r.Segment != nil && r.Percentage != nil {
+				if r.Segment != nil && r.Threshold != nil {
 					return fmt.Errorf(`rollout "%s/%s/%d" cannot have both segment and percentage rule`,
 						namespace,
 						f.Key,
@@ -303,11 +303,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 							Value:      r.Segment.Value,
 						},
 					}
-				} else if r.Percentage != nil {
-					req.Rule = &flipt.CreateRolloutRequest_Percentage{
-						Percentage: &flipt.RolloutPercentage{
-							Percentage: r.Percentage.Threshold,
-							Value:      r.Percentage.Value,
+				} else if r.Threshold != nil {
+					req.Rule = &flipt.CreateRolloutRequest_Threshold{
+						Threshold: &flipt.RolloutThreshold{
+							Percentage: r.Threshold.Percentage,
+							Value:      r.Threshold.Value,
 						},
 					}
 				}
