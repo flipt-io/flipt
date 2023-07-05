@@ -622,7 +622,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				},
 			})
 
-			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = cannot change type of rollout: have \"PERCENTAGE_ROLLOUT_TYPE\" attempted \"SEGMENT_ROLLOUT_TYPE\"")
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = cannot change type of rollout: have \"THRESHOLD_ROLLOUT_TYPE\" attempted \"SEGMENT_ROLLOUT_TYPE\"")
 		})
 	})
 

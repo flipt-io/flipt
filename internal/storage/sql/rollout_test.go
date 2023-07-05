@@ -613,7 +613,7 @@ func (s *DBTestSuite) TestUpdateRollout_InvalidType() {
 		},
 	})
 
-	require.EqualError(t, err, "cannot change type of rollout: have \"SEGMENT_ROLLOUT_TYPE\" attempted \"PERCENTAGE_ROLLOUT_TYPE\"")
+	require.EqualError(t, err, "cannot change type of rollout: have \"SEGMENT_ROLLOUT_TYPE\" attempted \"THRESHOLD_ROLLOUT_TYPE\"")
 }
 
 func (s *DBTestSuite) TestUpdateRollout_NotFound() {
