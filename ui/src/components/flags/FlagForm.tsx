@@ -55,7 +55,7 @@ export default function FlagForm(props: FlagFormProps) {
     key: flag?.key || '',
     name: flag?.name || '',
     description: flag?.description || '',
-    type: flag?.type || (FlagType.VARIANT_FLAG_TYPE as FlagType),
+    type: flag?.type || ('VARIANT_FLAG_TYPE' as FlagType),
     enabled: flag?.enabled || false
   };
 
