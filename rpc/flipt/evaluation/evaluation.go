@@ -37,6 +37,14 @@ func (x *EvaluationResponse) SetRequestIDIfNotBlank(id string) string {
 	return ""
 }
 
+func (x *BatchEvaluationRequest) SetRequestIDIfNotBlank(id string) string {
+	if x.RequestId == "" {
+		x.RequestId = id
+	}
+
+	return x.RequestId
+}
+
 func (x *VariantEvaluationResponse) SetRequestIDIfNotBlank(id string) string {
 	if x.RequestId == "" {
 		x.RequestId = id
