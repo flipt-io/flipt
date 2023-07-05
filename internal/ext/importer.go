@@ -57,7 +57,7 @@ func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 	return i
 }
 
-func (i *Importer) Import(ctx context.Context, r io.Reader) error {
+func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 	var (
 		dec = yaml.NewDecoder(r)
 		doc = new(Document)
@@ -69,7 +69,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 	v := latestVersion
 	if doc.Version != "" {
-		v, err := semver.ParseTolerant(doc.Version)
+		v, err = semver.ParseTolerant(doc.Version)
 		if err != nil {
 			return fmt.Errorf("parsing document version: %w", err)
 		}
@@ -141,8 +141,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 		// support explicitly setting flag type from 1.1
 		if f.Type != "" {
-			if v.LT(semver.Version{Major: 1, Minor: 1}) {
-				return fmt.Errorf("flag.Type is supported in flag state version >=1.1, found %s", v)
+			if err := ensureFieldSupported("flag.type", semver.Version{
+				Major: 1,
+				Minor: 1,
+			}, v); err != nil {
+				return err
 			}
 
 			req.Type = flipt.FlagType(flipt.FlagType_value[f.Type])
@@ -276,8 +279,11 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 		// support explicitly setting flag type from 1.1
 		if len(f.Rollouts) > 0 {
-			if v.LT(semver.Version{Major: 1, Minor: 1}) {
-				return fmt.Errorf("flag.Rollouts is supported in flag state version >=1.1, found %s", v)
+			if err := ensureFieldSupported("flag.rollouts", semver.Version{
+				Major: 1,
+				Minor: 1,
+			}, v); err != nil {
+				return err
 			}
 
 			for idx, r := range f.Rollouts {
@@ -341,4 +347,15 @@ func convert(i interface{}) interface{} {
 		}
 	}
 	return i
+}
+
+func ensureFieldSupported(field string, expected, have semver.Version) error {
+	if have.LT(expected) {
+		return fmt.Errorf("%s is supported in version >=%s, found %s",
+			field,
+			versionString(expected),
+			versionString(have))
+	}
+
+	return nil
 }

@@ -316,6 +316,34 @@ func TestImport_InvalidVersion(t *testing.T) {
 	assert.EqualError(t, err, "unsupported version: 5.0")
 }
 
+func TestImport_FlagType_LTVersion1_1(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator)
+	)
+
+	in, err := os.Open("testdata/import_v1_flag_type_not_supported.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	err = importer.Import(context.Background(), in)
+	assert.EqualError(t, err, "flag.type is supported in version >=1.1, found 1.0")
+}
+
+func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator)
+	)
+
+	in, err := os.Open("testdata/import_v1_rollouts_not_supported.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	err = importer.Import(context.Background(), in)
+	assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
+}
+
 func TestImport_Namespaces(t *testing.T) {
 	tests := []struct {
 		name         string

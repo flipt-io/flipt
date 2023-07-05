@@ -1,0 +1,11 @@
+version: "1.0"
+flags:
+  - key: flag1
+    name: flag1
+    description: description
+    enabled: false
+    rollouts:
+      - description: "some rollout"
+        threshold:
+          percentage: 50.0
+          value: true
