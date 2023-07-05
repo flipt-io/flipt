@@ -6,7 +6,6 @@ import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
-import Select from '~/components/forms/Select';
 import Toggle from '~/components/forms/Toggle';
 import Loading from '~/components/Loading';
 import { createFlag, updateFlag } from '~/data/api';
@@ -31,6 +30,7 @@ const flagTypes = [
     name: FlagType.BOOLEAN_FLAG_TYPE
   }
 ];
+
 export default function FlagForm(props: FlagFormProps) {
   const { flag, flagChanged } = props;
 
@@ -55,7 +55,7 @@ export default function FlagForm(props: FlagFormProps) {
     key: flag?.key || '',
     name: flag?.name || '',
     description: flag?.description || '',
-    type: flag?.type || FlagType.VARIANT_FLAG_TYPE,
+    type: flag?.type || (FlagType.VARIANT_FLAG_TYPE as FlagType),
     enabled: flag?.enabled || false
   };
 
@@ -154,24 +154,50 @@ export default function FlagForm(props: FlagFormProps) {
                     }}
                   />
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-3">
                   <label
                     htmlFor="type"
                     className="block text-sm font-medium text-gray-700"
                   >
                     Type
                   </label>
-                  <Select
-                    className="mt-1"
-                    name="type"
-                    id="type"
-                    // disabled={!isNew}
-                    value={flag?.type ? flag.type : FlagType.VARIANT_FLAG_TYPE}
-                    options={flagTypes.map((type) => ({
-                      label: type.name,
-                      value: type.id
-                    }))}
-                  />
+                  <fieldset className="mt-2">
+                    <legend className="sr-only">Type</legend>
+                    <div className="flex flex-row space-x-5">
+                      {flagTypes.map((type) => (
+                        <div
+                          key={type.id}
+                          className="relative flex items-start"
+                        >
+                          <div className="flex h-5 items-center">
+                            <input
+                              id={type.id}
+                              name="type"
+                              type="radio"
+                              disabled={!isNew}
+                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                              onChange={() => {
+                                formik.setFieldValue(
+                                  'type',
+                                  type.id as FlagType
+                                );
+                              }}
+                              checked={type.id === formik.values.type}
+                              value={type.id}
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor={type.id}
+                              className="font-medium text-gray-700"
+                            >
+                              {type.name}
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </fieldset>
                 </div>
                 <div className="col-span-3">
                   <div className="flex justify-between">
