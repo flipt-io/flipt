@@ -69,6 +69,10 @@ func (v FeaturesValidator) Validate(file string, b []byte) (Result, error) {
 
 	for _, e := range cueerrors.Errors(err) {
 		pos := cueerrors.Positions(e)
+		if len(pos) < 1 {
+			continue
+		}
+
 		p := pos[len(pos)-1]
 
 		result.Errors = append(result.Errors, Error{
