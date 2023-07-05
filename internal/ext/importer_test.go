@@ -176,6 +176,7 @@ func TestImport(t *testing.T) {
 			variant := creator.variantReqs[0]
 			assert.Equal(t, "variant1", variant.Key)
 			assert.Equal(t, "variant1", variant.Name)
+			assert.Equal(t, "variant description", variant.Description)
 
 			if tc.hasAttachment {
 				attachment := `{
