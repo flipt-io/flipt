@@ -4,6 +4,7 @@ import MoreInfo from '~/components/MoreInfo';
 import { FlagType } from '~/types/Flag';
 import { FlagProps } from './FlagProps';
 import Variants from './variants/Variants';
+import Rollouts from './rollouts/Rollouts';
 
 export default function EditFlag() {
   const { flag, onFlagChange } = useOutletContext<FlagProps>();
@@ -35,6 +36,9 @@ export default function EditFlag() {
 
         {flagTypeToLabel(flag.type) === FlagType.VARIANT_FLAG_TYPE && (
           <Variants flag={flag} flagChanged={onFlagChange} />
+        )}
+        {flagTypeToLabel(flag.type) === FlagType.BOOLEAN_FLAG_TYPE && (
+          <Rollouts flag={flag} flagChanged={onFlagChange} />
         )}
       </div>
     </>
