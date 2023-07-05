@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import EmptyState from '~/components/EmptyState';
 import RolloutForm from '~/components/flags/RolloutForm';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
@@ -129,6 +130,20 @@ export default function Rollouts(props: RolloutsProps) {
                 <span>New Rollout</span>
               </Button>
             </div>
+          )}
+        </div>
+        <div className="mt-10">
+          {rollouts && rollouts.length > 0 ? (
+            <></>
+          ) : (
+            <EmptyState
+              text="New Rollout"
+              disabled={readOnly}
+              onClick={() => {
+                setEditingRollout(null);
+                setShowRolloutForm(true);
+              }}
+            />
           )}
         </div>
       </div>
