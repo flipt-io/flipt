@@ -31,10 +31,14 @@ func (m mockLister) ListFlags(_ context.Context, _ *flipt.ListFlagRequest) (*fli
 	}, m.flagErr
 }
 
-func (m mockLister) ListRules(_ context.Context, _ *flipt.ListRuleRequest) (*flipt.RuleList, error) {
-	return &flipt.RuleList{
-		Rules: m.rules,
-	}, m.ruleErr
+func (m mockLister) ListRules(_ context.Context, r *flipt.ListRuleRequest) (*flipt.RuleList, error) {
+	if r.FlagKey == "flag1" {
+		return &flipt.RuleList{
+			Rules: m.rules,
+		}, m.ruleErr
+	}
+
+	return &flipt.RuleList{}, m.ruleErr
 }
 
 func (m mockLister) ListSegments(_ context.Context, _ *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
@@ -43,10 +47,14 @@ func (m mockLister) ListSegments(_ context.Context, _ *flipt.ListSegmentRequest)
 	}, m.segmentErr
 }
 
-func (m mockLister) ListRollouts(_ context.Context, _ *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
-	return &flipt.RolloutList{
-		Rules: m.rollouts,
-	}, m.rolloutErr
+func (m mockLister) ListRollouts(_ context.Context, r *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
+	if r.FlagKey == "flag2" {
+		return &flipt.RolloutList{
+			Rules: m.rollouts,
+		}, m.rolloutErr
+	}
+
+	return &flipt.RolloutList{}, m.rolloutErr
 }
 
 func TestExport(t *testing.T) {

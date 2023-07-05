@@ -12,6 +12,20 @@ flags:
         distributions:
           - variant: variant1
             rollout: 100
+  - key: flag2
+    name: flag2
+    type: "BOOLEAN_FLAG_TYPE"
+    description: a boolean flag
+    enabled: false
+    rollouts:
+      - description: enabled for internal users
+        segment:
+          key: internal_users
+          value: true
+      - description: enabled for 50%
+        percentage:
+          threshold: 50
+          value: true
 segments:
   - key: segment1
     name: segment1

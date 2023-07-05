@@ -6,19 +6,28 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/rpc/flipt"
 	"gopkg.in/yaml.v2"
 )
 
 const (
 	defaultBatchSize = 25
-	version          = "1.0"
+)
+
+var (
+	latestVersion     = semver.Version{Major: 1, Minor: 1}
+	supportedVersions = semver.Versions{
+		{Major: 1},
+		latestVersion,
+	}
 )
 
 type Lister interface {
 	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
 	ListSegments(context.Context, *flipt.ListSegmentRequest) (*flipt.SegmentList, error)
 	ListRules(context.Context, *flipt.ListRuleRequest) (*flipt.RuleList, error)
+	ListRollouts(context.Context, *flipt.ListRolloutRequest) (*flipt.RolloutList, error)
 }
 
 type Exporter struct {
@@ -35,6 +44,11 @@ func NewExporter(store Lister, namespace string) *Exporter {
 	}
 }
 
+// We currently only do minor bumps and print out just major.minor
+func versionString(v semver.Version) string {
+	return fmt.Sprintf("%d.%d", v.Major, v.Minor)
+}
+
 func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	var (
 		enc       = yaml.NewEncoder(w)
@@ -42,7 +56,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 		batchSize = e.batchSize
 	)
 
-	doc.Version = version
+	doc.Version = versionString(latestVersion)
 	doc.Namespace = e.namespace
 
 	defer enc.Close()
@@ -74,6 +88,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			flag := &Flag{
 				Key:         f.Key,
 				Name:        f.Name,
+				Type:        f.Type.String(),
 				Description: f.Description,
 				Enabled:     f.Enabled,
 			}
@@ -127,6 +142,32 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				}
 
 				flag.Rules = append(flag.Rules, rule)
+			}
+
+			rollouts, err := e.store.ListRollouts(ctx, &flipt.ListRolloutRequest{
+				NamespaceKey: e.namespace,
+				FlagKey:      flag.Key,
+			})
+
+			for _, r := range rollouts.Rules {
+				rollout := Rollout{
+					Description: r.Description,
+				}
+
+				switch rule := r.Rule.(type) {
+				case *flipt.Rollout_Segment:
+					rollout.Segment = &SegmentRule{
+						Key:   rule.Segment.SegmentKey,
+						Value: rule.Segment.Value,
+					}
+				case *flipt.Rollout_Percentage:
+					rollout.Percentage = &PercentageRule{
+						Threshold: rule.Percentage.Percentage,
+						Value:     rule.Percentage.Value,
+					}
+				}
+
+				flag.Rollouts = append(flag.Rollouts, &rollout)
 			}
 
 			doc.Flags = append(doc.Flags, flag)

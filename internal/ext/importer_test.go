@@ -62,6 +62,7 @@ func (m *mockCreator) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 		Key:         r.Key,
 		Name:        r.Name,
 		Description: r.Description,
+		Type:        r.Type,
 		Enabled:     r.Enabled,
 	}, nil
 }

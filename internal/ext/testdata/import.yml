@@ -38,7 +38,7 @@ flags:
           value: true
       - description: enabled for 50%
         percentage:
-          threshold: 50.0
+          threshold: 50
           value: true
 segments:
   - key: segment1

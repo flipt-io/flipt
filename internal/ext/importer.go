@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,14 +14,15 @@ import (
 )
 
 type Creator interface {
-	GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error)
-	CreateNamespace(ctx context.Context, r *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
-	CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*flipt.Flag, error)
-	CreateVariant(ctx context.Context, r *flipt.CreateVariantRequest) (*flipt.Variant, error)
-	CreateSegment(ctx context.Context, r *flipt.CreateSegmentRequest) (*flipt.Segment, error)
-	CreateConstraint(ctx context.Context, r *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
-	CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error)
-	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
+	GetNamespace(context.Context, *flipt.GetNamespaceRequest) (*flipt.Namespace, error)
+	CreateNamespace(context.Context, *flipt.CreateNamespaceRequest) (*flipt.Namespace, error)
+	CreateFlag(context.Context, *flipt.CreateFlagRequest) (*flipt.Flag, error)
+	CreateVariant(context.Context, *flipt.CreateVariantRequest) (*flipt.Variant, error)
+	CreateSegment(context.Context, *flipt.CreateSegmentRequest) (*flipt.Segment, error)
+	CreateConstraint(context.Context, *flipt.CreateConstraintRequest) (*flipt.Constraint, error)
+	CreateRule(context.Context, *flipt.CreateRuleRequest) (*flipt.Rule, error)
+	CreateDistribution(context.Context, *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
+	CreateRollout(context.Context, *flipt.CreateRolloutRequest) (*flipt.Rollout, error)
 }
 
 type Importer struct {
@@ -65,8 +67,23 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 		return fmt.Errorf("unmarshalling document: %w", err)
 	}
 
-	if doc.Version != "" && doc.Version != "1.0" {
-		return fmt.Errorf("unsupported version: %s", doc.Version)
+	v := latestVersion
+	if doc.Version != "" {
+		v, err := semver.ParseTolerant(doc.Version)
+		if err != nil {
+			return fmt.Errorf("parsing document version: %w", err)
+		}
+
+		var found bool
+		for _, sv := range supportedVersions {
+			if found = sv.EQ(v); found {
+				break
+			}
+		}
+
+		if !found {
+			return fmt.Errorf("unsupported version: %s", doc.Version)
+		}
 	}
 
 	// check if document namespace matches cli namespace if both are set
@@ -114,14 +131,24 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 			continue
 		}
 
-		flag, err := i.creator.CreateFlag(ctx, &flipt.CreateFlagRequest{
+		req := &flipt.CreateFlagRequest{
 			Key:          f.Key,
 			Name:         f.Name,
 			Description:  f.Description,
 			Enabled:      f.Enabled,
 			NamespaceKey: namespace,
-		})
+		}
 
+		// support explicitly setting flag type from 1.1
+		if f.Type != "" {
+			if v.LT(semver.Version{Major: 1, Minor: 1}) {
+				return fmt.Errorf("flag.Type is supported in flag state version >=1.1, found %s", v)
+			}
+
+			req.Type = flipt.FlagType(flipt.FlagType_value[f.Type])
+		}
+
+		flag, err := i.creator.CreateFlag(ctx, req)
 		if err != nil {
 			return fmt.Errorf("creating flag: %w", err)
 		}
@@ -243,6 +270,50 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) error {
 
 				if err != nil {
 					return fmt.Errorf("creating distribution: %w", err)
+				}
+			}
+		}
+
+		// support explicitly setting flag type from 1.1
+		if len(f.Rollouts) > 0 {
+			if v.LT(semver.Version{Major: 1, Minor: 1}) {
+				return fmt.Errorf("flag.Rollouts is supported in flag state version >=1.1, found %s", v)
+			}
+
+			for idx, r := range f.Rollouts {
+				if r.Segment != nil && r.Percentage != nil {
+					return fmt.Errorf(`rollout "%s/%s/%d" cannot have both segment and percentage rule`,
+						namespace,
+						f.Key,
+						idx,
+					)
+				}
+
+				req := &flipt.CreateRolloutRequest{
+					NamespaceKey: namespace,
+					FlagKey:      f.Key,
+					Description:  r.Description,
+					Rank:         int32(idx + 1),
+				}
+
+				if r.Segment != nil {
+					req.Rule = &flipt.CreateRolloutRequest_Segment{
+						Segment: &flipt.RolloutSegment{
+							SegmentKey: r.Segment.Key,
+							Value:      r.Segment.Value,
+						},
+					}
+				} else if r.Percentage != nil {
+					req.Rule = &flipt.CreateRolloutRequest_Percentage{
+						Percentage: &flipt.RolloutPercentage{
+							Percentage: r.Percentage.Threshold,
+							Value:      r.Percentage.Value,
+						},
+					}
+				}
+
+				if _, err := i.creator.CreateRollout(ctx, req); err != nil {
+					return fmt.Errorf("creating rollout: %w", err)
 				}
 			}
 		}
