@@ -1,4 +1,4 @@
-version: "1.0"
+version: "1.1"
 flags:
 - key: flag_001
   name: FLAG_001
