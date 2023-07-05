@@ -3,6 +3,7 @@ namespace: production
 flags:
 - key: flag_001
   name: FLAG_001
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -363,6 +364,7 @@ flags:
       rollout: 50
 - key: flag_002
   name: FLAG_002
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -723,6 +725,7 @@ flags:
       rollout: 50
 - key: flag_003
   name: FLAG_003
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -1083,6 +1086,7 @@ flags:
       rollout: 50
 - key: flag_004
   name: FLAG_004
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -1443,6 +1447,7 @@ flags:
       rollout: 50
 - key: flag_005
   name: FLAG_005
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -1803,6 +1808,7 @@ flags:
       rollout: 50
 - key: flag_006
   name: FLAG_006
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -2163,6 +2169,7 @@ flags:
       rollout: 50
 - key: flag_007
   name: FLAG_007
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -2523,6 +2530,7 @@ flags:
       rollout: 50
 - key: flag_008
   name: FLAG_008
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -2883,6 +2891,7 @@ flags:
       rollout: 50
 - key: flag_009
   name: FLAG_009
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -3243,6 +3252,7 @@ flags:
       rollout: 50
 - key: flag_010
   name: FLAG_010
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -3603,6 +3613,7 @@ flags:
       rollout: 50
 - key: flag_011
   name: FLAG_011
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -3963,6 +3974,7 @@ flags:
       rollout: 50
 - key: flag_012
   name: FLAG_012
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -4323,6 +4335,7 @@ flags:
       rollout: 50
 - key: flag_013
   name: FLAG_013
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -4683,6 +4696,7 @@ flags:
       rollout: 50
 - key: flag_014
   name: FLAG_014
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -5043,6 +5057,7 @@ flags:
       rollout: 50
 - key: flag_015
   name: FLAG_015
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -5403,6 +5418,7 @@ flags:
       rollout: 50
 - key: flag_016
   name: FLAG_016
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -5763,6 +5779,7 @@ flags:
       rollout: 50
 - key: flag_017
   name: FLAG_017
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -6123,6 +6140,7 @@ flags:
       rollout: 50
 - key: flag_018
   name: FLAG_018
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -6483,6 +6501,7 @@ flags:
       rollout: 50
 - key: flag_019
   name: FLAG_019
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -6843,6 +6862,7 @@ flags:
       rollout: 50
 - key: flag_020
   name: FLAG_020
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -7203,6 +7223,7 @@ flags:
       rollout: 50
 - key: flag_021
   name: FLAG_021
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -7563,6 +7584,7 @@ flags:
       rollout: 50
 - key: flag_022
   name: FLAG_022
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -7923,6 +7945,7 @@ flags:
       rollout: 50
 - key: flag_023
   name: FLAG_023
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -8283,6 +8306,7 @@ flags:
       rollout: 50
 - key: flag_024
   name: FLAG_024
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -8643,6 +8667,7 @@ flags:
       rollout: 50
 - key: flag_025
   name: FLAG_025
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -9003,6 +9028,7 @@ flags:
       rollout: 50
 - key: flag_026
   name: FLAG_026
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -9363,6 +9389,7 @@ flags:
       rollout: 50
 - key: flag_027
   name: FLAG_027
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -9723,6 +9750,7 @@ flags:
       rollout: 50
 - key: flag_028
   name: FLAG_028
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -10083,6 +10111,7 @@ flags:
       rollout: 50
 - key: flag_029
   name: FLAG_029
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -10443,6 +10472,7 @@ flags:
       rollout: 50
 - key: flag_030
   name: FLAG_030
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -10803,6 +10833,7 @@ flags:
       rollout: 50
 - key: flag_031
   name: FLAG_031
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -11163,6 +11194,7 @@ flags:
       rollout: 50
 - key: flag_032
   name: FLAG_032
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -11523,6 +11555,7 @@ flags:
       rollout: 50
 - key: flag_033
   name: FLAG_033
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -11883,6 +11916,7 @@ flags:
       rollout: 50
 - key: flag_034
   name: FLAG_034
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -12243,6 +12277,7 @@ flags:
       rollout: 50
 - key: flag_035
   name: FLAG_035
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -12603,6 +12638,7 @@ flags:
       rollout: 50
 - key: flag_036
   name: FLAG_036
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -12963,6 +12999,7 @@ flags:
       rollout: 50
 - key: flag_037
   name: FLAG_037
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -13323,6 +13360,7 @@ flags:
       rollout: 50
 - key: flag_038
   name: FLAG_038
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -13683,6 +13721,7 @@ flags:
       rollout: 50
 - key: flag_039
   name: FLAG_039
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -14043,6 +14082,7 @@ flags:
       rollout: 50
 - key: flag_040
   name: FLAG_040
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -14403,6 +14443,7 @@ flags:
       rollout: 50
 - key: flag_041
   name: FLAG_041
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -14763,6 +14804,7 @@ flags:
       rollout: 50
 - key: flag_042
   name: FLAG_042
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -15123,6 +15165,7 @@ flags:
       rollout: 50
 - key: flag_043
   name: FLAG_043
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -15483,6 +15526,7 @@ flags:
       rollout: 50
 - key: flag_044
   name: FLAG_044
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -15843,6 +15887,7 @@ flags:
       rollout: 50
 - key: flag_045
   name: FLAG_045
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -16203,6 +16248,7 @@ flags:
       rollout: 50
 - key: flag_046
   name: FLAG_046
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -16563,6 +16609,7 @@ flags:
       rollout: 50
 - key: flag_047
   name: FLAG_047
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -16923,6 +16970,7 @@ flags:
       rollout: 50
 - key: flag_048
   name: FLAG_048
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -17283,6 +17331,7 @@ flags:
       rollout: 50
 - key: flag_049
   name: FLAG_049
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -17643,6 +17692,7 @@ flags:
       rollout: 50
 - key: flag_050
   name: FLAG_050
+  type: VARIANT_FLAG_TYPE
   description: Some Description
   enabled: true
   variants:
@@ -18001,8 +18051,23 @@ flags:
       rollout: 50
     - variant: variant_002
       rollout: 50
+- key: flag_boolean
+  name: FLAG_BOOLEAN
+  type: BOOLEAN_FLAG_TYPE
+  description: Boolean Flag Description
+  enabled: false
+  rollouts:
+  - description: enabled for segment_001
+    segment:
+      key: segment_001
+      value: true
+  - description: enabled for 50%
+    threshold:
+      percentage: 50
+      value: true
 - key: flag_disabled
   name: FLAG_DISABLED
+  type: VARIANT_FLAG_TYPE
   description: Disabled Flag Description
   enabled: false
 segments:
