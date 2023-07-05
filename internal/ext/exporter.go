@@ -148,6 +148,9 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				NamespaceKey: e.namespace,
 				FlagKey:      flag.Key,
 			})
+			if err != nil {
+				return fmt.Errorf("getting rollout rules for flag %q: %w", flag.Key, err)
+			}
 
 			for _, r := range rollouts.Rules {
 				rollout := Rollout{
