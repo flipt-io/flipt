@@ -10,10 +10,12 @@ type Document struct {
 type Flag struct {
 	Key         string     `yaml:"key,omitempty"`
 	Name        string     `yaml:"name,omitempty"`
+	Type        string     `yaml:"type,omitempty"`
 	Description string     `yaml:"description,omitempty"`
 	Enabled     bool       `yaml:"enabled"`
 	Variants    []*Variant `yaml:"variants,omitempty"`
 	Rules       []*Rule    `yaml:"rules,omitempty"`
+	Rollouts    []*Rollout `yaml:"rollouts,omitempty"`
 }
 
 type Variant struct {
@@ -32,6 +34,22 @@ type Rule struct {
 type Distribution struct {
 	VariantKey string  `yaml:"variant,omitempty"`
 	Rollout    float32 `yaml:"rollout,omitempty"`
+}
+
+type Rollout struct {
+	Description string          `yaml:"description,omitempty"`
+	Segment     *SegmentRule    `yaml:"segment,omitempty"`
+	Percentage  *PercentageRule `yaml:"percentage,omitempty"`
+}
+
+type SegmentRule struct {
+	Key   string `yaml:"key,omitempty"`
+	Value bool   `yaml:"value,omitempty"`
+}
+
+type PercentageRule struct {
+	Threshold float32 `yaml:"threshold,omitempty"`
+	Value     bool    `yaml:"value,omitempty"`
 }
 
 type Segment struct {
