@@ -6,6 +6,7 @@ flags:
     variants:
       - key: variant1
         name: variant1
+        description: variant description
     rules:
       - segment: segment1
         rank: 1
