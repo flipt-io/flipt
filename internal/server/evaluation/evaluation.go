@@ -68,19 +68,24 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		return nil, err
 	}
 
+	var reason rpcevaluation.EvaluationReason
+
+	switch resp.Reason {
+	case flipt.EvaluationReason_MATCH_EVALUATION_REASON:
+		reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+	case flipt.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON:
+		reason = rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON
+	default:
+		reason = rpcevaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON
+	}
+
 	ver := &rpcevaluation.VariantEvaluationResponse{
 		Match:             resp.Match,
 		SegmentKey:        resp.SegmentKey,
-		Reason:            rpcevaluation.EvaluationReason(resp.Reason),
+		Reason:            reason,
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,
 	}
-
-	ver.Match = resp.Match
-	ver.SegmentKey = resp.SegmentKey
-	ver.Reason = rpcevaluation.EvaluationReason(resp.Reason)
-	ver.VariantKey = resp.Value
-	ver.VariantAttachment = resp.Attachment
 
 	return ver, nil
 }
@@ -113,7 +118,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	return resp, nil
 }
 
-// Batch takes ina list of *evaluation.EvaluationRequest and returns their respective responses.
+// Batch takes in a list of *evaluation.EvaluationRequest and returns their respective responses.
 func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequest) (*rpcevaluation.BatchEvaluationResponse, error) {
 	resp := &rpcevaluation.BatchEvaluationResponse{
 		Responses: make([]*rpcevaluation.EvaluationResponse, 0, len(b.Requests)),
@@ -129,7 +134,7 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
 							FlagKey: req.FlagKey,
-							Reason:  rpcevaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON,
+							Reason:  rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON,
 						},
 					},
 				}

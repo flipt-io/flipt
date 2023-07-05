@@ -611,8 +611,8 @@ func TestBatch_Evaluations_Success(t *testing.T) {
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
-			Percentage: &storage.RolloutPercentage{
+			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+			Threshold: &storage.RolloutThreshold{
 				Percentage: 80,
 				Value:      true,
 			},
@@ -683,7 +683,7 @@ func TestBatch_Evaluations_Success(t *testing.T) {
 	e, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_ErrorResponse)
 	assert.True(t, ok, "response should be a error evaluation response")
 	assert.Equal(t, anotherFlagKey, e.ErrorResponse.FlagKey)
-	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_NOT_FOUND_EVALUATION_REASON, e.ErrorResponse.Reason)
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON, e.ErrorResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, res.Responses[1].Type)
 
 	v, ok := res.Responses[2].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)

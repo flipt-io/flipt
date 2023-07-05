@@ -28,10 +28,13 @@ message BatchEvaluationResponse {
 enum EvaluationReason {
     UNKNOWN_EVALUATION_REASON = 0;
     FLAG_DISABLED_EVALUATION_REASON = 1;
-    FLAG_NOT_FOUND_EVALUATION_REASON = 2;
-    MATCH_EVALUATION_REASON = 3;
-    ERROR_EVALUATION_REASON = 4;
-    DEFAULT_EVALUATION_REASON = 5;
+    MATCH_EVALUATION_REASON = 2;
+    DEFAULT_EVALUATION_REASON = 3;
+}
+
+enum ErrorEvaluationReason {
+  UNKNOWN_ERROR_REASON = 0;
+  NOT_FOUND_ERROR_REASON = 1;
 }
 
 enum EvaluationResponseType {
@@ -70,9 +73,8 @@ message VariantEvaluationResponse {
 
 message ErrorEvaluationResponse {
   string flag_key = 1;
-  EvaluationReason reason = 2;
+  ErrorEvaluationReason reason = 2;
 }
-
 
 service EvaluationService {
   rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {}
