@@ -129,10 +129,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 			rules := resp.Rules
 			for _, r := range rules {
-				rule := &Rule{
-					SegmentKey: r.SegmentKey,
-					Rank:       uint(r.Rank),
-				}
+				rule := &Rule{SegmentKey: r.SegmentKey}
 
 				for _, d := range r.Distributions {
 					rule.Distributions = append(rule.Distributions, &Distribution{

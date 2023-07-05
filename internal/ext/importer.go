@@ -237,15 +237,21 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 		}
 
 		// loop through rules
-		for _, r := range f.Rules {
+		for idx, r := range f.Rules {
 			if r == nil {
 				continue
+			}
+
+			// support implict rank from version >=1.1
+			rank := int32(r.Rank)
+			if rank == 0 && v.GE(semver.Version{Major: 1, Minor: 1}) {
+				rank = int32(idx) + 1
 			}
 
 			rule, err := i.creator.CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:      f.Key,
 				SegmentKey:   r.SegmentKey,
-				Rank:         int32(r.Rank),
+				Rank:         rank,
 				NamespaceKey: namespace,
 			})
 

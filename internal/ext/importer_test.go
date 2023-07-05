@@ -182,6 +182,11 @@ func TestImport(t *testing.T) {
 			path:          "testdata/import_no_attachment.yml",
 			hasAttachment: false,
 		},
+		{
+			name:          "import with implict rule ranks",
+			path:          "testdata/import_implicit_rule_rank.yml",
+			hasAttachment: true,
+		},
 	}
 
 	for _, tc := range tests {
