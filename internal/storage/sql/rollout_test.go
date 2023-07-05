@@ -30,8 +30,8 @@ func (s *DBTestSuite) TestGetRollout() {
 	rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
-		Rule: &flipt.CreateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      true,
 				Percentage: 40,
 			},
@@ -75,8 +75,8 @@ func (s *DBTestSuite) TestGetRolloutNamespace() {
 		FlagKey:      flag.Key,
 		NamespaceKey: s.namespace,
 		Rank:         1,
-		Rule: &flipt.CreateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      true,
 				Percentage: 40,
 			},
@@ -152,8 +152,8 @@ func (s *DBTestSuite) TestListRollouts() {
 		{
 			FlagKey: flag.Key,
 			Rank:    1,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 40,
 				},
@@ -162,8 +162,8 @@ func (s *DBTestSuite) TestListRollouts() {
 		{
 			FlagKey: flag.Key,
 			Rank:    2,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 80.2,
 				},
@@ -209,8 +209,8 @@ func (s *DBTestSuite) TestListRolloutsNamespace() {
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
 			Rank:         1,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 40,
 				},
@@ -220,8 +220,8 @@ func (s *DBTestSuite) TestListRolloutsNamespace() {
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
 			Rank:         2,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 80.2,
 				},
@@ -264,8 +264,8 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitOffset() {
 		{
 			FlagKey: flag.Key,
 			Rank:    1,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 40,
 				},
@@ -274,8 +274,8 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitOffset() {
 		{
 			FlagKey: flag.Key,
 			Rank:    2,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 80.2,
 				},
@@ -313,8 +313,8 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 		{
 			FlagKey: flag.Key,
 			Rank:    1,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 40,
 				},
@@ -323,8 +323,8 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 		{
 			FlagKey: flag.Key,
 			Rank:    2,
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 80.2,
 				},
@@ -381,8 +381,8 @@ func (s *DBTestSuite) TestCreateRollout_FlagNotFound() {
 	_, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: "foo",
 		Rank:    1,
-		Rule: &flipt.CreateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Percentage: 50.0,
 				Value:      true,
 			},
@@ -411,8 +411,8 @@ func (s *DBTestSuite) TestCreateRolloutNamespace_FlagNotFound() {
 		NamespaceKey: s.namespace,
 		FlagKey:      "foo",
 		Rank:         1,
-		Rule: &flipt.CreateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Percentage: 50.0,
 				Value:      true,
 			},
@@ -438,8 +438,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
-		Rule: &flipt.CreateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      true,
 				Percentage: 40,
 			},
@@ -453,9 +453,9 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Equal(t, storage.DefaultNamespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
-	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, rollout.Type)
-	assert.Equal(t, float32(40), rollout.GetPercentage().Percentage)
-	assert.Equal(t, true, rollout.GetPercentage().Value)
+	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, rollout.Type)
+	assert.Equal(t, float32(40), rollout.GetThreshold().Percentage)
+	assert.Equal(t, true, rollout.GetThreshold().Value)
 	assert.NotZero(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
@@ -463,8 +463,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 		Id:          rollout.Id,
 		FlagKey:     rollout.FlagKey,
 		Description: "foobar",
-		Rule: &flipt.UpdateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.UpdateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      false,
 				Percentage: 80,
 			},
@@ -478,9 +478,9 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Equal(t, rollout.FlagKey, updated.FlagKey)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, int32(1), updated.Rank)
-	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, updated.Type)
-	assert.Equal(t, float32(80), updated.GetPercentage().Percentage)
-	assert.Equal(t, false, updated.GetPercentage().Value)
+	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, updated.Type)
+	assert.Equal(t, float32(80), updated.GetThreshold().Percentage)
+	assert.Equal(t, false, updated.GetThreshold().Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }
@@ -503,8 +503,8 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 		FlagKey:      flag.Key,
 		NamespaceKey: s.namespace,
 		Rank:         1,
-		Rule: &flipt.CreateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      true,
 				Percentage: 40,
 			},
@@ -518,9 +518,9 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	assert.Equal(t, s.namespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
-	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, rollout.Type)
-	assert.Equal(t, float32(40), rollout.GetPercentage().Percentage)
-	assert.Equal(t, true, rollout.GetPercentage().Value)
+	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, rollout.Type)
+	assert.Equal(t, float32(40), rollout.GetThreshold().Percentage)
+	assert.Equal(t, true, rollout.GetThreshold().Value)
 	assert.NotZero(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
@@ -529,8 +529,8 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 		FlagKey:      rollout.FlagKey,
 		NamespaceKey: s.namespace,
 		Description:  "foobar",
-		Rule: &flipt.UpdateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.UpdateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      false,
 				Percentage: 80,
 			},
@@ -544,9 +544,9 @@ func (s *DBTestSuite) TestUpdateRolloutNamespace() {
 	assert.Equal(t, rollout.FlagKey, updated.FlagKey)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, int32(1), updated.Rank)
-	assert.Equal(t, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE, updated.Type)
-	assert.Equal(t, float32(80), updated.GetPercentage().Percentage)
-	assert.Equal(t, false, updated.GetPercentage().Value)
+	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, updated.Type)
+	assert.Equal(t, float32(80), updated.GetThreshold().Percentage)
+	assert.Equal(t, false, updated.GetThreshold().Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }
@@ -605,8 +605,8 @@ func (s *DBTestSuite) TestUpdateRollout_InvalidType() {
 		FlagKey:      rollout.FlagKey,
 		NamespaceKey: s.namespace,
 		Description:  "foobar",
-		Rule: &flipt.UpdateRolloutRequest_Percentage{
-			Percentage: &flipt.RolloutPercentage{
+		Rule: &flipt.UpdateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
 				Value:      false,
 				Percentage: 80,
 			},
@@ -683,8 +683,8 @@ func (s *DBTestSuite) TestDeleteRollout() {
 		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 			FlagKey: flag.Key,
 			Rank:    int32(i + 1),
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 40 + float32(i),
 				},
@@ -742,8 +742,8 @@ func (s *DBTestSuite) TestDeleteRolloutNamespace() {
 			NamespaceKey: s.namespace,
 			FlagKey:      flag.Key,
 			Rank:         int32(i + 1),
-			Rule: &flipt.CreateRolloutRequest_Percentage{
-				Percentage: &flipt.RolloutPercentage{
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
 					Value:      true,
 					Percentage: 40 + float32(i),
 				},

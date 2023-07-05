@@ -267,7 +267,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
+			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Percentage: &storage.RolloutPercentage{
 				Percentage: 5,
 				Value:      false,
@@ -310,7 +310,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
+			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Percentage: &storage.RolloutPercentage{
 				Percentage: 70,
 				Value:      false,
@@ -353,7 +353,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
+			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Percentage: &storage.RolloutPercentage{
 				Percentage: 5,
 				Value:      false,
@@ -474,7 +474,7 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 		{
 			NamespaceKey: namespaceKey,
 			Rank:         1,
-			RolloutType:  flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE,
+			RolloutType:  flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
 			Percentage: &storage.RolloutPercentage{
 				Percentage: 5,
 				Value:      false,

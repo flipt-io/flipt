@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS rollouts (
   FOREIGN KEY (namespace_key, flag_key) REFERENCES flags (namespace_key, key) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS rollout_percentages (
+CREATE TABLE IF NOT EXISTS rollout_thresholds (
   id VARCHAR(255) PRIMARY KEY UNIQUE NOT NULL,
   namespace_key VARCHAR(255) NOT NULL REFERENCES namespaces ON DELETE CASCADE,
   rollout_id VARCHAR(255) UNIQUE NOT NULL REFERENCES rollouts ON DELETE CASCADE,

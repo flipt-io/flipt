@@ -18,7 +18,7 @@ import (
 
 const (
 	tableRollouts           = "rollouts"
-	tableRolloutPercentages = "rollout_percentages"
+	tableRolloutPercentages = "rollout_thresholds"
 	tableRolloutSegments    = "rollout_segments"
 )
 
@@ -81,9 +81,9 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 		}
 
 		rollout.Rule = segmentRule
-	case flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE:
-		var percentageRule = &flipt.Rollout_Percentage{
-			Percentage: &flipt.RolloutPercentage{},
+	case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
+		var thresholdRule = &flipt.Rollout_Threshold{
+			Threshold: &flipt.RolloutThreshold{},
 		}
 
 		if err := builder.Select("percentage, \"value\"").
@@ -92,12 +92,12 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 			Limit(1).
 			QueryRowContext(ctx).
 			Scan(
-				&percentageRule.Percentage.Percentage,
-				&percentageRule.Percentage.Value); err != nil {
+				&thresholdRule.Threshold.Percentage,
+				&thresholdRule.Threshold.Value); err != nil {
 			return nil, err
 		}
 
-		rollout.Rule = percentageRule
+		rollout.Rule = thresholdRule
 
 	default:
 		return nil, fmt.Errorf("unknown rollout type %v", rollout.Type)
@@ -237,9 +237,9 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 	}
 
 	// get all rules from rollout_percentage_rules table
-	if len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]) > 0 {
-		allRuleIds := make([]string, 0, len(rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE]))
-		for _, rollout := range rolloutsByType[flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE] {
+	if len(rolloutsByType[flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE]) > 0 {
+		allRuleIds := make([]string, 0, len(rolloutsByType[flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE]))
+		for _, rollout := range rolloutsByType[flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE] {
 			allRuleIds = append(allRuleIds, rollout.Id)
 		}
 
@@ -261,7 +261,7 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 		for rows.Next() {
 			var (
 				rolloutId string
-				rule      = &flipt.RolloutPercentage{}
+				rule      = &flipt.RolloutThreshold{}
 			)
 
 			if err := rows.Scan(&rolloutId, &rule.Percentage, &rule.Value); err != nil {
@@ -269,7 +269,7 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 			}
 
 			rollout := rolloutsById[rolloutId]
-			rollout.Rule = &flipt.Rollout_Percentage{Percentage: rule}
+			rollout.Rule = &flipt.Rollout_Threshold{Threshold: rule}
 		}
 
 		if err := rows.Err(); err != nil {
@@ -337,8 +337,8 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	switch r.GetRule().(type) {
 	case *flipt.CreateRolloutRequest_Segment:
 		rollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
-	case *flipt.CreateRolloutRequest_Percentage:
-		rollout.Type = flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE
+	case *flipt.CreateRolloutRequest_Threshold:
+		rollout.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
 	case nil:
 		return nil, errs.ErrInvalid("rollout rule is missing")
 	default:
@@ -383,21 +383,21 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		rollout.Rule = &flipt.Rollout_Segment{
 			Segment: segmentRule,
 		}
-	case *flipt.CreateRolloutRequest_Percentage:
-		rollout.Type = flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE
+	case *flipt.CreateRolloutRequest_Threshold:
+		rollout.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
 
-		var percentageRule = r.GetPercentage()
+		var thresholdRule = r.GetThreshold()
 
 		if _, err := s.builder.Insert(tableRolloutPercentages).
 			RunWith(tx).
 			Columns("id", "rollout_id", "namespace_key", "percentage", "\"value\"").
-			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, percentageRule.Percentage, percentageRule.Value).
+			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, thresholdRule.Percentage, thresholdRule.Value).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
 
-		rollout.Rule = &flipt.Rollout_Percentage{
-			Percentage: percentageRule,
+		rollout.Rule = &flipt.Rollout_Threshold{
+			Threshold: thresholdRule,
 		}
 	default:
 		return nil, fmt.Errorf("invalid rollout rule type %v", rollout.Type)
@@ -470,18 +470,18 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
 			return nil, err
 		}
-	case *flipt.UpdateRolloutRequest_Percentage:
+	case *flipt.UpdateRolloutRequest_Threshold:
 		// enforce that rollout type is consistent with the DB
-		if err := ensureRolloutType(rollout, flipt.RolloutType_PERCENTAGE_ROLLOUT_TYPE); err != nil {
+		if err := ensureRolloutType(rollout, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE); err != nil {
 			return nil, err
 		}
 
-		var percentageRule = r.GetPercentage()
+		var thresholdRule = r.GetThreshold()
 
 		if _, err := s.builder.Update(tableRolloutPercentages).
 			RunWith(tx).
-			Set("percentage", percentageRule.Percentage).
-			Set("value", percentageRule.Value).
+			Set("percentage", thresholdRule.Percentage).
+			Set("value", thresholdRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
 			return nil, err
 		}
