@@ -242,7 +242,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				continue
 			}
 
-			// support implict rank from version >=1.1
+			// support implicit rank from version >=1.1
 			rank := int32(r.Rank)
 			if rank == 0 && v.GE(semver.Version{Major: 1, Minor: 1}) {
 				rank = int32(idx) + 1

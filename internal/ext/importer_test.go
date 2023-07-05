@@ -183,7 +183,7 @@ func TestImport(t *testing.T) {
 			hasAttachment: false,
 		},
 		{
-			name:          "import with implict rule ranks",
+			name:          "import with implicit rule ranks",
 			path:          "testdata/import_implicit_rule_rank.yml",
 			hasAttachment: true,
 		},
