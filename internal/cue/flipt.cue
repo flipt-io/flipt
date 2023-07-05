@@ -16,6 +16,7 @@ segments: [...#Segment]
 #Variant: {
 	key:        string & =~"^.+$"
 	name:       string & =~"^.+$"
+	description?: string
 	attachment: {...} | *null
 }
 
