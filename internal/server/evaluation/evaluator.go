@@ -204,17 +204,17 @@ func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue b
 
 		lastRank = rollout.Rank
 
-		if rollout.Percentage != nil {
+		if rollout.Threshold != nil {
 			// consistent hashing based on the entity id and flag key.
 			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
 
 			normalizedValue := float32(int(hash) % 100)
 
 			// if this case does not hold, fall through to the next rollout.
-			if normalizedValue < rollout.Percentage.Percentage {
-				resp.Value = rollout.Percentage.Value
+			if normalizedValue < rollout.Threshold.Percentage {
+				resp.Value = rollout.Threshold.Value
 				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-				e.logger.Debug("percentage based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "percentage"))
+				e.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
 
 				return resp, nil
 			}

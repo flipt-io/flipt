@@ -103,7 +103,7 @@ func TestReadOnly(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, flags.Flags, 51)
 
-			flag := flags.Flags[1]
+			flag := flags.Flags[0]
 			assert.Equal(t, namespace, flag.NamespaceKey)
 			assert.Equal(t, "flag_001", flag.Key)
 			assert.Equal(t, "FLAG_001", flag.Name)

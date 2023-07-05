@@ -296,7 +296,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithServiceBinding("flipt", flipt).
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(append([]string{"go", "test", "-v", "-race"}, append(flags, ".")...)).
+			WithExec(append([]string{"go", "test", "-v", "-timeout=1m", "-race"}, append(flags, ".")...)).
 			ExitCode(ctx)
 
 		return err

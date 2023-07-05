@@ -1,9 +1,5 @@
 version: "1.0"
 flags:
-- key: flag_disabled
-  name: FLAG_DISABLED
-  description: Disabled Flag Description
-  enabled: false
 - key: flag_001
   name: FLAG_001
   description: Some Description
@@ -18004,6 +18000,10 @@ flags:
       rollout: 50
     - variant: variant_002
       rollout: 50
+- key: flag_disabled
+  name: FLAG_DISABLED
+  description: Disabled Flag Description
+  enabled: false
 segments:
 - key: segment_001
   name: SEGMENT_001

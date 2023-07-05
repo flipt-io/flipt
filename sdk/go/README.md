@@ -41,7 +41,7 @@ package main
 
 import (
 	sdk "go.flipt.io/flipt/sdk/go"
-	sdkgrpc "go.flipt.io/flipt/sdk/grpc"
+	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
 	grpc "google.golang.org/grpc"
 )
 

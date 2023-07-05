@@ -57,22 +57,36 @@ export default function Footer() {
   return (
     <footer className="body-font sticky top-[100vh] text-gray-700">
       <div className="container mx-auto mt-4 flex flex-col items-center px-8 py-4 sm:flex-row">
-        <p className="mt-4 text-xs text-gray-500 sm:mt-0">
-          <span className="hidden sm:inline">
-            {ref() && (
-              <>
-                <a href={refURL()} className="text-violet-500">
-                  {ref()}
-                </a>
-                &nbsp;|&nbsp;
-              </>
-            )}
-          </span>
-          <span className="block sm:inline">
-            &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
-            reserved.
-          </span>
-        </p>
+        <div className="container mx-auto flex flex-col items-center space-x-2 sm:flex-row">
+          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
+            <span className="hidden sm:inline">
+              {ref() && (
+                <>
+                  <a href={refURL()} className="text-violet-500">
+                    {ref()}
+                  </a>
+                  &nbsp;|&nbsp;
+                </>
+              )}
+            </span>
+            <span className="block sm:inline">
+              &copy; {new Date().getFullYear()} Flipt Software Inc. All rights
+              reserved.
+            </span>
+          </p>
+          <p className="mt-4 text-xs text-gray-500 sm:mt-0">
+            <span className="hidden sm:inline">
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href="https://features.flipt.io"
+                className="text-violet-500"
+              >
+                Share Feedback
+              </a>
+            </span>
+          </p>
+        </div>
         <span className="mt-4 inline-flex justify-center space-x-5 sm:ml-auto sm:mt-0 sm:justify-start">
           {social.map((item) => (
             <a

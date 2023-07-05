@@ -2,8 +2,7 @@
 
 🔍 To explore VS Code to its fullest, search using the Command Palette (Cmd/Ctrl + Shift + P or F1).
 
-ℹ️  Look at https://github.com/flipt-io/flipt/blob/main/DEVELOPMENT.md
-    for more contribution details.
+ℹ️  Look at https://github.com/flipt-io/flipt/blob/main/DEVELOPMENT.md for more contribution details.
 
 ⭐⭐ =================================  IMPORTANT!!  ================================== ⭐⭐
     - To run the backend server, run `mage go:run` in the terminal.
@@ -12,4 +11,6 @@
       in the terminal (in a new tab).
 
     - To run the tests, run `mage go:test` in the terminal.
+
+    - Run `mage -l` to see all available commands.
 ⭐⭐ ================================================================================== ⭐⭐
