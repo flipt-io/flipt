@@ -128,7 +128,7 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					if flags.NextPageToken == "" {
-						// ensure last page contains 2 entres (boolean and disabled)
+						// ensure last page contains 2 entries (boolean and disabled)
 						assert.Len(t, flags.Flags, 2)
 
 						found = append(found, flags.Flags...)

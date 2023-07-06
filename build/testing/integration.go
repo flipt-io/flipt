@@ -272,7 +272,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 		diff := cmp.Diff(expected, generated)
 		if diff != "" {
-			fmt.Printf("Unexpected difference in %q exported output:\n", conf.name)
+			fmt.Printf("Unexpected difference in %q exported output: \n", conf.name)
 			fmt.Println(diff)
 			return errors.New("exported yaml did not match")
 		}
