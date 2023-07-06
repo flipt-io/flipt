@@ -19,7 +19,8 @@ export interface IRolloutBase {
   type: RolloutType;
   rank: number;
   description?: string;
-  rule: IRolloutRuleSegment | IRolloutRuleThreshold;
+  threshold?: IRolloutRuleThreshold;
+  segment?: IRolloutRuleSegment;
 }
 
 export interface IRollout extends IRolloutBase {

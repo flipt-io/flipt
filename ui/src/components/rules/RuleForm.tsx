@@ -70,14 +70,14 @@ const validRollout = (distributions: IDistributionVariant[]): boolean => {
 
 type RuleFormProps = {
   setOpen: (open: boolean) => void;
-  rulesChanged: () => void;
+  onSuccess: () => void;
   flag: IFlag;
   rank: number;
   segments: ISegment[];
 };
 
 export default function RuleForm(props: RuleFormProps) {
-  const { setOpen, rulesChanged, flag, rank, segments } = props;
+  const { setOpen, onSuccess, flag, rank, segments } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -155,7 +155,7 @@ export default function RuleForm(props: RuleFormProps) {
       onSubmit={(_, { setSubmitting }) => {
         handleSubmit()
           .then(() => {
-            rulesChanged();
+            onSuccess();
             clearError();
             setSuccess('Successfully created rule');
             setOpen(false);

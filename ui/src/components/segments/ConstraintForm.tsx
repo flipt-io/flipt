@@ -245,7 +245,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     description: constraint?.description || ''
   };
 
-  const handleSubmit = async (values: IConstraintBase) => {
+  const handleSubmit = (values: IConstraintBase) => {
     if (isNew) {
       return createConstraint(namespace.key, segmentKey, values);
     }

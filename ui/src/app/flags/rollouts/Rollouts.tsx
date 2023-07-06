@@ -4,10 +4,10 @@ import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
-import RolloutForm from '~/components/rollouts/RolloutForm';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
+import RolloutForm from '~/components/rollouts/RolloutForm';
 import Slideover from '~/components/Slideover';
 import { deleteRollout, listRollouts } from '~/data/api';
 import { IFlag } from '~/types/Flag';
@@ -64,12 +64,13 @@ export default function Rollouts(props: RolloutsProps) {
         ref={rolloutFormRef}
       >
         <RolloutForm
-          ref={rolloutFormRef}
-          flagKey={flag.key}
+          flag={flag}
+          rank={1}
           rollout={editingRollout || undefined}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
             setShowRolloutForm(false);
+            incrementRolloutsVersion();
             flagChanged();
           }}
         />

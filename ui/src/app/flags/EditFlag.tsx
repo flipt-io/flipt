@@ -3,8 +3,8 @@ import FlagForm from '~/components/flags/FlagForm';
 import MoreInfo from '~/components/MoreInfo';
 import { FlagType } from '~/types/Flag';
 import { FlagProps } from './FlagProps';
-import Variants from './variants/Variants';
 import Rollouts from './rollouts/Rollouts';
+import Variants from './variants/Variants';
 
 export default function EditFlag() {
   const { flag, onFlagChange } = useOutletContext<FlagProps>();
