@@ -105,7 +105,7 @@ export default function RuleForm(props: RuleFormProps) {
 
   useEffect(() => {
     if (
-      ruleType === distTypeSingle &&
+      ruleType === distTypeMulti &&
       distributions &&
       !validRollout(distributions)
     ) {

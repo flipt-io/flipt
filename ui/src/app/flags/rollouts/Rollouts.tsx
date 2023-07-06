@@ -29,7 +29,7 @@ export default function Rollouts(props: RolloutsProps) {
   const [editingRollout, setEditingRollout] = useState<IRollout | null>(null);
   const [showDeleteRolloutModal, setShowDeleteRolloutModal] =
     useState<boolean>(false);
-  const [deletingRollout, setDeletingRollout] = useState<IRollout | null>(null);
+  const [deletingRollout] = useState<IRollout | null>(null);
 
   const rolloutFormRef = useRef(null);
 
@@ -95,9 +95,7 @@ export default function Rollouts(props: RolloutsProps) {
             () =>
               deleteRollout(namespace.key, flag.key, deletingRollout?.id ?? '') // TODO: Determine impact of blank ID param
           }
-          onSuccess={() => {
-            flagChanged();
-          }}
+          onSuccess={flagChanged}
         />
       </Modal>
 
