@@ -6,13 +6,12 @@ type SelectProps = {
   options?: { value: string; label: string }[];
   children?: React.ReactNode;
   className?: string;
-  defaultValue?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
 export default function Select(props: SelectProps) {
-  const { id, name, options, value, children, className, onChange } = props;
+  const { id, name, options, children, className, value, onChange } = props;
 
   const [field] = useField({
     name,
