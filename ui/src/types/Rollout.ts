@@ -30,5 +30,5 @@ export interface IRollout extends IRolloutBase {
 }
 
 export interface IRolloutList extends IPageable {
-  rollouts: IRollout[];
+  rules: IRollout[];
 }

@@ -44,7 +44,7 @@ export default function Rollouts(props: RolloutsProps) {
       flag.key
     )) as IRolloutList;
 
-    setRollouts(rolloutList.rollouts);
+    setRollouts(rolloutList.rules);
   }, [namespace.key, flag.key]);
 
   const incrementRolloutsVersion = () => {
@@ -65,7 +65,7 @@ export default function Rollouts(props: RolloutsProps) {
       >
         <RolloutForm
           flag={flag}
-          rank={1}
+          rank={(rollouts?.length || 0) + 1}
           rollout={editingRollout || undefined}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
