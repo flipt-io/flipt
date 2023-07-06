@@ -117,7 +117,10 @@ func (s *syncedStore) CountNamespaces(ctx context.Context) (uint64, error) {
 }
 
 func (s *syncedStore) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
-	panic("not implemented")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.storeSnapshot.GetRollout(ctx, namespaceKey, id)
 }
 
 func (s *syncedStore) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {

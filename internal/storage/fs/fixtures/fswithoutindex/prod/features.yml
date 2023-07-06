@@ -28,6 +28,20 @@ flags:
         distributions:
           - variant: prod-variant
             rollout: 100
+  - key: flag_boolean
+    name: FLAG_BOOLEAN
+    type: BOOLEAN_FLAG_TYPE
+    description: Boolean Flag Description
+    enabled: false
+    rollouts:
+    - description: enabled for segment2
+      segment:
+        key: segment2
+        value: true
+    - description: enabled for 50%
+      threshold:
+        percentage: 50
+        value: true
 segments:
   - key: segment2
     name: segment2

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -61,11 +62,11 @@ func (fis *FSIndexSuite) TestCountFlag() {
 	flagCount, err := fis.store.CountFlags(context.TODO(), "production")
 	assert.NoError(t, err)
 
-	assert.Equal(t, 11, int(flagCount))
+	assert.Equal(t, 12, int(flagCount))
 
 	flagCount, err = fis.store.CountFlags(context.TODO(), "sandbox")
 	assert.NoError(t, err)
-	assert.Equal(t, 11, int(flagCount))
+	assert.Equal(t, 12, int(flagCount))
 }
 
 func (fis *FSIndexSuite) TestGetFlag() {
@@ -405,6 +406,50 @@ func (fis *FSIndexSuite) TestCountSegment() {
 	assert.Equal(t, 11, int(segmentCount))
 }
 
+func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
+	t := fis.T()
+
+	testCases := []struct {
+		name      string
+		namespace string
+		flagKey   string
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "flag_boolean",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
+
+			assert.Len(t, rollouts, 2)
+
+			assert.Equal(t, tc.namespace, rollouts[0].NamespaceKey)
+			assert.Equal(t, int32(1), rollouts[0].Rank)
+
+			require.NotNil(t, rollouts[0].Segment)
+			assert.Equal(t, "segment1", rollouts[0].Segment.Key)
+			assert.True(t, rollouts[0].Segment.Value, "segment value should be true")
+
+			assert.Equal(t, tc.namespace, rollouts[1].NamespaceKey)
+			assert.Equal(t, int32(2), rollouts[1].Rank)
+
+			require.NotNil(t, rollouts[1].Threshold)
+			assert.Equal(t, float32(50), rollouts[1].Threshold.Percentage)
+			assert.True(t, rollouts[1].Threshold.Value, "threshold value should be true")
+		})
+	}
+}
+
 func (fis *FSIndexSuite) TestGetEvaluationRules() {
 	t := fis.T()
 
@@ -464,19 +509,19 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dist, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
+			rules, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
 			assert.NoError(t, err)
 
-			assert.Len(t, dist, 1)
+			assert.Len(t, rules, 1)
 
-			assert.Equal(t, tc.namespace, dist[0].NamespaceKey)
-			assert.Equal(t, tc.flagKey, dist[0].FlagKey)
-			assert.Equal(t, int32(1), dist[0].Rank)
-			assert.Equal(t, "segment1", dist[0].SegmentKey)
+			assert.Equal(t, tc.namespace, rules[0].NamespaceKey)
+			assert.Equal(t, tc.flagKey, rules[0].FlagKey)
+			assert.Equal(t, int32(1), rules[0].Rank)
+			assert.Equal(t, "segment1", rules[0].SegmentKey)
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
-				c := dist[0].Constraints[i]
+				c := rules[0].Constraints[i]
 				assert.Equal(t, fc.Type, c.Type)
 				assert.Equal(t, fc.Property, c.Property)
 				assert.Equal(t, fc.Operator, c.Operator)
@@ -521,6 +566,72 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 
 			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
 			assert.Equal(t, float32(100), dist[0].Rollout)
+		})
+	}
+}
+
+func (fis *FSIndexSuite) TestCountRollouts() {
+	t := fis.T()
+
+	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), "production", "flag_boolean")
+	require.NoError(t, err)
+	assert.Equal(t, 2, int(rolloutsCount))
+
+	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "sandbox", "flag_boolean")
+	require.NoError(t, err)
+	assert.Equal(t, 2, int(rolloutsCount))
+}
+
+func (fis *FSIndexSuite) TestListAndGetRollouts() {
+	t := fis.T()
+
+	testCases := []struct {
+		name      string
+		namespace string
+		flagKey   string
+		pageToken string
+		listError error
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Page Token Invalid",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Invalid Offset",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rollouts, err := fis.store.ListRollouts(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			if tc.listError != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
+
+			assert.NoError(t, err)
+
+			for _, rollout := range rollouts.Results {
+				r, err := fis.store.GetRollout(context.TODO(), tc.namespace, rollout.Id)
+				assert.NoError(t, err)
+
+				assert.Equal(t, r, rollout)
+			}
 		})
 	}
 }
@@ -625,15 +736,15 @@ func (fis *FSWithoutIndexSuite) TestCountFlag() {
 	flagCount, err := fis.store.CountFlags(context.TODO(), "production")
 	assert.NoError(t, err)
 
-	assert.Equal(t, 12, int(flagCount))
+	assert.Equal(t, 13, int(flagCount))
 
 	flagCount, err = fis.store.CountFlags(context.TODO(), "sandbox")
 	assert.NoError(t, err)
-	assert.Equal(t, 12, int(flagCount))
+	assert.Equal(t, 13, int(flagCount))
 
 	flagCount, err = fis.store.CountFlags(context.TODO(), "staging")
 	assert.NoError(t, err)
-	assert.Equal(t, 12, int(flagCount))
+	assert.Equal(t, 13, int(flagCount))
 }
 
 func (fis *FSWithoutIndexSuite) TestGetFlag() {
@@ -1195,6 +1306,55 @@ func (fis *FSWithoutIndexSuite) TestListSegments() {
 	}
 }
 
+func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
+	t := fis.T()
+
+	testCases := []struct {
+		name      string
+		namespace string
+		flagKey   string
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Staging",
+			namespace: "staging",
+			flagKey:   "flag_boolean",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), tc.namespace, tc.flagKey)
+			assert.NoError(t, err)
+
+			assert.Len(t, rollouts, 2)
+
+			assert.Equal(t, tc.namespace, rollouts[0].NamespaceKey)
+			assert.Equal(t, int32(1), rollouts[0].Rank)
+
+			require.NotNil(t, rollouts[0].Segment)
+			assert.Equal(t, "segment1", rollouts[0].Segment.Key)
+			assert.True(t, rollouts[0].Segment.Value, "segment value should be true")
+
+			assert.Equal(t, tc.namespace, rollouts[1].NamespaceKey)
+			assert.Equal(t, int32(2), rollouts[1].Rank)
+
+			require.NotNil(t, rollouts[1].Threshold)
+			assert.Equal(t, float32(50), rollouts[1].Threshold.Percentage)
+			assert.True(t, rollouts[1].Threshold.Value, "threshold value should be true")
+		})
+	}
+}
+
 func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 	t := fis.T()
 
@@ -1277,19 +1437,19 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dist, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
+			rules, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
 			assert.NoError(t, err)
 
-			assert.Len(t, dist, 1)
+			assert.Len(t, rules, 1)
 
-			assert.Equal(t, tc.namespace, dist[0].NamespaceKey)
-			assert.Equal(t, tc.flagKey, dist[0].FlagKey)
-			assert.Equal(t, int32(1), dist[0].Rank)
-			assert.Equal(t, "segment1", dist[0].SegmentKey)
+			assert.Equal(t, tc.namespace, rules[0].NamespaceKey)
+			assert.Equal(t, tc.flagKey, rules[0].FlagKey)
+			assert.Equal(t, int32(1), rules[0].Rank)
+			assert.Equal(t, "segment1", rules[0].SegmentKey)
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
-				c := dist[0].Constraints[i]
+				c := rules[0].Constraints[i]
 				assert.Equal(t, fc.Type, c.Type)
 				assert.Equal(t, fc.Property, c.Property)
 				assert.Equal(t, fc.Operator, c.Operator)
@@ -1340,6 +1500,81 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 
 			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
 			assert.Equal(t, float32(100), dist[0].Rollout)
+		})
+	}
+}
+
+func (fis *FSWithoutIndexSuite) TestCountRollouts() {
+	t := fis.T()
+
+	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), "production", "flag_boolean")
+	require.NoError(t, err)
+	assert.Equal(t, 2, int(rolloutsCount))
+
+	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "sandbox", "flag_boolean")
+	require.NoError(t, err)
+	assert.Equal(t, 2, int(rolloutsCount))
+
+	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "staging", "flag_boolean")
+	require.NoError(t, err)
+	assert.Equal(t, 2, int(rolloutsCount))
+}
+
+func (fis *FSWithoutIndexSuite) TestListAndGetRollouts() {
+	t := fis.T()
+
+	testCases := []struct {
+		name      string
+		namespace string
+		flagKey   string
+		pageToken string
+		listError error
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Staging",
+			namespace: "staging",
+			flagKey:   "flag_boolean",
+		},
+		{
+			name:      "Page Token Invalid",
+			namespace: "production",
+			pageToken: "foo",
+			listError: errors.New("pageToken is not valid: \"foo\""),
+		},
+		{
+			name:      "Invalid Offset",
+			namespace: "production",
+			pageToken: "60000",
+			listError: errors.New("invalid offset: 60000"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rollouts, err := fis.store.ListRollouts(context.TODO(), tc.namespace, tc.flagKey, storage.WithPageToken(tc.pageToken))
+			if tc.listError != nil {
+				assert.EqualError(t, err, tc.listError.Error())
+				return
+			}
+
+			assert.NoError(t, err)
+
+			for _, rollout := range rollouts.Results {
+				r, err := fis.store.GetRollout(context.TODO(), tc.namespace, rollout.Id)
+				assert.NoError(t, err)
+
+				assert.Equal(t, r, rollout)
+			}
 		})
 	}
 }
