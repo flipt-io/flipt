@@ -63,22 +63,30 @@ func (v FeaturesValidator) Validate(file string, b []byte) (Result, error) {
 		return result, err
 	}
 
-	yv := v.cue.BuildFile(f, cue.Scope(v.v))
-	yv = v.v.Unify(yv)
-	err = yv.Validate()
+	yv := v.cue.BuildFile(f)
+	if err := yv.Err(); err != nil {
+		return Result{}, err
+	}
+
+	err = v.v.
+		Unify(yv).
+		Validate(cue.All(), cue.Concrete(true))
 
 	for _, e := range cueerrors.Errors(err) {
-		pos := cueerrors.Positions(e)
-		p := pos[len(pos)-1]
-
-		result.Errors = append(result.Errors, Error{
+		rerr := Error{
 			Message: e.Error(),
 			Location: Location{
-				File:   file,
-				Line:   p.Line(),
-				Column: p.Column(),
+				File: file,
 			},
-		})
+		}
+
+		if pos := cueerrors.Positions(e); len(pos) > 0 {
+			p := pos[len(pos)-1]
+			rerr.Location.Line = p.Line()
+			rerr.Location.Column = p.Column()
+		}
+
+		result.Errors = append(result.Errors, rerr)
 	}
 
 	if len(result.Errors) > 0 {

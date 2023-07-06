@@ -1,3 +1,4 @@
+version: "1.0"
 namespace: default
 flags:
 - key: flipt
@@ -18,19 +19,6 @@ flags:
     distributions:
     - variant: fromFlipt2
       rollout: 100
-- key: boolean
-  name: Boolean
-  description: Boolean flag
-  enabled: false
-  rollouts:
-  - description: enabled for internal users
-    segment:
-      key: internal-users
-      value: true
-  - description: enabled for 50%
-    threshold:
-      percentage: 50.0
-      value: true
 segments:
 - key: all-users
   name: All Users
