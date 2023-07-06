@@ -563,7 +563,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			Rule: &flipt.CreateRolloutRequest_Threshold{
 				Threshold: &flipt.RolloutThreshold{
 					Percentage: 50,
-					Value:      false,
+					Value:      true,
 				},
 			},
 		})
@@ -574,7 +574,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "50% disabled", rolloutThreshold.Description)
 		assert.Equal(t, int32(2), rolloutThreshold.Rank)
 		assert.Equal(t, float32(50.0), rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
-		assert.Equal(t, false, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
+		assert.Equal(t, true, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
 		rollouts, err := client.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
 			NamespaceKey: namespace,
@@ -595,7 +595,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			Rule: &flipt.UpdateRolloutRequest_Threshold{
 				Threshold: &flipt.RolloutThreshold{
 					Percentage: 50,
-					Value:      true,
+					Value:      false,
 				},
 			},
 		})
@@ -606,7 +606,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "50% enabled", updatedRollout.Description)
 		assert.Equal(t, int32(2), updatedRollout.Rank)
 		assert.Equal(t, float32(50.0), updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
-		assert.Equal(t, true, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
+		assert.Equal(t, false, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
 		t.Run("Cannot change rollout type", func(t *testing.T) {
 			_, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
@@ -775,6 +775,116 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace)
 				require.EqualError(t, err, msg)
 				require.Nil(t, result)
+			})
+		})
+
+		t.Run("Boolean", func(t *testing.T) {
+			// Have to use a fixed entity ID instead of UUID, because of percentage matching
+			t.Run("default match", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "beover50",
+					Context: map[string]string{
+						"no": "match",
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
+				assert.False(t, result.Value, "value should be the flag state")
+			})
+
+			t.Run("percentage match", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "fixed",
+					Context: map[string]string{
+						"no": "match",
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.False(t, result.Value, "value should be threshold match value")
+			})
+
+			t.Run("segment match", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "fixed",
+					Context: map[string]string{
+						"foo":  "baz",
+						"fizz": "nothing",
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.True(t, result.Value, "value should be segment match value")
+			})
+		})
+
+		t.Run("Batch", func(t *testing.T) {
+			// Have to use a fixed entity ID instead of UUID, because of percentage matching
+			t.Run("batch evaluates variant, boolean, and not found", func(t *testing.T) {
+				result, err := client.Evaluation().Batch(ctx, &evaluation.BatchEvaluationRequest{
+					Requests: []*evaluation.EvaluationRequest{
+						{
+							NamespaceKey: namespace,
+							FlagKey:      "boolean_disabled",
+							EntityId:     "fixed",
+							Context: map[string]string{
+								"no": "match",
+							},
+						},
+						{
+							NamespaceKey: namespace,
+							FlagKey:      "test",
+							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							Context: map[string]string{
+								"foo":  "baz",
+								"fizz": "bozz",
+							},
+						},
+						{
+							NamespaceKey: namespace,
+							FlagKey:      "flagnotfound",
+							EntityId:     "fixed",
+							Context: map[string]string{
+								"no": "match",
+							},
+						},
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Len(t, result.Responses, 3)
+
+				b, ok := result.Responses[0].Response.(*evaluation.EvaluationResponse_BooleanResponse)
+				assert.True(t, ok, "value should be boolean response")
+				assert.Equal(t, evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, result.Responses[0].Type)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
+				assert.False(t, b.BooleanResponse.Value, "value should be threshold match value")
+
+				v, ok := result.Responses[1].Response.(*evaluation.EvaluationResponse_VariantResponse)
+				assert.True(t, ok, "value should be variant response")
+				assert.Equal(t, evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, result.Responses[1].Type)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
+				assert.Equal(t, "everyone", v.VariantResponse.SegmentKey)
+				assert.Equal(t, "one", v.VariantResponse.VariantKey)
+
+				e, ok := result.Responses[2].Response.(*evaluation.EvaluationResponse_ErrorResponse)
+				assert.True(t, ok, "value should be error response")
+				assert.Equal(t, evaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, result.Responses[2].Type)
+				assert.Equal(t, evaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON, e.ErrorResponse.Reason)
+				assert.Equal(t, "flagnotfound", e.ErrorResponse.FlagKey)
 			})
 		})
 	})
