@@ -44,10 +44,10 @@ type RolloutThreshold struct {
 
 // RolloutSegment represents Segment(s) for use in evaluation.
 type RolloutSegment struct {
-	SegmentKey       string
-	SegmentMatchType flipt.MatchType
-	Value            bool
-	Constraints      []EvaluationConstraint
+	Key         string
+	MatchType   flipt.MatchType
+	Value       bool
+	Constraints []EvaluationConstraint
 }
 
 // EvaluationConstraint represents a segment constraint that is used for evaluation
