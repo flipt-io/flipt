@@ -557,9 +557,8 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 	require.NoError(t, err)
 
 	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
-		NamespaceKey: "default",
-		FlagKey:      flag.Key,
-		Rank:         1,
+		FlagKey: flag.Key,
+		Rank:    1,
 		Rule: &flipt.CreateRolloutRequest_Threshold{
 			Threshold: &flipt.RolloutThreshold{
 				Percentage: 50.0,
@@ -571,9 +570,8 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 	require.NoError(t, err)
 
 	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
-		NamespaceKey: "default",
-		FlagKey:      flag.Key,
-		Rank:         2,
+		FlagKey: flag.Key,
+		Rank:    2,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
 				SegmentKey: segment.Key,
@@ -596,6 +594,88 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 	assert.False(t, evaluationRollouts[0].Threshold.Value, "percentage value is false")
 
 	assert.Equal(t, "default", evaluationRollouts[1].NamespaceKey)
+	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
+	assert.NotNil(t, evaluationRollouts[1].Segment)
+	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)
+	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.MatchType)
+	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
+}
+
+func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		NamespaceKey: s.namespace,
+		SegmentKey:   segment.Key,
+		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:     "foo",
+		Operator:     "EQ",
+		Value:        "bar",
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Rank:         1,
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
+				Percentage: 50.0,
+				Value:      false,
+			},
+		},
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Rank:         2,
+		Rule: &flipt.CreateRolloutRequest_Segment{
+			Segment: &flipt.RolloutSegment{
+				SegmentKey: segment.Key,
+				Value:      true,
+			},
+		},
+	})
+
+	require.NoError(t, err)
+
+	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), s.namespace, flag.Key)
+	require.NoError(t, err)
+
+	assert.Equal(t, 2, len(evaluationRollouts))
+
+	assert.Equal(t, s.namespace, evaluationRollouts[0].NamespaceKey)
+	assert.Equal(t, int32(1), evaluationRollouts[0].Rank)
+	assert.NotNil(t, evaluationRollouts[0].Threshold)
+	assert.Equal(t, float32(50.0), evaluationRollouts[0].Threshold.Percentage)
+	assert.False(t, evaluationRollouts[0].Threshold.Value, "percentage value is false")
+
+	assert.Equal(t, s.namespace, evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
 	assert.NotNil(t, evaluationRollouts[1].Segment)
 	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)

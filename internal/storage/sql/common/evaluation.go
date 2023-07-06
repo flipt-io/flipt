@@ -230,9 +230,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			}
 
 			evaluationRollout.Threshold = storageThreshold
-		}
-
-		if rsSegmentKey.Valid &&
+		} else if rsSegmentKey.Valid &&
 			rsSegmentValue.Valid &&
 			rsMatchType.Valid &&
 			rsConstraintType.Valid &&
