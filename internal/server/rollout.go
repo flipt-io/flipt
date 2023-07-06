@@ -2,9 +2,7 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 
-	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
@@ -23,15 +21,6 @@ func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) 
 
 	opts := []storage.QueryOption{storage.WithLimit(uint64(r.GetLimit()))}
 
-	if r.GetPageToken() != "" {
-		tok, err := base64.StdEncoding.DecodeString(r.GetPageToken())
-		if err != nil {
-			return nil, errors.ErrInvalidf("pageToken is not valid: %q", r.GetPageToken())
-		}
-
-		opts = append(opts, storage.WithPageToken(string(tok)))
-	}
-
 	results, err := s.store.ListRollouts(ctx, r.NamespaceKey, r.FlagKey, opts...)
 	if err != nil {
 		return nil, err
@@ -47,7 +36,7 @@ func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) 
 	}
 
 	resp.TotalCount = int32(total)
-	resp.NextPageToken = base64.StdEncoding.EncodeToString([]byte(results.NextPageToken))
+	resp.NextPageToken = results.NextPageToken
 
 	s.logger.Debug("list rollout rules", zap.Stringer("response", &resp))
 	return &resp, nil

@@ -48,11 +48,12 @@ type storeSnapshot struct {
 }
 
 type namespace struct {
-	resource  *flipt.Namespace
-	flags     map[string]*flipt.Flag
-	segments  map[string]*flipt.Segment
-	rules     map[string]*flipt.Rule
-	evalRules map[string][]*storage.EvaluationRule
+	resource     *flipt.Namespace
+	flags        map[string]*flipt.Flag
+	segments     map[string]*flipt.Segment
+	rules        map[string]*flipt.Rule
+	evalRules    map[string][]*storage.EvaluationRule
+	evalRollouts map[string][]*storage.EvaluationRollout
 }
 
 func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
@@ -63,10 +64,11 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 			CreatedAt: created,
 			UpdatedAt: created,
 		},
-		flags:     map[string]*flipt.Flag{},
-		segments:  map[string]*flipt.Segment{},
-		rules:     map[string]*flipt.Rule{},
-		evalRules: map[string][]*storage.EvaluationRule{},
+		flags:        map[string]*flipt.Flag{},
+		segments:     map[string]*flipt.Segment{},
+		rules:        map[string]*flipt.Rule{},
+		evalRules:    map[string][]*storage.EvaluationRule{},
+		evalRollouts: map[string][]*storage.EvaluationRollout{},
 	}
 }
 
@@ -253,12 +255,14 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 	}
 
 	for _, f := range doc.Flags {
+		flagType := flipt.FlagType_value[f.Type]
 		flag := &flipt.Flag{
 			NamespaceKey: doc.Namespace,
 			Key:          f.Key,
 			Name:         f.Name,
 			Description:  f.Description,
 			Enabled:      f.Enabled,
+			Type:         flipt.FlagType(flagType),
 			CreatedAt:    ss.now,
 			UpdatedAt:    ss.now,
 		}
@@ -350,6 +354,47 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 		}
 
 		ns.evalRules[f.Key] = evalRules
+
+		evalRollouts := make([]*storage.EvaluationRollout, 0, len(f.Rollouts))
+		var rank int32 = 1
+		for _, rollout := range f.Rollouts {
+			s := &storage.EvaluationRollout{
+				NamespaceKey: doc.Namespace,
+				Rank:         rank,
+			}
+
+			if rollout.Threshold != nil {
+				s.Threshold = &storage.RolloutThreshold{
+					Percentage: rollout.Threshold.Percentage,
+					Value:      rollout.Threshold.Value,
+				}
+				s.RolloutType = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
+			} else if rollout.Segment != nil {
+				segment := ns.segments[rollout.Segment.Key]
+				s.Segment = &storage.RolloutSegment{
+					Key:   rollout.Segment.Key,
+					Value: rollout.Segment.Value,
+				}
+				s.RolloutType = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+
+				constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
+				for _, c := range segment.Constraints {
+					constraints = append(constraints, storage.EvaluationConstraint{
+						Operator: c.Operator,
+						Property: c.Property,
+						Type:     c.Type,
+						Value:    c.Value,
+					})
+				}
+
+				s.Segment.Constraints = constraints
+			}
+
+			rank += 1
+			evalRollouts = append(evalRollouts, s)
+		}
+
+		ns.evalRollouts[f.Key] = evalRollouts
 	}
 
 	ss.ns[doc.Namespace] = ns
@@ -626,19 +671,74 @@ func (ss *storeSnapshot) GetEvaluationDistributions(ctx context.Context, ruleID 
 }
 
 func (ss *storeSnapshot) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	panic("not implemented")
+	ns, ok := ss.ns[namespaceKey]
+	if !ok {
+		return nil, errs.ErrNotFoundf("namespaced %q", namespaceKey)
+	}
+
+	rollouts, ok := ns.evalRollouts[flagKey]
+	if !ok {
+		return nil, errs.ErrNotFoundf(`flag "%s/%s"`, namespaceKey, flagKey)
+	}
+
+	return rollouts, nil
 }
 
 func (ss *storeSnapshot) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
 	panic("not implemented")
 }
 
-func (ss *storeSnapshot) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
-	panic("not implemented")
+func (ss *storeSnapshot) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (set storage.ResultSet[*flipt.Rollout], err error) {
+	ns, err := ss.getNamespace(namespaceKey)
+	if err != nil {
+		return set, err
+	}
+
+	var rank int32 = 1
+	rollouts := make([]*flipt.Rollout, 0, len(ns.evalRollouts))
+	for _, er := range ns.evalRollouts[flagKey] {
+		r := &flipt.Rollout{
+			Id:           uuid.Must(uuid.NewV4()).String(),
+			NamespaceKey: er.NamespaceKey,
+			FlagKey:      flagKey,
+			Rank:         rank,
+			Type:         er.RolloutType,
+			CreatedAt:    ss.now,
+			UpdatedAt:    ss.now,
+		}
+
+		if er.Segment != nil {
+			r.Rule = &flipt.Rollout_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKey: er.Segment.Key,
+					Value:      er.Segment.Value,
+				},
+			}
+		} else if er.Threshold != nil {
+			r.Rule = &flipt.Rollout_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: er.Threshold.Percentage,
+					Value:      er.Threshold.Value,
+				},
+			}
+		}
+
+		rank += 1
+		rollouts = append(rollouts, r)
+	}
+
+	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
+		return rollouts[i].Rank < rollouts[j].Rank
+	}, rollouts...)
 }
 
 func (ss *storeSnapshot) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	panic("not implemented")
+	ns, err := ss.getNamespace(namespaceKey)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(len(ns.evalRollouts[flagKey])), nil
 }
 
 func (ss *storeSnapshot) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {

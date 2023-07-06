@@ -428,6 +428,103 @@ func TestReadOnly(t *testing.T) {
 					require.Nil(t, result)
 				})
 			})
+
+			t.Run("Boolean", func(t *testing.T) {
+				t.Run("default flag value", func(t *testing.T) {
+					result, err := sdk.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_boolean",
+						EntityId:     "hello",
+						Context:      map[string]string{},
+					})
+
+					require.NoError(t, err)
+
+					assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
+					assert.False(t, result.Value, "default flag value should be false")
+				})
+
+				t.Run("percentage match", func(t *testing.T) {
+					result, err := sdk.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_boolean",
+						EntityId:     "fixed",
+						Context:      map[string]string{},
+					})
+
+					require.NoError(t, err)
+
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+					assert.True(t, result.Value, "boolean evaluation value should be true")
+				})
+
+				t.Run("segment match", func(t *testing.T) {
+					result, err := sdk.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_boolean",
+						EntityId:     "fixed",
+						Context: map[string]string{
+							"in_segment": "segment_001",
+						},
+					})
+
+					require.NoError(t, err)
+
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+					assert.True(t, result.Value, "segment evaluation value should be true")
+				})
+			})
+
+			t.Run("Batch", func(t *testing.T) {
+				t.Run("batch evaluations (with not found errors)", func(t *testing.T) {
+					result, err := sdk.Evaluation().Batch(ctx, &evaluation.BatchEvaluationRequest{
+						Requests: []*evaluation.EvaluationRequest{
+							{
+								NamespaceKey: namespace,
+								FlagKey:      "flag_boolean",
+								EntityId:     "fixed",
+								Context:      map[string]string{},
+							},
+							{
+								NamespaceKey: namespace,
+								FlagKey:      "foobarnotfound",
+							},
+							{
+								NamespaceKey: namespace,
+								FlagKey:      "flag_001",
+								EntityId:     "some-fixed-entity-id",
+								Context: map[string]string{
+									"in_segment": "segment_005",
+								},
+							},
+						},
+					})
+
+					require.NoError(t, err)
+
+					assert.Len(t, result.Responses, 3)
+
+					b, ok := result.Responses[0].Response.(*evaluation.EvaluationResponse_BooleanResponse)
+					assert.True(t, ok, "response should be boolean evaluation response")
+					assert.True(t, b.BooleanResponse.Value, "boolean response should have true value")
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
+					assert.Equal(t, evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, result.Responses[0].Type)
+
+					e, ok := result.Responses[1].Response.(*evaluation.EvaluationResponse_ErrorResponse)
+					assert.True(t, ok, "response should be error evaluation response")
+					assert.Equal(t, "foobarnotfound", e.ErrorResponse.FlagKey)
+					assert.Equal(t, evaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON, e.ErrorResponse.Reason)
+					assert.Equal(t, evaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, result.Responses[1].Type)
+
+					v, ok := result.Responses[2].Response.(*evaluation.EvaluationResponse_VariantResponse)
+					assert.True(t, ok, "response should be boolean evaluation response")
+					assert.True(t, v.VariantResponse.Match, "variant response match should have true value")
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
+					assert.Equal(t, "variant_002", v.VariantResponse.VariantKey)
+					assert.Equal(t, "segment_005", v.VariantResponse.SegmentKey)
+					assert.Equal(t, evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, result.Responses[2].Type)
+				})
+			})
 		})
 
 		t.Run("Auth", func(t *testing.T) {

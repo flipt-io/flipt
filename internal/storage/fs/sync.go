@@ -121,11 +121,17 @@ func (s *syncedStore) GetRollout(ctx context.Context, namespaceKey, id string) (
 }
 
 func (s *syncedStore) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
-	panic("not implemented")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.storeSnapshot.ListRollouts(ctx, namespaceKey, flagKey, opts...)
 }
 
 func (s *syncedStore) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	panic("not implemented")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.storeSnapshot.CountRollouts(ctx, namespaceKey, flagKey)
 }
 
 func (s *syncedStore) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
