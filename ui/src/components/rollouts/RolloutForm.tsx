@@ -51,7 +51,9 @@ export default function RolloutForm(props: RolloutFormProps) {
     rolloutRuleTypeThreshold
   );
 
-  const handleThresholdSubmit = (values: IRollout & IRolloutRuleThreshold) => {
+  const handleThresholdSubmit = (
+    values: IRolloutBase & IRolloutRuleThreshold
+  ) => {
     return createRollout(namespace.key, flag.key, {
       rank,
       type: rolloutRuleType as RolloutType,
