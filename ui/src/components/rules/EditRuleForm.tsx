@@ -6,15 +6,14 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { ISelectable } from '~/components/forms/Combobox';
+import Combobox from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { updateDistribution } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IEvaluatable, IRollout } from '~/types/Evaluatable';
-import { ISegment } from '~/types/Segment';
-import { IVariant } from '~/types/Variant';
+import { FilterableSegment, FilterableVariant } from './RuleForm';
 
 type RuleFormProps = {
   setOpen: (open: boolean) => void;
@@ -42,10 +41,6 @@ const validRollout = (rollouts: IRollout[]): boolean => {
 
   return sum <= 100;
 };
-
-type SelectableSegment = ISegment & ISelectable;
-
-type SelectableVariant = IVariant & ISelectable;
 
 export default function EditRuleForm(props: RuleFormProps) {
   const { setOpen, rule, onSuccess } = props;
@@ -153,7 +148,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<SelectableSegment>
+                    <Combobox<FilterableSegment>
                       id="segmentKey"
                       name="segmentKey"
                       disabled
@@ -230,7 +225,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                       </label>
                     </div>
                     <div className="sm:col-span-2">
-                      <Combobox<SelectableVariant>
+                      <Combobox<FilterableVariant>
                         id="variant"
                         name="variant"
                         selected={{

@@ -1,17 +1,16 @@
 import { IPageable } from './Pageable';
 
 export enum RolloutType {
-  UNKNOW_ROLLOUT_TYPE = 'Unknown',
   SEGMENT_ROLLOUT_TYPE = 'Segment',
   THRESHOLD_ROLLOUT_TYPE = 'Threshold'
 }
 
-export interface RolloutSegment {
+export interface IRolloutRuleSegment {
   segmentKey: string;
   value: boolean;
 }
 
-export interface RolloutThreshold {
+export interface IRolloutRuleThreshold {
   percentage: number;
   value: boolean;
 }
@@ -20,7 +19,7 @@ export interface IRolloutBase {
   type: RolloutType;
   rank: number;
   description?: string;
-  rule: RolloutSegment | RolloutThreshold;
+  rule: IRolloutRuleSegment | IRolloutRuleThreshold;
 }
 
 export interface IRollout extends IRolloutBase {

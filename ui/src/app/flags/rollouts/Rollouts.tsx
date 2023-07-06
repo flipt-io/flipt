@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
-import RolloutForm from '~/components/flags/RolloutForm';
+import RolloutForm from '~/components/rollouts/RolloutForm';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';

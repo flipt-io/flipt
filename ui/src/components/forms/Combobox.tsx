@@ -3,8 +3,9 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
 import { useState } from 'react';
 import { classNames } from '~/utils/helpers';
+import { ISelectable } from './Listbox';
 
-type ComboboxProps<T extends ISelectable> = {
+type ComboboxProps<T extends IFilterable> = {
   id: string;
   name: string;
   placeholder?: string;
@@ -15,14 +16,12 @@ type ComboboxProps<T extends ISelectable> = {
   className?: string;
 };
 
-export interface ISelectable {
-  key: string;
+export interface IFilterable extends ISelectable {
   status?: 'active' | 'inactive';
   filterValue: string;
-  displayValue: string;
 }
 
-export default function Combobox<T extends ISelectable>(
+export default function Combobox<T extends IFilterable>(
   props: ComboboxProps<T>
 ) {
   const {
