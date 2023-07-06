@@ -32,12 +32,14 @@ export default function InnerThresholdRuleFormInputs() {
         <Input
           type="number"
           id="percentage"
+          max={100}
+          min={0}
           name="percentage"
           value={values.percentage}
           onChange={(e) =>
             setFieldValue('percentage', parseInt(e.target.value))
           }
-          className="w-20 text-center"
+          className="text-center"
         />
       </div>
       <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">

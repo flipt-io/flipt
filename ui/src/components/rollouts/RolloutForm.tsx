@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
+import Input from '~/components/forms/Input';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
@@ -50,10 +51,11 @@ export default function RolloutForm(props: RolloutFormProps) {
     rolloutRuleTypeThreshold
   );
 
-  const handleThresholdSubmit = (values: IRolloutRuleThreshold) => {
+  const handleThresholdSubmit = (values: IRollout & IRolloutRuleThreshold) => {
     return createRollout(namespace.key, flag.key, {
       rank,
       type: rolloutRuleType as RolloutType,
+      description: values.description,
       threshold: {
         percentage: values.percentage,
         value: values.value
@@ -63,7 +65,8 @@ export default function RolloutForm(props: RolloutFormProps) {
 
   const initialValues = {
     type: rolloutRuleType,
-    percentage: 60,
+    description: '',
+    percentage: 50,
     value: true
   };
 
@@ -168,6 +171,25 @@ export default function RolloutForm(props: RolloutFormProps) {
               {rolloutRuleType === rolloutRuleTypeThreshold && (
                 <ThresholdRuleFormInputs />
               )}
+              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                <div>
+                  <label
+                    htmlFor="description"
+                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                  >
+                    Description
+                  </label>
+                  <span
+                    className="text-xs text-gray-400"
+                    id="description-optional"
+                  >
+                    Optional
+                  </span>
+                </div>
+                <div className="sm:col-span-2">
+                  <Input name="description" id="description" />
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
