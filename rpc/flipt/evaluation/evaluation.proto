@@ -17,7 +17,6 @@ message EvaluationRequest {
 message BatchEvaluationRequest {
   string request_id = 1;
   repeated EvaluationRequest requests = 3;
-  bool exclude_not_found = 4;
 }
 
 message BatchEvaluationResponse {
@@ -29,22 +28,27 @@ message BatchEvaluationResponse {
 enum EvaluationReason {
     UNKNOWN_EVALUATION_REASON = 0;
     FLAG_DISABLED_EVALUATION_REASON = 1;
-    FLAG_NOT_FOUND_EVALUATION_REASON = 2;
-    MATCH_EVALUATION_REASON = 3;
-    ERROR_EVALUATION_REASON = 4;
-    DEFAULT_EVALUATION_REASON = 5;
+    MATCH_EVALUATION_REASON = 2;
+    DEFAULT_EVALUATION_REASON = 3;
 }
 
-enum EvaluationFlagType {
-  VARIANT_FLAG_TYPE = 0;
-  BOOLEAN_FLAG_TYPE = 1;
+enum ErrorEvaluationReason {
+  UNKNOWN_ERROR_REASON = 0;
+  NOT_FOUND_ERROR_REASON = 1;
+}
+
+enum EvaluationResponseType {
+  VARIANT_EVALUATION_RESPONSE_TYPE = 0;
+  BOOLEAN_EVALUATION_RESPONSE_TYPE = 1;
+  ERROR_EVALUATION_RESPONSE_TYPE = 2;
 }
 
 message EvaluationResponse {
-    EvaluationFlagType flag_type = 1;
+    EvaluationResponseType type = 1;
     oneof response {
         BooleanEvaluationResponse boolean_response = 2;
         VariantEvaluationResponse variant_response = 3;
+        ErrorEvaluationResponse error_response = 4;
     }
 }
 
@@ -67,6 +71,10 @@ message VariantEvaluationResponse {
   google.protobuf.Timestamp timestamp = 8;
 }
 
+message ErrorEvaluationResponse {
+  string flag_key = 1;
+  ErrorEvaluationReason reason = 2;
+}
 
 service EvaluationService {
   rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {}
