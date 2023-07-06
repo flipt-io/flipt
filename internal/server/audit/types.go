@@ -150,3 +150,46 @@ func NewRule(r *flipt.Rule) *Rule {
 		NamespaceKey:  r.NamespaceKey,
 	}
 }
+
+type Rollout struct {
+	NamespaceKey string            `json:"namespace_key"`
+	FlagKey      string            `json:"flag_key"`
+	Rank         int32             `json:"rank"`
+	Description  string            `json:"description"`
+	Threshold    *RolloutThreshold `json:"threshold,omitempty"`
+	Segment      *RolloutSegment   `json:"segment,omitempty"`
+}
+
+type RolloutThreshold struct {
+	Percentage float32 `json:"percentage"`
+	Value      bool    `json:"value"`
+}
+
+type RolloutSegment struct {
+	Key   string `json:"Key"`
+	Value bool   `json:"value"`
+}
+
+func NewRollout(r *flipt.Rollout) *Rollout {
+	rollout := &Rollout{
+		NamespaceKey: r.NamespaceKey,
+		FlagKey:      r.FlagKey,
+		Rank:         r.Rank,
+		Description:  r.Description,
+	}
+
+	switch rout := r.Rule.(type) {
+	case *flipt.Rollout_Segment:
+		rollout.Segment = &RolloutSegment{
+			Key:   rout.Segment.SegmentKey,
+			Value: rout.Segment.Value,
+		}
+	case *flipt.Rollout_Threshold:
+		rollout.Threshold = &RolloutThreshold{
+			Percentage: rout.Threshold.Percentage,
+			Value:      rout.Threshold.Value,
+		}
+	}
+
+	return rollout
+}

@@ -1422,6 +1422,97 @@ func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
+func TestAuditUnaryInterceptor_CreateRollout(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.CreateRolloutRequest{
+			FlagKey: "flagkey",
+			Rank:    1,
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 50.0,
+					Value:      true,
+				},
+			},
+		}
+	)
+
+	store.On("CreateRollout", mock.Anything, req).Return(&flipt.Rollout{
+		Id:           "1",
+		NamespaceKey: "default",
+		Rank:         1,
+		FlagKey:      req.FlagKey,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateRollout(ctx, r.(*flipt.CreateRolloutRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "CreateRollout",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
+func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.UpdateRolloutRequest{
+			Description: "desc",
+		}
+	)
+
+	store.On("UpdateRollout", mock.Anything, req).Return(&flipt.Rollout{
+		Description:  "desc",
+		FlagKey:      "flagkey",
+		NamespaceKey: "default",
+		Rank:         1,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateRollout(ctx, r.(*flipt.UpdateRolloutRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "UpdateRollout",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
 func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 	var (
 		store       = &storeMock{}
