@@ -6,7 +6,7 @@ export enum RolloutType {
 }
 
 export interface IRolloutRuleSegment {
-  segmentKey: string;
+  key: string;
   value: boolean;
 }
 

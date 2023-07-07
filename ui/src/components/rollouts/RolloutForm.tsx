@@ -12,7 +12,6 @@ import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
 import ThresholdRuleFormInputs from './rules/ThresholdRuleForm';
 
@@ -35,7 +34,7 @@ const rolloutRuleTypes = [
 type RolloutFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  flag: IFlag;
+  flagKey: string;
   rollout?: IRollout;
   rank: number;
 };
@@ -43,12 +42,13 @@ type RolloutFormProps = {
 interface RolloutFormValues {
   type: string;
   description?: string;
+  segmentKey?: string;
   percentage?: number;
   value: string;
 }
 
 export default function RolloutForm(props: RolloutFormProps) {
-  const { setOpen, onSuccess, flag, rank } = props;
+  const { setOpen, onSuccess, flagKey, rank } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -59,8 +59,20 @@ export default function RolloutForm(props: RolloutFormProps) {
     rolloutRuleTypeThreshold
   );
 
+  const handleSegmentSubmit = (values: RolloutFormValues) => {
+    return createRollout(namespace.key, flagKey, {
+      rank,
+      type: rolloutRuleType as RolloutType,
+      description: values.description,
+      segment: {
+        key: values.segmentKey || '',
+        value: values.value === 'true'
+      }
+    });
+  };
+
   const handleThresholdSubmit = (values: RolloutFormValues) => {
-    return createRollout(namespace.key, flag.key, {
+    return createRollout(namespace.key, flagKey, {
       rank,
       type: rolloutRuleType as RolloutType,
       description: values.description,
@@ -71,19 +83,26 @@ export default function RolloutForm(props: RolloutFormProps) {
     });
   };
 
-  const initialValues: RolloutFormValues = {
-    type: rolloutRuleType,
-    description: '',
-    percentage: 50, // TODO: make this 0?
-    value: 'true'
-  };
-
   return (
     <Formik
       enableReinitialize
-      initialValues={initialValues}
+      initialValues={{
+        type: rolloutRuleType,
+        description: '',
+        segmentKey: '',
+        percentage: 50, // TODO: make this 0?
+        value: 'true'
+      }}
       onSubmit={(values, { setSubmitting }) => {
-        handleThresholdSubmit(values)
+        let handleSubmit = async (_values: RolloutFormValues) => {};
+
+        if (rolloutRuleType === rolloutRuleTypeSegment) {
+          handleSubmit = handleSegmentSubmit;
+        } else if (rolloutRuleType === rolloutRuleTypeThreshold) {
+          handleSubmit = handleThresholdSubmit;
+        }
+
+        handleSubmit(values)
           .then(() => {
             onSuccess();
             clearError();

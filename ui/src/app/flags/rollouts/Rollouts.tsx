@@ -64,7 +64,7 @@ export default function Rollouts(props: RolloutsProps) {
         ref={rolloutFormRef}
       >
         <RolloutForm
-          flag={flag}
+          flagKey={flag.key}
           rank={(rollouts?.length || 0) + 1}
           rollout={editingRollout || undefined}
           setOpen={setShowRolloutForm}

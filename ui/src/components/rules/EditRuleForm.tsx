@@ -6,14 +6,16 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox from '~/components/forms/Combobox';
+import Combobox, { IFilterable } from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { updateDistribution } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { IEvaluatable, IRollout } from '~/types/Evaluatable';
-import { FilterableSegment, FilterableVariant } from './RuleForm';
+import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
+import { ISegment } from '~/types/Segment';
+import { IVariant } from '~/types/Variant';
+import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
 
 type RuleFormProps = {
   setOpen: (open: boolean) => void;
@@ -21,20 +23,7 @@ type RuleFormProps = {
   onSuccess: () => void;
 };
 
-const distTypes = [
-  {
-    id: 'single',
-    name: 'Single Variant',
-    description: 'Always returns the same variant'
-  },
-  {
-    id: 'multi',
-    name: 'Multi-Variant',
-    description: 'Returns different variants based on percentages'
-  }
-];
-
-const validRollout = (rollouts: IRollout[]): boolean => {
+export const validRollout = (rollouts: IVariantRollout[]): boolean => {
   const sum = rollouts.reduce(function (acc, d) {
     return acc + Number(d.distribution.rollout);
   }, 0);
@@ -55,11 +44,11 @@ export default function EditRuleForm(props: RuleFormProps) {
   const [editingRule, setEditingRule] = useState<IEvaluatable>(cloneDeep(rule));
 
   const [ruleType, setRuleType] = useState(
-    editingRule.rollouts.length > 1 ? 'multi' : 'single'
+    editingRule.rollouts.length > 1 ? distTypeMulti : distTypeSingle
   );
 
   useEffect(() => {
-    if (ruleType === 'multi' && !validRollout(editingRule.rollouts)) {
+    if (ruleType === distTypeMulti && !validRollout(editingRule.rollouts)) {
       setDistributionsValid(false);
     } else {
       setDistributionsValid(true);
@@ -148,7 +137,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<FilterableSegment>
+                    <Combobox<ISegment & IFilterable>
                       id="segmentKey"
                       name="segmentKey"
                       disabled
@@ -214,7 +203,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                   </div>
                 </div>
 
-                {ruleType === 'single' && (
+                {ruleType === distTypeSingle && (
                   <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                     <div>
                       <label
@@ -225,7 +214,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                       </label>
                     </div>
                     <div className="sm:col-span-2">
-                      <Combobox<FilterableVariant>
+                      <Combobox<IVariant & IFilterable>
                         id="variant"
                         name="variant"
                         selected={{
@@ -238,7 +227,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                   </div>
                 )}
 
-                {ruleType === 'multi' && (
+                {ruleType === distTypeMulti && (
                   <div>
                     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                       <div>
