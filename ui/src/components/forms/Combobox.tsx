@@ -2,8 +2,8 @@ import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
 import { useState } from 'react';
+import { IFilterable } from '~/types/Selectable';
 import { classNames } from '~/utils/helpers';
-import { ISelectable } from './Listbox';
 
 type ComboboxProps<T extends IFilterable> = {
   id: string;
@@ -15,11 +15,6 @@ type ComboboxProps<T extends IFilterable> = {
   disabled?: boolean;
   className?: string;
 };
-
-export interface IFilterable extends ISelectable {
-  status?: 'active' | 'inactive';
-  filterValue: string;
-}
 
 export default function Combobox<T extends IFilterable>(
   props: ComboboxProps<T>

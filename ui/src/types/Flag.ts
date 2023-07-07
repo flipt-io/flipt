@@ -1,4 +1,5 @@
 import { IPageable } from './Pageable';
+import { IFilterable } from './Selectable';
 import { IVariant } from './Variant';
 
 export enum FlagType {
@@ -26,3 +27,5 @@ export interface IFlagList extends IPageable {
 
 export const flagTypeToLabel = (t: string) =>
   FlagType[t as keyof typeof FlagType];
+
+export type FilterableFlag = IFlag & IFilterable;

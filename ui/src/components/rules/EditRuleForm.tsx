@@ -6,15 +6,15 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { IFilterable } from '~/components/forms/Combobox';
+import Combobox from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { updateDistribution } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
-import { ISegment } from '~/types/Segment';
-import { IVariant } from '~/types/Variant';
+import { FilterableSegment } from '~/types/Segment';
+import { FilterableVariant } from '~/types/Variant';
 import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
 
 type RuleFormProps = {
@@ -137,7 +137,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<ISegment & IFilterable>
+                    <Combobox<FilterableSegment>
                       id="segmentKey"
                       name="segmentKey"
                       disabled
@@ -214,7 +214,7 @@ export default function EditRuleForm(props: RuleFormProps) {
                       </label>
                     </div>
                     <div className="sm:col-span-2">
-                      <Combobox<IVariant & IFilterable>
+                      <Combobox<FilterableVariant>
                         id="variant"
                         name="variant"
                         selected={{

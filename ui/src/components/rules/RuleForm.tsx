@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { IFilterable } from '~/components/forms/Combobox';
+import Combobox from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createDistribution, createRule } from '~/data/api';
@@ -16,8 +16,8 @@ import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 import { IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
-import { ISegment } from '~/types/Segment';
-import { IVariant } from '~/types/Variant';
+import { FilterableSegment, ISegment } from '~/types/Segment';
+import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './distributions/MultiDistributionForm';
 import SingleDistributionFormInput from './distributions/SingleDistributionForm';
@@ -82,12 +82,10 @@ export default function RuleForm(props: RuleFormProps) {
 
   const [ruleType, setRuleType] = useState(distTypeSingle);
 
-  const [selectedSegment, setSelectedSegment] = useState<
-    (ISegment & IFilterable) | null
-  >(null);
-  const [selectedVariant, setSelectedVariant] = useState<
-    (IVariant & IFilterable) | null
-  >(null);
+  const [selectedSegment, setSelectedSegment] =
+    useState<FilterableSegment | null>(null);
+  const [selectedVariant, setSelectedVariant] =
+    useState<FilterableVariant | null>(null);
 
   const [distributions, setDistributions] = useState(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
@@ -201,7 +199,7 @@ export default function RuleForm(props: RuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<ISegment & IFilterable>
+                    <Combobox<FilterableSegment>
                       id="segmentKey"
                       name="segmentKey"
                       placeholder="Select or search for a segment"

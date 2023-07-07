@@ -1,6 +1,7 @@
 import { Listbox as L, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from 'react';
+import { ISelectable } from '~/types/Selectable';
 import { classNames } from '~/utils/helpers';
 
 type ListBoxProps<T extends ISelectable> = {
@@ -12,11 +13,6 @@ type ListBoxProps<T extends ISelectable> = {
   disabled?: boolean;
   className?: string;
 };
-
-export interface ISelectable {
-  key: string;
-  displayValue: string;
-}
 
 export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
   const { id, name, values, selected, setSelected, disabled, className } =

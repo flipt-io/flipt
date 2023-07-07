@@ -1,15 +1,11 @@
-import Combobox, { IFilterable } from '~/components/forms/Combobox';
-import { ISegment } from '~/types/Segment';
+import Combobox from '~/components/forms/Combobox';
+import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
-
-interface SegmentRuleFormInputsFields {
-  segmentKey: string;
-}
 
 type SegmentRuleFormInputsProps = {
   segments: ISegment[];
-  selectedSegment: (ISegment & IFilterable) | null;
-  setSelectedSegment: (v: (ISegment & IFilterable) | null) => void;
+  selectedSegment: FilterableSegment | null;
+  setSelectedSegment: (v: FilterableSegment | null) => void;
 };
 
 export default function SegmentRuleFormInputs(
@@ -29,7 +25,7 @@ export default function SegmentRuleFormInputs(
           </label>
         </div>
         <div className="sm:col-span-2">
-          <Combobox<ISegment & IFilterable>
+          <Combobox<FilterableSegment>
             id="segmentKey"
             name="segmentKey"
             placeholder="Select or search for a segment"

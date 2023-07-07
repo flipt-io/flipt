@@ -13,6 +13,8 @@ import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IRollout, RolloutType } from '~/types/Rollout';
+import { FilterableSegment, ISegment } from '~/types/Segment';
+import SegmentRuleFormInputs from './rules/SegmentRuleForm';
 import ThresholdRuleFormInputs from './rules/ThresholdRuleForm';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
@@ -36,6 +38,7 @@ type RolloutFormProps = {
   onSuccess: () => void;
   flagKey: string;
   rollout?: IRollout;
+  segments: ISegment[];
   rank: number;
 };
 
@@ -48,7 +51,7 @@ interface RolloutFormValues {
 }
 
 export default function RolloutForm(props: RolloutFormProps) {
-  const { setOpen, onSuccess, flagKey, rank } = props;
+  const { setOpen, onSuccess, flagKey, segments, rank } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -58,6 +61,8 @@ export default function RolloutForm(props: RolloutFormProps) {
   const [rolloutRuleType, setRolloutRuleType] = useState(
     rolloutRuleTypeThreshold
   );
+  const [selectedSegment, setSelectedSegment] =
+    useState<FilterableSegment | null>(null);
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
@@ -65,7 +70,7 @@ export default function RolloutForm(props: RolloutFormProps) {
       type: rolloutRuleType as RolloutType,
       description: values.description,
       segment: {
-        key: values.segmentKey || '',
+        segmentKey: values.segmentKey || '',
         value: values.value === 'true'
       }
     });
@@ -197,6 +202,13 @@ export default function RolloutForm(props: RolloutFormProps) {
               </div>
               {rolloutRuleType === rolloutRuleTypeThreshold && (
                 <ThresholdRuleFormInputs />
+              )}
+              {rolloutRuleType === rolloutRuleTypeSegment && (
+                <SegmentRuleFormInputs
+                  segments={segments}
+                  selectedSegment={selectedSegment}
+                  setSelectedSegment={setSelectedSegment}
+                />
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <label
