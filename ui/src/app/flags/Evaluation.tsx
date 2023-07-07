@@ -190,9 +190,7 @@ export default function Evaluation() {
           handleDelete={() =>
             deleteRule(namespace.key, flag.key, deletingRule?.id ?? '')
           }
-          onSuccess={() => {
-            incrementRulesVersion();
-          }}
+          onSuccess={incrementRulesVersion}
         />
       </Modal>
 
@@ -203,7 +201,7 @@ export default function Evaluation() {
           rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
-          rulesChanged={incrementRulesVersion}
+          onSuccess={incrementRulesVersion}
         />
       </Slideover>
 

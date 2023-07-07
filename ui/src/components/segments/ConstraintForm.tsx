@@ -30,6 +30,10 @@ import {
 } from '~/types/Constraint';
 import { Timezone } from '~/types/Preferences';
 
+const constraintComparisonTypeBoolean = 'BOOLEAN_COMPARISON_TYPE';
+const constraintComparisonTypeDateTime = 'DATETIME_COMPARISON_TYPE';
+const constraintComparisonTypeString = 'STRING_COMPARISON_TYPE';
+
 const constraintComparisonTypes = () =>
   (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(
     (t) => ({
@@ -232,20 +236,21 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
 
   const [hasValue, setHasValue] = useState(true);
   const [type, setType] = useState(
-    constraint?.type || 'STRING_COMPARISON_TYPE'
+    constraint?.type || constraintComparisonTypeString
   );
 
   const namespace = useSelector(selectCurrentNamespace);
 
   const initialValues = {
     property: constraint?.property || '',
-    type: constraint?.type || ('STRING_COMPARISON_TYPE' as ComparisonType),
+    type:
+      constraint?.type || (constraintComparisonTypeString as ComparisonType),
     operator: constraint?.operator || 'eq',
     value: constraint?.value || '',
     description: constraint?.description || ''
   };
 
-  const handleSubmit = async (values: IConstraintBase) => {
+  const handleSubmit = (values: IConstraintBase) => {
     if (isNew) {
       return createConstraint(namespace.key, segmentKey, values);
     }
@@ -338,7 +343,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                       formik.setFieldValue('type', type);
                       setType(type);
 
-                      if (e.target.value === 'BOOLEAN_COMPARISON_TYPE') {
+                      if (e.target.value === constraintComparisonTypeBoolean) {
                         formik.setFieldValue('operator', 'true');
                         setHasValue(false);
                       } else {
@@ -370,12 +375,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                   />
                 </div>
               </div>
-              {hasValue && type != 'DATETIME_COMPARISON_TYPE' && (
-                <ConstraintValueInput name="value" id="value" />
-              )}
-              {hasValue && type === 'DATETIME_COMPARISON_TYPE' && (
-                <ConstraintValueDateTimeInput name="value" id="value" />
-              )}
+              {hasValue &&
+                (type === constraintComparisonTypeDateTime ? (
+                  <ConstraintValueDateTimeInput name="value" id="value" />
+                ) : (
+                  <ConstraintValueInput name="value" id="value" />
+                ))}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label

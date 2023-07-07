@@ -1,10 +1,11 @@
 import Combobox from '~/components/forms/Combobox';
-import { IVariant, SelectableVariant } from '~/types/Variant';
+import { FilterableVariant } from '~/components/rules/RuleForm';
+import { IVariant } from '~/types/Variant';
 
 type SingleDistributionFormInputProps = {
   variants: IVariant[];
-  selectedVariant: SelectableVariant | null;
-  setSelectedVariant: (variant: SelectableVariant | null) => void;
+  selectedVariant: FilterableVariant | null;
+  setSelectedVariant: (variant: FilterableVariant | null) => void;
 };
 
 export default function SingleDistributionFormInput(
@@ -22,7 +23,7 @@ export default function SingleDistributionFormInput(
         </label>
       </div>
       <div className="sm:col-span-2">
-        <Combobox<SelectableVariant>
+        <Combobox<FilterableVariant>
           id="variant"
           name="variant"
           placeholder="Select or search for a variant"

@@ -22,7 +22,7 @@ import { copyFlag, deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
-import { IFlag } from '~/types/Flag';
+import { FlagType, flagTypeToLabel, IFlag } from '~/types/Flag';
 
 export default function Flag() {
   let { flagKey } = useParams();
@@ -47,17 +47,6 @@ export default function Flag() {
     setFlagVersion(flagVersion + 1);
   };
 
-  const tabs = [
-    {
-      name: 'Details',
-      to: ''
-    },
-    {
-      name: 'Evaluation',
-      to: 'evaluation'
-    }
-  ];
-
   useEffect(() => {
     if (!flagKey) return;
 
@@ -71,6 +60,18 @@ export default function Flag() {
   }, [flagVersion, flagKey, namespace.key, clearError, setError]);
 
   if (!flag) return <Loading />;
+
+  const tabs = [
+    {
+      name: 'Details',
+      to: ''
+    },
+    {
+      name: 'Evaluation',
+      to: 'evaluation',
+      disabled: flagTypeToLabel(flag.type) === FlagType.BOOLEAN_FLAG_TYPE
+    }
+  ];
 
   return (
     <>
