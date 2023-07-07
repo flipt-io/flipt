@@ -34,7 +34,8 @@ import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
   ComparisonType,
-  ConstraintOperators,
+  constraintOperatorToLabel,
+  constraintTypeToLabel,
   IConstraint
 } from '~/types/Constraint';
 import { ISegment } from '~/types/Segment';
@@ -82,11 +83,6 @@ export default function Segment() {
         setError(err);
       });
   }, [segmentVersion, namespace.key, segmentKey, clearError, setError]);
-
-  const constraintTypeToLabel = (t: string) =>
-    ComparisonType[t as keyof typeof ComparisonType];
-
-  const constraintOperatorToLabel = (o: string) => ConstraintOperators[o];
 
   const constraintFormRef = useRef(null);
 
