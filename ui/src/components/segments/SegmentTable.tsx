@@ -73,7 +73,7 @@ export default function SegmentTable(props: SegmentTableProps) {
           info.getValue() as unknown as keyof typeof SegmentMatchType
         ],
       meta: {
-        className: 'whitespace-nowrap py-4 px-3 text-sm'
+        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-600'
       }
     }),
     columnHelper.accessor('description', {

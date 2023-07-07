@@ -23,3 +23,6 @@ export interface IFlag extends IFlagBase {
 export interface IFlagList extends IPageable {
   flags: IFlag[];
 }
+
+export const flagTypeToLabel = (t: string) =>
+  FlagType[t as keyof typeof FlagType];

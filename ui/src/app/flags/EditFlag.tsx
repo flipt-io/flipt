@@ -1,14 +1,13 @@
 import { useOutletContext } from 'react-router-dom';
 import FlagForm from '~/components/flags/FlagForm';
 import MoreInfo from '~/components/MoreInfo';
-import { FlagType } from '~/types/Flag';
+import { FlagType, flagTypeToLabel } from '~/types/Flag';
 import { FlagProps } from './FlagProps';
+import Rollouts from './rollouts/Rollouts';
 import Variants from './variants/Variants';
 
 export default function EditFlag() {
   const { flag, onFlagChange } = useOutletContext<FlagProps>();
-
-  const flagTypeToLabel = (t: string) => FlagType[t as keyof typeof FlagType];
 
   return (
     <>
@@ -35,6 +34,9 @@ export default function EditFlag() {
 
         {flagTypeToLabel(flag.type) === FlagType.VARIANT_FLAG_TYPE && (
           <Variants flag={flag} flagChanged={onFlagChange} />
+        )}
+        {flagTypeToLabel(flag.type) === FlagType.BOOLEAN_FLAG_TYPE && (
+          <Rollouts flag={flag} flagChanged={onFlagChange} />
         )}
       </div>
     </>

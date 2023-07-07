@@ -7,7 +7,8 @@ import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { ISelectable } from '~/components/forms/Combobox';
+import Combobox, { IFilterable } from '~/components/forms/Combobox';
+import { ISelectable } from '~/components/forms/Listbox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createDistribution, createRule } from '~/data/api';
@@ -17,27 +18,27 @@ import { keyValidation } from '~/data/validations';
 import { IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
-import { SelectableVariant } from '~/types/Variant';
+import { IVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './distributions/MultiDistributionForm';
 import SingleDistributionFormInput from './distributions/SingleDistributionForm';
 
-type RuleFormProps = {
-  setOpen: (open: boolean) => void;
-  rulesChanged: () => void;
-  flag: IFlag;
-  rank: number;
-  segments: ISegment[];
-};
+export type FilterableSegment = ISegment & IFilterable;
+export type FilterableVariant = IVariant & IFilterable;
+export type SelectableSegment = ISegment & ISelectable;
+export type SelectableVariant = IVariant & ISelectable;
+
+const distTypeSingle = 'single';
+const distTypeMulti = 'multi';
 
 const distTypes = [
   {
-    id: 'single',
+    id: distTypeSingle,
     name: 'Single Variant',
     description: 'Always returns the same variant'
   },
   {
-    id: 'multi',
+    id: distTypeMulti,
     name: 'Multi-Variant',
     description: 'Returns different variants based on percentages'
   }
@@ -67,10 +68,16 @@ const validRollout = (distributions: IDistributionVariant[]): boolean => {
   return sum <= 100;
 };
 
-type SelectableSegment = ISegment & ISelectable;
+type RuleFormProps = {
+  setOpen: (open: boolean) => void;
+  onSuccess: () => void;
+  flag: IFlag;
+  rank: number;
+  segments: ISegment[];
+};
 
 export default function RuleForm(props: RuleFormProps) {
-  const { setOpen, rulesChanged, flag, rank, segments } = props;
+  const { setOpen, onSuccess, flag, rank, segments } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -79,12 +86,12 @@ export default function RuleForm(props: RuleFormProps) {
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
-  const [ruleType, setRuleType] = useState('single');
+  const [ruleType, setRuleType] = useState(distTypeSingle);
 
   const [selectedSegment, setSelectedSegment] =
-    useState<SelectableSegment | null>(null);
+    useState<FilterableSegment | null>(null);
   const [selectedVariant, setSelectedVariant] =
-    useState<SelectableVariant | null>(null);
+    useState<FilterableVariant | null>(null);
 
   const [distributions, setDistributions] = useState(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
@@ -97,7 +104,11 @@ export default function RuleForm(props: RuleFormProps) {
   });
 
   useEffect(() => {
-    if (ruleType === 'multi' && distributions && !validRollout(distributions)) {
+    if (
+      ruleType === distTypeMulti &&
+      distributions &&
+      !validRollout(distributions)
+    ) {
       setDistributionsValid(false);
     } else {
       setDistributionsValid(true);
@@ -115,7 +126,7 @@ export default function RuleForm(props: RuleFormProps) {
       rank
     });
 
-    if (ruleType === 'multi') {
+    if (ruleType === distTypeMulti) {
       const distPromises = distributions?.map((dist: IDistributionVariant) =>
         createDistribution(namespace.key, flag.key, rule.id, {
           variantId: dist.variantId,
@@ -123,15 +134,13 @@ export default function RuleForm(props: RuleFormProps) {
         })
       );
       if (distPromises) await Promise.all(distPromises);
-    } else {
-      if (selectedVariant) {
-        // we allow creating rules without variants
+    } else if (selectedVariant) {
+      // we allow creating rules without variants
 
-        await createDistribution(namespace.key, flag.key, rule.id, {
-          variantId: selectedVariant.id,
-          rollout: 100
-        });
-      }
+      await createDistribution(namespace.key, flag.key, rule.id, {
+        variantId: selectedVariant.id,
+        rollout: 100
+      });
     }
   };
 
@@ -146,7 +155,7 @@ export default function RuleForm(props: RuleFormProps) {
       onSubmit={(_, { setSubmitting }) => {
         handleSubmit()
           .then(() => {
-            rulesChanged();
+            onSuccess();
             clearError();
             setSuccess('Successfully created rule');
             setOpen(false);
@@ -196,7 +205,7 @@ export default function RuleForm(props: RuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<SelectableSegment>
+                    <Combobox<FilterableSegment>
                       id="segmentKey"
                       name="segmentKey"
                       placeholder="Select or search for a segment"
@@ -264,14 +273,14 @@ export default function RuleForm(props: RuleFormProps) {
                     </div>
                   </div>
                 )}
-                {flag.variants && ruleType === 'single' && (
+                {flag.variants && ruleType === distTypeSingle && (
                   <SingleDistributionFormInput
                     variants={flag.variants}
                     selectedVariant={selectedVariant}
                     setSelectedVariant={setSelectedVariant}
                   />
                 )}
-                {flag.variants && ruleType === 'multi' && (
+                {flag.variants && ruleType === distTypeMulti && (
                   <MultiDistributionFormInputs
                     distributions={distributions}
                     setDistributions={setDistributions}

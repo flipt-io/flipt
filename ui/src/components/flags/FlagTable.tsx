@@ -18,7 +18,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
-import { IFlag } from '~/types/Flag';
+import { FlagType, IFlag } from '~/types/Flag';
 import { truncateKey } from '~/utils/helpers';
 
 type FlagTableProps = {
@@ -81,6 +81,14 @@ export default function FlagTable(props: FlagTableProps) {
       ),
       meta: {
         className: 'whitespace-nowrap py-4 px-3 text-sm'
+      }
+    }),
+    columnHelper.accessor('type', {
+      header: 'Type',
+      cell: (info) =>
+        FlagType[info.getValue() as unknown as keyof typeof FlagType],
+      meta: {
+        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-600'
       }
     }),
     columnHelper.accessor('description', {

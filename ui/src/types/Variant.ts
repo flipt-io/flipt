@@ -1,5 +1,3 @@
-import { ISelectable } from '~/components/forms/Combobox';
-
 export interface IVariantBase {
   key: string;
   name: string;
@@ -12,5 +10,3 @@ export interface IVariant extends IVariantBase {
   createdAt: string;
   updatedAt: string;
 }
-
-export type SelectableVariant = IVariant & ISelectable;
