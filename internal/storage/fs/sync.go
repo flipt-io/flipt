@@ -117,29 +117,38 @@ func (s *syncedStore) CountNamespaces(ctx context.Context) (uint64, error) {
 }
 
 func (s *syncedStore) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
-	panic("not implemented")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.storeSnapshot.GetRollout(ctx, namespaceKey, id)
 }
 
 func (s *syncedStore) ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Rollout], error) {
-	panic("not implemented")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.storeSnapshot.ListRollouts(ctx, namespaceKey, flagKey, opts...)
 }
 
 func (s *syncedStore) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	panic("not implemented")
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.storeSnapshot.CountRollouts(ctx, namespaceKey, flagKey)
 }
 
 func (s *syncedStore) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
-	panic("not implemented")
+	return nil, ErrNotImplemented
 }
 
 func (s *syncedStore) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
-	panic("not implemented")
+	return nil, ErrNotImplemented
 }
 
 func (s *syncedStore) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
-	panic("not implemented")
+	return ErrNotImplemented
 }
 
 func (s *syncedStore) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
-	panic("not implemented")
+	return ErrNotImplemented
 }

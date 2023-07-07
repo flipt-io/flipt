@@ -2,6 +2,7 @@ package sql_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -349,8 +350,12 @@ func (s *DBTestSuite) TestListRolloutsPagination_LimitWithNextPage() {
 	assert.NotEmpty(t, res.NextPageToken)
 
 	pageToken := &common.PageToken{}
-	err = json.Unmarshal([]byte(res.NextPageToken), pageToken)
+	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
 	require.NoError(t, err)
+
+	err = json.Unmarshal(pTokenB, pageToken)
+	require.NoError(t, err)
+
 	assert.NotEmpty(t, pageToken.Key)
 	assert.Equal(t, uint64(1), pageToken.Offset)
 
