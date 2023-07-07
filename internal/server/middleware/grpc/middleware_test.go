@@ -1513,6 +1513,44 @@ func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
 	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
 }
 
+func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.DeleteRolloutRequest{
+			Id:      "1",
+			FlagKey: "flagKey",
+		}
+	)
+
+	store.On("DeleteRollout", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteRollout(ctx, r.(*flipt.DeleteRolloutRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "DeleteRollout",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
 func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 	var (
 		store       = &storeMock{}

@@ -166,7 +166,7 @@ type RolloutThreshold struct {
 }
 
 type RolloutSegment struct {
-	Key   string `json:"Key"`
+	Key   string `json:"key"`
 	Value bool   `json:"value"`
 }
 
