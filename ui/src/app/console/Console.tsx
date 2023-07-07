@@ -10,7 +10,7 @@ import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { ISelectable } from '~/components/forms/Combobox';
+import Combobox, { IFilterable } from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
 import { evaluate, listFlags } from '~/data/api';
@@ -27,7 +27,7 @@ import { classNames } from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
 
-type SelectableFlag = IFlag & ISelectable;
+type FilterableFlag = IFlag & IFilterable;
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
@@ -40,8 +40,8 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
 }
 
 export default function Console() {
-  const [flags, setFlags] = useState<SelectableFlag[]>([]);
-  const [selectedFlag, setSelectedFlag] = useState<SelectableFlag | null>(null);
+  const [flags, setFlags] = useState<FilterableFlag[]>([]);
+  const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
@@ -148,7 +148,7 @@ export default function Console() {
                           >
                             Flag Key
                           </label>
-                          <Combobox<SelectableFlag>
+                          <Combobox<FilterableFlag>
                             id="flagKey"
                             name="flagKey"
                             className="mt-1"
