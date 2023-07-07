@@ -12,7 +12,7 @@ import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
-import { IRollout, IRolloutRuleThreshold, RolloutType } from '~/types/Rollout';
+import { IRollout, RolloutType } from '~/types/Rollout';
 import ThresholdRuleFormInputs from './rules/ThresholdRuleForm';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
@@ -39,6 +39,13 @@ type RolloutFormProps = {
   rank: number;
 };
 
+interface RolloutFormValues {
+  type: string;
+  description?: string;
+  percentage?: number;
+  value: boolean;
+}
+
 export default function RolloutForm(props: RolloutFormProps) {
   const { setOpen, onSuccess, flag, rank } = props;
 
@@ -51,24 +58,22 @@ export default function RolloutForm(props: RolloutFormProps) {
     rolloutRuleTypeThreshold
   );
 
-  const handleThresholdSubmit = (
-    values: IRolloutBase & IRolloutRuleThreshold
-  ) => {
+  const handleThresholdSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flag.key, {
       rank,
       type: rolloutRuleType as RolloutType,
       description: values.description,
       threshold: {
-        percentage: values.percentage,
+        percentage: values.percentage || 0,
         value: values.value
       }
     });
   };
 
-  const initialValues = {
+  const initialValues: RolloutFormValues = {
     type: rolloutRuleType,
     description: '',
-    percentage: 50,
+    percentage: 50, // TODO: make this 0?
     value: true
   };
 
