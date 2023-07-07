@@ -47,6 +47,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
+	"go.flipt.io/flipt/internal/storage/fs/s3"
 
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -169,6 +170,24 @@ func NewGRPCServer(
 			return nil, err
 		}
 
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
+	case config.S3StorageType:
+		opts := []containers.Option[s3.Source]{
+			s3.WithPollInterval(cfg.Storage.S3.PollInterval),
+		}
+		if cfg.Storage.S3.Endpoint != "" {
+			opts = append(opts, s3.WithEndpoint(cfg.Storage.S3.Endpoint))
+		}
+		if cfg.Storage.S3.Region != "" {
+			opts = append(opts, s3.WithRegion(cfg.Storage.S3.Region))
+		}
+		source, err := s3.NewSource(logger, cfg.Storage.S3.Bucket, opts...)
+		if err != nil {
+			return nil, err
+		}
 		store, err = fs.NewStore(logger, source)
 		if err != nil {
 			return nil, err

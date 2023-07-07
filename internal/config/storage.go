@@ -13,6 +13,7 @@ const (
 	DatabaseStorageType = StorageType("database")
 	LocalStorageType    = StorageType("local")
 	GitStorageType      = StorageType("git")
+	S3StorageType       = StorageType("s3")
 )
 
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
@@ -21,6 +22,7 @@ type StorageConfig struct {
 	Type  StorageType `json:"type,omitempty" mapstructure:"type"`
 	Local *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
 	Git   *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
+	S3    *S3         `json:"s3,omitempty" mapstructure:"s3,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) {
@@ -30,6 +32,8 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
+	case string(S3StorageType):
+		v.SetDefault("storage.s3.poll_interval", "1m")
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -55,6 +59,12 @@ func (c *StorageConfig) validate() error {
 		}
 	}
 
+	if c.Type == S3StorageType {
+		if c.S3.Bucket == "" {
+			return errors.New("s3 bucket must be specified")
+		}
+	}
+
 	return nil
 }
 
@@ -69,6 +79,14 @@ type Git struct {
 	Ref            string         `json:"ref,omitempty" mapstructure:"ref"`
 	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
 	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication,omitempty"`
+}
+
+// S3 contains configuration for referencing a s3 bucket
+type S3 struct {
+	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint"`
+	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket"`
+	Region       string        `json:"region,omitempty" mapstructure:"region"`
+	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
 }
 
 // Authentication holds structures for various types of auth we support.
