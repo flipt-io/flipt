@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
+import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
@@ -43,7 +44,7 @@ interface RolloutFormValues {
   type: string;
   description?: string;
   percentage?: number;
-  value: boolean;
+  value: string;
 }
 
 export default function RolloutForm(props: RolloutFormProps) {
@@ -65,7 +66,7 @@ export default function RolloutForm(props: RolloutFormProps) {
       description: values.description,
       threshold: {
         percentage: values.percentage || 0,
-        value: values.value
+        value: values.value === 'true'
       }
     });
   };
@@ -74,7 +75,7 @@ export default function RolloutForm(props: RolloutFormProps) {
     type: rolloutRuleType,
     description: '',
     percentage: 50, // TODO: make this 0?
-    value: true
+    value: 'true'
   };
 
   return (
@@ -179,6 +180,23 @@ export default function RolloutForm(props: RolloutFormProps) {
                 <ThresholdRuleFormInputs />
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                <label
+                  htmlFor="value"
+                  className="mb-2 block text-sm font-medium text-gray-900"
+                >
+                  Value
+                </label>
+                <Select
+                  id="value"
+                  name="value"
+                  options={[
+                    { label: 'True', value: 'true' },
+                    { label: 'False', value: 'false' }
+                  ]}
+                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                />
+              </div>
+              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label
                     htmlFor="description"
@@ -206,9 +224,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                 primary
                 type="submit"
                 className="min-w-[80px]"
-                disabled={
-                  !(formik.dirty && formik.isValid && !formik.isSubmitting)
-                }
+                disabled={!formik.isValid || formik.isSubmitting}
               >
                 {formik.isSubmitting ? <Loading isPrimary /> : 'Create'}
               </Button>
