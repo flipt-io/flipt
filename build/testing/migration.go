@@ -28,9 +28,9 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		return err
 	}
 
-	// import testdata into latest Flipt instance
-	_, err = flipt.
-		WithFile("import.yaml", base.File("build/testing/integration/readonly/testdata/default.yaml")).
+	// import testdata into latest Flipt instance (using latest image for import)
+	_, err = latest.
+		WithFile("import.yaml", base.File("build/testing/testdata/migration/default.yaml")).
 		WithServiceBinding("flipt", latest.WithExec(nil)).
 		WithExec([]string{"/flipt", "import", "--address", "grpc://flipt:9000", "import.yaml"}).
 		Sync(ctx)
