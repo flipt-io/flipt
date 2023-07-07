@@ -138,17 +138,17 @@ func (s *syncedStore) CountRollouts(ctx context.Context, namespaceKey, flagKey s
 }
 
 func (s *syncedStore) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
-	panic("not implemented")
+	return nil, ErrNotImplemented
 }
 
 func (s *syncedStore) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
-	panic("not implemented")
+	return nil, ErrNotImplemented
 }
 
 func (s *syncedStore) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
-	panic("not implemented")
+	return ErrNotImplemented
 }
 
 func (s *syncedStore) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error {
-	panic("not implemented")
+	return ErrNotImplemented
 }

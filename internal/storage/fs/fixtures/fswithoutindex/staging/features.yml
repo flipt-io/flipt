@@ -28,7 +28,7 @@ flags:
         distributions:
           - variant: staging-variant
             rollout: 100
-  - key: flag_boolean
+  - key: flag_boolean_2
     name: FLAG_BOOLEAN
     type: BOOLEAN_FLAG_TYPE
     description: Boolean Flag Description

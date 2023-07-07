@@ -23,7 +23,7 @@ func TestFSWithIndex(t *testing.T) {
 	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
 
 	filenames, err := listStateFiles(zap.NewNop(), fwi)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := []string{
 		"prod/prod.features.yml",
@@ -36,13 +36,13 @@ func TestFSWithIndex(t *testing.T) {
 
 	for _, f := range filenames {
 		fr, err := fwi.Open(f)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		readers = append(readers, fr)
 	}
 
 	ss, err := snapshotFromReaders(readers...)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	tfs := &FSIndexSuite{
 		store: ss,
@@ -60,12 +60,12 @@ func (fis *FSIndexSuite) TestCountFlag() {
 	t := fis.T()
 
 	flagCount, err := fis.store.CountFlags(context.TODO(), "production")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 12, int(flagCount))
 
 	flagCount, err = fis.store.CountFlags(context.TODO(), "sandbox")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 12, int(flagCount))
 }
 
@@ -129,7 +129,7 @@ func (fis *FSIndexSuite) TestGetFlag() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			flag, err := fis.store.GetFlag(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.flag.Key, flag.Key)
 			assert.Equal(t, tc.flag.NamespaceKey, flag.NamespaceKey)
@@ -186,7 +186,7 @@ func (fis *FSIndexSuite) TestListFlags() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
 		})
@@ -221,7 +221,7 @@ func (fis *FSIndexSuite) TestGetNamespace() {
 
 	for _, tc := range testCases {
 		ns, err := fis.store.GetNamespace(context.TODO(), tc.namespaceKey)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		assert.Equal(t, tc.fliptNs.Key, ns.Key)
 		assert.Equal(t, tc.fliptNs.Name, ns.Name)
@@ -234,7 +234,7 @@ func (fis *FSIndexSuite) TestCountNamespaces() {
 	t := fis.T()
 
 	namespacesCount, err := fis.store.CountNamespaces(context.TODO())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 3, int(namespacesCount))
 }
@@ -243,7 +243,7 @@ func (fis *FSIndexSuite) TestListNamespaces() {
 	t := fis.T()
 
 	namespaces, err := fis.store.ListNamespaces(context.TODO(), storage.WithLimit(2), storage.WithPageToken("0"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Len(t, namespaces.Results, 2)
 	assert.Equal(t, "2", namespaces.NextPageToken)
@@ -326,7 +326,7 @@ func (fis *FSIndexSuite) TestGetSegment() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sgmt, err := fis.store.GetSegment(context.TODO(), tc.namespace, tc.segmentKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.segment.Key, sgmt.Key)
 			assert.Equal(t, tc.segment.Name, sgmt.Name)
@@ -386,7 +386,7 @@ func (fis *FSIndexSuite) TestListSegments() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
 		})
@@ -397,12 +397,12 @@ func (fis *FSIndexSuite) TestCountSegment() {
 	t := fis.T()
 
 	segmentCount, err := fis.store.CountSegments(context.TODO(), "production")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 11, int(segmentCount))
 
 	segmentCount, err = fis.store.CountSegments(context.TODO(), "sandbox")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 11, int(segmentCount))
 }
 
@@ -429,7 +429,7 @@ func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Len(t, rollouts, 2)
 
@@ -510,7 +510,7 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rules, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Len(t, rules, 1)
 
@@ -557,12 +557,12 @@ func (fis *FSIndexSuite) TestGetEvaluationDistributions() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, rules.Results, 1)
 
 			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
 			assert.Equal(t, float32(100), dist[0].Rollout)
@@ -624,11 +624,11 @@ func (fis *FSIndexSuite) TestListAndGetRollouts() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			for _, rollout := range rollouts.Results {
 				r, err := fis.store.GetRollout(context.TODO(), tc.namespace, rollout.Id)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				assert.Equal(t, r, rollout)
 			}
@@ -678,11 +678,11 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			for _, rule := range rules.Results {
 				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				assert.Equal(t, r, rule)
 			}
@@ -698,7 +698,7 @@ type FSWithoutIndexSuite struct {
 func TestFSWithoutIndex(t *testing.T) {
 	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
 	filenames, err := listStateFiles(zap.NewNop(), fwoi)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expected := []string{
 		"prod/prod.features.yaml",
@@ -715,13 +715,13 @@ func TestFSWithoutIndex(t *testing.T) {
 
 	for _, f := range filenames {
 		fr, err := fwoi.Open(f)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		readers = append(readers, fr)
 	}
 
 	ss, err := snapshotFromReaders(readers...)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	tfs := &FSWithoutIndexSuite{
 		store: ss,
@@ -734,17 +734,17 @@ func (fis *FSWithoutIndexSuite) TestCountFlag() {
 	t := fis.T()
 
 	flagCount, err := fis.store.CountFlags(context.TODO(), "production")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
-	assert.Equal(t, 13, int(flagCount))
+	assert.Equal(t, 14, int(flagCount))
 
 	flagCount, err = fis.store.CountFlags(context.TODO(), "sandbox")
-	assert.NoError(t, err)
-	assert.Equal(t, 13, int(flagCount))
+	require.NoError(t, err)
+	assert.Equal(t, 14, int(flagCount))
 
 	flagCount, err = fis.store.CountFlags(context.TODO(), "staging")
-	assert.NoError(t, err)
-	assert.Equal(t, 13, int(flagCount))
+	require.NoError(t, err)
+	assert.Equal(t, 14, int(flagCount))
 }
 
 func (fis *FSWithoutIndexSuite) TestGetFlag() {
@@ -899,7 +899,7 @@ func (fis *FSWithoutIndexSuite) TestGetFlag() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			flag, err := fis.store.GetFlag(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.flag.Key, flag.Key)
 			assert.Equal(t, tc.flag.NamespaceKey, flag.NamespaceKey)
@@ -961,7 +961,7 @@ func (fis *FSWithoutIndexSuite) TestListFlags() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
 		})
@@ -1005,7 +1005,7 @@ func (fis *FSWithoutIndexSuite) TestGetNamespace() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ns, err := fis.store.GetNamespace(context.TODO(), tc.namespaceKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.fliptNs.Key, ns.Key)
 			assert.Equal(t, tc.fliptNs.Name, ns.Name)
@@ -1017,7 +1017,7 @@ func (fis *FSWithoutIndexSuite) TestCountNamespaces() {
 	t := fis.T()
 
 	namespacesCount, err := fis.store.CountNamespaces(context.TODO())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 4, int(namespacesCount))
 }
@@ -1026,7 +1026,7 @@ func (fis *FSWithoutIndexSuite) TestListNamespaces() {
 	t := fis.T()
 
 	namespaces, err := fis.store.ListNamespaces(context.TODO(), storage.WithLimit(3), storage.WithPageToken("0"))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Len(t, namespaces.Results, 3)
 	assert.Equal(t, "3", namespaces.NextPageToken)
@@ -1220,7 +1220,7 @@ func (fis *FSWithoutIndexSuite) TestGetSegment() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sgmt, err := fis.store.GetSegment(context.TODO(), tc.namespace, tc.segmentKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.segment.Key, sgmt.Key)
 			assert.Equal(t, tc.segment.Name, sgmt.Name)
@@ -1244,16 +1244,16 @@ func (fis *FSWithoutIndexSuite) TestCountSegment() {
 	t := fis.T()
 
 	segmentCount, err := fis.store.CountSegments(context.TODO(), "production")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 12, int(segmentCount))
 
 	segmentCount, err = fis.store.CountSegments(context.TODO(), "sandbox")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 12, int(segmentCount))
 
 	segmentCount, err = fis.store.CountSegments(context.TODO(), "staging")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 12, int(segmentCount))
 }
 
@@ -1299,7 +1299,7 @@ func (fis *FSWithoutIndexSuite) TestListSegments() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, flags.Results, 5)
 			assert.Equal(t, "5", flags.NextPageToken)
 		})
@@ -1334,7 +1334,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rollouts, err := fis.store.GetEvaluationRollouts(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Len(t, rollouts, 2)
 
@@ -1438,7 +1438,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rules, err := fis.store.GetEvaluationRules(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Len(t, rules, 1)
 
@@ -1491,12 +1491,12 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationDistributions() {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			rules, err := fis.store.ListRules(context.TODO(), tc.namespace, tc.flagKey)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Len(t, rules.Results, 1)
 
 			dist, err := fis.store.GetEvaluationDistributions(context.TODO(), rules.Results[0].Id)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.expectedVariantName, dist[0].VariantKey)
 			assert.Equal(t, float32(100), dist[0].Rollout)
@@ -1509,14 +1509,17 @@ func (fis *FSWithoutIndexSuite) TestCountRollouts() {
 
 	rolloutsCount, err := fis.store.CountRollouts(context.TODO(), "production", "flag_boolean")
 	require.NoError(t, err)
+
 	assert.Equal(t, 2, int(rolloutsCount))
 
 	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "sandbox", "flag_boolean")
 	require.NoError(t, err)
+
 	assert.Equal(t, 2, int(rolloutsCount))
 
 	rolloutsCount, err = fis.store.CountRollouts(context.TODO(), "staging", "flag_boolean")
 	require.NoError(t, err)
+
 	assert.Equal(t, 2, int(rolloutsCount))
 }
 
@@ -1567,11 +1570,11 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRollouts() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			for _, rollout := range rollouts.Results {
 				r, err := fis.store.GetRollout(context.TODO(), tc.namespace, rollout.Id)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				assert.Equal(t, r, rollout)
 			}
@@ -1626,11 +1629,11 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 
 			for _, rule := range rules.Results {
 				r, err := fis.store.GetRule(context.TODO(), tc.namespace, rule.Id)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				assert.Equal(t, r, rule)
 			}

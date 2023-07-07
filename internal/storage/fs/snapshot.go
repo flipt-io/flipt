@@ -289,15 +289,15 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 
 		ns.flags[f.Key] = flag
 
-		var ruleRank int32 = 1
 		evalRules := []*storage.EvaluationRule{}
-		for _, r := range f.Rules {
+		for i, r := range f.Rules {
+			rank := int32(i + 1)
 			rule := &flipt.Rule{
 				NamespaceKey: doc.Namespace,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				FlagKey:      f.Key,
 				SegmentKey:   r.SegmentKey,
-				Rank:         ruleRank,
+				Rank:         rank,
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,
 			}
@@ -306,13 +306,13 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				NamespaceKey: doc.Namespace,
 				FlagKey:      f.Key,
 				ID:           rule.Id,
-				Rank:         ruleRank,
+				Rank:         rank,
 				SegmentKey:   rule.SegmentKey,
 			}
 
 			segment := ns.segments[rule.SegmentKey]
 			if segment == nil {
-				return errs.ErrNotFoundf("segment %q in rule %d", rule.SegmentKey, ruleRank)
+				return errs.ErrNotFoundf("segment %q in rule %d", rule.SegmentKey, rank)
 			}
 
 			evalRule.SegmentMatchType = segment.MatchType
@@ -353,24 +353,22 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				})
 			}
 
-			ruleRank += 1
-
 			ns.rules[rule.Id] = rule
 		}
 
 		ns.evalRules[f.Key] = evalRules
 
-		var rolloutRank int32 = 1
 		evalRollouts := make([]*storage.EvaluationRollout, 0, len(f.Rollouts))
-		for _, rollout := range f.Rollouts {
+		for i, rollout := range f.Rollouts {
+			rank := int32(i + 1)
 			s := &storage.EvaluationRollout{
 				NamespaceKey: doc.Namespace,
-				Rank:         rolloutRank,
+				Rank:         rank,
 			}
 
 			flagRollout := &flipt.Rollout{
 				Id:           uuid.Must(uuid.NewV4()).String(),
-				Rank:         rolloutRank,
+				Rank:         rank,
 				FlagKey:      f.Key,
 				NamespaceKey: doc.Namespace,
 				CreatedAt:    ss.now,
@@ -392,7 +390,11 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 					},
 				}
 			} else if rollout.Segment != nil {
-				segment := ns.segments[rollout.Segment.Key]
+				segment, ok := ns.segments[rollout.Segment.Key]
+				if !ok {
+					return errs.ErrNotFoundf("segment %q not found", rollout.Segment.Key)
+				}
+
 				s.Segment = &storage.RolloutSegment{
 					Key:   rollout.Segment.Key,
 					Value: rollout.Segment.Value,
@@ -422,7 +424,6 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 
 			ns.rollouts[flagRollout.Id] = flagRollout
 
-			rolloutRank += 1
 			evalRollouts = append(evalRollouts, s)
 		}
 
@@ -479,14 +480,14 @@ func (ss *storeSnapshot) CountRules(ctx context.Context, namespaceKey, flagKey s
 		return 0, err
 	}
 
-	rules := make([]*flipt.Rule, 0, len(ns.rules))
+	var count uint64 = 0
 	for _, rule := range ns.rules {
 		if rule.FlagKey == flagKey {
-			rules = append(rules, rule)
+			count += 1
 		}
 	}
 
-	return uint64(len(rules)), nil
+	return count, nil
 }
 
 func (ss *storeSnapshot) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
@@ -736,9 +737,11 @@ func (ss *storeSnapshot) ListRollouts(ctx context.Context, namespaceKey, flagKey
 		return set, err
 	}
 
-	rollouts := make([]*flipt.Rollout, 0, len(ns.rollouts))
+	rollouts := make([]*flipt.Rollout, 0)
 	for _, rollout := range ns.rollouts {
-		rollouts = append(rollouts, rollout)
+		if rollout.FlagKey == flagKey {
+			rollouts = append(rollouts, rollout)
+		}
 	}
 
 	return paginate(storage.NewQueryParams(opts...), func(i, j int) bool {
@@ -752,7 +755,14 @@ func (ss *storeSnapshot) CountRollouts(ctx context.Context, namespaceKey, flagKe
 		return 0, err
 	}
 
-	return uint64(len(ns.evalRollouts[flagKey])), nil
+	var count uint64 = 0
+	for _, rollout := range ns.rollouts {
+		if rollout.FlagKey == flagKey {
+			count += 1
+		}
+	}
+
+	return count, nil
 }
 
 func (ss *storeSnapshot) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
