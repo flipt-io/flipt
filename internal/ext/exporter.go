@@ -6,19 +6,28 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/rpc/flipt"
 	"gopkg.in/yaml.v2"
 )
 
 const (
 	defaultBatchSize = 25
-	version          = "1.0"
+)
+
+var (
+	latestVersion     = semver.Version{Major: 1, Minor: 1}
+	supportedVersions = semver.Versions{
+		{Major: 1},
+		latestVersion,
+	}
 )
 
 type Lister interface {
 	ListFlags(context.Context, *flipt.ListFlagRequest) (*flipt.FlagList, error)
 	ListSegments(context.Context, *flipt.ListSegmentRequest) (*flipt.SegmentList, error)
 	ListRules(context.Context, *flipt.ListRuleRequest) (*flipt.RuleList, error)
+	ListRollouts(context.Context, *flipt.ListRolloutRequest) (*flipt.RolloutList, error)
 }
 
 type Exporter struct {
@@ -35,6 +44,11 @@ func NewExporter(store Lister, namespace string) *Exporter {
 	}
 }
 
+// We currently only do minor bumps and print out just major.minor
+func versionString(v semver.Version) string {
+	return fmt.Sprintf("%d.%d", v.Major, v.Minor)
+}
+
 func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 	var (
 		enc       = yaml.NewEncoder(w)
@@ -42,7 +56,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 		batchSize = e.batchSize
 	)
 
-	doc.Version = version
+	doc.Version = versionString(latestVersion)
 	doc.Namespace = e.namespace
 
 	defer enc.Close()
@@ -74,6 +88,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			flag := &Flag{
 				Key:         f.Key,
 				Name:        f.Name,
+				Type:        f.Type.String(),
 				Description: f.Description,
 				Enabled:     f.Enabled,
 			}
@@ -114,10 +129,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 			rules := resp.Rules
 			for _, r := range rules {
-				rule := &Rule{
-					SegmentKey: r.SegmentKey,
-					Rank:       uint(r.Rank),
-				}
+				rule := &Rule{SegmentKey: r.SegmentKey}
 
 				for _, d := range r.Distributions {
 					rule.Distributions = append(rule.Distributions, &Distribution{
@@ -127,6 +139,35 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				}
 
 				flag.Rules = append(flag.Rules, rule)
+			}
+
+			rollouts, err := e.store.ListRollouts(ctx, &flipt.ListRolloutRequest{
+				NamespaceKey: e.namespace,
+				FlagKey:      flag.Key,
+			})
+			if err != nil {
+				return fmt.Errorf("getting rollout rules for flag %q: %w", flag.Key, err)
+			}
+
+			for _, r := range rollouts.Rules {
+				rollout := Rollout{
+					Description: r.Description,
+				}
+
+				switch rule := r.Rule.(type) {
+				case *flipt.Rollout_Segment:
+					rollout.Segment = &SegmentRule{
+						Key:   rule.Segment.SegmentKey,
+						Value: rule.Segment.Value,
+					}
+				case *flipt.Rollout_Threshold:
+					rollout.Threshold = &ThresholdRule{
+						Percentage: rule.Threshold.Percentage,
+						Value:      rule.Threshold.Value,
+					}
+				}
+
+				flag.Rollouts = append(flag.Rollouts, &rollout)
 			}
 
 			doc.Flags = append(doc.Flags, flag)

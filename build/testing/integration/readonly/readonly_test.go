@@ -101,7 +101,7 @@ func TestReadOnly(t *testing.T) {
 				NamespaceKey: namespace,
 			})
 			require.NoError(t, err)
-			require.Len(t, flags.Flags, 51)
+			require.Len(t, flags.Flags, 52)
 
 			flag := flags.Flags[0]
 			assert.Equal(t, namespace, flag.NamespaceKey)
@@ -128,8 +128,8 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					if flags.NextPageToken == "" {
-						// ensure last page contains 1 entry
-						assert.Len(t, flags.Flags, 1)
+						// ensure last page contains 2 entries (boolean and disabled)
+						assert.Len(t, flags.Flags, 2)
 
 						found = append(found, flags.Flags...)
 
@@ -144,7 +144,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = flags.NextPageToken
 				}
 
-				require.Len(t, found, 51)
+				require.Len(t, found, 52)
 			})
 		})
 

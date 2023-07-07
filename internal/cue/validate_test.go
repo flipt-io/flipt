@@ -1,6 +1,7 @@
 package cue
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -8,7 +9,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidate_Success(t *testing.T) {
+func TestValidate_V1_Success(t *testing.T) {
+	b, err := os.ReadFile("fixtures/valid_v1.yaml")
+	require.NoError(t, err)
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	res, err := v.Validate("fixtures/valid_v1.yaml", b)
+	assert.NoError(t, err)
+	assert.Empty(t, res.Errors)
+	for _, err := range res.Errors {
+		fmt.Println(err)
+	}
+}
+
+func TestValidate_Latest_Success(t *testing.T) {
 	b, err := os.ReadFile("fixtures/valid.yaml")
 	require.NoError(t, err)
 
