@@ -36,6 +36,7 @@ const (
 	DistributionType Type = "distribution"
 	FlagType         Type = "flag"
 	NamespaceType    Type = "namespace"
+	RolloutType      Type = "rollout"
 	RuleType         Type = "rule"
 	SegmentType      Type = "segment"
 	TokenType        Type = "token"
