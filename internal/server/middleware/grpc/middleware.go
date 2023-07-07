@@ -269,6 +269,8 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			event = audit.NewEvent(audit.NamespaceType, audit.Delete, actor, r)
 		case *flipt.DeleteRuleRequest:
 			event = audit.NewEvent(audit.RuleType, audit.Delete, actor, r)
+		case *flipt.DeleteRolloutRequest:
+			event = audit.NewEvent(audit.RolloutType, audit.Delete, actor, r)
 		}
 
 		// Short circuiting the middleware here since we have a non-nil event from
@@ -303,6 +305,10 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 		case *flipt.Namespace:
 			if action != "" {
 				event = audit.NewEvent(audit.NamespaceType, action, actor, audit.NewNamespace(r))
+			}
+		case *flipt.Rollout:
+			if action != "" {
+				event = audit.NewEvent(audit.RolloutType, action, actor, audit.NewRollout(r))
 			}
 		case *flipt.Rule:
 			if action != "" {
