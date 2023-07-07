@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSelector,
+  createSlice
+} from '@reduxjs/toolkit';
 import {
   createNamespace,
   deleteNamespace,
@@ -68,17 +72,27 @@ export const namespacesSlice = createSlice({
 
 export const { currentNamespaceChanged } = namespacesSlice.actions;
 
-export const selectNamespaces = (state: RootState) =>
-  Object.entries(state.namespaces.namespaces).map(
-    ([_, value]) => value
-  ) as INamespace[];
+export const selectNamespaces = createSelector(
+  [
+    (state: RootState) =>
+      Object.entries(state.namespaces.namespaces).map(
+        ([_, value]) => value
+      ) as INamespace[]
+  ],
+  (namespaces) => namespaces
+);
 
-export const selectCurrentNamespace = (state: RootState) => {
-  if (state.namespaces.status === LoadingStatus.SUCCEEDED) {
-    return state.namespaces.namespaces[state.namespaces.currentNamespace];
-  }
-  return { key: 'default', name: 'Default', description: '' } as INamespace;
-};
+export const selectCurrentNamespace = createSelector(
+  [
+    (state: RootState) => {
+      if (state.namespaces.status === LoadingStatus.SUCCEEDED) {
+        return state.namespaces.namespaces[state.namespaces.currentNamespace];
+      }
+      return { key: 'default', name: 'Default', description: '' } as INamespace;
+    }
+  ],
+  (currentNamespace) => currentNamespace
+);
 
 export const fetchNamespacesAsync = createAsyncThunk(
   'namespaces/fetchNamespaces',
