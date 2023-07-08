@@ -10,13 +10,13 @@ import (
 )
 
 func TestValidate_V1_Success(t *testing.T) {
-	b, err := os.ReadFile("fixtures/valid_v1.yaml")
+	b, err := os.ReadFile("testdata/valid_v1.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	res, err := v.Validate("fixtures/valid_v1.yaml", b)
+	res, err := v.Validate("testdata/valid_v1.yaml", b)
 	assert.NoError(t, err)
 	assert.Empty(t, res.Errors)
 	for _, err := range res.Errors {
@@ -25,31 +25,31 @@ func TestValidate_V1_Success(t *testing.T) {
 }
 
 func TestValidate_Latest_Success(t *testing.T) {
-	b, err := os.ReadFile("fixtures/valid.yaml")
+	b, err := os.ReadFile("testdata/valid.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	res, err := v.Validate("fixtures/valid.yaml", b)
+	res, err := v.Validate("testdata/valid.yaml", b)
 	assert.NoError(t, err)
 	assert.Empty(t, res.Errors)
 }
 
 func TestValidate_Failure(t *testing.T) {
-	b, err := os.ReadFile("fixtures/invalid.yaml")
+	b, err := os.ReadFile("testdata/invalid.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	res, err := v.Validate("fixtures/invalid.yaml", b)
+	res, err := v.Validate("testdata/invalid.yaml", b)
 	assert.EqualError(t, err, "validation failed")
 
 	assert.NotEmpty(t, res.Errors)
 
 	assert.Equal(t, "flags.0.rules.1.distributions.0.rollout: invalid value 110 (out of bound <=100)", res.Errors[0].Message)
-	assert.Equal(t, "fixtures/invalid.yaml", res.Errors[0].Location.File)
+	assert.Equal(t, "testdata/invalid.yaml", res.Errors[0].Location.File)
 	assert.Equal(t, 22, res.Errors[0].Location.Line)
 	assert.Equal(t, 17, res.Errors[0].Location.Column)
 }

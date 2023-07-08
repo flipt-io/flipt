@@ -30,6 +30,7 @@ close({
 #Variant: {
 	key:        string & =~"^.+$"
 	name:       string & =~"^.+$"
+	description?: string
 	attachment: {...} | *null
 }
 

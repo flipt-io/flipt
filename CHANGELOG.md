@@ -3,6 +3,17 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.23.3](https://github.com/flipt-io/flipt/releases/tag/v1.23.3) - 2023-07-06
+
+### Fixed
+
+- potential panic in `flipt validate` (#1831)
+- support variant desc in cue import schema (#1828)
+
+### Changed
+
+- Dependency updates
+
 ## [v1.23.2](https://github.com/flipt-io/flipt/releases/tag/v1.23.2) - 2023-07-03
 
 ### Added
@@ -16,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `config`: ensure default config passes CUE validation (#1758)
 - return 400 for invalid page token"
 - `integration`: ensure all list limits are enforced correctly
+- Dependency updates
 
 ### Fixed
 

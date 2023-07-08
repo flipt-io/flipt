@@ -3,7 +3,7 @@ package ext
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -179,7 +179,7 @@ func TestExport(t *testing.T) {
 	err := exporter.Export(context.Background(), b)
 	assert.NoError(t, err)
 
-	in, err := ioutil.ReadFile("testdata/export.yml")
+	in, err := os.ReadFile("testdata/export.yml")
 	assert.NoError(t, err)
 
 	assert.YAMLEq(t, string(in), b.String())
