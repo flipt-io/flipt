@@ -3,10 +3,9 @@ import Input from '~/components/forms/Input';
 
 interface ThresholdRuleFormInputsFields {
   percentage: number;
-  value: boolean;
 }
 
-export default function InnerThresholdRuleFormInputs() {
+export default function ThresholdRuleFormInputs() {
   const { values, setFieldValue } =
     useFormikContext<ThresholdRuleFormInputsFields>();
   return (

@@ -1,5 +1,6 @@
 import { IConstraint } from './Constraint';
 import { IPageable } from './Pageable';
+import { IFilterable } from './Selectable';
 
 export interface ISegmentBase {
   key: string;
@@ -22,3 +23,5 @@ export enum SegmentMatchType {
 export interface ISegmentList extends IPageable {
   segments: ISegment[];
 }
+
+export type FilterableSegment = ISegment & IFilterable;

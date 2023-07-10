@@ -36,7 +36,7 @@ export default function EditFlag() {
           <Variants flag={flag} flagChanged={onFlagChange} />
         )}
         {flagTypeToLabel(flag.type) === FlagType.BOOLEAN_FLAG_TYPE && (
-          <Rollouts flag={flag} flagChanged={onFlagChange} />
+          <Rollouts flag={flag} />
         )}
       </div>
     </>

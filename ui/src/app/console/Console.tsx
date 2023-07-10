@@ -10,7 +10,7 @@ import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { IFilterable } from '~/components/forms/Combobox';
+import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
 import { evaluate, listFlags } from '~/data/api';
@@ -21,13 +21,11 @@ import {
   requiredValidation
 } from '~/data/validations';
 import { IConsole } from '~/types/Console';
-import { IFlag, IFlagList } from '~/types/Flag';
+import { FilterableFlag, IFlagList } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { classNames } from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
-
-type FilterableFlag = IFlag & IFilterable;
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();

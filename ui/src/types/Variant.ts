@@ -1,3 +1,5 @@
+import { IFilterable } from './Selectable';
+
 export interface IVariantBase {
   key: string;
   name: string;
@@ -10,3 +12,5 @@ export interface IVariant extends IVariantBase {
   createdAt: string;
   updatedAt: string;
 }
+
+export type FilterableVariant = IVariant & IFilterable;
