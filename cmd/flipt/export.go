@@ -87,7 +87,14 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 		defer fi.Close()
 
-		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
+		var commentChar string
+		switch strings.ToUpper(c.format) {
+		case "TS":
+			commentChar = "//"
+		default:
+			commentChar = "#"
+		}
+		fmt.Fprintf(fi, "%s exported by Flipt (%s) on %s\n\n", commentChar, version, time.Now().UTC().Format(time.RFC3339))
 
 		out = fi
 	}
