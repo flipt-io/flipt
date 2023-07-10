@@ -131,3 +131,89 @@ func TestExport(t *testing.T) {
 
 	assert.YAMLEq(t, string(in), b.String())
 }
+
+func TestExportTs(t *testing.T) {
+	lister := mockLister{
+		flags: []*flipt.Flag{
+			{
+				Key:         "flag1",
+				Name:        "flag1",
+				Description: "description",
+				Enabled:     true,
+				Variants: []*flipt.Variant{
+					{
+						Id:   "1",
+						Key:  "variant1",
+						Name: "variant1",
+					},
+					{
+						Id:  "2",
+						Key: "variant2",
+					},
+				},
+			},
+			{
+				Key:         "flag2",
+				Name:        "flag2",
+				Description: "description",
+				Enabled:     true,
+				Variants:    []*flipt.Variant{},
+			},
+		},
+		segments: []*flipt.Segment{
+			{
+				Key:         "segment1",
+				Name:        "segment1",
+				Description: "description",
+				MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+				Constraints: []*flipt.Constraint{
+					{
+						Id:          "1",
+						Type:        flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:    "foo",
+						Operator:    "eq",
+						Value:       "baz",
+						Description: "desc",
+					},
+					{
+						Id:          "2",
+						Type:        flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+						Property:    "fizz",
+						Operator:    "neq",
+						Value:       "1",
+						Description: "desc",
+					},
+				},
+			},
+			{
+				Key:         "segment2",
+				Name:        "segment2",
+				Description: "description",
+				MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+				Constraints: []*flipt.Constraint{
+					{
+						Id:          "3",
+						Type:        flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property:    "baz",
+						Operator:    "eq",
+						Value:       "true",
+						Description: "desc",
+					},
+				},
+			},
+		},
+	}
+
+	var (
+		exporter = NewExporter(lister, storage.DefaultNamespace)
+		b        = new(bytes.Buffer)
+	)
+
+	err := exporter.Export(context.Background(), b, "TS")
+	assert.NoError(t, err)
+
+	in, err := os.ReadFile("testdata/export.ts")
+	assert.NoError(t, err)
+
+	assert.Equal(t, string(in), b.String())
+}

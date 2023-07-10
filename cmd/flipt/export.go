@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -18,6 +19,7 @@ type exportCommand struct {
 	address   string
 	token     string
 	namespace string
+	format    string
 }
 
 func newExportCommand() *cobra.Command {
@@ -55,6 +57,13 @@ func newExportCommand() *cobra.Command {
 		"namespace", "n",
 		flipt.DefaultNamespace,
 		"source namespace for exported resources.",
+	)
+
+	cmd.Flags().StringVarP(
+		&export.format,
+		"format", "f",
+		"YML",
+		"export format (YML, TS).",
 	)
 
 	return cmd
@@ -101,5 +110,5 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 }
 
 func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, c.namespace).Export(ctx, dst)
+	return ext.NewExporter(lister, c.namespace).Export(ctx, dst, ext.Format(strings.ToUpper(c.format)))
 }

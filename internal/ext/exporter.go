@@ -21,6 +21,13 @@ type Lister interface {
 	ListRules(context.Context, *flipt.ListRuleRequest) (*flipt.RuleList, error)
 }
 
+type Format string
+
+const (
+	YML Format = "YML"
+	TS  Format = "TS"
+)
+
 type Exporter struct {
 	store     Lister
 	batchSize int32
@@ -35,12 +42,25 @@ func NewExporter(store Lister, namespace string) *Exporter {
 	}
 }
 
-func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
+type Encoder interface {
+	Encode(v interface{}) error
+	Close() error
+}
+
+func (e *Exporter) Export(ctx context.Context, w io.Writer, format ...Format) error {
 	var (
-		enc       = yaml.NewEncoder(w)
-		doc       = new(Document)
-		batchSize = e.batchSize
+		enc            Encoder = yaml.NewEncoder(w)
+		doc                    = new(Document)
+		batchSize              = e.batchSize
+		selectedFormat Format  = YML
 	)
+
+	if len(format) > 0 {
+		selectedFormat = format[0]
+	}
+	if selectedFormat == TS {
+		enc = NewTSEncoder(w)
+	}
 
 	doc.Version = version
 	doc.Namespace = e.namespace
