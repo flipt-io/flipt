@@ -7,8 +7,7 @@ import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { IFilterable } from '~/components/forms/Combobox';
-import { ISelectable } from '~/components/forms/Listbox';
+import Combobox from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createDistribution, createRule } from '~/data/api';
@@ -17,21 +16,16 @@ import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 import { IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
-import { ISegment } from '~/types/Segment';
-import { IVariant } from '~/types/Variant';
+import { FilterableSegment, ISegment } from '~/types/Segment';
+import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './distributions/MultiDistributionForm';
 import SingleDistributionFormInput from './distributions/SingleDistributionForm';
 
-export type FilterableSegment = ISegment & IFilterable;
-export type FilterableVariant = IVariant & IFilterable;
-export type SelectableSegment = ISegment & ISelectable;
-export type SelectableVariant = IVariant & ISelectable;
+export const distTypeSingle = 'single';
+export const distTypeMulti = 'multi';
 
-const distTypeSingle = 'single';
-const distTypeMulti = 'multi';
-
-const distTypes = [
+export const distTypes = [
   {
     id: distTypeSingle,
     name: 'Single Variant',

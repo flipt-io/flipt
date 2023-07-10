@@ -12,8 +12,9 @@ import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
+import { FilterableSegment, ISegment } from '~/types/Segment';
+import SegmentRuleFormInputs from './rules/SegmentRuleForm';
 import ThresholdRuleFormInputs from './rules/ThresholdRuleForm';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
@@ -35,20 +36,22 @@ const rolloutRuleTypes = [
 type RolloutFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
-  flag: IFlag;
+  flagKey: string;
   rollout?: IRollout;
+  segments: ISegment[];
   rank: number;
 };
 
 interface RolloutFormValues {
   type: string;
   description?: string;
+  segmentKey?: string;
   percentage?: number;
   value: string;
 }
 
 export default function RolloutForm(props: RolloutFormProps) {
-  const { setOpen, onSuccess, flag, rank } = props;
+  const { setOpen, onSuccess, flagKey, segments, rank } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -58,9 +61,23 @@ export default function RolloutForm(props: RolloutFormProps) {
   const [rolloutRuleType, setRolloutRuleType] = useState(
     rolloutRuleTypeThreshold
   );
+  const [selectedSegment, setSelectedSegment] =
+    useState<FilterableSegment | null>(null);
+
+  const handleSegmentSubmit = (values: RolloutFormValues) => {
+    return createRollout(namespace.key, flagKey, {
+      rank,
+      type: rolloutRuleType as RolloutType,
+      description: values.description,
+      segment: {
+        segmentKey: values.segmentKey || '',
+        value: values.value === 'true'
+      }
+    });
+  };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
-    return createRollout(namespace.key, flag.key, {
+    return createRollout(namespace.key, flagKey, {
       rank,
       type: rolloutRuleType as RolloutType,
       description: values.description,
@@ -71,19 +88,26 @@ export default function RolloutForm(props: RolloutFormProps) {
     });
   };
 
-  const initialValues: RolloutFormValues = {
-    type: rolloutRuleType,
-    description: '',
-    percentage: 50, // TODO: make this 0?
-    value: 'true'
-  };
-
   return (
     <Formik
       enableReinitialize
-      initialValues={initialValues}
+      initialValues={{
+        type: rolloutRuleType,
+        description: '',
+        segmentKey: '',
+        percentage: 50, // TODO: make this 0?
+        value: 'true'
+      }}
       onSubmit={(values, { setSubmitting }) => {
-        handleThresholdSubmit(values)
+        let handleSubmit = async (_values: RolloutFormValues) => {};
+
+        if (rolloutRuleType === rolloutRuleTypeSegment) {
+          handleSubmit = handleSegmentSubmit;
+        } else if (rolloutRuleType === rolloutRuleTypeThreshold) {
+          handleSubmit = handleThresholdSubmit;
+        }
+
+        handleSubmit(values)
           .then(() => {
             onSuccess();
             clearError();
@@ -178,6 +202,13 @@ export default function RolloutForm(props: RolloutFormProps) {
               </div>
               {rolloutRuleType === rolloutRuleTypeThreshold && (
                 <ThresholdRuleFormInputs />
+              )}
+              {rolloutRuleType === rolloutRuleTypeSegment && (
+                <SegmentRuleFormInputs
+                  segments={segments}
+                  selectedSegment={selectedSegment}
+                  setSelectedSegment={setSelectedSegment}
+                />
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <label

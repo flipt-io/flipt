@@ -9,18 +9,19 @@ import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import RolloutForm from '~/components/rollouts/RolloutForm';
 import Slideover from '~/components/Slideover';
-import { deleteRollout, listRollouts } from '~/data/api';
+import { deleteRollout, listRollouts, listSegments } from '~/data/api';
 import { IFlag } from '~/types/Flag';
 import { IRollout, IRolloutList } from '~/types/Rollout';
+import { ISegment, ISegmentList } from '~/types/Segment';
 
 type RolloutsProps = {
   flag: IFlag;
-  flagChanged: () => void;
 };
 
 export default function Rollouts(props: RolloutsProps) {
-  const { flag, flagChanged } = props;
+  const { flag } = props;
 
+  const [segments, setSegments] = useState<ISegment[]>([]);
   const [rollouts, setRollouts] = useState<IRollout[]>([]);
 
   const [rolloutsVersion, setRolloutsVersion] = useState(0);
@@ -37,7 +38,10 @@ export default function Rollouts(props: RolloutsProps) {
   const readOnly = useSelector(selectReadonly);
 
   const loadData = useCallback(async () => {
-    // TODO: load segments
+    // TODO: move to redux
+    const segmentList = (await listSegments(namespace.key)) as ISegmentList;
+    const { segments } = segmentList;
+    setSegments(segments);
 
     const rolloutList = (await listRollouts(
       namespace.key,
@@ -64,14 +68,14 @@ export default function Rollouts(props: RolloutsProps) {
         ref={rolloutFormRef}
       >
         <RolloutForm
-          flag={flag}
-          rank={(rollouts?.length || 0) + 1}
+          flagKey={flag.key}
+          segments={segments}
           rollout={editingRollout || undefined}
+          rank={(rollouts?.length || 0) + 1}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
             setShowRolloutForm(false);
             incrementRolloutsVersion();
-            flagChanged();
           }}
         />
       </Slideover>
@@ -95,7 +99,7 @@ export default function Rollouts(props: RolloutsProps) {
             () =>
               deleteRollout(namespace.key, flag.key, deletingRollout?.id ?? '') // TODO: Determine impact of blank ID param
           }
-          onSuccess={flagChanged}
+          onSuccess={incrementRolloutsVersion}
         />
       </Modal>
 
