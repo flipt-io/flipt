@@ -535,6 +535,22 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 	})
 
 	t.Run("Boolean Rollouts", func(t *testing.T) {
+		t.Run("Invalid", func(t *testing.T) {
+			_, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "boolean_disabled",
+				Description:  "has an invalid percentage",
+				Rank:         1,
+				Rule: &flipt.CreateRolloutRequest_Threshold{
+					Threshold: &flipt.RolloutThreshold{
+						Percentage: 101.00,
+						Value:      true,
+					},
+				},
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = invalid field threshold.percentage: must be within range [0, 100]")
+		})
+
 		rolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 			NamespaceKey: namespace,
 			FlagKey:      "boolean_disabled",
@@ -586,6 +602,20 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			rolloutSegment,
 			rolloutThreshold,
 		}, rollouts.Rules, protocmp.Transform()))
+
+		_, err = client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Id:           rolloutThreshold.Id,
+			Description:  "50% enabled",
+			Rule: &flipt.UpdateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 200.0,
+					Value:      false,
+				},
+			},
+		})
+		require.EqualError(t, err, "rpc error: code = InvalidArgument desc = invalid field threshold.percentage: must be within range [0, 100]")
 
 		updatedRollout, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
 			NamespaceKey: namespace,
