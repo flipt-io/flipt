@@ -46,6 +46,7 @@ const (
 	Flipt_CreateRollout_FullMethodName      = "/flipt.Flipt/CreateRollout"
 	Flipt_UpdateRollout_FullMethodName      = "/flipt.Flipt/UpdateRollout"
 	Flipt_DeleteRollout_FullMethodName      = "/flipt.Flipt/DeleteRollout"
+	Flipt_OrderRollouts_FullMethodName      = "/flipt.Flipt/OrderRollouts"
 	Flipt_CreateDistribution_FullMethodName = "/flipt.Flipt/CreateDistribution"
 	Flipt_UpdateDistribution_FullMethodName = "/flipt.Flipt/UpdateDistribution"
 	Flipt_DeleteDistribution_FullMethodName = "/flipt.Flipt/DeleteDistribution"
@@ -89,6 +90,7 @@ type FliptClient interface {
 	CreateRollout(ctx context.Context, in *CreateRolloutRequest, opts ...grpc.CallOption) (*Rollout, error)
 	UpdateRollout(ctx context.Context, in *UpdateRolloutRequest, opts ...grpc.CallOption) (*Rollout, error)
 	DeleteRollout(ctx context.Context, in *DeleteRolloutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	OrderRollouts(ctx context.Context, in *OrderRolloutsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	UpdateDistribution(ctx context.Context, in *UpdateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error)
 	DeleteDistribution(ctx context.Context, in *DeleteDistributionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -344,6 +346,15 @@ func (c *fliptClient) DeleteRollout(ctx context.Context, in *DeleteRolloutReques
 	return out, nil
 }
 
+func (c *fliptClient) OrderRollouts(ctx context.Context, in *OrderRolloutsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Flipt_OrderRollouts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *fliptClient) CreateDistribution(ctx context.Context, in *CreateDistributionRequest, opts ...grpc.CallOption) (*Distribution, error) {
 	out := new(Distribution)
 	err := c.cc.Invoke(ctx, Flipt_CreateDistribution_FullMethodName, in, out, opts...)
@@ -473,6 +484,7 @@ type FliptServer interface {
 	CreateRollout(context.Context, *CreateRolloutRequest) (*Rollout, error)
 	UpdateRollout(context.Context, *UpdateRolloutRequest) (*Rollout, error)
 	DeleteRollout(context.Context, *DeleteRolloutRequest) (*emptypb.Empty, error)
+	OrderRollouts(context.Context, *OrderRolloutsRequest) (*emptypb.Empty, error)
 	CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error)
 	UpdateDistribution(context.Context, *UpdateDistributionRequest) (*Distribution, error)
 	DeleteDistribution(context.Context, *DeleteDistributionRequest) (*emptypb.Empty, error)
@@ -568,6 +580,9 @@ func (UnimplementedFliptServer) UpdateRollout(context.Context, *UpdateRolloutReq
 }
 func (UnimplementedFliptServer) DeleteRollout(context.Context, *DeleteRolloutRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRollout not implemented")
+}
+func (UnimplementedFliptServer) OrderRollouts(context.Context, *OrderRolloutsRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OrderRollouts not implemented")
 }
 func (UnimplementedFliptServer) CreateDistribution(context.Context, *CreateDistributionRequest) (*Distribution, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDistribution not implemented")
@@ -1083,6 +1098,24 @@ func _Flipt_DeleteRollout_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Flipt_OrderRollouts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderRolloutsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FliptServer).OrderRollouts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flipt_OrderRollouts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FliptServer).OrderRollouts(ctx, req.(*OrderRolloutsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Flipt_CreateDistribution_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateDistributionRequest)
 	if err := dec(in); err != nil {
@@ -1391,6 +1424,10 @@ var Flipt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRollout",
 			Handler:    _Flipt_DeleteRollout_Handler,
+		},
+		{
+			MethodName: "OrderRollouts",
+			Handler:    _Flipt_OrderRollouts_Handler,
 		},
 		{
 			MethodName: "CreateDistribution",

@@ -226,6 +226,15 @@ func (x *Flipt) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest
 	return err
 }
 
+func (x *Flipt) OrderRollouts(ctx context.Context, v *flipt.OrderRolloutsRequest) error {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
+	}
+	_, err = x.transport.OrderRollouts(ctx, v)
+	return err
+}
+
 func (x *Flipt) CreateDistribution(ctx context.Context, v *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
