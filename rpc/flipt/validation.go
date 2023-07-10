@@ -523,6 +523,17 @@ func (req *CreateRolloutRequest) Validate() error {
 		return errors.EmptyFieldError("flagKey")
 	}
 
+	switch rule := req.Rule.(type) {
+	case *CreateRolloutRequest_Threshold:
+		if rule.Threshold.Percentage < 0 || rule.Threshold.Percentage > 100.0 {
+			return errors.InvalidFieldError("threshold.percentage", "must be within range [0, 100]")
+		}
+	case *CreateRolloutRequest_Segment:
+		if rule.Segment.SegmentKey == "" {
+			return errors.EmptyFieldError("segmentKey")
+		}
+	}
+
 	return nil
 }
 
@@ -533,6 +544,17 @@ func (req *UpdateRolloutRequest) Validate() error {
 
 	if req.FlagKey == "" {
 		return errors.EmptyFieldError("flagKey")
+	}
+
+	switch rule := req.Rule.(type) {
+	case *UpdateRolloutRequest_Threshold:
+		if rule.Threshold.Percentage < 0 || rule.Threshold.Percentage > 100.0 {
+			return errors.InvalidFieldError("threshold.percentage", "must be within range [0, 100]")
+		}
+	case *UpdateRolloutRequest_Segment:
+		if rule.Segment.SegmentKey == "" {
+			return errors.EmptyFieldError("segmentKey")
+		}
 	}
 
 	return nil

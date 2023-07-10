@@ -798,6 +798,38 @@ func (x *FliptClient) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutR
 	return &output, nil
 }
 
+func (x *FliptClient) OrderRollouts(ctx context.Context, v *flipt.OrderRolloutsRequest, _ ...grpc.CallOption) (*emptypb.Empty, error) {
+	var body io.Reader
+	var values url.Values
+	reqData, err := protojson.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	body = bytes.NewReader(reqData)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/flags/%v/rollouts/order", v.NamespaceKey, v.FlagKey), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output emptypb.Empty
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (x *FliptClient) CreateDistribution(ctx context.Context, v *flipt.CreateDistributionRequest, _ ...grpc.CallOption) (*flipt.Distribution, error) {
 	var body io.Reader
 	var values url.Values

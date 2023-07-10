@@ -316,6 +316,63 @@ func TestReadOnly(t *testing.T) {
 			})
 		})
 
+		t.Run("ListRollouts", func(t *testing.T) {
+			_, err := sdk.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_boolean",
+				PageToken:    "Hello World",
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+
+			rules, err := sdk.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "flag_boolean",
+			})
+			require.NoError(t, err)
+			require.Len(t, rules.Rules, 5, "unexpected number of rules returned")
+
+			rule := rules.Rules[0]
+			assert.Equal(t, namespace, rule.NamespaceKey)
+			assert.Equal(t, "flag_boolean", rule.FlagKey)
+			assert.Equal(t, "segment_001", rule.GetSegment().SegmentKey)
+			assert.True(t, rule.GetSegment().Value)
+			assert.NotEmpty(t, rule.Id)
+			assert.Equal(t, int32(1), rule.Rank)
+
+			t.Run("Paginated (page size 2)", func(t *testing.T) {
+				var (
+					found    []*flipt.Rollout
+					nextPage string
+				)
+				for {
+					rules, err := sdk.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_boolean",
+						Limit:        2,
+						PageToken:    nextPage,
+					})
+					require.NoError(t, err)
+
+					if rules.NextPageToken == "" {
+						// ensure each page is of length 1
+						assert.Len(t, rules.Rules, 1)
+						found = append(found, rules.Rules...)
+						break
+					}
+
+					// ensure each page is of length 2
+					assert.Len(t, rules.Rules, 2)
+
+					found = append(found, rules.Rules...)
+
+					nextPage = rules.NextPageToken
+				}
+
+				require.Len(t, found, 5)
+				assert.Equal(t, rules.Rules, found)
+			})
+		})
+
 		t.Run("Legacy", func(t *testing.T) {
 			t.Run("Evaluate", func(t *testing.T) {
 				response, err := sdk.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
