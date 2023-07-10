@@ -110,6 +110,10 @@ http:
   - selector: flipt.Flipt.DeleteRollout
     delete: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/{id}
 
+  - selector: flipt.Flipt.OrderRollouts
+    put: /api/v1/namespaces/{namespace_key}/flags/{flag_key}/rollouts/order
+    body: "*"
+
   # variants
   # 
   - selector: flipt.Flipt.CreateVariant
