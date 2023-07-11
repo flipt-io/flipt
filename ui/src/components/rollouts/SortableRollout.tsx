@@ -1,19 +1,30 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { IEvaluatable } from '~/types/Evaluatable';
-import { INamespace } from '~/types/Namespace';
-import Rule from './Rule';
+import { IRollout } from '~/types/Rollout';
+import { ISegment } from '~/types/Segment';
+import Rollout from './Rollout';
 
-type SortableRuleProps = {
-  namespace: INamespace;
-  totalRules: number;
-  rule: IEvaluatable;
+type SortableRolloutProps = {
+  flagKey: string;
+  totalRollouts: number;
+  rollout: IRollout;
+  segments: ISegment[];
+  onQuickEditSuccess: () => void;
   onEdit: () => void;
   onDelete: () => void;
   readOnly?: boolean;
 };
 
-export default function SortableRule(props: SortableRuleProps) {
-  const { namespace, totalRules, rule, onEdit, onDelete, readOnly } = props;
+export default function SortableRollout(props: SortableRolloutProps) {
+  const {
+    flagKey,
+    totalRollouts,
+    rollout,
+    segments,
+    onQuickEditSuccess,
+    onEdit,
+    onDelete,
+    readOnly
+  } = props;
   const {
     isDragging,
     attributes,
@@ -22,7 +33,7 @@ export default function SortableRule(props: SortableRuleProps) {
     transform,
     transition
   } = useSortable({
-    id: rule.id,
+    id: rollout.id,
     disabled: readOnly
   });
 
@@ -36,16 +47,18 @@ export default function SortableRule(props: SortableRuleProps) {
   const className = isDragging ? 'border-violet-500 cursor-move' : '';
 
   return (
-    <Rule
-      key={rule.id}
+    <Rollout
+      key={rollout.id}
       ref={setNodeRef}
       {...listeners}
       {...attributes}
       style={style}
       className={className}
-      namespace={namespace}
-      totalRules={totalRules}
-      rule={rule}
+      flagKey={flagKey}
+      totalRollouts={totalRollouts}
+      rollout={rollout}
+      segments={segments}
+      onQuickEditSuccess={onQuickEditSuccess}
       onEdit={onEdit}
       onDelete={onDelete}
       readOnly={readOnly}

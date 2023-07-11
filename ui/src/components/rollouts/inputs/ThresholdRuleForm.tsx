@@ -10,10 +10,10 @@ export default function ThresholdRuleFormInputs() {
     useFormikContext<ThresholdRuleFormInputsFields>();
   return (
     <>
-      <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+      <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2 ">
         <label
           htmlFor="percentage"
-          className="mb-2 block text-sm font-medium text-gray-900"
+          className="mb-2 block text-sm font-normal text-gray-900"
         >
           Percentage
         </label>

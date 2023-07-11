@@ -12,10 +12,10 @@ import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { IRollout, RolloutType } from '~/types/Rollout';
+import { RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
-import SegmentRuleFormInputs from './rules/SegmentRuleForm';
-import ThresholdRuleFormInputs from './rules/ThresholdRuleForm';
+import SegmentRuleFormInputs from './inputs/SegmentRuleForm';
+import ThresholdRuleFormInputs from './inputs/ThresholdRuleForm';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
 const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';
@@ -37,7 +37,6 @@ type RolloutFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
   flagKey: string;
-  rollout?: IRollout;
   segments: ISegment[];
   rank: number;
 };

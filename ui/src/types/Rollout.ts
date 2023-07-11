@@ -32,3 +32,5 @@ export interface IRollout extends IRolloutBase {
 export interface IRolloutList extends IPageable {
   rules: IRollout[];
 }
+export const rolloutTypeToLabel = (t: string) =>
+  RolloutType[t as keyof typeof RolloutType];
