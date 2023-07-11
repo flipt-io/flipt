@@ -136,16 +136,21 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     id="percentage-slider"
                     name="percentage"
                     type="range"
-                    className="h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700 sm:block"
                   />
-                  <Input
-                    type="number"
-                    id="percentage"
-                    max={100}
-                    min={0}
-                    name="percentage"
-                    className="text-center"
-                  />
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      %
+                    </div>
+                    <Input
+                      type="number"
+                      id="percentage"
+                      max={100}
+                      min={0}
+                      name="percentage"
+                      className="pl-10 text-center"
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
