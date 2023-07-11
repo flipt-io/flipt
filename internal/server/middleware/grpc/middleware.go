@@ -16,6 +16,7 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	fauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -227,6 +228,50 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetFlagKey())); err != nil {
 				logger.Error("deleting from cache", zap.Error(err))
 			}
+		case *evaluation.EvaluationRequest:
+			key, err := evaluationCacheKey(r)
+			if err != nil {
+				logger.Error("getting cache key", zap.Error(err))
+				return handler(ctx, req)
+			}
+
+			cached, ok, err := cache.Get(ctx, key)
+			if err != nil {
+				// if error, log and without cache
+				logger.Error("getting from cache", zap.Error(err))
+				return handler(ctx, req)
+			}
+
+			if ok {
+				resp := &evaluation.VariantEvaluationResponse{}
+				if err := proto.Unmarshal(cached, resp); err != nil {
+					logger.Error("unmarshalling from cache", zap.Error(err))
+					return handler(ctx, req)
+				}
+
+				logger.Debug("evaluate cache hit", zap.Stringer("response", resp))
+				return resp, nil
+			}
+
+			logger.Debug("evaluate cache miss")
+			resp, err := handler(ctx, req)
+			if err != nil {
+				return resp, err
+			}
+
+			// marshal response
+			data, merr := proto.Marshal(resp.(*evaluation.VariantEvaluationResponse))
+			if merr != nil {
+				logger.Error("marshalling for cache", zap.Error(err))
+				return resp, err
+			}
+
+			// set in cache
+			if cerr := cache.Set(ctx, key, data); cerr != nil {
+				logger.Error("setting in cache", zap.Error(err))
+			}
+
+			return resp, err
 		}
 
 		return handler(ctx, req)
@@ -348,7 +393,14 @@ func flagCacheKey(namespaceKey, key string) string {
 	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
 
-func evaluationCacheKey(r *flipt.EvaluationRequest) (string, error) {
+type evaluationRequest interface {
+	GetNamespaceKey() string
+	GetFlagKey() string
+	GetEntityId() string
+	GetContext() map[string]string
+}
+
+func evaluationCacheKey(r evaluationRequest) (string, error) {
 	out, err := json.Marshal(r.GetContext())
 	if err != nil {
 		return "", fmt.Errorf("marshalling req to json: %w", err)
