@@ -44,12 +44,12 @@ type AuthenticationConfig struct {
 	// By default, given required == true, the API is fully protected.
 	Exclude struct {
 		// Management refers to the section of the API with the prefix /api/v1
-		Management bool `json:"management,omitempty"`
-		// Evaluation refers to the section of the API with the prefix /evaluation/v1
-		Evaluation bool `json:"evaluation,omitempty"`
+		Management bool `json:"management,omitempty" mapstructure:"management"`
 		// Metadata refers to the section of the API with the prefix /meta
-		Metadata bool `json:"metadata,omitempty"`
-	} `json:"exclude"`
+		Metadata bool `json:"metadata,omitempty" mapstructure:"metadata"`
+		// Evaluation refers to the section of the API with the prefix /evaluation/v1
+		Evaluation bool `json:"evaluation,omitempty" mapstructure:"evaluation"`
+	} `json:"exclude,omitempty" mapstructure:"exclude"`
 
 	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session"`
 	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`

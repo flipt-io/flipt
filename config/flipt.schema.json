@@ -52,6 +52,15 @@
           "type": "boolean",
           "default": false
         },
+        "exclude": {
+          "type": "object",
+          "properties": {
+            "management": { "type": "boolean", "default": false },
+            "metadata": { "type": "boolean", "default": false },
+            "evaluation": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": false
+        },
         "session": {
           "type": "object",
           "properties": {
