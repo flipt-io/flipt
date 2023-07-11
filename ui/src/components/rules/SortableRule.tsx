@@ -33,7 +33,7 @@ export default function SortableRule(props: SortableRuleProps) {
       }
     : undefined;
 
-  const className = isDragging ? 'border-violet-200 cursor-move' : '';
+  const className = isDragging ? 'border-violet-500 cursor-move' : '';
 
   return (
     <NewRule

@@ -96,7 +96,7 @@ const NewRule = forwardRef(
               <div className="ml-6 min-w-0 flex-auto space-y-1 text-center">
                 <p className="mt-1 flex text-gray-500">Return Variant</p>
                 <p className="bg-violet-50/80 px-3 py-1 font-semibold text-gray-900">
-                  abc
+                  {rule.rollouts[0].variant.key}
                 </p>
               </div>
             </span>
