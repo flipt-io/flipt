@@ -17,6 +17,7 @@ import (
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
+	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/server/cache/memory"
 	"go.flipt.io/flipt/internal/server/cache/redis"
@@ -220,6 +221,22 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
+	var (
+		fliptsrv           = fliptserver.New(logger, store)
+		metasrv            = metadata.NewServer(cfg, info)
+		evalsrv            = evaluation.New(logger, store)
+		authOpts           = []containers.Option[auth.InterceptorOptions]{}
+		skipAuthIfExcluded = func(server any, excluded bool) {
+			if excluded {
+				authOpts = append(authOpts, auth.WithServerSkipsAuthentication(server))
+			}
+		}
+	)
+
+	skipAuthIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
+	skipAuthIfExcluded(metasrv, cfg.Authentication.Exclude.Metadata)
+	skipAuthIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
+
 	register, authInterceptors, authShutdown, err := authenticationGRPC(
 		ctx,
 		logger,
@@ -231,6 +248,11 @@ func NewGRPCServer(
 	}
 
 	server.onShutdown(authShutdown)
+
+	// initialize server
+	register.Add(fliptsrv)
+	register.Add(metasrv)
+	register.Add(evalsrv)
 
 	// forward internal gRPC logging to zap
 	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
@@ -338,12 +360,6 @@ func NewGRPCServer(
 
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
-
-	// initialize server
-	register.Add(fliptserver.New(logger, store))
-	register.Add(metadata.NewServer(cfg, info))
-
-	register.Add(evaluation.New(logger, store))
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)

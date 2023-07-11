@@ -30,6 +30,7 @@ func authenticationGRPC(
 	logger *zap.Logger,
 	cfg *config.Config,
 	forceMigrate bool,
+	authOpts ...containers.Option[auth.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 	// NOTE: we skip attempting to connect to any database in the situation that either the git or local
 	// FS backends are configured.
@@ -56,11 +57,10 @@ func authenticationGRPC(
 			public,
 			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(cfg.Audit.Enabled())),
 		}
-		authOpts = []containers.Option[auth.InterceptorOptions]{
-			auth.WithServerSkipsAuthentication(public),
-		}
 		interceptors []grpc.UnaryServerInterceptor
 	)
+
+	authOpts = append(authOpts, auth.WithServerSkipsAuthentication(public))
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {

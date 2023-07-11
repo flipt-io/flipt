@@ -39,6 +39,18 @@ type AuthenticationConfig struct {
 	// Else, authentication is not required and Flipt's APIs are not secured.
 	Required bool `json:"required,omitempty" mapstructure:"required"`
 
+	// Exclude allows you to skip enforcing authentication on the different
+	// top-level sections of the API.
+	// By default, given required == true, the API is fully protected.
+	Exclude struct {
+		// Management refers to the section of the API with the prefix /api/v1
+		Management bool `json:"management,omitempty"`
+		// Evaluation refers to the section of the API with the prefix /evaluation/v1
+		Evaluation bool `json:"evaluation,omitempty"`
+		// Metadata refers to the section of the API with the prefix /meta
+		Metadata bool `json:"metadata,omitempty"`
+	} `json:"exclude"`
+
 	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session"`
 	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`
 }
