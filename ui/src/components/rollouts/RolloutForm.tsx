@@ -14,8 +14,8 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
-import SegmentRuleFormInputs from './inputs/SegmentRuleForm';
-import ThresholdRuleFormInputs from './inputs/ThresholdRuleForm';
+import { truncateKey } from '~/utils/helpers';
+import Combobox from '../forms/Combobox';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
 const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';
@@ -200,14 +200,54 @@ export default function RolloutForm(props: RolloutFormProps) {
                 </div>
               </div>
               {rolloutRuleType === rolloutRuleTypeThreshold && (
-                <ThresholdRuleFormInputs />
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                  <label
+                    htmlFor="percentage"
+                    className="mb-2 block text-sm font-medium text-gray-900"
+                  >
+                    Percentage
+                  </label>
+                  <Input
+                    id="percentage-slider"
+                    name="percentage"
+                    type="range"
+                    className="h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                  />
+                  <Input
+                    type="number"
+                    id="percentage"
+                    max={100}
+                    min={0}
+                    name="percentage"
+                    className="text-center"
+                  />
+                </div>
               )}
               {rolloutRuleType === rolloutRuleTypeSegment && (
-                <SegmentRuleFormInputs
-                  segments={segments}
-                  selectedSegment={selectedSegment}
-                  setSelectedSegment={setSelectedSegment}
-                />
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                  <div>
+                    <label
+                      htmlFor="segmentKey"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    >
+                      Segment
+                    </label>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Combobox<FilterableSegment>
+                      id="segmentKey"
+                      name="segmentKey"
+                      placeholder="Select or search for a segment"
+                      values={segments.map((s) => ({
+                        ...s,
+                        filterValue: truncateKey(s.key),
+                        displayValue: s.name
+                      }))}
+                      selected={selectedSegment}
+                      setSelected={setSelectedSegment}
+                    />
+                  </div>
+                </div>
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <label

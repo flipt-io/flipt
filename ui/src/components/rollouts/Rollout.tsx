@@ -1,10 +1,5 @@
 import { Menu, Transition } from '@headlessui/react';
-import {
-  ArrowDownIcon,
-  ArrowsUpDownIcon,
-  ArrowUpIcon,
-  EllipsisVerticalIcon
-} from '@heroicons/react/24/outline';
+import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { forwardRef, Fragment, Ref } from 'react';
 import { IRollout, RolloutType } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
@@ -57,11 +52,7 @@ const Rollout = forwardRef(
             )}
             {...rest}
           >
-            {rollout.rank === 1 && <ArrowDownIcon />}
-            {rollout.rank === totalRollouts && <ArrowUpIcon />}
-            {rollout.rank !== 1 && rollout.rank !== totalRollouts && (
-              <ArrowsUpDownIcon />
-            )}
+            {rollout.rank}
           </span>
           <h3 className="text-sm font-normal leading-6 text-gray-700">
             {RolloutType[rollout.type as unknown as keyof typeof RolloutType]}{' '}

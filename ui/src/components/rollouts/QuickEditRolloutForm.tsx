@@ -3,15 +3,16 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Select from '~/components/forms/Select';
-import { createRollout } from '~/data/api';
+import { updateRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IRollout, RolloutType, rolloutTypeToLabel } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
+import { truncateKey } from '~/utils/helpers';
 import TextButton from '../forms/buttons/TextButton';
+import Combobox from '../forms/Combobox';
+import Input from '../forms/Input';
 import Loading from '../Loading';
-import SegmentRuleFormInputs from './inputs/SegmentRuleForm';
-import ThresholdRuleFormInputs from './inputs/ThresholdRuleForm';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
 const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';
@@ -52,8 +53,11 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     });
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
-    return createRollout(namespace.key, flagKey, {
-      ...rollout,
+    let rolloutSegment = rollout;
+    rolloutSegment.threshold = undefined;
+
+    return updateRollout(namespace.key, flagKey, rollout.id, {
+      ...rolloutSegment,
       segment: {
         segmentKey: values.segmentKey || '',
         value: values.value === 'true'
@@ -62,14 +66,26 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   };
 
   const handleThresholdSubmit = (values: RolloutFormValues) => {
-    return createRollout(namespace.key, flagKey, {
-      ...rollout,
+    let rolloutThreshold = rollout;
+    rolloutThreshold.segment = undefined;
+
+    return updateRollout(namespace.key, flagKey, rollout.id, {
+      ...rolloutThreshold,
       threshold: {
         percentage: values.percentage || 0,
         value: values.value === 'true'
       }
     });
   };
+
+  let initialValue =
+    rolloutTypeToLabel(rollout.type) === RolloutType.THRESHOLD_ROLLOUT_TYPE
+      ? rollout.threshold?.value
+        ? 'true'
+        : 'false'
+      : rollout.segment?.value
+      ? 'true'
+      : 'false';
 
   return (
     <Formik
@@ -78,12 +94,15 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
         type: rollout.type,
         segmentKey: rollout.segment?.segmentKey,
         percentage: rollout.threshold?.percentage,
-        value: rollout.segment?.value || rollout.threshold?.value ? 'true' : ''
+        value: initialValue
       }}
       onSubmit={(values, { setSubmitting }) => {
         let handleSubmit = async (_values: RolloutFormValues) => {};
 
-        if (rollout.type === RolloutType.THRESHOLD_ROLLOUT_TYPE) {
+        if (
+          rolloutTypeToLabel(rollout.type) ===
+          RolloutType.THRESHOLD_ROLLOUT_TYPE
+        ) {
           handleSubmit = handleThresholdSubmit;
         } else {
           handleSubmit = handleSegmentSubmit;
@@ -109,15 +128,55 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
             <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
               {rolloutTypeToLabel(rollout.type) ===
               RolloutType.THRESHOLD_ROLLOUT_TYPE ? (
-                <ThresholdRuleFormInputs />
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+                  <label
+                    htmlFor="percentage"
+                    className="mb-2 block text-sm font-medium text-gray-900"
+                  >
+                    Percentage
+                  </label>
+                  <Input
+                    id="percentage-slider"
+                    name="percentage"
+                    type="range"
+                    className="h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                  />
+                  <Input
+                    type="number"
+                    id="percentage"
+                    max={100}
+                    min={0}
+                    name="percentage"
+                    className="text-center"
+                  />
+                </div>
               ) : (
-                <SegmentRuleFormInputs
-                  segments={segments}
-                  selectedSegment={selectedSegment}
-                  setSelectedSegment={setSelectedSegment}
-                />
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+                  <div>
+                    <label
+                      htmlFor="segmentKey"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    >
+                      Segment
+                    </label>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Combobox<FilterableSegment>
+                      id="segmentKey"
+                      name="segmentKey"
+                      placeholder="Select or search for a segment"
+                      values={segments.map((s) => ({
+                        ...s,
+                        filterValue: truncateKey(s.key),
+                        displayValue: s.name
+                      }))}
+                      selected={selectedSegment}
+                      setSelected={setSelectedSegment}
+                    />
+                  </div>
+                </div>
               )}
-              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                 <label
                   htmlFor="value"
                   className="mb-2 block text-sm font-medium text-gray-900"
@@ -127,6 +186,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                 <Select
                   id="value"
                   name="value"
+                  value={formik.values.value}
                   options={[
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
@@ -138,11 +198,18 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
           </div>
           <div className="flex-shrink-0 py-1">
             <div className="flex justify-end space-x-3">
-              <TextButton onClick={() => {}}>Reset</TextButton>
+              <TextButton
+                disabled={formik.isSubmitting || !formik.dirty}
+                onClick={() => {}}
+              >
+                Reset
+              </TextButton>
               <TextButton
                 type="submit"
                 className="min-w-[80px]"
-                disabled={!formik.isValid || formik.isSubmitting}
+                disabled={
+                  !formik.isValid || formik.isSubmitting || !formik.dirty
+                }
               >
                 {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
               </TextButton>
