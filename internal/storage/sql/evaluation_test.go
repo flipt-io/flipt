@@ -732,6 +732,8 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 		segmentKeys = append(segmentKeys, segmentKey)
 	}
 
+	eserver := evaluation.New(zap.NewNop(), s.store)
+
 	b.ResetTimer()
 
 	for _, flagKey := range flagKeys {
@@ -749,11 +751,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 				assert.NotEmpty(t, evaluation)
 			}
 		})
-	}
 
-	eserver := evaluation.New(zap.NewNop(), s.store)
-
-	for _, flagKey := range flagKeys {
 		b.Run(fmt.Sprintf("variant-evaluation-%s", flagKey), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				variant, err := eserver.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
