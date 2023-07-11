@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/cache/memory"
+	servereval "go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -766,6 +767,295 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
 			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
+		})
+	}
+}
+
+func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
+	var (
+		store = &storeMock{}
+		cache = memory.NewCache(config.CacheConfig{
+			TTL:     time.Second,
+			Enabled: true,
+			Backend: config.CacheMemory,
+		})
+		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
+		s        = servereval.New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
+	}, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+					// constraint: admin (bool) == true
+					{
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           100,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
+			},
+		}, nil)
+
+	tests := []struct {
+		name      string
+		req       *evaluation.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "matches all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+		},
+	}
+
+	unaryInterceptor := CacheUnaryInterceptor(cacheSpy, logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.Variant(ctx, r.(*evaluation.EvaluationRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	for i, tt := range tests {
+		var (
+			i         = i + 1
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := unaryInterceptor(context.Background(), req, info, handler)
+			require.NoError(t, err)
+			assert.NotNil(t, got)
+
+			resp := got.(*evaluation.VariantEvaluationResponse)
+			assert.NotNil(t, resp)
+
+			assert.Equal(t, i, cacheSpy.getCalled, "cache get wasn't called as expected")
+			assert.NotEmpty(t, cacheSpy.getKeys, "cache keys should not be empty")
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, "boz", resp.VariantKey)
+			assert.Equal(t, `{"key":"value"}`, resp.VariantAttachment)
+		})
+	}
+}
+
+func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
+	var (
+		store = &storeMock{}
+		cache = memory.NewCache(config.CacheConfig{
+			TTL:     time.Second,
+			Enabled: true,
+			Backend: config.CacheMemory,
+		})
+		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
+		s        = servereval.New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+		Key:     "foo",
+		Enabled: false,
+		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRollout{
+			{
+				RolloutType: flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+				Segment: &storage.RolloutSegment{
+					Key:       "bar",
+					MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+					Constraints: []storage.EvaluationConstraint{
+						// constraint: bar (string) == baz
+						{
+							ID:       "2",
+							Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+							Property: "bar",
+							Operator: flipt.OpEQ,
+							Value:    "baz",
+						},
+						// constraint: admin (bool) == true
+						{
+							ID:       "3",
+							Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+							Property: "admin",
+							Operator: flipt.OpTrue,
+						},
+					},
+					Value: true,
+				},
+				Rank: 1,
+			},
+		}, nil)
+
+	tests := []struct {
+		name      string
+		req       *evaluation.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "matches all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+		},
+	}
+
+	unaryInterceptor := CacheUnaryInterceptor(cacheSpy, logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.Boolean(ctx, r.(*evaluation.EvaluationRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	for i, tt := range tests {
+		var (
+			i         = i + 1
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := unaryInterceptor(context.Background(), req, info, handler)
+			require.NoError(t, err)
+			assert.NotNil(t, got)
+
+			resp := got.(*evaluation.BooleanEvaluationResponse)
+			assert.NotNil(t, resp)
+
+			assert.Equal(t, i, cacheSpy.getCalled, "cache get wasn't called as expected")
+			assert.NotEmpty(t, cacheSpy.getKeys, "cache keys should not be empty")
+
+			if !wantMatch {
+				assert.False(t, resp.Value)
+				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
+				return
+			}
+
+			assert.True(t, resp.Value)
+			assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
