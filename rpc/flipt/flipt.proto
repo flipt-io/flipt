@@ -490,6 +490,7 @@ service Flipt {
   rpc CreateRollout(CreateRolloutRequest) returns (Rollout) {}
   rpc UpdateRollout(UpdateRolloutRequest) returns (Rollout) {}
   rpc DeleteRollout(DeleteRolloutRequest) returns (google.protobuf.Empty) {}
+  rpc OrderRollouts(OrderRolloutsRequest) returns (google.protobuf.Empty) {}
   rpc CreateDistribution(CreateDistributionRequest) returns (Distribution) {}
   rpc UpdateDistribution(UpdateDistributionRequest) returns (Distribution) {}
   rpc DeleteDistribution(DeleteDistributionRequest) returns (google.protobuf.Empty) {}

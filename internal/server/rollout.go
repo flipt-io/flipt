@@ -19,9 +19,10 @@ func (s *Server) GetRollout(ctx context.Context, r *flipt.GetRolloutRequest) (*f
 func (s *Server) ListRollouts(ctx context.Context, r *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
 	s.logger.Debug("list rollout rules", zap.Stringer("request", r))
 
-	opts := []storage.QueryOption{storage.WithLimit(uint64(r.GetLimit()))}
-
-	results, err := s.store.ListRollouts(ctx, r.NamespaceKey, r.FlagKey, opts...)
+	results, err := s.store.ListRollouts(ctx, r.NamespaceKey, r.FlagKey,
+		storage.WithPageToken(r.GetPageToken()),
+		storage.WithLimit(uint64(r.GetLimit())),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -60,5 +61,12 @@ func (s *Server) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutReques
 	s.logger.Debug("delete rollout rule", zap.Stringer("request", r))
 	err := s.store.DeleteRollout(ctx, r)
 	s.logger.Debug("delete rollout rule", zap.Error(err))
+	return &empty.Empty{}, err
+}
+
+func (s *Server) OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) (*empty.Empty, error) {
+	s.logger.Debug("order rollout rules", zap.Stringer("request", r))
+	err := s.store.OrderRollouts(ctx, r)
+	s.logger.Debug("order rollout rules", zap.Error(err))
 	return &empty.Empty{}, err
 }
