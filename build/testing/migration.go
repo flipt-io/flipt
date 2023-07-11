@@ -29,9 +29,25 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		return err
 	}
 
+	release, _, err := github.NewClient(nil).
+		Repositories.
+		GetLatestRelease(ctx, "flipt-io", "flipt")
+	if err != nil {
+		return err
+	}
+
+	// clone the last release so we can use the readonly test
+	// suite defined here instead
+	fliptDir := client.Git("https://github.com/flipt-io/flipt.git").
+		Tag(*release.TagName).
+		Tree()
+
+	base = base.
+		WithMountedDirectory(".", fliptDir)
+
 	// import testdata into latest Flipt instance (using latest image for import)
 	_, err = latest.
-		WithFile("import.yaml", base.File("build/testing/testdata/migration/default.yaml")).
+		WithFile("import.yaml", base.File("build/testing/integration/readonly/testdata/default.yaml")).
 		WithServiceBinding("flipt", latest.WithExec(nil)).
 		WithExec([]string{"sh", "-c", "sleep 5 && /flipt import --address grpc://flipt:9000 import.yaml"}).
 		Sync(ctx)
@@ -53,22 +69,8 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		return err
 	}
 
-	release, _, err := github.NewClient(nil).
-		Repositories.
-		GetLatestRelease(ctx, "flipt-io", "flipt")
-	if err != nil {
-		return err
-	}
-
-	// clone the last release so we can use the readonly test
-	// suite defined here instead
-	fliptDir := client.Git("https://github.com/flipt-io/flipt.git").
-		Tag(*release.TagName).
-		Tree()
-
 	// ensure new edge Flipt build continues to work as expected
 	_, err = base.
-		WithMountedDirectory(".", fliptDir).
 		WithServiceBinding("flipt", flipt.WithExec(nil)).
 		WithWorkdir("build/testing/integration/readonly").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
