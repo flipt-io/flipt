@@ -2,12 +2,22 @@ package sql_test
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
+	"os"
+	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/ext"
+	"go.flipt.io/flipt/internal/server"
+	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.uber.org/zap"
 )
 
 func (s *DBTestSuite) TestGetEvaluationRules() {
@@ -681,4 +691,98 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)
 	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.MatchType)
 	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
+}
+
+func Benchmark_EvaluationV1AndV2(b *testing.B) {
+	s := new(DBTestSuite)
+
+	t := &testing.T{}
+	s.SetT(t)
+	s.SetupSuite()
+
+	server := server.New(zap.NewNop(), s.store)
+	importer := ext.NewImporter(server)
+	reader, err := os.Open("./testdata/benchmark_test.yml")
+
+	require.NoError(t, err)
+
+	err = importer.Import(context.TODO(), reader)
+	require.NoError(t, err)
+
+	flagKeys := make([]string, 0, 10)
+	segmentKeys := make([]string, 0, 10)
+
+	for i := 0; i < 10; i++ {
+		var flagKey, segmentKey string
+
+		num := rand.Intn(50)
+		if num == 0 {
+			num = 1
+		}
+
+		if num < 10 {
+			flagKey = fmt.Sprintf("flag_00%d", num)
+			segmentKey = fmt.Sprintf("segment_00%d", num)
+		} else {
+			flagKey = fmt.Sprintf("flag_0%d", num)
+			segmentKey = fmt.Sprintf("segment_0%d", num)
+		}
+
+		flagKeys = append(flagKeys, flagKey)
+		segmentKeys = append(segmentKeys, segmentKey)
+	}
+
+	b.ResetTimer()
+
+	for _, flagKey := range flagKeys {
+		b.Run(fmt.Sprintf("evaluation-v1-%s", flagKey), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				evaluation, err := server.Evaluate(context.TODO(), &flipt.EvaluationRequest{
+					FlagKey:  flagKey,
+					EntityId: uuid.Must(uuid.NewV4()).String(),
+					Context: map[string]string{
+						"in_segment": segmentKeys[rand.Intn(10)],
+					},
+				})
+
+				require.NoError(t, err)
+				assert.NotEmpty(t, evaluation)
+			}
+		})
+	}
+
+	eserver := evaluation.New(zap.NewNop(), s.store)
+
+	for _, flagKey := range flagKeys {
+		b.Run(fmt.Sprintf("variant-evaluation-%s", flagKey), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				variant, err := eserver.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+					FlagKey:  flagKey,
+					EntityId: uuid.Must(uuid.NewV4()).String(),
+					Context: map[string]string{
+						"in_segment": segmentKeys[rand.Intn(10)],
+					},
+				})
+
+				require.NoError(t, err)
+				assert.NotEmpty(t, variant)
+			}
+		})
+	}
+
+	for _, flagKey := range []string{"flag_boolean", "another_boolean_flag"} {
+		b.Run(fmt.Sprintf("boolean-evaluation-%s", flagKey), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				boolean, err := eserver.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+					FlagKey:  flagKey,
+					EntityId: uuid.Must(uuid.NewV4()).String(),
+				})
+
+				require.NoError(t, err)
+				assert.NotEmpty(t, boolean)
+			}
+		})
+	}
+
+	s.TearDownSuite()
 }
