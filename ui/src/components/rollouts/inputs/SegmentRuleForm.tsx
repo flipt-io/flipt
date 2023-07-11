@@ -15,11 +15,11 @@ export default function SegmentRuleFormInputs(
 
   return (
     <>
-      <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+      <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
         <div>
           <label
             htmlFor="segmentKey"
-            className="block text-sm font-normal text-gray-900 sm:mt-px sm:pt-2"
+            className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
           >
             Segment
           </label>

@@ -166,7 +166,7 @@ export default function Rollouts(props: RolloutsProps) {
                     items={rules.map((rule) => rule.id)}
                     strategy={verticalListSortingStrategy}
                   > */}
-                <ul role="list" className="flex-col space-y-5 md:flex">
+                <ul role="list" className="flex-col space-y-6 p-2 md:flex">
                   {rollouts &&
                     rollouts.length > 0 &&
                     rollouts.map((rollout) => (

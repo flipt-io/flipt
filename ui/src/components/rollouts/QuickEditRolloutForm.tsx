@@ -38,7 +38,18 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   const namespace = useSelector(selectCurrentNamespace);
 
   const [selectedSegment, setSelectedSegment] =
-    useState<FilterableSegment | null>(null);
+    useState<FilterableSegment | null>(() => {
+      let selected =
+        segments.find((s) => s.key === rollout.segment?.segmentKey) || null;
+      if (selected) {
+        return {
+          ...selected,
+          displayValue: selected.name,
+          filterValue: selected.key
+        };
+      }
+      return null;
+    });
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
@@ -82,7 +93,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
           .then(() => {
             onSuccess();
             clearError();
-            setSuccess('Successfully created rollout');
+            setSuccess('Successfully updated rollout');
           })
           .catch((err) => {
             setError(err);
@@ -106,10 +117,10 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   setSelectedSegment={setSelectedSegment}
                 />
               )}
-              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <label
                   htmlFor="value"
-                  className="mb-2 block text-sm font-normal text-gray-900"
+                  className="mb-2 block text-sm font-medium text-gray-900"
                 >
                   Value
                 </label>
@@ -120,7 +131,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-50"
+                  className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle bg-gray-50"
                 />
               </div>
             </div>
