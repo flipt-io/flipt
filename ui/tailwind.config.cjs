@@ -19,5 +19,9 @@ module.exports = {
     extend: {}
   },
   darkMode: 'class',
-  plugins: [require('@tailwindcss/forms'), require('nightwind')]
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('nightwind'),
+    require('tailwindcss-bg-patterns')
+  ]
 };

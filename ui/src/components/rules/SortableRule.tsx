@@ -1,10 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { INamespace } from '~/types/Namespace';
-import Rule from './Rule';
+import NewRule from './NewRule';
 
 type SortableRuleProps = {
   namespace: INamespace;
+  totalRules: number;
   rule: IEvaluatable;
   onEdit: () => void;
   onDelete: () => void;
@@ -12,7 +13,7 @@ type SortableRuleProps = {
 };
 
 export default function SortableRule(props: SortableRuleProps) {
-  const { namespace, rule, onEdit, onDelete, readOnly } = props;
+  const { namespace, totalRules, rule, onEdit, onDelete, readOnly } = props;
   const {
     isDragging,
     attributes,
@@ -32,10 +33,10 @@ export default function SortableRule(props: SortableRuleProps) {
       }
     : undefined;
 
-  const className = isDragging ? 'border-violet-200 cursor-move' : '';
+  const className = isDragging ? 'border-violet-500 cursor-move' : '';
 
   return (
-    <Rule
+    <NewRule
       key={rule.id}
       ref={setNodeRef}
       {...listeners}
@@ -43,6 +44,7 @@ export default function SortableRule(props: SortableRuleProps) {
       style={style}
       className={className}
       namespace={namespace}
+      totalRules={totalRules}
       rule={rule}
       onEdit={onEdit}
       onDelete={onDelete}
