@@ -122,7 +122,7 @@ const Rollout = forwardRef(
           </Menu>
         </div>
       </div>
-      <div className="flex w-full flex-1 items-center p-4 text-xs lg:p-0">
+      <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
         <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
           <QuickEditRolloutForm
             flagKey={flagKey}

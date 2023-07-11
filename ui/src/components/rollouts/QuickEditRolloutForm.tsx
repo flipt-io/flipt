@@ -120,12 +120,12 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-50"
                 />
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 py-5">
+          <div className="flex-shrink-0 py-1">
             <div className="flex justify-end space-x-3">
               <TextButton onClick={() => {}}>Reset</TextButton>
               <TextButton
