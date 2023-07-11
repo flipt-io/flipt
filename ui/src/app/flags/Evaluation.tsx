@@ -36,7 +36,6 @@ import { IEvaluatable } from '~/types/Evaluatable';
 import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentList } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
-import { classNames } from '~/utils/helpers';
 import { FlagProps } from './FlagProps';
 
 export default function Evaluation() {
@@ -260,49 +259,46 @@ export default function Evaluation() {
                   them into place.
                 </p>
               </div>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
-              >
-                <SortableContext
-                  items={rules.map((rule) => rule.id)}
-                  strategy={verticalListSortingStrategy}
+              <div className="w-full rounded-md p-6 lg:w-3/4">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={onDragStart}
+                  onDragEnd={onDragEnd}
                 >
-                  <ul
-                    role="list"
-                    className={classNames(
-                      'w-full space-y-5 p-5 lg:w-3/4',
-                      activeRule ? 'bg-violet-50' : 'bg-gray-50'
-                    )}
+                  <SortableContext
+                    items={rules.map((rule) => rule.id)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    {rules &&
-                      rules.length > 0 &&
-                      rules.map((rule) => (
-                        <SortableRule
-                          key={rule.id}
-                          namespace={namespace}
-                          rule={rule}
-                          onEdit={() => {
-                            setEditingRule(rule);
-                            setShowEditRuleForm(true);
-                          }}
-                          onDelete={() => {
-                            setDeletingRule(rule);
-                            setShowDeleteRuleModal(true);
-                          }}
-                          readOnly={readOnly}
-                        />
-                      ))}
-                  </ul>
-                </SortableContext>
-                <DragOverlay>
-                  {activeRule ? (
-                    <Rule namespace={namespace} rule={activeRule} />
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
+                    <ul role="list" className="flex-col space-y-5 md:flex">
+                      {rules &&
+                        rules.length > 0 &&
+                        rules.map((rule) => (
+                          <SortableRule
+                            key={rule.id}
+                            totalRules={rules.length}
+                            namespace={namespace}
+                            rule={rule}
+                            onEdit={() => {
+                              setEditingRule(rule);
+                              setShowEditRuleForm(true);
+                            }}
+                            onDelete={() => {
+                              setDeletingRule(rule);
+                              setShowDeleteRuleModal(true);
+                            }}
+                            readOnly={readOnly}
+                          />
+                        ))}
+                    </ul>
+                  </SortableContext>
+                  <DragOverlay>
+                    {activeRule ? (
+                      <Rule namespace={namespace} rule={activeRule} />
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+              </div>
             </div>
           ) : (
             <EmptyState
