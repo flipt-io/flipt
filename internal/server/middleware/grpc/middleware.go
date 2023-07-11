@@ -243,14 +243,23 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 			}
 
 			if ok {
-				resp := &evaluation.VariantEvaluationResponse{}
+				resp := &evaluation.EvaluationResponse{}
 				if err := proto.Unmarshal(cached, resp); err != nil {
 					logger.Error("unmarshalling from cache", zap.Error(err))
 					return handler(ctx, req)
 				}
 
 				logger.Debug("evaluate cache hit", zap.Stringer("response", resp))
-				return resp, nil
+				switch r := resp.Response.(type) {
+				case *evaluation.EvaluationResponse_VariantResponse:
+					return r.VariantResponse, nil
+				case *evaluation.EvaluationResponse_BooleanResponse:
+					return r.BooleanResponse, nil
+				default:
+					logger.Error("unexpected eval cache response type", zap.String("type", fmt.Sprintf("%T", resp.Response)))
+				}
+
+				return handler(ctx, req)
 			}
 
 			logger.Debug("evaluate cache miss")
@@ -259,8 +268,22 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 				return resp, err
 			}
 
+			evalResponse := &evaluation.EvaluationResponse{}
+			switch r := resp.(type) {
+			case *evaluation.VariantEvaluationResponse:
+				evalResponse.Type = evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE
+				evalResponse.Response = &evaluation.EvaluationResponse_VariantResponse{
+					VariantResponse: r,
+				}
+			case *evaluation.BooleanEvaluationResponse:
+				evalResponse.Type = evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE
+				evalResponse.Response = &evaluation.EvaluationResponse_BooleanResponse{
+					BooleanResponse: r,
+				}
+			}
+
 			// marshal response
-			data, merr := proto.Marshal(resp.(*evaluation.VariantEvaluationResponse))
+			data, merr := proto.Marshal(evalResponse)
 			if merr != nil {
 				logger.Error("marshalling for cache", zap.Error(err))
 				return resp, err
