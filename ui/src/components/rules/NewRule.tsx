@@ -4,12 +4,11 @@ import {
   ArrowsUpDownIcon,
   ArrowUpIcon,
   CheckIcon,
-  ChevronRightIcon,
   EllipsisVerticalIcon,
-  UsersIcon,
   VariableIcon
 } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
+import { Link } from 'react-router-dom';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { INamespace } from '~/types/Namespace';
 import { classNames } from '~/utils/helpers';
@@ -38,64 +37,63 @@ export default function NewRule(props: NewRuleProps) {
     ...rest
   } = props;
   return (
-    <li className="w-full items-center divide-y divide-dotted divide-violet-200 rounded-md border px-6 py-2 shadow-sm shadow-violet-100 bg-white border-violet-300 sm:flex sm:flex-col">
+    <li className="w-full items-center space-y-2 rounded-md border px-6 py-2 shadow-md shadow-violet-100 bg-white border-violet-300 hover:shadow-violet-200 sm:flex sm:flex-col">
       <div className="flex w-full flex-1 items-center text-xs">
-        <span className="ml-2 hidden h-6 w-6 justify-start text-gray-300 sm:flex">
+        <span className="ml-2 hidden h-4 w-4 justify-start text-gray-300 hover:text-violet-300 sm:flex">
           {rule.rank === 1 && <ArrowDownIcon />}
           {rule.rank === totalRules && <ArrowUpIcon />}
           {rule.rank !== 1 && rule.rank !== totalRules && <ArrowsUpDownIcon />}
         </span>
-        <div className="ml-2 flex grow items-center justify-evenly">
-          <a href="#" className="group flex">
+        <div className="ml-2 flex grow items-center justify-around">
+          <span className="flex items-center px-6 py-4 text-xs font-light text-gray-600">
+            IF
+          </span>
+          <Link
+            to={`/namespaces/${namespace.key}/segments/${rule.segment.key}`}
+          >
             <span className="flex items-center px-6 py-4 font-medium">
-              <UsersIcon
-                className="h-6 w-6 text-violet-400"
-                aria-hidden="true"
-              />
-              <div className="ml-6 min-w-0 flex-auto text-center">
-                <p className="mt-1 flex whitespace-nowrap text-gray-500">
+              <div className="ml-6 min-w-0 flex-auto space-y-1 text-center">
+                <p className="flex whitespace-nowrap text-gray-500">
                   Matches Segment
                 </p>
-                <p className="truncate font-semibold text-gray-900">
+                <p className="truncate bg-violet-50/80 px-3 py-1 font-semibold text-gray-900 hover:underline hover:underline-offset-2">
                   {rule.segment.name}
                 </p>
               </div>
             </span>
-          </a>
-          <ChevronRightIcon className="h-6 w-6 text-gray-300" />
+          </Link>
+          <span className="flex items-center px-6 py-4 text-xs font-light text-gray-600">
+            THEN
+          </span>
           {rule.rollouts.length === 0 && (
-            <a href="#" className="group flex">
-              <span className="flex items-center font-medium">
-                <CheckIcon className="h-6 w-6 text-violet-400" />
-                <div className="ml-6 min-w-0 flex-auto text-center">
-                  <p className="mt-1 flex text-gray-500">Return Match</p>
-                  <p className="font-semibold text-gray-900">true</p>
-                </div>
-              </span>
-            </a>
+            <span className="flex items-center font-medium">
+              <CheckIcon className="h-6 w-6 text-violet-400" />
+              <div className="ml-6 min-w-0 flex-auto space-y-1 text-center">
+                <p className="mt-1 flex text-gray-500">Return Match</p>
+                <p className="bg-violet-50/80 px-3 py-1 font-semibold text-gray-900">
+                  true
+                </p>
+              </div>
+            </span>
           )}
           {rule.rollouts.length === 1 && (
-            <a href="#" className="group flex">
-              <span className="flex items-center font-medium">
-                <VariableIcon className="h-6 w-6 text-violet-400" />
-                <div className="ml-6 min-w-0 flex-auto text-center">
-                  <p className="mt-1 flex text-gray-500">Return Variant</p>
-                  <p className="font-semibold text-gray-900">abc</p>
-                </div>
-              </span>
-            </a>
+            <span className="flex items-center font-medium">
+              <VariableIcon className="h-6 w-6 text-violet-400" />
+              <div className="ml-6 min-w-0 flex-auto space-y-1 text-center">
+                <p className="mt-1 flex text-gray-500">Return Variant</p>
+                <p className="bg-violet-50/80 px-3 py-1 font-semibold text-gray-900">
+                  abc
+                </p>
+              </div>
+            </span>
           )}
           {rule.rollouts.length > 1 && (
-            <a href="#" className="group flex">
-              <span className="flex items-center font-medium">
-                <VariableIcon className="h-6 w-6 text-violet-400" />
-                <div className="ml-6 min-w-0 flex-auto text-center">
-                  <p className="mt-1 flex text-gray-500">
-                    Return a Distribution
-                  </p>
-                </div>
-              </span>
-            </a>
+            <span className="flex items-center font-medium">
+              <VariableIcon className="h-6 w-6 text-violet-400" />
+              <div className="ml-6 min-w-0 flex-auto space-y-1 text-center">
+                <p className="mt-1 flex text-gray-500">Return a Distribution</p>
+              </div>
+            </span>
           )}
         </div>
         <Menu as="div" className="hidden sm:flex">
@@ -143,10 +141,10 @@ export default function NewRule(props: NewRuleProps) {
         </Menu>
       </div>
       {rule.rollouts.length > 1 && (
-        <div className="flex w-full items-center justify-center px-6 py-2 pt-4 text-xs">
+        <div className="flex w-full items-center justify-center px-6 py-2 text-xs">
           <div className="flex w-fit space-x-6 px-2 text-xs">
             {rule.rollouts.map((rollout) => (
-              <span className="inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium text-gray-700 bg-violet-100">
+              <span className="inline-flex items-center gap-x-1.5 bg-violet-50/60 px-3 py-1 text-xs font-medium text-gray-700">
                 <div className="truncate text-gray-900">
                   {rollout.variant.key}
                 </div>

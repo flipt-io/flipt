@@ -259,7 +259,10 @@ export default function Evaluation() {
                   them into place.
                 </p>
               </div>
-              <div className="w-full rounded-md p-6 lg:w-3/4">
+              <div
+                className="pattern-boxes w-full border p-6 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black  
+  dark:pattern-gray-900 lg:w-3/4"
+              >
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
