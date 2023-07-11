@@ -7,7 +7,6 @@ import { classNames } from '~/utils/helpers';
 import QuickEditRolloutForm from './QuickEditRolloutForm';
 
 type RolloutProps = {
-  totalRollouts: number;
   flagKey: string;
   rollout: IRollout;
   segments: ISegment[];
@@ -22,7 +21,6 @@ type RolloutProps = {
 const Rollout = forwardRef(
   (
     {
-      totalRollouts,
       flagKey,
       rollout,
       segments,

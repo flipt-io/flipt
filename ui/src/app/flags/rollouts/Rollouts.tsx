@@ -28,7 +28,6 @@ export default function Rollouts(props: RolloutsProps) {
   const [rolloutsVersion, setRolloutsVersion] = useState(0);
   const [showRolloutForm, setShowRolloutForm] = useState<boolean>(false);
 
-  const [editingRollout, setEditingRollout] = useState<IRollout | null>(null);
   const [showDeleteRolloutModal, setShowDeleteRolloutModal] =
     useState<boolean>(false);
   const [deletingRollout, setDeletingRollout] = useState<IRollout | null>(null);
@@ -71,7 +70,7 @@ export default function Rollouts(props: RolloutsProps) {
         <RolloutForm
           flagKey={flag.key}
           segments={segments}
-          rollout={editingRollout || undefined}
+          // rollout={editingRollout || undefined}
           rank={(rollouts?.length || 0) + 1}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
@@ -123,7 +122,7 @@ export default function Rollouts(props: RolloutsProps) {
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                 onClick={() => {
-                  setEditingRollout(null);
+                  // setEditingRollout(null);
                   setShowRolloutForm(true);
                 }}
               >
@@ -173,12 +172,11 @@ export default function Rollouts(props: RolloutsProps) {
                       <SortableRollout
                         key={rollout.id}
                         flagKey={flag.key}
-                        totalRollouts={rollouts.length}
                         rollout={rollout}
                         segments={segments}
                         onQuickEditSuccess={incrementRolloutsVersion}
                         onEdit={() => {
-                          setEditingRollout(rollout);
+                          // setEditingRollout(rollout);
                           //setShowEditRolloutForm(true);
                         }}
                         onDelete={() => {
@@ -207,7 +205,7 @@ export default function Rollouts(props: RolloutsProps) {
               text="New Rollout"
               disabled={readOnly}
               onClick={() => {
-                setEditingRollout(null);
+                //setEditingRollout(null);
                 setShowRolloutForm(true);
               }}
             />

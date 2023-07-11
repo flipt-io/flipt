@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
+import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
@@ -15,7 +16,6 @@ import { useSuccess } from '~/data/hooks/success';
 import { RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
-import Combobox from '../forms/Combobox';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
 const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';

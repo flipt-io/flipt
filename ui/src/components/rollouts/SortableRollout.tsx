@@ -5,7 +5,6 @@ import Rollout from './Rollout';
 
 type SortableRolloutProps = {
   flagKey: string;
-  totalRollouts: number;
   rollout: IRollout;
   segments: ISegment[];
   onQuickEditSuccess: () => void;
@@ -17,7 +16,6 @@ type SortableRolloutProps = {
 export default function SortableRollout(props: SortableRolloutProps) {
   const {
     flagKey,
-    totalRollouts,
     rollout,
     segments,
     onQuickEditSuccess,
@@ -55,7 +53,6 @@ export default function SortableRollout(props: SortableRolloutProps) {
       style={style}
       className={className}
       flagKey={flagKey}
-      totalRollouts={totalRollouts}
       rollout={rollout}
       segments={segments}
       onQuickEditSuccess={onQuickEditSuccess}

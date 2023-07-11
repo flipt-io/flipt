@@ -2,20 +2,17 @@ import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import TextButton from '~/components/forms/buttons/TextButton';
+import Combobox from '~/components/forms/Combobox';
+import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
+import Loading from '~/components/Loading';
 import { updateRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IRollout, RolloutType, rolloutTypeToLabel } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
-import TextButton from '../forms/buttons/TextButton';
-import Combobox from '../forms/Combobox';
-import Input from '../forms/Input';
-import Loading from '../Loading';
-
-const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
-const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';
 
 type QuickEditRolloutFormProps = {
   onSuccess: () => void;
