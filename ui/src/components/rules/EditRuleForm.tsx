@@ -17,7 +17,7 @@ import { FilterableSegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
 
-type RuleFormProps = {
+type EditRuleFormProps = {
   setOpen: (open: boolean) => void;
   rule: IEvaluatable;
   onSuccess: () => void;
@@ -31,7 +31,7 @@ export const validRollout = (rollouts: IVariantRollout[]): boolean => {
   return sum <= 100;
 };
 
-export default function EditRuleForm(props: RuleFormProps) {
+export default function EditRuleForm(props: EditRuleFormProps) {
   const { setOpen, rule, onSuccess } = props;
 
   const { setError, clearError } = useError();

@@ -75,7 +75,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     });
   };
 
-  let initialValue =
+  const initialValue =
     rollout.type === RolloutType.THRESHOLD
       ? rollout.threshold?.value
         ? 'true'
