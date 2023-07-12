@@ -51,7 +51,7 @@ export default function Combobox<T extends IFilterable>(
       <div className="relative flex w-full flex-row">
         <C.Input
           id={id}
-          className="w-full rounded-md border py-2 pl-3 pr-10 shadow-sm border-gray-300 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
+          className="w-full rounded-md border py-2 pl-3 pr-10 shadow-sm bg-gray-50 border-gray-300 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
           }}

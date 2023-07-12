@@ -24,7 +24,7 @@ import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRuleForm from '~/components/rules/EditRuleForm';
-import NewRule from '~/components/rules/NewRule';
+import Rule from '~/components/rules/Rule';
 import RuleForm from '~/components/rules/RuleForm';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
@@ -297,7 +297,7 @@ export default function Evaluation() {
                   </SortableContext>
                   <DragOverlay>
                     {activeRule ? (
-                      <NewRule
+                      <Rule
                         namespace={namespace}
                         totalRules={rules.length}
                         rule={activeRule}

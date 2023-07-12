@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
+import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
@@ -12,10 +13,9 @@ import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { IRollout, RolloutType } from '~/types/Rollout';
+import { RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
-import SegmentRuleFormInputs from './rules/SegmentRuleForm';
-import ThresholdRuleFormInputs from './rules/ThresholdRuleForm';
+import { truncateKey } from '~/utils/helpers';
 
 const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
 const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';
@@ -37,7 +37,6 @@ type RolloutFormProps = {
   setOpen: (open: boolean) => void;
   onSuccess: () => void;
   flagKey: string;
-  rollout?: IRollout;
   segments: ISegment[];
   rank: number;
 };
@@ -201,14 +200,54 @@ export default function RolloutForm(props: RolloutFormProps) {
                 </div>
               </div>
               {rolloutRuleType === rolloutRuleTypeThreshold && (
-                <ThresholdRuleFormInputs />
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                  <label
+                    htmlFor="percentage"
+                    className="mb-2 block text-sm font-medium text-gray-900"
+                  >
+                    Percentage
+                  </label>
+                  <Input
+                    id="percentage-slider"
+                    name="percentage"
+                    type="range"
+                    className="h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                  />
+                  <Input
+                    type="number"
+                    id="percentage"
+                    max={100}
+                    min={0}
+                    name="percentage"
+                    className="text-center"
+                  />
+                </div>
               )}
               {rolloutRuleType === rolloutRuleTypeSegment && (
-                <SegmentRuleFormInputs
-                  segments={segments}
-                  selectedSegment={selectedSegment}
-                  setSelectedSegment={setSelectedSegment}
-                />
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                  <div>
+                    <label
+                      htmlFor="segmentKey"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    >
+                      Segment
+                    </label>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Combobox<FilterableSegment>
+                      id="segmentKey"
+                      name="segmentKey"
+                      placeholder="Select or search for a segment"
+                      values={segments.map((s) => ({
+                        ...s,
+                        filterValue: truncateKey(s.key),
+                        displayValue: s.name
+                      }))}
+                      selected={selectedSegment}
+                      setSelected={setSelectedSegment}
+                    />
+                  </div>
+                </div>
               )}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <label
@@ -224,7 +263,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                  className="w-full cursor-pointer appearance-none self-center rounded-lg align-middle"
                 />
               </div>
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">

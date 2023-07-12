@@ -19,8 +19,8 @@ import { IFlag } from '~/types/Flag';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
-import MultiDistributionFormInputs from './distributions/MultiDistributionForm';
-import SingleDistributionFormInput from './distributions/SingleDistributionForm';
+import MultiDistributionFormInputs from './inputs/MultiDistributionForm';
+import SingleDistributionFormInput from './inputs/SingleDistributionForm';
 
 export const distTypeSingle = 'single';
 export const distTypeMulti = 'multi';
