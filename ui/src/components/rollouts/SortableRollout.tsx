@@ -7,7 +7,7 @@ type SortableRolloutProps = {
   flagKey: string;
   rollout: IRollout;
   segments: ISegment[];
-  onQuickEditSuccess: () => void;
+  onSuccess: () => void;
   onEdit: () => void;
   onDelete: () => void;
   readOnly?: boolean;

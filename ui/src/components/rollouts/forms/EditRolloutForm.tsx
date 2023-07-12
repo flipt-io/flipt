@@ -39,7 +39,6 @@ type EditRolloutFormProps = {
 };
 
 interface RolloutFormValues {
-  type: string;
   description?: string;
   segmentKey?: string;
   percentage?: number;

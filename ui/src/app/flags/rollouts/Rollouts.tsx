@@ -7,8 +7,8 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
-import EditRolloutForm from '~/components/rollouts/EditRolloutForm';
-import RolloutForm from '~/components/rollouts/RolloutForm';
+import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
+import RolloutForm from '~/components/rollouts/forms/RolloutForm';
 import SortableRollout from '~/components/rollouts/SortableRollout';
 import Slideover from '~/components/Slideover';
 import { deleteRollout, listRollouts, listSegments } from '~/data/api';
@@ -198,7 +198,7 @@ export default function Rollouts(props: RolloutsProps) {
                         flagKey={flag.key}
                         rollout={rollout}
                         segments={segments}
-                        onQuickEditSuccess={incrementRolloutsVersion}
+                        onSuccess={incrementRolloutsVersion}
                         onEdit={() => {
                           setEditingRollout(rollout);
                           setShowEditRolloutForm(true);

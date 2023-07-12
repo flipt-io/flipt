@@ -4,7 +4,7 @@ import { forwardRef, Fragment, Ref } from 'react';
 import { IRollout, rolloutTypeToLabel } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
 import { classNames } from '~/utils/helpers';
-import QuickEditRolloutForm from './QuickEditRolloutForm';
+import QuickEditRolloutForm from './forms/QuickEditRolloutForm';
 
 type RolloutProps = {
   flagKey: string;
