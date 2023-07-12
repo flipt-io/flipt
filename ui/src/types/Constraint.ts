@@ -1,6 +1,6 @@
 export interface IConstraintBase {
   property: string;
-  type: ComparisonType;
+  type: ConstraintType;
   operator: string;
   value?: string;
   description?: string;
@@ -12,22 +12,22 @@ export interface IConstraint extends IConstraintBase {
   updatedAt: string;
 }
 
-export enum ComparisonType {
+export enum ConstraintType {
   STRING = 'STRING_COMPARISON_TYPE',
   NUMBER = 'NUMBER_COMPARISON_TYPE',
   BOOLEAN = 'BOOLEAN_COMPARISON_TYPE',
   DATETIME = 'DATETIME_COMPARISON_TYPE'
 }
 
-export function comparisonTypeToLabel(c: ComparisonType): string {
+export function constraintTypeToLabel(c: ConstraintType): string {
   switch (c) {
-    case ComparisonType.STRING:
+    case ConstraintType.STRING:
       return 'String';
-    case ComparisonType.NUMBER:
+    case ConstraintType.NUMBER:
       return 'Number';
-    case ComparisonType.BOOLEAN:
+    case ConstraintType.BOOLEAN:
       return 'Boolean';
-    case ComparisonType.DATETIME:
+    case ConstraintType.DATETIME:
       return 'DateTime';
     default:
       return 'Unknown';
