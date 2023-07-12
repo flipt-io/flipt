@@ -3,8 +3,19 @@ import { IFilterable } from './Selectable';
 import { IVariant } from './Variant';
 
 export enum FlagType {
-  VARIANT_FLAG_TYPE = 'Variant',
-  BOOLEAN_FLAG_TYPE = 'Boolean'
+  VARIANT = 'VARIANT_FLAG_TYPE',
+  BOOLEAN = 'BOOLEAN_FLAG_TYPE'
+}
+
+export function flagTypeToLabel(flagType: FlagType): string {
+  switch (flagType) {
+    case FlagType.BOOLEAN:
+      return 'Boolean';
+    case FlagType.VARIANT:
+      return 'Variant';
+    default:
+      return 'Unknown';
+  }
 }
 
 export interface IFlagBase {
@@ -24,8 +35,5 @@ export interface IFlag extends IFlagBase {
 export interface IFlagList extends IPageable {
   flags: IFlag[];
 }
-
-export const flagTypeToLabel = (t: string) =>
-  FlagType[t as keyof typeof FlagType];
 
 export type FilterableFlag = IFlag & IFilterable;

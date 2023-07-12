@@ -1,7 +1,7 @@
 import { useOutletContext } from 'react-router-dom';
 import FlagForm from '~/components/flags/FlagForm';
 import MoreInfo from '~/components/MoreInfo';
-import { FlagType, flagTypeToLabel } from '~/types/Flag';
+import { FlagType } from '~/types/Flag';
 import { FlagProps } from './FlagProps';
 import Rollouts from './rollouts/Rollouts';
 import Variants from './variants/Variants';
@@ -32,12 +32,10 @@ export default function EditFlag() {
           </div>
         </div>
 
-        {flagTypeToLabel(flag.type) === FlagType.VARIANT_FLAG_TYPE && (
+        {flag.type === FlagType.VARIANT && (
           <Variants flag={flag} flagChanged={onFlagChange} />
         )}
-        {flagTypeToLabel(flag.type) === FlagType.BOOLEAN_FLAG_TYPE && (
-          <Rollouts flag={flag} />
-        )}
+        {flag.type === FlagType.BOOLEAN && <Rollouts flag={flag} />}
       </div>
     </>
   );

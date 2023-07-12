@@ -16,13 +16,13 @@ import { stringAsKey } from '~/utils/helpers';
 
 const segmentMatchTypes = [
   {
-    id: 'ALL_MATCH_TYPE',
-    name: SegmentMatchType.ALL_MATCH_TYPE,
+    id: SegmentMatchType.ALL,
+    name: 'All',
     description: 'All constraints must match'
   },
   {
-    id: 'ANY_MATCH_TYPE',
-    name: SegmentMatchType.ANY_MATCH_TYPE,
+    id: SegmentMatchType.ANY,
+    name: 'Any',
     description: 'At least one constraints must match'
   }
 ];
@@ -56,7 +56,7 @@ export default function SegmentForm(props: SegmentFormProps) {
     key: segment?.key || '',
     name: segment?.name || '',
     description: segment?.description || '',
-    matchType: segment?.matchType || ('ALL_MATCH_TYPE' as SegmentMatchType)
+    matchType: segment?.matchType || SegmentMatchType.ALL
   };
 
   return (
@@ -159,10 +159,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                             type="radio"
                             className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                             onChange={() => {
-                              formik.setFieldValue(
-                                'matchType',
-                                matchType.id as SegmentMatchType
-                              );
+                              formik.setFieldValue('matchType', matchType.id);
                             }}
                             checked={matchType.id === formik.values.matchType}
                             value={matchType.id}

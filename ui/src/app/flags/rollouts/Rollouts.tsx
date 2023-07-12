@@ -139,14 +139,14 @@ export default function Rollouts(props: RolloutsProps) {
           {rollouts && rollouts.length > 0 ? (
             <div className="flex lg:space-x-5">
               <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-light text-gray-700">
                   Rules are evaluated in order from{' '}
                   <span className="font-semibold">top to bottom</span>. The
                   first rule that matches will be applied.
                 </p>
-                <p className="text-sm text-gray-500">
-                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-violet-300" />
-                  You can re-arrange rules by{' '}
+                <p className="text-sm font-light text-gray-700">
+                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
+                  You can re-arrange rules by clicking in the header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   them into place.
                 </p>
