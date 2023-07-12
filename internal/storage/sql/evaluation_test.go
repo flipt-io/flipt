@@ -703,6 +703,9 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	server := server.New(zap.NewNop(), s.store)
 	importer := ext.NewImporter(server)
 	reader, err := os.Open("./testdata/benchmark_test.yml")
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	require.NoError(t, err)
 
@@ -710,10 +713,9 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	require.NoError(t, err)
 
 	flagKeys := make([]string, 0, 10)
-	segmentKeys := make([]string, 0, 10)
 
 	for i := 0; i < 10; i++ {
-		var flagKey, segmentKey string
+		var flagKey string
 
 		num := rand.Intn(50)
 		if num == 0 {
@@ -722,14 +724,11 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 
 		if num < 10 {
 			flagKey = fmt.Sprintf("flag_00%d", num)
-			segmentKey = fmt.Sprintf("segment_00%d", num)
 		} else {
 			flagKey = fmt.Sprintf("flag_0%d", num)
-			segmentKey = fmt.Sprintf("segment_0%d", num)
 		}
 
 		flagKeys = append(flagKeys, flagKey)
-		segmentKeys = append(segmentKeys, segmentKey)
 	}
 
 	eserver := evaluation.New(zap.NewNop(), s.store)
@@ -737,15 +736,20 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	b.ResetTimer()
 
 	for _, flagKey := range flagKeys {
+		entityId := uuid.Must(uuid.NewV4()).String()
+		ereq := &flipt.EvaluationRequest{
+			FlagKey:  flagKey,
+			EntityId: entityId,
+		}
+
+		ev2req := &rpcevaluation.EvaluationRequest{
+			FlagKey:  flagKey,
+			EntityId: entityId,
+		}
+
 		b.Run(fmt.Sprintf("evaluation-v1-%s", flagKey), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				evaluation, err := server.Evaluate(context.TODO(), &flipt.EvaluationRequest{
-					FlagKey:  flagKey,
-					EntityId: uuid.Must(uuid.NewV4()).String(),
-					Context: map[string]string{
-						"in_segment": segmentKeys[rand.Intn(10)],
-					},
-				})
+				evaluation, err := server.Evaluate(context.TODO(), ereq)
 
 				require.NoError(t, err)
 				assert.NotEmpty(t, evaluation)
@@ -754,13 +758,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 
 		b.Run(fmt.Sprintf("variant-evaluation-%s", flagKey), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				variant, err := eserver.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
-					FlagKey:  flagKey,
-					EntityId: uuid.Must(uuid.NewV4()).String(),
-					Context: map[string]string{
-						"in_segment": segmentKeys[rand.Intn(10)],
-					},
-				})
+				variant, err := eserver.Variant(context.TODO(), ev2req)
 
 				require.NoError(t, err)
 				assert.NotEmpty(t, variant)
@@ -769,12 +767,14 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	}
 
 	for _, flagKey := range []string{"flag_boolean", "another_boolean_flag"} {
+		breq := &rpcevaluation.EvaluationRequest{
+			FlagKey:  flagKey,
+			EntityId: uuid.Must(uuid.NewV4()).String(),
+		}
+
 		b.Run(fmt.Sprintf("boolean-evaluation-%s", flagKey), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				boolean, err := eserver.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
-					FlagKey:  flagKey,
-					EntityId: uuid.Must(uuid.NewV4()).String(),
-				})
+				boolean, err := eserver.Boolean(context.TODO(), breq)
 
 				require.NoError(t, err)
 				assert.NotEmpty(t, boolean)
