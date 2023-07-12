@@ -34,14 +34,14 @@ import { Timezone } from '~/types/Preferences';
 const constraintComparisonTypes = () =>
   (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(
     (t) => ({
-      value: t,
+      value: ComparisonType[t],
       label: comparisonTypeToLabel(ComparisonType[t])
     })
   );
 
 const constraintOperators = (c: string) => {
   let opts: Record<string, string> = {};
-  switch (ComparisonType[c as keyof typeof ComparisonType]) {
+  switch (c as ComparisonType) {
     case ComparisonType.STRING:
       opts = ConstraintStringOperators;
       break;
