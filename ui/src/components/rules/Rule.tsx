@@ -2,15 +2,16 @@ import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { forwardRef, Fragment, Ref } from 'react';
 import { IEvaluatable } from '~/types/Evaluatable';
-import { INamespace } from '~/types/Namespace';
+import { ISegment } from '~/types/Segment';
 import { classNames } from '~/utils/helpers';
+import QuickEditRuleForm from './forms/QuickEditRuleForm';
 
 type RuleProps = {
-  namespace: INamespace;
-  totalRules: number;
+  flagKey: string;
   rule: IEvaluatable;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  segments: ISegment[];
+  onSuccess: () => void;
+  onDelete: () => void;
   style?: React.CSSProperties;
   className?: string;
   readOnly?: boolean;
@@ -19,10 +20,10 @@ type RuleProps = {
 const Rule = forwardRef(
   (
     {
-      namespace,
-      totalRules,
+      flagKey,
       rule,
-      onEdit,
+      segments,
+      onSuccess,
       onDelete,
       style,
       className,
@@ -56,7 +57,7 @@ const Rule = forwardRef(
             )}
             {...rest}
           >
-            Rollout
+            Rule
           </h3>
           <Menu as="div" className="hidden sm:flex">
             <Menu.Button className="ml-4 block text-gray-600 hover:text-gray-900">
@@ -96,26 +97,16 @@ const Rule = forwardRef(
           </Menu>
         </div>
       </div>
-      <div className="flex w-full flex-1 items-center p-4 text-xs lg:p-0"></div>
-      {rule.rollouts.length > 1 && (
-        <div className="flex w-full items-center justify-center px-6 py-2 text-xs">
-          <div className="flex w-fit space-x-6 px-2 text-xs">
-            {rule.rollouts.map((rollout) => (
-              <div
-                key={rollout.variant.key}
-                className="inline-flex items-center gap-x-1.5 px-3 py-1 text-xs font-medium text-gray-700"
-              >
-                <div className="truncate text-gray-900">
-                  {rollout.variant.key}
-                </div>
-                <div className="m-auto whitespace-nowrap text-gray-600">
-                  {rollout.distribution.rollout} %
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+        <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
+          <QuickEditRuleForm
+            flagKey={flagKey}
+            rule={rule}
+            segments={segments}
+            onSuccess={onSuccess}
+          />
         </div>
-      )}
+      </div>
     </li>
   )
 );

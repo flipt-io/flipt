@@ -222,6 +222,18 @@ export async function createRule(
   return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rules`, values);
 }
 
+export async function updateRule(
+  namespaceKey: string,
+  flagKey: string,
+  ruleId: string,
+  values: IRuleBase
+) {
+  return put(
+    `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}`,
+    values
+  );
+}
+
 export async function deleteRule(
   namespaceKey: string,
   flagKey: string,

@@ -2,7 +2,6 @@ import { IDistribution } from './Distribution';
 import { IPageable } from './Pageable';
 
 export interface IRuleBase {
-  flagKey: string;
   segmentKey: string;
   rank: number;
 }
