@@ -1,18 +1,3 @@
-import {
-  closestCenter,
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -23,14 +8,10 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
-import EditRuleForm from '~/components/rules/EditRuleForm';
-import Rule from '~/components/rules/Rule';
-import RuleForm from '~/components/rules/RuleForm';
+import RuleForm from '~/components/rules/forms/RuleForm';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
-import { deleteRule, listRules, listSegments, orderRules } from '~/data/api';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
+import { deleteRule, listRules, listSegments } from '~/data/api';
 import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { IRule, IRuleList } from '~/types/Rule';
@@ -44,25 +25,23 @@ export default function Evaluation() {
   const [segments, setSegments] = useState<ISegment[]>([]);
   const [rules, setRules] = useState<IEvaluatable[]>([]);
 
-  const [activeRule, setActiveRule] = useState<IEvaluatable | null>(null);
+  // const [activeRule, setActiveRule] = useState<IEvaluatable | null>(null);
 
   const [rulesVersion, setRulesVersion] = useState(0);
   const [showRuleForm, setShowRuleForm] = useState<boolean>(false);
-
-  const [showEditRuleForm, setShowEditRuleForm] = useState<boolean>(false);
-  const [editingRule, setEditingRule] = useState<IEvaluatable | null>(null);
 
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
     useState<boolean>(false);
   const [deletingRule, setDeletingRule] = useState<IEvaluatable | null>(null);
 
-  const { setError, clearError } = useError();
-  const { setSuccess } = useSuccess();
+  // const { setError, clearError } = useError();
+  // const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
   const loadData = useCallback(async () => {
+    // TODO: move to redux
     const segmentList = (await listSegments(namespace.key)) as ISegmentList;
     const { segments } = segmentList;
     setSegments(segments);
@@ -112,58 +91,58 @@ export default function Evaluation() {
     setRulesVersion(rulesVersion + 1);
   };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates
-    })
-  );
+  // const sensors = useSensors(
+  //   useSensor(PointerSensor),
+  //   useSensor(KeyboardSensor, {
+  //     coordinateGetter: sortableKeyboardCoordinates
+  //   })
+  // );
 
-  const reorderRules = (rules: IEvaluatable[]) => {
-    orderRules(
-      namespace.key,
-      flag.key,
-      rules.map((rule) => rule.id)
-    )
-      .then(() => {
-        incrementRulesVersion();
-        clearError();
-        setSuccess('Successfully reordered rules');
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  };
-
-  // disabling eslint due to this being a third-party event type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onDragEnd = (event: { active: any; over: any }) => {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      const reordered = (function (rules: IEvaluatable[]) {
-        const oldIndex = rules.findIndex((rule) => rule.id === active.id);
-        const newIndex = rules.findIndex((rule) => rule.id === over.id);
-
-        return arrayMove(rules, oldIndex, newIndex);
-      })(rules);
-
-      reorderRules(reordered);
-      setRules(reordered);
-    }
-
-    setActiveRule(null);
-  };
+  // const reorderRules = (rules: IEvaluatable[]) => {
+  //   orderRules(
+  //     namespace.key,
+  //     flag.key,
+  //     rules.map((rule) => rule.id)
+  //   )
+  //     .then(() => {
+  //       incrementRulesVersion();
+  //       clearError();
+  //       setSuccess('Successfully reordered rules');
+  //     })
+  //     .catch((err) => {
+  //       setError(err);
+  //     });
+  // };
 
   // disabling eslint due to this being a third-party event type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onDragStart = (event: { active: any }) => {
-    const { active } = event;
-    const rule = rules.find((rule) => rule.id === active.id);
-    if (rule) {
-      setActiveRule(rule);
-    }
-  };
+  // const onDragEnd = (event: { active: any; over: any }) => {
+  //   const { active, over } = event;
+
+  //   if (active.id !== over.id) {
+  //     const reordered = (function (rules: IEvaluatable[]) {
+  //       const oldIndex = rules.findIndex((rule) => rule.id === active.id);
+  //       const newIndex = rules.findIndex((rule) => rule.id === over.id);
+
+  //       return arrayMove(rules, oldIndex, newIndex);
+  //     })(rules);
+
+  //     reorderRules(reordered);
+  //     setRules(reordered);
+  //   }
+
+  //   setActiveRule(null);
+  // };
+
+  // disabling eslint due to this being a third-party event type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // const onDragStart = (event: { active: any }) => {
+  //   const { active } = event;
+  //   const rule = rules.find((rule) => rule.id === active.id);
+  //   if (rule) {
+  //     setActiveRule(rule);
+  //   }
+  // };
 
   useEffect(() => {
     loadData();
@@ -206,20 +185,6 @@ export default function Evaluation() {
           }}
         />
       </Slideover>
-
-      {/* rule edit form */}
-      {editingRule && (
-        <Slideover open={showEditRuleForm} setOpen={setShowEditRuleForm}>
-          <EditRuleForm
-            rule={editingRule}
-            setOpen={setShowEditRuleForm}
-            onSuccess={() => {
-              incrementRulesVersion();
-              setShowEditRuleForm(false);
-            }}
-          />
-        </Slideover>
-      )}
 
       {/* rules */}
       <div className="my-10">
@@ -266,7 +231,7 @@ export default function Evaluation() {
                 className="pattern-boxes w-full border p-2 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
   lg:w-3/4 lg:p-6"
               >
-                <DndContext
+                {/* <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   onDragStart={onDragStart}
@@ -275,39 +240,32 @@ export default function Evaluation() {
                   <SortableContext
                     items={rules.map((rule) => rule.id)}
                     strategy={verticalListSortingStrategy}
-                  >
-                    <ul role="list" className="flex-col space-y-5 md:flex">
-                      {rules &&
-                        rules.length > 0 &&
-                        rules.map((rule) => (
-                          <SortableRule
-                            key={rule.id}
-                            totalRules={rules.length}
-                            namespace={namespace}
-                            rule={rule}
-                            onEdit={() => {
-                              setEditingRule(rule);
-                              setShowEditRuleForm(true);
-                            }}
-                            onDelete={() => {
-                              setDeletingRule(rule);
-                              setShowDeleteRuleModal(true);
-                            }}
-                            readOnly={readOnly}
-                          />
-                        ))}
-                    </ul>
-                  </SortableContext>
+                  > */}
+                <ul role="list" className="flex-col space-y-5 md:flex">
+                  {rules &&
+                    rules.length > 0 &&
+                    rules.map((rule) => (
+                      <SortableRule
+                        key={rule.id}
+                        flagKey={flag.key}
+                        rule={rule}
+                        segments={segments}
+                        onSuccess={incrementRulesVersion}
+                        onDelete={() => {
+                          setDeletingRule(rule);
+                          setShowDeleteRuleModal(true);
+                        }}
+                        readOnly={readOnly}
+                      />
+                    ))}
+                </ul>
+                {/* </SortableContext>
                   <DragOverlay>
                     {activeRule ? (
-                      <Rule
-                        namespace={namespace}
-                        totalRules={rules.length}
-                        rule={activeRule}
-                      />
+                      <Rule rule={activeRule} segments={segments} />
                     ) : null}
                   </DragOverlay>
-                </DndContext>
+                </DndContext> */}
               </div>
             </div>
           ) : (
@@ -315,7 +273,6 @@ export default function Evaluation() {
               text="New Rule"
               disabled={readOnly}
               onClick={() => {
-                setEditingRule(null);
                 setShowRuleForm(true);
               }}
             />

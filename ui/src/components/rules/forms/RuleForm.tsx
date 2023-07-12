@@ -19,8 +19,8 @@ import { IFlag } from '~/types/Flag';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
-import MultiDistributionFormInputs from './inputs/MultiDistributionForm';
-import SingleDistributionFormInput from './inputs/SingleDistributionForm';
+import MultiDistributionFormInputs from './MultiDistributionForm';
+import SingleDistributionFormInput from './SingleDistributionForm';
 
 export const distTypeSingle = 'single';
 export const distTypeMulti = 'multi';
@@ -115,7 +115,6 @@ export default function RuleForm(props: RuleFormProps) {
     }
 
     const rule = await createRule(namespace.key, flag.key, {
-      flagKey: flag.key,
       segmentKey: selectedSegment.key,
       rank
     });

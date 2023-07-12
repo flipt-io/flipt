@@ -1,26 +1,24 @@
-import { Dialog } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
-import { cloneDeep } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Button from '~/components/forms/buttons/Button';
+import TextButton from '~/components/forms/buttons/TextButton';
 import Combobox from '~/components/forms/Combobox';
 import Loading from '~/components/Loading';
-import MoreInfo from '~/components/MoreInfo';
-import { updateDistribution } from '~/data/api';
+import { updateDistribution, updateRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
-import { FilterableSegment } from '~/types/Segment';
+import { FilterableSegment, ISegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
+import { truncateKey } from '~/utils/helpers';
 import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
 
-type EditRuleFormProps = {
-  setOpen: (open: boolean) => void;
-  rule: IEvaluatable;
+type QuickEditRuleFormProps = {
   onSuccess: () => void;
+  flagKey: string;
+  rule: IEvaluatable;
+  segments: ISegment[];
 };
 
 export const validRollout = (rollouts: IVariantRollout[]): boolean => {
@@ -31,21 +29,37 @@ export const validRollout = (rollouts: IVariantRollout[]): boolean => {
   return sum <= 100;
 };
 
-export default function EditRuleForm(props: EditRuleFormProps) {
-  const { setOpen, rule, onSuccess } = props;
+interface RuleFormValues {
+  segmentKey: string;
+}
+
+export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
+  const { onSuccess, flagKey, rule, segments } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
 
+  const [selectedSegment, setSelectedSegment] =
+    useState<FilterableSegment | null>(() => {
+      let selected = segments.find((s) => s.key === rule.segment.key) || null;
+      if (selected) {
+        return {
+          ...selected,
+          displayValue: selected.name,
+          filterValue: selected.key
+        };
+      }
+      return null;
+    });
+
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
-  const [editingRule, setEditingRule] = useState<IEvaluatable>(cloneDeep(rule));
+  const [editingRule, setEditingRule] = useState<IEvaluatable>(rule);
 
-  const [ruleType, setRuleType] = useState(
-    editingRule.rollouts.length > 1 ? distTypeMulti : distTypeSingle
-  );
+  const ruleType =
+    editingRule.rollouts.length > 1 ? distTypeMulti : distTypeSingle;
 
   useEffect(() => {
     if (ruleType === distTypeMulti && !validRollout(editingRule.rollouts)) {
@@ -55,7 +69,20 @@ export default function EditRuleForm(props: EditRuleFormProps) {
     }
   }, [editingRule, ruleType]);
 
-  const handleSubmit = async () =>
+  const handleSubmit = async (values: RuleFormValues) => {
+    if (rule.segment.key !== values.segmentKey) {
+      try {
+        // update rule
+        await updateRule(namespace.key, flagKey, rule.id, {
+          rank: rule.rank,
+          segmentKey: values.segmentKey
+        });
+      } catch (err) {
+        setError(err as Error);
+        return;
+      }
+    }
+
     // update distributions that changed
     Promise.all(
       editingRule.rollouts.map((rollout) => {
@@ -80,13 +107,14 @@ export default function EditRuleForm(props: EditRuleFormProps) {
         return Promise.resolve();
       })
     );
+  };
   return (
     <Formik
       initialValues={{
-        segmentKey: rule.segment.key || ''
+        segmentKey: rule.segment.key
       }}
-      onSubmit={(_, { setSubmitting }) => {
-        handleSubmit()
+      onSubmit={(values, { setSubmitting }) => {
+        handleSubmit(values)
           ?.then(() => {
             clearError();
             setSuccess('Successfully updated rule');
@@ -102,32 +130,10 @@ export default function EditRuleForm(props: EditRuleFormProps) {
     >
       {(formik) => {
         return (
-          <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
-            <div className="flex-1">
-              <div className="px-4 py-6 bg-gray-50 sm:px-6">
-                <div className="flex items-start justify-between space-x-3">
-                  <div className="space-y-1">
-                    <Dialog.Title className="text-lg font-medium text-gray-900">
-                      Edit Rule
-                    </Dialog.Title>
-                    <MoreInfo href="https://www.flipt.io/docs/concepts#rules">
-                      Learn more about rules
-                    </MoreInfo>
-                  </div>
-                  <div className="flex h-7 items-center">
-                    <button
-                      type="button"
-                      className="text-gray-400 hover:text-gray-500"
-                      onClick={() => setOpen(false)}
-                    >
-                      <span className="sr-only">Close panel</span>
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-6 py-6 sm:space-y-0 sm:divide-y sm:divide-gray-200 sm:py-0">
-                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+          <Form className="flex h-full w-full flex-col overflow-y-scroll bg-white">
+            <div className="w-full flex-1">
+              <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                   <div>
                     <label
                       htmlFor="segmentKey"
@@ -140,12 +146,14 @@ export default function EditRuleForm(props: EditRuleFormProps) {
                     <Combobox<FilterableSegment>
                       id="segmentKey"
                       name="segmentKey"
-                      disabled
-                      selected={{
-                        filterValue: rule.segment.key,
-                        displayValue: rule.segment.key,
-                        ...rule.segment
-                      }}
+                      placeholder="Select or search for a segment"
+                      values={segments.map((s) => ({
+                        ...s,
+                        filterValue: truncateKey(s.key),
+                        displayValue: s.name
+                      }))}
+                      selected={selectedSegment}
+                      setSelected={setSelectedSegment}
                     />
                   </div>
                 </div>
@@ -174,9 +182,6 @@ export default function EditRuleForm(props: EditRuleFormProps) {
                                 name="ruleType"
                                 type="radio"
                                 className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                                onChange={() => {
-                                  setRuleType(dist.id);
-                                }}
                                 checked={dist.id === ruleType}
                                 value={dist.id}
                                 disabled
@@ -294,17 +299,23 @@ export default function EditRuleForm(props: EditRuleFormProps) {
                 )}
               </div>
             </div>
-            <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
+            <div className="flex-shrink-0 py-1">
               <div className="flex justify-end space-x-3">
-                <Button onClick={() => setOpen(false)}>Cancel</Button>
-                <Button
-                  primary
+                <TextButton
+                  disabled={formik.isSubmitting || !formik.dirty}
+                  onClick={() => formik.resetForm()}
+                >
+                  Reset
+                </TextButton>
+                <TextButton
                   type="submit"
-                  disabled={!(distributionsValid && !formik.isSubmitting)}
                   className="min-w-[80px]"
+                  disabled={
+                    !formik.isValid || formik.isSubmitting || !formik.dirty
+                  }
                 >
                   {formik.isSubmitting ? <Loading isPrimary /> : 'Update'}
-                </Button>
+                </TextButton>
               </div>
             </div>
           </Form>
