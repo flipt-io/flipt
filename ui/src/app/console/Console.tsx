@@ -13,7 +13,7 @@ import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
-import { evaluate, listFlags } from '~/data/api';
+import { evaluateV2, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import {
   jsonValidation,
@@ -21,7 +21,7 @@ import {
   requiredValidation
 } from '~/data/validations';
 import { IConsole } from '~/types/Console';
-import { FilterableFlag, IFlagList } from '~/types/Flag';
+import { FilterableFlag, flagTypeToLabel, IFlagList } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { classNames } from '~/utils/helpers';
 
@@ -60,14 +60,17 @@ export default function Console() {
           ...flag,
           status,
           filterValue: flag.key,
-          displayValue: flag.name
+          displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
         };
       })
     );
   }, [namespace.key]);
 
-  const handleSubmit = (values: IConsole) => {
+  const handleSubmit = (values: IConsole, flagType: string) => {
     const { flagKey, entityId, context } = values;
+
+    const boolean = flagType === 'BOOLEAN_FLAG_TYPE';
+
     // need to unescape the context string
     const parsed = context ? JSON.parse(context) : undefined;
 
@@ -76,7 +79,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluate(namespace.key, flagKey, rest)
+    evaluateV2(boolean, namespace.key, flagKey, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
@@ -127,7 +130,7 @@ export default function Console() {
                   context: jsonValidation
                 })}
                 onSubmit={(values) => {
-                  handleSubmit(values);
+                  handleSubmit(values, selectedFlag?.type || '');
                 }}
                 onReset={() => {
                   setResponse(null);

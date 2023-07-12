@@ -10,6 +10,7 @@ import { IRolloutBase } from '~/types/Rollout';
 
 const apiURL = '/api/v1';
 const authURL = '/auth/v1';
+const evaluateURL = '/evaluate/v1';
 const metaURL = '/meta';
 const csrfTokenHeaderKey = 'x-csrf-token';
 
@@ -409,6 +410,24 @@ export async function evaluate(
     ...values
   };
   return post('/evaluate', body);
+}
+
+//
+// evaluateV2
+export async function evaluateV2(
+  boolean: boolean,
+  namespaceKey: string,
+  flagKey: string,
+  values: any
+) {
+  const route = boolean ? '/boolean' : '/variant';
+
+  const body = {
+    namespaceKey,
+    flagKey,
+    ...values
+  };
+  return post(route, body, evaluateURL);
 }
 
 //
