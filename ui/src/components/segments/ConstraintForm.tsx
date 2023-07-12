@@ -20,6 +20,7 @@ import { useSuccess } from '~/data/hooks/success';
 import { requiredValidation } from '~/data/validations';
 import {
   ComparisonType,
+  comparisonTypeToLabel,
   ConstraintBooleanOperators,
   ConstraintDateTimeOperators,
   ConstraintNumberOperators,
@@ -30,31 +31,27 @@ import {
 } from '~/types/Constraint';
 import { Timezone } from '~/types/Preferences';
 
-const constraintComparisonTypeBoolean = 'BOOLEAN_COMPARISON_TYPE';
-const constraintComparisonTypeDateTime = 'DATETIME_COMPARISON_TYPE';
-const constraintComparisonTypeString = 'STRING_COMPARISON_TYPE';
-
 const constraintComparisonTypes = () =>
   (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(
     (t) => ({
       value: t,
-      label: ComparisonType[t]
+      label: comparisonTypeToLabel(ComparisonType[t])
     })
   );
 
 const constraintOperators = (c: string) => {
   let opts: Record<string, string> = {};
   switch (ComparisonType[c as keyof typeof ComparisonType]) {
-    case ComparisonType.STRING_COMPARISON_TYPE:
+    case ComparisonType.STRING:
       opts = ConstraintStringOperators;
       break;
-    case ComparisonType.NUMBER_COMPARISON_TYPE:
+    case ComparisonType.NUMBER:
       opts = ConstraintNumberOperators;
       break;
-    case ComparisonType.BOOLEAN_COMPARISON_TYPE:
+    case ComparisonType.BOOLEAN:
       opts = ConstraintBooleanOperators;
       break;
-    case ComparisonType.DATETIME_COMPARISON_TYPE:
+    case ComparisonType.DATETIME:
       opts = ConstraintDateTimeOperators;
       break;
   }
@@ -235,16 +232,13 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const { setSuccess } = useSuccess();
 
   const [hasValue, setHasValue] = useState(true);
-  const [type, setType] = useState(
-    constraint?.type || constraintComparisonTypeString
-  );
+  const [type, setType] = useState(constraint?.type || ComparisonType.STRING);
 
   const namespace = useSelector(selectCurrentNamespace);
 
   const initialValues = {
     property: constraint?.property || '',
-    type:
-      constraint?.type || (constraintComparisonTypeString as ComparisonType),
+    type: constraint?.type || ComparisonType.STRING,
     operator: constraint?.operator || 'eq',
     value: constraint?.value || '',
     description: constraint?.description || ''
@@ -343,7 +337,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                       formik.setFieldValue('type', type);
                       setType(type);
 
-                      if (e.target.value === constraintComparisonTypeBoolean) {
+                      if (e.target.value === ComparisonType.BOOLEAN) {
                         formik.setFieldValue('operator', 'true');
                         setHasValue(false);
                       } else {
@@ -376,7 +370,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 </div>
               </div>
               {hasValue &&
-                (type === constraintComparisonTypeDateTime ? (
+                (type === ComparisonType.DATETIME ? (
                   <ConstraintValueDateTimeInput name="value" id="value" />
                 ) : (
                   <ConstraintValueInput name="value" id="value" />

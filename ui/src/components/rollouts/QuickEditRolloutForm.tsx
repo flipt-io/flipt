@@ -10,7 +10,7 @@ import Loading from '~/components/Loading';
 import { updateRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { IRollout, RolloutType, rolloutTypeToLabel } from '~/types/Rollout';
+import { IRollout, RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
@@ -76,7 +76,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
   };
 
   let initialValue =
-    rolloutTypeToLabel(rollout.type) === RolloutType.THRESHOLD_ROLLOUT_TYPE
+    rollout.type === RolloutType.THRESHOLD
       ? rollout.threshold?.value
         ? 'true'
         : 'false'
@@ -96,10 +96,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       onSubmit={(values, { setSubmitting }) => {
         let handleSubmit = async (_values: RolloutFormValues) => {};
 
-        if (
-          rolloutTypeToLabel(rollout.type) ===
-          RolloutType.THRESHOLD_ROLLOUT_TYPE
-        ) {
+        if (rollout.type === RolloutType.THRESHOLD) {
           handleSubmit = handleThresholdSubmit;
         } else {
           handleSubmit = handleSegmentSubmit;
@@ -123,8 +120,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
         <Form className="flex h-full w-full flex-col overflow-y-scroll bg-white">
           <div className="w-full flex-1">
             <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-              {rolloutTypeToLabel(rollout.type) ===
-              RolloutType.THRESHOLD_ROLLOUT_TYPE ? (
+              {rollout.type === RolloutType.THRESHOLD ? (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                   <label
                     htmlFor="percentage"

@@ -17,18 +17,15 @@ import { RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
-const rolloutRuleTypeSegment = 'SEGMENT_ROLLOUT_TYPE';
-const rolloutRuleTypeThreshold = 'THRESHOLD_ROLLOUT_TYPE';
-
 const rolloutRuleTypes = [
   {
-    id: rolloutRuleTypeSegment,
-    name: RolloutType.SEGMENT_ROLLOUT_TYPE,
+    id: RolloutType.SEGMENT,
+    name: 'Segment',
     description: 'Rollout to a specific segment'
   },
   {
-    id: rolloutRuleTypeThreshold,
-    name: RolloutType.THRESHOLD_ROLLOUT_TYPE,
+    id: RolloutType.THRESHOLD,
+    name: 'Threshold',
     description: 'Rollout to a percentage of entities'
   }
 ];
@@ -57,16 +54,14 @@ export default function RolloutForm(props: RolloutFormProps) {
 
   const namespace = useSelector(selectCurrentNamespace);
 
-  const [rolloutRuleType, setRolloutRuleType] = useState(
-    rolloutRuleTypeThreshold
-  );
+  const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
   const [selectedSegment, setSelectedSegment] =
     useState<FilterableSegment | null>(null);
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
       rank,
-      type: rolloutRuleType as RolloutType,
+      type: rolloutRuleType,
       description: values.description,
       segment: {
         segmentKey: values.segmentKey || '',
@@ -78,7 +73,7 @@ export default function RolloutForm(props: RolloutFormProps) {
   const handleThresholdSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
       rank,
-      type: rolloutRuleType as RolloutType,
+      type: rolloutRuleType,
       description: values.description,
       threshold: {
         percentage: values.percentage || 0,
@@ -100,9 +95,9 @@ export default function RolloutForm(props: RolloutFormProps) {
       onSubmit={(values, { setSubmitting }) => {
         let handleSubmit = async (_values: RolloutFormValues) => {};
 
-        if (rolloutRuleType === rolloutRuleTypeSegment) {
+        if (rolloutRuleType === RolloutType.SEGMENT) {
           handleSubmit = handleSegmentSubmit;
-        } else if (rolloutRuleType === rolloutRuleTypeThreshold) {
+        } else if (rolloutRuleType === RolloutType.THRESHOLD) {
           handleSubmit = handleThresholdSubmit;
         }
 
@@ -199,7 +194,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                   </fieldset>
                 </div>
               </div>
-              {rolloutRuleType === rolloutRuleTypeThreshold && (
+              {rolloutRuleType === RolloutType.THRESHOLD && (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <label
                     htmlFor="percentage"
@@ -223,7 +218,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                   />
                 </div>
               )}
-              {rolloutRuleType === rolloutRuleTypeSegment && (
+              {rolloutRuleType === RolloutType.SEGMENT && (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>
                     <label
