@@ -5,7 +5,7 @@ import (
 
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -23,7 +23,7 @@ type Server struct {
 	logger    *zap.Logger
 	store     Storer
 	evaluator *Evaluator
-	rpcevaluation.UnimplementedEvaluationServiceServer
+	evaluation.UnimplementedEvaluationServiceServer
 }
 
 // New is constructs a new Server.
@@ -37,5 +37,5 @@ func New(logger *zap.Logger, store Storer) *Server {
 
 // RegisterGRPC registers the EvaluateServer onto the provided gRPC Server.
 func (s *Server) RegisterGRPC(server *grpc.Server) {
-	rpcevaluation.RegisterEvaluationServiceServer(server, s)
+	evaluation.RegisterEvaluationServiceServer(server, s)
 }

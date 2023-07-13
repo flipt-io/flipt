@@ -717,10 +717,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 	for i := 0; i < 10; i++ {
 		var flagKey string
 
-		num := rand.Intn(50)
-		if num == 0 {
-			num = 1
-		}
+		num := rand.Intn(50) + 1
 
 		if num < 10 {
 			flagKey = fmt.Sprintf("flag_00%d", num)
