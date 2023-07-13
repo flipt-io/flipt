@@ -11,8 +11,8 @@ type RuleProps = {
   flag: IFlag;
   rule: IEvaluatable;
   segments: ISegment[];
-  onSuccess: () => void;
-  onDelete: () => void;
+  onSuccess?: () => void;
+  onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
   readOnly?: boolean;
@@ -37,7 +37,7 @@ const Rule = forwardRef(
       key={rule.id}
       ref={ref}
       style={style}
-      className={`${className} w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 bg-white border-violet-300 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2`}
+      className={`${className} w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 bg-white border-violet-300 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2`}
     >
       <div className="w-full border-b p-2 bg-white border-gray-200 ">
         <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">

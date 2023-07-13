@@ -16,10 +16,10 @@ import { truncateKey } from '~/utils/helpers';
 import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
 
 type QuickEditRuleFormProps = {
-  onSuccess: () => void;
   flag: IFlag;
   rule: IEvaluatable;
   segments: ISegment[];
+  onSuccess?: () => void;
 };
 
 export const validRollout = (rollouts: IVariantRollout[]): boolean => {
@@ -156,7 +156,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
           ?.then(() => {
             clearError();
             setSuccess('Successfully updated rule');
-            onSuccess();
+            onSuccess && onSuccess();
           })
           .catch((err) => {
             setError(err);
@@ -282,12 +282,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                           {formik.values.rollouts &&
                             formik.values.rollouts.length > 0 &&
                             formik.values.rollouts?.map((dist, index) => (
-                              <>
+                              <div key={index}>
                                 {dist && (
-                                  <div
-                                    className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
-                                    key={index}
-                                  >
+                                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1">
                                     <div>
                                       <label
                                         htmlFor={`rollouts.[${index}].distribution.rollout`}
@@ -317,7 +314,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                     </div>
                                   </div>
                                 )}
-                              </>
+                              </div>
                             ))}
                         </>
                       )}
