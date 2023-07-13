@@ -78,5 +78,6 @@ linters-settings:
     excludes: # exclude gosec messages about weak crypto
       - "G501"
       - "G401"
+      - "G404"
   goconst:
     ignore-tests: true
