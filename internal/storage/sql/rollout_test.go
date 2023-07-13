@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -831,10 +832,145 @@ func (s *DBTestSuite) TestDeleteRolloutNamespace_NotFound() {
 
 func (s *DBTestSuite) TestOrderRollouts() {
 	t := s.T()
-	t.Skip("TODO: implement")
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+		Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	var rollouts []*flipt.Rollout
+
+	// create 3 rollouts
+	for i := 0; i < 3; i++ {
+		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+			FlagKey: flag.Key,
+			Rank:    int32(i + 1),
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Value:      true,
+					Percentage: 40 + float32(i),
+				},
+			},
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, rollout)
+		rollouts = append(rollouts, rollout)
+	}
+
+	// order rollouts in reverse order
+	sort.Slice(rollouts, func(i, j int) bool { return rollouts[i].Rank > rollouts[j].Rank })
+
+	var rolloutIds []string
+	for _, rollout := range rollouts {
+		rolloutIds = append(rolloutIds, rollout.Id)
+	}
+
+	// re-order rollouts
+	err = s.store.OrderRollouts(context.TODO(), &flipt.OrderRolloutsRequest{
+		FlagKey:    flag.Key,
+		RolloutIds: rolloutIds,
+	})
+
+	require.NoError(t, err)
+
+	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+
+	// ensure rollouts are in correct order
+	require.NoError(t, err)
+	got := res.Results
+	assert.NotNil(t, got)
+	assert.Equal(t, 3, len(got))
+
+	assert.Equal(t, rollouts[0].Id, got[0].Id)
+	assert.Equal(t, int32(1), got[0].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[0].NamespaceKey)
+
+	assert.Equal(t, rollouts[1].Id, got[1].Id)
+	assert.Equal(t, int32(2), got[1].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[1].NamespaceKey)
+
+	assert.Equal(t, rollouts[2].Id, got[2].Id)
+	assert.Equal(t, int32(3), got[2].Rank)
+	assert.Equal(t, storage.DefaultNamespace, got[2].NamespaceKey)
 }
 
 func (s *DBTestSuite) TestOrderRolloutsNamespace() {
 	t := s.T()
-	t.Skip("TODO: implement")
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		NamespaceKey: s.namespace,
+		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		Enabled:      true,
+		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	var rollouts []*flipt.Rollout
+
+	// create 3 rollouts
+	for i := 0; i < 3; i++ {
+		rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+			NamespaceKey: s.namespace,
+			FlagKey:      flag.Key,
+			Rank:         int32(i + 1),
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Value:      true,
+					Percentage: 40 + float32(i),
+				},
+			},
+		})
+
+		require.NoError(t, err)
+		assert.NotNil(t, rollout)
+		rollouts = append(rollouts, rollout)
+	}
+
+	// order rollouts in reverse order
+	sort.Slice(rollouts, func(i, j int) bool { return rollouts[i].Rank > rollouts[j].Rank })
+
+	var rolloutIds []string
+	for _, rollout := range rollouts {
+		rolloutIds = append(rolloutIds, rollout.Id)
+	}
+
+	// re-order rollouts
+	err = s.store.OrderRollouts(context.TODO(), &flipt.OrderRolloutsRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		RolloutIds:   rolloutIds,
+	})
+
+	require.NoError(t, err)
+
+	res, err := s.store.ListRollouts(context.TODO(), s.namespace, flag.Key)
+
+	// ensure rollouts are in correct order
+	require.NoError(t, err)
+	got := res.Results
+	assert.NotNil(t, got)
+	assert.Equal(t, 3, len(got))
+
+	assert.Equal(t, rollouts[0].Id, got[0].Id)
+	assert.Equal(t, int32(1), got[0].Rank)
+	assert.Equal(t, s.namespace, got[0].NamespaceKey)
+
+	assert.Equal(t, rollouts[1].Id, got[1].Id)
+	assert.Equal(t, int32(2), got[1].Rank)
+	assert.Equal(t, s.namespace, got[1].NamespaceKey)
+
+	assert.Equal(t, rollouts[2].Id, got[2].Id)
+	assert.Equal(t, int32(3), got[2].Rank)
+	assert.Equal(t, s.namespace, got[2].NamespaceKey)
 }

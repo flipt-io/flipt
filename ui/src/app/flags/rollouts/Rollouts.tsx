@@ -99,7 +99,7 @@ export default function Rollouts(props: RolloutsProps) {
     orderRollouts(
       namespace.key,
       flag.key,
-      rollouts.map((rule) => rule.id)
+      rollouts.map((rollout) => rollout.id)
     )
       .then(() => {
         incrementRolloutsVersion();
