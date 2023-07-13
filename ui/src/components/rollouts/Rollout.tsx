@@ -4,13 +4,13 @@ import { forwardRef, Fragment, Ref } from 'react';
 import { IRollout, rolloutTypeToLabel } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
 import { classNames } from '~/utils/helpers';
-import QuickEditRolloutForm from './QuickEditRolloutForm';
+import QuickEditRolloutForm from './forms/QuickEditRolloutForm';
 
 type RolloutProps = {
   flagKey: string;
   rollout: IRollout;
   segments: ISegment[];
-  onQuickEditSuccess: () => void;
+  onSuccess: () => void;
   onEdit: () => void;
   onDelete: () => void;
   style?: React.CSSProperties;
@@ -24,7 +24,7 @@ const Rollout = forwardRef(
       flagKey,
       rollout,
       segments,
-      onQuickEditSuccess,
+      onSuccess,
       onEdit,
       onDelete,
       style,
@@ -122,7 +122,7 @@ const Rollout = forwardRef(
             flagKey={flagKey}
             rollout={rollout}
             segments={segments}
-            onSuccess={onQuickEditSuccess}
+            onSuccess={onSuccess}
           />
         </div>
       </div>

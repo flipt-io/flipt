@@ -200,7 +200,10 @@ export default function Evaluation() {
           rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
-          onSuccess={incrementRulesVersion}
+          onSuccess={() => {
+            incrementRulesVersion();
+            setShowRuleForm(false);
+          }}
         />
       </Slideover>
 
