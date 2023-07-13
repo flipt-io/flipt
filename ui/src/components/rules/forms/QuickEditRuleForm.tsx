@@ -1,5 +1,5 @@
-import { Form, Formik } from 'formik';
-import { useEffect, useState } from 'react';
+import { Field, FieldArray, Form, Formik } from 'formik';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
@@ -31,6 +31,7 @@ export const validRollout = (rollouts: IVariantRollout[]): boolean => {
 
 interface RuleFormValues {
   segmentKey: string;
+  rollouts: IVariantRollout[];
 }
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
@@ -54,20 +55,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
-  const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
-
-  const [editingRule, setEditingRule] = useState<IEvaluatable>(rule);
-
-  const ruleType =
-    editingRule.rollouts.length > 1 ? distTypeMulti : distTypeSingle;
-
-  useEffect(() => {
-    if (ruleType === distTypeMulti && !validRollout(editingRule.rollouts)) {
-      setDistributionsValid(false);
-    } else {
-      setDistributionsValid(true);
-    }
-  }, [editingRule, ruleType]);
+  const ruleType = rule.rollouts.length > 1 ? distTypeMulti : distTypeSingle;
 
   const handleSubmit = async (values: RuleFormValues) => {
     if (rule.segment.key !== values.segmentKey) {
@@ -85,7 +73,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
     // update distributions that changed
     Promise.all(
-      editingRule.rollouts.map((rollout) => {
+      values.rollouts.map((rollout) => {
         const found = rule.rollouts.find(
           (r) => r.distribution.id === rollout.distribution.id
         );
@@ -95,7 +83,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         ) {
           return updateDistribution(
             namespace.key,
-            rule.flag.key,
+            flagKey,
             rule.id,
             rollout.distribution.id,
             {
@@ -111,7 +99,16 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   return (
     <Formik
       initialValues={{
-        segmentKey: rule.segment.key
+        segmentKey: rule.segment.key,
+        variantId: rule.rollouts[0].distribution.variantId,
+        rollouts: rule.rollouts
+      }}
+      validate={(values) => {
+        const errors: any = {};
+        if (!validRollout(values.rollouts)) {
+          errors.rollouts = 'Rollouts must add up to 100%';
+        }
+        return errors;
       }}
       onSubmit={(values, { setSubmitting }) => {
         handleSubmit(values)
@@ -133,7 +130,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
           <Form className="flex h-full w-full flex-col overflow-y-scroll bg-white">
             <div className="w-full flex-1">
               <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
                     <label
                       htmlFor="segmentKey"
@@ -157,7 +154,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                     />
                   </div>
                 </div>
-                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
                     <label
                       htmlFor="ruleType"
@@ -170,46 +167,36 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                     <fieldset>
                       <legend className="sr-only">Type</legend>
                       <div className="space-y-5">
-                        {distTypes.map((dist) => (
-                          <div
-                            key={dist.id}
-                            className="relative flex items-start"
-                          >
-                            <div className="flex h-5 items-center">
-                              <input
-                                id={dist.id}
-                                aria-describedby={`${dist.id}-description`}
-                                name="ruleType"
-                                type="radio"
-                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                                checked={dist.id === ruleType}
-                                value={dist.id}
-                                disabled
-                              />
+                        {distTypes
+                          .filter((dist) => dist.id === ruleType)
+                          .map((dist) => (
+                            <div
+                              key={dist.id}
+                              className="relative flex items-start"
+                            >
+                              <div className="text-sm">
+                                <label
+                                  htmlFor={dist.id}
+                                  className="font-medium text-gray-700"
+                                >
+                                  {dist.name}
+                                </label>
+                                <p
+                                  id={`${dist.id}-description`}
+                                  className="text-gray-500"
+                                >
+                                  {dist.description}
+                                </p>
+                              </div>
                             </div>
-                            <div className="ml-3 text-sm">
-                              <label
-                                htmlFor={dist.id}
-                                className="font-medium text-gray-700"
-                              >
-                                {dist.name}
-                              </label>
-                              <p
-                                id={`${dist.id}-description`}
-                                className="text-gray-500"
-                              >
-                                {dist.description}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </fieldset>
                   </div>
                 </div>
 
                 {ruleType === distTypeSingle && (
-                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                     <div>
                       <label
                         htmlFor="variantKey"
@@ -223,9 +210,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         id="variant"
                         name="variant"
                         selected={{
-                          filterValue: editingRule.rollouts[0].variant.key,
-                          displayValue: editingRule.rollouts[0].variant.key,
-                          ...editingRule.rollouts[0].variant
+                          filterValue: rule.rollouts[0].variant.key,
+                          displayValue: rule.rollouts[0].variant.key,
+                          ...rule.rollouts[0].variant
                         }}
                       />
                     </div>
@@ -234,7 +221,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
                 {ruleType === distTypeMulti && (
                   <div>
-                    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                       <div>
                         <label
                           htmlFor="variantKey"
@@ -244,52 +231,54 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         </label>
                       </div>
                     </div>
-                    {editingRule.rollouts?.map((dist, index) => (
-                      <div
-                        className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
-                        key={dist.variant.id}
-                      >
-                        <div>
-                          <label
-                            htmlFor={dist.variant.key}
-                            className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
-                          >
-                            {dist.variant.key}
-                          </label>
-                        </div>
-                        <div className="relative sm:col-span-1">
-                          <input
-                            type="number"
-                            className="block w-full rounded-md pl-7 pr-12 shadow-sm border-gray-300 focus:ring-violet-300 focus:border-violet-300 sm:text-sm"
-                            value={dist.distribution.rollout}
-                            name={dist.variant.key}
-                            // eslint-disable-next-line react/no-unknown-property
-                            typeof="number"
-                            step=".01"
-                            min="0"
-                            max="100"
-                            onChange={(e) => {
-                              const newRollouts = [...editingRule.rollouts];
-                              newRollouts[index].distribution.rollout =
-                                parseFloat(e.target.value);
-                              setEditingRule({
-                                ...editingRule,
-                                rollouts: newRollouts
-                              });
-                            }}
-                          />
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                            <span
-                              className="text-gray-500 sm:text-sm"
-                              id={`percentage-${dist.variant.key}`}
-                            >
-                              %
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {!distributionsValid && (
+                    <FieldArray
+                      name="rollouts"
+                      render={() => (
+                        <>
+                          {formik.values.rollouts &&
+                            formik.values.rollouts.length > 0 &&
+                            formik.values.rollouts?.map((dist, index) => (
+                              <>
+                                {dist && (
+                                  <div
+                                    className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
+                                    key={index}
+                                  >
+                                    <div>
+                                      <label
+                                        htmlFor={`rollouts.[${index}].distribution.rollout`}
+                                        className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
+                                      >
+                                        {dist.variant.key}
+                                      </label>
+                                    </div>
+                                    <div className="relative sm:col-span-1">
+                                      <Field
+                                        key={index}
+                                        type="number"
+                                        className="block w-full rounded-md pl-7 pr-12 shadow-sm border-gray-300 focus:ring-violet-300 focus:border-violet-300 sm:text-sm"
+                                        value={dist.distribution.rollout}
+                                        name={`rollouts.[${index}].distribution.rollout`}
+                                        // eslint-disable-next-line react/no-unknown-property
+                                        typeof="number"
+                                        step=".01"
+                                        min="0"
+                                        max="100"
+                                      />
+                                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <span className="text-gray-500 sm:text-sm">
+                                          %
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            ))}
+                        </>
+                      )}
+                    />
+                    {formik.touched.rollouts && formik.errors.rollouts && (
                       <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
                         Multi-variant rules must have distributions that add up
                         to 100% or less.
