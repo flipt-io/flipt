@@ -20,8 +20,12 @@ import {
   keyValidation,
   requiredValidation
 } from '~/data/validations';
-import { IConsole } from '~/types/Console';
-import { FilterableFlag, flagTypeToLabel, IFlagList } from '~/types/Flag';
+import {
+  FilterableFlag,
+  flagTypeToLabel,
+  IFlag,
+  IFlagList
+} from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { classNames } from '~/utils/helpers';
 
@@ -35,6 +39,12 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   }, [namespace, resetForm]);
 
   return null;
+}
+
+interface ConsoleFormValues {
+  flagKey: string;
+  entityId: string;
+  context: string | undefined;
 }
 
 export default function Console() {
@@ -66,10 +76,12 @@ export default function Console() {
     );
   }, [namespace.key]);
 
-  const handleSubmit = (values: IConsole, flagType: string) => {
-    const { flagKey, entityId, context } = values;
+  const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
+    const { entityId, context } = values;
 
-    const boolean = flagType === 'BOOLEAN_FLAG_TYPE';
+    if (!flag) {
+      return;
+    }
 
     // need to unescape the context string
     const parsed = context ? JSON.parse(context) : undefined;
@@ -79,7 +91,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluateV2(boolean, namespace.key, flagKey, rest)
+    evaluateV2(namespace.key, flag.key, flag.type, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
@@ -102,7 +114,7 @@ export default function Console() {
       });
   }, [clearError, loadData, setError]);
 
-  const initialvalues: IConsole = {
+  const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
     entityId: uuidv4(),
     context: undefined
@@ -130,7 +142,7 @@ export default function Console() {
                   context: jsonValidation
                 })}
                 onSubmit={(values) => {
-                  handleSubmit(values, selectedFlag?.type || '');
+                  handleSubmit(selectedFlag, values);
                 }}
                 onReset={() => {
                   setResponse(null);

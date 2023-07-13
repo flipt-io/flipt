@@ -22,12 +22,12 @@ type FlagFormProps = {
 
 const flagTypes = [
   {
-    id: 'VARIANT_FLAG_TYPE',
-    name: FlagType.VARIANT_FLAG_TYPE
+    id: FlagType.VARIANT,
+    name: 'Variant'
   },
   {
-    id: 'BOOLEAN_FLAG_TYPE',
-    name: FlagType.BOOLEAN_FLAG_TYPE
+    id: FlagType.BOOLEAN,
+    name: 'Boolean'
   }
 ];
 
@@ -55,7 +55,7 @@ export default function FlagForm(props: FlagFormProps) {
     key: flag?.key || '',
     name: flag?.name || '',
     description: flag?.description || '',
-    type: flag?.type || ('VARIANT_FLAG_TYPE' as FlagType),
+    type: flag?.type || FlagType.VARIANT,
     enabled: flag?.enabled || false
   };
 
@@ -177,10 +177,7 @@ export default function FlagForm(props: FlagFormProps) {
                               disabled={!isNew}
                               className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
                               onChange={() => {
-                                formik.setFieldValue(
-                                  'type',
-                                  type.id as FlagType
-                                );
+                                formik.setFieldValue('type', type.id);
                               }}
                               checked={type.id === formik.values.type}
                               value={type.id}

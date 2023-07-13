@@ -1,8 +1,19 @@
 import { IPageable } from './Pageable';
 
 export enum RolloutType {
-  SEGMENT_ROLLOUT_TYPE = 'Segment',
-  THRESHOLD_ROLLOUT_TYPE = 'Threshold'
+  SEGMENT = 'SEGMENT_ROLLOUT_TYPE',
+  THRESHOLD = 'THRESHOLD_ROLLOUT_TYPE'
+}
+
+export function rolloutTypeToLabel(rolloutType: RolloutType): string {
+  switch (rolloutType) {
+    case RolloutType.SEGMENT:
+      return 'Segment';
+    case RolloutType.THRESHOLD:
+      return 'Threshold';
+    default:
+      return 'Unknown';
+  }
 }
 
 export interface IRolloutRuleSegment {
@@ -32,5 +43,3 @@ export interface IRollout extends IRolloutBase {
 export interface IRolloutList extends IPageable {
   rules: IRollout[];
 }
-export const rolloutTypeToLabel = (t: string) =>
-  RolloutType[t as keyof typeof RolloutType];

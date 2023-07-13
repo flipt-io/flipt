@@ -1,6 +1,6 @@
 export interface IConstraintBase {
   property: string;
-  type: ComparisonType;
+  type: ConstraintType;
   operator: string;
   value?: string;
   description?: string;
@@ -12,11 +12,26 @@ export interface IConstraint extends IConstraintBase {
   updatedAt: string;
 }
 
-export enum ComparisonType {
-  STRING_COMPARISON_TYPE = 'string',
-  NUMBER_COMPARISON_TYPE = 'number',
-  BOOLEAN_COMPARISON_TYPE = 'boolean',
-  DATETIME_COMPARISON_TYPE = 'datetime'
+export enum ConstraintType {
+  STRING = 'STRING_COMPARISON_TYPE',
+  NUMBER = 'NUMBER_COMPARISON_TYPE',
+  BOOLEAN = 'BOOLEAN_COMPARISON_TYPE',
+  DATETIME = 'DATETIME_COMPARISON_TYPE'
+}
+
+export function constraintTypeToLabel(c: ConstraintType): string {
+  switch (c) {
+    case ConstraintType.STRING:
+      return 'String';
+    case ConstraintType.NUMBER:
+      return 'Number';
+    case ConstraintType.BOOLEAN:
+      return 'Boolean';
+    case ConstraintType.DATETIME:
+      return 'DateTime';
+    default:
+      return 'Unknown';
+  }
 }
 
 export const ConstraintStringOperators: Record<string, string> = {
@@ -70,8 +85,3 @@ export const ConstraintOperators: Record<string, string> = {
   ...ConstraintBooleanOperators,
   ...ConstraintDateTimeOperators
 };
-
-export const constraintTypeToLabel = (t: string) =>
-  ComparisonType[t as keyof typeof ComparisonType];
-
-export const constraintOperatorToLabel = (o: string) => ConstraintOperators[o];

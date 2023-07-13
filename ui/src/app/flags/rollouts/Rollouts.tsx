@@ -7,7 +7,8 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
-import RolloutForm from '~/components/rollouts/RolloutForm';
+import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
+import RolloutForm from '~/components/rollouts/forms/RolloutForm';
 import SortableRollout from '~/components/rollouts/SortableRollout';
 import Slideover from '~/components/Slideover';
 import { deleteRollout, listRollouts, listSegments } from '~/data/api';
@@ -27,6 +28,10 @@ export default function Rollouts(props: RolloutsProps) {
 
   const [rolloutsVersion, setRolloutsVersion] = useState(0);
   const [showRolloutForm, setShowRolloutForm] = useState<boolean>(false);
+
+  const [showEditRolloutForm, setShowEditRolloutForm] =
+    useState<boolean>(false);
+  const [editingRollout, setEditingRollout] = useState<IRollout | null>(null);
 
   const [showDeleteRolloutModal, setShowDeleteRolloutModal] =
     useState<boolean>(false);
@@ -61,25 +66,6 @@ export default function Rollouts(props: RolloutsProps) {
 
   return (
     <>
-      {/* rollout edit form */}
-      <Slideover
-        open={showRolloutForm}
-        setOpen={setShowRolloutForm}
-        ref={rolloutFormRef}
-      >
-        <RolloutForm
-          flagKey={flag.key}
-          segments={segments}
-          // rollout={editingRollout || undefined}
-          rank={(rollouts?.length || 0) + 1}
-          setOpen={setShowRolloutForm}
-          onSuccess={() => {
-            setShowRolloutForm(false);
-            incrementRolloutsVersion();
-          }}
-        />
-      </Slideover>
-
       {/* rollout delete modal */}
       <Modal open={showDeleteRolloutModal} setOpen={setShowDeleteRolloutModal}>
         <DeletePanel
@@ -103,6 +89,44 @@ export default function Rollouts(props: RolloutsProps) {
         />
       </Modal>
 
+      {/* rollout create form */}
+      <Slideover
+        open={showRolloutForm}
+        setOpen={setShowRolloutForm}
+        ref={rolloutFormRef}
+      >
+        <RolloutForm
+          flagKey={flag.key}
+          rank={rollouts.length + 1}
+          segments={segments}
+          setOpen={setShowRolloutForm}
+          onSuccess={() => {
+            setShowRolloutForm(false);
+            incrementRolloutsVersion();
+          }}
+        />
+      </Slideover>
+
+      {/* rollout edit form */}
+      {editingRollout && (
+        <Slideover
+          open={showEditRolloutForm}
+          setOpen={setShowEditRolloutForm}
+          ref={rolloutFormRef}
+        >
+          <EditRolloutForm
+            flagKey={flag.key}
+            segments={segments}
+            rollout={editingRollout}
+            setOpen={setShowEditRolloutForm}
+            onSuccess={() => {
+              setShowEditRolloutForm(false);
+              incrementRolloutsVersion();
+            }}
+          />
+        </Slideover>
+      )}
+
       {/* rollouts */}
       <div className="mt-10">
         <div className="sm:flex sm:items-center">
@@ -122,7 +146,7 @@ export default function Rollouts(props: RolloutsProps) {
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
                 onClick={() => {
-                  // setEditingRollout(null);
+                  setEditingRollout(null);
                   setShowRolloutForm(true);
                 }}
               >
@@ -139,14 +163,14 @@ export default function Rollouts(props: RolloutsProps) {
           {rollouts && rollouts.length > 0 ? (
             <div className="flex lg:space-x-5">
               <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm font-light text-gray-700">
                   Rules are evaluated in order from{' '}
                   <span className="font-semibold">top to bottom</span>. The
                   first rule that matches will be applied.
                 </p>
-                <p className="text-sm text-gray-500">
-                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-violet-300" />
-                  You can re-arrange rules by{' '}
+                <p className="text-sm font-light text-gray-700">
+                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
+                  You can re-arrange rules by clicking in the header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   them into place.
                 </p>
@@ -174,10 +198,10 @@ export default function Rollouts(props: RolloutsProps) {
                         flagKey={flag.key}
                         rollout={rollout}
                         segments={segments}
-                        onQuickEditSuccess={incrementRolloutsVersion}
+                        onSuccess={incrementRolloutsVersion}
                         onEdit={() => {
-                          // setEditingRollout(rollout);
-                          //setShowEditRolloutForm(true);
+                          setEditingRollout(rollout);
+                          setShowEditRolloutForm(true);
                         }}
                         onDelete={() => {
                           setDeletingRollout(rollout);
@@ -205,7 +229,7 @@ export default function Rollouts(props: RolloutsProps) {
               text="New Rollout"
               disabled={readOnly}
               onClick={() => {
-                //setEditingRollout(null);
+                setEditingRollout(null);
                 setShowRolloutForm(true);
               }}
             />

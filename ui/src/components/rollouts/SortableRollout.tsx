@@ -7,22 +7,15 @@ type SortableRolloutProps = {
   flagKey: string;
   rollout: IRollout;
   segments: ISegment[];
-  onQuickEditSuccess: () => void;
+  onSuccess: () => void;
   onEdit: () => void;
   onDelete: () => void;
   readOnly?: boolean;
 };
 
 export default function SortableRollout(props: SortableRolloutProps) {
-  const {
-    flagKey,
-    rollout,
-    segments,
-    onQuickEditSuccess,
-    onEdit,
-    onDelete,
-    readOnly
-  } = props;
+  const { flagKey, rollout, segments, onSuccess, onEdit, onDelete, readOnly } =
+    props;
   const {
     isDragging,
     attributes,
@@ -55,7 +48,7 @@ export default function SortableRollout(props: SortableRolloutProps) {
       flagKey={flagKey}
       rollout={rollout}
       segments={segments}
-      onQuickEditSuccess={onQuickEditSuccess}
+      onSuccess={onSuccess}
       onEdit={onEdit}
       onDelete={onDelete}
       readOnly={readOnly}

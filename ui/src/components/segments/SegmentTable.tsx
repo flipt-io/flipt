@@ -18,7 +18,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
-import { ISegment, SegmentMatchType } from '~/types/Segment';
+import { ISegment, segmentMatchTypeToLabel } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
 type SegmentTableProps = {
@@ -68,10 +68,7 @@ export default function SegmentTable(props: SegmentTableProps) {
     }),
     columnHelper.accessor('matchType', {
       header: 'Match Type',
-      cell: (info) =>
-        SegmentMatchType[
-          info.getValue() as unknown as keyof typeof SegmentMatchType
-        ],
+      cell: (info) => segmentMatchTypeToLabel(info.getValue()),
       meta: {
         className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-600'
       }

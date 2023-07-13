@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { IAuthTokenBase } from 'types/auth/Token';
-import { IConstraintBase } from 'types/Constraint';
-import { IDistributionBase } from 'types/Distribution';
-import { IFlagBase } from 'types/Flag';
-import { IRuleBase } from 'types/Rule';
-import { ISegmentBase } from 'types/Segment';
-import { IVariantBase } from 'types/Variant';
+import { IAuthTokenBase } from '~/types/auth/Token';
+import { IConstraintBase } from '~/types/Constraint';
+import { IDistributionBase } from '~/types/Distribution';
+import { FlagType, IFlagBase } from '~/types/Flag';
 import { IRolloutBase } from '~/types/Rollout';
+import { IRuleBase } from '~/types/Rule';
+import { ISegmentBase } from '~/types/Segment';
+import { IVariantBase } from '~/types/Variant';
 
 const apiURL = '/api/v1';
 const authURL = '/auth/v1';
@@ -415,16 +415,16 @@ export async function evaluate(
 //
 // evaluateV2
 export async function evaluateV2(
-  boolean: boolean,
   namespaceKey: string,
   flagKey: string,
+  flagType: FlagType,
   values: any
 ) {
-  const route = boolean ? '/boolean' : '/variant';
+  const route = flagType === FlagType.BOOLEAN ? '/boolean' : '/variant';
 
   const body = {
     namespaceKey,
-    flagKey,
+    flagKey: flagKey,
     ...values
   };
   return post(route, body, evaluateURL);

@@ -33,8 +33,8 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import {
-  ComparisonType,
-  constraintOperatorToLabel,
+  ConstraintOperators,
+  ConstraintType,
   constraintTypeToLabel,
   IConstraint
 } from '~/types/Constraint';
@@ -342,11 +342,10 @@ export default function Segment() {
                           {constraintTypeToLabel(constraint.type)}
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {constraintOperatorToLabel(constraint.operator)}
+                          {ConstraintOperators[constraint.operator]}
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
-                          {constraintTypeToLabel(constraint.type) ===
-                            ComparisonType.DATETIME_COMPARISON_TYPE &&
+                          {constraint.type === ConstraintType.DATETIME &&
                           constraint.value !== undefined
                             ? inTimezone(constraint.value)
                             : constraint.value}
