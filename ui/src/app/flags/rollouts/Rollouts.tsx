@@ -1,3 +1,18 @@
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
 import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -9,9 +24,17 @@ import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import EditRolloutForm from '~/components/rollouts/forms/EditRolloutForm';
 import RolloutForm from '~/components/rollouts/forms/RolloutForm';
+import Rollout from '~/components/rollouts/Rollout';
 import SortableRollout from '~/components/rollouts/SortableRollout';
 import Slideover from '~/components/Slideover';
-import { deleteRollout, listRollouts, listSegments } from '~/data/api';
+import {
+  deleteRollout,
+  listRollouts,
+  listSegments,
+  orderRollouts
+} from '~/data/api';
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
 import { IRollout, IRolloutList } from '~/types/Rollout';
 import { ISegment, ISegmentList } from '~/types/Segment';
@@ -26,6 +49,8 @@ export default function Rollouts(props: RolloutsProps) {
   const [segments, setSegments] = useState<ISegment[]>([]);
   const [rollouts, setRollouts] = useState<IRollout[]>([]);
 
+  const [activeRollout, setActiveRollout] = useState<IRollout | null>(null);
+
   const [rolloutsVersion, setRolloutsVersion] = useState(0);
   const [showRolloutForm, setShowRolloutForm] = useState<boolean>(false);
 
@@ -36,6 +61,9 @@ export default function Rollouts(props: RolloutsProps) {
   const [showDeleteRolloutModal, setShowDeleteRolloutModal] =
     useState<boolean>(false);
   const [deletingRollout, setDeletingRollout] = useState<IRollout | null>(null);
+
+  const { setError, clearError } = useError();
+  const { setSuccess } = useSuccess();
 
   const rolloutFormRef = useRef(null);
 
@@ -58,6 +86,63 @@ export default function Rollouts(props: RolloutsProps) {
 
   const incrementRolloutsVersion = () => {
     setRolloutsVersion(rolloutsVersion + 1);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
+
+  const reorderRollouts = (rollouts: IRollout[]) => {
+    orderRollouts(
+      namespace.key,
+      flag.key,
+      rollouts.map((rule) => rule.id)
+    )
+      .then(() => {
+        incrementRolloutsVersion();
+        clearError();
+        setSuccess('Successfully reordered rollouts');
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+
+  // disabling eslint due to this being a third-party event type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onDragEnd = (event: { active: any; over: any }) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const reordered = (function (rollouts: IRollout[]) {
+        const oldIndex = rollouts.findIndex(
+          (rollout) => rollout.id === active.id
+        );
+        const newIndex = rollouts.findIndex(
+          (rollout) => rollout.id === over.id
+        );
+
+        return arrayMove(rollouts, oldIndex, newIndex);
+      })(rollouts);
+
+      reorderRollouts(reordered);
+      setRollouts(reordered);
+    }
+
+    setActiveRollout(null);
+  };
+
+  // disabling eslint due to this being a third-party event type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onDragStart = (event: { active: any }) => {
+    const { active } = event;
+    const rollout = rollouts.find((rollout) => rollout.id === active.id);
+    if (rollout) {
+      setActiveRollout(rollout);
+    }
   };
 
   useEffect(() => {
@@ -179,49 +264,49 @@ export default function Rollouts(props: RolloutsProps) {
                 className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
   lg:w-3/4 lg:p-6"
               >
-                {/* <DndContext
+                <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
                   onDragStart={onDragStart}
                   onDragEnd={onDragEnd}
                 >
                   <SortableContext
-                    items={rules.map((rule) => rule.id)}
+                    items={rollouts.map((rollout) => rollout.id)}
                     strategy={verticalListSortingStrategy}
-                  > */}
-                <ul role="list" className="flex-col space-y-6 p-2 md:flex">
-                  {rollouts &&
-                    rollouts.length > 0 &&
-                    rollouts.map((rollout) => (
-                      <SortableRollout
-                        key={rollout.id}
-                        flagKey={flag.key}
-                        rollout={rollout}
-                        segments={segments}
-                        onSuccess={incrementRolloutsVersion}
-                        onEdit={() => {
-                          setEditingRollout(rollout);
-                          setShowEditRolloutForm(true);
-                        }}
-                        onDelete={() => {
-                          setDeletingRollout(rollout);
-                          setShowDeleteRolloutModal(true);
-                        }}
-                        readOnly={readOnly}
-                      />
-                    ))}
-                </ul>
-                {/* </SortableContext>
+                  >
+                    <ul role="list" className="flex-col space-y-6 p-2 md:flex">
+                      {rollouts &&
+                        rollouts.length > 0 &&
+                        rollouts.map((rollout) => (
+                          <SortableRollout
+                            key={rollout.id}
+                            flag={flag}
+                            rollout={rollout}
+                            segments={segments}
+                            onSuccess={incrementRolloutsVersion}
+                            onEdit={() => {
+                              setEditingRollout(rollout);
+                              setShowEditRolloutForm(true);
+                            }}
+                            onDelete={() => {
+                              setDeletingRollout(rollout);
+                              setShowDeleteRolloutModal(true);
+                            }}
+                            readOnly={readOnly}
+                          />
+                        ))}
+                    </ul>
+                  </SortableContext>
                   <DragOverlay>
-                    {activeRule ? (
-                      <NewRule
-                        namespace={namespace}
-                        totalRules={rules.length}
-                        rule={activeRule}
+                    {activeRollout ? (
+                      <Rollout
+                        flag={flag}
+                        rollout={activeRollout}
+                        segments={segments}
                       />
                     ) : null}
                   </DragOverlay>
-                </DndContext> */}
+                </DndContext>
               </div>
             </div>
           ) : (
