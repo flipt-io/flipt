@@ -1,4 +1,4 @@
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
@@ -206,6 +206,10 @@ export default function Evaluation() {
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
+                <PlusIcon
+                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
+                  aria-hidden="true"
+                />
                 New Rule
               </Button>
             </div>
@@ -222,7 +226,7 @@ export default function Evaluation() {
                 </p>
                 <p className="text-sm font-light text-gray-700">
                   <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
-                  You can re-arrange rules by{' '}
+                  You can re-arrange rules by clicking in the header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   them into place.
                 </p>
@@ -247,7 +251,7 @@ export default function Evaluation() {
                     rules.map((rule) => (
                       <SortableRule
                         key={rule.id}
-                        flagKey={flag.key}
+                        flag={flag}
                         rule={rule}
                         segments={segments}
                         onSuccess={incrementRulesVersion}

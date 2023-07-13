@@ -2,12 +2,13 @@ import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { forwardRef, Fragment, Ref } from 'react';
 import { IEvaluatable } from '~/types/Evaluatable';
+import { IFlag } from '~/types/Flag';
 import { ISegment } from '~/types/Segment';
 import { classNames } from '~/utils/helpers';
 import QuickEditRuleForm from './forms/QuickEditRuleForm';
 
 type RuleProps = {
-  flagKey: string;
+  flag: IFlag;
   rule: IEvaluatable;
   segments: ISegment[];
   onSuccess: () => void;
@@ -20,7 +21,7 @@ type RuleProps = {
 const Rule = forwardRef(
   (
     {
-      flagKey,
+      flag,
       rule,
       segments,
       onSuccess,
@@ -100,7 +101,7 @@ const Rule = forwardRef(
       <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
         <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
           <QuickEditRuleForm
-            flagKey={flagKey}
+            flag={flag}
             rule={rule}
             segments={segments}
             onSuccess={onSuccess}

@@ -9,6 +9,7 @@ import { updateDistribution, updateRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
+import { IFlag } from '~/types/Flag';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
@@ -16,7 +17,7 @@ import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
 
 type QuickEditRuleFormProps = {
   onSuccess: () => void;
-  flagKey: string;
+  flag: IFlag;
   rule: IEvaluatable;
   segments: ISegment[];
 };
@@ -35,12 +36,14 @@ interface RuleFormValues {
 }
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
-  const { onSuccess, flagKey, rule, segments } = props;
+  const { onSuccess, flag, rule, segments } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const namespace = useSelector(selectCurrentNamespace);
+
+  const ruleType = rule.rollouts.length > 1 ? distTypeMulti : distTypeSingle;
 
   const [selectedSegment, setSelectedSegment] =
     useState<FilterableSegment | null>(() => {
@@ -55,13 +58,26 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
-  const ruleType = rule.rollouts.length > 1 ? distTypeMulti : distTypeSingle;
+  const [selectedVariant, setSelectedVariant] =
+    useState<FilterableVariant | null>(() => {
+      if (ruleType !== distTypeSingle) return null;
+
+      let selected = rule.rollouts[0].variant;
+      if (selected) {
+        return {
+          ...selected,
+          displayValue: selected.name,
+          filterValue: selected.id
+        };
+      }
+      return null;
+    });
 
   const handleSubmit = async (values: RuleFormValues) => {
     if (rule.segment.key !== values.segmentKey) {
+      // update segment if changed
       try {
-        // update rule
-        await updateRule(namespace.key, flagKey, rule.id, {
+        await updateRule(namespace.key, flag.key, rule.id, {
           rank: rule.rank,
           segmentKey: values.segmentKey
         });
@@ -71,36 +87,61 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       }
     }
 
-    // update distributions that changed
-    Promise.all(
-      values.rollouts.map((rollout) => {
-        const found = rule.rollouts.find(
-          (r) => r.distribution.id === rollout.distribution.id
-        );
-        if (
-          found &&
-          found.distribution.rollout !== rollout.distribution.rollout
-        ) {
-          return updateDistribution(
-            namespace.key,
-            flagKey,
-            rule.id,
-            rollout.distribution.id,
-            {
-              variantId: rollout.distribution.variantId,
-              rollout: rollout.distribution.rollout
-            }
+    if (ruleType === distTypeMulti) {
+      // update distributions that changed
+      Promise.all(
+        values.rollouts.map((rollout) => {
+          const found = rule.rollouts.find(
+            (r) => r.distribution.id === rollout.distribution.id
           );
-        }
-        return Promise.resolve();
-      })
-    );
+          if (
+            found &&
+            found.distribution.rollout !== rollout.distribution.rollout
+          ) {
+            return updateDistribution(
+              namespace.key,
+              flag.key,
+              rule.id,
+              rollout.distribution.id,
+              {
+                variantId: rollout.distribution.variantId,
+                rollout: rollout.distribution.rollout
+              }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+    }
+    // TODO: enable once we allow user to change variant of existing single dist rule
+
+    // } else if (ruleType === distTypeSingle && selectedVariant) {
+    //   // update variant if changed
+    //   if (rule.rollouts[0].distribution.variantId !== selectedVariant.id) {
+    //     try {
+    //       await updateDistribution(
+    //         namespace.key,
+    //         flag.key,
+    //         rule.id,
+    //         rule.rollouts[0].distribution.id,
+    //         {
+    //           variantId: selectedVariant.id,
+    //           rollout: 100
+    //         }
+    //       );
+    //     } catch (err) {
+    //       setError(err as Error);
+    //       return;
+    //     }
+    //   }
+    // }
   };
+
   return (
     <Formik
       initialValues={{
         segmentKey: rule.segment.key,
-        variantId: rule.rollouts[0].distribution.variantId,
+        // variantId: rule.rollouts[0].distribution.variantId,
         rollouts: rule.rollouts
       }}
       validate={(values) => {
@@ -207,13 +248,16 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                     </div>
                     <div className="sm:col-span-2">
                       <Combobox<FilterableVariant>
-                        id="variant"
-                        name="variant"
-                        selected={{
-                          filterValue: rule.rollouts[0].variant.key,
-                          displayValue: rule.rollouts[0].variant.key,
-                          ...rule.rollouts[0].variant
-                        }}
+                        id="variantKey"
+                        name="variantKey"
+                        values={flag.variants?.map((v) => ({
+                          ...v,
+                          filterValue: truncateKey(v.key),
+                          displayValue: v.key
+                        }))}
+                        selected={selectedVariant}
+                        setSelected={setSelectedVariant}
+                        disabled
                       />
                     </div>
                   </div>
