@@ -7,12 +7,12 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
+import ContextEditor from '~/app/console/ContextEditor';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import TextArea from '~/components/forms/TextArea';
 import { evaluateV2, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import {
@@ -192,13 +192,7 @@ export default function Console() {
                           >
                             Request Context
                           </label>
-                          <TextArea
-                            rows={10}
-                            name="context"
-                            id="context"
-                            className="mt-1"
-                            placeholder="{}"
-                          />
+                          <ContextEditor id="context" name="context" />
                         </div>
                       </div>
                       <div className="flex justify-end">
