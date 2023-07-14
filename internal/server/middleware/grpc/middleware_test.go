@@ -936,7 +936,7 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
 		Key:     "foo",
-		Enabled: true,
+		Enabled: false,
 		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
@@ -1049,12 +1049,12 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 			assert.NotEmpty(t, cacheSpy.getKeys, "cache keys should not be empty")
 
 			if !wantMatch {
-				assert.False(t, resp.Value)
+				assert.False(t, resp.Enabled)
 				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
 				return
 			}
 
-			assert.True(t, resp.Value)
+			assert.True(t, resp.Enabled)
 			assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}

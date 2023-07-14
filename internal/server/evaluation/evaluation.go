@@ -111,13 +111,6 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 }
 
 func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	if !flag.Enabled {
-		return &rpcevaluation.BooleanEvaluationResponse{
-			Value:  false,
-			Reason: rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON,
-		}, nil
-	}
-
 	rollouts, err := s.store.GetEvaluationRollouts(ctx, r.NamespaceKey, flag.Key)
 	if err != nil {
 		return nil, err
@@ -143,9 +136,9 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 			// if this case does not hold, fall through to the next rollout.
 			if normalizedValue < rollout.Threshold.Percentage {
-				resp.Value = rollout.Threshold.Value
+				resp.Enabled = rollout.Threshold.Value
 				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-				// e.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
+				s.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
 				return resp, nil
 			}
 		} else if rollout.Segment != nil {
@@ -159,17 +152,17 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 				continue
 			}
 
-			resp.Value = rollout.Segment.Value
+			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-			// e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
+			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
 			return resp, nil
 		}
 	}
 
-	// If we have exhausted all rollouts and we still don't have a match, return false value.
+	// If we have exhausted all rollouts and we still don't have a match, return flag enabled value.
 	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-	resp.Value = false
-	// e.logger.Debug("default rollout matched", zap.Bool("value", false))
+	resp.Enabled = flag.Enabled
+	s.logger.Debug("default rollout matched", zap.Bool("enabled", flag.Enabled))
 	return resp, nil
 }
 
