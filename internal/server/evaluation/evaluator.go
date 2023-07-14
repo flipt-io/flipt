@@ -61,6 +61,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 						metrics.AttributeSegment.String(resp.SegmentKey),
 						metrics.AttributeReason.String(resp.Reason.String()),
 						metrics.AttributeValue.String(resp.Value),
+						metrics.AttributeType.String("variant"),
 					),
 				),
 			)
@@ -192,8 +193,46 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 	return resp, nil
 }
 
-func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	resp := &rpcevaluation.BooleanEvaluationResponse{}
+func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (resp *rpcevaluation.BooleanEvaluationResponse, err error) {
+	res := &rpcevaluation.BooleanEvaluationResponse{}
+
+	var (
+		startTime     = time.Now().UTC()
+		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
+	)
+
+	ctx := context.Background()
+	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+
+	defer func() {
+		if err == nil {
+			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				metric.WithAttributeSet(
+					attribute.NewSet(
+						namespaceAttr,
+						flagAttr,
+						metrics.AttributeValue.Bool(resp.Value),
+						metrics.AttributeReason.String(resp.Reason.String()),
+						metrics.AttributeType.String("boolean"),
+					),
+				),
+			)
+		} else {
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+		}
+
+		metrics.EvaluationLatency.Record(
+			ctx,
+			float64(time.Since(startTime).Nanoseconds())/1e6,
+			metric.WithAttributeSet(
+				attribute.NewSet(
+					namespaceAttr,
+					flagAttr,
+				),
+			),
+		)
+	}()
 
 	var lastRank int32
 
@@ -212,11 +251,11 @@ func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue b
 
 			// if this case does not hold, fall through to the next rollout.
 			if normalizedValue < rollout.Threshold.Percentage {
-				resp.Value = rollout.Threshold.Value
-				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+				res.Value = rollout.Threshold.Value
+				res.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 				e.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
 
-				return resp, nil
+				return res, nil
 			}
 		} else if rollout.Segment != nil {
 			matched, err := e.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
@@ -229,21 +268,21 @@ func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue b
 				continue
 			}
 
-			resp.Value = rollout.Segment.Value
-			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+			res.Value = rollout.Segment.Value
+			res.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 
 			e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
 
-			return resp, nil
+			return res, nil
 		}
 	}
 
 	// If we have exhausted all rollouts and we still don't have a match, return the default value.
-	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-	resp.Value = flagValue
+	res.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
+	res.Value = flagValue
 	e.logger.Debug("default rollout matched", zap.Bool("value", flagValue))
 
-	return resp, nil
+	return res, nil
 }
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
