@@ -5,9 +5,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"os"
+	"path"
 	"time"
 
 	"dagger.io/dagger"
+	"golang.org/x/sync/errgroup"
 )
 
 func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container) error {
@@ -31,6 +33,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 			"./package.json",
 			"./package-lock.json",
 			"./playwright.config.ts",
+			"/screenshots/",
 		},
 	})
 
@@ -39,13 +42,13 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 		return err
 	}
 
-	cache := client.CacheVolume(fmt.Sprintf("node-modules-new-%x", sha256.Sum256([]byte(contents))))
+	cache := client.CacheVolume(fmt.Sprintf("node-modules-screenshot-%x", sha256.Sum256([]byte(contents))))
 
 	ui, err := client.Container().From("node:18-bullseye").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
 		WithExec([]string{"npm", "install"}).
-		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
+		WithExec([]string{"npx", "playwright@1.36.0", "install", "chromium", "--with-deps"}).
 		Sync(ctx)
 	if err != nil {
 		return err
@@ -67,17 +70,53 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 		return err
 	}
 
-	test, err := buildUI(ctx, ui, flipt)
+	entries, err := ui.Directory("screenshot").Entries(ctx)
 	if err != nil {
 		return err
 	}
 
-	_, err = test.
-		WithExec([]string{"node", "screenshot.js"}).
-		Directory("screenshots").
-		Export(ctx, "screenshots")
+	var (
+		g          errgroup.Group
+		containers = make(chan *dagger.Container, 0)
+	)
 
-	return err
+	go func() {
+		g.Wait()
+		close(containers)
+	}()
+
+	for _, entry := range entries {
+		entry := entry
+		g.Go(func() error {
+			test, err := buildUI(ctx, ui, flipt)
+			if err != nil {
+				return err
+			}
+
+			if ext := path.Ext(entry); ext != ".js" {
+				return nil
+			}
+
+			c, err := test.WithExec([]string{"node", path.Join("screenshot", entry)}).Sync(ctx)
+			if err != nil {
+				return err
+			}
+
+			containers <- c
+
+			return err
+		})
+	}
+
+	for c := range containers {
+		fmt.Println("exporting")
+		if _, err := c.Directory("screenshots").
+			Export(ctx, "screenshots"); err != nil {
+			return err
+		}
+	}
+
+	return g.Wait()
 }
 
 func buildUI(ctx context.Context, ui, flipt *dagger.Container) (_ *dagger.Container, err error) {
@@ -97,5 +136,6 @@ func buildUI(ctx context.Context, ui, flipt *dagger.Container) (_ *dagger.Contai
 			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
 			WithEnvVariable("UNIQUE", time.Now().String()).
 			WithExec(nil)).
+		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
 }
