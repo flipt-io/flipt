@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -67,7 +66,7 @@ func NewReporter(cfg config.Config, logger *zap.Logger, analyticsKey string, inf
 	// don't log from analytics package
 	analyticsLogger := func() analytics.Logger {
 		stdLogger := log.Default()
-		stdLogger.SetOutput(ioutil.Discard)
+		stdLogger.SetOutput(io.Discard)
 		return analytics.StdLogger(stdLogger)
 	}
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -328,7 +327,7 @@ func TestPing_Existing(t *testing.T) {
 			},
 		}
 
-		b, _     = ioutil.ReadFile("./testdata/telemetry_v1.json")
+		b, _     = os.ReadFile("./testdata/telemetry_v1.json")
 		in       = bytes.NewReader(b)
 		out      = bytes.NewBuffer(nil)
 		mockFile = &mockFile{
@@ -412,6 +411,6 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 	assert.Equal(t, "1.2", msg.Properties["version"])
 	assert.Equal(t, "1.0.0", msg.Properties["flipt"].(map[string]any)["version"])
 
-	b, _ := ioutil.ReadFile(path)
+	b, _ := os.ReadFile(path)
 	assert.NotEmpty(t, b)
 }
