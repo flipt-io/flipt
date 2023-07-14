@@ -32,6 +32,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "monaco-editor": "^0.40.0",
+    "monaco-themes": "^0.4.4",
     "nightwind": "^1.1.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

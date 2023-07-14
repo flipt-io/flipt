@@ -1,7 +1,7 @@
 import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
-import 'highlight.js/styles/tokyo-night-dark.css';
+import 'highlight.js/styles/tomorrow-night-bright.css';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
