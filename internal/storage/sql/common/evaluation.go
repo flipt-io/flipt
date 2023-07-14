@@ -162,6 +162,10 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 }
 
 func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT
 			r.id,

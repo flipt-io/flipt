@@ -2,7 +2,6 @@ package evaluation
 
 import (
 	"context"
-	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -13,7 +12,6 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
@@ -116,7 +114,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 		lastRank = rule.Rank
 
-		matched, err := e.matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
+		matched, err := matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
@@ -192,63 +190,9 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 	return resp, nil
 }
 
-func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (*rpcevaluation.BooleanEvaluationResponse, error) {
-	resp := &rpcevaluation.BooleanEvaluationResponse{}
-
-	var lastRank int32
-
-	for _, rollout := range rollouts {
-		if rollout.Rank < lastRank {
-			return nil, fmt.Errorf("rollout rank: %d detected out of order", rollout.Rank)
-		}
-
-		lastRank = rollout.Rank
-
-		if rollout.Threshold != nil {
-			// consistent hashing based on the entity id and flag key.
-			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
-
-			normalizedValue := float32(int(hash) % 100)
-
-			// if this case does not hold, fall through to the next rollout.
-			if normalizedValue < rollout.Threshold.Percentage {
-				resp.Value = rollout.Threshold.Value
-				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-				e.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
-
-				return resp, nil
-			}
-		} else if rollout.Segment != nil {
-			matched, err := e.matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
-			if err != nil {
-				return nil, err
-			}
-
-			// if we don't match the segment, fall through to the next rollout.
-			if !matched {
-				continue
-			}
-
-			resp.Value = rollout.Segment.Value
-			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-
-			e.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
-
-			return resp, nil
-		}
-	}
-
-	// If we have exhausted all rollouts and we still don't have a match, return the default value.
-	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
-	resp.Value = flagValue
-	e.logger.Debug("default rollout matched", zap.Bool("value", flagValue))
-
-	return resp, nil
-}
-
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
+func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
 	constraintMatches := 0
 
 	for _, c := range constraints {
@@ -306,17 +250,17 @@ func (e *Evaluator) matchConstraints(evalCtx map[string]string, constraints []st
 	switch segmentMatchType {
 	case flipt.MatchType_ALL_MATCH_TYPE:
 		if len(constraints) != constraintMatches {
-			e.logger.Debug("did not match ALL constraints")
+			// e.logger.Debug("did not match ALL constraints")
 			matched = false
 		}
 
 	case flipt.MatchType_ANY_MATCH_TYPE:
 		if len(constraints) > 0 && constraintMatches == 0 {
-			e.logger.Debug("did not match ANY constraints")
+			// e.logger.Debug("did not match ANY constraints")
 			matched = false
 		}
 	default:
-		e.logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
+		// e.logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
 		matched = false
 	}
 

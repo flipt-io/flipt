@@ -17,10 +17,6 @@ import (
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.Debug("evaluate", zap.Stringer("request", r))
 
-	if r.NamespaceKey == "" {
-		r.NamespaceKey = storage.DefaultNamespace
-	}
-
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		var resp = &flipt.EvaluationResponse{}

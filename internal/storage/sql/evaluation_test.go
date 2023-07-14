@@ -103,6 +103,89 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
 	assert.Equal(t, 2, len(evaluationRules[1].Constraints))
 }
+func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	// constraint 1
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:   "foo",
+		Operator:   "EQ",
+		Value:      "bar",
+	})
+
+	require.NoError(t, err)
+
+	// constraint 2
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:   "foz",
+		Operator:   "EQ",
+		Value:      "baz",
+	})
+
+	require.NoError(t, err)
+
+	// rule rank 1
+	rule1, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+		Rank:       1,
+	})
+
+	require.NoError(t, err)
+
+	// rule rank 2
+	rule2, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+		Rank:       2,
+	})
+
+	require.NoError(t, err)
+
+	evaluationRules, err := s.store.GetEvaluationRules(context.TODO(), "", flag.Key)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, evaluationRules)
+	assert.Equal(t, 2, len(evaluationRules))
+
+	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
+	assert.Equal(t, storage.DefaultNamespace, evaluationRules[0].NamespaceKey)
+	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
+	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].SegmentKey)
+	assert.Equal(t, segment.MatchType, evaluationRules[0].SegmentMatchType)
+	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
+	assert.Equal(t, 2, len(evaluationRules[0].Constraints))
+
+	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
+	assert.Equal(t, storage.DefaultNamespace, evaluationRules[1].NamespaceKey)
+	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
+	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].SegmentKey)
+	assert.Equal(t, segment.MatchType, evaluationRules[1].SegmentMatchType)
+	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
+	assert.Equal(t, 2, len(evaluationRules[1].Constraints))
+}
 
 func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 	t := s.T()
@@ -593,6 +676,83 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 	require.NoError(t, err)
 
 	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	require.NoError(t, err)
+
+	assert.Equal(t, 2, len(evaluationRollouts))
+
+	assert.Equal(t, "default", evaluationRollouts[0].NamespaceKey)
+	assert.Equal(t, int32(1), evaluationRollouts[0].Rank)
+	assert.NotNil(t, evaluationRollouts[0].Threshold)
+	assert.Equal(t, float32(50.0), evaluationRollouts[0].Threshold.Percentage)
+	assert.False(t, evaluationRollouts[0].Threshold.Value, "percentage value is false")
+
+	assert.Equal(t, "default", evaluationRollouts[1].NamespaceKey)
+	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
+	assert.NotNil(t, evaluationRollouts[1].Segment)
+	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)
+	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.MatchType)
+	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
+}
+
+func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+		Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
+		SegmentKey: segment.Key,
+		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+		Property:   "foo",
+		Operator:   "EQ",
+		Value:      "bar",
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		FlagKey: flag.Key,
+		Rank:    1,
+		Rule: &flipt.CreateRolloutRequest_Threshold{
+			Threshold: &flipt.RolloutThreshold{
+				Percentage: 50.0,
+				Value:      false,
+			},
+		},
+	})
+
+	require.NoError(t, err)
+
+	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
+		FlagKey: flag.Key,
+		Rank:    2,
+		Rule: &flipt.CreateRolloutRequest_Segment{
+			Segment: &flipt.RolloutSegment{
+				SegmentKey: segment.Key,
+				Value:      true,
+			},
+		},
+	})
+
+	require.NoError(t, err)
+
+	evaluationRollouts, err := s.store.GetEvaluationRollouts(context.TODO(), "", flag.Key)
 	require.NoError(t, err)
 
 	assert.Equal(t, 2, len(evaluationRollouts))

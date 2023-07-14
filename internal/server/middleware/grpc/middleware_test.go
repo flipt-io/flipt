@@ -936,7 +936,7 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
 		Key:     "foo",
-		Enabled: false,
+		Enabled: true,
 		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
