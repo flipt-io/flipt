@@ -10,15 +10,16 @@ import Loading from '~/components/Loading';
 import { updateRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
+import { IFlag } from '~/types/Flag';
 import { IRollout, RolloutType } from '~/types/Rollout';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
 type QuickEditRolloutFormProps = {
-  onSuccess: () => void;
-  flagKey: string;
+  flag: IFlag;
   rollout: IRollout;
   segments: ISegment[];
+  onSuccess?: () => void;
 };
 
 interface RolloutFormValues {
@@ -28,7 +29,7 @@ interface RolloutFormValues {
 }
 
 export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
-  const { onSuccess, flagKey, rollout, segments } = props;
+  const { onSuccess, flag, rollout, segments } = props;
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
@@ -53,7 +54,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     let rolloutSegment = rollout;
     rolloutSegment.threshold = undefined;
 
-    return updateRollout(namespace.key, flagKey, rollout.id, {
+    return updateRollout(namespace.key, flag.key, rollout.id, {
       ...rolloutSegment,
       segment: {
         segmentKey: values.segmentKey || '',
@@ -66,7 +67,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     let rolloutThreshold = rollout;
     rolloutThreshold.segment = undefined;
 
-    return updateRollout(namespace.key, flagKey, rollout.id, {
+    return updateRollout(namespace.key, flag.key, rollout.id, {
       ...rolloutThreshold,
       threshold: {
         percentage: values.percentage || 0,
@@ -104,9 +105,9 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
 
         handleSubmit(values)
           .then(() => {
-            onSuccess();
             clearError();
             setSuccess('Successfully updated rollout');
+            onSuccess && onSuccess();
           })
           .catch((err) => {
             setError(err);

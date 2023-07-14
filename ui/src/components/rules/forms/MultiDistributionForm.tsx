@@ -11,7 +11,7 @@ export default function MultiDistributionFormInputs(
   const { distributions, setDistributions } = props;
 
   return (
-    <div>
+    <div className="sm:pb-4">
       <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
         <div>
           <label

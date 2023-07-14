@@ -1,18 +1,19 @@
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { forwardRef, Fragment, Ref } from 'react';
+import { IFlag } from '~/types/Flag';
 import { IRollout, rolloutTypeToLabel } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
 import { classNames } from '~/utils/helpers';
 import QuickEditRolloutForm from './forms/QuickEditRolloutForm';
 
 type RolloutProps = {
-  flagKey: string;
+  flag: IFlag;
   rollout: IRollout;
   segments: ISegment[];
-  onSuccess: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onSuccess?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
   readOnly?: boolean;
@@ -21,7 +22,7 @@ type RolloutProps = {
 const Rollout = forwardRef(
   (
     {
-      flagKey,
+      flag,
       rollout,
       segments,
       onSuccess,
@@ -119,7 +120,7 @@ const Rollout = forwardRef(
       <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
         <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
           <QuickEditRolloutForm
-            flagKey={flagKey}
+            flag={flag}
             rollout={rollout}
             segments={segments}
             onSuccess={onSuccess}

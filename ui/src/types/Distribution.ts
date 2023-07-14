@@ -12,3 +12,9 @@ export interface IDistribution extends IDistributionBase {
   createdAt: string;
   updatedAt: string;
 }
+
+export enum DistributionType {
+  None = 'none',
+  Single = 'single',
+  Multi = 'multi'
+}
