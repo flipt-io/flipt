@@ -123,7 +123,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		return nil, err
 	}
 
-	resp, err := s.evaluator.booleanMatch(r, flag.Enabled, rollouts)
+	resp, err := s.evaluator.booleanMatch(ctx, r, flag.Enabled, rollouts)
 	if err != nil {
 		return nil, err
 	}

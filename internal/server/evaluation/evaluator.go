@@ -193,7 +193,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 	return resp, nil
 }
 
-func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (resp *rpcevaluation.BooleanEvaluationResponse, err error) {
+func (e *Evaluator) booleanMatch(ctx context.Context, r *rpcevaluation.EvaluationRequest, flagValue bool, rollouts []*storage.EvaluationRollout) (resp *rpcevaluation.BooleanEvaluationResponse, err error) {
 	res := &rpcevaluation.BooleanEvaluationResponse{}
 
 	var (
@@ -202,7 +202,6 @@ func (e *Evaluator) booleanMatch(r *rpcevaluation.EvaluationRequest, flagValue b
 		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
 	)
 
-	ctx := context.Background()
 	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
 
 	defer func() {
