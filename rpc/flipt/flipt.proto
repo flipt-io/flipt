@@ -96,7 +96,7 @@ message Flag {
   string key = 1;
   string name = 2;
   string description = 3;
-  bool enabled = 4;
+  optional bool enabled = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
   repeated Variant variants = 7;
