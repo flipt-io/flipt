@@ -526,6 +526,7 @@ func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistribut
 }
 
 // UpdateDistribution updates an existing distribution
+// TODO: we dont let user to update variant_id currently.. we should
 func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
