@@ -2,6 +2,7 @@ package evaluation
 
 import (
 	"context"
+	"fmt"
 	"hash/crc32"
 	"sort"
 	"strconv"
@@ -114,13 +115,14 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 		lastRank = rule.Rank
 
-		matched, err := matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
+		matched, reason, err := matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
 		if err != nil {
 			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
 			return resp, err
 		}
 
 		if !matched {
+			e.logger.Debug(reason)
 			continue
 		}
 
@@ -192,8 +194,10 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, error) {
+func matchConstraints(evalCtx map[string]string, constraints []storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, string, error) {
 	constraintMatches := 0
+
+	var reason string
 
 	for _, c := range constraints {
 		v := evalCtx[c.Property]
@@ -213,11 +217,11 @@ func matchConstraints(evalCtx map[string]string, constraints []storage.Evaluatio
 		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
 			match, err = matchesDateTime(c, v)
 		default:
-			return false, errs.ErrInvalid("unknown constraint type")
+			return false, reason, errs.ErrInvalid("unknown constraint type")
 		}
 
 		if err != nil {
-			return false, err
+			return false, reason, err
 		}
 
 		if match {
@@ -250,21 +254,21 @@ func matchConstraints(evalCtx map[string]string, constraints []storage.Evaluatio
 	switch segmentMatchType {
 	case flipt.MatchType_ALL_MATCH_TYPE:
 		if len(constraints) != constraintMatches {
-			// e.logger.Debug("did not match ALL constraints")
+			reason = "did not match ALL constraints"
 			matched = false
 		}
 
 	case flipt.MatchType_ANY_MATCH_TYPE:
 		if len(constraints) > 0 && constraintMatches == 0 {
-			// e.logger.Debug("did not match ANY constraints")
+			reason = "did not match ANY constraints"
 			matched = false
 		}
 	default:
-		// e.logger.Error("unknown match type", zap.Int32("match_type", int32(segmentMatchType)))
+		reason = fmt.Sprintf("unknown match type %d", segmentMatchType)
 		matched = false
 	}
 
-	return matched, nil
+	return matched, reason, nil
 }
 
 func crc32Num(entityID string, salt string) uint {

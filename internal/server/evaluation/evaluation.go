@@ -142,13 +142,14 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 				return resp, nil
 			}
 		} else if rollout.Segment != nil {
-			matched, err := matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
+			matched, reason, err := matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
 			if err != nil {
 				return nil, err
 			}
 
 			// if we don't match the segment, fall through to the next rollout.
 			if !matched {
+				s.logger.Debug(reason)
 				continue
 			}
 
