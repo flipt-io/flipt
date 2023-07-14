@@ -18,6 +18,9 @@ jobs:
   test:
     name: "Tests (Go)"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        database: ["mysql", "postgres", "cockroachdb", "sqlite"]
     steps:
       - uses: actions/checkout@v3
 
@@ -32,10 +35,11 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Unit Test ${{ matrix.database }}
+        uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
           version: latest
-          args: dagger:run test:unit
+          args: dagger:run test:${{ matrix.database }}
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.4
@@ -82,23 +86,3 @@ jobs:
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.4
-
-  database:
-    name: Database Test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        database: ["mysql", "postgres", "cockroachdb"]
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
-
-      - name: Unit Test ${{ matrix.database }}
-        env:
-          FLIPT_TEST_DATABASE_PROTOCOL: ${{ matrix.database }}
-        run: go test -count=1 -v ./...
