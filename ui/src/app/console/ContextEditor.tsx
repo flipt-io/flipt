@@ -13,7 +13,7 @@ export default function ContextEditor(props: ContextEditorProps) {
 
   const handleContextEditorChange = (
     value: string | undefined,
-    editorValue: editor.IModelContentChangedEvent
+    _editorValue: editor.IModelContentChangedEvent
   ) => {
     field.onChange({ target: { value: value || '', id } });
   };
