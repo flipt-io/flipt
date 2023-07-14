@@ -172,6 +172,9 @@ func (r Release) Tag(ctx context.Context, module, version string) error {
 	return release.Tag(ctx, module, version)
 }
 
+// Hack contains all the targets we're still experimenting with
+type Hack mg.Namespace
+
 func daggerBuild(ctx context.Context, fn func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error) error {
 	return daggerRun(ctx, func(client *dagger.Client, req internal.FliptRequest) error {
 		base, err := internal.Base(ctx, client, req)
