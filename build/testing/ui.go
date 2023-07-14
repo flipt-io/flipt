@@ -21,10 +21,15 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 	_, err = test.
 		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
 		WithExec([]string{"npx", "playwright", "test"}).
-		Directory("playwright-report").
+		Sync(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, _ = test.Directory("playwright-report").
 		Export(ctx, "playwright-report")
 
-	return err
+	return nil
 }
 
 func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
