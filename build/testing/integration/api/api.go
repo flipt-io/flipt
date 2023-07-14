@@ -823,7 +823,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
-				assert.False(t, result.Value, "value should be the flag state")
+				assert.False(t, result.Enabled, "value should be the flag state")
 			})
 
 			t.Run("percentage match", func(t *testing.T) {
@@ -839,7 +839,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-				assert.False(t, result.Value, "value should be threshold match value")
+				assert.False(t, result.Enabled, "value should be threshold match value")
 			})
 
 			t.Run("segment match", func(t *testing.T) {
@@ -856,7 +856,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-				assert.True(t, result.Value, "value should be segment match value")
+				assert.True(t, result.Enabled, "value should be segment match value")
 			})
 		})
 
@@ -901,7 +901,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.True(t, ok, "value should be boolean response")
 				assert.Equal(t, evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, result.Responses[0].Type)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
-				assert.False(t, b.BooleanResponse.Value, "value should be threshold match value")
+				assert.False(t, b.BooleanResponse.Enabled, "value should be threshold match value")
 
 				v, ok := result.Responses[1].Response.(*evaluation.EvaluationResponse_VariantResponse)
 				assert.True(t, ok, "value should be variant response")
