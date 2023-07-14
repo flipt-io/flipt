@@ -101,7 +101,12 @@ func (t Test) Database(ctx context.Context, db string) error {
 			return err
 		}
 
-		return testing.Unit(testing.All[db](ctx, client, base))
+		test, ok := testing.All[db]
+		if !ok {
+			return fmt.Errorf("unexpected database name: %q", db)
+		}
+
+		return testing.Unit(test(ctx, client, base))
 	})
 }
 

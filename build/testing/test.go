@@ -51,10 +51,10 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 }
 
 var All = map[string]Wrapper{
-	"sqlite":    WithSQLite,
-	"postgres":  WithPostgres,
-	"mysql":     WithMySQL,
-	"cockroach": WithCockroach,
+	"sqlite":      WithSQLite,
+	"postgres":    WithPostgres,
+	"mysql":       WithMySQL,
+	"cockroachdb": WithCockroach,
 }
 
 type Wrapper func(context.Context, *dagger.Client, *dagger.Container) (context.Context, *dagger.Client, *dagger.Container)
