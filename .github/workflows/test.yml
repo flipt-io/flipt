@@ -39,7 +39,7 @@ jobs:
         uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
           version: latest
-          args: dagger:run test:${{ matrix.database }}
+          args: dagger:run "test:database ${{ matrix.database }}"
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.4
