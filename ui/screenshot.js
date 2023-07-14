@@ -35,7 +35,7 @@ const capture = async function(name, fn) {
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 },
+    viewport: { width: 1440, height: 900 },
   });
   const page = await context.newPage();
 
