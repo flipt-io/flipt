@@ -48,7 +48,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
 		WithExec([]string{"npm", "install"}).
-		WithExec([]string{"npx", "playwright@1.36.0", "install", "chromium", "--with-deps"}).
+		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
 		Sync(ctx)
 	if err != nil {
 		return err
@@ -109,7 +109,6 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	}
 
 	for c := range containers {
-		fmt.Println("exporting")
 		if _, err := c.Directory("screenshots").
 			Export(ctx, "screenshots"); err != nil {
 			return err
