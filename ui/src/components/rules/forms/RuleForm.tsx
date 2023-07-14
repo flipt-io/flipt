@@ -14,7 +14,7 @@ import { createDistribution, createRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
-import { IDistributionVariant } from '~/types/Distribution';
+import { DistributionType, IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
@@ -22,17 +22,19 @@ import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './MultiDistributionForm';
 import SingleDistributionFormInput from './SingleDistributionForm';
 
-export const distTypeSingle = 'single';
-export const distTypeMulti = 'multi';
-
 export const distTypes = [
   {
-    id: distTypeSingle,
+    id: DistributionType.None,
+    name: 'No Variants',
+    description: 'No variants will be returned'
+  },
+  {
+    id: DistributionType.Single,
     name: 'Single Variant',
     description: 'Always returns the same variant'
   },
   {
-    id: distTypeMulti,
+    id: DistributionType.Multi,
     name: 'Multi-Variant',
     description: 'Returns different variants based on percentages'
   }
@@ -80,7 +82,7 @@ export default function RuleForm(props: RuleFormProps) {
 
   const [distributionsValid, setDistributionsValid] = useState<boolean>(true);
 
-  const [ruleType, setRuleType] = useState(distTypeSingle);
+  const [ruleType, setRuleType] = useState(DistributionType.None);
 
   const [selectedSegment, setSelectedSegment] =
     useState<FilterableSegment | null>(null);
@@ -99,7 +101,7 @@ export default function RuleForm(props: RuleFormProps) {
 
   useEffect(() => {
     if (
-      ruleType === distTypeMulti &&
+      ruleType === DistributionType.Multi &&
       distributions &&
       !validRollout(distributions)
     ) {
@@ -119,7 +121,7 @@ export default function RuleForm(props: RuleFormProps) {
       rank
     });
 
-    if (ruleType === distTypeMulti) {
+    if (ruleType === DistributionType.Multi) {
       const distPromises = distributions?.map((dist: IDistributionVariant) =>
         createDistribution(namespace.key, flag.key, rule.id, {
           variantId: dist.variantId,
@@ -212,74 +214,80 @@ export default function RuleForm(props: RuleFormProps) {
                     />
                   </div>
                 </div>
-                {flag.variants && (
-                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
-                    <div>
-                      <label
-                        htmlFor="ruleType"
-                        className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                      >
-                        Type
-                      </label>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <fieldset>
-                        <legend className="sr-only">Type</legend>
-                        <div className="space-y-5">
-                          {distTypes.map((dist) => (
-                            <div
-                              key={dist.id}
-                              className="relative flex items-start"
-                            >
-                              <div className="flex h-5 items-center">
-                                <input
-                                  id={dist.id}
-                                  aria-describedby={`${dist.id}-description`}
-                                  name="ruleType"
-                                  type="radio"
-                                  className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
-                                  onChange={() => {
-                                    setRuleType(dist.id);
-                                  }}
-                                  checked={dist.id === ruleType}
-                                  value={dist.id}
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <label
-                                  htmlFor={dist.id}
-                                  className="font-medium text-gray-700"
-                                >
-                                  {dist.name}
-                                </label>
-                                <p
-                                  id={`${dist.id}-description`}
-                                  className="text-gray-500"
-                                >
-                                  {dist.description}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </fieldset>
-                    </div>
+                <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                  <div>
+                    <label
+                      htmlFor="ruleType"
+                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    >
+                      Type
+                    </label>
                   </div>
-                )}
-                {flag.variants && ruleType === distTypeSingle && (
-                  <SingleDistributionFormInput
-                    variants={flag.variants}
-                    selectedVariant={selectedVariant}
-                    setSelectedVariant={setSelectedVariant}
-                  />
-                )}
-                {flag.variants && ruleType === distTypeMulti && (
-                  <MultiDistributionFormInputs
-                    distributions={distributions}
-                    setDistributions={setDistributions}
-                  />
-                )}
-                {!distributionsValid && (
+                  <div className="sm:col-span-2">
+                    <fieldset>
+                      <legend className="sr-only">Type</legend>
+                      <div className="space-y-5">
+                        {distTypes.map((dist) => (
+                          <div
+                            key={dist.id}
+                            className="relative flex items-start"
+                          >
+                            <div className="flex h-5 items-center">
+                              <input
+                                id={dist.id}
+                                aria-describedby={`${dist.id}-description`}
+                                name="ruleType"
+                                type="radio"
+                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                                onChange={() => {
+                                  setRuleType(dist.id);
+                                }}
+                                checked={dist.id === ruleType}
+                                value={dist.id}
+                                disabled={
+                                  dist.id !== DistributionType.None &&
+                                  (!flag.variants || flag.variants.length === 0)
+                                }
+                              />
+                            </div>
+                            <div className="ml-3 text-sm">
+                              <label
+                                htmlFor={dist.id}
+                                className="font-medium text-gray-700"
+                              >
+                                {dist.name}
+                              </label>
+                              <p
+                                id={`${dist.id}-description`}
+                                className="text-gray-500"
+                              >
+                                {dist.description}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                {flag.variants &&
+                  flag.variants.length > 0 &&
+                  ruleType === DistributionType.Single && (
+                    <SingleDistributionFormInput
+                      variants={flag.variants}
+                      selectedVariant={selectedVariant}
+                      setSelectedVariant={setSelectedVariant}
+                    />
+                  )}
+                {flag.variants &&
+                  flag.variants.length > 0 &&
+                  ruleType === DistributionType.Multi && (
+                    <MultiDistributionFormInputs
+                      distributions={distributions}
+                      setDistributions={setDistributions}
+                    />
+                  )}
+                {!distributionsValid && ruleType === DistributionType.Multi && (
                   <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
                     Multi-variant rules must have distributions that add up to
                     100% or less.

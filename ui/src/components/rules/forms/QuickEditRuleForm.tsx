@@ -8,18 +8,19 @@ import Loading from '~/components/Loading';
 import { updateDistribution, updateRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
+import { DistributionType } from '~/types/Distribution';
 import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
-import { distTypeMulti, distTypes, distTypeSingle } from './RuleForm';
+import { distTypes } from './RuleForm';
 
 type QuickEditRuleFormProps = {
-  onSuccess: () => void;
   flag: IFlag;
   rule: IEvaluatable;
   segments: ISegment[];
+  onSuccess?: () => void;
 };
 
 export const validRollout = (rollouts: IVariantRollout[]): boolean => {
@@ -43,7 +44,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
   const namespace = useSelector(selectCurrentNamespace);
 
-  const ruleType = rule.rollouts.length > 1 ? distTypeMulti : distTypeSingle;
+  const ruleType =
+    rule.rollouts.length === 0
+      ? DistributionType.None
+      : rule.rollouts.length === 1
+      ? DistributionType.Single
+      : DistributionType.Multi;
 
   const [selectedSegment, setSelectedSegment] =
     useState<FilterableSegment | null>(() => {
@@ -60,7 +66,11 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
-      if (ruleType !== distTypeSingle) return null;
+      if (ruleType !== DistributionType.Single) return null;
+
+      if (rule.rollouts.length !== 1) {
+        return null;
+      }
 
       let selected = rule.rollouts[0].variant;
       if (selected) {
@@ -87,7 +97,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       }
     }
 
-    if (ruleType === distTypeMulti) {
+    if (ruleType === DistributionType.Multi) {
       // update distributions that changed
       Promise.all(
         values.rollouts.map((rollout) => {
@@ -115,7 +125,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     }
     // TODO: enable once we allow user to change variant of existing single dist rule
 
-    // } else if (ruleType === distTypeSingle && selectedVariant) {
+    // } else if (ruleType === DistributionType.Single && selectedVariant) {
     //   // update variant if changed
     //   if (rule.rollouts[0].distribution.variantId !== selectedVariant.id) {
     //     try {
@@ -156,7 +166,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
           ?.then(() => {
             clearError();
             setSuccess('Successfully updated rule');
-            onSuccess();
+            onSuccess && onSuccess();
           })
           .catch((err) => {
             setError(err);
@@ -236,34 +246,36 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                   </div>
                 </div>
 
-                {ruleType === distTypeSingle && (
-                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
-                    <div>
-                      <label
-                        htmlFor="variantKey"
-                        className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
-                      >
-                        Variant
-                      </label>
+                {ruleType === DistributionType.Single &&
+                  flag.variants &&
+                  flag.variants.length > 0 && (
+                    <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
+                      <div>
+                        <label
+                          htmlFor="variantKey"
+                          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                        >
+                          Variant
+                        </label>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <Combobox<FilterableVariant>
+                          id="variantKey"
+                          name="variantKey"
+                          values={flag.variants?.map((v) => ({
+                            ...v,
+                            filterValue: truncateKey(v.key),
+                            displayValue: v.key
+                          }))}
+                          selected={selectedVariant}
+                          setSelected={setSelectedVariant}
+                          disabled
+                        />
+                      </div>
                     </div>
-                    <div className="sm:col-span-2">
-                      <Combobox<FilterableVariant>
-                        id="variantKey"
-                        name="variantKey"
-                        values={flag.variants?.map((v) => ({
-                          ...v,
-                          filterValue: truncateKey(v.key),
-                          displayValue: v.key
-                        }))}
-                        selected={selectedVariant}
-                        setSelected={setSelectedVariant}
-                        disabled
-                      />
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {ruleType === distTypeMulti && (
+                {ruleType === DistributionType.Multi && (
                   <div>
                     <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                       <div>
@@ -282,12 +294,9 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                           {formik.values.rollouts &&
                             formik.values.rollouts.length > 0 &&
                             formik.values.rollouts?.map((dist, index) => (
-                              <>
+                              <div key={index}>
                                 {dist && (
-                                  <div
-                                    className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1"
-                                    key={index}
-                                  >
+                                  <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-1">
                                     <div>
                                       <label
                                         htmlFor={`rollouts.[${index}].distribution.rollout`}
@@ -317,7 +326,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                     </div>
                                   </div>
                                 )}
-                              </>
+                              </div>
                             ))}
                         </>
                       )}
