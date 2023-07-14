@@ -43,3 +43,4 @@ Brewfile.lock.json
 .build/
 examples/cockroachdb/data
 playwright-report/
+build/hack/out/

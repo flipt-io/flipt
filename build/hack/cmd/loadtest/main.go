@@ -38,6 +38,8 @@ func init() {
 }
 
 func run() error {
+	flag.Parse()
+
 	evaluationTargets := make([]vegeta.Target, 0, 2)
 
 	variantEvaluation := Evaluation{
