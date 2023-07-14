@@ -186,16 +186,6 @@ export async function createRollout(
   return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`, values);
 }
 
-export async function deleteRollout(
-  namespaceKey: string,
-  flagKey: string,
-  rolloutId: string
-) {
-  return del(
-    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`
-  );
-}
-
 export async function updateRollout(
   namespaceKey: string,
   flagKey: string,
@@ -206,6 +196,42 @@ export async function updateRollout(
     `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`,
     values
   );
+}
+
+export async function deleteRollout(
+  namespaceKey: string,
+  flagKey: string,
+  rolloutId: string
+) {
+  return del(
+    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`
+  );
+}
+
+export async function orderRollouts(
+  namespaceKey: string,
+  flagKey: string,
+  rolloutIds: string[]
+) {
+  const req = setCsrf({
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      rolloutIds: rolloutIds
+    })
+  });
+
+  const res = await fetch(
+    `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/order`,
+    req
+  );
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message);
+  }
+  return res.ok;
 }
 
 //
@@ -220,6 +246,18 @@ export async function createRule(
   values: IRuleBase
 ) {
   return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rules`, values);
+}
+
+export async function updateRule(
+  namespaceKey: string,
+  flagKey: string,
+  ruleId: string,
+  values: IRuleBase
+) {
+  return put(
+    `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}`,
+    values
+  );
 }
 
 export async function deleteRule(

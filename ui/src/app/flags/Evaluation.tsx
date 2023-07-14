@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
@@ -23,9 +23,8 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
-import EditRuleForm from '~/components/rules/EditRuleForm';
+import RuleForm from '~/components/rules/forms/RuleForm';
 import Rule from '~/components/rules/Rule';
-import RuleForm from '~/components/rules/RuleForm';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
 import { deleteRule, listRules, listSegments, orderRules } from '~/data/api';
@@ -49,9 +48,6 @@ export default function Evaluation() {
   const [rulesVersion, setRulesVersion] = useState(0);
   const [showRuleForm, setShowRuleForm] = useState<boolean>(false);
 
-  const [showEditRuleForm, setShowEditRuleForm] = useState<boolean>(false);
-  const [editingRule, setEditingRule] = useState<IEvaluatable | null>(null);
-
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
     useState<boolean>(false);
   const [deletingRule, setDeletingRule] = useState<IEvaluatable | null>(null);
@@ -63,6 +59,7 @@ export default function Evaluation() {
   const readOnly = useSelector(selectReadonly);
 
   const loadData = useCallback(async () => {
+    // TODO: move to redux
     const segmentList = (await listSegments(namespace.key)) as ISegmentList;
     const { segments } = segmentList;
     setSegments(segments);
@@ -207,20 +204,6 @@ export default function Evaluation() {
         />
       </Slideover>
 
-      {/* rule edit form */}
-      {editingRule && (
-        <Slideover open={showEditRuleForm} setOpen={setShowEditRuleForm}>
-          <EditRuleForm
-            rule={editingRule}
-            setOpen={setShowEditRuleForm}
-            onSuccess={() => {
-              incrementRulesVersion();
-              setShowEditRuleForm(false);
-            }}
-          />
-        </Slideover>
-      )}
-
       {/* rules */}
       <div className="my-10">
         <div className="sm:flex sm:items-center">
@@ -241,6 +224,10 @@ export default function Evaluation() {
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
+                <PlusIcon
+                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
+                  aria-hidden="true"
+                />
                 New Rule
               </Button>
             </div>
@@ -257,13 +244,13 @@ export default function Evaluation() {
                 </p>
                 <p className="text-sm font-light text-gray-700">
                   <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
-                  You can re-arrange rules by{' '}
+                  You can re-arrange rules by clicking in the header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   them into place.
                 </p>
               </div>
               <div
-                className="pattern-boxes w-full border p-2 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+                className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
   lg:w-3/4 lg:p-6"
               >
                 <DndContext
@@ -282,13 +269,10 @@ export default function Evaluation() {
                         rules.map((rule) => (
                           <SortableRule
                             key={rule.id}
-                            totalRules={rules.length}
-                            namespace={namespace}
+                            flag={flag}
                             rule={rule}
-                            onEdit={() => {
-                              setEditingRule(rule);
-                              setShowEditRuleForm(true);
-                            }}
+                            segments={segments}
+                            onSuccess={incrementRulesVersion}
                             onDelete={() => {
                               setDeletingRule(rule);
                               setShowDeleteRuleModal(true);
@@ -300,11 +284,7 @@ export default function Evaluation() {
                   </SortableContext>
                   <DragOverlay>
                     {activeRule ? (
-                      <Rule
-                        namespace={namespace}
-                        totalRules={rules.length}
-                        rule={activeRule}
-                      />
+                      <Rule flag={flag} rule={activeRule} segments={segments} />
                     ) : null}
                   </DragOverlay>
                 </DndContext>
@@ -315,7 +295,6 @@ export default function Evaluation() {
               text="New Rule"
               disabled={readOnly}
               onClick={() => {
-                setEditingRule(null);
                 setShowRuleForm(true);
               }}
             />

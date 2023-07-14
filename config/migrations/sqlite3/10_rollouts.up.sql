@@ -4,10 +4,9 @@ CREATE TABLE IF NOT EXISTS rollouts (
   flag_key VARCHAR(255) NOT NULL,
   type INTEGER DEFAULT 0 NOT NULL,
   description TEXT NOT NULL,
-  rank INTEGER DEFAULT 0 NOT NULL,
+  rank INTEGER DEFAULT 1 NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  UNIQUE (namespace_key, flag_key, rank),
   FOREIGN KEY (namespace_key, flag_key) REFERENCES flags (namespace_key, key) ON DELETE CASCADE
 );
 
