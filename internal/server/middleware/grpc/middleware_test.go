@@ -375,7 +375,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
-		NamespaceKey: storage.DefaultNamespace,
+		NamespaceKey: flipt.DefaultNamespace,
 		Key:          "foo",
 		Enabled:      true,
 	}, nil)

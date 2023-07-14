@@ -299,11 +299,11 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 
 // CountRollouts counts all rollouts
 func (s *Store) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	var count uint64
-
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
+	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From(tableRollouts).
