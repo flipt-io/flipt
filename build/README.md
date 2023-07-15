@@ -73,3 +73,11 @@ These tests exercise the Flipt Go SDK against a matrix of Flipt configurations.
 ### CLI Tests
 
 `mage test:cli` runs a suite of [CLI tests](./testing/cli.go) invoking the `flipt` binary and its subcommands.
+
+## Hack
+
+The `hack` namespace within the Mage targets can be used to run various tasks that are under active development.
+
+```sh
+  hack:loadTest       runs a load test against a running instance of Flipt using Pyroscope and vegeta.
+```
