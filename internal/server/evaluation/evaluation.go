@@ -37,15 +37,10 @@ func (s *Server) Variant(ctx context.Context, v *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeFlag.String(v.FlagKey),
 		fliptotel.AttributeEntityID.String(v.EntityId),
 		fliptotel.AttributeRequestID.String(v.RequestId),
-	}
-
-	if ver != nil {
-		spanAttrs = append(spanAttrs,
-			fliptotel.AttributeMatch.Bool(ver.Match),
-			fliptotel.AttributeValue.String(ver.VariantKey),
-			fliptotel.AttributeReason.String(ver.Reason.String()),
-			fliptotel.AttributeSegment.String(ver.SegmentKey),
-		)
+		fliptotel.AttributeMatch.Bool(ver.Match),
+		fliptotel.AttributeValue.String(ver.VariantKey),
+		fliptotel.AttributeReason.String(ver.Reason.String()),
+		fliptotel.AttributeSegment.String(ver.SegmentKey),
 	}
 
 	// add otel attributes to span
@@ -101,7 +96,25 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
-	return s.boolean(ctx, flag, r)
+	ber, err := s.boolean(ctx, flag, r)
+	if err != nil {
+		return nil, err
+	}
+
+	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
+		fliptotel.AttributeFlag.String(r.FlagKey),
+		fliptotel.AttributeEntityID.String(r.EntityId),
+		fliptotel.AttributeRequestID.String(r.RequestId),
+		fliptotel.AttributeValue.Bool(ber.Value),
+		fliptotel.AttributeReason.String(ber.Reason.String()),
+	}
+
+	// add otel attributes to span
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(spanAttrs...)
+
+	return ber, nil
 }
 
 func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
@@ -110,7 +123,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		return nil, err
 	}
 
-	resp, err := s.evaluator.booleanMatch(r, flag.Enabled, rollouts)
+	resp, err := s.evaluator.booleanMatch(ctx, r, flag.Enabled, rollouts)
 	if err != nil {
 		return nil, err
 	}
