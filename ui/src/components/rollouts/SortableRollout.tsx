@@ -1,20 +1,21 @@
 import { useSortable } from '@dnd-kit/sortable';
+import { IFlag } from '~/types/Flag';
 import { IRollout } from '~/types/Rollout';
 import { ISegment } from '~/types/Segment';
 import Rollout from './Rollout';
 
 type SortableRolloutProps = {
-  flagKey: string;
+  flag: IFlag;
   rollout: IRollout;
   segments: ISegment[];
-  onSuccess: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onSuccess?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   readOnly?: boolean;
 };
 
 export default function SortableRollout(props: SortableRolloutProps) {
-  const { flagKey, rollout, segments, onSuccess, onEdit, onDelete, readOnly } =
+  const { flag, rollout, segments, onSuccess, onEdit, onDelete, readOnly } =
     props;
   const {
     isDragging,
@@ -45,7 +46,7 @@ export default function SortableRollout(props: SortableRolloutProps) {
       {...attributes}
       style={style}
       className={className}
-      flagKey={flagKey}
+      flag={flag}
       rollout={rollout}
       segments={segments}
       onSuccess={onSuccess}
