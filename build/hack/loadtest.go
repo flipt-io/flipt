@@ -22,14 +22,16 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 		return err
 	}
 
-	// run the loadtest binary from within the pyroscope container, attempting to mount the adhoc data
+	// run the loadtest binary from within the pyroscope container and mount the adhoc data
 	// output to the host
 	_, err = client.Container().
 		From("pyroscope/pyroscope:latest").
 		WithServiceBinding("flipt", flipt).
-		WithMountedDirectory(path, client.Host().Directory("build/hack/out")).
+		WithMountedDirectory(path, client.Host().Directory("build/hack/out"), dagger.ContainerWithMountedDirectoryOpts{
+			Owner: "pyroscope",
+		}).
 		WithFile("loadtest", client.Host().Directory("build/hack/out").File("loadtest")).
-		WithExec([]string{"adhoc", "--log-level", "debug", "--url", "flipt:8080", "./loadtest"}).
+		WithExec([]string{"adhoc", "--log-level", "debug", "--url", "flipt:8080", "./loadtest", "-duration", "30s"}).
 		ExitCode(ctx)
 
 	return err
