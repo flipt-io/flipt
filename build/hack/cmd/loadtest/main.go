@@ -34,7 +34,7 @@ var (
 
 func init() {
 	flag.DurationVar(&dur, "duration", 120*time.Second, "duration of load test for evaluations")
-	flag.StringVar(&fliptAddr, "flipt-addr", "http://127.0.0.1:8080", "address of the flipt instance")
+	flag.StringVar(&fliptAddr, "flipt-addr", "http://flipt:8080", "address of the flipt instance")
 }
 
 func run() error {

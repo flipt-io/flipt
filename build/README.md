@@ -81,3 +81,15 @@ The `hack` namespace within the Mage targets can be used to run various tasks th
 ```sh
   hack:loadTest       runs a load test against a running instance of Flipt using Pyroscope and vegeta.
 ```
+
+### Load Test
+
+`mage hack:loadTest` runs a load test against a running instance of Flipt using [Pyroscope](https://pyroscope.io) and vegeta.
+
+After running this command, the results will be available in the `./build/hack/out/profiles` directory.
+
+You can view the results using the Pyroscope UI by running `pyroscope server --adhoc-data-path="$(pwd)/hack/out/profiles"`. 
+
+This will start the Pyroscope server on `http://localhost:4040`. 
+
+**Note:** You will need to have Pyroscope installed locally to run this command (See [Pyroscope Quick Start](https://pyroscope.io/docs/server-install-macos/)). (TODO: run this in a container)

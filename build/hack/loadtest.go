@@ -8,10 +8,21 @@ import (
 )
 
 func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
-	flipt = flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExposedPort(8080).WithExec(nil)
+	seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
+	importCmd := []string{"/flipt", "import", "--create-namespace", "import.yaml"}
+
+	// import some test data
+	_, err := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithFile("import.yaml", seed).
+		WithExec(importCmd).
+		ExitCode(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	// build the loadtest binary, and export it to the host
-	_, err := base.
+	_, err = base.
 		WithWorkdir("build/hack").
 		WithExec([]string{"go", "build", "-o", "./out/loadtest", "./cmd/loadtest/..."}).
 		File("out/loadtest").
@@ -19,6 +30,10 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 	if err != nil {
 		return err
 	}
+
+	flipt = flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExposedPort(8080).
+		WithExec(nil)
 
 	// run the loadtest binary from within the pyroscope container and export the adhoc data
 	// output to the host
