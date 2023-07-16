@@ -12,21 +12,11 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 	importCmd := []string{"/flipt", "import", "--create-namespace", "import.yaml"}
 
 	// import some test data
-	_, err := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
+	flipt, err := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithFile("import.yaml", seed).
 		WithExec(importCmd).
-		ExitCode(ctx)
+		Sync(ctx)
 
-	if err != nil {
-		return err
-	}
-
-	// build the loadtest binary, and export it to the host
-	_, err = base.
-		WithWorkdir("build/hack").
-		WithExec([]string{"go", "build", "-o", "./out/loadtest", "./cmd/loadtest/..."}).
-		File("out/loadtest").
-		Export(ctx, "build/hack/out/loadtest")
 	if err != nil {
 		return err
 	}
@@ -35,10 +25,17 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 		WithExposedPort(8080).
 		WithExec(nil)
 
+	// build the loadtest binary
+	loadtest := base.
+		WithWorkdir("build/hack").
+		WithExec([]string{"go", "build", "-o", "./out/loadtest", "./cmd/loadtest/..."}).
+		File("out/loadtest")
+
 	// run the loadtest binary from within the pyroscope container and export the adhoc data
 	// output to the host
 	_, err = client.Container().
 		From("pyroscope/pyroscope:latest").
+		WithFile("loadtest", loadtest).
 		WithServiceBinding("flipt", flipt).
 		WithFile("loadtest", client.Host().Directory("build/hack/out").File("loadtest")).
 		WithExec([]string{"adhoc", "--log-level", "debug", "--url", "flipt:8080", "./loadtest", "-duration", "60s"}).
