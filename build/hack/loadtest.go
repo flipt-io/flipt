@@ -41,7 +41,7 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 		From("pyroscope/pyroscope:latest").
 		WithServiceBinding("flipt", flipt).
 		WithFile("loadtest", client.Host().Directory("build/hack/out").File("loadtest")).
-		WithExec([]string{"adhoc", "--log-level", "debug", "--url", "flipt:8080", "./loadtest", "-duration", "30s"}).
+		WithExec([]string{"adhoc", "--log-level", "debug", "--url", "flipt:8080", "./loadtest", "-duration", "60s"}).
 		Directory("/home/pyroscope/.local/share/pyroscope").
 		Export(ctx, "build/hack/out/profiles")
 
