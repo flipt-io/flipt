@@ -151,17 +151,10 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		var serr sqlite3.Error
 
 		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
-			switch serr.ExtendedCode {
-			case sqlite3.ErrConstraintForeignKey:
-				segment := r.GetSegment()
-				if segment != nil {
-					return nil, errs.ErrNotFoundf(`flag "%s/%s or segment %s"`, r.NamespaceKey, r.FlagKey, segment.SegmentKey)
-				}
-
-				return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
-			case sqlite3.ErrConstraintUnique:
-				return nil, errs.ErrInvalidf(`rank number: %d already exists`, r.Rank)
+			if segment := r.GetSegment(); segment != nil {
+				return nil, errs.ErrNotFoundf(`flag "%s/%s or segment %s"`, r.NamespaceKey, r.FlagKey, segment.SegmentKey)
 			}
+			return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
 		}
 
 		return nil, err

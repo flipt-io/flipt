@@ -321,6 +321,20 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
+	var count uint64
+
+	if err := s.builder.Select("COUNT(*)").
+		From(tableRollouts).
+		Where(sq.And{sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}, sq.Eq{"\"rank\"": r.Rank}}).
+		QueryRowContext(ctx).
+		Scan(&count); err != nil {
+		return nil, err
+	}
+
+	if count > 0 {
+		return nil, errs.ErrInvalidf("rank number: %d already exists", r.Rank)
+	}
+
 	var (
 		now     = timestamppb.Now()
 		rollout = &flipt.Rollout{
@@ -358,7 +372,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 
 	if _, err := s.builder.Insert(tableRollouts).
 		RunWith(tx).
-		Columns("id", "namespace_key", "flag_key", "\"type\"", "rank", "description", "created_at", "updated_at").
+		Columns("id", "namespace_key", "flag_key", "\"type\"", "\"rank\"", "description", "created_at", "updated_at").
 		Values(rollout.Id, rollout.NamespaceKey, rollout.FlagKey, rollout.Type, rollout.Rank, rollout.Description,
 			&fliptsql.Timestamp{Timestamp: rollout.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rollout.UpdatedAt},

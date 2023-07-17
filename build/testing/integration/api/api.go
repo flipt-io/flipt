@@ -592,6 +592,40 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, float32(50.0), rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
 		assert.Equal(t, true, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
+		t.Log(`Ensure multiple rollouts with same rank can not be created`)
+
+		_, err = client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "should not work",
+			Rank:         2,
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 50,
+					Value:      true,
+				},
+			},
+		})
+
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = rank number: 2 already exists")
+
+		t.Log(`Ensure that rollout with a non-existent segment can not be created`)
+
+		_, err = client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "matches a segment",
+			Rank:         5,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKey: "thisdoesnotexist",
+					Value:      true,
+				},
+			},
+		})
+
+		assert.EqualError(t, err, fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/%s or segment %s\" not found", namespace, "boolean_disabled", "thisdoesnotexist"))
+
 		rollouts, err := client.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
 			NamespaceKey: namespace,
 			FlagKey:      "boolean_disabled",
