@@ -81,7 +81,7 @@ export default function Flag() {
           panelMessage={
             <>
               Are you sure you want to delete the flag{' '}
-              <span className="font-medium text-violet-500">{flag.key}</span>?
+              <span className="text-violet-500 font-medium">{flag.key}</span>?
               This action cannot be undone.
             </>
           }
@@ -100,7 +100,7 @@ export default function Flag() {
           panelMessage={
             <>
               Copy the flag{' '}
-              <span className="font-medium text-violet-500">{flag.key}</span> to
+              <span className="text-violet-500 font-medium">{flag.key}</span> to
               the namespace:
             </>
           }
@@ -123,16 +123,16 @@ export default function Flag() {
       {/* flag header / actions */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+          <h2 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl sm:tracking-tight">
             {flag.name}
           </h2>
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
             <div
               title={inTimezone(flag.createdAt)}
-              className="mt-2 flex items-center text-sm text-gray-500"
+              className="text-gray-500 mt-2 flex items-center text-sm"
             >
               <CalendarIcon
-                className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+                className="text-gray-400 mr-1.5 h-5 w-5 flex-shrink-0"
                 aria-hidden="true"
               />
               Created{' '}

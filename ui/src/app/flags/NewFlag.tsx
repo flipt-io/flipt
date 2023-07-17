@@ -6,7 +6,7 @@ export default function NewFlag() {
     <>
       <div className="lg:flex lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-semibold leading-6 text-gray-900">
+          <h2 className="text-gray-900 text-2xl font-semibold leading-6">
             New Flag
           </h2>
         </div>
@@ -14,10 +14,10 @@ export default function NewFlag() {
       <div className="my-10">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">
+            <h3 className="text-gray-900 text-lg font-medium leading-6">
               Details
             </h3>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="text-gray-500 mt-2 text-sm">
               Basic information about the flag and its status.
             </p>
             <MoreInfo

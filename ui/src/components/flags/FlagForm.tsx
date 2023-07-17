@@ -110,7 +110,7 @@ export default function FlagForm(props: FlagFormProps) {
                 <div className="col-span-2">
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
+                    className="text-gray-700 block text-sm font-medium"
                   >
                     Name
                   </label>
@@ -139,7 +139,7 @@ export default function FlagForm(props: FlagFormProps) {
                 <div className="col-span-2">
                   <label
                     htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
+                    className="text-gray-700 block text-sm font-medium"
                   >
                     Key
                   </label>
@@ -157,7 +157,7 @@ export default function FlagForm(props: FlagFormProps) {
                 <div className="col-span-3">
                   <label
                     htmlFor="type"
-                    className="block text-sm font-medium text-gray-700"
+                    className="text-gray-700 block text-sm font-medium"
                   >
                     Type
                   </label>
@@ -175,7 +175,7 @@ export default function FlagForm(props: FlagFormProps) {
                               name="type"
                               type="radio"
                               disabled={!isNew}
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               onChange={() => {
                                 formik.setFieldValue('type', type.id);
                               }}
@@ -186,7 +186,7 @@ export default function FlagForm(props: FlagFormProps) {
                           <div className="ml-3 text-sm">
                             <label
                               htmlFor={type.id}
-                              className="font-medium text-gray-700"
+                              className="text-gray-700 font-medium"
                             >
                               {type.name}
                             </label>
@@ -200,12 +200,12 @@ export default function FlagForm(props: FlagFormProps) {
                   <div className="flex justify-between">
                     <label
                       htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
+                      className="text-gray-700 block text-sm font-medium"
                     >
                       Description
                     </label>
                     <span
-                      className="text-xs text-gray-500"
+                      className="text-gray-500 text-xs"
                       id="description-optional"
                     >
                       Optional

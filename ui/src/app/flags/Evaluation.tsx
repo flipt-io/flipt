@@ -174,7 +174,7 @@ export default function Evaluation() {
           panelMessage={
             <>
               Are you sure you want to delete this rule at
-              <span className="font-medium text-violet-500">
+              <span className="text-violet-500 font-medium">
                 {' '}
                 position {deletingRule?.rank}
               </span>
@@ -208,10 +208,10 @@ export default function Evaluation() {
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-lg font-medium leading-6 text-gray-900">
+            <h1 className="text-gray-900 text-lg font-medium leading-6">
               Rules
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="text-gray-600 mt-1 text-sm">
               Enable rich targeting and segmentation for evaluating your flags
             </p>
           </div>
@@ -225,7 +225,7 @@ export default function Evaluation() {
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
                 <PlusIcon
-                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
+                  className="text-white -ml-1.5 mr-1 h-5 w-5"
                   aria-hidden="true"
                 />
                 New Rule
@@ -237,13 +237,13 @@ export default function Evaluation() {
           {rules && rules.length > 0 ? (
             <div className="flex lg:space-x-5">
               <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm font-light text-gray-700">
+                <p className="text-gray-700 text-sm font-light">
                   Rules are evaluated in order from{' '}
                   <span className="font-semibold">top to bottom</span>. The
                   first rule that matches will be applied.
                 </p>
-                <p className="text-sm font-light text-gray-700">
-                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
+                <p className="text-gray-700 text-sm font-light">
+                  <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
                   You can re-arrange rules by clicking in the header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   them into place.

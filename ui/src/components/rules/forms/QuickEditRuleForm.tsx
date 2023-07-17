@@ -178,14 +178,14 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     >
       {(formik) => {
         return (
-          <Form className="flex h-full w-full flex-col overflow-y-scroll bg-white">
+          <Form className="bg-white flex h-full w-full flex-col overflow-y-scroll">
             <div className="w-full flex-1">
               <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
                     <label
                       htmlFor="segmentKey"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
@@ -209,7 +209,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                   <div>
                     <label
                       htmlFor="ruleType"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Type
                     </label>
@@ -228,7 +228,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                               <div className="text-sm">
                                 <label
                                   htmlFor={dist.id}
-                                  className="font-medium text-gray-700"
+                                  className="text-gray-700 font-medium"
                                 >
                                   {dist.name}
                                 </label>
@@ -253,7 +253,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       <div>
                         <label
                           htmlFor="variantKey"
-                          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                         >
                           Variant
                         </label>
@@ -281,7 +281,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       <div>
                         <label
                           htmlFor="variantKey"
-                          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                         >
                           Variants
                         </label>
@@ -300,7 +300,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                     <div>
                                       <label
                                         htmlFor={`rollouts.[${index}].distribution.rollout`}
-                                        className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
+                                        className="text-gray-600 block truncate text-right text-sm sm:mt-px sm:pr-2 sm:pt-2"
                                       >
                                         {dist.variant.key}
                                       </label>
@@ -309,7 +309,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                       <Field
                                         key={index}
                                         type="number"
-                                        className="block w-full rounded-md pl-7 pr-12 shadow-sm border-gray-300 focus:ring-violet-300 focus:border-violet-300 sm:text-sm"
+                                        className="border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
                                         value={dist.distribution.rollout}
                                         name={`rollouts.[${index}].distribution.rollout`}
                                         // eslint-disable-next-line react/no-unknown-property
@@ -332,7 +332,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       )}
                     />
                     {formik.touched.rollouts && formik.errors.rollouts && (
-                      <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
+                      <p className="text-gray-500 mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
                         Multi-variant rules must have distributions that add up
                         to 100% or less.
                       </p>

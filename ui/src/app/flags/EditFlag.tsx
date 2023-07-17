@@ -16,7 +16,7 @@ export default function EditFlag() {
         <div className="my-10">
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="text-gray-500 mt-1 text-sm">
                 Basic information about the flag and its status.
               </p>
               <MoreInfo
