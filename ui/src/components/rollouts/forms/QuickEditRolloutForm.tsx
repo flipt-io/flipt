@@ -190,7 +190,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle bg-gray-50"
+                  className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle"
                 />
               </div>
             </div>

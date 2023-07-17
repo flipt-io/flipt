@@ -45,7 +45,7 @@ const Rule = forwardRef(
             key={rule.id}
             className={classNames(
               readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-              'ml-2 hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex'
+              'hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex'
             )}
             {...rest}
           >

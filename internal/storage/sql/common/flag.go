@@ -315,11 +315,11 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 
 // CountFlags counts all flags
 func (s *Store) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
-	var count uint64
-
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
+	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("flags").

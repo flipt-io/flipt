@@ -268,11 +268,11 @@ func (s *Store) setDistributions(ctx context.Context, rulesById map[string]*flip
 
 // CountRules counts all rules
 func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
-	var count uint64
-
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
+	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("rules").

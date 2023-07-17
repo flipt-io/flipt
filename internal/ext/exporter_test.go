@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -172,7 +171,7 @@ func TestExport(t *testing.T) {
 	}
 
 	var (
-		exporter = NewExporter(lister, storage.DefaultNamespace)
+		exporter = NewExporter(lister, flipt.DefaultNamespace)
 		b        = new(bytes.Buffer)
 	)
 

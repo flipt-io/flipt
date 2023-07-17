@@ -13,12 +13,15 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
+import {
+  InformationCircleIcon,
+  PlusIcon,
+  StarIcon
+} from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
@@ -245,25 +248,25 @@ export default function Rollouts(props: RolloutsProps) {
           )}
         </div>
         <div className="mt-10">
-          {rollouts && rollouts.length > 0 ? (
-            <div className="flex lg:space-x-5">
-              <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm font-light text-gray-700">
-                  Rules are evaluated in order from{' '}
-                  <span className="font-semibold">top to bottom</span>. The
-                  first rule that matches will be applied.
-                </p>
-                <p className="text-sm font-light text-gray-700">
-                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
-                  You can re-arrange rules by clicking in the header and{' '}
-                  <span className="font-semibold">dragging and dropping</span>{' '}
-                  them into place.
-                </p>
-              </div>
-              <div
-                className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
-  lg:w-3/4 lg:p-6"
-              >
+          <div className="flex lg:space-x-5">
+            <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
+              <p className="text-sm font-light text-gray-700">
+                Rules are evaluated in order from{' '}
+                <span className="font-semibold">top to bottom</span>. The first
+                rule that matches will be applied.
+              </p>
+              <p className="text-sm font-light text-gray-700">
+                <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
+                You can re-arrange rules by clicking in the header and{' '}
+                <span className="font-semibold">dragging and dropping</span>{' '}
+                them into place.
+              </p>
+            </div>
+            <div
+              className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+  lg:p-6"
+            >
+              {rollouts && rollouts.length > 0 && (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -275,26 +278,24 @@ export default function Rollouts(props: RolloutsProps) {
                     strategy={verticalListSortingStrategy}
                   >
                     <ul role="list" className="flex-col space-y-6 p-2 md:flex">
-                      {rollouts &&
-                        rollouts.length > 0 &&
-                        rollouts.map((rollout) => (
-                          <SortableRollout
-                            key={rollout.id}
-                            flag={flag}
-                            rollout={rollout}
-                            segments={segments}
-                            onSuccess={incrementRolloutsVersion}
-                            onEdit={() => {
-                              setEditingRollout(rollout);
-                              setShowEditRolloutForm(true);
-                            }}
-                            onDelete={() => {
-                              setDeletingRollout(rollout);
-                              setShowDeleteRolloutModal(true);
-                            }}
-                            readOnly={readOnly}
-                          />
-                        ))}
+                      {rollouts.map((rollout) => (
+                        <SortableRollout
+                          key={rollout.id}
+                          flag={flag}
+                          rollout={rollout}
+                          segments={segments}
+                          onSuccess={incrementRolloutsVersion}
+                          onEdit={() => {
+                            setEditingRollout(rollout);
+                            setShowEditRolloutForm(true);
+                          }}
+                          onDelete={() => {
+                            setDeletingRollout(rollout);
+                            setShowDeleteRolloutModal(true);
+                          }}
+                          readOnly={readOnly}
+                        />
+                      ))}
                     </ul>
                   </SortableContext>
                   <DragOverlay>
@@ -307,18 +308,48 @@ export default function Rollouts(props: RolloutsProps) {
                     ) : null}
                   </DragOverlay>
                 </DndContext>
+              )}
+              <div className="flex-col p-2 md:flex">
+                <div className="w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 bg-white border-violet-300 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
+                  <div className="w-full border-b p-2 bg-white border-gray-200 ">
+                    <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+                      <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
+                      <h3 className="text-sm font-normal leading-6 text-gray-700">
+                        Default Rollout
+                      </h3>
+                      <span className="hidden h-4 w-4 justify-end sm:flex" />
+                    </div>
+                  </div>
+                  <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+                    <div className="flex grow flex-col items-center justify-center sm:ml-2">
+                      <div className="flex flex-col pb-4 pt-2">
+                        <p className="text-sm font-light text-gray-500">
+                          This is the default value that will be returned if no
+                          other rules match. It is directly tied to the flag
+                          enabled state.
+                        </p>
+                      </div>
+                      <div className="w-full flex-1">
+                        <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
+                          <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
+                            <label
+                              htmlFor="value"
+                              className="mb-2 block text-sm font-medium text-gray-900"
+                            >
+                              Value
+                            </label>
+                            <span className="inline-flex w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10 text-gray-600 bg-gray-50">
+                              {flag.enabled ? 'True' : 'False'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          ) : (
-            <EmptyState
-              text="New Rollout"
-              disabled={readOnly}
-              onClick={() => {
-                setEditingRollout(null);
-                setShowRolloutForm(true);
-              }}
-            />
-          )}
+          </div>
         </div>
       </div>
     </>

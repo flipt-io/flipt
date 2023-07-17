@@ -26,7 +26,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 
 	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{}, errs.ErrNotFound("test-flag"))
 
-	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -35,7 +35,7 @@ func TestVariant_FlagNotFound(t *testing.T) {
 		},
 	})
 
-	require.Nil(t, v)
+	require.Nil(t, res)
 
 	assert.EqualError(t, err, "test-flag not found")
 }
@@ -56,7 +56,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
 	}, nil)
 
-	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -65,9 +65,39 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 		},
 	})
 
-	require.Nil(t, v)
+	require.Nil(t, res)
 
 	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
+}
+func TestVariant_FlagDisabled(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
+		NamespaceKey: namespaceKey,
+		Key:          flagKey,
+		Enabled:      false,
+		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
+	}, nil)
+
+	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello": "world",
+		},
+	})
+
+	require.NoError(t, err)
+
+	assert.False(t, res.Match)
+	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, res.Reason)
 }
 
 func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
@@ -89,7 +119,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 
 	store.On("GetEvaluationRules", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRule{}, errs.ErrInvalid("some invalid error"))
 
-	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -98,8 +128,7 @@ func TestVariant_EvaluateFailure_OnGetEvaluationRules(t *testing.T) {
 		},
 	})
 
-	require.Nil(t, v)
-
+	require.Nil(t, res)
 	assert.EqualError(t, err, "some invalid error")
 }
 
@@ -142,7 +171,7 @@ func TestVariant_Success(t *testing.T) {
 
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
 
-	v, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
+	res, err := s.Variant(context.TODO(), &rpcevaluation.EvaluationRequest{
 		FlagKey:      flagKey,
 		EntityId:     "test-entity",
 		NamespaceKey: namespaceKey,
@@ -153,9 +182,9 @@ func TestVariant_Success(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, v.Match)
-	assert.Equal(t, "bar", v.SegmentKey)
-	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.Reason)
+	assert.Equal(t, true, res.Match)
+	assert.Equal(t, "bar", res.SegmentKey)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
 func TestBoolean_FlagNotFoundError(t *testing.T) {
@@ -192,6 +221,7 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 		logger       = zaptest.NewLogger(t)
 		s            = New(logger, store)
 	)
+
 	defer store.AssertNotCalled(t, "GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey)
 
 	store.On("GetFlag", mock.Anything, mock.Anything, mock.Anything).Return(&flipt.Flag{
@@ -211,7 +241,6 @@ func TestBoolean_NonBooleanFlagError(t *testing.T) {
 	})
 
 	require.Nil(t, res)
-
 	assert.EqualError(t, err, "flag type VARIANT_FLAG_TYPE invalid")
 }
 
@@ -244,7 +273,7 @@ func TestBoolean_DefaultRule_NoRollouts(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Value)
+	assert.Equal(t, true, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 }
 
@@ -287,7 +316,7 @@ func TestBoolean_DefaultRuleFallthrough_WithPercentageRollout(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Value)
+	assert.Equal(t, true, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, res.Reason)
 }
 
@@ -330,7 +359,7 @@ func TestBoolean_PercentageRuleMatch(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, false, res.Value)
+	assert.Equal(t, false, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
@@ -391,7 +420,7 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Value)
+	assert.Equal(t, true, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
@@ -450,7 +479,7 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 
 	require.NoError(t, err)
 
-	assert.Equal(t, true, res.Value)
+	assert.Equal(t, true, res.Enabled)
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
@@ -580,7 +609,7 @@ func TestBatch_InternalError_GetFlag(t *testing.T) {
 	assert.EqualError(t, err, "internal error")
 }
 
-func TestBatch_Evaluations_Success(t *testing.T) {
+func TestBatch_Success(t *testing.T) {
 	var (
 		flagKey        = "test-flag"
 		anotherFlagKey = "another-test-flag"
@@ -676,7 +705,7 @@ func TestBatch_Evaluations_Success(t *testing.T) {
 
 	b, ok := res.Responses[0].Response.(*rpcevaluation.EvaluationResponse_BooleanResponse)
 	assert.True(t, ok, "response should be a boolean evaluation response")
-	assert.True(t, b.BooleanResponse.Value, "value should be true from match")
+	assert.True(t, b.BooleanResponse.Enabled, "value should be true from match")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, res.Responses[0].Type)
 

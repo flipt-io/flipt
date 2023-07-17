@@ -3,52 +3,53 @@ package evaluation
 import (
 	"context"
 	"errors"
+	"fmt"
+	"hash/crc32"
+	"time"
 
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/metrics"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 // Variant evaluates a request for a multi-variate flag and entity.
-func (s *Server) Variant(ctx context.Context, v *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
-	flag, err := s.store.GetFlag(ctx, v.NamespaceKey, v.FlagKey)
+// It adapts the 'v2' evaluation API and proxies the request to the 'v1' evaluation API.
+func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
+	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
 		return nil, err
 	}
 
-	s.logger.Debug("variant", zap.Stringer("request", v))
+	s.logger.Debug("variant", zap.Stringer("request", r))
 
-	if v.NamespaceKey == "" {
-		v.NamespaceKey = storage.DefaultNamespace
-	}
-
-	ver, err := s.variant(ctx, flag, v)
+	resp, err := s.variant(ctx, flag, r)
 	if err != nil {
 		return nil, err
 	}
 
 	spanAttrs := []attribute.KeyValue{
-		fliptotel.AttributeNamespace.String(v.NamespaceKey),
-		fliptotel.AttributeFlag.String(v.FlagKey),
-		fliptotel.AttributeEntityID.String(v.EntityId),
-		fliptotel.AttributeRequestID.String(v.RequestId),
-		fliptotel.AttributeMatch.Bool(ver.Match),
-		fliptotel.AttributeValue.String(ver.VariantKey),
-		fliptotel.AttributeReason.String(ver.Reason.String()),
-		fliptotel.AttributeSegment.String(ver.SegmentKey),
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
+		fliptotel.AttributeFlag.String(r.FlagKey),
+		fliptotel.AttributeEntityID.String(r.EntityId),
+		fliptotel.AttributeRequestID.String(r.RequestId),
+		fliptotel.AttributeMatch.Bool(resp.Match),
+		fliptotel.AttributeValue.String(resp.VariantKey),
+		fliptotel.AttributeReason.String(resp.Reason.String()),
+		fliptotel.AttributeSegment.String(resp.SegmentKey),
 	}
 
 	// add otel attributes to span
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	s.logger.Debug("variant", zap.Stringer("response", ver))
-	return ver, nil
+	s.logger.Debug("variant", zap.Stringer("response", resp))
+	return resp, nil
 }
 
 func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.VariantEvaluationResponse, error) {
@@ -92,11 +93,13 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
+	s.logger.Debug("boolean", zap.Stringer("request", r))
+
 	if flag.Type != flipt.FlagType_BOOLEAN_FLAG_TYPE {
 		return nil, errs.ErrInvalidf("flag type %s invalid", flag.Type)
 	}
 
-	ber, err := s.boolean(ctx, flag, r)
+	resp, err := s.boolean(ctx, flag, r)
 	if err != nil {
 		return nil, err
 	}
@@ -106,15 +109,16 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
 		fliptotel.AttributeRequestID.String(r.RequestId),
-		fliptotel.AttributeValue.Bool(ber.Value),
-		fliptotel.AttributeReason.String(ber.Reason.String()),
+		fliptotel.AttributeValue.Bool(resp.Enabled),
+		fliptotel.AttributeReason.String(resp.Reason.String()),
 	}
 
 	// add otel attributes to span
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(spanAttrs...)
 
-	return ber, nil
+	s.logger.Debug("boolean", zap.Stringer("response", resp))
+	return resp, nil
 }
 
 func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation.EvaluationRequest) (*rpcevaluation.BooleanEvaluationResponse, error) {
@@ -123,11 +127,91 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		return nil, err
 	}
 
-	resp, err := s.evaluator.booleanMatch(ctx, r, flag.Enabled, rollouts)
-	if err != nil {
-		return nil, err
+	var (
+		resp     = &rpcevaluation.BooleanEvaluationResponse{}
+		lastRank int32
+	)
+
+	var (
+		startTime     = time.Now().UTC()
+		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
+	)
+
+	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+
+	defer func() {
+		if err == nil {
+			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				metric.WithAttributeSet(
+					attribute.NewSet(
+						namespaceAttr,
+						flagAttr,
+						metrics.AttributeValue.Bool(resp.Enabled),
+						metrics.AttributeReason.String(resp.Reason.String()),
+						metrics.AttributeType.String("boolean"),
+					),
+				),
+			)
+		} else {
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+		}
+
+		metrics.EvaluationLatency.Record(
+			ctx,
+			float64(time.Since(startTime).Nanoseconds())/1e6,
+			metric.WithAttributeSet(
+				attribute.NewSet(
+					namespaceAttr,
+					flagAttr,
+				),
+			),
+		)
+	}()
+
+	for _, rollout := range rollouts {
+		if rollout.Rank < lastRank {
+			return nil, fmt.Errorf("rollout rank: %d detected out of order", rollout.Rank)
+		}
+
+		lastRank = rollout.Rank
+
+		if rollout.Threshold != nil {
+			// consistent hashing based on the entity id and flag key.
+			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
+
+			normalizedValue := float32(int(hash) % 100)
+
+			// if this case does not hold, fall through to the next rollout.
+			if normalizedValue < rollout.Threshold.Percentage {
+				resp.Enabled = rollout.Threshold.Value
+				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+				s.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
+				return resp, nil
+			}
+		} else if rollout.Segment != nil {
+			matched, reason, err := matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
+			if err != nil {
+				return nil, err
+			}
+
+			// if we don't match the segment, fall through to the next rollout.
+			if !matched {
+				s.logger.Debug(reason)
+				continue
+			}
+
+			resp.Enabled = rollout.Segment.Value
+			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
+			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
+			return resp, nil
+		}
 	}
 
+	// If we have exhausted all rollouts and we still don't have a match, return flag enabled value.
+	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
+	resp.Enabled = flag.Enabled
+	s.logger.Debug("default rollout matched", zap.Bool("enabled", flag.Enabled))
 	return resp, nil
 }
 
