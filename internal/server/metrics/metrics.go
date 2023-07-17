@@ -61,4 +61,5 @@ var (
 	AttributeReason    = attribute.Key("reason")
 	AttributeValue     = attribute.Key("value")
 	AttributeNamespace = attribute.Key("namespace")
+	AttributeType      = attribute.Key("type")
 )

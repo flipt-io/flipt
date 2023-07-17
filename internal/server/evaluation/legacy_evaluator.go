@@ -60,6 +60,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 						metrics.AttributeSegment.String(resp.SegmentKey),
 						metrics.AttributeReason.String(resp.Reason.String()),
 						metrics.AttributeValue.String(resp.Value),
+						metrics.AttributeType.String("variant"),
 					),
 				),
 			)

@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"time"
 
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/server/metrics"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
 	"go.flipt.io/flipt/rpc/flipt"
 	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -35,15 +38,10 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeFlag.String(r.FlagKey),
 		fliptotel.AttributeEntityID.String(r.EntityId),
 		fliptotel.AttributeRequestID.String(r.RequestId),
-	}
-
-	if resp != nil {
-		spanAttrs = append(spanAttrs,
-			fliptotel.AttributeMatch.Bool(resp.Match),
-			fliptotel.AttributeValue.String(resp.VariantKey),
-			fliptotel.AttributeReason.String(resp.Reason.String()),
-			fliptotel.AttributeSegment.String(resp.SegmentKey),
-		)
+		fliptotel.AttributeMatch.Bool(resp.Match),
+		fliptotel.AttributeValue.String(resp.VariantKey),
+		fliptotel.AttributeReason.String(resp.Reason.String()),
+		fliptotel.AttributeSegment.String(resp.SegmentKey),
 	}
 
 	// add otel attributes to span
@@ -106,6 +104,19 @@ func (s *Server) Boolean(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		return nil, err
 	}
 
+	spanAttrs := []attribute.KeyValue{
+		fliptotel.AttributeNamespace.String(r.NamespaceKey),
+		fliptotel.AttributeFlag.String(r.FlagKey),
+		fliptotel.AttributeEntityID.String(r.EntityId),
+		fliptotel.AttributeRequestID.String(r.RequestId),
+		fliptotel.AttributeValue.Bool(resp.Enabled),
+		fliptotel.AttributeReason.String(resp.Reason.String()),
+	}
+
+	// add otel attributes to span
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(spanAttrs...)
+
 	s.logger.Debug("boolean", zap.Stringer("response", resp))
 	return resp, nil
 }
@@ -120,6 +131,43 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		resp     = &rpcevaluation.BooleanEvaluationResponse{}
 		lastRank int32
 	)
+
+	var (
+		startTime     = time.Now().UTC()
+		namespaceAttr = metrics.AttributeNamespace.String(r.NamespaceKey)
+		flagAttr      = metrics.AttributeFlag.String(r.FlagKey)
+	)
+
+	metrics.EvaluationsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+
+	defer func() {
+		if err == nil {
+			metrics.EvaluationResultsTotal.Add(ctx, 1,
+				metric.WithAttributeSet(
+					attribute.NewSet(
+						namespaceAttr,
+						flagAttr,
+						metrics.AttributeValue.Bool(resp.Enabled),
+						metrics.AttributeReason.String(resp.Reason.String()),
+						metrics.AttributeType.String("boolean"),
+					),
+				),
+			)
+		} else {
+			metrics.EvaluationErrorsTotal.Add(ctx, 1, metric.WithAttributeSet(attribute.NewSet(namespaceAttr, flagAttr)))
+		}
+
+		metrics.EvaluationLatency.Record(
+			ctx,
+			float64(time.Since(startTime).Nanoseconds())/1e6,
+			metric.WithAttributeSet(
+				attribute.NewSet(
+					namespaceAttr,
+					flagAttr,
+				),
+			),
+		)
+	}()
 
 	for _, rollout := range rollouts {
 		if rollout.Rank < lastRank {
