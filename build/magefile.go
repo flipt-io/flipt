@@ -155,6 +155,14 @@ func (t Test) Migration(ctx context.Context) error {
 	})
 }
 
+type Generate mg.Namespace
+
+func (g Generate) Screenshots(ctx context.Context) error {
+	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
+		return testing.Screenshots(ctx, client, flipt)
+	})
+}
+
 type Release mg.Namespace
 
 func (r Release) Next(ctx context.Context, module, versionParts string) error {

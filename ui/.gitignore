@@ -26,3 +26,4 @@ dist-ssr
 /playwright-report/
 /playwright/.cache/
 .packagehash
+/screenshots/
