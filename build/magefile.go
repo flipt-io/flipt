@@ -102,7 +102,12 @@ func (t Test) Database(ctx context.Context, db string) error {
 			return err
 		}
 
-		return testing.Unit(testing.All[db](ctx, client, base))
+		test, ok := testing.All[db]
+		if !ok {
+			return fmt.Errorf("unexpected database name: %q", db)
+		}
+
+		return testing.Unit(test(ctx, client, base))
 	})
 }
 
@@ -148,6 +153,14 @@ func (t Test) CLI(ctx context.Context) error {
 func (t Test) Migration(ctx context.Context) error {
 	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
 		return testing.Migration(ctx, client, base, flipt)
+	})
+}
+
+type Generate mg.Namespace
+
+func (g Generate) Screenshots(ctx context.Context) error {
+	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
+		return testing.Screenshots(ctx, client, flipt)
 	})
 }
 
