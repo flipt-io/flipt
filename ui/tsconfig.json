@@ -20,6 +20,10 @@
       "~/*": ["./*"]
     }
   },
-  "include": ["src", "tests"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src", "tests", "src/userWorker.ts"],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

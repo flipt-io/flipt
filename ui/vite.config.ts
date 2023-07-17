@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 const path = require('path');
 
 const fliptAddr = process.env.FLIPT_ADDRESS ?? 'http://localhost:8080';
+const monacoPrefix = `monaco-editor/esm/vs`;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,7 +14,16 @@ export default defineConfig({
     }
   },
   build: {
-    manifest: true
+    manifest: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          jsonWorker: [`${monacoPrefix}/language/json/json.worker`],
+          typescriptWorker: [`${monacoPrefix}/language/typescript/ts.worker`],
+          editorWorker: [`${monacoPrefix}/editor/editor.worker`]
+        }
+      }
+    }
   },
   envPrefix: 'FLIPT_',
   server: {

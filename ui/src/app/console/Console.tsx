@@ -8,11 +8,11 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { ContextEditor } from '~/components/console/ContextEditor';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import TextArea from '~/components/forms/TextArea';
 import { evaluateV2, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import {
@@ -44,12 +44,12 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
 interface ConsoleFormValues {
   flagKey: string;
   entityId: string;
-  context: string | undefined;
 }
 
 export default function Console() {
   const [flags, setFlags] = useState<FilterableFlag[]>([]);
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
+  const [context, setContext] = useState<string | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
@@ -77,7 +77,7 @@ export default function Console() {
   }, [namespace.key]);
 
   const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
-    const { entityId, context } = values;
+    const { entityId } = values;
 
     if (!flag) {
       return;
@@ -116,8 +116,7 @@ export default function Console() {
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
-    entityId: uuidv4(),
-    context: undefined
+    entityId: uuidv4()
   };
 
   return (
@@ -192,12 +191,10 @@ export default function Console() {
                           >
                             Request Context
                           </label>
-                          <TextArea
-                            rows={10}
-                            name="context"
+                          <ContextEditor
                             id="context"
-                            className="mt-1"
-                            placeholder="{}"
+                            value={context || undefined}
+                            setValue={setContext}
                           />
                         </div>
                       </div>
