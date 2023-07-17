@@ -10,7 +10,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.6.0
 	github.com/docker/go-connections v0.4.0
 	github.com/fatih/color v1.15.0
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-git/go-billy/v5 v5.4.1
 	github.com/go-git/go-git/v5 v5.7.0
