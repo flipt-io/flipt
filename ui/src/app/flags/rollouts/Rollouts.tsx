@@ -189,8 +189,8 @@ export default function Rollouts(props: RolloutsProps) {
           segments={segments}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
-            setShowRolloutForm(false);
             incrementRolloutsVersion();
+            setShowRolloutForm(false);
           }}
         />
       </Slideover>
@@ -226,26 +226,24 @@ export default function Rollouts(props: RolloutsProps) {
               Return boolean values based on rules you define
             </p>
           </div>
-          {rollouts && rollouts.length > 0 && (
-            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-              <Button
-                primary
-                type="button"
-                disabled={readOnly}
-                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-                onClick={() => {
-                  setEditingRollout(null);
-                  setShowRolloutForm(true);
-                }}
-              >
-                <PlusIcon
-                  className="text-white -ml-1.5 mr-1 h-5 w-5"
-                  aria-hidden="true"
-                />
-                <span>New Rollout</span>
-              </Button>
-            </div>
-          )}
+          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <Button
+              primary
+              type="button"
+              disabled={readOnly}
+              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+              onClick={() => {
+                setEditingRollout(null);
+                setShowRolloutForm(true);
+              }}
+            >
+              <PlusIcon
+                className="text-white -ml-1.5 mr-1 h-5 w-5"
+                aria-hidden="true"
+              />
+              <span>New Rollout</span>
+            </Button>
+          </div>
         </div>
         <div className="mt-10">
           <div className="flex lg:space-x-5">
@@ -280,7 +278,7 @@ export default function Rollouts(props: RolloutsProps) {
                     <ul role="list" className="flex-col space-y-6 p-2 md:flex">
                       {rollouts.map((rollout) => (
                         <SortableRollout
-                          key={rollout.id}
+                          key={`${rollout.id}-${rollout.updatedAt}`}
                           flag={flag}
                           rollout={rollout}
                           segments={segments}
@@ -329,7 +327,7 @@ export default function Rollouts(props: RolloutsProps) {
                           enabled state.
                         </p>
                       </div>
-                      <div className="w-full flex-1">
+                      <div className="flex-1">
                         <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                           <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                             <label
