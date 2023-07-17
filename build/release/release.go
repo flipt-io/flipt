@@ -79,7 +79,7 @@ func next(current string, vp VersionPart) (string, error) {
 
 	if vp == RC {
 		if pre != "" && !strings.HasPrefix(pre, "-rc") {
-			return "", fmt.Errorf("Unexpected existing prerelease on latest: %q", current)
+			return "", fmt.Errorf("unexpected existing prerelease on latest: %q", current)
 		}
 
 		if strings.HasPrefix(pre, "-rc") {
@@ -262,7 +262,7 @@ func chdirRoot() func() {
 
 func moduleTagPrefix(module string) (prefix string, _ error) {
 	if !strings.HasPrefix(module, rootModule) {
-		return "", fmt.Errorf("Expected module %q to be prefixed with %q", module, rootModule)
+		return "", fmt.Errorf("expected module %q to be prefixed with %q", module, rootModule)
 	}
 
 	prefix = module[len(rootModule):]
