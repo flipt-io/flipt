@@ -89,6 +89,7 @@ require (
 )
 
 replace (
+	go.flipt.io/flipt/ => ../
 	go.flipt.io/flipt/rpc/flipt => ../rpc/flipt
 	go.flipt.io/flipt/sdk/go => ../sdk/go
 )
