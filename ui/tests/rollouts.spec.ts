@@ -26,8 +26,11 @@ test.describe('Rollouts', () => {
     await page.getByRole('textbox').fill('test'); // TODO: should get description by label
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created rollout')).toBeVisible();
-    await page.getByLabel('Percentage').fill('70');
-    await page.getByLabel('Percentage').click();
+    await expect(
+      page.getByRole('button', { name: 'Threshold Rollout' })
+    ).toBeVisible();
+    await page.getByRole('list').getByLabel('Percentage').first().fill('70');
+    await page.getByRole('list').getByLabel('Percentage').click();
     await page.getByRole('button', { name: 'Reset' }).first().click();
     await expect(page.getByLabel('Percentage')).toHaveValue('100');
   });
@@ -59,6 +62,9 @@ test.describe('Rollouts', () => {
 
   test('can delete rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Threshold Rollout' })
+    ).toBeVisible();
     await page
       .getByRole('list')
       .locator('[id="headlessui-menu-button-\\:r4\\:"]')
@@ -66,6 +72,8 @@ test.describe('Rollouts', () => {
       .click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
-    await expect(page.getByText('Successfully deleted rollout')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Threshold Rollout' })
+    ).toBeHidden();
   });
 });
