@@ -498,7 +498,7 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
-					assert.False(t, result.Value, "default flag value should be false")
+					assert.False(t, result.Enabled, "default flag value should be false")
 				})
 
 				t.Run("percentage match", func(t *testing.T) {
@@ -512,7 +512,7 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-					assert.True(t, result.Value, "boolean evaluation value should be true")
+					assert.True(t, result.Enabled, "boolean evaluation value should be true")
 				})
 
 				t.Run("segment match", func(t *testing.T) {
@@ -528,7 +528,7 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-					assert.True(t, result.Value, "segment evaluation value should be true")
+					assert.True(t, result.Enabled, "segment evaluation value should be true")
 				})
 			})
 
@@ -563,7 +563,7 @@ func TestReadOnly(t *testing.T) {
 
 					b, ok := result.Responses[0].Response.(*evaluation.EvaluationResponse_BooleanResponse)
 					assert.True(t, ok, "response should be boolean evaluation response")
-					assert.True(t, b.BooleanResponse.Value, "boolean response should have true value")
+					assert.True(t, b.BooleanResponse.Enabled, "boolean response should have true value")
 					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
 					assert.Equal(t, evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, result.Responses[0].Type)
 
