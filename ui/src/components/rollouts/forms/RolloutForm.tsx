@@ -92,6 +92,21 @@ export default function RolloutForm(props: RolloutFormProps) {
         percentage: 50, // TODO: make this 0?
         value: 'true'
       }}
+      validate={(values) => {
+        if (values.type === RolloutType.SEGMENT) {
+          if (!values.segmentKey) {
+            return {
+              segmentKey: true
+            };
+          }
+        } else if (values.type === RolloutType.THRESHOLD) {
+          if (values.percentage < 0 || values.percentage > 100) {
+            return {
+              percentage: true
+            };
+          }
+        }
+      }}
       onSubmit={(values, { setSubmitting }) => {
         let handleSubmit = async (_values: RolloutFormValues) => {};
 
@@ -208,14 +223,19 @@ export default function RolloutForm(props: RolloutFormProps) {
                     type="range"
                     className="bg-gray-200 h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle dark:bg-gray-700"
                   />
-                  <Input
-                    type="number"
-                    id="percentage"
-                    max={100}
-                    min={0}
-                    name="percentage"
-                    className="text-center"
-                  />
+                  <div className="relative">
+                    <div className="text-black pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      %
+                    </div>
+                    <Input
+                      type="number"
+                      id="percentage"
+                      max={100}
+                      min={0}
+                      name="percentage"
+                      className="text-center"
+                    />
+                  </div>
                 </div>
               )}
               {rolloutRuleType === RolloutType.SEGMENT && (
