@@ -9,8 +9,7 @@ CREATE TABLE IF NOT EXISTS rollouts (
   updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP(6) NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (namespace_key) REFERENCES namespaces (`key`) ON DELETE CASCADE,
-  FOREIGN KEY (namespace_key, flag_key) REFERENCES flags (namespace_key, `key`) ON DELETE CASCADE,
-  UNIQUE KEY rollouts_unique (namespace_key, flag_key, `rank`)
+  FOREIGN KEY (namespace_key, flag_key) REFERENCES flags (namespace_key, `key`) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS rollout_thresholds (
