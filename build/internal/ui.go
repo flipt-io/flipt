@@ -27,5 +27,6 @@ func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
 		WithExec([]string{"npm", "install", "-g", "pnpm"}).
+		WithExec([]string{"pnpm", "install"}).
 		WithExec([]string{"pnpm", "run", "build"}), nil
 }
