@@ -196,9 +196,6 @@ devDependencies:
   package-changed:
     specifier: ^3.0.0
     version: 3.0.0
-  playwright:
-    specifier: ^1.36.0
-    version: 1.36.0
   postcss:
     specifier: ^8.4.26
     version: 8.4.26
@@ -5758,25 +5755,10 @@ packages:
       find-up: 4.1.0
     dev: true
 
-  /playwright-core@1.36.0:
-    resolution: {integrity: sha512-7RTr8P6YJPAqB+8j5ATGHqD6LvLLM39sYVNsslh78g8QeLcBs5750c6+msjrHUwwGt+kEbczBj1XB22WMwn+WA==}
-    engines: {node: '>=16'}
-    hasBin: true
-    dev: true
-
   /playwright-core@1.36.1:
     resolution: {integrity: sha512-7+tmPuMcEW4xeCL9cp9KxmYpQYHKkyjwoXRnoeTowaeNat8PoBMk/HwCYhqkH2fRkshfKEOiVus/IhID2Pg8kg==}
     engines: {node: '>=16'}
     hasBin: true
-    dev: true
-
-  /playwright@1.36.0:
-    resolution: {integrity: sha512-ODVOTp5WoRMxDJY3liMmC+wVNicc0cQB17gASvQ+zLBggVK9a2x3gdT5mbl7av+zomvtdirWOqqfD+O6qIrFgw==}
-    engines: {node: '>=16'}
-    hasBin: true
-    requiresBuild: true
-    dependencies:
-      playwright-core: 1.36.0
     dev: true
 
   /postcss-import@15.1.0(postcss@8.4.26):

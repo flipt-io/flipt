@@ -19,8 +19,9 @@ func UI(ctx context.Context, client *dagger.Client, ui, flipt *dagger.Container)
 	}
 
 	_, err = test.
-		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
-		WithExec([]string{"npx", "playwright", "test"}).
+		WithExec([]string{"pnpm", "install"}).
+		WithExec([]string{"pnpm", "exec", "playwright", "install", "chromium", "--with-deps"}).
+		WithExec([]string{"pnpm", "exec", "playwright", "test"}).
 		Sync(ctx)
 	if err != nil {
 		return err
@@ -54,7 +55,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 		WithMountedCache("/src/node_modules", cache).
 		WithExec([]string{"npm", "install", "-g", "pnpm"}).
 		WithExec([]string{"pnpm", "install"}).
-		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
+		WithExec([]string{"pnpm", "exec", "playwright", "install", "chromium", "--with-deps"}).
 		Sync(ctx)
 	if err != nil {
 		return err
