@@ -162,40 +162,41 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 }
 
 func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
-	rows, err := s.db.QueryContext(ctx, `
+	rows, err := s.builder.Select(`
+		r.id,
+		r.namespace_key,
+		r."type",
+		r."rank",
+		rt.percentage,
+		rt.value,
+		rss.segment_key,
+		rss.rollout_segment_value,
+		rss.match_type,
+		rss.constraint_type,
+		rss.constraint_property,
+		rss.constraint_operator,
+		rss.constraint_value
+	`).
+		From("rollouts r").
+		LeftJoin("rollout_thresholds rt ON (r.id = rt.rollout_id)").
+		LeftJoin(`(
 		SELECT
-			r.id,
-			r.namespace_key,
-			r."type",
-			r."rank",
-			rt.percentage,
-			rt.value,
-			rss.segment_key,
-			rss.rollout_segment_value,
-			rss.match_type,
-			rss.constraint_type,
-			rss.constraint_property,
-			rss.constraint_operator,
-			rss.constraint_value
-		FROM rollouts r
-		LEFT JOIN rollout_thresholds rt ON (r.id = rt.rollout_id)
-		LEFT JOIN (
-			SELECT
-				rs.rollout_id,
-				rs.segment_key,
-				s.match_type,
-				rs.value AS rollout_segment_value,
-				c."type" AS constraint_type,
-				c.property AS constraint_property,
-				c.operator AS constraint_operator,
-				c.value AS constraint_value
-			FROM rollout_segments rs
-			JOIN segments s ON (rs.segment_key = s."key")
-			JOIN constraints c ON (rs.segment_key = c.segment_key)
-		) rss ON (r.id = rss.rollout_id)
-		WHERE r.namespace_key = $1 AND r.flag_key = $2
-		ORDER BY r."rank" ASC
-		`, namespaceKey, flagKey)
+			rs.rollout_id,
+			rs.segment_key,
+			s.match_type,
+			rs.value AS rollout_segment_value,
+			c."type" AS constraint_type,
+			c.property AS constraint_property,
+			c.operator AS constraint_operator,
+			c.value AS constraint_value
+		FROM rollout_segments rs
+		JOIN segments s ON (rs.segment_key = s."key")
+		JOIN constraints c ON (rs.segment_key = c.segment_key)
+	) rss ON (r.id = rss.rollout_id)
+	`).
+		Where(sq.And{sq.Eq{"r.namespace_key": namespaceKey}, sq.Eq{"r.flag_key": flagKey}}).
+		OrderBy(`r."rank" ASC`).
+		QueryContext(ctx)
 	if err != nil {
 		return nil, err
 	}
