@@ -250,7 +250,7 @@ export default function Evaluation() {
                 </p>
               </div>
               <div
-                className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+                className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
   lg:w-3/4 lg:p-6"
               >
                 <DndContext

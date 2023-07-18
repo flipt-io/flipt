@@ -289,7 +289,7 @@ export default function RuleForm(props: RuleFormProps) {
                   )}
                 {!distributionsValid && ruleType === DistributionType.Multi && (
                   <p className="text-red-500 mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
-                    Multi-variant rules must have distributions that add up to
+                    Multi-variate rules must have distributions that add up to
                     100% or less.
                   </p>
                 )}

@@ -261,7 +261,7 @@ export default function Rollouts(props: RolloutsProps) {
               </p>
             </div>
             <div
-              className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+              className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
   lg:p-6"
             >
               {rollouts && rollouts.length > 0 && (
