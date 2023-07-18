@@ -27,9 +27,9 @@ export default function TextButton(props: ButtonProps) {
       }}
       className={classNames(
         disabled ? 'cursor-not-allowed' : 'cursor-hand',
-        `mb-1 inline-flex items-center justify-center rounded-md border-0 text-sm font-medium text-gray-300 
-        focus:outline-none
-        enabled:text-gray-500 enabled:hover:text-gray-600 ${className}`
+        `text-gray-300 mb-1 inline-flex items-center justify-center rounded-md border-0 text-sm font-medium 
+        enabled:text-gray-500
+        enabled:hover:text-gray-600 focus:outline-none ${className}`
       )}
       disabled={disabled}
       title={title}

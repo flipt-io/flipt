@@ -53,7 +53,7 @@ message EvaluationResponse {
 }
 
 message BooleanEvaluationResponse {
-  bool value = 1;
+  bool enabled = 1;
   EvaluationReason reason = 2;
   string request_id = 3;
   double request_duration_millis = 4;

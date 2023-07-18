@@ -104,7 +104,7 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col justify-center bg-white sm:px-6 lg:px-8">
+      <div className="bg-white flex min-h-screen flex-col justify-center sm:px-6 lg:px-8">
         <main className="flex px-6 py-10">
           <div className="w-full overflow-x-auto px-4 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -115,7 +115,7 @@ export default function Login() {
                 height={512}
                 className="m-auto h-20 w-auto"
               />
-              <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+              <h2 className="text-gray-900 mt-6 text-center text-3xl font-bold tracking-tight">
                 Login to Flipt
               </h2>
             </div>
@@ -127,7 +127,7 @@ export default function Login() {
                       <div key={provider.name}>
                         <a
                           href="#"
-                          className="inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm bg-white text-gray-500 border-gray-300 hover:shadow-violet-300 hover:text-violet-500"
+                          className="bg-white text-gray-500 border-gray-300 inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm hover:text-violet-500 hover:shadow-violet-300"
                           onClick={(e) => {
                             e.preventDefault();
                             authorize(provider.authorize_url);
@@ -148,12 +148,12 @@ export default function Login() {
                   </div>
                 )}
                 {(!providers || providers.length === 0) && (
-                  <div className="shadow bg-white sm:rounded-lg">
+                  <div className="bg-white shadow sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                      <h3 className="text-base font-semibold leading-6 text-gray-900">
+                      <h3 className="text-gray-900 text-base font-semibold leading-6">
                         No Providers
                       </h3>
-                      <div className="mt-2 max-w-xl text-sm text-gray-500">
+                      <div className="text-gray-500 mt-2 max-w-xl text-sm">
                         <p>
                           Authentication is set to{' '}
                           <span className="font-medium">required</span>,
@@ -164,7 +164,7 @@ export default function Login() {
                       <div className="mt-3 text-sm leading-6">
                         <a
                           href="https://www.flipt.io/docs/configuration/authentication#method-oidc"
-                          className="font-semibold text-violet-600 hover:text-violet-500"
+                          className="text-violet-600 font-semibold hover:text-violet-500"
                         >
                           Configuring Authentication
                           <span aria-hidden="true"> &rarr;</span>

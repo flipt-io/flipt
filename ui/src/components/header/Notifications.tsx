@@ -35,20 +35,20 @@ export function Notification(props: NotificationProps) {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white">
+            <div className="bg-white pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
               <div className="p-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <MegaphoneIcon
-                      className="h-6 w-6 text-gray-400"
+                      className="text-gray-400 h-6 w-6"
                       aria-hidden="true"
                     />
                   </div>
                   <div className="ml-3 w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-gray-900 text-sm font-medium">
                       Update Available
                     </p>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="text-gray-500 mt-1 text-sm">
                       A new version of Flipt is available!
                     </p>
                     <div className="mt-3 flex space-x-7 hover:cursor-pointer">
@@ -56,12 +56,12 @@ export function Notification(props: NotificationProps) {
                         href={info.latestVersionURL}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-md text-sm font-medium bg-white text-violet-600 hover:text-violet-500 focus:outline-none"
+                        className="bg-white text-violet-600 rounded-md text-sm font-medium hover:text-violet-500 focus:outline-none"
                       >
                         Check It Out
                       </a>
                       <a
-                        className="rounded-md text-sm font-medium bg-white text-gray-700 hover:text-gray-500 focus:outline-none"
+                        className="bg-white text-gray-700 rounded-md text-sm font-medium hover:text-gray-500 focus:outline-none"
                         onClick={(e) => {
                           e.preventDefault();
                           setShow(false);
@@ -75,7 +75,7 @@ export function Notification(props: NotificationProps) {
                   <div className="ml-4 flex flex-shrink-0">
                     <button
                       type="button"
-                      className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+                      className="bg-white text-gray-400 inline-flex rounded-md hover:text-gray-500 focus:outline-none"
                       onClick={() => {
                         setShow(false);
                         markSeen();
@@ -119,12 +119,12 @@ export default function Notifications(props: NotificationsProps) {
 
       <button
         type="button"
-        className="without-ring relative rounded-full text-violet-100"
+        className="without-ring text-violet-100 relative rounded-full"
       >
         {newNotifications && (
           <span className="absolute right-0 top-0 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 bg-white"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-100"></span>
+            <span className="bg-white absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
+            <span className="bg-violet-100 relative inline-flex h-2 w-2 rounded-full"></span>
           </span>
         )}
         <span className="sr-only">View notifications</span>

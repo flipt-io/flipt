@@ -118,14 +118,14 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
       }}
     >
       {(formik) => (
-        <Form className="flex h-full w-full flex-col overflow-y-scroll bg-white">
+        <Form className="bg-white flex h-full w-full flex-col overflow-y-scroll">
           <div className="w-full flex-1">
             <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
               {rollout.type === RolloutType.THRESHOLD ? (
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                   <label
                     htmlFor="percentage"
-                    className="mb-2 block text-sm font-medium text-gray-900"
+                    className="text-gray-900 mb-2 block text-sm font-medium"
                   >
                     Percentage
                   </label>
@@ -133,7 +133,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     id="percentage-slider"
                     name="percentage"
                     type="range"
-                    className="hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700 sm:block"
+                    className="bg-gray-200 hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle dark:bg-gray-700 sm:block"
                   />
                   <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -154,7 +154,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                   <div>
                     <label
                       htmlFor="segmentKey"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
@@ -178,7 +178,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                 <label
                   htmlFor="value"
-                  className="mb-2 block text-sm font-medium text-gray-900"
+                  className="text-gray-900 mb-2 block text-sm font-medium"
                 >
                   Value
                 </label>
@@ -190,7 +190,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle bg-gray-50"
+                  className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle"
                 />
               </div>
             </div>

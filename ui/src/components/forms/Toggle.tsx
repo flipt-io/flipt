@@ -21,13 +21,13 @@ export default function Toggle(props: ToggleProps) {
       <span className="flex flex-grow flex-col">
         <Switch.Label
           as="span"
-          className="text-sm font-medium text-gray-900"
+          className="text-gray-900 text-sm font-medium"
           passive
         >
           {label}
         </Switch.Label>
         {description && (
-          <Switch.Description as="span" className="text-sm text-gray-500">
+          <Switch.Description as="span" className="text-gray-500 text-sm">
             {description}
           </Switch.Description>
         )}
@@ -50,7 +50,7 @@ export default function Toggle(props: ToggleProps) {
         <span
           className={classNames(
             checked ? 'translate-x-6' : 'translate-x-1',
-            'inline-block h-4 w-4 transform rounded-full ring-0 transition bg-white'
+            'bg-white inline-block h-4 w-4 transform rounded-full ring-0 transition'
           )}
         />
       </Switch>

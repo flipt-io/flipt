@@ -13,6 +13,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
 	// get all rules for flag with their constraints if any
 	rows, err := s.builder.Select("r.id, r.namespace_key, r.flag_key, r.segment_key, s.match_type, r.\"rank\", c.id, c.type, c.property, c.operator, c.value").
 		From("rules r").
@@ -162,6 +163,10 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 }
 
 func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+	if namespaceKey == "" {
+		namespaceKey = storage.DefaultNamespace
+	}
+
 	rows, err := s.builder.Select(`
 		r.id,
 		r.namespace_key,

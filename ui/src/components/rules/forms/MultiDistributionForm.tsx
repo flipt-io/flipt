@@ -16,7 +16,7 @@ export default function MultiDistributionFormInputs(
         <div>
           <label
             htmlFor="variantKey"
-            className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+            className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
           >
             Variants
           </label>
@@ -30,7 +30,7 @@ export default function MultiDistributionFormInputs(
           <div>
             <label
               htmlFor={dist.variantKey}
-              className="block truncate text-right text-sm text-gray-600 sm:mt-px sm:pr-2 sm:pt-2"
+              className="text-gray-600 block truncate text-right text-sm sm:mt-px sm:pr-2 sm:pt-2"
             >
               {dist.variantKey}
             </label>
@@ -38,7 +38,7 @@ export default function MultiDistributionFormInputs(
           <div className="relative sm:col-span-1">
             <input
               type="number"
-              className="block w-full rounded-md pl-7 pr-12 shadow-sm border-gray-300 focus:ring-violet-300 focus:border-violet-300 sm:text-sm"
+              className="border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
               value={dist.rollout}
               name={dist.variantKey}
               // eslint-disable-next-line react/no-unknown-property

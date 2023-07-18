@@ -6,7 +6,6 @@ import (
 
 	errs "go.flipt.io/flipt/errors"
 	fliptotel "go.flipt.io/flipt/internal/server/otel"
-	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -16,10 +15,6 @@ import (
 // Evaluate evaluates a request for a given flag and entity
 func (s *Server) Evaluate(ctx context.Context, r *flipt.EvaluationRequest) (*flipt.EvaluationResponse, error) {
 	s.logger.Debug("evaluate", zap.Stringer("request", r))
-
-	if r.NamespaceKey == "" {
-		r.NamespaceKey = storage.DefaultNamespace
-	}
 
 	flag, err := s.store.GetFlag(ctx, r.NamespaceKey, r.FlagKey)
 	if err != nil {
@@ -68,7 +63,7 @@ func (s *Server) BatchEvaluate(ctx context.Context, r *flipt.BatchEvaluationRequ
 	s.logger.Debug("batch-evaluate", zap.Stringer("request", r))
 
 	if r.NamespaceKey == "" {
-		r.NamespaceKey = storage.DefaultNamespace
+		r.NamespaceKey = flipt.DefaultNamespace
 	}
 
 	resp, err := s.batchEvaluate(ctx, r)

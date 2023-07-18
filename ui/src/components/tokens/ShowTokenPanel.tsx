@@ -35,21 +35,21 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
   return (
     <>
       <div>
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-          <CheckIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
+        <div className="bg-green-100 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+          <CheckIcon className="text-green-600 h-6 w-6" aria-hidden="true" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <Dialog.Title
             as="h3"
-            className="text-lg font-medium leading-6 text-gray-900"
+            className="text-gray-900 text-lg font-medium leading-6"
           >
             Created Token
           </Dialog.Title>
           <div className="mt-2">
-            <p className="text-sm text-gray-500">
+            <p className="text-gray-500 text-sm">
               Please copy the token below and store it in a secure location.
             </p>
-            <p className="mt-2 text-sm text-gray-700">
+            <p className="text-gray-700 mt-2 text-sm">
               You will not be able to view it again
             </p>
           </div>
@@ -74,13 +74,13 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
                 >
                   <CheckIcon
                     className={classNames(
-                      'absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out text-green-400 hover:text-white',
+                      'text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
                       copied ? 'visible opacity-100' : 'invisible opacity-0'
                     )}
                   />
                   <ClipboardDocumentIcon
                     className={classNames(
-                      'm-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out text-gray-400 hover:text-white',
+                      'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
                       copied ? 'invisible opacity-0' : 'visible opacity-100'
                     )}
                   />
