@@ -270,7 +270,7 @@ func NewDBContainer(ctx context.Context, proto config.DatabaseProtocol) (*DBCont
 			Image:        "mysql:8",
 			ExposedPorts: []string{"3306/tcp"},
 			WaitingFor: wait.ForSQL(port, "mysql", func(host string, port nat.Port) string {
-				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true", host, port.Port())
+				return fmt.Sprintf("flipt:password@tcp(%s:%s)/flipt_test?multiStatements=true&sessionVariables=sql_mode=''", host, port.Port())
 			}),
 			Env: map[string]string{
 				"MYSQL_USER":                 "flipt",
