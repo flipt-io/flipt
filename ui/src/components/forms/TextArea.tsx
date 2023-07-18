@@ -22,14 +22,14 @@ export default function TextArea(props: TextAreaProps) {
         rows={rows}
         className={classNames(
           hasError ? 'border-red-400' : 'border-gray-300',
-          `${className} block w-full rounded-md shadow-sm text-gray-900 bg-gray-50 focus:ring-violet-500 focus:border-violet-500 sm:text-sm`
+          `${className} text-gray-900 bg-gray-50 block w-full rounded-md shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm`
         )}
         placeholder={placeholder}
         autoComplete={autocomplete ? 'on' : 'off'}
         {...field}
       />
       {meta.touched && meta.error ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+        <div className="text-red-500 mt-1 text-sm">{meta.error}</div>
       ) : null}
     </>
   );

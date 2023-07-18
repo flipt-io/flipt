@@ -32,7 +32,7 @@ function NavItem(props: NavItemProps) {
       href={to}
       target="_blank"
       rel="noreferrer"
-      className="group flex items-center rounded-md px-2 py-2 text-sm font-medium text-white hover:bg-violet-400 md:text-gray-600 md:hover:bg-gray-50"
+      className="group text-white flex items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-violet-400 md:text-gray-600 md:hover:bg-gray-50"
     >
       <Icon
         className="text-wite mr-3 h-6 w-6 flex-shrink-0 hover:bg-gray-50 md:text-gray-500"

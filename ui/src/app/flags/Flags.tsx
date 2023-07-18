@@ -36,10 +36,10 @@ export default function Flags() {
     <>
       <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+          <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
             Flags
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="text-gray-500 mt-2 text-sm">
             Flags represent features that you can easily enable or disable
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function Flags() {
               title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
             >
               <PlusIcon
-                className="-ml-1.5 mr-1 h-5 w-5 text-white"
+                className="text-white -ml-1.5 mr-1 h-5 w-5"
                 aria-hidden="true"
               />
               <span>New Flag</span>

@@ -58,7 +58,7 @@ export default function Variants(props: VariantsProps) {
           panelMessage={
             <>
               Are you sure you want to delete the variant{' '}
-              <span className="font-medium text-violet-500">
+              <span className="text-violet-500 font-medium">
                 {deletingVariant?.key}
               </span>
               ? This action cannot be undone.
@@ -80,10 +80,10 @@ export default function Variants(props: VariantsProps) {
       <div className="mt-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-lg font-medium leading-6 text-gray-900">
+            <h1 className="text-gray-900 text-lg font-medium leading-6">
               Variants
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-gray-500 mt-1 text-sm">
               Return different values based on rules you define
             </p>
           </div>
@@ -100,7 +100,7 @@ export default function Variants(props: VariantsProps) {
                 }}
               >
                 <PlusIcon
-                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
+                  className="text-white -ml-1.5 mr-1 h-5 w-5"
                   aria-hidden="true"
                 />
                 <span>New Variant</span>
@@ -115,19 +115,19 @@ export default function Variants(props: VariantsProps) {
                 <tr>
                   <th
                     scope="col"
-                    className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                    className="text-gray-900 pb-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6"
                   >
                     Key
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                    className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold sm:table-cell"
                   >
                     Name
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                    className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                   >
                     Description
                   </th>
@@ -139,13 +139,13 @@ export default function Variants(props: VariantsProps) {
               <tbody className="divide-y divide-gray-200">
                 {flag.variants.map((variant) => (
                   <tr key={variant.key}>
-                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
+                    <td className="text-gray-600 whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                       {variant.key}
                     </td>
-                    <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
+                    <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell">
                       {variant.name}
                     </td>
-                    <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                    <td className="text-gray-500 hidden truncate whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                       {variant.description}
                     </td>
                     <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -153,7 +153,7 @@ export default function Variants(props: VariantsProps) {
                         <>
                           <a
                             href="#"
-                            className="pr-2 text-violet-600 hover:text-violet-900"
+                            className="text-violet-600 pr-2 hover:text-violet-900"
                             onClick={(e) => {
                               e.preventDefault();
                               setEditingVariant(variant);
@@ -166,7 +166,7 @@ export default function Variants(props: VariantsProps) {
                           <span aria-hidden="true"> | </span>
                           <a
                             href="#"
-                            className="pl-2 text-violet-600 hover:text-violet-900"
+                            className="text-violet-600 pl-2 hover:text-violet-900"
                             onClick={(e) => {
                               e.preventDefault();
                               setDeletingVariant(variant);

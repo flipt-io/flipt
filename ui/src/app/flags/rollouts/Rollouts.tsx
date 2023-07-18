@@ -160,7 +160,7 @@ export default function Rollouts(props: RolloutsProps) {
           panelMessage={
             <>
               Are you sure you want to delete this rule at
-              <span className="font-medium text-violet-500">
+              <span className="text-violet-500 font-medium">
                 {' '}
                 position {deletingRollout?.rank}
               </span>
@@ -189,8 +189,8 @@ export default function Rollouts(props: RolloutsProps) {
           segments={segments}
           setOpen={setShowRolloutForm}
           onSuccess={() => {
-            setShowRolloutForm(false);
             incrementRolloutsVersion();
+            setShowRolloutForm(false);
           }}
         />
       </Slideover>
@@ -219,44 +219,42 @@ export default function Rollouts(props: RolloutsProps) {
       <div className="mt-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-lg font-medium leading-6 text-gray-900">
+            <h1 className="text-gray-900 text-lg font-medium leading-6">
               Rollouts
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-gray-500 mt-1 text-sm">
               Return boolean values based on rules you define
             </p>
           </div>
-          {rollouts && rollouts.length > 0 && (
-            <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-              <Button
-                primary
-                type="button"
-                disabled={readOnly}
-                title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
-                onClick={() => {
-                  setEditingRollout(null);
-                  setShowRolloutForm(true);
-                }}
-              >
-                <PlusIcon
-                  className="-ml-1.5 mr-1 h-5 w-5 text-white"
-                  aria-hidden="true"
-                />
-                <span>New Rollout</span>
-              </Button>
-            </div>
-          )}
+          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+            <Button
+              primary
+              type="button"
+              disabled={readOnly}
+              title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
+              onClick={() => {
+                setEditingRollout(null);
+                setShowRolloutForm(true);
+              }}
+            >
+              <PlusIcon
+                className="text-white -ml-1.5 mr-1 h-5 w-5"
+                aria-hidden="true"
+              />
+              <span>New Rollout</span>
+            </Button>
+          </div>
         </div>
         <div className="mt-10">
           <div className="flex lg:space-x-5">
             <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-              <p className="text-sm font-light text-gray-700">
+              <p className="text-gray-700 text-sm font-light">
                 Rules are evaluated in order from{' '}
                 <span className="font-semibold">top to bottom</span>. The first
                 rule that matches will be applied.
               </p>
-              <p className="text-sm font-light text-gray-700">
-                <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-gray-300" />
+              <p className="text-gray-700 text-sm font-light">
+                <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
                 You can re-arrange rules by clicking in the header and{' '}
                 <span className="font-semibold">dragging and dropping</span>{' '}
                 them into place.
@@ -280,7 +278,7 @@ export default function Rollouts(props: RolloutsProps) {
                     <ul role="list" className="flex-col space-y-6 p-2 md:flex">
                       {rollouts.map((rollout) => (
                         <SortableRollout
-                          key={rollout.id}
+                          key={`${rollout.id}-${rollout.updatedAt}`}
                           flag={flag}
                           rollout={rollout}
                           segments={segments}
@@ -310,11 +308,11 @@ export default function Rollouts(props: RolloutsProps) {
                 </DndContext>
               )}
               <div className="flex-col p-2 md:flex">
-                <div className="w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 bg-white border-violet-300 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
-                  <div className="w-full border-b p-2 bg-white border-gray-200 ">
+                <div className="bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-6 lg:py-2">
+                  <div className="bg-white border-gray-200 w-full border-b p-2 ">
                     <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
-                      <StarIcon className="hidden h-4 w-4 justify-start text-gray-400 hover:text-violet-300 sm:flex" />
-                      <h3 className="text-sm font-normal leading-6 text-gray-700">
+                      <StarIcon className="text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex" />
+                      <h3 className="text-gray-700 text-sm font-normal leading-6">
                         Default Rollout
                       </h3>
                       <span className="hidden h-4 w-4 justify-end sm:flex" />
@@ -323,22 +321,22 @@ export default function Rollouts(props: RolloutsProps) {
                   <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                     <div className="flex grow flex-col items-center justify-center sm:ml-2">
                       <div className="flex flex-col pb-4 pt-2">
-                        <p className="text-sm font-light text-gray-500">
+                        <p className="text-gray-500 text-sm font-light">
                           This is the default value that will be returned if no
                           other rules match. It is directly tied to the flag
                           enabled state.
                         </p>
                       </div>
-                      <div className="w-full flex-1">
+                      <div className="flex-1">
                         <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
                           <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
                             <label
                               htmlFor="value"
-                              className="mb-2 block text-sm font-medium text-gray-900"
+                              className="text-gray-900 mb-2 block text-sm font-medium"
                             >
                               Value
                             </label>
-                            <span className="inline-flex w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10 text-gray-600 bg-gray-50">
+                            <span className="text-gray-600 bg-gray-50 inline-flex w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10">
                               {flag.enabled ? 'True' : 'False'}
                             </span>
                           </div>

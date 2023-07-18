@@ -139,12 +139,12 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
       }}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
+        <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
           <div className="flex-1">
-            <div className="px-4 py-6 bg-gray-50 sm:px-6">
+            <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-lg font-medium text-gray-900">
+                  <Dialog.Title className="text-gray-900 text-lg font-medium">
                     Edit Rollout
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#rollouts">
@@ -168,7 +168,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 <div>
                   <label
                     htmlFor="type"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
                     Type
                   </label>
@@ -188,7 +188,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                               aria-describedby={`${rolloutRule.id}-description`}
                               name="type"
                               type="radio"
-                              className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               disabled={true}
                               checked={rolloutRule.id === rollout.type}
                               value={rolloutRule.id}
@@ -197,7 +197,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                           <div className="ml-3 text-sm">
                             <label
                               htmlFor={rolloutRule.id}
-                              className="font-medium text-gray-700"
+                              className="text-gray-700 font-medium"
                             >
                               {rolloutRule.name}
                             </label>
@@ -218,7 +218,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <label
                     htmlFor="percentage"
-                    className="mb-2 block text-sm font-medium text-gray-900"
+                    className="text-gray-900 mb-2 block text-sm font-medium"
                   >
                     Percentage
                   </label>
@@ -226,7 +226,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                     id="percentage-slider"
                     name="percentage"
                     type="range"
-                    className="h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle bg-gray-200 dark:bg-gray-700"
+                    className="bg-gray-200 h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle dark:bg-gray-700"
                   />
                   <Input
                     type="number"
@@ -243,7 +243,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                   <div>
                     <label
                       htmlFor="segmentKey"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
@@ -267,7 +267,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <label
                   htmlFor="value"
-                  className="mb-2 block text-sm font-medium text-gray-900"
+                  className="text-gray-900 mb-2 block text-sm font-medium"
                 >
                   Value
                 </label>
@@ -286,12 +286,12 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 <div>
                   <label
                     htmlFor="description"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-xs text-gray-400"
+                    className="text-gray-400 text-xs"
                     id="description-optional"
                   >
                     Optional
@@ -303,7 +303,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
+          <div className="border-gray-200 flex-shrink-0 border-t px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button onClick={() => setOpen(false)}>Cancel</Button>
               <Button

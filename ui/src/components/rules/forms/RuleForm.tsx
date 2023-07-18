@@ -165,12 +165,12 @@ export default function RuleForm(props: RuleFormProps) {
     >
       {(formik) => {
         return (
-          <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
+          <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
             <div className="flex-1">
-              <div className="px-4 py-6 bg-gray-50 sm:px-6">
+              <div className="bg-gray-50 px-4 py-6 sm:px-6">
                 <div className="flex items-start justify-between space-x-3">
                   <div className="space-y-1">
-                    <Dialog.Title className="text-lg font-medium text-gray-900">
+                    <Dialog.Title className="text-gray-900 text-lg font-medium">
                       New Rule
                     </Dialog.Title>
                     <MoreInfo href="https://www.flipt.io/docs/concepts#rules">
@@ -194,7 +194,7 @@ export default function RuleForm(props: RuleFormProps) {
                   <div>
                     <label
                       htmlFor="segmentKey"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
@@ -218,7 +218,7 @@ export default function RuleForm(props: RuleFormProps) {
                   <div>
                     <label
                       htmlFor="ruleType"
-                      className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Type
                     </label>
@@ -238,7 +238,7 @@ export default function RuleForm(props: RuleFormProps) {
                                 aria-describedby={`${dist.id}-description`}
                                 name="ruleType"
                                 type="radio"
-                                className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                                className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                                 onChange={() => {
                                   setRuleType(dist.id);
                                 }}
@@ -253,7 +253,7 @@ export default function RuleForm(props: RuleFormProps) {
                             <div className="ml-3 text-sm">
                               <label
                                 htmlFor={dist.id}
-                                className="font-medium text-gray-700"
+                                className="text-gray-700 font-medium"
                               >
                                 {dist.name}
                               </label>
@@ -288,13 +288,13 @@ export default function RuleForm(props: RuleFormProps) {
                     />
                   )}
                 {!distributionsValid && ruleType === DistributionType.Multi && (
-                  <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
+                  <p className="text-gray-500 mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
                     Multi-variant rules must have distributions that add up to
                     100% or less.
                   </p>
                 )}
                 {(!flag.variants || flag.variants?.length == 0) && (
-                  <p className="mt-1 px-4 text-center text-sm text-gray-500 sm:px-6 sm:py-5">
+                  <p className="text-gray-500 mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
                     Flag{' '}
                     <Link to=".." className="text-violet-500">
                       {truncateKey(flag.key)}
@@ -305,7 +305,7 @@ export default function RuleForm(props: RuleFormProps) {
                 )}
               </div>
             </div>
-            <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
+            <div className="border-gray-200 flex-shrink-0 border-t px-4 py-5 sm:px-6">
               <div className="flex justify-end space-x-3">
                 <Button onClick={() => setOpen(false)}>Cancel</Button>
                 <Button

@@ -163,7 +163,7 @@ export default function FlagTable(props: FlagTableProps) {
                   <th
                     key={header.id}
                     scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
                   >
                     <div
                       className="group inline-flex cursor-pointer"
@@ -175,7 +175,7 @@ export default function FlagTable(props: FlagTableProps) {
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                      <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
+                      <span className="text-gray-400 ml-2 flex-none rounded group-hover:visible group-focus:visible">
                         {{
                           asc: (
                             <ChevronUpIcon
@@ -197,7 +197,7 @@ export default function FlagTable(props: FlagTableProps) {
                   <th
                     key={header.id}
                     scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
                   >
                     {header.isPlaceholder
                       ? null

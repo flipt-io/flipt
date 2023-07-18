@@ -123,10 +123,10 @@ export default function Console() {
   return (
     <>
       <div className="flex flex-col">
-        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+        <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
           Console
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="text-gray-500 mt-2 text-sm">
           See the results of your flag evaluations and debug any issues
         </p>
       </div>
@@ -157,7 +157,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="flagKey"
-                            className="block text-sm font-medium text-gray-700"
+                            className="text-gray-700 block text-sm font-medium"
                           >
                             Flag Key
                           </label>
@@ -174,7 +174,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="entityId"
-                            className="block text-sm font-medium text-gray-700"
+                            className="text-gray-700 block text-sm font-medium"
                           >
                             Entity ID
                           </label>
@@ -188,7 +188,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="context"
-                            className="block text-sm font-medium text-gray-700"
+                            className="text-gray-700 block text-sm font-medium"
                           >
                             Request Context
                           </label>
@@ -233,7 +233,7 @@ export default function Console() {
                 <pre className="p-2 text-sm md:h-full">
                   <code
                     className={classNames(
-                      hasEvaluationError ? 'border-4 border-red-400' : '',
+                      hasEvaluationError ? 'border-red-400 border-4' : '',
                       'json rounded-sm md:h-full'
                     )}
                   >

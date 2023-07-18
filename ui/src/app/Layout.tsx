@@ -30,7 +30,7 @@ function InnerLayout() {
   return (
     <>
       <Sidebar setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
-      <div className="flex min-h-screen flex-col bg-white md:pl-64">
+      <div className="bg-white flex min-h-screen flex-col md:pl-64">
         <Header setSidebarOpen={setSidebarOpen} />
 
         <main className="flex px-6 py-10">

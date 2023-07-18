@@ -16,7 +16,7 @@ export default function SingleDistributionFormInput(
       <div>
         <label
           htmlFor="variantKey"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
         >
           Variant
         </label>

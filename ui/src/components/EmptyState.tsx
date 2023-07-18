@@ -25,24 +25,24 @@ export default function EmptyState(props: EmptyStateProps) {
     <button
       className={classNames(
         disabled ? 'hover:cursor-not-allowed' : 'hover: cursor-hand',
-        `${className} relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center border-gray-300 hover:border-gray-400 focus:outline-none`
+        `${className} border-gray-300 relative block h-full w-full rounded-lg border-2 border-dashed p-12 text-center hover:border-gray-400 focus:outline-none`
       )}
       disabled={!onClick || disabled}
       onClick={onClick}
     >
       {Icon && onClick && (
         <Icon
-          className="mx-auto h-12 w-12 text-violet-200"
+          className="text-violet-200 mx-auto h-12 w-12"
           aria-hidden="true"
         />
       )}
       {text && (
-        <span className="mt-2 block text-sm font-medium text-gray-900">
+        <span className="text-gray-900 mt-2 block text-sm font-medium">
           {text}
         </span>
       )}
       {secondaryText && (
-        <span className="mt-2 block text-sm text-gray-400">
+        <span className="text-gray-400 mt-2 block text-sm">
           {secondaryText}
         </span>
       )}

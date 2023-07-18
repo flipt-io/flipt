@@ -117,7 +117,7 @@ export default function Segment() {
           panelMessage={
             <>
               Are you sure you want to delete the constraint for{' '}
-              <span className="font-medium text-violet-500">
+              <span className="text-violet-500 font-medium">
                 {deletingConstraint?.property}
               </span>
               ? This action cannot be undone.
@@ -145,7 +145,7 @@ export default function Segment() {
           panelMessage={
             <>
               Are you sure you want to delete the segment{' '}
-              <span className="font-medium text-violet-500">{segment.key}</span>
+              <span className="text-violet-500 font-medium">{segment.key}</span>
               ? This action cannot be undone.
             </>
           }
@@ -164,7 +164,7 @@ export default function Segment() {
           panelMessage={
             <>
               Copy the segment{' '}
-              <span className="font-medium text-violet-500">{segment.key}</span>{' '}
+              <span className="text-violet-500 font-medium">{segment.key}</span>{' '}
               to the namespace:
             </>
           }
@@ -187,16 +187,16 @@ export default function Segment() {
       {/* segment header / delete button */}
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+          <h2 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl sm:tracking-tight">
             {segment.name}
           </h2>
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
             <div
               title={inTimezone(segment.createdAt)}
-              className="mt-2 flex items-center text-sm text-gray-500"
+              className="text-gray-500 mt-2 flex items-center text-sm"
             >
               <CalendarIcon
-                className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400"
+                className="text-gray-400 mr-1.5 h-5 w-5 flex-shrink-0"
                 aria-hidden="true"
               />
               Created{' '}
@@ -236,10 +236,10 @@ export default function Segment() {
         <div className="my-10">
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
-              <h3 className="text-lg font-medium leading-6 text-gray-900">
+              <h3 className="text-gray-900 text-lg font-medium leading-6">
                 Details
               </h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="text-gray-500 mt-1 text-sm">
                 Basic information about the segment
               </p>
               <MoreInfo
@@ -263,10 +263,10 @@ export default function Segment() {
           <div>
             <div className="sm:flex sm:items-center">
               <div className="sm:flex-auto">
-                <h1 className="text-lg font-medium leading-6 text-gray-900">
+                <h1 className="text-gray-900 text-lg font-medium leading-6">
                   Constraints
                 </h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="text-gray-500 mt-1 text-sm">
                   Determine if a request matches a segment
                 </p>
               </div>
@@ -296,31 +296,31 @@ export default function Segment() {
                     <tr>
                       <th
                         scope="col"
-                        className="pb-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                        className="text-gray-900 pb-3.5 pl-4 pr-3 text-left text-sm font-semibold sm:pl-6"
                       >
                         Property
                       </th>
                       <th
                         scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell"
+                        className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold sm:table-cell"
                       >
                         Type
                       </th>
                       <th
                         scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                        className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                       >
                         Operator
                       </th>
                       <th
                         scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                        className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                       >
                         Value
                       </th>
                       <th
                         scope="col"
-                        className="hidden px-3 pb-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                        className="text-gray-900 hidden px-3 pb-3.5 text-left text-sm font-semibold lg:table-cell"
                       >
                         Description
                       </th>
@@ -335,22 +335,22 @@ export default function Segment() {
                   <tbody className="divide-y divide-gray-200">
                     {segment.constraints.map((constraint) => (
                       <tr key={constraint.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-600 sm:pl-6">
+                        <td className="text-gray-600 whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                           {constraint.property}
                         </td>
-                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 sm:table-cell">
+                        <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm sm:table-cell">
                           {constraintTypeToLabel(constraint.type)}
                         </td>
-                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                           {ConstraintOperators[constraint.operator]}
                         </td>
-                        <td className="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                           {constraint.type === ConstraintType.DATETIME &&
                           constraint.value !== undefined
                             ? inTimezone(constraint.value)
                             : constraint.value}
                         </td>
-                        <td className="hidden truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">
+                        <td className="text-gray-500 hidden truncate whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                           {constraint.description}
                         </td>
                         <td className="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -358,7 +358,7 @@ export default function Segment() {
                             <>
                               <a
                                 href="#"
-                                className="pr-2 text-violet-600 hover:text-violet-900"
+                                className="text-violet-600 pr-2 hover:text-violet-900"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   setEditingConstraint(constraint);
@@ -373,7 +373,7 @@ export default function Segment() {
                               <span aria-hidden="true"> | </span>
                               <a
                                 href="#"
-                                className="pl-2 text-violet-600 hover:text-violet-900"
+                                className="text-violet-600 pl-2 hover:text-violet-900"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   setDeletingConstraint(constraint);
