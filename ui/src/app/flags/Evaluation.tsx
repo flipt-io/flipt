@@ -244,9 +244,9 @@ export default function Evaluation() {
                 </p>
                 <p className="text-gray-700 text-sm font-light">
                   <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
-                  You can re-arrange rules by clicking in the header and{' '}
+                  You can re-arrange rules by clicking on a rule header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
-                  them into place.
+                  it into place.
                 </p>
               </div>
               <div

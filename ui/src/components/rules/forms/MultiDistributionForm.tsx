@@ -36,9 +36,12 @@ export default function MultiDistributionFormInputs(
             </label>
           </div>
           <div className="relative sm:col-span-1">
+            <div className="text-black pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              %
+            </div>
             <input
               type="number"
-              className="border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
+              className="text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md pl-10 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
               value={dist.rollout}
               name={dist.variantKey}
               // eslint-disable-next-line react/no-unknown-property
@@ -52,14 +55,6 @@ export default function MultiDistributionFormInputs(
                 setDistributions(newDistributions);
               }}
             />
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <span
-                className="text-gray-500 sm:text-sm"
-                id={`percentage-${dist.variantKey}`}
-              >
-                %
-              </span>
-            </div>
           </div>
         </div>
       ))}
