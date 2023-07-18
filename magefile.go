@@ -137,7 +137,7 @@ type Go mg.Namespace
 
 // Keeping these aliases for backwards compatibility for now
 var Aliases = map[string]interface{}{
-	"dev":   Go.Run,
+	"dev":   Go.Dev,
 	"test":  Go.Test,
 	"bench": Go.Bench,
 	"lint":  Go.Lint,
@@ -158,7 +158,7 @@ func (g Go) Bench() error {
 }
 
 // Runs the Go server in development mode using the local config, without bundling assets
-func (g Go) Run() error {
+func (g Go) Dev() error {
 	return sh.RunV("go", "run", "./cmd/flipt/...", "--config", "config/local.yml")
 }
 
@@ -175,7 +175,7 @@ func (g Go) Build() error {
 	fmt.Printf("\nRun the following to start Flipt server:\n")
 	fmt.Printf("\n%v\n", color.CyanString(`./bin/flipt [--config config/local.yml]`))
 	fmt.Printf("\nIn another shell, run the following to start the UI in dev mode:\n")
-	fmt.Printf("\n%v\n", color.CyanString(`cd ui && npm run dev`))
+	fmt.Printf("\n%v\n", color.CyanString(`cd ui && pnpm run dev`))
 	return nil
 }
 
@@ -247,18 +247,16 @@ type UI mg.Namespace
 func (u UI) Deps() error {
 	fmt.Println("Installing UI deps...")
 
-	// check if node_modules exists, if not run npm ci and return
+	// check if node_modules exists, if not run pnpm i and return
 	if _, err := os.Stat("ui/node_modules"); err != nil && os.IsNotExist(err) {
-		cmd := exec.Command("npm", "ci")
+		cmd := exec.Command("pnpm", "i")
 		cmd.Dir = "ui"
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
 	}
 
-	// only run if deps have changed
-	// uses: https://github.com/thdk/package-changed
-	cmd := exec.Command("npx", "--no", "package-changed", "install", "--ci")
+	cmd := exec.Command("pnpm", "i")
 	cmd.Dir = "ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -266,12 +264,12 @@ func (u UI) Deps() error {
 }
 
 // Runs the UI in development mode
-func (u UI) Run() error {
+func (u UI) Dev() error {
 	mg.Deps(u.Deps)
 
 	fmt.Println("Starting UI...")
 
-	cmd := exec.Command("npm", "run", "dev")
+	cmd := exec.Command("pnpm", "run", "dev")
 	cmd.Dir = "ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -284,7 +282,7 @@ func (u UI) Build() error {
 
 	fmt.Println("Generating assets...")
 
-	cmd := exec.Command("npm", "run", "build")
+	cmd := exec.Command("pnpm", "run", "build")
 	cmd.Dir = "ui"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

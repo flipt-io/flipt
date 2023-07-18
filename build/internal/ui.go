@@ -16,7 +16,7 @@ func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
 		},
 	})
 
-	contents, err := src.File("package-lock.json").Contents(ctx)
+	contents, err := src.File("pnpm-lock.yaml").Contents(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -26,6 +26,6 @@ func UI(ctx context.Context, client *dagger.Client) (*dagger.Container, error) {
 	return client.Container().From("node:18-bullseye").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
-		WithExec([]string{"npm", "install"}).
-		WithExec([]string{"npm", "run", "build"}), nil
+		WithExec([]string{"npm", "install", "-g", "pnpm"}).
+		WithExec([]string{"pnpm", "run", "build"}), nil
 }

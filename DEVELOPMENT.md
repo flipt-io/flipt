@@ -10,6 +10,7 @@ Before starting, make sure you have the following installed:
 - [SQLite](https://sqlite.org/index.html)
 - [Go 1.20+](https://golang.org/doc/install)
 - [NodeJS >= 18](https://nodejs.org/en/)
+- [PNPM](https://pnpm.io/)
 - [Mage](https://magefile.org/)
 - [Docker](https://docs.docker.com/install/) (for running tests)
 
@@ -69,8 +70,8 @@ The UI is built using [NPM](https://nodejs.org/en/) and [Vite](https://vitejs.de
 
 To develop the project with the UI also in development mode (with hot reloading):
 
-1. Run `npm run dev` from the `ui` directory (or `mage ui:run` from the root). This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
-2. Run `mage dev` (or `mage go:run`) from the this repository. This will run the backend server making it accessible on port `8080`.
+1. Run `pnpm run dev` from the `ui` directory (or `mage ui:dev` from the root). This will start a development server on port `5173` and proxy API requests to the Flipt API on port `8080`.
+2. Run `mage dev` (or `mage go:dev`) from the this repository. This will run the backend server making it accessible on port `8080`.
 3. Visit `http://localhost:8080` to see the UI.
 4. Any changes made in the `ui` directory will be picked up by the development server and the UI will be reloaded.
 

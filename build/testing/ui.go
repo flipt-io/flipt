@@ -36,13 +36,13 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	src := client.Host().Directory("./ui/", dagger.HostDirectoryOpts{
 		Include: []string{
 			"./package.json",
-			"./package-lock.json",
+			"./pnpm-lock.yaml",
 			"./playwright.config.ts",
 			"/screenshots/",
 		},
 	})
 
-	contents, err := src.File("package-lock.json").Contents(ctx)
+	contents, err := src.File("pnpm-lock.yaml").Contents(ctx)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,8 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	ui, err := client.Container().From("node:18-bullseye").
 		WithMountedDirectory("/src", src).WithWorkdir("/src").
 		WithMountedCache("/src/node_modules", cache).
-		WithExec([]string{"npm", "install"}).
+		WithExec([]string{"npm", "install", "-g", "pnpm"}).
+		WithExec([]string{"pnpm", "install"}).
 		WithExec([]string{"npx", "playwright", "install", "chromium", "--with-deps"}).
 		Sync(ctx)
 	if err != nil {
@@ -69,7 +70,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	// remount entire directory with module cache
 	ui, err = ui.WithMountedDirectory("/src", src).
 		WithMountedCache("/src/node_modules", cache).
-		WithExec([]string{"npm", "install"}).
+		WithExec([]string{"pnpm", "install"}).
 		Sync(ctx)
 	if err != nil {
 		return err
@@ -82,11 +83,11 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 
 	var (
 		g          errgroup.Group
-		containers = make(chan *dagger.Container, 0)
+		containers = make(chan *dagger.Container)
 	)
 
 	go func() {
-		g.Wait()
+		_ = g.Wait()
 		close(containers)
 	}()
 

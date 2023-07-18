@@ -54,8 +54,8 @@ The end-to-end tests are run in a Docker container via Dagger. To run the tests 
 
 ### Linting
 
-We use [ESLint](https://eslint.org/) for linting. The configuration for ESLint is located in the `.eslintrc.json`. The linting rules are enforced via CI (GitHub Actions) and locally via the `lint` script in the `package.json` file (`npm run lint`).
+We use [ESLint](https://eslint.org/) for linting. The configuration for ESLint is located in the `.eslintrc.json`. The linting rules are enforced via CI (GitHub Actions) and locally via the `lint` script in the `package.json` file (`pnpm run lint`).
 
 ### Formatting
 
-We use [Prettier](https://prettier.io/) for formatting. The configuration for Prettier is located in the `prettier.config.cjs` file. Run `npm run format` to format the code.
+We use [Prettier](https://prettier.io/) for formatting. The configuration for Prettier is located in the `prettier.config.cjs` file. Run `pnpm run format` to format the code.
