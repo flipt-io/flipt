@@ -43,7 +43,7 @@ export default function Input(props: InputProps) {
         autoComplete={autoComplete ? 'on' : 'off'}
         {...rest}
       />
-      {meta.touched && meta.error ? (
+      {hasError && meta.error?.length && meta.error.length > 0 ? (
         <div className="text-red-500 mt-1 text-sm">{meta.error}</div>
       ) : null}
     </>

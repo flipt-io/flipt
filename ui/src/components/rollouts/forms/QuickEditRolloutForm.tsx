@@ -94,6 +94,24 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
         percentage: rollout.threshold?.percentage,
         value: initialValue
       }}
+      validate={(values) => {
+        if (values.type === RolloutType.SEGMENT) {
+          if (!values.segmentKey) {
+            return {
+              segmentKey: true
+            };
+          }
+        } else if (values.type === RolloutType.THRESHOLD) {
+          if (
+            values.percentage &&
+            (values.percentage < 0 || values.percentage > 100)
+          ) {
+            return {
+              percentage: true
+            };
+          }
+        }
+      }}
       onSubmit={(values, { setSubmitting }) => {
         let handleSubmit = async (_values: RolloutFormValues) => {};
 
@@ -136,7 +154,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     className="bg-gray-200 hidden h-2 w-full cursor-pointer appearance-none self-center rounded-lg align-middle dark:bg-gray-700 sm:block"
                   />
                   <div className="relative">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <div className="text-black pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                       %
                     </div>
                     <Input
@@ -145,7 +163,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                       max={100}
                       min={0}
                       name="percentage"
-                      className="pl-10 text-center"
+                      className="text-center"
                     />
                   </div>
                 </div>
