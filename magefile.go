@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	tools = []string{
+	goTools = []string{
 		"github.com/bufbuild/buf/cmd/buf",
 		"github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking",
 		"github.com/bufbuild/buf/cmd/protoc-gen-buf-lint",
@@ -32,6 +32,10 @@ var (
 		"../internal/cmd/protoc-gen-go-flipt-sdk/...",
 	}
 
+	nodeTools = []string{
+		"pnpm",
+	}
+
 	Default = Build
 )
 
@@ -42,6 +46,7 @@ func Bootstrap() error {
 		return fmt.Errorf("creating dir: %w", err)
 	}
 
+	fmt.Println("> Install Go tools...")
 	// create module if go.mod doesnt exist
 	if _, err := os.Stat("_tools/go.mod"); os.IsNotExist(err) {
 		cmd := exec.Command("go", "mod", "init", "tools")
@@ -53,11 +58,22 @@ func Bootstrap() error {
 		}
 	}
 
-	install := []string{"install", "-v"}
-	install = append(install, tools...)
+	goInstall := []string{"install", "-v"}
+	goInstall = append(goInstall, goTools...)
 
-	cmd := exec.Command("go", install...)
+	cmd := exec.Command("go", goInstall...)
 	cmd.Dir = "_tools"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	fmt.Println("> Install Node tools...")
+	nodeInstall := []string{"install", "-g"}
+	nodeInstall = append(nodeInstall, nodeTools...)
+
+	cmd = exec.Command("npm", nodeInstall...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
