@@ -42,6 +42,7 @@ test.describe('Rules', () => {
       await page.getByRole('button', { name: 'New Rule' }).click();
 
       await page.getByRole('combobox').type('test-rule');
+      await page.getByRole('option', { name: 'test-rule' }).click();
       await page.getByLabel('Multi-Variate').check();
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(page.getByText('Successfully created rule')).toBeVisible();
