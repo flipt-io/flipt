@@ -63,7 +63,10 @@ const Rollout = forwardRef(
             {rolloutTypeToLabel(rollout.type)} Rollout
           </h3>
           <Menu as="div" className="hidden sm:flex">
-            <Menu.Button className="text-gray-600 ml-4 block hover:text-gray-900">
+            <Menu.Button
+              data-testid="rollout-menu-button"
+              className="text-gray-600 ml-4 block hover:text-gray-900"
+            >
               <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
             </Menu.Button>
             {!readOnly && (

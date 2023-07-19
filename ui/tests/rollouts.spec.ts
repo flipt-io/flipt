@@ -48,11 +48,7 @@ test.describe('Rollouts', () => {
 
   test('can edit rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
-    await page
-      .getByRole('list')
-      .locator('[id="headlessui-menu-button-\\:r4\\:"]')
-      .first()
-      .click();
+    await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Edit' }).click();
     await page.getByRole('textbox').click();
     await page.getByRole('textbox').fill('test2');
@@ -62,18 +58,34 @@ test.describe('Rollouts', () => {
 
   test('can delete rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
-    await expect(
-      page.getByRole('button', { name: 'Threshold Rollout' })
-    ).toBeVisible();
-    await page
-      .getByRole('list')
-      .locator('[id="headlessui-menu-button-\\:r4\\:"]')
-      .first()
-      .click();
+    await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await expect(
       page.getByRole('button', { name: 'Threshold Rollout' })
     ).toBeHidden();
+  });
+});
+
+test.describe('Rollouts - Read Only', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route(/\/meta\/config/, async (route) => {
+      const response = await route.fetch();
+      const json = await response.json();
+      json.storage = { type: 'git' };
+      // Fulfill using the original response, while patching the
+      // response body with our changes to mock git storage for read only mode
+      await route.fulfill({ response, json });
+    });
+
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Flags' }).click();
+    await page.getByRole('link', { name: 'test-boolean' }).click();
+  });
+
+  test('cannot create rollout', async ({ page }) => {
+    await expect(
+      page.getByRole('button', { name: 'New Rollout' })
+    ).toBeDisabled();
   });
 });

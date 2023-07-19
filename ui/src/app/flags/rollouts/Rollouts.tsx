@@ -255,13 +255,13 @@ export default function Rollouts(props: RolloutsProps) {
               </p>
               <p className="text-gray-700 text-sm font-light">
                 <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
-                You can re-arrange rules by clicking in the header and{' '}
-                <span className="font-semibold">dragging and dropping</span>{' '}
-                them into place.
+                You can re-arrange rollouts by clicking on a rollout header and{' '}
+                <span className="font-semibold">dragging and dropping</span> it
+                into place.
               </p>
             </div>
             <div
-              className="pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+              className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
   lg:p-6"
             >
               {rollouts && rollouts.length > 0 && (

@@ -51,7 +51,7 @@ export default function Combobox<T extends IFilterable>(
       <div className="relative flex w-full flex-row">
         <C.Input
           id={id}
-          className="bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm"
+          className="text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
           }}
@@ -79,7 +79,7 @@ export default function Combobox<T extends IFilterable>(
               value={v}
               className={({ active }) =>
                 classNames(
-                  'text-gray-900 relative w-full cursor-default select-none py-2 pl-3 pr-9',
+                  'relative w-full cursor-default select-none py-2 pl-3 pr-9',
                   active ? 'bg-violet-100' : ''
                 )
               }
@@ -98,8 +98,8 @@ export default function Combobox<T extends IFilterable>(
                     )}
                     <span
                       className={classNames(
-                        'truncate',
-                        selected ? 'font-semibold' : ''
+                        selected ? 'font-semibold' : '',
+                        'text-gray-700 truncate'
                       )}
                     >
                       {v?.filterValue}

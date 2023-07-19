@@ -41,9 +41,9 @@ test.describe('Rules', () => {
       await page.getByRole('link', { name: 'Evaluation' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
 
-      await page.locator('#segmentKey-select-button').click();
-      await page.getByText('test-rule').click();
-      await page.getByLabel('Multi-Variant').check();
+      await page.getByRole('combobox').type('test-rule');
+      await page.getByRole('option', { name: 'test-rule' }).click();
+      await page.getByLabel('Multi-Variate').check();
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(page.getByText('Successfully created rule')).toBeVisible();
     });
@@ -92,14 +92,14 @@ test.describe('Rules - Read Only', () => {
   test('can not update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
-    await page.locator('[id="headlessui-menu-button-\\:r4\\:"]').click();
+    await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Edit' })).toBeHidden();
   });
 
   test('can not delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
-    await page.locator('[id="headlessui-menu-button-\\:r4\\:"]').click();
+    await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Delete' })).toBeHidden();
   });
 });
