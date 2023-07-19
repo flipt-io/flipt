@@ -62,7 +62,7 @@ test.describe('Rules', () => {
     await page
       .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
       .click();
-    await page.getByRole('button', { name: 'Update' }).nth(1).click();
+    await page.getByRole('button', { name: 'Update' }).click();
     await expect(page.getByText('Successfully updated rule')).toBeVisible();
   });
 });
@@ -91,15 +91,14 @@ test.describe('Rules - Read Only', () => {
 
   test('can not update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Evaluation' }).click();
-    await page.getByTestId('rule-menu-button').first().click();
+    await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Edit' })).toBeHidden();
   });
 
   test('can not delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
-    await page.getByTestId('rule-menu-button').first().click();
+    await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Delete' })).toBeHidden();
   });
 });
