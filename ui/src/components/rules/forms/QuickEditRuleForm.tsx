@@ -202,7 +202,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                       }))}
                       selected={selectedSegment}
                       setSelected={setSelectedSegment}
-                      data-test-id="rule-edit-segment-select"
                     />
                   </div>
                 </div>

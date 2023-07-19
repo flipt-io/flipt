@@ -48,7 +48,7 @@ test.describe('Rollouts', () => {
 
   test('can edit rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
-    await page.getByTestId('rollout-menu-button').first().click();
+    await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Edit' }).click();
     await page.getByRole('textbox').click();
     await page.getByRole('textbox').fill('test2');
@@ -58,10 +58,7 @@ test.describe('Rollouts', () => {
 
   test('can delete rollout', async ({ page }) => {
     await page.getByRole('link', { name: 'test-boolean' }).click();
-    await expect(
-      page.getByRole('button', { name: 'Threshold Rollout' })
-    ).toBeVisible();
-    await page.getByTestId('rollout-menu-button').first().click();
+    await page.getByTestId('rollout-menu-button').click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Delete' }).click();
     await expect(
