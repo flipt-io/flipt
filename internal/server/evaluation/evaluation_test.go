@@ -712,7 +712,8 @@ func TestBatch_Success(t *testing.T) {
 	e, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_ErrorResponse)
 	assert.True(t, ok, "response should be a error evaluation response")
 	assert.Equal(t, anotherFlagKey, e.ErrorResponse.FlagKey)
-	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON, e.ErrorResponse.Reason)
+	assert.Equal(t, namespaceKey, e.ErrorResponse.NamespaceKey)
+	assert.Equal(t, rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, e.ErrorResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, res.Responses[1].Type)
 
 	v, ok := res.Responses[2].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)

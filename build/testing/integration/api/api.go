@@ -947,7 +947,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				e, ok := result.Responses[2].Response.(*evaluation.EvaluationResponse_ErrorResponse)
 				assert.True(t, ok, "value should be error response")
 				assert.Equal(t, evaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, result.Responses[2].Type)
-				assert.Equal(t, evaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON, e.ErrorResponse.Reason)
+				assert.Equal(t, evaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, e.ErrorResponse.Reason)
 				assert.Equal(t, "flagnotfound", e.ErrorResponse.FlagKey)
 			})
 		})
