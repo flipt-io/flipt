@@ -1,7 +1,7 @@
-const { capture } = require('../screenshot.js');
+const { capture } = require('../../screenshot.js');
 
 (async () => {
-  await capture('create_variant', async (page) => {
+  await capture('getting_started', 'create_variant', async (page) => {
     await page.getByRole('link', { name: 'new-login' }).click();
     await page.getByRole('button', { name: 'New Variant' }).click();
     await page

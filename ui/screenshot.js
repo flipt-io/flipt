@@ -10,9 +10,9 @@ const screenshot = async (page, name) => {
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
-const capture = async function (name, fn) {
+const capture = async function (folder, name, fn) {
   try {
-    const path = `${__dirname}/screenshot/fixtures/${name}.yml`;
+    const path = `${__dirname}/screenshot/${folder}/fixtures/${name}.yml`;
     if (fs.existsSync(path)) {
       exec(
         `flipt import --address=${fliptAddr} ${path}`,
@@ -45,7 +45,7 @@ const capture = async function (name, fn) {
   await page.goto(fliptAddr);
   await fn(page);
   await sleep(2000);
-  await screenshot(page, `${name}.png`);
+  await screenshot(page, `${folder}/${name}.png`);
 
   await context.close();
   await browser.close();
