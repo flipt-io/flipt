@@ -114,9 +114,12 @@ exit $?`,
 		); err != nil {
 			return err
 		}
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
 
 		container = container.WithFile("/tmp/flipt.yml",
-			client.Host().Directory("build/testing/testdata").File("flipt.yml"))
+			client.Host().Directory("build/testing/testdata").File("flipt.yml"), opts)
 
 		// import via STDIN succeeds
 		if _, err = assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin")); err != nil {
