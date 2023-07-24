@@ -12,7 +12,6 @@ test.describe('Rollouts', () => {
     await page.getByLabel('Boolean').check();
     await page.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Successfully created flag')).toBeVisible();
-    await page.getByText('Evaluation').click();
     await expect(
       page.getByRole('heading', { name: 'Default Rollout' })
     ).toBeVisible();

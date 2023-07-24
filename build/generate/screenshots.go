@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -56,7 +57,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	}
 
 	dirs := []string{
-		"getting_started",
+		"getting_started", "concepts",
 	}
 
 	for _, dir := range dirs {
@@ -94,7 +95,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 				}
 
 				containers <- c
-				fmt.Printf("Generating screenshot for %s/%s\n", dir, entry)
+				log.Printf("Generating screenshot for %s/%s\n", dir, entry)
 
 				return err
 			})
