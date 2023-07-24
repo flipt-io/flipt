@@ -49,10 +49,6 @@ func main() {
 	ctx := context.Background()
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithEndpointResolverWithOptions(customResolver),
-		//		config.WithRegion(minioRegion),
-		// config.WithCredentialsProvider(
-		// 	credentials.NewStaticCredentialsProvider("user", "password", ""),
-		// ),
 	)
 	fatalOnError(err)
 
@@ -69,9 +65,6 @@ func main() {
 	fmt.Fprintln(os.Stderr, "S3 bucket name", bucketName)
 	_, err = s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
-		// CreateBucketConfiguration: &types.CreateBucketConfiguration{
-		// 	LocationConstraint: types.BucketLocationConstraint("us-east-1"),
-		// },
 	})
 	fatalOnError(err)
 

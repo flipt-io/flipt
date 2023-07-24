@@ -174,21 +174,8 @@ func NewGRPCServer(
 		if err != nil {
 			return nil, err
 		}
-	case config.S3StorageType:
-		opts := []containers.Option[s3.Source]{
-			s3.WithPollInterval(cfg.Storage.S3.PollInterval),
-		}
-		if cfg.Storage.S3.Endpoint != "" {
-			opts = append(opts, s3.WithEndpoint(cfg.Storage.S3.Endpoint))
-		}
-		if cfg.Storage.S3.Region != "" {
-			opts = append(opts, s3.WithRegion(cfg.Storage.S3.Region))
-		}
-		source, err := s3.NewSource(logger, cfg.Storage.S3.Bucket, opts...)
-		if err != nil {
-			return nil, err
-		}
-		store, err = fs.NewStore(logger, source)
+	case config.ObjectStorageType:
+		store, err = NewObjectStore(cfg, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -378,6 +365,33 @@ func NewGRPCServer(
 	reflection.Register(server.Server)
 
 	return server, nil
+}
+
+// NewObjectStore create a new storate.Store from the object config
+func NewObjectStore(cfg *config.Config, logger *zap.Logger) (storage.Store, error) {
+	objectCfg := cfg.Storage.Object
+	var store storage.Store
+	switch objectCfg.Type {
+	case config.S3ObjectSubStorageType:
+		opts := []containers.Option[s3.Source]{
+			s3.WithPollInterval(objectCfg.S3.PollInterval),
+		}
+		if objectCfg.S3.Endpoint != "" {
+			opts = append(opts, s3.WithEndpoint(objectCfg.S3.Endpoint))
+		}
+		if objectCfg.S3.Region != "" {
+			opts = append(opts, s3.WithRegion(objectCfg.S3.Region))
+		}
+		source, err := s3.NewSource(logger, objectCfg.S3.Bucket, opts...)
+		if err != nil {
+			return nil, err
+		}
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return store, nil
 }
 
 // Run begins serving gRPC requests.

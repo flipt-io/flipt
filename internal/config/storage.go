@@ -13,16 +13,22 @@ const (
 	DatabaseStorageType = StorageType("database")
 	LocalStorageType    = StorageType("local")
 	GitStorageType      = StorageType("git")
-	S3StorageType       = StorageType("s3")
+	ObjectStorageType   = StorageType("object")
+)
+
+type ObjectSubStorageType string
+
+const (
+	S3ObjectSubStorageType = ObjectSubStorageType("s3")
 )
 
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Type  StorageType `json:"type,omitempty" mapstructure:"type"`
-	Local *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
-	Git   *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
-	S3    *S3         `json:"s3,omitempty" mapstructure:"s3,omitempty"`
+	Type   StorageType `json:"type,omitempty" mapstructure:"type"`
+	Local  *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
+	Git    *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
+	Object *Object     `json:"object,omitempty" mapstructure:"object,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) {
@@ -32,8 +38,11 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
-	case string(S3StorageType):
-		v.SetDefault("storage.s3.poll_interval", "1m")
+	case string(ObjectStorageType):
+		switch v.GetString("storage.object.type") {
+		case string(S3ObjectSubStorageType):
+			v.SetDefault("storage.object.s3.poll_interval", "1m")
+		}
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -59,9 +68,12 @@ func (c *StorageConfig) validate() error {
 		}
 	}
 
-	if c.Type == S3StorageType {
-		if c.S3.Bucket == "" {
-			return errors.New("s3 bucket must be specified")
+	if c.Type == ObjectStorageType {
+		if c.Object == nil {
+			return errors.New("object storage type must be specified")
+		}
+		if err := c.Object.validate(); err != nil {
+			return err
 		}
 	}
 
@@ -79,6 +91,25 @@ type Git struct {
 	Ref            string         `json:"ref,omitempty" mapstructure:"ref"`
 	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
 	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication,omitempty"`
+}
+
+// Object contains configuration of readonly object storage.
+type Object struct {
+	Type ObjectSubStorageType `json:"type,omitempty" mapstructure:"type"`
+	S3   *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty"`
+}
+
+// validate is only called if storage.type == "object"
+func (o *Object) validate() error {
+	switch o.Type {
+	case S3ObjectSubStorageType:
+		if o.S3 == nil || o.S3.Bucket == "" {
+			return errors.New("s3 bucket must be specified")
+		}
+	default:
+		return errors.New("object storage type must be specified")
+	}
+	return nil
 }
 
 // S3 contains configuration for referencing a s3 bucket

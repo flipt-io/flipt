@@ -1,0 +1,9 @@
+experimental:
+  filesystem_storage:
+    enabled: true
+storage:
+  type: object
+  object:
+    type: s3
+    s3:
+      bucket: "testbucket"
