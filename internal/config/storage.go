@@ -39,6 +39,9 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
 	case string(ObjectStorageType):
+		// keep this as a case statement in anticipation of
+		// more object types in the future
+		// nolint:gocritic
 		switch v.GetString("storage.object.type") {
 		case string(S3ObjectSubStorageType):
 			v.SetDefault("storage.object.s3.poll_interval", "1m")

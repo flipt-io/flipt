@@ -227,7 +227,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "s3").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_ENDPOINT", "http://minio:9009").
-		WithEnvVariable("FLIPT_STORAGE_OBJECDT_S3_BUCKET", "testdata").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_BUCKET", "testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
 		WithExec(nil)
 

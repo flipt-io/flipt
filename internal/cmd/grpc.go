@@ -371,6 +371,9 @@ func NewGRPCServer(
 func NewObjectStore(cfg *config.Config, logger *zap.Logger) (storage.Store, error) {
 	objectCfg := cfg.Storage.Object
 	var store storage.Store
+	// keep this as a case statement in anticipation of
+	// more object types in the future
+	// nolint:gocritic
 	switch objectCfg.Type {
 	case config.S3ObjectSubStorageType:
 		opts := []containers.Option[s3.Source]{
