@@ -82,11 +82,11 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 
 	var (
 		g          errgroup.Group
-		containers = make(chan *dagger.Container, 0)
+		containers = make(chan *dagger.Container)
 	)
 
 	go func() {
-		g.Wait()
+		_ = g.Wait()
 		close(containers)
 	}()
 

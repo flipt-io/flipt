@@ -7,6 +7,6 @@ const { capture } = require('../screenshot.js');
     await page.getByRole('button', { name: 'New Rule' }).click();
     await page.locator('#segmentKey-select-button').click();
     await page.getByText('all-users').click();
-    await page.getByLabel('Multi-Variant').check();
+    await page.getByLabel('Multi-Variate').check();
   });
 })();
