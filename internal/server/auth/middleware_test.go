@@ -143,3 +143,72 @@ func TestUnaryInterceptor(t *testing.T) {
 		})
 	}
 }
+
+func TestEmailMatchingInterceptor(t *testing.T) {
+	authenticator := memory.NewStore()
+	clientToken, storedAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&auth.CreateAuthenticationRequest{
+			Method: authrpc.Method_METHOD_TOKEN,
+			Metadata: map[string]string{
+				"io.flipt.auth.oidc.email": "foo@flipt.io",
+			},
+		},
+	)
+	require.NoError(t, err)
+
+	for _, test := range []struct {
+		name         string
+		metadata     metadata.MD
+		server       any
+		auth         *authrpc.Authentication
+		emailMatches []string
+		expectedErr  error
+	}{
+		{
+			name: "successful email matches",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"foo@flipt.io",
+			},
+			auth: storedAuth,
+		},
+		{
+			name: "email does not match",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"bar@flipt.io",
+			},
+			auth:        storedAuth,
+			expectedErr: errUnauthenticated,
+		},
+	} {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			var (
+				logger = zaptest.NewLogger(t)
+
+				ctx     = ContextWithAuthentication(context.Background(), test.auth)
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, nil
+				}
+			)
+
+			if test.metadata != nil {
+				ctx = metadata.NewIncomingContext(ctx, test.metadata)
+			}
+
+			_, err := EmailMatchingInterceptor(logger, test.emailMatches)(
+				ctx,
+				nil,
+				&grpc.UnaryServerInfo{Server: test.server},
+				handler,
+			)
+			require.Equal(t, test.expectedErr, err)
+		})
+	}
+}

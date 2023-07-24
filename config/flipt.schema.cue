@@ -52,6 +52,7 @@ import "strings"
 				providers?: {
 					{[=~"^.*$" & !~"^()$"]: #authentication.#authentication_oidc_provider}
 				}
+				email_matches?: [...]
 			}
 
 			kubernetes?: {

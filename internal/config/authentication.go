@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -117,6 +118,20 @@ func (c *AuthenticationConfig) validate() error {
 
 		if info.Cleanup.GracePeriod <= 0 {
 			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
+		}
+
+		// Validate the email matching strings for regex validation.
+		if info.Method == auth.Method_METHOD_OIDC {
+			if info.AuthenticationMethodInfo.Metadata != nil {
+				ematches := info.AuthenticationMethodInfo.Metadata.Fields["email_matches"].GetListValue().AsSlice()
+				for _, em := range ematches {
+					em := em.(string)
+					_, err := regexp.Compile(em)
+					if err != nil {
+						return errFieldWrap(field+".oidc.email_matches", fmt.Errorf("email match string: %s invalid", em))
+					}
+				}
+			}
 		}
 	}
 
@@ -314,7 +329,8 @@ type AuthenticationMethodTokenBootstrapConfig struct {
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	Providers map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
+	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches"`
+	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
 }
 
 func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
@@ -327,8 +343,9 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	}
 
 	var (
-		metadata  = make(map[string]any)
-		providers = make(map[string]any, len(a.Providers))
+		metadata     = make(map[string]any)
+		providers    = make(map[string]any, len(a.Providers))
+		emailMatches = make([]interface{}, 0, len(a.EmailMatches))
 	)
 
 	// this ensures we expose the authorize and callback URL endpoint
@@ -340,8 +357,15 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 		}
 	}
 
+	for _, e := range a.EmailMatches {
+		emailMatches = append(emailMatches, e)
+	}
+
 	metadata["providers"] = providers
+	metadata["email_matches"] = emailMatches
+
 	info.Metadata, _ = structpb.NewStruct(metadata)
+
 	return info
 }
 

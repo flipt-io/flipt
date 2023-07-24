@@ -1,0 +1,18 @@
+authentication:
+  required: true
+  session:
+    domain: localhost:8080
+  methods:
+    oidc:
+      enabled: true
+      email_matches:
+        - )
+      providers:
+        google:
+          issuer_url: "https://some.oidc.issuer.com"
+          client_id: "some_client_identifier"
+          client_secret: "some_client_secret_credential"
+          redirect_address: "http://localhost:8080"
+          scopes:
+            - email
+            - profile

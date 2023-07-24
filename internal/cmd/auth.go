@@ -122,6 +122,10 @@ func authenticationGRPC(
 			authOpts...,
 		))
 
+		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
+			interceptors = append(interceptors, auth.EmailMatchingInterceptor(logger, authCfg.Methods.OIDC.Method.EmailMatches))
+		}
+
 		logger.Info("authentication middleware enabled")
 	}
 
