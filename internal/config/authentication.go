@@ -329,7 +329,7 @@ type AuthenticationMethodTokenBootstrapConfig struct {
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches"`
+	EmailMatches string                                      `json:"emailMatches,omitempty" mapstructure:"email_matches"`
 	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
 }
 
@@ -357,7 +357,9 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 		}
 	}
 
-	for _, e := range a.EmailMatches {
+	ematchesSplit := strings.Split(a.EmailMatches, ",")
+
+	for _, e := range ematchesSplit {
 		emailMatches = append(emailMatches, e)
 	}
 

@@ -5,8 +5,7 @@ authentication:
   methods:
     oidc:
       enabled: true
-      email_matches:
-        - )
+      email_matches: ")"
       providers:
         google:
           issuer_url: "https://some.oidc.issuer.com"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -122,8 +123,9 @@ func authenticationGRPC(
 			authOpts...,
 		))
 
-		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
-			interceptors = append(interceptors, auth.EmailMatchingInterceptor(logger, authCfg.Methods.OIDC.Method.EmailMatches))
+		ematches := strings.Split(authCfg.Methods.OIDC.Method.EmailMatches, ",")
+		if authCfg.Methods.OIDC.Enabled && len(ematches) != 0 {
+			interceptors = append(interceptors, auth.EmailMatchingInterceptor(logger, ematches))
 		}
 
 		logger.Info("authentication middleware enabled")
