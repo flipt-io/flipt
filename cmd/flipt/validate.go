@@ -24,11 +24,9 @@ func newValidateCommand() *cobra.Command {
 	v := &validateCommand{}
 
 	cmd := &cobra.Command{
-		Use:          "validate",
-		Short:        "Validate a list of flipt features.yaml files",
-		Run:          v.run,
-		Hidden:       true,
-		SilenceUsage: true,
+		Use:   "validate",
+		Short: "Validate a list of flipt features.yaml files",
+		Run:   v.run,
 	}
 
 	cmd.Flags().IntVar(&v.issueExitCode, "issue-exit-code", 1, "Exit code to use when issues are found")
@@ -37,7 +35,7 @@ func newValidateCommand() *cobra.Command {
 		&v.format,
 		"format", "F",
 		"text",
-		"output format",
+		"output format: json, text",
 	)
 
 	return cmd
@@ -73,7 +71,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 				return
 			}
 
-			fmt.Println("❌ Validation failure!")
+			fmt.Println("Validation failed!")
 
 			for _, e := range res.Errors {
 				fmt.Printf(
