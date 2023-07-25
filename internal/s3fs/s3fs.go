@@ -2,13 +2,13 @@ package s3fs
 
 import (
 	"context"
-	"errors"
 	"io"
 	"io/fs"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	flipterrors "go.flipt.io/flipt/errors"
 	"go.uber.org/zap"
 )
 
@@ -70,16 +70,9 @@ func (f *FS) Open(name string) (fs.File, error) {
 		})
 	if err != nil {
 		// try to return fs compatible error if possible
-		var nsbe *types.NoSuchBucket
-		if errors.As(err, &nsbe) {
-			return nil, pathError
-		}
-		var nske *types.NoSuchKey
-		if errors.As(err, &nske) {
-			return nil, pathError
-		}
-		var nfe *types.NotFound
-		if errors.As(err, &nfe) {
+		if flipterrors.AsMatch[*types.NoSuchBucket](err) ||
+			flipterrors.AsMatch[*types.NoSuchKey](err) ||
+			flipterrors.AsMatch[*types.NotFound](err) {
 			return nil, pathError
 		}
 		pathError.Err = err
