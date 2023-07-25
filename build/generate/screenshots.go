@@ -57,19 +57,20 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	}
 
 	dirs := []string{
-		"getting_started", "concepts",
+		"getting_started", "concepts", "configuration", "extra",
 	}
 
 	for _, dir := range dirs {
 		var (
 			g          errgroup.Group
 			containers = make(chan *dagger.Container)
+			dir        = dir
 		)
 
-		dir := dir
 		entries, err := ui.Directory("screenshot/" + dir).Entries(ctx)
 		if err != nil {
-			return err
+			// skip if directory does not exist
+			continue
 		}
 
 		go func() {
