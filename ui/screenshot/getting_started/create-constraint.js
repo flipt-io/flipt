@@ -1,7 +1,7 @@
-const { capture } = require('../screenshot.js');
+const { capture } = require('../../screenshot.js');
 
 (async () => {
-  await capture('create_constraint', async (page) => {
+  await capture('getting_started', 'create_constraint', async (page) => {
     await page.getByRole('link', { name: 'Segments' }).click();
     await page.getByRole('link', { name: 'all-users' }).click();
     await page.getByRole('button', { name: 'New Constraint' }).click();

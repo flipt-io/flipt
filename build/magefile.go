@@ -13,6 +13,7 @@ import (
 	"dagger.io/dagger"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"go.flipt.io/flipt/build/generate"
 	"go.flipt.io/flipt/build/hack"
 	"go.flipt.io/flipt/build/internal"
 	"go.flipt.io/flipt/build/internal/publish"
@@ -160,7 +161,7 @@ type Generate mg.Namespace
 
 func (g Generate) Screenshots(ctx context.Context) error {
 	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
-		return testing.Screenshots(ctx, client, flipt)
+		return generate.Screenshots(ctx, client, flipt)
 	})
 }
 

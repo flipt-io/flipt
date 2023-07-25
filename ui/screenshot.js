@@ -10,12 +10,16 @@ const screenshot = async (page, name) => {
 
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
-const capture = async function (name, fn) {
+const capture = async function (folder, name, fn, opts = {}) {
+  if (!opts.namespace) {
+    opts.namespace = 'default';
+  }
+
   try {
-    const path = `${__dirname}/screenshot/fixtures/${name}.yml`;
+    const path = `${__dirname}/screenshot/${folder}/fixtures/${name}.yml`;
     if (fs.existsSync(path)) {
       exec(
-        `flipt import --address=${fliptAddr} ${path}`,
+        `flipt import --create-namespace --namespace=${opts.namespace} --address=${fliptAddr} ${path}`,
         (error, stdout, stderr) => {
           if (error) {
             console.error(`error: ${error.message}`);
@@ -38,17 +42,18 @@ const capture = async function (name, fn) {
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 }
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 3,
   });
   const page = await context.newPage();
 
   await page.goto(fliptAddr);
   await fn(page);
-  await sleep(2000);
-  await screenshot(page, `${name}.png`);
+  await sleep(3000);
+  await screenshot(page, `${folder}/${name}.png`);
 
   await context.close();
   await browser.close();
 };
 
-module.exports = { capture };
+module.exports = { capture, sleep, screenshot };
