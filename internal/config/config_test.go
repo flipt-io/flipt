@@ -650,6 +650,35 @@ func TestLoad(t *testing.T) {
 			path:    "./testdata/storage/git_basic_auth_invalid.yml",
 			wantErr: errors.New("both username and password need to be provided for basic auth"),
 		},
+		{
+			name: "s3 config provided",
+			path: "./testdata/storage/s3_provided.yml",
+			expected: func() *Config {
+				cfg := DefaultConfig()
+				cfg.Experimental.FilesystemStorage.Enabled = true
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: S3ObjectSubStorageType,
+						S3: &S3{
+							Bucket:       "testbucket",
+							PollInterval: time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "s3 config invalid",
+			path:    "./testdata/storage/s3_bucket_missing.yml",
+			wantErr: errors.New("s3 bucket must be specified"),
+		},
+		{
+			name:    "object storage type not provided",
+			path:    "./testdata/storage/invalid_object_storage_type_not_specified.yml",
+			wantErr: errors.New("object storage type must be specified"),
+		},
 	}
 
 	for _, tt := range tests {

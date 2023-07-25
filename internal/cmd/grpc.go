@@ -47,6 +47,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
+	"go.flipt.io/flipt/internal/storage/fs/s3"
 
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -170,6 +171,11 @@ func NewGRPCServer(
 		}
 
 		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
+	case config.ObjectStorageType:
+		store, err = NewObjectStore(cfg, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -359,6 +365,36 @@ func NewGRPCServer(
 	reflection.Register(server.Server)
 
 	return server, nil
+}
+
+// NewObjectStore create a new storate.Store from the object config
+func NewObjectStore(cfg *config.Config, logger *zap.Logger) (storage.Store, error) {
+	objectCfg := cfg.Storage.Object
+	var store storage.Store
+	// keep this as a case statement in anticipation of
+	// more object types in the future
+	// nolint:gocritic
+	switch objectCfg.Type {
+	case config.S3ObjectSubStorageType:
+		opts := []containers.Option[s3.Source]{
+			s3.WithPollInterval(objectCfg.S3.PollInterval),
+		}
+		if objectCfg.S3.Endpoint != "" {
+			opts = append(opts, s3.WithEndpoint(objectCfg.S3.Endpoint))
+		}
+		if objectCfg.S3.Region != "" {
+			opts = append(opts, s3.WithRegion(objectCfg.S3.Region))
+		}
+		source, err := s3.NewSource(logger, objectCfg.S3.Bucket, opts...)
+		if err != nil {
+			return nil, err
+		}
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return store, nil
 }
 
 // Run begins serving gRPC requests.
