@@ -178,6 +178,7 @@ Available Commands:
   help        Help about any command
   import      Import flags/segments/rules from file
   migrate     Run pending database migrations
+	validate    Validate a list of flipt features.yaml files
 
 Flags:
       --config string   path to config file
