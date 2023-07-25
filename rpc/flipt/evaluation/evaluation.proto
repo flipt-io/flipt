@@ -33,8 +33,8 @@ enum EvaluationReason {
 }
 
 enum ErrorEvaluationReason {
-  UNKNOWN_ERROR_REASON = 0;
-  NOT_FOUND_ERROR_REASON = 1;
+  UNKNOWN_ERROR_EVALUATION_REASON = 0;
+  NOT_FOUND_ERROR_EVALUATION_REASON = 1;
 }
 
 enum EvaluationResponseType {
@@ -73,7 +73,8 @@ message VariantEvaluationResponse {
 
 message ErrorEvaluationResponse {
   string flag_key = 1;
-  ErrorEvaluationReason reason = 2;
+  string namespace_key = 2;
+  ErrorEvaluationReason reason = 3;
 }
 
 service EvaluationService {

@@ -230,8 +230,9 @@ func (s *Server) Batch(ctx context.Context, b *rpcevaluation.BatchEvaluationRequ
 					Type: rpcevaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE,
 					Response: &rpcevaluation.EvaluationResponse_ErrorResponse{
 						ErrorResponse: &rpcevaluation.ErrorEvaluationResponse{
-							FlagKey: req.FlagKey,
-							Reason:  rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_REASON,
+							FlagKey:      req.FlagKey,
+							NamespaceKey: req.NamespaceKey,
+							Reason:       rpcevaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON,
 						},
 					},
 				}
