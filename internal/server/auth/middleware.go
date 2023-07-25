@@ -150,8 +150,8 @@ func EmailMatchingInterceptor(logger *zap.Logger, emailMatches []string) grpc.Un
 
 		email, ok := auth.Metadata["io.flipt.auth.oidc.email"]
 		if !ok {
-			logger.Debug("no email provided, skipping email matching...")
-			return handler(ctx, req)
+			logger.Debug("no email provided but required for auth")
+			return ctx, errUnauthenticated
 		}
 
 		matched := false
@@ -169,7 +169,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, emailMatches []string) grpc.Un
 		}
 
 		if !matched {
-			logger.Error("unauthenticated", zap.String("reason", "email does not match any entry in the whitelist"), zap.Strings("whitelist", emailMatches))
+			logger.Error("unauthenticated", zap.String("reason", "email is not allowed"))
 			return ctx, errUnauthenticated
 		}
 

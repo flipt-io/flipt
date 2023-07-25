@@ -423,7 +423,7 @@ func TestLoad(t *testing.T) {
 		{
 			name:    "authentication failure on OIDC email matching",
 			path:    "./testdata/authentication/oidc_email_invalid_matching.yml",
-			wantErr: errFieldWrap("authentication.methodoidc.oidc.email_matches", fmt.Errorf("email match string: ) invalid")),
+			wantErr: errFieldWrap("authentication.methodoidc", errors.New("invalid email match: )")),
 		},
 		{
 			name: "authentication kubernetes defaults when enabled",

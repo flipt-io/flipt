@@ -120,18 +120,9 @@ func (c *AuthenticationConfig) validate() error {
 			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
 		}
 
-		// Validate the email matching strings for regex validation.
-		if info.Method == auth.Method_METHOD_OIDC {
-			if info.AuthenticationMethodInfo.Metadata != nil {
-				ematches := info.AuthenticationMethodInfo.Metadata.Fields["email_matches"].GetListValue().AsSlice()
-				for _, em := range ematches {
-					em := em.(string)
-					_, err := regexp.Compile(em)
-					if err != nil {
-						return errFieldWrap(field+".oidc.email_matches", fmt.Errorf("email match string: %s invalid", em))
-					}
-				}
-			}
+		err := info.validate()
+		if err != nil {
+			return errFieldWrap(field, err)
 		}
 	}
 
@@ -229,6 +220,10 @@ type StaticAuthenticationMethodInfo struct {
 
 	// used for bootstrapping defaults
 	setDefaults func(map[string]any)
+
+	// used for validating fields
+	validate func() error
+
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
 	setEnabled func()
@@ -267,6 +262,7 @@ func (a AuthenticationMethodInfo) Name() string {
 type AuthenticationMethodInfoProvider interface {
 	setDefaults(map[string]any)
 	info() AuthenticationMethodInfo
+	validate() error
 }
 
 // AuthenticationMethod is a container for authentication methods.
@@ -285,6 +281,10 @@ func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {
 	a.Method.setDefaults(defaults)
 }
 
+func (a *AuthenticationMethod[C]) validate() error {
+	return a.Method.validate()
+}
+
 func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 	return StaticAuthenticationMethodInfo{
 		AuthenticationMethodInfo: a.Method.info(),
@@ -292,6 +292,7 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 		Cleanup:                  a.Cleanup,
 
 		setDefaults: a.setDefaults,
+		validate:    a.validate,
 		setEnabled: func() {
 			a.Enabled = true
 		},
@@ -311,6 +312,8 @@ type AuthenticationMethodTokenConfig struct {
 
 func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
 
+func (a AuthenticationMethodTokenConfig) validate() error { return nil }
+
 // info describes properties of the authentication method "token".
 func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 	return AuthenticationMethodInfo{
@@ -329,11 +332,22 @@ type AuthenticationMethodTokenBootstrapConfig struct {
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	EmailMatches string                                      `json:"emailMatches,omitempty" mapstructure:"email_matches"`
+	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches"`
 	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
 }
 
 func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
+
+func (a AuthenticationMethodOIDCConfig) validate() error {
+	for _, em := range a.EmailMatches {
+		_, err := regexp.Compile(em)
+		if err != nil {
+			return fmt.Errorf("invalid email match: %s", em)
+		}
+	}
+
+	return nil
+}
 
 // info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
@@ -343,9 +357,8 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	}
 
 	var (
-		metadata     = make(map[string]any)
-		providers    = make(map[string]any, len(a.Providers))
-		emailMatches = make([]interface{}, 0, len(a.EmailMatches))
+		metadata  = make(map[string]any)
+		providers = make(map[string]any, len(a.Providers))
 	)
 
 	// this ensures we expose the authorize and callback URL endpoint
@@ -357,14 +370,7 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 		}
 	}
 
-	ematchesSplit := strings.Split(a.EmailMatches, ",")
-
-	for _, e := range ematchesSplit {
-		emailMatches = append(emailMatches, e)
-	}
-
 	metadata["providers"] = providers
-	metadata["email_matches"] = emailMatches
 
 	info.Metadata, _ = structpb.NewStruct(metadata)
 
@@ -407,6 +413,8 @@ func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]an
 	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 	defaults["service_account_token_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
+
+func (a AuthenticationMethodKubernetesConfig) validate() error { return nil }
 
 // info describes properties of the authentication method "kubernetes".
 func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {

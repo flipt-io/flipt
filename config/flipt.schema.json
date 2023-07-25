@@ -128,7 +128,7 @@
                   "required": []
                 },
                 "email_matches": {
-                  "type": "string",
+                  "type": ["array", "null"],
                   "additionalProperties": false
                 }
               },

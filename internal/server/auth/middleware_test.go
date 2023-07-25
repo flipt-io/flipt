@@ -157,6 +157,14 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	nonEmailClientToken, nonEmailStoredAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&auth.CreateAuthenticationRequest{
+			Method: authrpc.Method_METHOD_TOKEN,
+		},
+	)
+	require.NoError(t, err)
+
 	for _, test := range []struct {
 		name         string
 		metadata     metadata.MD
@@ -184,6 +192,17 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"bar@flipt.io",
 			},
 			auth:        storedAuth,
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "email not provided by oidc provider",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + nonEmailClientToken},
+			},
+			emailMatches: []string{
+				"foo@flipt.io",
+			},
+			auth:        nonEmailStoredAuth,
 			expectedErr: errUnauthenticated,
 		},
 	} {
