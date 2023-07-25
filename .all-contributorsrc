@@ -267,6 +267,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "ahobson",
+      "name": "Andrew Hobson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21983?v=4",
+      "profile": "https://github.com/ahobson",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
