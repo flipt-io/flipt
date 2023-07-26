@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/stretchr/testify/mock"
+	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/server/audit"
-	"go.flipt.io/flipt/internal/server/cache"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	flipt "go.flipt.io/flipt/rpc/flipt"
