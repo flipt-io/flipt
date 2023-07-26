@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -121,6 +122,21 @@ func authenticationGRPC(
 			store,
 			authOpts...,
 		))
+
+		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
+			rgxs := make([]*regexp.Regexp, 0, len(authCfg.Methods.OIDC.Method.EmailMatches))
+
+			for _, em := range authCfg.Methods.OIDC.Method.EmailMatches {
+				rgx, err := regexp.Compile(em)
+				if err != nil {
+					return nil, nil, nil, fmt.Errorf("failed compiling string for pattern: %s: %w", em, err)
+				}
+
+				rgxs = append(rgxs, rgx)
+			}
+
+			interceptors = append(interceptors, auth.EmailMatchingInterceptor(logger, rgxs))
+		}
 
 		logger.Info("authentication middleware enabled")
 	}

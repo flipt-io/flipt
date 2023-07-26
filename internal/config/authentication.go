@@ -226,6 +226,7 @@ type StaticAuthenticationMethodInfo struct {
 
 	// used for bootstrapping defaults
 	setDefaults func(map[string]any)
+
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
 	setEnabled func()
@@ -326,7 +327,8 @@ type AuthenticationMethodTokenBootstrapConfig struct {
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	Providers map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
+	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches"`
+	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
 }
 
 func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
@@ -353,7 +355,9 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 	}
 
 	metadata["providers"] = providers
+
 	info.Metadata, _ = structpb.NewStruct(metadata)
+
 	return info
 }
 
