@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"regexp"
 	"testing"
 	"time"
 
@@ -221,7 +222,16 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				ctx = metadata.NewIncomingContext(ctx, test.metadata)
 			}
 
-			_, err := EmailMatchingInterceptor(logger, test.emailMatches)(
+			rgxs := make([]*regexp.Regexp, 0, len(test.emailMatches))
+
+			for _, em := range test.emailMatches {
+				rgx, err := regexp.Compile(em)
+				require.NoError(t, err)
+
+				rgxs = append(rgxs, rgx)
+			}
+
+			_, err := EmailMatchingInterceptor(logger, rgxs)(
 				ctx,
 				nil,
 				&grpc.UnaryServerInfo{Server: test.server},

@@ -22,7 +22,7 @@ log:
 
 cors:
   enabled: true
-  allowed_origins: "foo.com bar.com baz.com"
+  allowed_origins: "foo.com bar.com  baz.com"
 
 cache:
   enabled: true

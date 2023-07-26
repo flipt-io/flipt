@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -119,11 +118,6 @@ func (c *AuthenticationConfig) validate() error {
 		if info.Cleanup.GracePeriod <= 0 {
 			return errFieldWrap(field+".cleanup.grace_period", errPositiveNonZeroDuration)
 		}
-
-		err := info.validate()
-		if err != nil {
-			return errFieldWrap(field, err)
-		}
 	}
 
 	// ensure that when a session compatible authentication method has been
@@ -221,9 +215,6 @@ type StaticAuthenticationMethodInfo struct {
 	// used for bootstrapping defaults
 	setDefaults func(map[string]any)
 
-	// used for validating fields
-	validate func() error
-
 	// used for testing purposes to ensure all methods
 	// are appropriately cleaned up via the background process.
 	setEnabled func()
@@ -262,7 +253,6 @@ func (a AuthenticationMethodInfo) Name() string {
 type AuthenticationMethodInfoProvider interface {
 	setDefaults(map[string]any)
 	info() AuthenticationMethodInfo
-	validate() error
 }
 
 // AuthenticationMethod is a container for authentication methods.
@@ -281,10 +271,6 @@ func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {
 	a.Method.setDefaults(defaults)
 }
 
-func (a *AuthenticationMethod[C]) validate() error {
-	return a.Method.validate()
-}
-
 func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 	return StaticAuthenticationMethodInfo{
 		AuthenticationMethodInfo: a.Method.info(),
@@ -292,7 +278,6 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 		Cleanup:                  a.Cleanup,
 
 		setDefaults: a.setDefaults,
-		validate:    a.validate,
 		setEnabled: func() {
 			a.Enabled = true
 		},
@@ -311,8 +296,6 @@ type AuthenticationMethodTokenConfig struct {
 }
 
 func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
-
-func (a AuthenticationMethodTokenConfig) validate() error { return nil }
 
 // info describes properties of the authentication method "token".
 func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
@@ -337,17 +320,6 @@ type AuthenticationMethodOIDCConfig struct {
 }
 
 func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
-
-func (a AuthenticationMethodOIDCConfig) validate() error {
-	for _, em := range a.EmailMatches {
-		_, err := regexp.Compile(em)
-		if err != nil {
-			return fmt.Errorf("invalid email match: %s", em)
-		}
-	}
-
-	return nil
-}
 
 // info describes properties of the authentication method "oidc".
 func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
@@ -413,8 +385,6 @@ func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]an
 	defaults["ca_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 	defaults["service_account_token_path"] = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
-
-func (a AuthenticationMethodKubernetesConfig) validate() error { return nil }
 
 // info describes properties of the authentication method "kubernetes".
 func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
