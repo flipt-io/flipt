@@ -56,7 +56,7 @@ const capture = async function (folder, name, fn, opts = {}) {
 
   await page.goto(fliptAddr);
   await fn(page);
-  await sleep(3000);
+  await sleep(4000);
   await screenshot(page, `${folder}/${name}.png`);
 
   await context.close();
