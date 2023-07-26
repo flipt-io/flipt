@@ -333,6 +333,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/charles-oconor-77187455/"><img src="https://avatars.githubusercontent.com/u/8228660?v=4?s=100" width="100px;" alt="Charles OConor"/><br /><sub><b>Charles OConor</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=charlesoconor" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ahobson"><img src="https://avatars.githubusercontent.com/u/21983?v=4?s=100" width="100px;" alt="Andrew Hobson"/><br /><sub><b>Andrew Hobson</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=ahobson" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
