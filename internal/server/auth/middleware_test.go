@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"regexp"
 	"testing"
 	"time"
 
@@ -140,6 +141,124 @@ func TestUnaryInterceptor(t *testing.T) {
 			)
 			require.Equal(t, test.expectedErr, err)
 			assert.Equal(t, test.expectedAuth, GetAuthenticationFrom(retrievedCtx))
+		})
+	}
+}
+
+func TestEmailMatchingInterceptor(t *testing.T) {
+	authenticator := memory.NewStore()
+	clientToken, storedAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&auth.CreateAuthenticationRequest{
+			Method: authrpc.Method_METHOD_TOKEN,
+			Metadata: map[string]string{
+				"io.flipt.auth.oidc.email": "foo@flipt.io",
+			},
+		},
+	)
+	require.NoError(t, err)
+
+	nonEmailClientToken, nonEmailStoredAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&auth.CreateAuthenticationRequest{
+			Method: authrpc.Method_METHOD_TOKEN,
+		},
+	)
+	require.NoError(t, err)
+
+	for _, test := range []struct {
+		name         string
+		metadata     metadata.MD
+		server       any
+		auth         *authrpc.Authentication
+		emailMatches []string
+		expectedErr  error
+	}{
+		{
+			name: "successful email match (regular string)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"foo@flipt.io",
+			},
+			auth: storedAuth,
+		},
+		{
+			name: "successful email match (regex)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"^.*@flipt.io$",
+			},
+			auth: storedAuth,
+		},
+		{
+			name: "email does not match (regular string)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"bar@flipt.io",
+			},
+			auth:        storedAuth,
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "email does not match (regex)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"^.*@gmail.com$",
+			},
+			auth:        storedAuth,
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "email not provided by oidc provider",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + nonEmailClientToken},
+			},
+			emailMatches: []string{
+				"foo@flipt.io",
+			},
+			auth:        nonEmailStoredAuth,
+			expectedErr: errUnauthenticated,
+		},
+	} {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			var (
+				logger = zaptest.NewLogger(t)
+
+				ctx     = ContextWithAuthentication(context.Background(), test.auth)
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					return nil, nil
+				}
+			)
+
+			if test.metadata != nil {
+				ctx = metadata.NewIncomingContext(ctx, test.metadata)
+			}
+
+			rgxs := make([]*regexp.Regexp, 0, len(test.emailMatches))
+
+			for _, em := range test.emailMatches {
+				rgx, err := regexp.Compile(em)
+				require.NoError(t, err)
+
+				rgxs = append(rgxs, rgx)
+			}
+
+			_, err := EmailMatchingInterceptor(logger, rgxs)(
+				ctx,
+				nil,
+				&grpc.UnaryServerInfo{Server: test.server},
+				handler,
+			)
+			require.Equal(t, test.expectedErr, err)
 		})
 	}
 }
