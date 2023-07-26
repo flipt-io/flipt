@@ -27,6 +27,7 @@ var (
 		"api":           api,
 		"fs/git":        git,
 		"fs/local":      local,
+		"fs/s3":         s3,
 		"import/export": importExport,
 	}
 )
@@ -199,6 +200,39 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	return suite(ctx, "readonly", base, flipt, conf)
 }
 
+func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	minio := client.Container().
+		From("quay.io/minio/minio:latest").
+		WithExposedPort(9009).
+		WithEnvVariable("MINIO_ROOT_USER", "user").
+		WithEnvVariable("MINIO_ROOT_PASSWORD", "password").
+		WithExec([]string{"server", "/data", "--address", ":9009"})
+
+	_, err := base.
+		WithServiceBinding("minio", minio).
+		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
+		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
+		WithExec([]string{"go", "run", "./build/internal/cmd/minio/...", "-minio-url", "http://minio:9009", "-testdata-dir", testdataDir}).
+		Sync(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	flipt = flipt.
+		WithServiceBinding("minio", minio).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
+		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
+		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "s3").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_ENDPOINT", "http://minio:9009").
+		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_BUCKET", "testdata").
+		WithEnvVariable("UNIQUE", uuid.New().String()).
+		WithExec(nil)
+
+	return suite(ctx, "readonly", base, flipt, conf)
+}
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
