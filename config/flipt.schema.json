@@ -126,6 +126,10 @@
                   },
                   "additionalProperties": false,
                   "required": []
+                },
+                "email_matches": {
+                  "type": ["array", "null"],
+                  "additionalProperties": false
                 }
               },
               "required": [],
