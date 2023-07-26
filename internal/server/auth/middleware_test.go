@@ -175,7 +175,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 		expectedErr  error
 	}{
 		{
-			name: "successful email matches",
+			name: "successful email match (regular string)",
 			metadata: metadata.MD{
 				"Authorization": []string{"Bearer " + clientToken},
 			},
@@ -185,12 +185,33 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 			auth: storedAuth,
 		},
 		{
-			name: "email does not match",
+			name: "successful email match (regex)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"^.*@flipt.io$",
+			},
+			auth: storedAuth,
+		},
+		{
+			name: "email does not match (regular string)",
 			metadata: metadata.MD{
 				"Authorization": []string{"Bearer " + clientToken},
 			},
 			emailMatches: []string{
 				"bar@flipt.io",
+			},
+			auth:        storedAuth,
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "email does not match (regex)",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			},
+			emailMatches: []string{
+				"^.*@gmail.com$",
 			},
 			auth:        storedAuth,
 			expectedErr: errUnauthenticated,
