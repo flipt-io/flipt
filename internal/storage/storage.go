@@ -18,13 +18,21 @@ const (
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
 type EvaluationRule struct {
-	ID               string                 `json:"id"`
-	NamespaceKey     string                 `json:"namespace_key,omitempty"`
-	FlagKey          string                 `json:"flag_key,omitempty"`
-	SegmentKey       string                 `json:"segment_key,omitempty"`
-	SegmentMatchType flipt.MatchType        `json:"segment_match_type,omitempty"`
-	Rank             int32                  `json:"rank,omitempty"`
-	Constraints      []EvaluationConstraint `json:"constraints,omitempty"`
+	ID               string
+	NamespaceKey     string
+	FlagKey          string
+	SegmentKey       string
+	SegmentMatchType flipt.MatchType
+	Segments         map[string]*EvaluationSegment
+	Rank             int32
+	RuleMatchType    flipt.RuleSegmentMatchType
+	Constraints      []EvaluationConstraint
+}
+
+type EvaluationSegment struct {
+	SegmentKey  string
+	MatchType   flipt.MatchType
+	Constraints []EvaluationConstraint
 }
 
 // EvaluationRollout represents a rollout in the form that helps with evaluation.

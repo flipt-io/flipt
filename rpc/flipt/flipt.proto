@@ -373,6 +373,11 @@ message OrderRolloutsRequest {
   repeated string rollout_ids = 3;
 }
 
+enum RuleSegmentMatchType {
+  OR_TYPE = 0;
+  AND_TYPE = 1;
+}
+
 message Rule {
   string id = 1;
   string flag_key = 2;
@@ -382,6 +387,8 @@ message Rule {
   google.protobuf.Timestamp created_at = 6;
   google.protobuf.Timestamp updated_at = 7;
   string namespace_key = 8;
+  repeated string segment_keys = 9;
+	RuleSegmentMatchType segment_match_type = 10;
 }
 
 message RuleList {
@@ -408,6 +415,8 @@ message CreateRuleRequest {
   string segment_key = 2;
   int32 rank = 3;
   string namespace_key = 4;
+  repeated string segment_keys = 5;
+	RuleSegmentMatchType segment_match_type = 6;
 }
 
 message UpdateRuleRequest {
@@ -415,6 +424,8 @@ message UpdateRuleRequest {
   string flag_key = 2;
   string segment_key = 3;
   string namespace_key = 4;
+  repeated string segment_keys = 5;
+	RuleSegmentMatchType segment_match_type = 6;
 }
 
 message DeleteRuleRequest {

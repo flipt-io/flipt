@@ -14,14 +14,36 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		namespaceKey = storage.DefaultNamespace
 	}
 
-	// get all rules for flag with their constraints if any
-	rows, err := s.builder.Select("r.id, r.namespace_key, r.flag_key, r.segment_key, s.match_type, r.\"rank\", c.id, c.type, c.property, c.operator, c.value").
-		From("rules r").
-		Join("segments s ON (r.segment_key = s.\"key\" AND r.namespace_key = s.namespace_key)").
-		LeftJoin("constraints c ON (s.\"key\" = c.segment_key AND s.namespace_key = c.namespace_key)").
+	rows, err := s.builder.Select(`
+    	r.id,
+    	r.namespace_key,
+    	r.flag_key,
+    	rss.segment_key,
+    	rss.segment_match_type,
+    	r.rank,
+    	rss.constraint_id,
+    	rss.constraint_type,
+    	rss.constraint_property,
+    	rss.constraint_operator,
+    	rss.constraint_value`,
+	).
+		From("rules AS r").
+		LeftJoin(`(
+		SELECT
+			rs.rule_id,
+			rs.segment_key,
+			s.match_type AS segment_match_type,
+			c.id AS constraint_id,
+			c.type AS constraint_type,
+			c.property AS constraint_property,
+			c.operator AS constraint_operator,
+			c.value AS constraint_value
+		FROM rule_segments AS rs
+		JOIN segments AS s ON rs.segment_key = s.key
+		LEFT JOIN constraints AS c ON (s.key = c.segment_key AND s.namespace_key = c.namespace_key)
+	) rss ON (r.id = rss.rule_id)`).
 		Where(sq.And{sq.Eq{"r.flag_key": flagKey}, sq.Eq{"r.namespace_key": namespaceKey}}).
 		OrderBy("r.\"rank\" ASC").
-		GroupBy("r.id, c.id, s.match_type").
 		QueryContext(ctx)
 	if err != nil {
 		return nil, err
@@ -40,17 +62,24 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 	for rows.Next() {
 		var (
-			tempRule           storage.EvaluationRule
+			intermediateStorageRule struct {
+				ID               string
+				NamespaceKey     string
+				FlagKey          string
+				SegmentKey       string
+				SegmentMatchType flipt.MatchType
+				Rank             int32
+			}
 			optionalConstraint optionalConstraint
 		)
 
 		if err := rows.Scan(
-			&tempRule.ID,
-			&tempRule.NamespaceKey,
-			&tempRule.FlagKey,
-			&tempRule.SegmentKey,
-			&tempRule.SegmentMatchType,
-			&tempRule.Rank,
+			&intermediateStorageRule.ID,
+			&intermediateStorageRule.NamespaceKey,
+			&intermediateStorageRule.FlagKey,
+			&intermediateStorageRule.SegmentKey,
+			&intermediateStorageRule.SegmentMatchType,
+			&intermediateStorageRule.Rank,
 			&optionalConstraint.Id,
 			&optionalConstraint.Type,
 			&optionalConstraint.Property,
@@ -59,27 +88,43 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			return rules, err
 		}
 
-		if existingRule, ok := uniqueRules[tempRule.ID]; ok {
-			// current rule we know about
+		if existingRule, ok := uniqueRules[intermediateStorageRule.ID]; ok {
+			var constraint storage.EvaluationConstraint
 			if optionalConstraint.Id.Valid {
-				constraint := storage.EvaluationConstraint{
+				constraint = storage.EvaluationConstraint{
 					ID:       optionalConstraint.Id.String,
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
 				}
-				existingRule.Constraints = append(existingRule.Constraints, constraint)
 			}
+
+			segment, ok := existingRule.Segments[intermediateStorageRule.SegmentKey]
+			if !ok {
+				existingRule.Segments[intermediateStorageRule.SegmentKey] = &storage.EvaluationSegment{
+					SegmentKey:  intermediateStorageRule.SegmentKey,
+					MatchType:   intermediateStorageRule.SegmentMatchType,
+					Constraints: []storage.EvaluationConstraint{constraint},
+				}
+			} else {
+				segment.Constraints = append(segment.Constraints, constraint)
+			}
+
+			// Append to constraints if segment exists.
 		} else {
 			// haven't seen this rule before
 			newRule := &storage.EvaluationRule{
-				ID:               tempRule.ID,
-				NamespaceKey:     tempRule.NamespaceKey,
-				FlagKey:          tempRule.FlagKey,
-				SegmentKey:       tempRule.SegmentKey,
-				SegmentMatchType: tempRule.SegmentMatchType,
-				Rank:             tempRule.Rank,
+				ID:           intermediateStorageRule.ID,
+				NamespaceKey: intermediateStorageRule.NamespaceKey,
+				FlagKey:      intermediateStorageRule.FlagKey,
+				Rank:         intermediateStorageRule.Rank,
+				Segments:     make(map[string]*storage.EvaluationSegment),
+			}
+
+			newRule.Segments[intermediateStorageRule.SegmentKey] = &storage.EvaluationSegment{
+				SegmentKey: intermediateStorageRule.SegmentKey,
+				MatchType:  intermediateStorageRule.SegmentMatchType,
 			}
 
 			if optionalConstraint.Id.Valid {
@@ -90,7 +135,10 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
 				}
-				newRule.Constraints = append(newRule.Constraints, constraint)
+
+				if segment, ok := newRule.Segments[intermediateStorageRule.SegmentKey]; ok {
+					segment.Constraints = []storage.EvaluationConstraint{constraint}
+				}
 			}
 
 			uniqueRules[newRule.ID] = newRule
