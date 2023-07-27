@@ -8,6 +8,13 @@ const screenshot = async (page, name) => {
   await page.screenshot({ path: 'screenshots/' + name });
 };
 
+const scrollToBottom = async (page) => {
+  await sleep(1000);
+  await page.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+};
+
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 const capture = async function (folder, name, fn, opts = {}) {
@@ -43,17 +50,17 @@ const capture = async function (folder, name, fn, opts = {}) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 3,
+    deviceScaleFactor: 3
   });
   const page = await context.newPage();
 
   await page.goto(fliptAddr);
   await fn(page);
-  await sleep(3000);
+  await sleep(4000);
   await screenshot(page, `${folder}/${name}.png`);
 
   await context.close();
   await browser.close();
 };
 
-module.exports = { capture, sleep, screenshot };
+module.exports = { capture, sleep, screenshot, scrollToBottom };
