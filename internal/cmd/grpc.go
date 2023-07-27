@@ -228,6 +228,52 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
+	// base observability inteceptors
+	interceptors := []grpc.UnaryServerInterceptor{
+		grpc_recovery.UnaryServerInterceptor(),
+		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_zap.UnaryServerInterceptor(logger),
+		grpc_prometheus.UnaryServerInterceptor,
+		otelgrpc.UnaryServerInterceptor(),
+	}
+
+	if cfg.Cache.Enabled {
+		var cacher cache.Cacher
+
+		switch cfg.Cache.Backend {
+		case config.CacheMemory:
+			cacher = memory.NewCache(cfg.Cache)
+		case config.CacheRedis:
+			rdb := goredis.NewClient(&goredis.Options{
+				Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
+				Password: cfg.Cache.Redis.Password,
+				DB:       cfg.Cache.Redis.DB,
+			})
+
+			server.onShutdown(func(ctx context.Context) error {
+				return rdb.Shutdown(ctx).Err()
+			})
+
+			status := rdb.Ping(ctx)
+			if status == nil {
+				return nil, errors.New("connecting to redis: no status")
+			}
+
+			if status.Err() != nil {
+				return nil, fmt.Errorf("connecting to redis: %w", status.Err())
+			}
+
+			cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
+				Redis: rdb,
+			}))
+		}
+
+		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
+		store = storagecache.New(store, cacher, logger)
+
+		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
+	}
+
 	var (
 		fliptsrv           = fliptserver.New(logger, store)
 		metasrv            = metadata.NewServer(cfg, info)
@@ -270,14 +316,8 @@ func NewGRPCServer(
 
 	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
 
-	// base observability inteceptors
-	interceptors := append([]grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(),
-		grpc_ctxtags.UnaryServerInterceptor(),
-		grpc_zap.UnaryServerInterceptor(logger),
-		grpc_prometheus.UnaryServerInterceptor,
-		otelgrpc.UnaryServerInterceptor(),
-	},
+	// add auth interceptors to the server
+	interceptors = append(interceptors,
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
@@ -285,44 +325,7 @@ func NewGRPCServer(
 		)...,
 	)
 
-	if cfg.Cache.Enabled {
-		var cacher cache.Cacher
-
-		switch cfg.Cache.Backend {
-		case config.CacheMemory:
-			cacher = memory.NewCache(cfg.Cache)
-		case config.CacheRedis:
-			rdb := goredis.NewClient(&goredis.Options{
-				Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
-				Password: cfg.Cache.Redis.Password,
-				DB:       cfg.Cache.Redis.DB,
-			})
-
-			server.onShutdown(func(ctx context.Context) error {
-				return rdb.Shutdown(ctx).Err()
-			})
-
-			status := rdb.Ping(ctx)
-			if status == nil {
-				return nil, errors.New("connecting to redis: no status")
-			}
-
-			if status.Err() != nil {
-				return nil, fmt.Errorf("connecting to redis: %w", status.Err())
-			}
-
-			cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
-				Redis: rdb,
-			}))
-		}
-
-		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
-		store = storagecache.New(store, cacher, logger)
-
-		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
-	}
-
-	// Audit sinks configuration.
+	// audit sinks configuration.
 	sinks := make([]audit.Sink, 0)
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
