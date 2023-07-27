@@ -11,18 +11,19 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"go.flipt.io/flipt/internal/cache"
+	"go.flipt.io/flipt/internal/cache/memory"
+	"go.flipt.io/flipt/internal/cache/redis"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
-	"go.flipt.io/flipt/internal/server/cache"
-	"go.flipt.io/flipt/internal/server/cache/memory"
-	"go.flipt.io/flipt/internal/server/cache/redis"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
+	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	"go.flipt.io/flipt/internal/storage/fs"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
@@ -292,6 +293,7 @@ func NewGRPCServer(
 		}
 
 		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
+		store = storagecache.New(store, cacher, logger)
 
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 	}
