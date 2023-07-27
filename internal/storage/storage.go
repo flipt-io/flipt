@@ -18,22 +18,22 @@ const (
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
 type EvaluationRule struct {
-	ID               string
-	NamespaceKey     string
-	FlagKey          string
-	SegmentKey       string
-	SegmentMatchType flipt.MatchType
-	Rank             int32
-	Constraints      []EvaluationConstraint
+	ID               string                 `json:"id"`
+	NamespaceKey     string                 `json:"namespace_key,omitempty"`
+	FlagKey          string                 `json:"flag_key,omitempty"`
+	SegmentKey       string                 `json:"segment_key,omitempty"`
+	SegmentMatchType flipt.MatchType        `json:"segment_match_type,omitempty"`
+	Rank             int32                  `json:"rank,omitempty"`
+	Constraints      []EvaluationConstraint `json:"constraints,omitempty"`
 }
 
 // EvaluationConstraint represents a segment constraint that is used for evaluation
 type EvaluationConstraint struct {
-	ID       string
-	Type     flipt.ComparisonType
-	Property string
-	Operator string
-	Value    string
+	ID       string               `json:"id,omitempty"`
+	Type     flipt.ComparisonType `json:"comparison_type,omitempty"`
+	Property string               `json:"property,omitempty"`
+	Operator string               `json:"operator,omitempty"`
+	Value    string               `json:"value,omitempty"`
 }
 
 // EvaluationDistribution represents a rule distribution along with its variant for evaluation
@@ -134,8 +134,8 @@ type Store interface {
 }
 
 type ResultSet[T any] struct {
-	Results       []T
-	NextPageToken string
+	Results       []T    `json:"results"`
+	NextPageToken string `json:"next_page_token"`
 }
 
 const DefaultNamespace = "default"
