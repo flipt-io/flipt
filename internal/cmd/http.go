@@ -106,13 +106,14 @@ func NewHTTPServer(
 			h.ServeHTTP(w, r)
 		})
 	})
-	r.Use(removeTrailingSlash)
 	r.Use(middleware.Compress(gzip.DefaultCompression))
 	r.Use(middleware.Recoverer)
 	r.Mount("/debug", middleware.Profiler())
 	r.Mount("/metrics", promhttp.Handler())
 
 	r.Group(func(r chi.Router) {
+		r.Use(removeTrailingSlash)
+
 		if key := cfg.Authentication.Session.CSRF.Key; key != "" {
 			logger.Debug("enabling CSRF prevention")
 

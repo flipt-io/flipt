@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/auth/method/token"
-	"go.flipt.io/flipt/internal/server/cache/memory"
 	servereval "go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"

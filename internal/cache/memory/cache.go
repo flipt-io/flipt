@@ -4,8 +4,8 @@ import (
 	"context"
 
 	gocache "github.com/patrickmn/go-cache"
+	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/config"
-	"go.flipt.io/flipt/internal/server/cache"
 )
 
 const cacheType = "memory"
