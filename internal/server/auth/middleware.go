@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -134,6 +135,39 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
+	}
+}
+
+// EmailMatchingInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
+// and wants to whitelist a group of users issuing operations against the Flipt server.
+func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		auth := GetAuthenticationFrom(ctx)
+
+		if auth == nil {
+			return handler(ctx, req)
+		}
+
+		email, ok := auth.Metadata["io.flipt.auth.oidc.email"]
+		if !ok {
+			logger.Debug("no email provided but required for auth")
+			return ctx, errUnauthenticated
+		}
+
+		matched := false
+
+		for _, rgx := range rgxs {
+			if matched = rgx.MatchString(email); matched {
+				break
+			}
+		}
+
+		if !matched {
+			logger.Error("unauthenticated", zap.String("reason", "email is not allowed"))
+			return ctx, errUnauthenticated
+		}
+
+		return handler(ctx, req)
 	}
 }
 
