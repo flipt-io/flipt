@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/storage"
@@ -20,6 +21,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
     	r.flag_key,
     	rss.segment_key,
     	rss.segment_match_type,
+		r.rule_segment_operator,
     	r.rank,
     	rss.constraint_id,
     	rss.constraint_type,
@@ -63,12 +65,13 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	for rows.Next() {
 		var (
 			intermediateStorageRule struct {
-				ID               string
-				NamespaceKey     string
-				FlagKey          string
-				SegmentKey       string
-				SegmentMatchType flipt.MatchType
-				Rank             int32
+				ID                  string
+				NamespaceKey        string
+				FlagKey             string
+				SegmentKey          string
+				SegmentMatchType    flipt.MatchType
+				RuleSegmentOperator flipt.RuleSegmentOperator
+				Rank                int32
 			}
 			optionalConstraint optionalConstraint
 		)
@@ -79,6 +82,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			&intermediateStorageRule.FlagKey,
 			&intermediateStorageRule.SegmentKey,
 			&intermediateStorageRule.SegmentMatchType,
+			&intermediateStorageRule.RuleSegmentOperator,
 			&intermediateStorageRule.Rank,
 			&optionalConstraint.Id,
 			&optionalConstraint.Type,
@@ -87,6 +91,8 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			&optionalConstraint.Value); err != nil {
 			return rules, err
 		}
+
+		fmt.Println("***RULE SEGMENT OPERATOR***: ", intermediateStorageRule.RuleSegmentOperator)
 
 		if existingRule, ok := uniqueRules[intermediateStorageRule.ID]; ok {
 			var constraint storage.EvaluationConstraint
@@ -115,11 +121,12 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		} else {
 			// haven't seen this rule before
 			newRule := &storage.EvaluationRule{
-				ID:           intermediateStorageRule.ID,
-				NamespaceKey: intermediateStorageRule.NamespaceKey,
-				FlagKey:      intermediateStorageRule.FlagKey,
-				Rank:         intermediateStorageRule.Rank,
-				Segments:     make(map[string]*storage.EvaluationSegment),
+				ID:                  intermediateStorageRule.ID,
+				NamespaceKey:        intermediateStorageRule.NamespaceKey,
+				FlagKey:             intermediateStorageRule.FlagKey,
+				Rank:                intermediateStorageRule.Rank,
+				RuleSegmentOperator: intermediateStorageRule.RuleSegmentOperator,
+				Segments:            make(map[string]*storage.EvaluationSegment),
 			}
 
 			newRule.Segments[intermediateStorageRule.SegmentKey] = &storage.EvaluationSegment{

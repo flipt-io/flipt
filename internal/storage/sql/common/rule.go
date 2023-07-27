@@ -30,11 +30,11 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 
 		rule = &flipt.Rule{}
 
-		err = s.builder.Select("id, namespace_key, flag_key, \"rank\", created_at, updated_at").
+		err = s.builder.Select("id, namespace_key, flag_key, \"rank\", rule_segment_operator, created_at, updated_at").
 			From("rules").
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
 			QueryRowContext(ctx).
-			Scan(&rule.Id, &rule.NamespaceKey, &rule.FlagKey, &rule.Rank, &createdAt, &updatedAt)
+			Scan(&rule.Id, &rule.NamespaceKey, &rule.FlagKey, &rule.Rank, &rule.RuleSegmentOperator, &createdAt, &updatedAt)
 	)
 
 	if err != nil {
@@ -346,7 +346,13 @@ func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (u
 
 // CreateRule creates a rule
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (frule *flipt.Rule, err error) {
-	segmentKeys := append(append([]string{}, r.SegmentKey), r.SegmentKeys...)
+	segmentKeys := make([]string, 0)
+
+	if len(r.SegmentKeys) > 0 {
+		segmentKeys = append(segmentKeys, r.SegmentKeys...)
+	} else if r.SegmentKey != "" {
+		segmentKeys = append(segmentKeys, r.SegmentKey)
+	}
 
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
@@ -355,13 +361,13 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (fru
 	var (
 		now  = timestamppb.Now()
 		rule = &flipt.Rule{
-			Id:               uuid.Must(uuid.NewV4()).String(),
-			NamespaceKey:     r.NamespaceKey,
-			FlagKey:          r.FlagKey,
-			Rank:             r.Rank,
-			SegmentMatchType: r.SegmentMatchType,
-			CreatedAt:        now,
-			UpdatedAt:        now,
+			Id:                  uuid.Must(uuid.NewV4()).String(),
+			NamespaceKey:        r.NamespaceKey,
+			FlagKey:             r.FlagKey,
+			Rank:                r.Rank,
+			RuleSegmentOperator: r.RuleSegmentOperator,
+			CreatedAt:           now,
+			UpdatedAt:           now,
 		}
 	)
 
@@ -373,12 +379,13 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (fru
 	if _, err := s.builder.
 		Insert("rules").
 		RunWith(tx).
-		Columns("id", "namespace_key", "flag_key", "\"rank\"", "created_at", "updated_at").
+		Columns("id", "namespace_key", "flag_key", "\"rank\"", "rule_segment_operator", "created_at", "updated_at").
 		Values(
 			rule.Id,
 			rule.NamespaceKey,
 			rule.FlagKey,
 			rule.Rank,
+			rule.RuleSegmentOperator,
 			&fliptsql.Timestamp{Timestamp: rule.CreatedAt},
 			&fliptsql.Timestamp{Timestamp: rule.UpdatedAt},
 		).

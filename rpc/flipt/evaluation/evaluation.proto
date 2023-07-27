@@ -69,6 +69,7 @@ message VariantEvaluationResponse {
   string request_id = 6;
   double request_duration_millis = 7;
   google.protobuf.Timestamp timestamp = 8;
+  repeated string segment_keys = 9;
 }
 
 message ErrorEvaluationResponse {

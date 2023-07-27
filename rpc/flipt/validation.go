@@ -184,8 +184,12 @@ func (req *CreateRuleRequest) Validate() error {
 		return errors.EmptyFieldError("flagKey")
 	}
 
-	if req.SegmentKey == "" {
-		return errors.EmptyFieldError("segmentKey")
+	if req.SegmentKey == "" && len(req.SegmentKeys) == 0 {
+		return errors.EmptyFieldError("segmentKey or segmentKeys")
+	}
+
+	if req.SegmentKey != "" && len(req.SegmentKeys) > 0 {
+		return errors.InvalidFieldError("segmentKey or segmentKeys", "only one can be present")
 	}
 
 	if req.Rank <= 0 {

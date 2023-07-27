@@ -77,10 +77,15 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 	ver := &rpcevaluation.VariantEvaluationResponse{
 		Match:             resp.Match,
-		SegmentKey:        resp.SegmentKey,
 		Reason:            reason,
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,
+	}
+
+	if resp.SegmentKey != "" {
+		ver.SegmentKey = resp.SegmentKey
+	} else if len(resp.SegmentKeys) > 0 {
+		ver.SegmentKeys = resp.SegmentKeys
 	}
 
 	return ver, nil

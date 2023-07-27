@@ -134,23 +134,24 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 			segmentKeys = append(segmentKeys, k)
 		}
 
-		switch rule.RuleMatchType {
-		case flipt.RuleSegmentMatchType_OR_TYPE:
+		switch rule.RuleSegmentOperator {
+		case flipt.RuleSegmentOperator_OR_SEGMENT_OPERATOR:
 			if segmentMatches < 1 {
 				e.logger.Debug("did not match ANY segments")
 				continue
 			}
-		case flipt.RuleSegmentMatchType_AND_TYPE:
+		case flipt.RuleSegmentOperator_AND_SEGMENT_OPERATOR:
 			if len(rule.Segments) != segmentMatches {
 				e.logger.Debug("did not match ALL segments")
 				continue
 			}
 		}
 
-		// otherwise, this is our matching rule, determine the flag variant to return
-		// based on the distributions
+		// For legacy reasons of supporting SegmentKey.
 		if len(rule.Segments) < 2 {
-			resp.SegmentKey = rule.Segments[segmentKeys[0]].SegmentKey
+			resp.SegmentKey = segmentKeys[0]
+		} else {
+			resp.SegmentKeys = segmentKeys
 		}
 
 		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.ID)
