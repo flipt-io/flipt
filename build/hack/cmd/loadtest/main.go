@@ -33,7 +33,7 @@ var (
 )
 
 func init() {
-	flag.DurationVar(&dur, "duration", 120*time.Second, "duration of load test for evaluations")
+	flag.DurationVar(&dur, "duration", 60*time.Second, "duration of load test for evaluations")
 	flag.StringVar(&fliptAddr, "flipt-addr", "http://flipt:8080", "address of the flipt instance")
 }
 
@@ -45,9 +45,15 @@ func run() error {
 	variantEvaluation := Evaluation{
 		EntityId: uuid.Must(uuid.NewV4()).String(),
 		FlagKey:  "flag_010",
+		Context: map[string]string{
+			"foobar": "baz",
+		},
 	}
 
-	ve, _ := json.Marshal(variantEvaluation)
+	ve, err := json.Marshal(variantEvaluation)
+	if err != nil {
+		return err
+	}
 
 	evaluationTargets = append(evaluationTargets, vegeta.Target{
 		Method: postMethod,
@@ -60,7 +66,10 @@ func run() error {
 		FlagKey:  "flag_boolean",
 	}
 
-	be, _ := json.Marshal(booleanEvaluation)
+	be, err := json.Marshal(booleanEvaluation)
+	if err != nil {
+		return err
+	}
 
 	evaluationTargets = append(evaluationTargets, vegeta.Target{
 		Method: postMethod,
@@ -75,13 +84,19 @@ func run() error {
 
 	var metrics vegeta.Metrics
 
-	fmt.Printf("About to start vegeta attack on evalutions for %f seconds...\n", dur.Seconds())
+	fmt.Printf("About to start vegeta attack on evaluations for %f seconds...\n", dur.Seconds())
 	attacker := vegeta.NewAttacker()
-	for res := range attacker.Attack(evaluationTargeter, rate, dur, "Doing evaluation request...") {
+	for res := range attacker.Attack(evaluationTargeter, rate, dur, "") {
 		metrics.Add(res)
 	}
 	metrics.Close()
 
+	fmt.Printf("Mean: %s\n", metrics.Latencies.Mean)
+	fmt.Printf("99th percentile: %s\n", metrics.Latencies.P99)
+	fmt.Printf("Max: %s\n", metrics.Latencies.Max)
+	fmt.Printf("Requests: %d\n", metrics.Requests)
+	fmt.Printf("Throughput: %f\n", metrics.Throughput)
+	fmt.Printf("Errors: %v\n", metrics.Errors)
 	return nil
 }
 
