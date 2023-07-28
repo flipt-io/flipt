@@ -15580,6 +15580,16 @@ flags:
   type: VARIANT_FLAG_TYPE
   description: Disabled Flag Description
   enabled: false
+- key: flag_boolean_no_constraints
+  name: FLAG_NO_CONSTRAINTS
+  type: BOOLEAN_FLAG_TYPE
+  description: Flag Boolean no segment constraints
+  enabled: false
+  rollouts:
+  - description: enabled for segment_no_constraints
+    segment:
+      key: segment_no_constraints
+      value: true
 segments:
 - key: segment_001
   name: SEGMENT_001
@@ -16231,3 +16241,6 @@ segments:
     operator: eq
     value: segment_050
   match_type: ALL_MATCH_TYPE
+- key: segment_no_constraints
+  name: SEGMENT_NO_CONSTRAINTS
+  description: Some Segment Description
