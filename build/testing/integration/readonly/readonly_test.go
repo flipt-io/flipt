@@ -468,7 +468,7 @@ func TestReadOnly(t *testing.T) {
 
 					assert.False(t, result.Match, "Evaluation should not have matched.")
 					assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
-					assert.Empty(t, result.SegmentKey)
+					assert.Empty(t, result.SegmentKeys)
 					assert.Empty(t, result.VariantKey)
 				})
 
@@ -578,7 +578,7 @@ func TestReadOnly(t *testing.T) {
 					assert.True(t, v.VariantResponse.Match, "variant response match should have true value")
 					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 					assert.Equal(t, "variant_002", v.VariantResponse.VariantKey)
-					assert.Equal(t, "segment_005", v.VariantResponse.SegmentKey)
+					assert.Contains(t, v.VariantResponse.SegmentKeys, "segment_005")
 					assert.Equal(t, evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, result.Responses[2].Type)
 				})
 			})

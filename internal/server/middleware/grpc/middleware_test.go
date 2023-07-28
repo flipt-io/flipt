@@ -914,7 +914,7 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 			}
 
 			assert.True(t, resp.Match)
-			assert.Contains(t, "bar", resp.SegmentKeys)
+			assert.Contains(t, resp.SegmentKeys, "bar")
 			assert.Equal(t, "boz", resp.VariantKey)
 			assert.Equal(t, `{"key":"value"}`, resp.VariantAttachment)
 		})

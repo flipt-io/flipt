@@ -791,7 +791,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				require.True(t, result.Match, "Evaluation should have matched.")
-				assert.Contains(t, "everyone", result.SegmentKeys)
+				assert.Contains(t, result.SegmentKeys, "everyone")
 				assert.Equal(t, "one", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 			})
@@ -941,7 +941,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.True(t, ok, "value should be variant response")
 				assert.Equal(t, evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, result.Responses[1].Type)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
-				assert.Contains(t, "everyone", v.VariantResponse.SegmentKey)
+				assert.Contains(t, v.VariantResponse.SegmentKeys, "everyone")
 				assert.Equal(t, "one", v.VariantResponse.VariantKey)
 
 				e, ok := result.Responses[2].Response.(*evaluation.EvaluationResponse_ErrorResponse)

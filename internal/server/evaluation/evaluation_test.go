@@ -183,7 +183,7 @@ func TestVariant_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Match)
-	assert.Contains(t, "bar", res.SegmentKeys)
+	assert.Contains(t, res.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
