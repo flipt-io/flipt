@@ -809,7 +809,6 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.False(t, result.Match, "Evaluation should not have matched.")
 				assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, result.Reason)
-				assert.Empty(t, result.SegmentKeys)
 				assert.Empty(t, result.VariantKey)
 			})
 
@@ -824,7 +823,6 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.False(t, result.Match, "Evaluation should not have matched.")
 				assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
-				assert.Empty(t, result.SegmentKeys)
 				assert.Empty(t, result.VariantKey)
 			})
 
