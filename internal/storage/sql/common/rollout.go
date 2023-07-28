@@ -85,6 +85,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 		}
 
 		segmentRule.Segment.Value = value
+		segmentRule.Segment.SegmentOperator = segmentOperator
 
 		rows, err := builder.Select("segment_key").
 			From("rollout_segment_references").
@@ -298,6 +299,7 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 			}
 
 			rs.Value = v.value
+			rs.SegmentOperator = v.segmentOperator
 
 			rollout.Rule = &flipt.Rollout_Segment{Segment: rs}
 		}

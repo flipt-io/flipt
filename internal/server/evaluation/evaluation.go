@@ -234,6 +234,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	// If we have exhausted all rollouts and we still don't have a match, return flag enabled value.
 	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
 	resp.Enabled = flag.Enabled
+
 	s.logger.Debug("default rollout matched", zap.Bool("enabled", flag.Enabled))
 	return resp, nil
 }

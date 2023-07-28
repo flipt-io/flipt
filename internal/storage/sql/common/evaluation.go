@@ -226,6 +226,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 		rt.value,
 		rss.segment_key,
 		rss.rollout_segment_value,
+		rss.segment_operator,
 		rss.match_type,
 		rss.constraint_type,
 		rss.constraint_property,
@@ -240,6 +241,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			rsr.segment_key,
 			s.match_type,
 			rs.value AS rollout_segment_value,
+			rs.segment_operator AS segment_operator,
 			c."type" AS constraint_type,
 			c.property AS constraint_property,
 			c.operator AS constraint_operator,
@@ -276,6 +278,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			rtPercentageValue    sql.NullBool
 			rsSegmentKey         sql.NullString
 			rsSegmentValue       sql.NullBool
+			rsSegmentOperator    sql.NullInt32
 			rsMatchType          sql.NullInt32
 			rsConstraintType     sql.NullInt32
 			rsConstraintProperty sql.NullString
@@ -292,6 +295,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			&rtPercentageValue,
 			&rsSegmentKey,
 			&rsSegmentValue,
+			&rsSegmentOperator,
 			&rsMatchType,
 			&rsConstraintType,
 			&rsConstraintProperty,
@@ -310,6 +314,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			evaluationRollout.Threshold = storageThreshold
 		} else if rsSegmentKey.Valid &&
 			rsSegmentValue.Valid &&
+			rsSegmentOperator.Valid &&
 			rsMatchType.Valid &&
 			rsConstraintType.Valid &&
 			rsConstraintProperty.Valid &&
@@ -338,8 +343,9 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			}
 
 			storageSegment := &storage.RolloutSegment{
-				Value:    rsSegmentValue.Bool,
-				Segments: make(map[string]*storage.EvaluationSegment),
+				Value:           rsSegmentValue.Bool,
+				SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
+				Segments:        make(map[string]*storage.EvaluationSegment),
 			}
 
 			storageSegment.Segments[rsSegmentKey.String] = &storage.EvaluationSegment{

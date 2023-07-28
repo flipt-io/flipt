@@ -317,7 +317,7 @@ message Rollout {
 }
 
 message RolloutSegment {
-  string segment_key = 1;
+  string segment_key = 1 [deprecated = true];
   bool value = 2;
   repeated string segment_keys = 3;
   SegmentOperator segment_operator = 4;
