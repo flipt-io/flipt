@@ -73,3 +73,25 @@ These tests exercise the Flipt Go SDK against a matrix of Flipt configurations.
 ### CLI Tests
 
 `mage test:cli` runs a suite of [CLI tests](./testing/cli.go) invoking the `flipt` binary and its subcommands.
+
+## Hack
+
+The `hack` namespace within the Mage targets can be used to run various tasks that are under active development.
+
+```sh
+  hack:loadTest       runs a load test against a running instance of Flipt using Pyroscope and vegeta.
+```
+
+### Load Test
+
+`mage hack:loadTest` runs a load test against a running instance of Flipt using [Pyroscope](https://pyroscope.io) and vegeta.
+
+The test will import data from [testdata/default.yaml](testing/integration/readonly/testdata/default.yaml) into Flipt and then run a series of evaluation requests against a running instance of Flipt for a period of 60 seconds.
+
+After running this command, the results will be available in the `./build/hack/out/profiles` directory.
+
+You can view the results using the Pyroscope UI by running `pyroscope server --adhoc-data-path="$(pwd)/hack/out/profiles"`. 
+
+This will start the Pyroscope server on `http://localhost:4040`. 
+
+**Note:** You will need to have Pyroscope installed locally to run this command (See [Pyroscope Quick Start](https://pyroscope.io/docs/server-install-macos/)). (TODO: run this in a container)

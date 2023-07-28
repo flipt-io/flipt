@@ -26,6 +26,11 @@ import "strings"
 
 	#authentication: {
 		required?: bool | *false
+		exclude?: {
+			management: bool | *false
+			metadata:   bool | *false
+			evaluation: bool | *false
+		}
 		session?: {
 			domain?:        string
 			secure?:        bool

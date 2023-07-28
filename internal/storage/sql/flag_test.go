@@ -283,7 +283,7 @@ func (s *DBTestSuite) TestListFlagsPagination_LimitWithNextPage() {
 
 	pageToken := &common.PageToken{}
 	pTokenB, err := base64.StdEncoding.DecodeString(res.NextPageToken)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = json.Unmarshal(pTokenB, pageToken)
 	require.NoError(t, err)

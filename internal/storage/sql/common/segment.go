@@ -117,11 +117,11 @@ type optionalConstraint struct {
 
 // ListSegments lists all segments
 func (s *Store) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
-	params := &storage.QueryParams{}
-
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
+	params := &storage.QueryParams{}
 
 	for _, opt := range opts {
 		opt(params)
@@ -295,11 +295,11 @@ func (s *Store) setConstraints(ctx context.Context, namespaceKey string, segment
 
 // CountSegments counts all segments
 func (s *Store) CountSegments(ctx context.Context, namespaceKey string) (uint64, error) {
-	var count uint64
-
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
+	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("segments").

@@ -38,7 +38,7 @@ const links = [
 
 export default function NotFoundLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="bg-white flex min-h-screen flex-col">
       <main className="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div className="flex-shrink-0 pt-16">
           <Link to="/">
@@ -53,21 +53,21 @@ export default function NotFoundLayout() {
         </div>
         <div className="mx-auto max-w-xl py-16 sm:py-24">
           <div className="text-center">
-            <p className="text-base font-semibold text-violet-600">404</p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+            <p className="text-violet-600 text-base font-semibold">404</p>
+            <h1 className="text-gray-900 mt-2 text-4xl font-bold tracking-tight sm:text-5xl">
               Not Found
             </h1>
-            <p className="mt-2 text-lg text-gray-500">
+            <p className="text-gray-500 mt-2 text-lg">
               The page you are looking for could not be found.
             </p>
           </div>
           <div className="mt-12">
-            <h2 className="text-base font-semibold text-gray-500">
+            <h2 className="text-gray-500 text-base font-semibold">
               Popular pages
             </h2>
             <ul
               role="list"
-              className="mt-4 divide-y divide-gray-200 border-b border-t border-gray-200"
+              className="border-gray-200 mt-4 divide-y divide-gray-200 border-b border-t"
             >
               {links.map((link, linkIdx) => (
                 <li
@@ -75,15 +75,15 @@ export default function NotFoundLayout() {
                   className="relative flex items-start space-x-4 py-6"
                 >
                   <div className="flex-shrink-0">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-violet-50">
+                    <span className="bg-violet-50 flex h-12 w-12 items-center justify-center rounded-lg">
                       <link.icon
-                        className="h-6 w-6 text-violet-700"
+                        className="text-violet-700 h-6 w-6"
                         aria-hidden="true"
                       />
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base font-medium text-gray-900 hover:text-violet-500">
+                    <h3 className="text-gray-900 text-base font-medium hover:text-violet-500">
                       <span className="rounded-sm focus-within:ring-2 focus-within:ring-violet-500 focus-within:ring-offset-2">
                         <a
                           href={link.href}
@@ -99,13 +99,13 @@ export default function NotFoundLayout() {
                         </a>
                       </span>
                     </h3>
-                    <p className="text-base text-gray-500">
+                    <p className="text-gray-500 text-base">
                       {link.description}
                     </p>
                   </div>
                   <div className="flex-shrink-0 self-center">
                     <ChevronRightIcon
-                      className="h-5 w-5 text-gray-400"
+                      className="text-gray-400 h-5 w-5"
                       aria-hidden="true"
                     />
                   </div>
@@ -115,7 +115,7 @@ export default function NotFoundLayout() {
             <div className="mt-8">
               <a
                 href="/"
-                className="text-base font-medium text-violet-600 hover:text-violet-500"
+                className="text-violet-600 text-base font-medium hover:text-violet-500"
               >
                 <span aria-hidden="true">&larr; </span>
                 Home

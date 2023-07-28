@@ -41,9 +41,9 @@ test.describe('Rules', () => {
       await page.getByRole('link', { name: 'Evaluation' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
 
-      await page.locator('#segmentKey-select-button').click();
-      await page.getByText('test-rule').click();
-      await page.getByLabel('Multi-Variant').check();
+      await page.getByRole('combobox').type('test-rule');
+      await page.getByRole('option', { name: 'test-rule' }).click();
+      await page.getByLabel('Multi-Variate').check();
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(page.getByText('Successfully created rule')).toBeVisible();
     });
@@ -52,18 +52,18 @@ test.describe('Rules', () => {
   test('can update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
-    await page.getByRole('link', { name: 'Edit |' }).click();
-    await page
-      .getByRole('dialog', { name: 'Edit Rule' })
-      .getByText('123')
-      .click();
 
-    await page.locator('input[name="\\31 23"]').click();
-    await page.locator('input[name="\\31 23"]').fill('40');
-    await page.locator('input[name="\\31 23"]').press('Tab');
-    await page.locator('input[name="\\34 56"]').fill('60');
+    await page
+      .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
+      .click();
+    await page
+      .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
+      .fill('40');
+    await page
+      .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
+      .click();
     await page.getByRole('button', { name: 'Update' }).click();
-    await page.getByText('Successfully updated rule').click();
+    await expect(page.getByText('Successfully updated rule')).toBeVisible();
   });
 });
 
@@ -92,12 +92,14 @@ test.describe('Rules - Read Only', () => {
   test('can not update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
-    await expect(page.getByRole('link', { name: 'Edit |' })).toBeHidden();
+    await page.getByTestId('rule-menu-button').click();
+    await expect(page.getByRole('link', { name: 'Edit' })).toBeHidden();
   });
 
   test('can not delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
+    await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Delete' })).toBeHidden();
   });
 });

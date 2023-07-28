@@ -1,18 +1,20 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { IEvaluatable } from '~/types/Evaluatable';
-import { INamespace } from '~/types/Namespace';
+import { IFlag } from '~/types/Flag';
+import { ISegment } from '~/types/Segment';
 import Rule from './Rule';
 
 type SortableRuleProps = {
-  namespace: INamespace;
+  flag: IFlag;
   rule: IEvaluatable;
-  onEdit: () => void;
+  segments: ISegment[];
+  onSuccess: () => void;
   onDelete: () => void;
   readOnly?: boolean;
 };
 
 export default function SortableRule(props: SortableRuleProps) {
-  const { namespace, rule, onEdit, onDelete, readOnly } = props;
+  const { flag, rule, segments, onSuccess, onDelete, readOnly } = props;
   const {
     isDragging,
     attributes,
@@ -32,7 +34,7 @@ export default function SortableRule(props: SortableRuleProps) {
       }
     : undefined;
 
-  const className = isDragging ? 'border-violet-200 cursor-move' : '';
+  const className = isDragging ? 'border-violet-500 cursor-move' : '';
 
   return (
     <Rule
@@ -42,9 +44,10 @@ export default function SortableRule(props: SortableRuleProps) {
       {...attributes}
       style={style}
       className={className}
-      namespace={namespace}
+      flag={flag}
       rule={rule}
-      onEdit={onEdit}
+      segments={segments}
+      onSuccess={onSuccess}
       onDelete={onDelete}
       readOnly={readOnly}
     />

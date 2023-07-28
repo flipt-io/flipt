@@ -16,13 +16,13 @@ import { stringAsKey } from '~/utils/helpers';
 
 const segmentMatchTypes = [
   {
-    id: 'ALL_MATCH_TYPE',
-    name: SegmentMatchType.ALL_MATCH_TYPE,
+    id: SegmentMatchType.ALL,
+    name: 'All',
     description: 'All constraints must match'
   },
   {
-    id: 'ANY_MATCH_TYPE',
-    name: SegmentMatchType.ANY_MATCH_TYPE,
+    id: SegmentMatchType.ANY,
+    name: 'Any',
     description: 'At least one constraints must match'
   }
 ];
@@ -56,7 +56,7 @@ export default function SegmentForm(props: SegmentFormProps) {
     key: segment?.key || '',
     name: segment?.name || '',
     description: segment?.description || '',
-    matchType: segment?.matchType || ('ALL_MATCH_TYPE' as SegmentMatchType)
+    matchType: segment?.matchType || SegmentMatchType.ALL
   };
 
   return (
@@ -96,7 +96,7 @@ export default function SegmentForm(props: SegmentFormProps) {
               <div className="col-span-2">
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-gray-700 block text-sm font-medium"
                 >
                   Name
                 </label>
@@ -121,7 +121,7 @@ export default function SegmentForm(props: SegmentFormProps) {
               <div className="col-span-2">
                 <label
                   htmlFor="key"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-gray-700 block text-sm font-medium"
                 >
                   Key
                 </label>
@@ -139,7 +139,7 @@ export default function SegmentForm(props: SegmentFormProps) {
               <div className="col-span-3">
                 <label
                   htmlFor="matchType"
-                  className="block text-sm font-medium text-gray-700"
+                  className="text-gray-700 block text-sm font-medium"
                 >
                   Match Type
                 </label>
@@ -157,12 +157,9 @@ export default function SegmentForm(props: SegmentFormProps) {
                             aria-describedby={`${matchType.id}-description`}
                             name="matchType"
                             type="radio"
-                            className="h-4 w-4 border-gray-300 text-violet-400 focus:ring-violet-400"
+                            className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                             onChange={() => {
-                              formik.setFieldValue(
-                                'matchType',
-                                matchType.id as SegmentMatchType
-                              );
+                              formik.setFieldValue('matchType', matchType.id);
                             }}
                             checked={matchType.id === formik.values.matchType}
                             value={matchType.id}
@@ -171,7 +168,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                         <div className="ml-3 text-sm">
                           <label
                             htmlFor={matchType.id}
-                            className="font-medium text-gray-700"
+                            className="text-gray-700 font-medium"
                           >
                             {matchType.name}
                           </label>
@@ -191,12 +188,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                 <div className="flex justify-between">
                   <label
                     htmlFor="description"
-                    className="block text-sm font-medium text-gray-700"
+                    className="text-gray-700 block text-sm font-medium"
                   >
                     Description
                   </label>
                   <span
-                    className="text-xs text-gray-500"
+                    className="text-gray-500 text-xs"
                     id="description-optional"
                   >
                     Optional

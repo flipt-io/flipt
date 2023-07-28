@@ -185,6 +185,56 @@ func (x *Flipt) DeleteRule(ctx context.Context, v *flipt.DeleteRuleRequest) erro
 	return err
 }
 
+func (x *Flipt) GetRollout(ctx context.Context, v *flipt.GetRolloutRequest) (*flipt.Rollout, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.GetRollout(ctx, v)
+}
+
+func (x *Flipt) ListRollouts(ctx context.Context, v *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.ListRollouts(ctx, v)
+}
+
+func (x *Flipt) CreateRollout(ctx context.Context, v *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.CreateRollout(ctx, v)
+}
+
+func (x *Flipt) UpdateRollout(ctx context.Context, v *flipt.UpdateRolloutRequest) (*flipt.Rollout, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.UpdateRollout(ctx, v)
+}
+
+func (x *Flipt) DeleteRollout(ctx context.Context, v *flipt.DeleteRolloutRequest) error {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
+	}
+	_, err = x.transport.DeleteRollout(ctx, v)
+	return err
+}
+
+func (x *Flipt) OrderRollouts(ctx context.Context, v *flipt.OrderRolloutsRequest) error {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return err
+	}
+	_, err = x.transport.OrderRollouts(ctx, v)
+	return err
+}
+
 func (x *Flipt) CreateDistribution(ctx context.Context, v *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {

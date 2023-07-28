@@ -19,11 +19,12 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { requiredValidation } from '~/data/validations';
 import {
-  ComparisonType,
   ConstraintBooleanOperators,
   ConstraintDateTimeOperators,
   ConstraintNumberOperators,
   ConstraintStringOperators,
+  ConstraintType,
+  constraintTypeToLabel,
   IConstraint,
   IConstraintBase,
   NoValueOperators
@@ -31,26 +32,26 @@ import {
 import { Timezone } from '~/types/Preferences';
 
 const constraintComparisonTypes = () =>
-  (Object.keys(ComparisonType) as Array<keyof typeof ComparisonType>).map(
+  (Object.keys(ConstraintType) as Array<keyof typeof ConstraintType>).map(
     (t) => ({
-      value: t,
-      label: ComparisonType[t]
+      value: ConstraintType[t],
+      label: constraintTypeToLabel(ConstraintType[t])
     })
   );
 
 const constraintOperators = (c: string) => {
   let opts: Record<string, string> = {};
-  switch (ComparisonType[c as keyof typeof ComparisonType]) {
-    case ComparisonType.STRING_COMPARISON_TYPE:
+  switch (c as ConstraintType) {
+    case ConstraintType.STRING:
       opts = ConstraintStringOperators;
       break;
-    case ComparisonType.NUMBER_COMPARISON_TYPE:
+    case ConstraintType.NUMBER:
       opts = ConstraintNumberOperators;
       break;
-    case ComparisonType.BOOLEAN_COMPARISON_TYPE:
+    case ConstraintType.BOOLEAN:
       opts = ConstraintBooleanOperators;
       break;
-    case ComparisonType.DATETIME_COMPARISON_TYPE:
+    case ConstraintType.DATETIME:
       opts = ConstraintDateTimeOperators;
       break;
   }
@@ -105,7 +106,7 @@ function ConstraintValueInput(props: ConstraintInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
         >
           Value
         </label>
@@ -165,17 +166,17 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
       <div>
         <label
           htmlFor="value"
-          className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
         >
           Value
         </label>
-        <span className="text-xs text-gray-400" id="value-tz">
+        <span className="text-gray-400 text-xs" id="value-tz">
           <Link
             to="/settings"
-            className="group inline-flex items-center text-gray-400 hover:text-gray-500"
+            className="group text-gray-400 inline-flex items-center hover:text-gray-500"
           >
             <QuestionMarkCircleIcon
-              className="-ml-1 h-4 w-4 text-gray-300 group-hover:text-gray-400"
+              className="text-gray-300 -ml-1 h-4 w-4 group-hover:text-gray-400"
               aria-hidden="true"
             />
             <span className="ml-1">{timezone}</span>
@@ -231,21 +232,19 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const { setSuccess } = useSuccess();
 
   const [hasValue, setHasValue] = useState(true);
-  const [type, setType] = useState(
-    constraint?.type || 'STRING_COMPARISON_TYPE'
-  );
+  const [type, setType] = useState(constraint?.type || ConstraintType.STRING);
 
   const namespace = useSelector(selectCurrentNamespace);
 
   const initialValues = {
     property: constraint?.property || '',
-    type: constraint?.type || ('STRING_COMPARISON_TYPE' as ComparisonType),
+    type: constraint?.type || ConstraintType.STRING,
     operator: constraint?.operator || 'eq',
     value: constraint?.value || '',
     description: constraint?.description || ''
   };
 
-  const handleSubmit = async (values: IConstraintBase) => {
+  const handleSubmit = (values: IConstraintBase) => {
     if (isNew) {
       return createConstraint(namespace.key, segmentKey, values);
     }
@@ -277,12 +276,12 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
       })}
     >
       {(formik) => (
-        <Form className="flex h-full flex-col overflow-y-scroll shadow-xl bg-white">
+        <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
           <div className="flex-1">
-            <div className="px-4 py-6 bg-gray-50 sm:px-6">
+            <div className="bg-gray-50 px-4 py-6 sm:px-6">
               <div className="flex items-start justify-between space-x-3">
                 <div className="space-y-1">
-                  <Dialog.Title className="text-lg font-medium text-gray-900">
+                  <Dialog.Title className="text-gray-900 text-lg font-medium">
                     {title}
                   </Dialog.Title>
                   <MoreInfo href="https://www.flipt.io/docs/concepts#constraints">
@@ -308,7 +307,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="property"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
                     Property
                   </label>
@@ -321,7 +320,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="type"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
                     Type
                   </label>
@@ -334,11 +333,11 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     value={formik.values.type}
                     options={constraintComparisonTypes()}
                     onChange={(e) => {
-                      const type = e.target.value as ComparisonType;
+                      const type = e.target.value as ConstraintType;
                       formik.setFieldValue('type', type);
                       setType(type);
 
-                      if (e.target.value === 'BOOLEAN_COMPARISON_TYPE') {
+                      if (e.target.value === ConstraintType.BOOLEAN) {
                         formik.setFieldValue('operator', 'true');
                         setHasValue(false);
                       } else {
@@ -353,7 +352,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 <div>
                   <label
                     htmlFor="operator"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
                     Operator
                   </label>
@@ -370,22 +369,22 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                   />
                 </div>
               </div>
-              {hasValue && type != 'DATETIME_COMPARISON_TYPE' && (
-                <ConstraintValueInput name="value" id="value" />
-              )}
-              {hasValue && type === 'DATETIME_COMPARISON_TYPE' && (
-                <ConstraintValueDateTimeInput name="value" id="value" />
-              )}
+              {hasValue &&
+                (type === ConstraintType.DATETIME ? (
+                  <ConstraintValueDateTimeInput name="value" id="value" />
+                ) : (
+                  <ConstraintValueInput name="value" id="value" />
+                ))}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
                   <label
                     htmlFor="description"
-                    className="block text-sm font-medium text-gray-900 sm:mt-px sm:pt-2"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                   >
                     Description
                   </label>
                   <span
-                    className="text-xs text-gray-400"
+                    className="text-gray-400 text-xs"
                     id="description-optional"
                   >
                     Optional
@@ -397,7 +396,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0 border-t px-4 py-5 border-gray-200 sm:px-6">
+          <div className="border-gray-200 flex-shrink-0 border-t px-4 py-5 sm:px-6">
             <div className="flex justify-end space-x-3">
               <Button
                 onClick={() => {

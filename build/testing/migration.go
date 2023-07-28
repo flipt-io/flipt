@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"dagger.io/dagger"
+	"github.com/google/go-github/v53/github"
 	"github.com/google/uuid"
 )
 
@@ -28,11 +29,27 @@ func Migration(ctx context.Context, client *dagger.Client, base, flipt *dagger.C
 		return err
 	}
 
-	// import testdata into latest Flipt instance
-	_, err = flipt.
+	release, _, err := github.NewClient(nil).
+		Repositories.
+		GetLatestRelease(ctx, "flipt-io", "flipt")
+	if err != nil {
+		return err
+	}
+
+	// clone the last release so we can use the readonly test
+	// suite defined here instead
+	fliptDir := client.Git("https://github.com/flipt-io/flipt.git").
+		Tag(*release.TagName).
+		Tree()
+
+	base = base.
+		WithMountedDirectory(".", fliptDir)
+
+	// import testdata into latest Flipt instance (using latest image for import)
+	_, err = latest.
 		WithFile("import.yaml", base.File("build/testing/integration/readonly/testdata/default.yaml")).
 		WithServiceBinding("flipt", latest.WithExec(nil)).
-		WithExec([]string{"/flipt", "import", "--address", "grpc://flipt:9000", "import.yaml"}).
+		WithExec([]string{"sh", "-c", "sleep 5 && /flipt import --address grpc://flipt:9000 import.yaml"}).
 		Sync(ctx)
 	if err != nil {
 		return err

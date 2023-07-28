@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { InformationCircleIcon } from '@heroicons/react/20/solid';
+import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
@@ -23,9 +23,8 @@ import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
-import EditRuleForm from '~/components/rules/EditRuleForm';
+import RuleForm from '~/components/rules/forms/RuleForm';
 import Rule from '~/components/rules/Rule';
-import RuleForm from '~/components/rules/RuleForm';
 import SortableRule from '~/components/rules/SortableRule';
 import Slideover from '~/components/Slideover';
 import { deleteRule, listRules, listSegments, orderRules } from '~/data/api';
@@ -36,7 +35,6 @@ import { IEvaluatable } from '~/types/Evaluatable';
 import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentList } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
-import { classNames } from '~/utils/helpers';
 import { FlagProps } from './FlagProps';
 
 export default function Evaluation() {
@@ -50,9 +48,6 @@ export default function Evaluation() {
   const [rulesVersion, setRulesVersion] = useState(0);
   const [showRuleForm, setShowRuleForm] = useState<boolean>(false);
 
-  const [showEditRuleForm, setShowEditRuleForm] = useState<boolean>(false);
-  const [editingRule, setEditingRule] = useState<IEvaluatable | null>(null);
-
   const [showDeleteRuleModal, setShowDeleteRuleModal] =
     useState<boolean>(false);
   const [deletingRule, setDeletingRule] = useState<IEvaluatable | null>(null);
@@ -64,6 +59,7 @@ export default function Evaluation() {
   const readOnly = useSelector(selectReadonly);
 
   const loadData = useCallback(async () => {
+    // TODO: move to redux
     const segmentList = (await listSegments(namespace.key)) as ISegmentList;
     const { segments } = segmentList;
     setSegments(segments);
@@ -178,7 +174,7 @@ export default function Evaluation() {
           panelMessage={
             <>
               Are you sure you want to delete this rule at
-              <span className="font-medium text-violet-500">
+              <span className="text-violet-500 font-medium">
                 {' '}
                 position {deletingRule?.rank}
               </span>
@@ -190,9 +186,7 @@ export default function Evaluation() {
           handleDelete={() =>
             deleteRule(namespace.key, flag.key, deletingRule?.id ?? '')
           }
-          onSuccess={() => {
-            incrementRulesVersion();
-          }}
+          onSuccess={incrementRulesVersion}
         />
       </Modal>
 
@@ -203,32 +197,21 @@ export default function Evaluation() {
           rank={(rules?.length || 0) + 1}
           segments={segments}
           setOpen={setShowRuleForm}
-          rulesChanged={incrementRulesVersion}
+          onSuccess={() => {
+            incrementRulesVersion();
+            setShowRuleForm(false);
+          }}
         />
       </Slideover>
-
-      {/* rule edit form */}
-      {editingRule && (
-        <Slideover open={showEditRuleForm} setOpen={setShowEditRuleForm}>
-          <EditRuleForm
-            rule={editingRule}
-            setOpen={setShowEditRuleForm}
-            onSuccess={() => {
-              incrementRulesVersion();
-              setShowEditRuleForm(false);
-            }}
-          />
-        </Slideover>
-      )}
 
       {/* rules */}
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-lg font-medium leading-6 text-gray-900">
+            <h1 className="text-gray-900 text-lg font-medium leading-6">
               Rules
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="text-gray-600 mt-1 text-sm">
               Enable rich targeting and segmentation for evaluating your flags
             </p>
           </div>
@@ -241,6 +224,10 @@ export default function Evaluation() {
                 disabled={readOnly}
                 title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
               >
+                <PlusIcon
+                  className="text-white -ml-1.5 mr-1 h-5 w-5"
+                  aria-hidden="true"
+                />
                 New Rule
               </Button>
             </div>
@@ -250,68 +237,64 @@ export default function Evaluation() {
           {rules && rules.length > 0 ? (
             <div className="flex lg:space-x-5">
               <div className="hidden w-1/4 flex-col space-y-7 pr-3 lg:flex">
-                <p className="text-sm text-gray-500">
+                <p className="text-gray-700 text-sm font-light">
                   Rules are evaluated in order from{' '}
                   <span className="font-semibold">top to bottom</span>. The
                   first rule that matches will be applied.
                 </p>
-                <p className="text-sm text-gray-500">
-                  <InformationCircleIcon className="mr-1 inline-block h-4 w-4 text-violet-300" />
-                  You can re-arrange rules by{' '}
+                <p className="text-gray-700 text-sm font-light">
+                  <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
+                  You can re-arrange rules by clicking on a rule header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
-                  them into place.
+                  it into place.
                 </p>
               </div>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
+              <div
+                className="border-gray-200 pattern-boxes w-full border p-4 pattern-bg-gray-50 pattern-gray-100 pattern-opacity-100 pattern-size-2 dark:pattern-bg-black dark:pattern-gray-900  
+  lg:w-3/4 lg:p-6"
               >
-                <SortableContext
-                  items={rules.map((rule) => rule.id)}
-                  strategy={verticalListSortingStrategy}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={onDragStart}
+                  onDragEnd={onDragEnd}
                 >
-                  <ul
-                    role="list"
-                    className={classNames(
-                      'w-full space-y-5 p-5 lg:w-3/4',
-                      activeRule ? 'bg-violet-50' : 'bg-gray-50'
-                    )}
+                  <SortableContext
+                    items={rules.map((rule) => rule.id)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    {rules &&
-                      rules.length > 0 &&
-                      rules.map((rule) => (
-                        <SortableRule
-                          key={rule.id}
-                          namespace={namespace}
-                          rule={rule}
-                          onEdit={() => {
-                            setEditingRule(rule);
-                            setShowEditRuleForm(true);
-                          }}
-                          onDelete={() => {
-                            setDeletingRule(rule);
-                            setShowDeleteRuleModal(true);
-                          }}
-                          readOnly={readOnly}
-                        />
-                      ))}
-                  </ul>
-                </SortableContext>
-                <DragOverlay>
-                  {activeRule ? (
-                    <Rule namespace={namespace} rule={activeRule} />
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
+                    <ul role="list" className="flex-col space-y-5 md:flex">
+                      {rules &&
+                        rules.length > 0 &&
+                        rules.map((rule) => (
+                          <SortableRule
+                            key={rule.id}
+                            flag={flag}
+                            rule={rule}
+                            segments={segments}
+                            onSuccess={incrementRulesVersion}
+                            onDelete={() => {
+                              setDeletingRule(rule);
+                              setShowDeleteRuleModal(true);
+                            }}
+                            readOnly={readOnly}
+                          />
+                        ))}
+                    </ul>
+                  </SortableContext>
+                  <DragOverlay>
+                    {activeRule ? (
+                      <Rule flag={flag} rule={activeRule} segments={segments} />
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+              </div>
             </div>
           ) : (
             <EmptyState
               text="New Rule"
               disabled={readOnly}
               onClick={() => {
-                setEditingRule(null);
                 setShowRuleForm(true);
               }}
             />

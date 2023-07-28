@@ -1,19 +1,17 @@
-import {
-  ArrowLongRightIcon,
-  ArrowsUpDownIcon,
-  Bars2Icon,
-  VariableIcon
-} from '@heroicons/react/24/outline';
-import { forwardRef, Ref } from 'react';
-import { Link } from 'react-router-dom';
+import { Menu, Transition } from '@headlessui/react';
+import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import { forwardRef, Fragment, Ref } from 'react';
 import { IEvaluatable } from '~/types/Evaluatable';
-import { INamespace } from '~/types/Namespace';
+import { IFlag } from '~/types/Flag';
+import { ISegment } from '~/types/Segment';
 import { classNames } from '~/utils/helpers';
+import QuickEditRuleForm from './forms/QuickEditRuleForm';
 
 type RuleProps = {
-  namespace: INamespace;
+  flag: IFlag;
   rule: IEvaluatable;
-  onEdit?: () => void;
+  segments: ISegment[];
+  onSuccess?: () => void;
   onDelete?: () => void;
   style?: React.CSSProperties;
   className?: string;
@@ -23,9 +21,10 @@ type RuleProps = {
 const Rule = forwardRef(
   (
     {
-      namespace,
+      flag,
       rule,
-      onEdit,
+      segments,
+      onSuccess,
       onDelete,
       style,
       className,
@@ -38,128 +37,79 @@ const Rule = forwardRef(
       key={rule.id}
       ref={ref}
       style={style}
-      className={`${className} flex rounded-md border p-6 bg-white border-gray-200 hover:shadow hover:shadow-violet-100 hover:border-violet-200`}
+      className={`${className} bg-white border-violet-300 w-full items-center space-y-2 rounded-md border shadow-md shadow-violet-100 hover:shadow-violet-200 sm:flex sm:flex-col lg:px-4 lg:py-2`}
     >
-      <div
-        className={classNames(
-          readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-          'flex items-center justify-start text-center'
-        )}
-        {...rest}
-      >
-        <ArrowsUpDownIcon className="hidden h-6 w-6 text-gray-400 lg:flex" />
-      </div>
-
-      <div className="flex grow flex-col items-center space-y-3 text-center lg:flex-row lg:justify-around lg:space-y-0">
-        <div className="flex">
-          <div>
-            <p
-              className={classNames(
-                readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-                'text-sm leading-tight text-gray-500'
-              )}
-              {...rest}
+      <div className="bg-white border-gray-200 w-full border-b p-2 ">
+        <div className="flex w-full flex-wrap items-center justify-between sm:flex-nowrap">
+          <span
+            key={rule.id}
+            className={classNames(
+              readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+              'text-gray-400 hidden h-4 w-4 justify-start hover:text-violet-300 sm:flex'
+            )}
+            {...rest}
+          >
+            {rule.rank}
+          </span>
+          <h3
+            className={classNames(
+              readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
+              'text-gray-700 text-sm font-normal leading-6'
+            )}
+            {...rest}
+          >
+            Rule
+          </h3>
+          <Menu as="div" className="hidden sm:flex">
+            <Menu.Button
+              data-testid="rule-menu-button"
+              className="text-gray-600 ml-4 block hover:text-gray-900"
             >
-              <span className="text-gray-900">IF</span> Match Segment
-            </p>
-            <p className="mt-1 truncate text-sm text-gray-500">
-              <Link
-                to={`/namespaces/${namespace.key}/segments/${rule.segment.key}`}
-                className="text-violet-500"
+              <EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
+            </Menu.Button>
+            {!readOnly && (
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
               >
-                {rule.segment.name}
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        <ArrowLongRightIcon
-          className={classNames(
-            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-            'hidden h-6 w-6 text-violet-300 lg:flex'
-          )}
-          {...rest}
-        />
-
-        <div
-          className={classNames(
-            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-            'flex'
-          )}
-          {...rest}
-        >
-          <div>
-            <p className="text-sm leading-tight text-gray-500">
-              <span className="text-gray-900">THEN</span> Return
-            </p>
-            <p className="mt-1 truncate text-sm text-gray-500">Variant(s)</p>
-          </div>
-        </div>
-
-        <div
-          className={classNames(
-            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move'
-          )}
-          {...rest}
-        >
-          {rule.rollouts.length == 1 && (
-            <Bars2Icon className="hidden h-6 w-6 text-violet-300 lg:flex" />
-          )}
-          {rule.rollouts.length > 1 && (
-            <VariableIcon className="hidden h-6 w-6 text-violet-300 lg:flex" />
-          )}
-        </div>
-
-        <div
-          className={classNames(
-            readOnly ? 'hover:cursor-not-allowed' : 'hover:cursor-move',
-            'flex flex-col lg:flex-row'
-          )}
-          {...rest}
-        >
-          <div className="flex flex-col divide-y divide-dotted divide-violet-200 text-sm">
-            {rule.rollouts.map((rollout) => (
-              <div
-                key={rollout.variant.key}
-                className="flex justify-end space-x-5 py-2"
-              >
-                <div className="truncate text-gray-500">
-                  {rollout.variant.key}
-                </div>
-                <div className="m-auto whitespace-nowrap text-xs text-gray-500">
-                  {rollout.distribution.rollout} %
-                </div>
-              </div>
-            ))}
-          </div>
+                <Menu.Items className="bg-white absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                  <Menu.Item>
+                    {({ active }) => (
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onDelete && onDelete();
+                        }}
+                        className={classNames(
+                          active ? 'bg-gray-50' : '',
+                          'text-gray-900 block px-3 py-1 text-sm leading-6'
+                        )}
+                      >
+                        Delete
+                      </a>
+                    )}
+                  </Menu.Item>
+                </Menu.Items>
+              </Transition>
+            )}
+          </Menu>
         </div>
       </div>
-
-      <div className="flex items-center justify-end text-center">
-        {!readOnly && rule.rollouts.length > 1 && (
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onEdit && onEdit();
-            }}
-            className="text-xs text-violet-600 hover:text-violet-900"
-          >
-            Edit&nbsp;|&nbsp;
-          </a>
-        )}
-        {!readOnly && (
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onDelete && onDelete();
-            }}
-            className="text-xs text-violet-600 hover:text-violet-900"
-          >
-            Delete
-          </a>
-        )}
+      <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
+        <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
+          <QuickEditRuleForm
+            flag={flag}
+            rule={rule}
+            segments={segments}
+            onSuccess={onSuccess}
+          />
+        </div>
       </div>
     </li>
   )

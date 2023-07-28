@@ -16,7 +16,7 @@ function Page(props: PageProps) {
   // we are using '...' (string) to represent page links that should not be rendered
   if (typeof page === 'string') {
     return (
-      <span className="border-t-2 px-4 pt-4 text-sm font-medium border-transparent text-gray-700">
+      <span className="text-gray-700 border-t-2 border-transparent px-4 pt-4 text-sm font-medium">
         &#8230; {/* ellipsis */}
       </span>
     );
@@ -28,7 +28,7 @@ function Page(props: PageProps) {
       className={classNames(
         page === currentPage
           ? 'text-violet-600 border-violet-500'
-          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+          : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300',
         'inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium'
       )}
       aria-current={page === currentPage ? 'page' : undefined}
@@ -78,20 +78,20 @@ export default function Pagination(props: PaginationProps) {
 
   return (
     <nav
-      className={`${className} flex items-center justify-between border-t px-4 border-gray-200 sm:px-0`}
+      className={`${className} border-gray-200 flex items-center justify-between border-t px-4 sm:px-0`}
     >
       <div className="flex w-0 flex-1">
         {currentPage > 1 && (
           <a
             href="#"
-            className="inline-flex items-center border-t-2 pr-1 pt-4 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            className="text-gray-500 inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium hover:text-gray-700 hover:border-gray-300"
             onClick={(e) => {
               e.preventDefault();
               onPreviousPage();
             }}
           >
             <ArrowLongLeftIcon
-              className="mr-3 h-5 w-5 text-gray-400"
+              className="text-gray-400 mr-3 h-5 w-5"
               aria-hidden="true"
             />
             Previous
@@ -112,7 +112,7 @@ export default function Pagination(props: PaginationProps) {
         {currentPage < lastPage && (
           <a
             href="#"
-            className="inline-flex items-center border-t-2 pl-1 pt-4 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            className="text-gray-500 inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium hover:text-gray-700 hover:border-gray-300"
             onClick={(e) => {
               e.preventDefault();
               onNextPage();
@@ -120,7 +120,7 @@ export default function Pagination(props: PaginationProps) {
           >
             Next
             <ArrowLongRightIcon
-              className="ml-3 h-5 w-5 text-gray-400"
+              className="text-gray-400 ml-3 h-5 w-5"
               aria-hidden="true"
             />
           </a>

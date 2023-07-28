@@ -18,10 +18,10 @@ export default function Header(props: HeaderProps) {
   const { session } = useSession();
 
   return (
-    <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-violet-400">
+    <div className="bg-violet-400 sticky top-0 z-10 flex h-16 flex-shrink-0">
       <button
         type="button"
-        className="without-ring px-4 text-white md:hidden"
+        className="without-ring text-white px-4 md:hidden"
         onClick={() => setSidebarOpen(true)}
       >
         <span className="sr-only">Open sidebar</span>
@@ -33,7 +33,7 @@ export default function Header(props: HeaderProps) {
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
           {/* read-only mode */}
           {readOnly && (
-            <span className="nightwind-prevent inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium text-violet-950 bg-violet-200">
+            <span className="nightwind-prevent bg-violet-200 inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium text-violet-950">
               <svg
                 className="h-1.5 w-1.5 fill-orange-400"
                 viewBox="0 0 6 6"

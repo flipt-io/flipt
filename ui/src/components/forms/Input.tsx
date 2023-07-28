@@ -31,7 +31,7 @@ export default function Input(props: InputProps) {
         ref={forwardRef}
         className={classNames(
           hasError ? 'border-red-400' : 'border-gray-300',
-          `${className} block w-full rounded-md shadow-sm text-gray-900 bg-gray-50 focus:ring-violet-300 focus:border-violet-300 disabled:cursor-not-allowed disabled:text-gray-500 disabled:bg-gray-100 disabled:border-gray-200 sm:text-sm`
+          `${className} text-gray-900 bg-gray-50 block w-full rounded-md shadow-sm focus:border-violet-300 disabled:text-gray-500 disabled:bg-gray-100 disabled:border-gray-200 focus:ring-violet-300 disabled:cursor-not-allowed sm:text-sm`
         )}
         id={id}
         type={type}
@@ -43,8 +43,8 @@ export default function Input(props: InputProps) {
         autoComplete={autoComplete ? 'on' : 'off'}
         {...rest}
       />
-      {meta.touched && meta.error ? (
-        <div className="mt-1 text-sm text-red-500">{meta.error}</div>
+      {hasError && meta.error?.length && meta.error.length > 0 ? (
+        <div className="text-red-500 mt-1 text-sm">{meta.error}</div>
       ) : null}
     </>
   );

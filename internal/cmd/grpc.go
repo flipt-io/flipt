@@ -20,6 +20,8 @@ import (
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
+	"go.flipt.io/flipt/internal/server/auth"
+	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
@@ -226,44 +228,17 @@ func NewGRPCServer(
 		logger.Debug("otel tracing enabled", zap.String("exporter", cfg.Tracing.Exporter.String()))
 	}
 
-	register, authInterceptors, authShutdown, err := authenticationGRPC(
-		ctx,
-		logger,
-		cfg,
-		forceMigrate,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	server.onShutdown(authShutdown)
-
-	// forward internal gRPC logging to zap
-	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
-	if err != nil {
-		return nil, fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
-	}
-
-	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
-
 	// base observability inteceptors
-	interceptors := append([]grpc.UnaryServerInterceptor{
+	interceptors := []grpc.UnaryServerInterceptor{
 		grpc_recovery.UnaryServerInterceptor(),
 		grpc_ctxtags.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
 		otelgrpc.UnaryServerInterceptor(),
-	},
-		append(authInterceptors,
-			middlewaregrpc.ErrorUnaryInterceptor,
-			middlewaregrpc.ValidationUnaryInterceptor,
-			middlewaregrpc.EvaluationUnaryInterceptor,
-		)...,
-	)
+	}
 
+	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
-		var cacher cache.Cacher
-
 		switch cfg.Cache.Backend {
 		case config.CacheMemory:
 			cacher = memory.NewCache(cfg.Cache)
@@ -292,13 +267,68 @@ func NewGRPCServer(
 			}))
 		}
 
-		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
 		store = storagecache.New(store, cacher, logger)
 
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 	}
 
-	// Audit sinks configuration.
+	var (
+		fliptsrv           = fliptserver.New(logger, store)
+		metasrv            = metadata.NewServer(cfg, info)
+		evalsrv            = evaluation.New(logger, store)
+		authOpts           = []containers.Option[auth.InterceptorOptions]{}
+		skipAuthIfExcluded = func(server any, excluded bool) {
+			if excluded {
+				authOpts = append(authOpts, auth.WithServerSkipsAuthentication(server))
+			}
+		}
+	)
+
+	skipAuthIfExcluded(fliptsrv, cfg.Authentication.Exclude.Management)
+	skipAuthIfExcluded(metasrv, cfg.Authentication.Exclude.Metadata)
+	skipAuthIfExcluded(evalsrv, cfg.Authentication.Exclude.Evaluation)
+
+	register, authInterceptors, authShutdown, err := authenticationGRPC(
+		ctx,
+		logger,
+		cfg,
+		forceMigrate,
+		authOpts...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	server.onShutdown(authShutdown)
+
+	// initialize server
+	register.Add(fliptsrv)
+	register.Add(metasrv)
+	register.Add(evalsrv)
+
+	// forward internal gRPC logging to zap
+	grpcLogLevel, err := zapcore.ParseLevel(cfg.Log.GRPCLevel)
+	if err != nil {
+		return nil, fmt.Errorf("parsing grpc log level (%q): %w", cfg.Log.GRPCLevel, err)
+	}
+
+	grpc_zap.ReplaceGrpcLoggerV2(logger.WithOptions(zap.IncreaseLevel(grpcLogLevel)))
+
+	// add auth interceptors to the server
+	interceptors = append(interceptors,
+		append(authInterceptors,
+			middlewaregrpc.ErrorUnaryInterceptor,
+			middlewaregrpc.ValidationUnaryInterceptor,
+			middlewaregrpc.EvaluationUnaryInterceptor,
+		)...,
+	)
+
+	// cache must come after auth interceptors
+	if cfg.Cache.Enabled && cacher != nil {
+		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
+	}
+
+	// audit sinks configuration
 	sinks := make([]audit.Sink, 0)
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
@@ -310,8 +340,8 @@ func NewGRPCServer(
 		sinks = append(sinks, logFileSink)
 	}
 
-	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
-	// and if the slice has a non-zero length, add the audit sink interceptor.
+	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
+	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
 		sse := audit.NewSinkSpanExporter(logger, sinks)
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
@@ -345,10 +375,6 @@ func NewGRPCServer(
 
 		grpcOpts = append(grpcOpts, grpc.Creds(creds))
 	}
-
-	// initialize server
-	register.Add(fliptserver.New(logger, store))
-	register.Add(metadata.NewServer(cfg, info))
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)

@@ -2,6 +2,7 @@ package ext
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -36,6 +38,9 @@ type mockCreator struct {
 
 	distributionReqs []*flipt.CreateDistributionRequest
 	distributionErr  error
+
+	rolloutReqs []*flipt.CreateRolloutRequest
+	rolloutErr  error
 }
 
 func (m *mockCreator) GetNamespace(ctx context.Context, r *flipt.GetNamespaceRequest) (*flipt.Namespace, error) {
@@ -57,6 +62,7 @@ func (m *mockCreator) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest
 		Key:         r.Key,
 		Name:        r.Name,
 		Description: r.Description,
+		Type:        r.Type,
 		Enabled:     r.Enabled,
 	}, nil
 }
@@ -130,6 +136,36 @@ func (m *mockCreator) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 	}, nil
 }
 
+func (m *mockCreator) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+	m.rolloutReqs = append(m.rolloutReqs, r)
+	if m.rolloutErr != nil {
+		return nil, m.rolloutErr
+	}
+
+	rollout := &flipt.Rollout{
+		Id:           uuid.Must(uuid.NewV4()).String(),
+		NamespaceKey: r.NamespaceKey,
+		FlagKey:      r.FlagKey,
+		Description:  r.Description,
+		Rank:         r.Rank,
+	}
+
+	switch rule := r.Rule.(type) {
+	case *flipt.CreateRolloutRequest_Threshold:
+		rollout.Rule = &flipt.Rollout_Threshold{
+			Threshold: rule.Threshold,
+		}
+	case *flipt.CreateRolloutRequest_Segment:
+		rollout.Rule = &flipt.Rollout_Segment{
+			Segment: rule.Segment,
+		}
+	default:
+		return nil, errors.New("unexpected rollout rule type")
+	}
+
+	return rollout, nil
+}
+
 func TestImport(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -145,6 +181,11 @@ func TestImport(t *testing.T) {
 			name:          "import without attachment",
 			path:          "testdata/import_no_attachment.yml",
 			hasAttachment: false,
+		},
+		{
+			name:          "import with implicit rule ranks",
+			path:          "testdata/import_implicit_rule_rank.yml",
+			hasAttachment: true,
 		},
 	}
 
@@ -163,12 +204,13 @@ func TestImport(t *testing.T) {
 			err = importer.Import(context.Background(), in)
 			assert.NoError(t, err)
 
-			assert.NotEmpty(t, creator.flagReqs)
-			assert.Equal(t, 1, len(creator.flagReqs))
+			require.Len(t, creator.flagReqs, 2)
+
 			flag := creator.flagReqs[0]
 			assert.Equal(t, "flag1", flag.Key)
 			assert.Equal(t, "flag1", flag.Name)
 			assert.Equal(t, "description", flag.Description)
+			assert.Equal(t, flipt.FlagType_VARIANT_FLAG_TYPE, flag.Type)
 			assert.Equal(t, true, flag.Enabled)
 
 			assert.NotEmpty(t, creator.variantReqs)
@@ -198,35 +240,55 @@ func TestImport(t *testing.T) {
 				assert.Empty(t, variant.Attachment)
 			}
 
-			assert.NotEmpty(t, creator.segmentReqs)
-			assert.Equal(t, 1, len(creator.segmentReqs))
+			boolFlag := creator.flagReqs[1]
+			assert.Equal(t, "flag2", boolFlag.Key)
+			assert.Equal(t, "flag2", boolFlag.Name)
+			assert.Equal(t, "a boolean flag", boolFlag.Description)
+			assert.Equal(t, flipt.FlagType_BOOLEAN_FLAG_TYPE, boolFlag.Type)
+			assert.Equal(t, false, boolFlag.Enabled)
+
+			require.Len(t, creator.segmentReqs, 1)
 			segment := creator.segmentReqs[0]
 			assert.Equal(t, "segment1", segment.Key)
 			assert.Equal(t, "segment1", segment.Name)
 			assert.Equal(t, "description", segment.Description)
 			assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
 
-			assert.NotEmpty(t, creator.constraintReqs)
-			assert.Equal(t, 1, len(creator.constraintReqs))
+			require.Len(t, creator.constraintReqs, 1)
 			constraint := creator.constraintReqs[0]
 			assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
 			assert.Equal(t, "fizz", constraint.Property)
 			assert.Equal(t, "neq", constraint.Operator)
 			assert.Equal(t, "buzz", constraint.Value)
 
-			assert.NotEmpty(t, creator.ruleReqs)
-			assert.Equal(t, 1, len(creator.ruleReqs))
+			require.Len(t, creator.ruleReqs, 1)
 			rule := creator.ruleReqs[0]
 			assert.Equal(t, "segment1", rule.SegmentKey)
 			assert.Equal(t, int32(1), rule.Rank)
 
-			assert.NotEmpty(t, creator.distributionReqs)
-			assert.Equal(t, 1, len(creator.distributionReqs))
+			require.Len(t, creator.distributionReqs, 1)
 			distribution := creator.distributionReqs[0]
 			assert.Equal(t, "flag1", distribution.FlagKey)
 			assert.NotEmpty(t, distribution.VariantId)
 			assert.NotEmpty(t, distribution.RuleId)
 			assert.Equal(t, float32(100), distribution.Rollout)
+
+			require.Len(t, creator.rolloutReqs, 2)
+			segmentRollout := creator.rolloutReqs[0]
+			assert.Equal(t, "flag2", segmentRollout.FlagKey)
+			assert.Equal(t, "enabled for internal users", segmentRollout.Description)
+			assert.Equal(t, int32(1), segmentRollout.Rank)
+			require.NotNil(t, segmentRollout.GetSegment())
+			assert.Equal(t, "internal_users", segmentRollout.GetSegment().SegmentKey)
+			assert.Equal(t, true, segmentRollout.GetSegment().Value)
+
+			percentageRollout := creator.rolloutReqs[1]
+			assert.Equal(t, "flag2", percentageRollout.FlagKey)
+			assert.Equal(t, "enabled for 50%", percentageRollout.Description)
+			assert.Equal(t, int32(2), percentageRollout.Rank)
+			require.NotNil(t, percentageRollout.GetThreshold())
+			assert.Equal(t, float32(50.0), percentageRollout.GetThreshold().Percentage)
+			assert.Equal(t, true, percentageRollout.GetThreshold().Value)
 		})
 	}
 }
@@ -242,7 +304,7 @@ func TestImport_Export(t *testing.T) {
 	defer in.Close()
 
 	err = importer.Import(context.Background(), in)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "default", creator.flagReqs[0].NamespaceKey)
 }
 
@@ -258,6 +320,34 @@ func TestImport_InvalidVersion(t *testing.T) {
 
 	err = importer.Import(context.Background(), in)
 	assert.EqualError(t, err, "unsupported version: 5.0")
+}
+
+func TestImport_FlagType_LTVersion1_1(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator)
+	)
+
+	in, err := os.Open("testdata/import_v1_flag_type_not_supported.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	err = importer.Import(context.Background(), in)
+	assert.EqualError(t, err, "flag.type is supported in version >=1.1, found 1.0")
+}
+
+func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator)
+	)
+
+	in, err := os.Open("testdata/import_v1_rollouts_not_supported.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	err = importer.Import(context.Background(), in)
+	assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
 }
 
 func TestImport_Namespaces(t *testing.T) {
