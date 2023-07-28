@@ -148,11 +148,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 		}
 
 		// For legacy reasons of supporting SegmentKey.
-		if len(rule.Segments) < 2 {
-			resp.SegmentKey = segmentKeys[0]
-		} else {
-			resp.SegmentKeys = segmentKeys
-		}
+		resp.SegmentKey = strings.Join(segmentKeys, ",")
 
 		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.ID)
 		if err != nil {

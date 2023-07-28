@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"strings"
 	"time"
 
 	errs "go.flipt.io/flipt/errors"
@@ -41,7 +42,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeMatch.Bool(resp.Match),
 		fliptotel.AttributeValue.String(resp.VariantKey),
 		fliptotel.AttributeReason.String(resp.Reason.String()),
-		fliptotel.AttributeSegment.String(resp.SegmentKey),
+		fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
 	}
 
 	// add otel attributes to span
@@ -78,14 +79,9 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	ver := &rpcevaluation.VariantEvaluationResponse{
 		Match:             resp.Match,
 		Reason:            reason,
+		SegmentKeys:       strings.Split(resp.SegmentKey, ","),
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,
-	}
-
-	if resp.SegmentKey != "" {
-		ver.SegmentKey = resp.SegmentKey
-	} else if len(resp.SegmentKeys) > 0 {
-		ver.SegmentKeys = resp.SegmentKeys
 	}
 
 	return ver, nil

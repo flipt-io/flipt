@@ -69,6 +69,7 @@ func TestVariant_NonVariantFlag(t *testing.T) {
 
 	assert.EqualError(t, err, "flag type BOOLEAN_FLAG_TYPE invalid")
 }
+
 func TestVariant_FlagDisabled(t *testing.T) {
 	var (
 		flagKey      = "test-flag"
@@ -152,18 +153,22 @@ func TestVariant_Success(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, namespaceKey, flagKey).Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          flagKey,
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "hello",
-						Operator: flipt.OpEQ,
-						Value:    "world",
+				ID:      "1",
+				FlagKey: flagKey,
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
 					},
 				},
 			},
@@ -183,7 +188,7 @@ func TestVariant_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Match)
-	assert.Equal(t, "bar", res.SegmentKey)
+	assert.Contains(t, res.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
@@ -811,7 +816,7 @@ func TestBatch_Success(t *testing.T) {
 	v, ok := res.Responses[2].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
 	assert.True(t, ok, "response should be a variant evaluation response")
 	assert.True(t, v.VariantResponse.Match, "variant response should have matched")
-	assert.Equal(t, "bar", v.VariantResponse.SegmentKey)
+	assert.Contains(t, v.VariantResponse.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, res.Responses[2].Type)
 }

@@ -62,14 +62,13 @@ message BooleanEvaluationResponse {
 
 message VariantEvaluationResponse {
   bool match = 1;
-  string segment_key = 2;
+  repeated string segment_keys = 2;
   EvaluationReason reason = 3;
   string variant_key = 4;
   string variant_attachment = 5;
   string request_id = 6;
   double request_duration_millis = 7;
   google.protobuf.Timestamp timestamp = 8;
-  repeated string segment_keys = 9;
 }
 
 message ErrorEvaluationResponse {

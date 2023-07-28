@@ -56,7 +56,7 @@ export default function Login() {
     });
 
     if (!res.ok || res.status !== 200) {
-      setError(new Error('Unable to authenticate: ' + res.text()));
+      setError('Unable to authenticate: ' + res.text());
       return;
     }
 
@@ -91,7 +91,7 @@ export default function Login() {
         );
         setProviders(loginProviders);
       } catch (err) {
-        setError(err instanceof Error ? err : Error(String(err)));
+        setError(err);
       }
     };
 
