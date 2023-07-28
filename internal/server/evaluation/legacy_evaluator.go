@@ -117,8 +117,8 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 		lastRank = rule.Rank
 
 		segmentKeys := make([]string, 0, len(rule.Segments))
-
 		segmentMatches := 0
+
 		for k, v := range rule.Segments {
 			matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
 			if err != nil {
@@ -134,13 +134,13 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 			segmentKeys = append(segmentKeys, k)
 		}
 
-		switch rule.RuleSegmentOperator {
-		case flipt.RuleSegmentOperator_OR_SEGMENT_OPERATOR:
+		switch rule.SegmentOperator {
+		case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
 			if segmentMatches < 1 {
 				e.logger.Debug("did not match ANY segments")
 				continue
 			}
-		case flipt.RuleSegmentOperator_AND_SEGMENT_OPERATOR:
+		case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
 			if len(rule.Segments) != segmentMatches {
 				e.logger.Debug("did not match ALL segments")
 				continue

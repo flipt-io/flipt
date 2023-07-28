@@ -296,6 +296,11 @@ enum RolloutType {
   THRESHOLD_ROLLOUT_TYPE = 2;
 }
 
+enum SegmentOperator {
+  OR_SEGMENT_OPERATOR = 0;
+  AND_SEGMENT_OPERATOR = 1;
+}
+
 message Rollout {
   string id = 1;
   string namespace_key = 2;
@@ -314,6 +319,8 @@ message Rollout {
 message RolloutSegment {
   string segment_key = 1;
   bool value = 2;
+  repeated string segment_keys = 3;
+  SegmentOperator segment_operator = 4;
 }
 
 message RolloutThreshold {
@@ -374,11 +381,6 @@ message OrderRolloutsRequest {
   repeated string rollout_ids = 3;
 }
 
-enum RuleSegmentOperator {
-  OR_SEGMENT_OPERATOR = 0;
-  AND_SEGMENT_OPERATOR = 1;
-}
-
 message Rule {
   string id = 1;
   string flag_key = 2;
@@ -389,7 +391,7 @@ message Rule {
   google.protobuf.Timestamp updated_at = 7;
   string namespace_key = 8;
   repeated string segment_keys = 9;
-  RuleSegmentOperator rule_segment_operator = 10;
+  SegmentOperator segment_operator = 10;
 }
 
 message RuleList {
@@ -417,7 +419,7 @@ message CreateRuleRequest {
   int32 rank = 3;
   string namespace_key = 4;
   repeated string segment_keys = 5;
-  RuleSegmentOperator rule_segment_operator = 6;
+  SegmentOperator segment_operator = 6;
 }
 
 message UpdateRuleRequest {
@@ -426,7 +428,7 @@ message UpdateRuleRequest {
   string segment_key = 3 [deprecated = true];
   string namespace_key = 4;
   repeated string segment_keys = 5;
-  RuleSegmentOperator rule_segment_operator = 6;
+  SegmentOperator segment_operator = 6;
 }
 
 message DeleteRuleRequest {
