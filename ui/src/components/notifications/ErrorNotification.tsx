@@ -21,8 +21,8 @@ export default function ErrorNotification() {
             </div>
             <div className="ml-3">
               <h3 className="text-red-800 text-sm font-medium">Error</h3>
-              {error && error.message && (
-                <div className="text-red-700 mt-2 text-sm">{error.message}</div>
+              {error && (
+                <div className="text-red-700 mt-2 text-sm">{error}</div>
               )}
             </div>
             <div className="ml-auto pl-10">

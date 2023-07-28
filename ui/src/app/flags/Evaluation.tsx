@@ -16,7 +16,7 @@ import {
 import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
@@ -32,6 +32,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
+import { FlagType } from '~/types/Flag';
 import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentList } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
@@ -54,6 +55,8 @@ export default function Evaluation() {
 
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
+
+  const navigate = useNavigate();
 
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
@@ -165,6 +168,13 @@ export default function Evaluation() {
   useEffect(() => {
     loadData();
   }, [loadData, rulesVersion]);
+
+  useEffect(() => {
+    if (flag.type === FlagType.BOOLEAN) {
+      setError('Boolean flags do not support evaluation rules');
+      navigate(`/namespaces/${namespace.key}/flags/${flag.key}`);
+    }
+  }, [flag.type, navigate, setError, namespace.key, flag.key]);
 
   return (
     <>
