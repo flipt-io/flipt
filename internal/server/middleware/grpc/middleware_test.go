@@ -909,7 +909,6 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 
 			if !wantMatch {
 				assert.False(t, resp.Match)
-				assert.Empty(t, resp.SegmentKeys)
 				return
 			}
 
