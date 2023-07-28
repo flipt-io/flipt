@@ -101,7 +101,7 @@ func TestReadOnly(t *testing.T) {
 				NamespaceKey: namespace,
 			})
 			require.NoError(t, err)
-			require.Len(t, flags.Flags, 52)
+			require.Len(t, flags.Flags, 53)
 
 			flag := flags.Flags[0]
 			assert.Equal(t, namespace, flag.NamespaceKey)
@@ -128,8 +128,8 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					if flags.NextPageToken == "" {
-						// ensure last page contains 2 entries (boolean and disabled)
-						assert.Len(t, flags.Flags, 2)
+						// ensure last page contains 3 entries (boolean and disabled)
+						assert.Len(t, flags.Flags, 3)
 
 						found = append(found, flags.Flags...)
 
@@ -144,7 +144,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = flags.NextPageToken
 				}
 
-				require.Len(t, found, 52)
+				require.Len(t, found, 53)
 			})
 		})
 
@@ -189,7 +189,7 @@ func TestReadOnly(t *testing.T) {
 			})
 
 			require.NoError(t, err)
-			require.Len(t, segments.Segments, 50)
+			require.Len(t, segments.Segments, 51)
 
 			t.Run("Paginated (page size 10)", func(t *testing.T) {
 				var (
@@ -205,18 +205,20 @@ func TestReadOnly(t *testing.T) {
 					require.NoError(t, err)
 
 					// ensure each page is of length 10
-					assert.Len(t, segments.Segments, 10)
 
 					found = append(found, segments.Segments...)
 
 					if segments.NextPageToken == "" {
+						assert.Len(t, segments.Segments, 1)
 						break
 					}
+
+					assert.Len(t, segments.Segments, 10)
 
 					nextPage = segments.NextPageToken
 				}
 
-				require.Len(t, found, 50)
+				require.Len(t, found, 51)
 			})
 		})
 
@@ -523,6 +525,18 @@ func TestReadOnly(t *testing.T) {
 						Context: map[string]string{
 							"in_segment": "segment_001",
 						},
+					})
+
+					require.NoError(t, err)
+
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+					assert.True(t, result.Enabled, "segment evaluation value should be true")
+				})
+
+				t.Run("segment with no constraints", func(t *testing.T) {
+					result, err := sdk.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_boolean_no_constraints",
 					})
 
 					require.NoError(t, err)
