@@ -18,7 +18,7 @@ import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Pagination from '~/components/Pagination';
 import Searchbox from '~/components/Searchbox';
 import { useTimezone } from '~/data/hooks/timezone';
-import { IFlag } from '~/types/Flag';
+import { flagTypeToLabel, IFlag } from '~/types/Flag';
 import { truncateKey } from '~/utils/helpers';
 
 type FlagTableProps = {
@@ -81,6 +81,13 @@ export default function FlagTable(props: FlagTableProps) {
       ),
       meta: {
         className: 'whitespace-nowrap py-4 px-3 text-sm'
+      }
+    }),
+    columnHelper.accessor('type', {
+      header: 'Type',
+      cell: (info) => flagTypeToLabel(info.getValue()),
+      meta: {
+        className: 'whitespace-nowrap py-4 px-3 text-sm text-gray-600'
       }
     }),
     columnHelper.accessor('description', {
@@ -156,7 +163,7 @@ export default function FlagTable(props: FlagTableProps) {
                   <th
                     key={header.id}
                     scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
                   >
                     <div
                       className="group inline-flex cursor-pointer"
@@ -168,7 +175,7 @@ export default function FlagTable(props: FlagTableProps) {
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                      <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
+                      <span className="text-gray-400 ml-2 flex-none rounded group-hover:visible group-focus:visible">
                         {{
                           asc: (
                             <ChevronUpIcon
@@ -190,7 +197,7 @@ export default function FlagTable(props: FlagTableProps) {
                   <th
                     key={header.id}
                     scope="col"
-                    className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
                   >
                     {header.isPlaceholder
                       ? null

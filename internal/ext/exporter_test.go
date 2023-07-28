@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -20,6 +19,9 @@ type mockLister struct {
 
 	rules   []*flipt.Rule
 	ruleErr error
+
+	rollouts   []*flipt.Rollout
+	rolloutErr error
 }
 
 func (m mockLister) ListFlags(_ context.Context, _ *flipt.ListFlagRequest) (*flipt.FlagList, error) {
@@ -28,10 +30,14 @@ func (m mockLister) ListFlags(_ context.Context, _ *flipt.ListFlagRequest) (*fli
 	}, m.flagErr
 }
 
-func (m mockLister) ListRules(_ context.Context, _ *flipt.ListRuleRequest) (*flipt.RuleList, error) {
-	return &flipt.RuleList{
-		Rules: m.rules,
-	}, m.ruleErr
+func (m mockLister) ListRules(_ context.Context, r *flipt.ListRuleRequest) (*flipt.RuleList, error) {
+	if r.FlagKey == "flag1" {
+		return &flipt.RuleList{
+			Rules: m.rules,
+		}, m.ruleErr
+	}
+
+	return &flipt.RuleList{}, m.ruleErr
 }
 
 func (m mockLister) ListSegments(_ context.Context, _ *flipt.ListSegmentRequest) (*flipt.SegmentList, error) {
@@ -40,12 +46,23 @@ func (m mockLister) ListSegments(_ context.Context, _ *flipt.ListSegmentRequest)
 	}, m.segmentErr
 }
 
+func (m mockLister) ListRollouts(_ context.Context, r *flipt.ListRolloutRequest) (*flipt.RolloutList, error) {
+	if r.FlagKey == "flag2" {
+		return &flipt.RolloutList{
+			Rules: m.rollouts,
+		}, m.rolloutErr
+	}
+
+	return &flipt.RolloutList{}, m.rolloutErr
+}
+
 func TestExport(t *testing.T) {
 	lister := mockLister{
 		flags: []*flipt.Flag{
 			{
 				Key:         "flag1",
 				Name:        "flag1",
+				Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
 				Description: "description",
 				Enabled:     true,
 				Variants: []*flipt.Variant{
@@ -73,6 +90,13 @@ func TestExport(t *testing.T) {
 						Key: "foo",
 					},
 				},
+			},
+			{
+				Key:         "flag2",
+				Name:        "flag2",
+				Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+				Description: "a boolean flag",
+				Enabled:     false,
 			},
 		},
 		segments: []*flipt.Segment{
@@ -116,10 +140,38 @@ func TestExport(t *testing.T) {
 				},
 			},
 		},
+		rollouts: []*flipt.Rollout{
+			{
+				Id:          "1",
+				FlagKey:     "flag2",
+				Type:        flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+				Description: "enabled for internal users",
+				Rank:        int32(1),
+				Rule: &flipt.Rollout_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentKey: "internal_users",
+						Value:      true,
+					},
+				},
+			},
+			{
+				Id:          "2",
+				FlagKey:     "flag2",
+				Type:        flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE,
+				Description: "enabled for 50%",
+				Rank:        int32(2),
+				Rule: &flipt.Rollout_Threshold{
+					Threshold: &flipt.RolloutThreshold{
+						Percentage: float32(50.0),
+						Value:      true,
+					},
+				},
+			},
+		},
 	}
 
 	var (
-		exporter = NewExporter(lister, storage.DefaultNamespace)
+		exporter = NewExporter(lister, flipt.DefaultNamespace)
 		b        = new(bytes.Buffer)
 	)
 

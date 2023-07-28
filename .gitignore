@@ -39,8 +39,7 @@ __debug_bin
 
 Brewfile.lock.json
 *.key
-.task/
-.build/
+build/hack/out/
 examples/cockroachdb/data
 playwright-report/
 screenshots/

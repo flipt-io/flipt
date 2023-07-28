@@ -190,6 +190,7 @@ Use "flipt [command] --help" for more information about a command.
 	expectedFliptYAML = `flags:
 - key: zUFtS7D0UyMeueYu
   name: UAoZRksg94r1iipa
+  type: VARIANT_FLAG_TYPE
   description: description
   enabled: true
   variants:
@@ -198,7 +199,6 @@ Use "flipt [command] --help" for more information about a command.
   - key: sDGD6NvfCRyaQUn3
   rules:
   - segment: 08UoVJ96LhZblPEx
-    rank: 1
     distributions:
     - variant: NGxfcVffpMhBz9n8
       rollout: 100

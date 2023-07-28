@@ -1633,3 +1633,151 @@ func TestValidate_UpdateNamespaceRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestValidate_CreateRolloutRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *CreateRolloutRequest
+		wantErr error
+	}{
+		{
+			name: "emptyKey",
+			req: &CreateRolloutRequest{
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "invalid threshold percentage",
+			req: &CreateRolloutRequest{
+				FlagKey:     "flagKey",
+				Description: "desc",
+				Rule: &CreateRolloutRequest_Threshold{
+					Threshold: &RolloutThreshold{
+						Percentage: 101.0,
+						Value:      true,
+					},
+				},
+			},
+			wantErr: errors.InvalidFieldError("threshold.percentage", "must be within range [0, 100]"),
+		},
+		{
+			name: "emptySegmentKey",
+			req: &CreateRolloutRequest{
+				FlagKey:     "flagKey",
+				Description: "desc",
+				Rule: &CreateRolloutRequest_Segment{
+					Segment: &RolloutSegment{
+						Value: true,
+					},
+				},
+			},
+			wantErr: errors.EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "valid",
+			req: &CreateRolloutRequest{
+				FlagKey:     "flagKey",
+				Description: "desc",
+				Rule: &CreateRolloutRequest_Threshold{
+					Threshold: &RolloutThreshold{
+						Percentage: 99.9,
+						Value:      true,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}
+
+func TestValidate_UpdateRolloutRequest(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *UpdateRolloutRequest
+		wantErr error
+	}{
+		{
+			name: "emptyFlagKey",
+			req: &UpdateRolloutRequest{
+				Id:          "1",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("flagKey"),
+		},
+		{
+			name: "emptyId",
+			req: &UpdateRolloutRequest{
+				FlagKey:     "flagKey",
+				Description: "desc",
+			},
+			wantErr: errors.EmptyFieldError("id"),
+		},
+		{
+			name: "invalid threshold percentage",
+			req: &UpdateRolloutRequest{
+				FlagKey:     "flagKey",
+				Id:          "1",
+				Description: "desc",
+				Rule: &UpdateRolloutRequest_Threshold{
+					Threshold: &RolloutThreshold{
+						Percentage: 101.0,
+						Value:      true,
+					},
+				},
+			},
+			wantErr: errors.InvalidFieldError("threshold.percentage", "must be within range [0, 100]"),
+		},
+		{
+			name: "emptySegmentKey",
+			req: &UpdateRolloutRequest{
+				FlagKey:     "flagKey",
+				Id:          "1",
+				Description: "desc",
+				Rule: &UpdateRolloutRequest_Segment{
+					Segment: &RolloutSegment{
+						Value: true,
+					},
+				},
+			},
+			wantErr: errors.EmptyFieldError("segmentKey"),
+		},
+		{
+			name: "valid",
+			req: &UpdateRolloutRequest{
+				FlagKey:     "flagKey",
+				Id:          "1",
+				Description: "desc",
+				Rule: &UpdateRolloutRequest_Threshold{
+					Threshold: &RolloutThreshold{
+						Percentage: 99.9,
+						Value:      true,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req     = tt.req
+			wantErr = tt.wantErr
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := req.Validate()
+			assert.Equal(t, wantErr, err)
+		})
+	}
+}

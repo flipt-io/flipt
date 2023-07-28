@@ -144,6 +144,25 @@ func (s *Store) CreateConstraint(ctx context.Context, r *flipt.CreateConstraintR
 	return constraint, nil
 }
 
+func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error) {
+	rollout, err := s.Store.CreateRollout(ctx, r)
+
+	if err != nil {
+		var serr sqlite3.Error
+
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+			if segment := r.GetSegment(); segment != nil {
+				return nil, errs.ErrNotFoundf(`flag "%s/%s or segment %s"`, r.NamespaceKey, r.FlagKey, segment.SegmentKey)
+			}
+			return nil, errs.ErrNotFoundf(`flag "%s/%s"`, r.NamespaceKey, r.FlagKey)
+		}
+
+		return nil, err
+	}
+
+	return rollout, nil
+}
+
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
 	rule, err := s.Store.CreateRule(ctx, r)
 

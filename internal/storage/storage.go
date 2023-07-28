@@ -27,6 +27,29 @@ type EvaluationRule struct {
 	Constraints      []EvaluationConstraint `json:"constraints,omitempty"`
 }
 
+// EvaluationRollout represents a rollout in the form that helps with evaluation.
+type EvaluationRollout struct {
+	NamespaceKey string
+	RolloutType  flipt.RolloutType
+	Rank         int32
+	Threshold    *RolloutThreshold
+	Segment      *RolloutSegment
+}
+
+// RolloutThreshold represents Percentage(s) for use in evaluation.
+type RolloutThreshold struct {
+	Percentage float32
+	Value      bool
+}
+
+// RolloutSegment represents Segment(s) for use in evaluation.
+type RolloutSegment struct {
+	Key         string
+	MatchType   flipt.MatchType
+	Value       bool
+	Constraints []EvaluationConstraint
+}
+
 // EvaluationConstraint represents a segment constraint that is used for evaluation
 type EvaluationConstraint struct {
 	ID       string               `json:"id,omitempty"`
@@ -125,11 +148,12 @@ func WithOrder(order Order) QueryOption {
 }
 
 type Store interface {
-	FlagStore
-	RuleStore
-	SegmentStore
-	EvaluationStore
 	NamespaceStore
+	FlagStore
+	SegmentStore
+	RuleStore
+	RolloutStore
+	EvaluationStore
 	fmt.Stringer
 }
 
@@ -146,6 +170,7 @@ type EvaluationStore interface {
 	// Note: Rules MUST be returned in order by Rank
 	GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRule, error)
 	GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*EvaluationDistribution, error)
+	GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*EvaluationRollout, error)
 }
 
 // NamespaceStore stores and retrieves namespaces
@@ -196,6 +221,16 @@ type RuleStore interface {
 	CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error)
 	UpdateDistribution(ctx context.Context, r *flipt.UpdateDistributionRequest) (*flipt.Distribution, error)
 	DeleteDistribution(ctx context.Context, r *flipt.DeleteDistributionRequest) error
+}
+
+type RolloutStore interface {
+	GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error)
+	ListRollouts(ctx context.Context, namespaceKey, flagKey string, opts ...QueryOption) (ResultSet[*flipt.Rollout], error)
+	CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error)
+	CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest) (*flipt.Rollout, error)
+	UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest) (*flipt.Rollout, error)
+	DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error
+	OrderRollouts(ctx context.Context, r *flipt.OrderRolloutsRequest) error
 }
 
 // ListRequest is a generic container for the parameters required to perform a list operation.

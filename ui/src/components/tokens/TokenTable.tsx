@@ -145,7 +145,7 @@ export default function TokenTable(props: TokenTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
                         >
                           <div
                             className="group inline-flex cursor-pointer"
@@ -157,7 +157,7 @@ export default function TokenTable(props: TokenTableProps) {
                                   header.column.columnDef.header,
                                   header.getContext()
                                 )}
-                            <span className="ml-2 flex-none rounded text-gray-400 group-hover:visible group-focus:visible">
+                            <span className="text-gray-400 ml-2 flex-none rounded group-hover:visible group-focus:visible">
                               {{
                                 asc: (
                                   <ChevronUpIcon
@@ -179,7 +179,7 @@ export default function TokenTable(props: TokenTableProps) {
                         <th
                           key={header.id}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className="text-gray-900 px-3 py-3.5 text-left text-sm font-semibold"
                         >
                           {header.isPlaceholder
                             ? null
@@ -193,7 +193,7 @@ export default function TokenTable(props: TokenTableProps) {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (

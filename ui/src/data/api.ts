@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { IAuthTokenBase } from 'types/auth/Token';
-import { IConstraintBase } from 'types/Constraint';
-import { IDistributionBase } from 'types/Distribution';
-import { IFlagBase } from 'types/Flag';
-import { IRuleBase } from 'types/Rule';
-import { ISegmentBase } from 'types/Segment';
-import { IVariantBase } from 'types/Variant';
+import { IAuthTokenBase } from '~/types/auth/Token';
+import { IConstraintBase } from '~/types/Constraint';
+import { IDistributionBase } from '~/types/Distribution';
+import { FlagType, IFlagBase } from '~/types/Flag';
+import { IRolloutBase } from '~/types/Rollout';
+import { IRuleBase } from '~/types/Rule';
+import { ISegmentBase } from '~/types/Segment';
+import { IVariantBase } from '~/types/Variant';
 
 const apiURL = '/api/v1';
 const authURL = '/auth/v1';
+const evaluateURL = '/evaluate/v1';
 const metaURL = '/meta';
 const csrfTokenHeaderKey = 'x-csrf-token';
 
@@ -171,6 +173,67 @@ export async function copyFlag(
   }
 }
 
+// rollouts
+export async function listRollouts(namespaceKey: string, flagKey: string) {
+  return get(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`);
+}
+
+export async function createRollout(
+  namespaceKey: string,
+  flagKey: string,
+  values: IRolloutBase
+) {
+  return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rollouts`, values);
+}
+
+export async function updateRollout(
+  namespaceKey: string,
+  flagKey: string,
+  rolloutId: string,
+  values: IRolloutBase
+) {
+  return put(
+    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`,
+    values
+  );
+}
+
+export async function deleteRollout(
+  namespaceKey: string,
+  flagKey: string,
+  rolloutId: string
+) {
+  return del(
+    `/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/${rolloutId}`
+  );
+}
+
+export async function orderRollouts(
+  namespaceKey: string,
+  flagKey: string,
+  rolloutIds: string[]
+) {
+  const req = setCsrf({
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      rolloutIds: rolloutIds
+    })
+  });
+
+  const res = await fetch(
+    `${apiURL}/namespaces/${namespaceKey}/flags/${flagKey}/rollouts/order`,
+    req
+  );
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message);
+  }
+  return res.ok;
+}
+
 //
 // rules
 export async function listRules(namespaceKey: string, flagKey: string) {
@@ -183,6 +246,18 @@ export async function createRule(
   values: IRuleBase
 ) {
   return post(`/namespaces/${namespaceKey}/flags/${flagKey}/rules`, values);
+}
+
+export async function updateRule(
+  namespaceKey: string,
+  flagKey: string,
+  ruleId: string,
+  values: IRuleBase
+) {
+  return put(
+    `/namespaces/${namespaceKey}/flags/${flagKey}/rules/${ruleId}`,
+    values
+  );
 }
 
 export async function deleteRule(
@@ -373,6 +448,24 @@ export async function evaluate(
     ...values
   };
   return post('/evaluate', body);
+}
+
+//
+// evaluateV2
+export async function evaluateV2(
+  namespaceKey: string,
+  flagKey: string,
+  flagType: FlagType,
+  values: any
+) {
+  const route = flagType === FlagType.BOOLEAN ? '/boolean' : '/variant';
+
+  const body = {
+    namespaceKey,
+    flagKey: flagKey,
+    ...values
+  };
+  return post(route, body, evaluateURL);
 }
 
 //

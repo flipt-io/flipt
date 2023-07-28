@@ -1,5 +1,6 @@
 import { IConstraint } from './Constraint';
 import { IPageable } from './Pageable';
+import { IFilterable } from './Selectable';
 
 export interface ISegmentBase {
   key: string;
@@ -15,10 +16,23 @@ export interface ISegment extends ISegmentBase {
 }
 
 export enum SegmentMatchType {
-  ALL_MATCH_TYPE = 'All',
-  ANY_MATCH_TYPE = 'Any'
+  ALL = 'ALL_MATCH_TYPE',
+  ANY = 'ANY_MATCH_TYPE'
+}
+
+export function segmentMatchTypeToLabel(matchType: SegmentMatchType): string {
+  switch (matchType) {
+    case SegmentMatchType.ALL:
+      return 'All';
+    case SegmentMatchType.ANY:
+      return 'Any';
+    default:
+      return 'Unknown';
+  }
 }
 
 export interface ISegmentList extends IPageable {
   segments: ISegment[];
 }
+
+export type FilterableSegment = ISegment & IFilterable;

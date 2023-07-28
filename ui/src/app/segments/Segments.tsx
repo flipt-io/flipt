@@ -37,10 +37,10 @@ export default function Segments() {
     <>
       <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+          <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
             Segments
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="text-gray-500 mt-2 text-sm">
             Segments enable request targeting based on defined criteria
           </p>
         </div>
@@ -52,7 +52,7 @@ export default function Segments() {
               title={readOnly ? 'Not allowed in Read-Only mode' : undefined}
             >
               <PlusIcon
-                className="-ml-1.5 mr-1 h-5 w-5 text-white"
+                className="text-white -ml-1.5 mr-1 h-5 w-5"
                 aria-hidden="true"
               />
               <span>New Segment</span>

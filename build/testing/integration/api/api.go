@@ -7,10 +7,13 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid"
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, authenticated bool) {
@@ -91,9 +94,9 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 	})
 
 	t.Run("Flags and Variants", func(t *testing.T) {
-		t.Log("Create a new flag with key \"test\".")
+		t.Log("Create a new enabled flag with key \"test\".")
 
-		created, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+		enabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
 			NamespaceKey: namespace,
 			Key:          "test",
 			Name:         "Test",
@@ -102,10 +105,60 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, "test", created.Key)
-		assert.Equal(t, "Test", created.Name)
-		assert.Equal(t, "This is a test flag", created.Description)
-		assert.True(t, created.Enabled, "Flag should be enabled")
+		assert.Equal(t, "test", enabled.Key)
+		assert.Equal(t, "Test", enabled.Name)
+		assert.Equal(t, "This is a test flag", enabled.Description)
+		assert.True(t, enabled.Enabled, "Flag should be enabled")
+
+		t.Log("Create a new flag in a disabled state.")
+
+		disabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+			NamespaceKey: namespace,
+			Key:          "disabled",
+			Name:         "Disabled",
+			Description:  "This is a disabled test flag",
+			Enabled:      false,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "disabled", disabled.Key)
+		assert.Equal(t, "Disabled", disabled.Name)
+		assert.Equal(t, "This is a disabled test flag", disabled.Description)
+		assert.False(t, disabled.Enabled, "Flag should be disabled")
+
+		t.Log("Create a new enabled boolean flag with key \"boolean_enabled\".")
+
+		booleanEnabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+			NamespaceKey: namespace,
+			Key:          "boolean_enabled",
+			Name:         "Boolean Enabled",
+			Description:  "This is an enabled boolean test flag",
+			Enabled:      true,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "boolean_enabled", booleanEnabled.Key)
+		assert.Equal(t, "Boolean Enabled", booleanEnabled.Name)
+		assert.Equal(t, "This is an enabled boolean test flag", booleanEnabled.Description)
+		assert.True(t, booleanEnabled.Enabled, "Flag should be enabled")
+
+		t.Log("Create a new flag in a disabled state.")
+
+		booleanDisabled, err := client.Flipt().CreateFlag(ctx, &flipt.CreateFlagRequest{
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+			NamespaceKey: namespace,
+			Key:          "boolean_disabled",
+			Name:         "Boolean Disabled",
+			Description:  "This is a disabled boolean test flag",
+			Enabled:      false,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "boolean_disabled", booleanDisabled.Key)
+		assert.Equal(t, "Boolean Disabled", booleanDisabled.Name)
+		assert.Equal(t, "This is a disabled boolean test flag", booleanDisabled.Description)
+		assert.False(t, booleanDisabled.Enabled, "Flag should be disabled")
 
 		t.Log("Retrieve flag with key \"test\".")
 
@@ -115,15 +168,15 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Equal(t, created, flag)
+		assert.Equal(t, enabled, flag)
 
 		t.Log("Update flag with key \"test\".")
 
 		updated, err := client.Flipt().UpdateFlag(ctx, &flipt.UpdateFlagRequest{
 			NamespaceKey: namespace,
-			Key:          created.Key,
+			Key:          enabled.Key,
 			Name:         "Test 2",
-			Description:  created.Description,
+			Description:  enabled.Description,
 			Enabled:      true,
 		})
 		require.NoError(t, err)
@@ -146,10 +199,18 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Len(t, flags.Flags, 1)
-		assert.Equal(t, updated.Key, flags.Flags[0].Key)
-		assert.Equal(t, updated.Name, flags.Flags[0].Name)
-		assert.Equal(t, updated.Description, flags.Flags[0].Description)
+		assert.Len(t, flags.Flags, 4)
+		for i, flag := range []*flipt.Flag{
+			updated,
+			disabled,
+			booleanEnabled,
+			booleanDisabled,
+		} {
+			assert.Equal(t, flag.Key, flags.Flags[i].Key)
+			assert.Equal(t, flag.Name, flags.Flags[i].Name)
+			assert.Equal(t, flag.Description, flags.Flags[i].Description)
+			assert.Equal(t, flag.Enabled, flags.Flags[i].Enabled)
+		}
 
 		for _, key := range []string{"one", "two"} {
 			t.Logf("Create variant with key %q.", key)
@@ -473,47 +534,252 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, float32(100), distribution.Rollout)
 	})
 
-	t.Run("Evaluation", func(t *testing.T) {
-		t.Log(`Successful match.`)
+	t.Run("Boolean Rollouts", func(t *testing.T) {
+		t.Run("Invalid", func(t *testing.T) {
+			_, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "boolean_disabled",
+				Description:  "has an invalid percentage",
+				Rank:         1,
+				Rule: &flipt.CreateRolloutRequest_Threshold{
+					Threshold: &flipt.RolloutThreshold{
+						Percentage: 101.00,
+						Value:      true,
+					},
+				},
+			})
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = invalid field threshold.percentage: must be within range [0, 100]")
+		})
 
-		result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+		rolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 			NamespaceKey: namespace,
-			FlagKey:      "test",
-			EntityId:     uuid.Must(uuid.NewV4()).String(),
-			Context: map[string]string{
-				"foo":  "baz",
-				"fizz": "bozz",
+			FlagKey:      "boolean_disabled",
+			Description:  "matches a segment",
+			Rank:         1,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKey: "everyone",
+					Value:      true,
+				},
 			},
 		})
 		require.NoError(t, err)
 
-		require.True(t, result.Match, "Evaluation should have matched.")
-		assert.Equal(t, "everyone", result.SegmentKey)
-		assert.Equal(t, "one", result.Value)
-		assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+		assert.Equal(t, namespace, rolloutSegment.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", rolloutSegment.FlagKey)
+		assert.Equal(t, int32(1), rolloutSegment.Rank)
+		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
+		assert.Equal(t, true, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
-		t.Log(`Unsuccessful match.`)
-
-		result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+		rolloutThreshold, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 			NamespaceKey: namespace,
-			FlagKey:      "test",
-			EntityId:     uuid.Must(uuid.NewV4()).String(),
-			Context: map[string]string{
-				"fizz": "buzz",
+			FlagKey:      "boolean_disabled",
+			Description:  "50% disabled",
+			Rank:         2,
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 50,
+					Value:      true,
+				},
 			},
 		})
 		require.NoError(t, err)
 
-		assert.False(t, result.Match, "Evaluation should not have matched.")
+		assert.Equal(t, namespace, rolloutThreshold.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", rolloutThreshold.FlagKey)
+		assert.Equal(t, "50% disabled", rolloutThreshold.Description)
+		assert.Equal(t, int32(2), rolloutThreshold.Rank)
+		assert.Equal(t, float32(50.0), rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
+		assert.Equal(t, true, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
+
+		t.Log(`Ensure multiple rollouts with same rank can not be created`)
+
+		_, err = client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "should not work",
+			Rank:         2,
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 50,
+					Value:      true,
+				},
+			},
+		})
+
+		assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = rank number: 2 already exists")
+
+		t.Log(`Ensure that rollout with a non-existent segment can not be created`)
+
+		_, err = client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "matches a segment",
+			Rank:         5,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKey: "thisdoesnotexist",
+					Value:      true,
+				},
+			},
+		})
+
+		assert.EqualError(t, err, fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/%s or segment %s\" not found", namespace, "boolean_disabled", "thisdoesnotexist"))
+
+		rollouts, err := client.Flipt().ListRollouts(ctx, &flipt.ListRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+		})
+		require.NoError(t, err)
+
+		assert.Empty(t, cmp.Diff([]*flipt.Rollout{
+			rolloutSegment,
+			rolloutThreshold,
+		}, rollouts.Rules, protocmp.Transform()))
+
+		_, err = client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Id:           rolloutThreshold.Id,
+			Description:  "50% enabled",
+			Rule: &flipt.UpdateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 200.0,
+					Value:      false,
+				},
+			},
+		})
+		require.EqualError(t, err, "rpc error: code = InvalidArgument desc = invalid field threshold.percentage: must be within range [0, 100]")
+
+		updatedRollout, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Id:           rolloutThreshold.Id,
+			Description:  "50% enabled",
+			Rule: &flipt.UpdateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 50,
+					Value:      false,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, updatedRollout.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", updatedRollout.FlagKey)
+		assert.Equal(t, "50% enabled", updatedRollout.Description)
+		assert.Equal(t, int32(2), updatedRollout.Rank)
+		assert.Equal(t, float32(50.0), updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
+		assert.Equal(t, false, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
+
+		t.Run("Cannot change rollout type", func(t *testing.T) {
+			_, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "boolean_disabled",
+				Id:           rolloutThreshold.Id,
+				Description:  "50% enabled",
+				Rule: &flipt.UpdateRolloutRequest_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentKey: "everyone",
+						Value:      true,
+					},
+				},
+			})
+
+			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = cannot change type of rollout: have \"THRESHOLD_ROLLOUT_TYPE\" attempted \"SEGMENT_ROLLOUT_TYPE\"")
+		})
 	})
 
-	t.Run("Batch Evaluation", func(t *testing.T) {
-		t.Log(`Successful match.`)
+	t.Run("Legacy", func(t *testing.T) {
+		t.Run("Evaluation", func(t *testing.T) {
+			t.Log(`Successful match.`)
 
-		results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-			NamespaceKey: namespace,
-			Requests: []*flipt.EvaluationRequest{
-				{
+			result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				EntityId:     uuid.Must(uuid.NewV4()).String(),
+				Context: map[string]string{
+					"foo":  "baz",
+					"fizz": "bozz",
+				},
+			})
+			require.NoError(t, err)
+
+			require.True(t, result.Match, "Evaluation should have matched.")
+			assert.Equal(t, "everyone", result.SegmentKey)
+			assert.Equal(t, "one", result.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+
+			t.Log(`Unsuccessful match.`)
+
+			result, err = client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+				NamespaceKey: namespace,
+				FlagKey:      "test",
+				EntityId:     uuid.Must(uuid.NewV4()).String(),
+				Context: map[string]string{
+					"fizz": "buzz",
+				},
+			})
+			require.NoError(t, err)
+
+			assert.False(t, result.Match, "Evaluation should not have matched.")
+		})
+
+		t.Run("Batch Evaluation", func(t *testing.T) {
+			t.Log(`Successful match.`)
+
+			results, err := client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
+				Requests: []*flipt.EvaluationRequest{
+					{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     uuid.Must(uuid.NewV4()).String(),
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			require.Len(t, results.Responses, 1)
+			result := results.Responses[0]
+
+			require.True(t, result.Match, "Evaluation should have matched.")
+			assert.Equal(t, "everyone", result.SegmentKey)
+			assert.Equal(t, "one", result.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+
+			t.Log(`Unsuccessful match.`)
+
+			results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
+				NamespaceKey: namespace,
+				Requests: []*flipt.EvaluationRequest{
+					{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     uuid.Must(uuid.NewV4()).String(),
+						Context: map[string]string{
+							"fizz": "buzz",
+						},
+					},
+				},
+			})
+			require.NoError(t, err)
+
+			require.Len(t, results.Responses, 1)
+			result = results.Responses[0]
+
+			assert.False(t, result.Match, "Evaluation should not have matched.")
+		})
+	})
+
+	t.Run("Evaluation", func(t *testing.T) {
+		t.Run("Variant", func(t *testing.T) {
+			t.Run("successful match", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 					NamespaceKey: namespace,
 					FlagKey:      "test",
 					EntityId:     uuid.Must(uuid.NewV4()).String(),
@@ -521,40 +787,170 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 						"foo":  "baz",
 						"fizz": "bozz",
 					},
-				},
-			},
-		})
-		require.NoError(t, err)
+				})
+				require.NoError(t, err)
 
-		require.Len(t, results.Responses, 1)
-		result := results.Responses[0]
+				require.True(t, result.Match, "Evaluation should have matched.")
+				assert.Equal(t, "everyone", result.SegmentKey)
+				assert.Equal(t, "one", result.VariantKey)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+			})
 
-		require.True(t, result.Match, "Evaluation should have matched.")
-		assert.Equal(t, "everyone", result.SegmentKey)
-		assert.Equal(t, "one", result.Value)
-		assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
-
-		t.Log(`Unsuccessful match.`)
-
-		results, err = client.Flipt().BatchEvaluate(ctx, &flipt.BatchEvaluationRequest{
-			NamespaceKey: namespace,
-			Requests: []*flipt.EvaluationRequest{
-				{
+			t.Run("no match", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 					NamespaceKey: namespace,
 					FlagKey:      "test",
 					EntityId:     uuid.Must(uuid.NewV4()).String(),
 					Context: map[string]string{
 						"fizz": "buzz",
 					},
-				},
-			},
+				})
+				require.NoError(t, err)
+
+				assert.False(t, result.Match, "Evaluation should not have matched.")
+				assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, result.Reason)
+				assert.Empty(t, result.SegmentKey)
+				assert.Empty(t, result.VariantKey)
+			})
+
+			t.Run("flag disabled", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "disabled",
+					EntityId:     uuid.Must(uuid.NewV4()).String(),
+					Context:      map[string]string{},
+				})
+				require.NoError(t, err)
+
+				assert.False(t, result.Match, "Evaluation should not have matched.")
+				assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
+				assert.Empty(t, result.SegmentKey)
+				assert.Empty(t, result.VariantKey)
+			})
+
+			t.Run("flag not found", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "unknown_flag",
+					EntityId:     uuid.Must(uuid.NewV4()).String(),
+					Context:      map[string]string{},
+				})
+
+				msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace)
+				require.EqualError(t, err, msg)
+				require.Nil(t, result)
+			})
 		})
-		require.NoError(t, err)
 
-		require.Len(t, results.Responses, 1)
-		result = results.Responses[0]
+		t.Run("Boolean", func(t *testing.T) {
+			// Have to use a fixed entity ID instead of UUID, because of percentage matching
+			t.Run("default match", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "beover50",
+					Context: map[string]string{
+						"no": "match",
+					},
+				})
 
-		assert.False(t, result.Match, "Evaluation should not have matched.")
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
+				assert.False(t, result.Enabled, "value should be the flag state")
+			})
+
+			t.Run("percentage match", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "fixed",
+					Context: map[string]string{
+						"no": "match",
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.False(t, result.Enabled, "value should be threshold match value")
+			})
+
+			t.Run("segment match", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "fixed",
+					Context: map[string]string{
+						"foo":  "baz",
+						"fizz": "nothing",
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.True(t, result.Enabled, "value should be segment match value")
+			})
+		})
+
+		t.Run("Batch", func(t *testing.T) {
+			// Have to use a fixed entity ID instead of UUID, because of percentage matching
+			t.Run("batch evaluates variant, boolean, and not found", func(t *testing.T) {
+				result, err := client.Evaluation().Batch(ctx, &evaluation.BatchEvaluationRequest{
+					Requests: []*evaluation.EvaluationRequest{
+						{
+							NamespaceKey: namespace,
+							FlagKey:      "boolean_disabled",
+							EntityId:     "fixed",
+							Context: map[string]string{
+								"no": "match",
+							},
+						},
+						{
+							NamespaceKey: namespace,
+							FlagKey:      "test",
+							EntityId:     uuid.Must(uuid.NewV4()).String(),
+							Context: map[string]string{
+								"foo":  "baz",
+								"fizz": "bozz",
+							},
+						},
+						{
+							NamespaceKey: namespace,
+							FlagKey:      "flagnotfound",
+							EntityId:     "fixed",
+							Context: map[string]string{
+								"no": "match",
+							},
+						},
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Len(t, result.Responses, 3)
+
+				b, ok := result.Responses[0].Response.(*evaluation.EvaluationResponse_BooleanResponse)
+				assert.True(t, ok, "value should be boolean response")
+				assert.Equal(t, evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, result.Responses[0].Type)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
+				assert.False(t, b.BooleanResponse.Enabled, "value should be threshold match value")
+
+				v, ok := result.Responses[1].Response.(*evaluation.EvaluationResponse_VariantResponse)
+				assert.True(t, ok, "value should be variant response")
+				assert.Equal(t, evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, result.Responses[1].Type)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
+				assert.Equal(t, "everyone", v.VariantResponse.SegmentKey)
+				assert.Equal(t, "one", v.VariantResponse.VariantKey)
+
+				e, ok := result.Responses[2].Response.(*evaluation.EvaluationResponse_ErrorResponse)
+				assert.True(t, ok, "value should be error response")
+				assert.Equal(t, evaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, result.Responses[2].Type)
+				assert.Equal(t, evaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, e.ErrorResponse.Reason)
+				assert.Equal(t, "flagnotfound", e.ErrorResponse.FlagKey)
+			})
+		})
 	})
 
 	t.Run("Delete", func(t *testing.T) {
@@ -584,11 +980,17 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		}
 
 		t.Log(`Flag.`)
-		err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+
+		flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 			NamespaceKey: namespace,
-			Key:          "test",
 		})
-		require.NoError(t, err)
+		for _, flag := range flags.Flags {
+			err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
+				NamespaceKey: namespace,
+				Key:          flag.Key,
+			})
+			require.NoError(t, err)
+		}
 
 		t.Log(`Segment.`)
 		err = client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{

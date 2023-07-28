@@ -10,24 +10,26 @@ import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
-import Combobox, { ISelectable } from '~/components/forms/Combobox';
+import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
-import { evaluate, listFlags } from '~/data/api';
+import { evaluateV2, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import {
   jsonValidation,
   keyValidation,
   requiredValidation
 } from '~/data/validations';
-import { IConsole } from '~/types/Console';
-import { IFlag, IFlagList } from '~/types/Flag';
+import {
+  FilterableFlag,
+  flagTypeToLabel,
+  IFlag,
+  IFlagList
+} from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
 import { classNames } from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
-
-type SelectableFlag = IFlag & ISelectable;
 
 function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   const { resetForm } = useFormikContext();
@@ -39,9 +41,15 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
   return null;
 }
 
+interface ConsoleFormValues {
+  flagKey: string;
+  entityId: string;
+  context: string | undefined;
+}
+
 export default function Console() {
-  const [flags, setFlags] = useState<SelectableFlag[]>([]);
-  const [selectedFlag, setSelectedFlag] = useState<SelectableFlag | null>(null);
+  const [flags, setFlags] = useState<FilterableFlag[]>([]);
+  const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
@@ -62,14 +70,19 @@ export default function Console() {
           ...flag,
           status,
           filterValue: flag.key,
-          displayValue: flag.name
+          displayValue: `${flag.name} | ${flagTypeToLabel(flag.type)}`
         };
       })
     );
   }, [namespace.key]);
 
-  const handleSubmit = (values: IConsole) => {
-    const { flagKey, entityId, context } = values;
+  const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
+    const { entityId, context } = values;
+
+    if (!flag) {
+      return;
+    }
+
     // need to unescape the context string
     const parsed = context ? JSON.parse(context) : undefined;
 
@@ -78,7 +91,7 @@ export default function Console() {
       context: parsed
     };
 
-    evaluate(namespace.key, flagKey, rest)
+    evaluateV2(namespace.key, flag.key, flag.type, rest)
       .then((resp) => {
         setHasEvaluationError(false);
         setResponse(JSON.stringify(resp, null, 2));
@@ -101,7 +114,7 @@ export default function Console() {
       });
   }, [clearError, loadData, setError]);
 
-  const initialvalues: IConsole = {
+  const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
     entityId: uuidv4(),
     context: undefined
@@ -110,10 +123,10 @@ export default function Console() {
   return (
     <>
       <div className="flex flex-col">
-        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+        <h1 className="text-gray-900 text-2xl font-bold leading-7 sm:truncate sm:text-3xl">
           Console
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="text-gray-500 mt-2 text-sm">
           See the results of your flag evaluations and debug any issues
         </p>
       </div>
@@ -129,7 +142,7 @@ export default function Console() {
                   context: jsonValidation
                 })}
                 onSubmit={(values) => {
-                  handleSubmit(values);
+                  handleSubmit(selectedFlag, values);
                 }}
                 onReset={() => {
                   setResponse(null);
@@ -144,11 +157,11 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="flagKey"
-                            className="block text-sm font-medium text-gray-700"
+                            className="text-gray-700 block text-sm font-medium"
                           >
                             Flag Key
                           </label>
-                          <Combobox<SelectableFlag>
+                          <Combobox<FilterableFlag>
                             id="flagKey"
                             name="flagKey"
                             className="mt-1"
@@ -161,7 +174,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="entityId"
-                            className="block text-sm font-medium text-gray-700"
+                            className="text-gray-700 block text-sm font-medium"
                           >
                             Entity ID
                           </label>
@@ -175,7 +188,7 @@ export default function Console() {
                         <div className="col-span-3">
                           <label
                             htmlFor="context"
-                            className="block text-sm font-medium text-gray-700"
+                            className="text-gray-700 block text-sm font-medium"
                           >
                             Request Context
                           </label>
@@ -220,7 +233,7 @@ export default function Console() {
                 <pre className="p-2 text-sm md:h-full">
                   <code
                     className={classNames(
-                      hasEvaluationError ? 'border-4 border-red-400' : '',
+                      hasEvaluationError ? 'border-red-400 border-4' : '',
                       'json rounded-sm md:h-full'
                     )}
                   >

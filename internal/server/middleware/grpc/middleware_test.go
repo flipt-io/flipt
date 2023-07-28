@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/auth/method/token"
+	servereval "go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -22,9 +23,11 @@ import (
 	"github.com/stretchr/testify/require"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type validatable struct {
@@ -184,57 +187,113 @@ func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
 }
 
 func TestEvaluationUnaryInterceptor_Evaluation(t *testing.T) {
-	var (
-		req = &flipt.EvaluationRequest{
-			FlagKey: "foo",
-		}
-
-		handler = func(ctx context.Context, r interface{}) (interface{}, error) {
-			return &flipt.EvaluationResponse{
-				FlagKey: "foo",
-			}, nil
-		}
-
-		info = &grpc.UnaryServerInfo{
-			FullMethod: "FakeMethod",
-		}
-	)
-
-	got, err := EvaluationUnaryInterceptor(context.Background(), req, info, handler)
-	require.NoError(t, err)
-
-	assert.NotNil(t, got)
-
-	resp, ok := got.(*flipt.EvaluationResponse)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
-
-	assert.Equal(t, "foo", resp.FlagKey)
-	// check that the requestID was created and set
-	assert.NotEmpty(t, resp.RequestId)
-	assert.NotZero(t, resp.Timestamp)
-	assert.NotZero(t, resp.RequestDurationMillis)
-
-	req = &flipt.EvaluationRequest{
-		FlagKey:   "foo",
-		RequestId: "bar",
+	type request interface {
+		GetRequestId() string
 	}
 
-	got, err = EvaluationUnaryInterceptor(context.Background(), req, info, handler)
-	require.NoError(t, err)
+	type response interface {
+		request
+		GetTimestamp() *timestamppb.Timestamp
+		GetRequestDurationMillis() float64
+	}
 
-	assert.NotNil(t, got)
+	for _, test := range []struct {
+		name      string
+		requestID string
+		req       request
+		resp      response
+	}{
+		{
+			name:      "flipt.EvaluationRequest without request ID",
+			requestID: "",
+			req: &flipt.EvaluationRequest{
+				FlagKey: "foo",
+			},
+			resp: &flipt.EvaluationResponse{
+				FlagKey: "foo",
+			},
+		},
+		{
+			name:      "flipt.EvaluationRequest with request ID",
+			requestID: "bar",
+			req: &flipt.EvaluationRequest{
+				FlagKey:   "foo",
+				RequestId: "bar",
+			},
+			resp: &flipt.EvaluationResponse{
+				FlagKey: "foo",
+			},
+		},
+		{
+			name:      "Variant evaluation.EvaluationRequest without request ID",
+			requestID: "",
+			req: &evaluation.EvaluationRequest{
+				FlagKey: "foo",
+			},
+			resp: &evaluation.EvaluationResponse{
+				Response: &evaluation.EvaluationResponse_VariantResponse{
+					VariantResponse: &evaluation.VariantEvaluationResponse{},
+				},
+			},
+		},
+		{
+			name:      "Boolean evaluation.EvaluationRequest with request ID",
+			requestID: "baz",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:   "foo",
+				RequestId: "baz",
+			},
+			resp: &evaluation.EvaluationResponse{
+				Response: &evaluation.EvaluationResponse_BooleanResponse{
+					BooleanResponse: &evaluation.BooleanEvaluationResponse{},
+				},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var (
+				handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+					// ensure request has ID once it reaches the handler
+					req, ok := r.(request)
+					require.True(t, ok)
 
-	resp, ok = got.(*flipt.EvaluationResponse)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
+					if test.requestID == "" {
+						assert.NotEmpty(t, req.GetRequestId())
+						return test.resp, nil
+					}
 
-	assert.Equal(t, "foo", resp.FlagKey)
-	// check that the requestID was propagated
-	assert.NotEmpty(t, resp.RequestId)
-	assert.Equal(t, "bar", resp.RequestId)
-	assert.NotZero(t, resp.Timestamp)
-	assert.NotZero(t, resp.RequestDurationMillis)
+					assert.Equal(t, test.requestID, req.GetRequestId())
+
+					return test.resp, nil
+				}
+
+				info = &grpc.UnaryServerInfo{
+					FullMethod: "FakeMethod",
+				}
+			)
+
+			got, err := EvaluationUnaryInterceptor(context.Background(), test.req, info, handler)
+			require.NoError(t, err)
+
+			assert.NotNil(t, got)
+
+			resp, ok := got.(response)
+			assert.True(t, ok)
+			assert.NotNil(t, resp)
+
+			// check that the requestID is either non-empty
+			// or explicitly what was provided for the test
+			if test.requestID == "" {
+				assert.NotEmpty(t, resp.GetRequestId())
+			} else {
+				assert.Equal(t, test.requestID, resp.GetRequestId())
+
+			}
+
+			assert.NotZero(t, resp.GetTimestamp())
+			assert.NotZero(t, resp.GetRequestDurationMillis())
+		})
+	}
 }
 
 func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
@@ -316,7 +375,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	)
 
 	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
-		NamespaceKey: storage.DefaultNamespace,
+		NamespaceKey: flipt.DefaultNamespace,
 		Key:          "foo",
 		Enabled:      true,
 	}, nil)
@@ -708,6 +767,295 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 			assert.Equal(t, "bar", resp.SegmentKey)
 			assert.Equal(t, "boz", resp.Value)
 			assert.Equal(t, `{"key":"value"}`, resp.Attachment)
+		})
+	}
+}
+
+func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
+	var (
+		store = &storeMock{}
+		cache = memory.NewCache(config.CacheConfig{
+			TTL:     time.Second,
+			Enabled: true,
+			Backend: config.CacheMemory,
+		})
+		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
+		s        = servereval.New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+		Key:     "foo",
+		Enabled: true,
+	}, nil)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:               "1",
+				FlagKey:          "foo",
+				SegmentKey:       "bar",
+				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
+				Rank:             0,
+				Constraints: []storage.EvaluationConstraint{
+					// constraint: bar (string) == baz
+					{
+						ID:       "2",
+						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property: "bar",
+						Operator: flipt.OpEQ,
+						Value:    "baz",
+					},
+					// constraint: admin (bool) == true
+					{
+						ID:       "3",
+						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+						Property: "admin",
+						Operator: flipt.OpTrue,
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
+		[]*storage.EvaluationDistribution{
+			{
+				ID:                "4",
+				RuleID:            "1",
+				VariantID:         "5",
+				Rollout:           100,
+				VariantKey:        "boz",
+				VariantAttachment: `{"key":"value"}`,
+			},
+		}, nil)
+
+	tests := []struct {
+		name      string
+		req       *evaluation.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "matches all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+		},
+	}
+
+	unaryInterceptor := CacheUnaryInterceptor(cacheSpy, logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.Variant(ctx, r.(*evaluation.EvaluationRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	for i, tt := range tests {
+		var (
+			i         = i + 1
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := unaryInterceptor(context.Background(), req, info, handler)
+			require.NoError(t, err)
+			assert.NotNil(t, got)
+
+			resp := got.(*evaluation.VariantEvaluationResponse)
+			assert.NotNil(t, resp)
+
+			assert.Equal(t, i, cacheSpy.getCalled, "cache get wasn't called as expected")
+			assert.NotEmpty(t, cacheSpy.getKeys, "cache keys should not be empty")
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey)
+				return
+			}
+
+			assert.True(t, resp.Match)
+			assert.Equal(t, "bar", resp.SegmentKey)
+			assert.Equal(t, "boz", resp.VariantKey)
+			assert.Equal(t, `{"key":"value"}`, resp.VariantAttachment)
+		})
+	}
+}
+
+func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
+	var (
+		store = &storeMock{}
+		cache = memory.NewCache(config.CacheConfig{
+			TTL:     time.Second,
+			Enabled: true,
+			Backend: config.CacheMemory,
+		})
+		cacheSpy = newCacheSpy(cache)
+		logger   = zaptest.NewLogger(t)
+		s        = servereval.New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, mock.Anything, "foo").Return(&flipt.Flag{
+		Key:     "foo",
+		Enabled: false,
+		Type:    flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRollout{
+			{
+				RolloutType: flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+				Segment: &storage.RolloutSegment{
+					Key:       "bar",
+					MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+					Constraints: []storage.EvaluationConstraint{
+						// constraint: bar (string) == baz
+						{
+							ID:       "2",
+							Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+							Property: "bar",
+							Operator: flipt.OpEQ,
+							Value:    "baz",
+						},
+						// constraint: admin (bool) == true
+						{
+							ID:       "3",
+							Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+							Property: "admin",
+							Operator: flipt.OpTrue,
+						},
+					},
+					Value: true,
+				},
+				Rank: 1,
+			},
+		}, nil)
+
+	tests := []struct {
+		name      string
+		req       *evaluation.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "matches all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "baz",
+					"admin": "true",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match all",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":   "boz",
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just bool value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"admin": "true",
+				},
+			},
+		},
+		{
+			name: "no match just string value",
+			req: &evaluation.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "baz",
+				},
+			},
+		},
+	}
+
+	unaryInterceptor := CacheUnaryInterceptor(cacheSpy, logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.Boolean(ctx, r.(*evaluation.EvaluationRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "FakeMethod",
+	}
+
+	for i, tt := range tests {
+		var (
+			i         = i + 1
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := unaryInterceptor(context.Background(), req, info, handler)
+			require.NoError(t, err)
+			assert.NotNil(t, got)
+
+			resp := got.(*evaluation.BooleanEvaluationResponse)
+			assert.NotNil(t, resp)
+
+			assert.Equal(t, i, cacheSpy.getCalled, "cache get wasn't called as expected")
+			assert.NotEmpty(t, cacheSpy.getKeys, "cache keys should not be empty")
+
+			if !wantMatch {
+				assert.False(t, resp.Enabled)
+				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, resp.Reason)
+				return
+			}
+
+			assert.True(t, resp.Enabled)
+			assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})
 	}
 }
@@ -1348,6 +1696,135 @@ func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 
 	info := &grpc.UnaryServerInfo{
 		FullMethod: "DeleteConstraint",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
+func TestAuditUnaryInterceptor_CreateRollout(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.CreateRolloutRequest{
+			FlagKey: "flagkey",
+			Rank:    1,
+			Rule: &flipt.CreateRolloutRequest_Threshold{
+				Threshold: &flipt.RolloutThreshold{
+					Percentage: 50.0,
+					Value:      true,
+				},
+			},
+		}
+	)
+
+	store.On("CreateRollout", mock.Anything, req).Return(&flipt.Rollout{
+		Id:           "1",
+		NamespaceKey: "default",
+		Rank:         1,
+		FlagKey:      req.FlagKey,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.CreateRollout(ctx, r.(*flipt.CreateRolloutRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "CreateRollout",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
+func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.UpdateRolloutRequest{
+			Description: "desc",
+		}
+	)
+
+	store.On("UpdateRollout", mock.Anything, req).Return(&flipt.Rollout{
+		Description:  "desc",
+		FlagKey:      "flagkey",
+		NamespaceKey: "default",
+		Rank:         1,
+	}, nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.UpdateRollout(ctx, r.(*flipt.UpdateRolloutRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "UpdateRollout",
+	}
+
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	tp.RegisterSpanProcessor(sdktrace.NewSimpleSpanProcessor(exporterSpy))
+
+	tr := tp.Tracer("SpanProcessor")
+	ctx, span := tr.Start(context.Background(), "OnStart")
+
+	got, err := unaryInterceptor(ctx, req, info, handler)
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	span.End()
+	assert.Equal(t, 1, exporterSpy.GetSendAuditsCalled())
+}
+
+func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
+	var (
+		store       = &storeMock{}
+		logger      = zaptest.NewLogger(t)
+		exporterSpy = newAuditExporterSpy(logger)
+		s           = server.New(logger, store)
+		req         = &flipt.DeleteRolloutRequest{
+			Id:      "1",
+			FlagKey: "flagKey",
+		}
+	)
+
+	store.On("DeleteRollout", mock.Anything, req).Return(nil)
+
+	unaryInterceptor := AuditUnaryInterceptor(logger)
+
+	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
+		return s.DeleteRollout(ctx, r.(*flipt.DeleteRolloutRequest))
+	}
+
+	info := &grpc.UnaryServerInfo{
+		FullMethod: "DeleteRollout",
 	}
 
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))

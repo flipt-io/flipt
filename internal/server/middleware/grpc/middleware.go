@@ -16,13 +16,13 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	fauth "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
-	timestamp "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ValidationUnaryInterceptor validates incoming requests
@@ -75,58 +75,44 @@ func ErrorUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnarySe
 	return
 }
 
+type RequestIdentifiable interface {
+	// SetRequestIDIfNotBlank attempts to set the provided ID on the instance
+	// If the ID was blank, it returns the ID provided to this call.
+	// If the ID was not blank, it returns the ID found on the instance.
+	SetRequestIDIfNotBlank(id string) string
+}
+
+type ResponseDurationRecordable interface {
+	// SetTimestamps records the start and end times on the target instance.
+	SetTimestamps(start, end time.Time)
+}
+
 // EvaluationUnaryInterceptor sets required request/response fields.
 // Note: this should be added before any caching interceptor to ensure the request id/response fields are unique.
 func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	switch r := req.(type) {
-	case *flipt.EvaluationRequest:
-		startTime := time.Now()
+	startTime := time.Now().UTC()
 
-		// set request ID if not present
-		if r.RequestId == "" {
-			r.RequestId = uuid.Must(uuid.NewV4()).String()
-		}
+	// set request ID if not present
+	requestID := uuid.Must(uuid.NewV4()).String()
+	if r, ok := req.(RequestIdentifiable); ok {
+		requestID = r.SetRequestIDIfNotBlank(requestID)
 
 		resp, err = handler(ctx, req)
 		if err != nil {
 			return resp, err
 		}
 
-		// set response fields
-		if resp != nil {
-			if rr, ok := resp.(*flipt.EvaluationResponse); ok {
-				rr.RequestId = r.RequestId
-				rr.Timestamp = timestamp.New(time.Now().UTC())
-				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
-			}
-			return resp, nil
+		// set request ID on response
+		if r, ok := resp.(RequestIdentifiable); ok {
+			_ = r.SetRequestIDIfNotBlank(requestID)
 		}
 
-	case *flipt.BatchEvaluationRequest:
-		startTime := time.Now()
-
-		// set request ID if not present
-		if r.RequestId == "" {
-			r.RequestId = uuid.Must(uuid.NewV4()).String()
+		// record start, end, duration on response types
+		if r, ok := resp.(ResponseDurationRecordable); ok {
+			r.SetTimestamps(startTime, time.Now().UTC())
 		}
 
-		resp, err = handler(ctx, req)
-		if err != nil {
-			return resp, err
-		}
-
-		now := timestamp.New(time.Now().UTC())
-		// set response fields
-		if resp != nil {
-			if rr, ok := resp.(*flipt.BatchEvaluationResponse); ok {
-				rr.RequestId = r.RequestId
-				rr.RequestDurationMillis = float64(time.Since(startTime)) / float64(time.Millisecond)
-				for _, response := range rr.Responses {
-					response.Timestamp = now
-				}
-				return resp, nil
-			}
-		}
+		return resp, nil
 	}
 
 	return handler(ctx, req)
@@ -242,6 +228,73 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetFlagKey())); err != nil {
 				logger.Error("deleting from cache", zap.Error(err))
 			}
+		case *evaluation.EvaluationRequest:
+			key, err := evaluationCacheKey(r)
+			if err != nil {
+				logger.Error("getting cache key", zap.Error(err))
+				return handler(ctx, req)
+			}
+
+			cached, ok, err := cache.Get(ctx, key)
+			if err != nil {
+				// if error, log and without cache
+				logger.Error("getting from cache", zap.Error(err))
+				return handler(ctx, req)
+			}
+
+			if ok {
+				resp := &evaluation.EvaluationResponse{}
+				if err := proto.Unmarshal(cached, resp); err != nil {
+					logger.Error("unmarshalling from cache", zap.Error(err))
+					return handler(ctx, req)
+				}
+
+				logger.Debug("evaluate cache hit", zap.Stringer("response", resp))
+				switch r := resp.Response.(type) {
+				case *evaluation.EvaluationResponse_VariantResponse:
+					return r.VariantResponse, nil
+				case *evaluation.EvaluationResponse_BooleanResponse:
+					return r.BooleanResponse, nil
+				default:
+					logger.Error("unexpected eval cache response type", zap.String("type", fmt.Sprintf("%T", resp.Response)))
+				}
+
+				return handler(ctx, req)
+			}
+
+			logger.Debug("evaluate cache miss")
+			resp, err := handler(ctx, req)
+			if err != nil {
+				return resp, err
+			}
+
+			evalResponse := &evaluation.EvaluationResponse{}
+			switch r := resp.(type) {
+			case *evaluation.VariantEvaluationResponse:
+				evalResponse.Type = evaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE
+				evalResponse.Response = &evaluation.EvaluationResponse_VariantResponse{
+					VariantResponse: r,
+				}
+			case *evaluation.BooleanEvaluationResponse:
+				evalResponse.Type = evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE
+				evalResponse.Response = &evaluation.EvaluationResponse_BooleanResponse{
+					BooleanResponse: r,
+				}
+			}
+
+			// marshal response
+			data, merr := proto.Marshal(evalResponse)
+			if merr != nil {
+				logger.Error("marshalling for cache", zap.Error(err))
+				return resp, err
+			}
+
+			// set in cache
+			if cerr := cache.Set(ctx, key, data); cerr != nil {
+				logger.Error("setting in cache", zap.Error(err))
+			}
+
+			return resp, err
 		}
 
 		return handler(ctx, req)
@@ -284,6 +337,8 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			event = audit.NewEvent(audit.NamespaceType, audit.Delete, actor, r)
 		case *flipt.DeleteRuleRequest:
 			event = audit.NewEvent(audit.RuleType, audit.Delete, actor, r)
+		case *flipt.DeleteRolloutRequest:
+			event = audit.NewEvent(audit.RolloutType, audit.Delete, actor, r)
 		}
 
 		// Short circuiting the middleware here since we have a non-nil event from
@@ -318,6 +373,10 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 		case *flipt.Namespace:
 			if action != "" {
 				event = audit.NewEvent(audit.NamespaceType, action, actor, audit.NewNamespace(r))
+			}
+		case *flipt.Rollout:
+			if action != "" {
+				event = audit.NewEvent(audit.RolloutType, action, actor, audit.NewRollout(r))
 			}
 		case *flipt.Rule:
 			if action != "" {
@@ -357,7 +416,14 @@ func flagCacheKey(namespaceKey, key string) string {
 	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
 
-func evaluationCacheKey(r *flipt.EvaluationRequest) (string, error) {
+type evaluationRequest interface {
+	GetNamespaceKey() string
+	GetFlagKey() string
+	GetEntityId() string
+	GetContext() map[string]string
+}
+
+func evaluationCacheKey(r evaluationRequest) (string, error) {
 	out, err := json.Marshal(r.GetContext())
 	if err != nil {
 		return "", fmt.Errorf("marshalling req to json: %w", err)

@@ -46,13 +46,14 @@ func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.F
 
 		flag = &flipt.Flag{}
 
-		err = s.builder.Select("namespace_key, \"key\", name, description, enabled, created_at, updated_at").
+		err = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at").
 			From("flags").
 			Where(sq.And{sq.Eq{"namespace_key": namespaceKey}, sq.Eq{"\"key\"": key}}).
 			QueryRowContext(ctx).
 			Scan(
 				&flag.NamespaceKey,
 				&flag.Key,
+				&flag.Type,
 				&flag.Name,
 				&flag.Description,
 				&flag.Enabled,
@@ -151,7 +152,7 @@ func (s *Store) ListFlags(ctx context.Context, namespaceKey string, opts ...stor
 		flags   []*flipt.Flag
 		results = storage.ResultSet[*flipt.Flag]{}
 
-		query = s.builder.Select("namespace_key, \"key\", name, description, enabled, created_at, updated_at").
+		query = s.builder.Select("namespace_key, \"key\", \"type\", name, description, enabled, created_at, updated_at").
 			From("flags").
 			Where(sq.Eq{"namespace_key": namespaceKey}).
 			OrderBy(fmt.Sprintf("created_at %s", params.Order))
@@ -200,6 +201,7 @@ func (s *Store) ListFlags(ctx context.Context, namespaceKey string, opts ...stor
 		if err := rows.Scan(
 			&flag.NamespaceKey,
 			&flag.Key,
+			&flag.Type,
 			&flag.Name,
 			&flag.Description,
 			&flag.Enabled,
@@ -313,11 +315,11 @@ func (s *Store) setVariants(ctx context.Context, namespaceKey string, flagsByKey
 
 // CountFlags counts all flags
 func (s *Store) CountFlags(ctx context.Context, namespaceKey string) (uint64, error) {
-	var count uint64
-
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
+
+	var count uint64
 
 	if err := s.builder.Select("COUNT(*)").
 		From("flags").
@@ -341,6 +343,7 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 		flag = &flipt.Flag{
 			NamespaceKey: r.NamespaceKey,
 			Key:          r.Key,
+			Type:         r.Type,
 			Name:         r.Name,
 			Description:  r.Description,
 			Enabled:      r.Enabled,
@@ -350,10 +353,11 @@ func (s *Store) CreateFlag(ctx context.Context, r *flipt.CreateFlagRequest) (*fl
 	)
 
 	if _, err := s.builder.Insert("flags").
-		Columns("namespace_key", "\"key\"", "name", "description", "enabled", "created_at", "updated_at").
+		Columns("namespace_key", "\"key\"", "\"type\"", "name", "description", "enabled", "created_at", "updated_at").
 		Values(
 			flag.NamespaceKey,
 			flag.Key,
+			flag.Type,
 			flag.Name,
 			flag.Description,
 			flag.Enabled,

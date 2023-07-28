@@ -4,21 +4,32 @@ import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
-import Loading from '~/components//Loading';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
+import Loading from '~/components/Loading';
 import { createFlag, updateFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
-import { IFlag, IFlagBase } from '~/types/Flag';
+import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
 import { stringAsKey } from '~/utils/helpers';
 
 type FlagFormProps = {
   flag?: IFlag;
   flagChanged?: () => void;
 };
+
+const flagTypes = [
+  {
+    id: FlagType.VARIANT,
+    name: 'Variant'
+  },
+  {
+    id: FlagType.BOOLEAN,
+    name: 'Boolean'
+  }
+];
 
 export default function FlagForm(props: FlagFormProps) {
   const { flag, flagChanged } = props;
@@ -44,6 +55,7 @@ export default function FlagForm(props: FlagFormProps) {
     key: flag?.key || '',
     name: flag?.name || '',
     description: flag?.description || '',
+    type: flag?.type || FlagType.VARIANT,
     enabled: flag?.enabled || false
   };
 
@@ -98,7 +110,7 @@ export default function FlagForm(props: FlagFormProps) {
                 <div className="col-span-2">
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
+                    className="text-gray-700 block text-sm font-medium"
                   >
                     Name
                   </label>
@@ -127,7 +139,7 @@ export default function FlagForm(props: FlagFormProps) {
                 <div className="col-span-2">
                   <label
                     htmlFor="key"
-                    className="block text-sm font-medium text-gray-700"
+                    className="text-gray-700 block text-sm font-medium"
                   >
                     Key
                   </label>
@@ -143,15 +155,57 @@ export default function FlagForm(props: FlagFormProps) {
                   />
                 </div>
                 <div className="col-span-3">
+                  <label
+                    htmlFor="type"
+                    className="text-gray-700 block text-sm font-medium"
+                  >
+                    Type
+                  </label>
+                  <fieldset className="mt-2">
+                    <legend className="sr-only">Type</legend>
+                    <div className="flex flex-row space-x-5">
+                      {flagTypes.map((type) => (
+                        <div
+                          key={type.id}
+                          className="relative flex items-start"
+                        >
+                          <div className="flex h-5 items-center">
+                            <input
+                              id={type.id}
+                              name="type"
+                              type="radio"
+                              disabled={!isNew}
+                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                              onChange={() => {
+                                formik.setFieldValue('type', type.id);
+                              }}
+                              checked={type.id === formik.values.type}
+                              value={type.id}
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label
+                              htmlFor={type.id}
+                              className="text-gray-700 font-medium"
+                            >
+                              {type.name}
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+                <div className="col-span-3">
                   <div className="flex justify-between">
                     <label
                       htmlFor="description"
-                      className="block text-sm font-medium text-gray-700"
+                      className="text-gray-700 block text-sm font-medium"
                     >
                       Description
                     </label>
                     <span
-                      className="text-xs text-gray-500"
+                      className="text-gray-500 text-xs"
                       id="description-optional"
                     >
                       Optional

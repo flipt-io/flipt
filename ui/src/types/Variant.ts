@@ -1,4 +1,4 @@
-import { ISelectable } from '~/components/forms/Combobox';
+import { IFilterable } from './Selectable';
 
 export interface IVariantBase {
   key: string;
@@ -13,4 +13,4 @@ export interface IVariant extends IVariantBase {
   updatedAt: string;
 }
 
-export type SelectableVariant = IVariant & ISelectable;
+export type FilterableVariant = IVariant & IFilterable;

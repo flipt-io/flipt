@@ -1,19 +1,17 @@
 import { IDistribution } from './Distribution';
-import { IFlag } from './Flag';
 import { ISegment } from './Segment';
 import { IVariant } from './Variant';
 
-export interface IRollout {
+export interface IVariantRollout {
   variant: IVariant;
   distribution: IDistribution;
 }
 
 export interface IEvaluatable {
   id: string;
-  flag: IFlag;
   segment: ISegment;
   rank: number;
-  rollouts: IRollout[];
+  rollouts: IVariantRollout[];
   createdAt: string;
   updatedAt: string;
 }

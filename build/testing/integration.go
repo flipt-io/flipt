@@ -287,7 +287,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		if namespace == "" {
 			namespace = "default"
 			// replace namespace in expected yaml
-			expected = strings.ReplaceAll(expected, "version: \"1.0\"\n", fmt.Sprintf("version: \"1.0\"\nnamespace: %s\n", namespace))
+			expected = strings.ReplaceAll(expected, "version: \"1.1\"\n", fmt.Sprintf("version: \"1.1\"\nnamespace: %s\n", namespace))
 		}
 
 		// use target flipt binary to invoke import
@@ -306,7 +306,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 		diff := cmp.Diff(expected, generated)
 		if diff != "" {
-			fmt.Println("Unexpected difference in exported output:")
+			fmt.Printf("Unexpected difference in %q exported output: \n", conf.name)
 			fmt.Println(diff)
 			return errors.New("exported yaml did not match")
 		}
@@ -330,7 +330,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithServiceBinding("flipt", flipt).
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(append([]string{"go", "test", "-v", "-race"}, append(flags, ".")...)).
+			WithExec(append([]string{"go", "test", "-v", "-timeout=1m", "-race"}, append(flags, ".")...)).
 			ExitCode(ctx)
 
 		return err

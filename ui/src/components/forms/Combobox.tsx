@@ -2,9 +2,10 @@ import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
 import { useState } from 'react';
+import { IFilterable } from '~/types/Selectable';
 import { classNames } from '~/utils/helpers';
 
-type ComboboxProps<T extends ISelectable> = {
+type ComboboxProps<T extends IFilterable> = {
   id: string;
   name: string;
   placeholder?: string;
@@ -15,14 +16,7 @@ type ComboboxProps<T extends ISelectable> = {
   className?: string;
 };
 
-export interface ISelectable {
-  key: string;
-  status?: 'active' | 'inactive';
-  filterValue: string;
-  displayValue: string;
-}
-
-export default function Combobox<T extends ISelectable>(
+export default function Combobox<T extends IFilterable>(
   props: ComboboxProps<T>
 ) {
   const {
@@ -57,7 +51,7 @@ export default function Combobox<T extends ISelectable>(
       <div className="relative flex w-full flex-row">
         <C.Input
           id={id}
-          className="w-full rounded-md border py-2 pl-3 pr-10 shadow-sm border-gray-300 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 sm:text-sm"
+          className="text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
           }}
@@ -69,13 +63,13 @@ export default function Combobox<T extends ISelectable>(
           id={`${id}-select-button`}
         >
           <ChevronUpDownIcon
-            className="h-5 w-5 text-gray-400"
+            className="text-gray-400 h-5 w-5"
             aria-hidden="true"
           />
         </C.Button>
       </div>
       <C.Options
-        className="z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 bg-white focus:outline-none sm:text-sm"
+        className="bg-white z-10 mt-1 flex max-h-60 w-full flex-col overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
         id={`${id}-select-options`}
       >
         {filteredValues &&
@@ -85,7 +79,7 @@ export default function Combobox<T extends ISelectable>(
               value={v}
               className={({ active }) =>
                 classNames(
-                  'relative w-full cursor-default select-none py-2 pl-3 pr-9 text-gray-900',
+                  'relative w-full cursor-default select-none py-2 pl-3 pr-9',
                   active ? 'bg-violet-100' : ''
                 )
               }
@@ -104,13 +98,13 @@ export default function Combobox<T extends ISelectable>(
                     )}
                     <span
                       className={classNames(
-                        'truncate',
-                        selected ? 'font-semibold' : ''
+                        selected ? 'font-semibold' : '',
+                        'text-gray-700 truncate'
                       )}
                     >
                       {v?.filterValue}
                     </span>
-                    <span className="ml-2 truncate text-gray-500">
+                    <span className="text-gray-500 ml-2 truncate">
                       {v?.displayValue}
                     </span>
                   </div>
@@ -130,7 +124,7 @@ export default function Combobox<T extends ISelectable>(
             </C.Option>
           ))}
         {!filteredValues?.length && (
-          <div className="w-full py-2 text-center text-gray-500">
+          <div className="text-gray-500 w-full py-2 text-center">
             No results found
           </div>
         )}

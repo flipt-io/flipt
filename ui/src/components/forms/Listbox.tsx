@@ -1,6 +1,7 @@
 import { Listbox as L, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from 'react';
+import { ISelectable } from '~/types/Selectable';
 import { classNames } from '~/utils/helpers';
 
 type ListBoxProps<T extends ISelectable> = {
@@ -12,11 +13,6 @@ type ListBoxProps<T extends ISelectable> = {
   disabled?: boolean;
   className?: string;
 };
-
-export interface ISelectable {
-  key: string;
-  displayValue: string;
-}
 
 export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
   const { id, name, values, selected, setSelected, disabled, className } =
@@ -41,19 +37,19 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
               className={classNames(
                 disabled
                   ? 'bg-gray-100'
-                  : 'shadow-sm ring-1 ring-inset ring-gray-300 bg-gray-50 focus:ring-1 focus:ring-violet-600',
-                'relative w-full cursor-default rounded-md px-2 py-2 pl-3 pr-10 text-left text-gray-900 focus:outline-none sm:text-sm sm:leading-6'
+                  : 'bg-gray-50 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-violet-600',
+                'text-gray-900 relative w-full cursor-default rounded-md px-2 py-2 pl-3 pr-10 text-left focus:outline-none sm:text-sm sm:leading-6'
               )}
               id={`${id}-select-button`}
             >
               <div className="flex items-center">
-                <span className="block truncate font-medium text-gray-600">
+                <span className="text-gray-600 block truncate font-medium">
                   {selected?.displayValue}
                 </span>
                 {!disabled && (
                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                     <ChevronUpDownIcon
-                      className="h-5 w-5 text-gray-400"
+                      className="text-gray-400 h-5 w-5"
                       aria-hidden="true"
                     />
                   </span>
@@ -69,7 +65,7 @@ export default function Listbox<T extends ISelectable>(props: ListBoxProps<T>) {
               leaveTo="opacity-0"
             >
               <L.Options
-                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 bg-gray-50 focus:outline-none sm:text-sm"
+                className="bg-gray-50 absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
                 id={`${id}-select-options`}
               >
                 {values?.map((v) => (

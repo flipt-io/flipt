@@ -5,9 +5,10 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
-import Listbox, { ISelectable } from '~/components/forms/Listbox';
+import Listbox from '~/components/forms/Listbox';
 import { useAppDispatch } from '~/data/hooks/store';
 import { INamespace } from '~/types/Namespace';
+import { ISelectable } from '~/types/Selectable';
 import { addNamespaceToPath } from '~/utils/helpers';
 
 export type SelectableNamespace = Pick<INamespace, 'key' | 'name'> &
