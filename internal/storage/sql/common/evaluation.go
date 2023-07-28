@@ -196,7 +196,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			c.value AS constraint_value
 		FROM rollout_segments rs
 		JOIN segments s ON (rs.segment_key = s."key")
-		JOIN constraints c ON (rs.segment_key = c.segment_key)
+		LEFT JOIN constraints c ON (rs.segment_key = c.segment_key)
 	) rss ON (r.id = rss.rollout_id)
 	`).
 		Where(sq.And{sq.Eq{"r.namespace_key": namespaceKey}, sq.Eq{"r.flag_key": flagKey}}).
@@ -219,17 +219,14 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 	for rows.Next() {
 		var (
-			rolloutId            string
-			evaluationRollout    storage.EvaluationRollout
-			rtPercentageNumber   sql.NullFloat64
-			rtPercentageValue    sql.NullBool
-			rsSegmentKey         sql.NullString
-			rsSegmentValue       sql.NullBool
-			rsMatchType          sql.NullInt32
-			rsConstraintType     sql.NullInt32
-			rsConstraintProperty sql.NullString
-			rsConstraintOperator sql.NullString
-			rsConstraintValue    sql.NullString
+			rolloutId          string
+			evaluationRollout  storage.EvaluationRollout
+			rtPercentageNumber sql.NullFloat64
+			rtPercentageValue  sql.NullBool
+			rsSegmentKey       sql.NullString
+			rsSegmentValue     sql.NullBool
+			rsMatchType        sql.NullInt32
+			optionalConstraint optionalConstraint
 		)
 
 		if err := rows.Scan(
@@ -242,10 +239,10 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			&rsSegmentKey,
 			&rsSegmentValue,
 			&rsMatchType,
-			&rsConstraintType,
-			&rsConstraintProperty,
-			&rsConstraintOperator,
-			&rsConstraintValue,
+			&optionalConstraint.Type,
+			&optionalConstraint.Property,
+			&optionalConstraint.Operator,
+			&optionalConstraint.Value,
 		); err != nil {
 			return rollouts, err
 		}
@@ -259,19 +256,22 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			evaluationRollout.Threshold = storageThreshold
 		} else if rsSegmentKey.Valid &&
 			rsSegmentValue.Valid &&
-			rsMatchType.Valid &&
-			rsConstraintType.Valid &&
-			rsConstraintProperty.Valid &&
-			rsConstraintOperator.Valid && rsConstraintValue.Valid {
-			c := storage.EvaluationConstraint{
-				Type:     flipt.ComparisonType(rsConstraintType.Int32),
-				Property: rsConstraintProperty.String,
-				Operator: rsConstraintOperator.String,
-				Value:    rsConstraintValue.String,
+			rsMatchType.Valid {
+
+			var c *storage.EvaluationConstraint
+			if optionalConstraint.Type.Valid {
+				c = &storage.EvaluationConstraint{
+					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
+					Property: optionalConstraint.Property.String,
+					Operator: optionalConstraint.Operator.String,
+					Value:    optionalConstraint.Value.String,
+				}
 			}
 
 			if existingSegment, ok := uniqueSegmentedRollouts[rolloutId]; ok {
-				existingSegment.Segment.Constraints = append(existingSegment.Segment.Constraints, c)
+				if c != nil {
+					existingSegment.Segment.Constraints = append(existingSegment.Segment.Constraints, *c)
+				}
 				continue
 			}
 
@@ -281,7 +281,9 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 				MatchType: flipt.MatchType(rsMatchType.Int32),
 			}
 
-			storageSegment.Constraints = append(storageSegment.Constraints, c)
+			if c != nil {
+				storageSegment.Constraints = append(storageSegment.Constraints, *c)
+			}
 
 			evaluationRollout.Segment = storageSegment
 			uniqueSegmentedRollouts[rolloutId] = &evaluationRollout
