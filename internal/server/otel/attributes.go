@@ -8,6 +8,7 @@ var (
 	AttributeNamespace   = attribute.Key("flipt.namespace")
 	AttributeFlagEnabled = attribute.Key("flipt.flag_enabled")
 	AttributeSegment     = attribute.Key("flipt.segment")
+	AttributeSegments    = attribute.Key("flipt.segments")
 	AttributeReason      = attribute.Key("flipt.reason")
 	AttributeValue       = attribute.Key("flipt.value")
 	AttributeEntityID    = attribute.Key("flipt.entity_id")

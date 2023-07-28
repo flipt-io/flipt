@@ -62,7 +62,7 @@ message BooleanEvaluationResponse {
 
 message VariantEvaluationResponse {
   bool match = 1;
-  string segment_key = 2;
+  repeated string segment_keys = 2;
   EvaluationReason reason = 3;
   string variant_key = 4;
   string variant_attachment = 5;
