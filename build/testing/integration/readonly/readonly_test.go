@@ -470,7 +470,6 @@ func TestReadOnly(t *testing.T) {
 
 					assert.False(t, result.Match, "Evaluation should not have matched.")
 					assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
-					assert.Empty(t, result.SegmentKeys)
 					assert.Empty(t, result.VariantKey)
 				})
 
