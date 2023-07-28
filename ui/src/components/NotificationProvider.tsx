@@ -1,4 +1,5 @@
 import { createContext, useState } from 'react';
+import { getErrorMessage } from '~/utils/helpers';
 
 type ErrorContext = {
   error: string | null;
@@ -28,13 +29,12 @@ export function NotificationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [error, setIError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const [error, setError_] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const setError = (error: unknown) => {
-    if (error === null) setIError(null);
-    else if (error instanceof Error) setIError(error.message);
-    else setIError(String(error));
+    setError_(getErrorMessage(error));
   };
 
   return (
