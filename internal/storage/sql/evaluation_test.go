@@ -90,19 +90,22 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
 	assert.Equal(t, storage.DefaultNamespace, evaluationRules[0].NamespaceKey)
 	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
-	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].SegmentMatchType)
+
+	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[segment.Key].SegmentKey)
+	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[segment.Key].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Equal(t, 2, len(evaluationRules[0].Constraints))
+	assert.Len(t, evaluationRules[0].Segments[segment.Key].Constraints, 2)
 
 	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
 	assert.Equal(t, storage.DefaultNamespace, evaluationRules[1].NamespaceKey)
 	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
-	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].SegmentMatchType)
+
+	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[segment.Key].SegmentKey)
+	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[segment.Key].MatchType)
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
-	assert.Equal(t, 2, len(evaluationRules[1].Constraints))
+	assert.Len(t, evaluationRules[1].Segments[segment.Key].Constraints, 2)
 }
+
 func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
 	t := s.T()
 
@@ -173,18 +176,20 @@ func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
 	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
 	assert.Equal(t, storage.DefaultNamespace, evaluationRules[0].NamespaceKey)
 	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
-	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].SegmentMatchType)
+
+	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[segment.Key].SegmentKey)
+	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[segment.Key].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Equal(t, 2, len(evaluationRules[0].Constraints))
+	assert.Len(t, evaluationRules[0].Segments[segment.Key].Constraints, 2)
 
 	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
 	assert.Equal(t, storage.DefaultNamespace, evaluationRules[1].NamespaceKey)
 	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
-	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].SegmentMatchType)
+
+	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[segment.Key].SegmentKey)
+	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[segment.Key].MatchType)
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
-	assert.Equal(t, 2, len(evaluationRules[1].Constraints))
+	assert.Len(t, evaluationRules[1].Segments[segment.Key].Constraints, 2)
 }
 
 func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
@@ -200,9 +205,19 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 
 	require.NoError(t, err)
 
-	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	firstSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		NamespaceKey: s.namespace,
 		Key:          t.Name(),
+		Name:         "foo",
+		Description:  "bar",
+		MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
+	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		NamespaceKey: s.namespace,
+		Key:          "another_segment",
 		Name:         "foo",
 		Description:  "bar",
 		MatchType:    flipt.MatchType_ANY_MATCH_TYPE,
@@ -213,7 +228,7 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 	// constraint 1
 	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		NamespaceKey: s.namespace,
-		SegmentKey:   segment.Key,
+		SegmentKey:   firstSegment.Key,
 		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:     "foo",
 		Operator:     "EQ",
@@ -225,7 +240,7 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 	// constraint 2
 	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
 		NamespaceKey: s.namespace,
-		SegmentKey:   segment.Key,
+		SegmentKey:   firstSegment.Key,
 		Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:     "foz",
 		Operator:     "EQ",
@@ -236,20 +251,11 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 
 	// rule rank 1
 	rule1, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		NamespaceKey: s.namespace,
-		FlagKey:      flag.Key,
-		SegmentKey:   segment.Key,
-		Rank:         1,
-	})
-
-	require.NoError(t, err)
-
-	// rule rank 2
-	rule2, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		NamespaceKey: s.namespace,
-		FlagKey:      flag.Key,
-		SegmentKey:   segment.Key,
-		Rank:         2,
+		NamespaceKey:    s.namespace,
+		FlagKey:         flag.Key,
+		SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+		SegmentKeys:     []string{firstSegment.Key, secondSegment.Key},
+		Rank:            1,
 	})
 
 	require.NoError(t, err)
@@ -258,23 +264,21 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, evaluationRules)
-	assert.Equal(t, 2, len(evaluationRules))
+	assert.Equal(t, 1, len(evaluationRules))
 
 	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
 	assert.Equal(t, s.namespace, evaluationRules[0].NamespaceKey)
 	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
-	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].SegmentMatchType)
-	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Equal(t, 2, len(evaluationRules[0].Constraints))
 
-	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
-	assert.Equal(t, s.namespace, evaluationRules[1].NamespaceKey)
-	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
-	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].SegmentMatchType)
-	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
-	assert.Equal(t, 2, len(evaluationRules[1].Constraints))
+	assert.Equal(t, firstSegment.Key, evaluationRules[0].Segments[firstSegment.Key].SegmentKey)
+	assert.Equal(t, firstSegment.MatchType, evaluationRules[0].Segments[firstSegment.Key].MatchType)
+	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
+	assert.Len(t, evaluationRules[0].Segments[firstSegment.Key].Constraints, 2)
+
+	assert.Equal(t, secondSegment.Key, evaluationRules[0].Segments[secondSegment.Key].SegmentKey)
+	assert.Equal(t, secondSegment.MatchType, evaluationRules[0].Segments[secondSegment.Key].MatchType)
+	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
+	assert.Len(t, evaluationRules[0].Segments[secondSegment.Key].Constraints, 0)
 }
 
 func (s *DBTestSuite) TestGetEvaluationDistributions() {
@@ -639,16 +643,6 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 
 	require.NoError(t, err)
 
-	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
-		SegmentKey: segment.Key,
-		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-		Property:   "foo",
-		Operator:   "EQ",
-		Value:      "bar",
-	})
-
-	require.NoError(t, err)
-
 	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
@@ -707,7 +701,7 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 
 	require.NoError(t, err)
 
-	segment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+	firstSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
 		Description: "bar",
@@ -716,8 +710,17 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 
 	require.NoError(t, err)
 
+	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         "another_segment",
+		Name:        "foo",
+		Description: "bar",
+		MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+
 	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
-		SegmentKey: segment.Key,
+		SegmentKey: firstSegment.Key,
 		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
 		Property:   "foo",
 		Operator:   "EQ",
@@ -744,8 +747,9 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 		Rank:    2,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				SegmentKey: segment.Key,
-				Value:      true,
+				SegmentKeys:     []string{firstSegment.Key, secondSegment.Key},
+				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				Value:           true,
 			},
 		},
 	})
@@ -766,9 +770,13 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 	assert.Equal(t, "default", evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
 	assert.NotNil(t, evaluationRollouts[1].Segment)
-	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.MatchType)
-	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
+
+	assert.Equal(t, firstSegment.Key, evaluationRollouts[1].Segment.Segments[firstSegment.Key].SegmentKey)
+	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, evaluationRollouts[1].Segment.SegmentOperator)
+	assert.Len(t, evaluationRollouts[1].Segment.Segments[firstSegment.Key].Constraints, 1)
+
+	assert.Equal(t, secondSegment.Key, evaluationRollouts[1].Segment.Segments[secondSegment.Key].SegmentKey)
+	assert.Len(t, evaluationRollouts[1].Segment.Segments[secondSegment.Key].Constraints, 0)
 }
 
 func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {

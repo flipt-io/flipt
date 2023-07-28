@@ -92,9 +92,9 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		}
 
 		if existingRule, ok := uniqueRules[intermediateStorageRule.ID]; ok {
-			var constraint storage.EvaluationConstraint
+			var constraint *storage.EvaluationConstraint
 			if optionalConstraint.Id.Valid {
-				constraint = storage.EvaluationConstraint{
+				constraint = &storage.EvaluationConstraint{
 					ID:       optionalConstraint.Id.String,
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
@@ -105,13 +105,20 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 			segment, ok := existingRule.Segments[intermediateStorageRule.SegmentKey]
 			if !ok {
-				existingRule.Segments[intermediateStorageRule.SegmentKey] = &storage.EvaluationSegment{
-					SegmentKey:  intermediateStorageRule.SegmentKey,
-					MatchType:   intermediateStorageRule.SegmentMatchType,
-					Constraints: []storage.EvaluationConstraint{constraint},
+				ses := &storage.EvaluationSegment{
+					SegmentKey: intermediateStorageRule.SegmentKey,
+					MatchType:  intermediateStorageRule.SegmentMatchType,
 				}
+
+				if constraint != nil {
+					ses.Constraints = []storage.EvaluationConstraint{*constraint}
+				}
+
+				existingRule.Segments[intermediateStorageRule.SegmentKey] = ses
 			} else {
-				segment.Constraints = append(segment.Constraints, constraint)
+				if constraint != nil {
+					segment.Constraints = append(segment.Constraints, *constraint)
+				}
 			}
 		} else {
 			// haven't seen this rule before
@@ -124,24 +131,27 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 				Segments:        make(map[string]*storage.EvaluationSegment),
 			}
 
-			newRule.Segments[intermediateStorageRule.SegmentKey] = &storage.EvaluationSegment{
-				SegmentKey: intermediateStorageRule.SegmentKey,
-				MatchType:  intermediateStorageRule.SegmentMatchType,
-			}
-
+			var constraint *storage.EvaluationConstraint
 			if optionalConstraint.Id.Valid {
-				constraint := storage.EvaluationConstraint{
+				constraint = &storage.EvaluationConstraint{
 					ID:       optionalConstraint.Id.String,
 					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
 				}
-
-				if segment, ok := newRule.Segments[intermediateStorageRule.SegmentKey]; ok {
-					segment.Constraints = []storage.EvaluationConstraint{constraint}
-				}
 			}
+
+			ses := &storage.EvaluationSegment{
+				SegmentKey: intermediateStorageRule.SegmentKey,
+				MatchType:  intermediateStorageRule.SegmentMatchType,
+			}
+
+			if constraint != nil {
+				ses.Constraints = []storage.EvaluationConstraint{*constraint}
+			}
+
+			newRule.Segments[intermediateStorageRule.SegmentKey] = ses
 
 			uniqueRules[newRule.ID] = newRule
 			rules = append(rules, newRule)
@@ -249,7 +259,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 		FROM rollout_segments AS rs
 		JOIN rollout_segment_references AS rsr ON (rs.id = rsr.rollout_segment_id)
 		JOIN segments AS s ON (rsr.segment_key = s."key")
-		JOIN constraints AS c ON (rsr.segment_key = c.segment_key)
+		LEFT JOIN constraints AS c ON (rsr.segment_key = c.segment_key)
 	) rss ON (r.id = rss.rollout_id)
 	`).
 		Where(sq.And{sq.Eq{"r.namespace_key": namespaceKey}, sq.Eq{"r.flag_key": flagKey}}).
@@ -272,18 +282,15 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 	for rows.Next() {
 		var (
-			rolloutId            string
-			evaluationRollout    storage.EvaluationRollout
-			rtPercentageNumber   sql.NullFloat64
-			rtPercentageValue    sql.NullBool
-			rsSegmentKey         sql.NullString
-			rsSegmentValue       sql.NullBool
-			rsSegmentOperator    sql.NullInt32
-			rsMatchType          sql.NullInt32
-			rsConstraintType     sql.NullInt32
-			rsConstraintProperty sql.NullString
-			rsConstraintOperator sql.NullString
-			rsConstraintValue    sql.NullString
+			rolloutId          string
+			evaluationRollout  storage.EvaluationRollout
+			rtPercentageNumber sql.NullFloat64
+			rtPercentageValue  sql.NullBool
+			rsSegmentKey       sql.NullString
+			rsSegmentValue     sql.NullBool
+			rsSegmentOperator  sql.NullInt32
+			rsMatchType        sql.NullInt32
+			optionalConstraint optionalConstraint
 		)
 
 		if err := rows.Scan(
@@ -297,10 +304,10 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			&rsSegmentValue,
 			&rsSegmentOperator,
 			&rsMatchType,
-			&rsConstraintType,
-			&rsConstraintProperty,
-			&rsConstraintOperator,
-			&rsConstraintValue,
+			&optionalConstraint.Type,
+			&optionalConstraint.Property,
+			&optionalConstraint.Operator,
+			&optionalConstraint.Value,
 		); err != nil {
 			return rollouts, err
 		}
@@ -315,28 +322,37 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 		} else if rsSegmentKey.Valid &&
 			rsSegmentValue.Valid &&
 			rsSegmentOperator.Valid &&
-			rsMatchType.Valid &&
-			rsConstraintType.Valid &&
-			rsConstraintProperty.Valid &&
-			rsConstraintOperator.Valid && rsConstraintValue.Valid {
-			c := storage.EvaluationConstraint{
-				Type:     flipt.ComparisonType(rsConstraintType.Int32),
-				Property: rsConstraintProperty.String,
-				Operator: rsConstraintOperator.String,
-				Value:    rsConstraintValue.String,
+			rsMatchType.Valid {
+
+			var c *storage.EvaluationConstraint
+			if optionalConstraint.Type.Valid {
+				c = &storage.EvaluationConstraint{
+					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
+					Property: optionalConstraint.Property.String,
+					Operator: optionalConstraint.Operator.String,
+					Value:    optionalConstraint.Value.String,
+				}
 			}
 
 			if existingRolloutSegment, ok := uniqueSegmentedRollouts[rolloutId]; ok {
 				// check if segment exists then do some things in that case.
 				es, innerOk := existingRolloutSegment.Segment.Segments[rsSegmentKey.String]
 				if innerOk {
-					es.Constraints = append(es.Constraints, c)
-				} else {
-					existingRolloutSegment.Segment.Segments[rsSegmentKey.String] = &storage.EvaluationSegment{
-						SegmentKey:  rsSegmentKey.String,
-						MatchType:   flipt.MatchType(rsMatchType.Int32),
-						Constraints: []storage.EvaluationConstraint{c},
+					if c != nil {
+						es.Constraints = append(es.Constraints, *c)
 					}
+				} else {
+
+					ses := &storage.EvaluationSegment{
+						SegmentKey: rsSegmentKey.String,
+						MatchType:  flipt.MatchType(rsMatchType.Int32),
+					}
+
+					if c != nil {
+						ses.Constraints = []storage.EvaluationConstraint{*c}
+					}
+
+					existingRolloutSegment.Segment.Segments[rsSegmentKey.String] = ses
 				}
 
 				continue
@@ -348,11 +364,16 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 				Segments:        make(map[string]*storage.EvaluationSegment),
 			}
 
-			storageSegment.Segments[rsSegmentKey.String] = &storage.EvaluationSegment{
-				SegmentKey:  rsSegmentKey.String,
-				MatchType:   flipt.MatchType(rsMatchType.Int32),
-				Constraints: []storage.EvaluationConstraint{c},
+			ses := &storage.EvaluationSegment{
+				SegmentKey: rsSegmentKey.String,
+				MatchType:  flipt.MatchType(rsMatchType.Int32),
 			}
+
+			if c != nil {
+				ses.Constraints = []storage.EvaluationConstraint{*c}
+			}
+
+			storageSegment.Segments[rsSegmentKey.String] = ses
 
 			evaluationRollout.Segment = storageSegment
 			uniqueSegmentedRollouts[rolloutId] = &evaluationRollout
