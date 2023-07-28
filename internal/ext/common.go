@@ -26,9 +26,11 @@ type Variant struct {
 }
 
 type Rule struct {
-	SegmentKey    string          `yaml:"segment,omitempty"`
-	Rank          uint            `yaml:"rank,omitempty"`
-	Distributions []*Distribution `yaml:"distributions,omitempty"`
+	SegmentKey      string          `yaml:"segment,omitempty"`
+	Rank            uint            `yaml:"rank,omitempty"`
+	SegmentKeys     []string        `yaml:"segments,omitempty"`
+	SegmentOperator string          `yaml:"operator,omitempty"`
+	Distributions   []*Distribution `yaml:"distributions,omitempty"`
 }
 
 type Distribution struct {
@@ -43,8 +45,10 @@ type Rollout struct {
 }
 
 type SegmentRule struct {
-	Key   string `yaml:"key,omitempty"`
-	Value bool   `yaml:"value,omitempty"`
+	Key      string   `yaml:"key,omitempty"`
+	Keys     []string `yaml:"keys,omitempty"`
+	Operator string   `yaml:"operator,omitempty"`
+	Value    bool     `yaml:"value,omitempty"`
 }
 
 type ThresholdRule struct {

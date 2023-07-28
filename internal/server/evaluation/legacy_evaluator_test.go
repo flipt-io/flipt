@@ -2139,11 +2139,24 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 				},
 			},
 			{
-				ID:               "2",
-				FlagKey:          "foo",
-				SegmentKey:       "all_users",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             1,
+				ID:      "2",
+				FlagKey: "foo",
+				Rank:    1,
+				Segments: map[string]*storage.EvaluationSegment{
+					"all_users": {
+						SegmentKey: "all_users",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: premium_user (bool) == true
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "premium_user",
+								Operator: flipt.OpTrue,
+							},
+						},
+					},
+				},
 			},
 		}, nil)
 

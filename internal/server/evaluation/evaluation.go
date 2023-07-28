@@ -191,9 +191,14 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 				return resp, nil
 			}
 		} else if rollout.Segment != nil {
-			segmentMatches := 0
 
-			for _, v := range rollout.Segment.Segments {
+			var (
+				segmentMatches = 0
+				segmentKeys    = []string{}
+			)
+
+			for k, v := range rollout.Segment.Segments {
+				segmentKeys = append(segmentKeys, k)
 				matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
 				if err != nil {
 					return nil, err
@@ -222,7 +227,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 
-			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
+			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.Strings("segments", segmentKeys))
 			return resp, nil
 		}
 	}

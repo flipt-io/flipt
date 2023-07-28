@@ -742,11 +742,9 @@ func TestBatch_Success(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, namespaceKey, variantFlagKey).Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          variantFlagKey,
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
+				ID:      "1",
+				FlagKey: variantFlagKey,
+				Rank:    0,
 				Segments: map[string]*storage.EvaluationSegment{
 					"bar": {
 						SegmentKey: "bar",

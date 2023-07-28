@@ -18,15 +18,12 @@ const (
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
 type EvaluationRule struct {
-	ID               string
-	NamespaceKey     string
-	FlagKey          string
-	SegmentKey       string
-	SegmentMatchType flipt.MatchType
-	Segments         map[string]*EvaluationSegment
-	Rank             int32
-	SegmentOperator  flipt.SegmentOperator
-	Constraints      []EvaluationConstraint
+	ID              string
+	NamespaceKey    string
+	FlagKey         string
+	Segments        map[string]*EvaluationSegment
+	Rank            int32
+	SegmentOperator flipt.SegmentOperator
 }
 
 type EvaluationSegment struct {
@@ -52,10 +49,7 @@ type RolloutThreshold struct {
 
 // RolloutSegment represents Segment(s) for use in evaluation.
 type RolloutSegment struct {
-	Key             string
-	MatchType       flipt.MatchType
 	Value           bool
-	Constraints     []EvaluationConstraint
 	SegmentOperator flipt.SegmentOperator
 	Segments        map[string]*EvaluationSegment
 }
