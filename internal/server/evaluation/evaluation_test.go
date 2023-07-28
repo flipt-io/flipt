@@ -394,15 +394,20 @@ func TestBoolean_PercentageRuleFallthrough_SegmentMatch(t *testing.T) {
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         2,
 			Segment: &storage.RolloutSegment{
-				Key:       "test-segment",
-				MatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Value:     true,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "hello",
-						Operator: flipt.OpEQ,
-						Value:    "world",
+				Value:           true,
+				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
 					},
 				},
 			},
@@ -447,21 +452,26 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         1,
 			Segment: &storage.RolloutSegment{
-				Key:       "test-segment",
-				MatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Value:     true,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
-						Property: "pitimes100",
-						Operator: flipt.OpEQ,
-						Value:    "314",
-					},
-					{
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "hello",
-						Operator: flipt.OpEQ,
-						Value:    "world",
+				Value:           true,
+				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+								Property: "pitimes100",
+								Operator: flipt.OpEQ,
+								Value:    "314",
+							},
+							{
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
 					},
 				},
 			},
@@ -474,6 +484,77 @@ func TestBoolean_SegmentMatch_MultipleConstraints(t *testing.T) {
 		NamespaceKey: namespaceKey,
 		Context: map[string]string{
 			"hello": "world",
+		},
+	})
+
+	require.NoError(t, err)
+
+	assert.Equal(t, true, res.Enabled)
+	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
+}
+
+func TestBoolean_SegmentMatch_MultipleSegments_WithAnd(t *testing.T) {
+	var (
+		flagKey      = "test-flag"
+		namespaceKey = "test-namespace"
+		store        = &evaluationStoreMock{}
+		logger       = zaptest.NewLogger(t)
+		s            = New(logger, store)
+	)
+
+	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(
+		&flipt.Flag{
+			NamespaceKey: "test-namespace",
+			Key:          "test-flag",
+			Enabled:      true,
+			Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
+		}, nil)
+
+	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{
+		{
+			NamespaceKey: namespaceKey,
+			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+			Rank:         1,
+			Segment: &storage.RolloutSegment{
+				Value:           true,
+				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+								Property: "pitimes100",
+								Operator: flipt.OpEQ,
+								Value:    "314",
+							},
+						},
+					},
+					"another-segment": {
+						SegmentKey: "another-segment",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
+					},
+				},
+			},
+		},
+	}, nil)
+
+	res, err := s.Boolean(context.TODO(), &rpcevaluation.EvaluationRequest{
+		FlagKey:      flagKey,
+		EntityId:     "test-entity",
+		NamespaceKey: namespaceKey,
+		Context: map[string]string{
+			"hello":      "world",
+			"pitimes100": "314",
 		},
 	})
 
@@ -515,15 +596,20 @@ func TestBoolean_RulesOutOfOrder(t *testing.T) {
 			RolloutType:  flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
 			Rank:         0,
 			Segment: &storage.RolloutSegment{
-				Key:       "test-segment",
-				MatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Value:     true,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "hello",
-						Operator: flipt.OpEQ,
-						Value:    "world",
+				Value:           true,
+				SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"test-segment": {
+						SegmentKey: "test-segment",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
 					},
 				},
 			},
@@ -656,13 +742,19 @@ func TestBatch_Success(t *testing.T) {
 				SegmentKey:       "bar",
 				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
 				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "hello",
-						Operator: flipt.OpEQ,
-						Value:    "world",
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "hello",
+								Operator: flipt.OpEQ,
+								Value:    "world",
+							},
+						},
 					},
 				},
 			},

@@ -109,8 +109,35 @@ func TestCreateRollout(t *testing.T) {
 				Rank:    1,
 				Rule: &flipt.Rollout_Segment{
 					Segment: &flipt.RolloutSegment{
-						SegmentKey: "segmentKey",
-						Value:      true,
+						SegmentOperator: flipt.SegmentOperator_OR_SEGMENT_OPERATOR,
+						SegmentKey:      "segmentKey",
+						Value:           true,
+					},
+				},
+			},
+		},
+		{
+			name: "segments",
+			req: &flipt.CreateRolloutRequest{
+				FlagKey: "flagKey",
+				Rank:    1,
+				Rule: &flipt.CreateRolloutRequest_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+						SegmentKeys:     []string{"segmentKey1", "segmentKey2"},
+						Value:           true,
+					},
+				},
+			},
+			resp: &flipt.Rollout{
+				Id:      "1",
+				FlagKey: "flagKey",
+				Rank:    1,
+				Rule: &flipt.Rollout_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+						SegmentKeys:     []string{"segmentKey1", "segmentKey2"},
+						Value:           true,
 					},
 				},
 			},

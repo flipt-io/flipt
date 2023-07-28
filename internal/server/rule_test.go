@@ -149,6 +149,36 @@ func TestCreateRule(t *testing.T) {
 	assert.NotNil(t, got)
 }
 
+func TestCreateRule_MultipleSegments(t *testing.T) {
+	var (
+		store  = &storeMock{}
+		logger = zaptest.NewLogger(t)
+		s      = &Server{
+			logger: logger,
+			store:  store,
+		}
+		req = &flipt.CreateRuleRequest{
+			FlagKey:         "flagKey",
+			SegmentKeys:     []string{"segmentKey1", "segmentKey2"},
+			SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+			Rank:            1,
+		}
+	)
+
+	store.On("CreateRule", mock.Anything, req).Return(&flipt.Rule{
+		Id:              "1",
+		FlagKey:         req.FlagKey,
+		SegmentKeys:     req.SegmentKeys,
+		SegmentOperator: req.SegmentOperator,
+		Rank:            req.Rank,
+	}, nil)
+
+	got, err := s.CreateRule(context.TODO(), req)
+	require.NoError(t, err)
+
+	assert.NotNil(t, got)
+}
+
 func TestUpdateRule(t *testing.T) {
 	var (
 		store  = &storeMock{}

@@ -191,6 +191,95 @@ func (s *DBTestSuite) TestListRollouts() {
 	}
 }
 
+func (s *DBTestSuite) TestListRollouts_MultipleSegments() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+		Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	firstSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, firstSegment)
+
+	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         "another_segment",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, secondSegment)
+
+	reqs := []*flipt.CreateRolloutRequest{
+		{
+			FlagKey: flag.Key,
+			Rank:    1,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					Value:       true,
+					SegmentKeys: []string{firstSegment.Key, secondSegment.Key},
+				},
+			},
+		},
+		{
+			FlagKey: flag.Key,
+			Rank:    2,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					Value:       true,
+					SegmentKeys: []string{firstSegment.Key, secondSegment.Key},
+				},
+			},
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := s.store.CreateRollout(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	res, err := s.store.ListRollouts(context.TODO(), storage.DefaultNamespace, flag.Key)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.NotZero(t, len(got))
+
+	for _, rollout := range got {
+		assert.Equal(t, storage.DefaultNamespace, rollout.NamespaceKey)
+
+		rs, ok := rollout.Rule.(*flipt.Rollout_Segment)
+		assert.True(t, ok, "rule should successfully assert to a rollout segment")
+		assert.Len(t, rs.Segment.SegmentKeys, 2)
+		assert.Equal(t, rs.Segment.SegmentKeys[0], firstSegment.Key)
+		assert.Equal(t, rs.Segment.SegmentKeys[1], secondSegment.Key)
+		assert.NotZero(t, rollout.CreatedAt)
+		assert.NotZero(t, rollout.UpdatedAt)
+	}
+}
+
 func (s *DBTestSuite) TestListRolloutsNamespace() {
 	t := s.T()
 

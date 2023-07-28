@@ -72,6 +72,73 @@ func (s *DBTestSuite) TestGetRule() {
 	assert.NotZero(t, got.UpdatedAt)
 }
 
+func (s *DBTestSuite) TestGetRule_MultipleSegments() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	firstSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, firstSegment)
+
+	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         "another_segment",
+		Name:        "bar",
+		Description: "foo",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, secondSegment)
+
+	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{firstSegment.Key, secondSegment.Key},
+		Rank:        1,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, rule)
+
+	got, err := s.store.GetRule(context.TODO(), storage.DefaultNamespace, rule.Id)
+
+	require.NoError(t, err)
+	assert.NotNil(t, got)
+
+	assert.Equal(t, rule.Id, got.Id)
+	assert.Equal(t, storage.DefaultNamespace, got.NamespaceKey)
+	assert.Equal(t, rule.FlagKey, got.FlagKey)
+
+	assert.Len(t, rule.SegmentKeys, 2)
+	assert.Equal(t, firstSegment.Key, rule.SegmentKeys[0])
+	assert.Equal(t, secondSegment.Key, rule.SegmentKeys[1])
+	assert.Equal(t, rule.Rank, got.Rank)
+	assert.NotZero(t, got.CreatedAt)
+	assert.NotZero(t, got.UpdatedAt)
+}
+
 func (s *DBTestSuite) TestGetRuleNamespace() {
 	t := s.T()
 
@@ -206,6 +273,84 @@ func (s *DBTestSuite) TestListRules() {
 
 	for _, rule := range got {
 		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
+		assert.NotZero(t, rule.CreatedAt)
+		assert.NotZero(t, rule.UpdatedAt)
+	}
+}
+
+func (s *DBTestSuite) TestListRules_MultipleSegments() {
+	t := s.T()
+
+	flag, err := s.store.CreateFlag(context.TODO(), &flipt.CreateFlagRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+		Enabled:     true,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, flag)
+
+	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variant)
+
+	firstSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         t.Name(),
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, firstSegment)
+
+	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:         "another_segment",
+		Name:        "foo",
+		Description: "bar",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, secondSegment)
+
+	reqs := []*flipt.CreateRuleRequest{
+		{
+			FlagKey:     flag.Key,
+			SegmentKeys: []string{firstSegment.Key, secondSegment.Key},
+			Rank:        1,
+		},
+		{
+			FlagKey:     flag.Key,
+			SegmentKeys: []string{firstSegment.Key, secondSegment.Key},
+			Rank:        2,
+		},
+	}
+
+	for _, req := range reqs {
+		_, err := s.store.CreateRule(context.TODO(), req)
+		require.NoError(t, err)
+	}
+
+	_, err = s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key, storage.WithPageToken("Hello World"))
+	assert.EqualError(t, err, "pageToken is not valid: \"Hello World\"")
+
+	res, err := s.store.ListRules(context.TODO(), storage.DefaultNamespace, flag.Key)
+	require.NoError(t, err)
+
+	got := res.Results
+	assert.NotZero(t, len(got))
+
+	for _, rule := range got {
+		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
+		assert.Len(t, rule.SegmentKeys, 2)
+		assert.Equal(t, firstSegment.Key, rule.SegmentKeys[0])
+		assert.Equal(t, secondSegment.Key, rule.SegmentKeys[1])
 		assert.NotZero(t, rule.CreatedAt)
 		assert.NotZero(t, rule.UpdatedAt)
 	}
