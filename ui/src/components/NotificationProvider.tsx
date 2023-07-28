@@ -34,6 +34,10 @@ export function NotificationProvider({
   const [success, setSuccess] = useState<string | null>(null);
 
   const setError = (error: unknown) => {
+    if (error === null) {
+      setError_(null);
+      return;
+    }
     setError_(getErrorMessage(error));
   };
 
