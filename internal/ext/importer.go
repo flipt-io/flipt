@@ -248,12 +248,20 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				rank = int32(idx) + 1
 			}
 
-			rule, err := i.creator.CreateRule(ctx, &flipt.CreateRuleRequest{
-				FlagKey:      f.Key,
-				SegmentKey:   r.SegmentKey,
-				Rank:         rank,
-				NamespaceKey: namespace,
-			})
+			fcr := &flipt.CreateRuleRequest{
+				FlagKey:         f.Key,
+				Rank:            rank,
+				NamespaceKey:    namespace,
+				SegmentOperator: flipt.SegmentOperator(flipt.SegmentOperator_value[r.SegmentOperator]),
+			}
+
+			if r.SegmentKey != "" {
+				fcr.SegmentKey = r.SegmentKey
+			} else if len(r.SegmentKeys) > 0 {
+				fcr.SegmentKeys = r.SegmentKeys
+			}
+
+			rule, err := i.creator.CreateRule(ctx, fcr)
 
 			if err != nil {
 				return fmt.Errorf("creating rule: %w", err)
@@ -309,11 +317,20 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				}
 
 				if r.Segment != nil {
+					frs := &flipt.RolloutSegment{
+						Value: r.Segment.Value,
+					}
+
+					if r.Segment.Key != "" {
+						frs.SegmentKey = r.Segment.Key
+					} else if len(r.Segment.Keys) > 0 {
+						frs.SegmentKeys = r.Segment.Keys
+					}
+
+					frs.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[r.Segment.Operator])
+
 					req.Rule = &flipt.CreateRolloutRequest_Segment{
-						Segment: &flipt.RolloutSegment{
-							SegmentKey: r.Segment.Key,
-							Value:      r.Segment.Value,
-						},
+						Segment: frs,
 					}
 				} else if r.Threshold != nil {
 					req.Rule = &flipt.CreateRolloutRequest_Threshold{
