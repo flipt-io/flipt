@@ -237,9 +237,8 @@ func NewGRPCServer(
 		otelgrpc.UnaryServerInterceptor(),
 	}
 
+	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
-		var cacher cache.Cacher
-
 		switch cfg.Cache.Backend {
 		case config.CacheMemory:
 			cacher = memory.NewCache(cfg.Cache)
@@ -268,7 +267,6 @@ func NewGRPCServer(
 			}))
 		}
 
-		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
 		store = storagecache.New(store, cacher, logger)
 
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
@@ -325,7 +323,12 @@ func NewGRPCServer(
 		)...,
 	)
 
-	// audit sinks configuration.
+	// cache must come after auth interceptors
+	if cfg.Cache.Enabled && cacher != nil {
+		interceptors = append(interceptors, middlewaregrpc.CacheUnaryInterceptor(cacher, logger))
+	}
+
+	// audit sinks configuration
 	sinks := make([]audit.Sink, 0)
 
 	if cfg.Audit.Sinks.LogFile.Enabled {
@@ -337,8 +340,8 @@ func NewGRPCServer(
 		sinks = append(sinks, logFileSink)
 	}
 
-	// Based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
-	// and if the slice has a non-zero length, add the audit sink interceptor.
+	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
+	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
 		sse := audit.NewSinkSpanExporter(logger, sinks)
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
