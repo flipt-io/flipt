@@ -639,16 +639,6 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 
 	require.NoError(t, err)
 
-	_, err = s.store.CreateConstraint(context.TODO(), &flipt.CreateConstraintRequest{
-		SegmentKey: segment.Key,
-		Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
-		Property:   "foo",
-		Operator:   "EQ",
-		Value:      "bar",
-	})
-
-	require.NoError(t, err)
-
 	_, err = s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
