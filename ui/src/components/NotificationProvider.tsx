@@ -1,8 +1,8 @@
 import { createContext, useState } from 'react';
 
 type ErrorContext = {
-  error: Error | null;
-  setError(_error: Error | null): void;
+  error: string | null;
+  setError(_error: unknown): void;
   clearError(): void;
 };
 
@@ -14,8 +14,8 @@ type SuccessContext = {
 
 export const NotificationContext = createContext<ErrorContext & SuccessContext>(
   {
-    error: null as Error | null,
-    setError(_error: Error | null) {},
+    error: null as string | null,
+    setError(_error: unknown) {},
     clearError() {},
     success: null as string | null,
     setSuccess(_success: string | null) {},
@@ -28,8 +28,14 @@ export function NotificationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setIError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const setError = (error: unknown) => {
+    if (error === null) setIError(null);
+    else if (error instanceof Error) setIError(error.message);
+    else setIError(String(error));
+  };
 
   return (
     <NotificationContext.Provider
