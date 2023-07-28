@@ -336,8 +336,8 @@ func TestReadOnly(t *testing.T) {
 			rule := rules.Rules[0]
 			assert.Equal(t, namespace, rule.NamespaceKey)
 			assert.Equal(t, "flag_boolean", rule.FlagKey)
+			assert.Equal(t, "segment_001", rule.GetSegment().SegmentKey)
 
-			assert.Contains(t, rule.GetSegment().SegmentKeys, "segment_001")
 			assert.True(t, rule.GetSegment().Value)
 			assert.NotEmpty(t, rule.Id)
 			assert.Equal(t, int32(1), rule.Rank)

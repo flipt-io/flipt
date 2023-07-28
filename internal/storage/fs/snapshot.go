@@ -455,12 +455,19 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 
 				s.RolloutType = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
 
+				frs := &flipt.RolloutSegment{
+					Value: rollout.Segment.Value,
+				}
+
+				if len(segmentKeys) < 2 {
+					frs.SegmentKey = segmentKeys[0]
+				} else {
+					frs.SegmentKeys = segmentKeys
+				}
+
 				flagRollout.Type = s.RolloutType
 				flagRollout.Rule = &flipt.Rollout_Segment{
-					Segment: &flipt.RolloutSegment{
-						SegmentKeys: segmentKeys,
-						Value:       rollout.Segment.Value,
-					},
+					Segment: frs,
 				}
 			}
 

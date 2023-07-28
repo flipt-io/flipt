@@ -683,8 +683,10 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 	assert.Equal(t, "default", evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
 	assert.NotNil(t, evaluationRollouts[1].Segment)
-	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.MatchType)
+
+	assert.Contains(t, evaluationRollouts[1].Segment.Segments, segment.Key)
+	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.Segments[segment.Key].MatchType)
+
 	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
 }
 
@@ -856,8 +858,10 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 	assert.Equal(t, s.namespace, evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
 	assert.NotNil(t, evaluationRollouts[1].Segment)
-	assert.Equal(t, segment.Key, evaluationRollouts[1].Segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.MatchType)
+
+	assert.Contains(t, evaluationRollouts[1].Segment.Segments, segment.Key)
+	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.Segments[segment.Key].MatchType)
+
 	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
 }
 
