@@ -41,7 +41,7 @@ func (s *Server) Variant(ctx context.Context, r *rpcevaluation.EvaluationRequest
 		fliptotel.AttributeMatch.Bool(resp.Match),
 		fliptotel.AttributeValue.String(resp.VariantKey),
 		fliptotel.AttributeReason.String(resp.Reason.String()),
-		fliptotel.AttributeSegment.String(resp.SegmentKey),
+		fliptotel.AttributeSegments.StringSlice(resp.SegmentKeys),
 	}
 
 	// add otel attributes to span
@@ -77,7 +77,7 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 	ver := &rpcevaluation.VariantEvaluationResponse{
 		Match:             resp.Match,
-		SegmentKey:        resp.SegmentKey,
+		SegmentKeys:       []string{resp.SegmentKey},
 		Reason:            reason,
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,

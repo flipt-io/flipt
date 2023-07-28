@@ -183,7 +183,7 @@ func TestVariant_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, true, res.Match)
-	assert.Equal(t, "bar", res.SegmentKey)
+	assert.Contains(t, res.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, res.Reason)
 }
 
@@ -719,7 +719,7 @@ func TestBatch_Success(t *testing.T) {
 	v, ok := res.Responses[2].Response.(*rpcevaluation.EvaluationResponse_VariantResponse)
 	assert.True(t, ok, "response should be a variant evaluation response")
 	assert.True(t, v.VariantResponse.Match, "variant response should have matched")
-	assert.Equal(t, "bar", v.VariantResponse.SegmentKey)
+	assert.Contains(t, v.VariantResponse.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, res.Responses[2].Type)
 }
