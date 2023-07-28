@@ -1,8 +1,9 @@
 import { createContext, useState } from 'react';
+import { getErrorMessage } from '~/utils/helpers';
 
 type ErrorContext = {
-  error: Error | null;
-  setError(_error: Error | null): void;
+  error: string | null;
+  setError(_error: unknown): void;
   clearError(): void;
 };
 
@@ -14,8 +15,8 @@ type SuccessContext = {
 
 export const NotificationContext = createContext<ErrorContext & SuccessContext>(
   {
-    error: null as Error | null,
-    setError(_error: Error | null) {},
+    error: null as string | null,
+    setError(_error: unknown) {},
     clearError() {},
     success: null as string | null,
     setSuccess(_success: string | null) {},
@@ -28,8 +29,17 @@ export function NotificationProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [error, setError] = useState<Error | null>(null);
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const [error, setError_] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const setError = (error: unknown) => {
+    if (error === null) {
+      setError_(null);
+      return;
+    }
+    setError_(getErrorMessage(error));
+  };
 
   return (
     <NotificationContext.Provider

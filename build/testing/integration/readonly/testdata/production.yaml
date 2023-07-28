@@ -16244,3 +16244,4 @@ segments:
 - key: segment_no_constraints
   name: SEGMENT_NO_CONSTRAINTS
   description: Some Segment Description
+  match_type: ALL_MATCH_TYPE
