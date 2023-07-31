@@ -350,6 +350,64 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "eq", updatedConstraint.Operator)
 		assert.Equal(t, "baz", updatedConstraint.Value)
 		assert.Equal(t, "newdesc", updatedConstraint.Description)
+
+		t.Log(`Create two additional segments.`)
+
+		createdSegment, err = client.Flipt().CreateSegment(ctx, &flipt.CreateSegmentRequest{
+			NamespaceKey: namespace,
+			Key:          "segment",
+			Name:         "Segment",
+			MatchType:    flipt.MatchType_ALL_MATCH_TYPE,
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "segment", createdSegment.Key)
+		assert.Equal(t, "Segment", createdSegment.Name)
+		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, createdSegment.MatchType)
+
+		createdConstraint, err := client.Flipt().CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+			NamespaceKey: namespace,
+			SegmentKey:   createdSegment.Key,
+			Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+			Property:     "first",
+			Operator:     "eq",
+			Value:        "segment",
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "first", createdConstraint.Property)
+		assert.Equal(t, "eq", createdConstraint.Operator)
+		assert.Equal(t, "segment", createdConstraint.Value)
+
+		createdSegment, err = client.Flipt().CreateSegment(ctx, &flipt.CreateSegmentRequest{
+			NamespaceKey: namespace,
+			Key:          "another-segment",
+			Name:         "Another Segment",
+			MatchType:    flipt.MatchType_ALL_MATCH_TYPE,
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "another-segment", createdSegment.Key)
+		assert.Equal(t, "Another Segment", createdSegment.Name)
+		assert.Equal(t, flipt.MatchType_ALL_MATCH_TYPE, createdSegment.MatchType)
+
+		createdConstraint, err = client.Flipt().CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+			NamespaceKey: namespace,
+			SegmentKey:   createdSegment.Key,
+			Type:         flipt.ComparisonType_STRING_COMPARISON_TYPE,
+			Property:     "second",
+			Operator:     "eq",
+			Value:        "another-segment",
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "second", createdConstraint.Property)
+		assert.Equal(t, "eq", createdConstraint.Operator)
+		assert.Equal(t, "another-segment", createdConstraint.Value)
 	})
 
 	t.Run("Rules and Distributions", func(t *testing.T) {
@@ -396,6 +454,23 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "everyone", ruleTwo.SegmentKey)
 		assert.Equal(t, int32(2), ruleTwo.Rank)
 
+		t.Log(`Create rule "rank 3".`)
+
+		ruleThree, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
+			NamespaceKey:    namespace,
+			FlagKey:         "test",
+			SegmentKeys:     []string{"segment", "another-segment"},
+			SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+			Rank:            3,
+		})
+
+		require.NoError(t, err)
+
+		assert.Equal(t, "test", ruleThree.FlagKey)
+		assert.Contains(t, ruleThree.SegmentKeys, "segment")
+		assert.Contains(t, ruleThree.SegmentKeys, "another-segment")
+		assert.Equal(t, int32(3), ruleThree.Rank)
+
 		// ensure you can not link flags and segments from different namespaces.
 		if !namespaceIsDefault(namespace) {
 			t.Log(`Ensure that rules can only link entities in the same namespace.`)
@@ -427,17 +502,18 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Len(t, allRules.Rules, 2)
+		assert.Len(t, allRules.Rules, 3)
 
 		assert.Equal(t, ruleOne.Id, allRules.Rules[0].Id)
 		assert.Equal(t, ruleTwo.Id, allRules.Rules[1].Id)
+		assert.Equal(t, ruleThree.Id, allRules.Rules[2].Id)
 
 		t.Log(`Re-order rules.`)
 
 		err = client.Flipt().OrderRules(ctx, &flipt.OrderRulesRequest{
 			NamespaceKey: namespace,
 			FlagKey:      "test",
-			RuleIds:      []string{ruleTwo.Id, ruleOne.Id},
+			RuleIds:      []string{ruleTwo.Id, ruleOne.Id, ruleThree.Id},
 		})
 		require.NoError(t, err)
 
@@ -449,13 +525,15 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		})
 		require.NoError(t, err)
 
-		assert.Len(t, allRules.Rules, 2)
+		assert.Len(t, allRules.Rules, 3)
 
 		// ensure the order has switched
 		assert.Equal(t, ruleTwo.Id, allRules.Rules[0].Id)
 		assert.Equal(t, int32(1), allRules.Rules[0].Rank)
 		assert.Equal(t, ruleOne.Id, allRules.Rules[1].Id)
 		assert.Equal(t, int32(2), allRules.Rules[1].Rank)
+		assert.Equal(t, ruleThree.Id, allRules.Rules[2].Id)
+		assert.Equal(t, int32(3), allRules.Rules[2].Rank)
 
 		t.Log(`Create distribution "rollout 100".`)
 
@@ -532,6 +610,15 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		assert.Equal(t, ruleTwo.Id, distribution.RuleId)
 		assert.Equal(t, float32(100), distribution.Rollout)
+
+		_, err = client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "test",
+			RuleId:       ruleThree.Id,
+			VariantId:    flag.Variants[0].Id,
+			Rollout:      100,
+		})
+		require.NoError(t, err)
 	})
 
 	t.Run("Boolean Rollouts", func(t *testing.T) {
@@ -571,11 +658,32 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
 		assert.Equal(t, true, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
+		anotherRolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Description:  "matches a segment",
+			Rank:         2,
+			Rule: &flipt.CreateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKeys: []string{"segment", "another-segment"},
+					Value:       false,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, anotherRolloutSegment.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", anotherRolloutSegment.FlagKey)
+		assert.Equal(t, int32(2), anotherRolloutSegment.Rank)
+		assert.Contains(t, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "segment")
+		assert.Contains(t, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "another-segment")
+		assert.Equal(t, false, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
+
 		rolloutThreshold, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 			NamespaceKey: namespace,
 			FlagKey:      "boolean_disabled",
 			Description:  "50% disabled",
-			Rank:         2,
+			Rank:         3,
 			Rule: &flipt.CreateRolloutRequest_Threshold{
 				Threshold: &flipt.RolloutThreshold{
 					Percentage: 50,
@@ -588,7 +696,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, namespace, rolloutThreshold.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", rolloutThreshold.FlagKey)
 		assert.Equal(t, "50% disabled", rolloutThreshold.Description)
-		assert.Equal(t, int32(2), rolloutThreshold.Rank)
+		assert.Equal(t, int32(3), rolloutThreshold.Rank)
 		assert.Equal(t, float32(50.0), rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
 		assert.Equal(t, true, rolloutThreshold.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
@@ -634,6 +742,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		assert.Empty(t, cmp.Diff([]*flipt.Rollout{
 			rolloutSegment,
+			anotherRolloutSegment,
 			rolloutThreshold,
 		}, rollouts.Rules, protocmp.Transform()))
 
@@ -668,7 +777,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, namespace, updatedRollout.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", updatedRollout.FlagKey)
 		assert.Equal(t, "50% enabled", updatedRollout.Description)
-		assert.Equal(t, int32(2), updatedRollout.Rank)
+		assert.Equal(t, int32(3), updatedRollout.Rank)
 		assert.Equal(t, float32(50.0), updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Percentage)
 		assert.Equal(t, false, updatedRollout.Rule.(*flipt.Rollout_Threshold).Threshold.Value)
 
@@ -778,7 +887,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 	t.Run("Evaluation", func(t *testing.T) {
 		t.Run("Variant", func(t *testing.T) {
-			t.Run("successful match", func(t *testing.T) {
+			t.Run("successful match (rank 1)", func(t *testing.T) {
 				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 					NamespaceKey: namespace,
 					FlagKey:      "test",
@@ -792,6 +901,25 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				require.True(t, result.Match, "Evaluation should have matched.")
 				assert.Contains(t, result.SegmentKeys, "everyone")
+				assert.Equal(t, "one", result.VariantKey)
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+			})
+
+			t.Run("successful match (rank 3)", func(t *testing.T) {
+				result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "test",
+					EntityId:     uuid.Must(uuid.NewV4()).String(),
+					Context: map[string]string{
+						"first":  "segment",
+						"second": "another-segment",
+					},
+				})
+				require.NoError(t, err)
+
+				require.True(t, result.Match, "Evaluation should have matched.")
+				assert.Contains(t, result.SegmentKeys, "segment")
+				assert.Contains(t, result.SegmentKeys, "another-segment")
 				assert.Equal(t, "one", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 			})
@@ -874,7 +1002,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.False(t, result.Enabled, "value should be threshold match value")
 			})
 
-			t.Run("segment match", func(t *testing.T) {
+			t.Run("segment match (rank 1)", func(t *testing.T) {
 				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
 					NamespaceKey: namespace,
 					FlagKey:      "boolean_disabled",
@@ -889,6 +1017,23 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				assert.True(t, result.Enabled, "value should be segment match value")
+			})
+
+			t.Run("segment match (rank 2)", func(t *testing.T) {
+				result, err := client.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+					NamespaceKey: namespace,
+					FlagKey:      "boolean_disabled",
+					EntityId:     "fixed",
+					Context: map[string]string{
+						"first":  "segment",
+						"second": "another-segment",
+					},
+				})
+
+				require.NoError(t, err)
+
+				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.False(t, result.Enabled, "value should be segment match value")
 			})
 		})
 
@@ -995,6 +1140,21 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			NamespaceKey: namespace,
 			Key:          "everyone",
 		})
+
+		require.NoError(t, err)
+
+		err = client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
+			NamespaceKey: namespace,
+			Key:          "segment",
+		})
+
+		require.NoError(t, err)
+
+		err = client.Flipt().DeleteSegment(ctx, &flipt.DeleteSegmentRequest{
+			NamespaceKey: namespace,
+			Key:          "another-segment",
+		})
+
 		require.NoError(t, err)
 
 		if !namespaceIsDefault(namespace) {
