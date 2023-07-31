@@ -3,6 +3,29 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.24.0](https://github.com/flipt-io/flipt/releases/tag/v1.24.0) - 2023-07-31
+
+### Added
+
+- boolean flag type, rollouts, and new evaluation routes :tada: (#1824)
+- `fs/s3`: Initial support for s3 filesystem backend (#1900)
+- `email`: Add email matching logic for whitelisting OIDC
+- `build`: add mage dagger:run generate:screenshots (#1868)
+- add cache to get evaluation rules storage method (#1910)
+
+### Changed
+
+- unhide validate command (#1909)
+- add rudineirk as a contributor for code (#1913)
+- add ahobson as a contributor for code (#1905)
+- Dependency updates
+
+### Fixed
+
+- renable pprof (#1912)
+- dagger cli test (#1899)
+- `ui`: memoize selectors for namespaces (#1837)
+
 ## [v1.23.3](https://github.com/flipt-io/flipt/releases/tag/v1.23.3) - 2023-07-06
 
 ### Fixed
