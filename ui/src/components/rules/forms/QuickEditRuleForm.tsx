@@ -333,7 +333,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                     />
                     {formik.touched.rollouts && formik.errors.rollouts && (
                       <p className="text-gray-500 mt-1 px-4 text-center text-sm sm:px-6 sm:py-5">
-                        Multi-variant rules must have distributions that add up
+                        Multi-variate rules must have distributions that add up
                         to 100% or less.
                       </p>
                     )}
