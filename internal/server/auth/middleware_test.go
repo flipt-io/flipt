@@ -150,7 +150,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
 		&auth.CreateAuthenticationRequest{
-			Method: authrpc.Method_METHOD_TOKEN,
+			Method: authrpc.Method_METHOD_OIDC,
 			Metadata: map[string]string{
 				"io.flipt.auth.oidc.email": "foo@flipt.io",
 			},
@@ -161,7 +161,17 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 	nonEmailClientToken, nonEmailStoredAuth, err := authenticator.CreateAuthentication(
 		context.TODO(),
 		&auth.CreateAuthenticationRequest{
-			Method: authrpc.Method_METHOD_TOKEN,
+			Method:   authrpc.Method_METHOD_OIDC,
+			Metadata: map[string]string{},
+		},
+	)
+	require.NoError(t, err)
+
+	staticClientToken, staticStoreAuth, err := authenticator.CreateAuthentication(
+		context.TODO(),
+		&auth.CreateAuthenticationRequest{
+			Method:   authrpc.Method_METHOD_TOKEN,
+			Metadata: map[string]string{},
 		},
 	)
 	require.NoError(t, err)
@@ -193,6 +203,16 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"^.*@flipt.io$",
 			},
 			auth: storedAuth,
+		},
+		{
+			name: "successful token was not generated via OIDC method",
+			metadata: metadata.MD{
+				"Authorization": []string{"Bearer " + staticClientToken},
+			},
+			emailMatches: []string{
+				"foo@flipt.io",
+			},
+			auth: staticStoreAuth,
 		},
 		{
 			name: "email does not match (regular string)",
