@@ -148,7 +148,13 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 		}
 
 		// For legacy reasons of supporting SegmentKey.
-		resp.SegmentKey = strings.Join(segmentKeys, ",")
+		// The old EvaluationResponse will return both the SegmentKey, and SegmentKeys.
+		// If there are multiple segmentKeys, the old EvaluationResponse will take the first value
+		// in the segmentKeys slice.
+		if len(segmentKeys) > 0 {
+			resp.SegmentKey = segmentKeys[0]
+			resp.SegmentKeys = segmentKeys
+		}
 
 		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.ID)
 		if err != nil {

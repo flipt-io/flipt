@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
-	"strings"
 	"time"
 
 	errs "go.flipt.io/flipt/errors"
@@ -79,9 +78,12 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	ver := &rpcevaluation.VariantEvaluationResponse{
 		Match:             resp.Match,
 		Reason:            reason,
-		SegmentKeys:       strings.Split(resp.SegmentKey, ","),
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,
+	}
+
+	if len(resp.SegmentKeys) > 0 {
+		ver.SegmentKeys = resp.SegmentKeys
 	}
 
 	return ver, nil

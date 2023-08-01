@@ -3,7 +3,6 @@ package evaluation
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -1226,10 +1225,11 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 
 			assert.True(t, resp.Match)
 
-			segmentKeys := strings.Split(resp.SegmentKey, ",")
-			assert.Len(t, segmentKeys, 2)
-			assert.Equal(t, segmentKeys[0], "bar")
-			assert.Equal(t, segmentKeys[1], "foo")
+			assert.Equal(t, "bar", resp.SegmentKey)
+
+			assert.Len(t, resp.SegmentKeys, 2)
+			assert.Equal(t, resp.SegmentKeys[0], "bar")
+			assert.Equal(t, resp.SegmentKeys[1], "foo")
 			assert.Empty(t, resp.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})

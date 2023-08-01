@@ -41,6 +41,7 @@ message EvaluationResponse {
   string attachment = 10;
   EvaluationReason reason = 11;
   string namespace_key = 12;
+  repeated string segment_keys = 13;
 }
 
 enum EvaluationReason {
