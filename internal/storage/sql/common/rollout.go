@@ -116,7 +116,11 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 			segmentKeys = append(segmentKeys, segmentKey)
 		}
 
-		if len(segmentKeys) < 2 {
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+
+		if len(segmentKeys) == 1 {
 			segmentRule.Segment.SegmentKey = segmentKeys[0]
 		} else {
 			segmentRule.Segment.SegmentKeys = segmentKeys
@@ -295,7 +299,7 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 			rollout := rolloutsById[k]
 			rs := &flipt.RolloutSegment{}
 
-			if len(v.segmentKeys) < 2 {
+			if len(v.segmentKeys) == 1 {
 				rs.SegmentKey = v.segmentKeys[0]
 			} else {
 				rs.SegmentKeys = v.segmentKeys
@@ -577,9 +581,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 		if segmentRule.SegmentKey != "" {
 			segmentKeys = append(segmentKeys, segmentRule.SegmentKey)
-		}
-
-		if len(segmentRule.SegmentKeys) > 0 {
+		} else if len(segmentRule.SegmentKeys) > 0 {
 			segmentKeys = append(segmentKeys, segmentRule.SegmentKeys...)
 		}
 

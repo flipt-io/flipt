@@ -240,9 +240,12 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 			segmentKeys = append(segmentKeys, segmentKey)
 		}
 
+		if err := segmentRows.Err(); err != nil {
+			return results, err
+		}
+
 		//nolint:sqlclosecheck
-		err = segmentRows.Close()
-		if err != nil {
+		if err := segmentRows.Close(); err != nil {
 			return results, err
 		}
 
@@ -444,9 +447,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 
 	if r.SegmentKey != "" {
 		segmentKeys = append(segmentKeys, r.SegmentKey)
-	}
-
-	if len(r.SegmentKeys) > 0 {
+	} else if len(r.SegmentKeys) > 0 {
 		segmentKeys = append(segmentKeys, r.SegmentKeys...)
 	}
 
