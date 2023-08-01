@@ -297,6 +297,7 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				FlagKey:      f.Key,
 				SegmentKey:   r.SegmentKey,
+				SegmentKeys:  r.SegmentKeys,
 				Rank:         rank,
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,

@@ -15,18 +15,18 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	}
 
 	rows, err := s.builder.Select(`
-    	r.id,
-    	r.namespace_key,
-    	r.flag_key,
-    	rss.segment_key,
-    	rss.segment_match_type,
+		r.id,
+		r.namespace_key,
+		r.flag_key,
+		rss.segment_key,
+		rss.segment_match_type,
 		r.segment_operator,
-    	r."rank",
-    	rss.constraint_id,
-    	rss.constraint_type,
-    	rss.constraint_property,
-    	rss.constraint_operator,
-    	rss.constraint_value`,
+		r."rank",
+		rss.constraint_id,
+		rss.constraint_type,
+		rss.constraint_property,
+		rss.constraint_operator,
+		rss.constraint_value`,
 	).
 		From("rules AS r").
 		LeftJoin(`(

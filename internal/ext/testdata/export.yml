@@ -1,4 +1,4 @@
-version: "1.1"
+version: "1.2"
 namespace: default
 flags:
   - key: flag1

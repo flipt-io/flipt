@@ -101,7 +101,7 @@ func TestReadOnly(t *testing.T) {
 				NamespaceKey: namespace,
 			})
 			require.NoError(t, err)
-			require.Len(t, flags.Flags, 53)
+			require.Len(t, flags.Flags, 55)
 
 			flag := flags.Flags[0]
 			assert.Equal(t, namespace, flag.NamespaceKey)
@@ -129,7 +129,7 @@ func TestReadOnly(t *testing.T) {
 
 					if flags.NextPageToken == "" {
 						// ensure last page contains 3 entries (boolean and disabled)
-						assert.Len(t, flags.Flags, 3)
+						assert.Len(t, flags.Flags, 5)
 
 						found = append(found, flags.Flags...)
 
@@ -144,7 +144,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = flags.NextPageToken
 				}
 
-				require.Len(t, found, 53)
+				require.Len(t, found, 55)
 			})
 		})
 
@@ -189,7 +189,7 @@ func TestReadOnly(t *testing.T) {
 			})
 
 			require.NoError(t, err)
-			require.Len(t, segments.Segments, 51)
+			require.Len(t, segments.Segments, 52)
 
 			t.Run("Paginated (page size 10)", func(t *testing.T) {
 				var (
@@ -209,7 +209,7 @@ func TestReadOnly(t *testing.T) {
 					found = append(found, segments.Segments...)
 
 					if segments.NextPageToken == "" {
-						assert.Len(t, segments.Segments, 1)
+						assert.Len(t, segments.Segments, 2)
 						break
 					}
 
@@ -218,7 +218,7 @@ func TestReadOnly(t *testing.T) {
 					nextPage = segments.NextPageToken
 				}
 
-				require.Len(t, found, 51)
+				require.Len(t, found, 52)
 			})
 		})
 
@@ -445,6 +445,25 @@ func TestReadOnly(t *testing.T) {
 					assert.Contains(t, response.SegmentKeys, "segment_005")
 				})
 
+				t.Run("match segment ANDing", func(t *testing.T) {
+					response, err := sdk.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_variant_and_segments",
+						EntityId:     "some-fixed-entity-id",
+						Context: map[string]string{
+							"in_segment": "segment_001",
+							"anding":     "segment",
+						},
+					})
+					require.NoError(t, err)
+
+					assert.Equal(t, true, response.Match)
+					assert.Equal(t, "variant_002", response.VariantKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, response.Reason)
+					assert.Contains(t, response.SegmentKeys, "segment_001")
+					assert.Contains(t, response.SegmentKeys, "segment_anding")
+				})
+
 				t.Run("no match", func(t *testing.T) {
 					response, err := sdk.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
 						NamespaceKey: namespace,
@@ -540,6 +559,22 @@ func TestReadOnly(t *testing.T) {
 						FlagKey:      "flag_boolean_no_constraints",
 					})
 
+					require.NoError(t, err)
+
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+					assert.True(t, result.Enabled, "segment evaluation value should be true")
+				})
+
+				t.Run("segment with ANDing", func(t *testing.T) {
+					result, err := sdk.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "flag_boolean_and_segments",
+						EntityId:     "some-fixed-entity-id",
+						Context: map[string]string{
+							"in_segment": "segment_001",
+							"anding":     "segment",
+						},
+					})
 					require.NoError(t, err)
 
 					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)

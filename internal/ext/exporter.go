@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	latestVersion     = semver.Version{Major: 1, Minor: 1}
+	latestVersion     = semver.Version{Major: 1, Minor: 2}
 	supportedVersions = semver.Versions{
 		{Major: 1},
 		latestVersion,

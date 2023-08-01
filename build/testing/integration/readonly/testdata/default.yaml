@@ -1,4 +1,4 @@
-version: "1.1"
+version: "1.2"
 flags:
 - key: flag_001
   name: FLAG_001
@@ -15550,6 +15550,24 @@ flags:
       rollout: 50
     - variant: variant_002
       rollout: 50
+- key: flag_variant_and_segments
+  name: FLAG_VARIANT_AND_SEGMENTS
+  type: VARIANT_FLAG_TYPE
+  description: And segments for variant flags
+  enabled: true
+  variants:
+  - key: variant_001
+    name: VARIANT_001
+  - key: variant_002
+    name: VARIANT_002
+  rules:
+  - segments: [segment_001, segment_anding]
+    operator: AND_SEGMENT_OPERATOR
+    distributions:
+    - variant: variant_001
+      rollout: 50
+    - variant: variant_002
+      rollout: 50
 - key: flag_boolean
   name: FLAG_BOOLEAN
   type: BOOLEAN_FLAG_TYPE
@@ -15574,6 +15592,17 @@ flags:
     threshold:
       percentage: 50
       value: true
+- key: flag_boolean_and_segments
+  name: FLAG_BOOLEAN_AND_SEGMENTS
+  type: BOOLEAN_FLAG_TYPE
+  description: And segments for boolean flags
+  enabled: false
+  rollouts:
+  - description: enabled for segment_001
+    segment:
+      operator: AND_SEGMENT_OPERATOR
+      value: true
+      keys: [segment_001, segment_anding]
 - key: flag_disabled
   name: FLAG_DISABLED
   type: VARIANT_FLAG_TYPE
@@ -16244,3 +16273,12 @@ segments:
   name: SEGMENT_NO_CONSTRAINTS
   description: Some Segment Description
   match_type: ALL_MATCH_TYPE
+- key: segment_anding
+  name: SEGMENT_ANDING
+  description: Some Segment Description
+  match_type: ALL_MATCH_TYPE
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: anding
+    operator: eq
+    value: segment

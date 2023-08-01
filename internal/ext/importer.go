@@ -253,11 +253,25 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				Rank:            rank,
 				NamespaceKey:    namespace,
 				SegmentOperator: flipt.SegmentOperator(flipt.SegmentOperator_value[r.SegmentOperator]),
+				SegmentKey:      r.SegmentKey,
 			}
 
-			if r.SegmentKey != "" {
-				fcr.SegmentKey = r.SegmentKey
-			} else if len(r.SegmentKeys) > 0 {
+			if len(r.SegmentKeys) > 0 && r.SegmentKey != "" {
+				return fmt.Errorf("rule %s/%s/%d cannot have both segment and segments",
+					namespace,
+					f.Key,
+					idx,
+				)
+			}
+
+			// support explicitly setting only "segments" on rules from 1.2
+			if len(r.SegmentKeys) > 0 {
+				if err := ensureFieldSupported("flag.rules[*].segments", semver.Version{
+					Major: 1,
+					Minor: 2,
+				}, v); err != nil {
+					return err
+				}
 				fcr.SegmentKeys = r.SegmentKeys
 			}
 
@@ -318,12 +332,27 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 
 				if r.Segment != nil {
 					frs := &flipt.RolloutSegment{
-						Value: r.Segment.Value,
+						Value:      r.Segment.Value,
+						SegmentKey: r.Segment.Key,
 					}
 
-					if r.Segment.Key != "" {
-						frs.SegmentKey = r.Segment.Key
-					} else if len(r.Segment.Keys) > 0 {
+					if len(r.Segment.Keys) > 0 && r.Segment.Key != "" {
+						return fmt.Errorf("rollout %s/%s/%d cannot have both segment.keys and segment.key",
+							namespace,
+							f.Key,
+							idx,
+						)
+					}
+
+					// support explicitly setting only "keys" on rules from 1.2
+					if len(r.Segment.Keys) > 0 {
+						if err := ensureFieldSupported("flag.rollouts[*].segment.keys", semver.Version{
+							Major: 1,
+							Minor: 2,
+						}, v); err != nil {
+							return err
+						}
+
 						frs.SegmentKeys = r.Segment.Keys
 					}
 

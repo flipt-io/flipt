@@ -67,6 +67,10 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 		segmentKeys = append(segmentKeys, segmentKey)
 	}
 
+	if err := segmentRows.Err(); err != nil {
+		return nil, err
+	}
+
 	if err := segmentRows.Close(); err != nil {
 		return nil, err
 	}
@@ -146,7 +150,7 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 		rules   []*flipt.Rule
 		results = storage.ResultSet[*flipt.Rule]{}
 
-		query = s.builder.Select("id, namespace_key, flag_key, \"rank\", created_at, updated_at").
+		query = s.builder.Select("id, namespace_key, flag_key, \"rank\", segment_operator, created_at, updated_at").
 			From("rules").
 			Where(sq.Eq{"flag_key": flagKey, "namespace_key": namespaceKey}).
 			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
@@ -195,6 +199,7 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 			&rule.NamespaceKey,
 			&rule.FlagKey,
 			&rule.Rank,
+			&rule.SegmentOperator,
 			&rCreatedAt,
 			&rUpdatedAt,
 		); err != nil {
