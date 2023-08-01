@@ -148,6 +148,11 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 			return handler(ctx, req)
 		}
 
+		// this mechanism only applies to authentications created using OIDC
+		if auth.Method != authrpc.Method_METHOD_OIDC {
+			return handler(ctx, req)
+		}
+
 		email, ok := auth.Metadata["io.flipt.auth.oidc.email"]
 		if !ok {
 			logger.Debug("no email provided but required for auth")
