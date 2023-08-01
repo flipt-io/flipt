@@ -668,7 +668,7 @@ func ensureRolloutType(rollout *flipt.Rollout, typ flipt.RolloutType) error {
 	)
 }
 
-func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
+func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) (err error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -678,12 +678,17 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 		return err
 	}
 
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
 	_, err = s.builder.Delete(tableRollouts).
 		RunWith(tx).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"flag_key": r.FlagKey}, sq.Eq{"namespace_key": r.NamespaceKey}}).
 		ExecContext(ctx)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
@@ -695,13 +700,11 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 		OrderBy("\"rank\" ASC").
 		QueryContext(ctx)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
 	defer func() {
 		if cerr := rows.Close(); cerr != nil && err == nil {
-			_ = tx.Rollback()
 			err = cerr
 		}
 	}()
@@ -712,7 +715,6 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 		var rolloutID string
 
 		if err := rows.Scan(&rolloutID); err != nil {
-			_ = tx.Rollback()
 			return err
 		}
 
@@ -720,12 +722,10 @@ func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest
 	}
 
 	if err := rows.Err(); err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
 	if err := s.orderRollouts(ctx, tx, r.NamespaceKey, r.FlagKey, rolloutIDs); err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 

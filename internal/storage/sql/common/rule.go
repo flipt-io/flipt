@@ -345,7 +345,7 @@ func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (u
 }
 
 // CreateRule creates a rule
-func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (frule *flipt.Rule, err error) {
+func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *flipt.Rule, err error) {
 	segmentKeys := make([]string, 0)
 
 	if len(r.SegmentKeys) > 0 {
@@ -376,6 +376,12 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (fru
 		return nil, err
 	}
 
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
 	if _, err := s.builder.
 		Insert("rules").
 		RunWith(tx).
@@ -390,7 +396,6 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (fru
 			&fliptsql.Timestamp{Timestamp: rule.UpdatedAt},
 		).
 		ExecContext(ctx); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
@@ -405,7 +410,6 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (fru
 				segmentKey,
 			).
 			ExecContext(ctx); err != nil {
-			_ = tx.Rollback()
 			return nil, err
 		}
 	}
@@ -420,7 +424,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (fru
 }
 
 // UpdateRule updates an existing rule
-func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *flipt.Rule, err error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -440,6 +444,12 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 		return nil, err
 	}
 
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
 	// Set segment operator.
 	if _, err = s.builder.Update("rules").
 		RunWith(tx).
@@ -447,7 +457,6 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
@@ -456,7 +465,6 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 		RunWith(tx).
 		Where(sq.And{sq.Eq{"rule_id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}}).
 		ExecContext(ctx); err != nil {
-		_ = tx.Rollback()
 		return nil, err
 	}
 
@@ -471,7 +479,6 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 				segmentKey,
 			).
 			ExecContext(ctx); err != nil {
-			_ = tx.Rollback()
 			return nil, err
 		}
 	}
