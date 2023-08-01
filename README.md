@@ -93,8 +93,8 @@ Flipt supports use cases such as:
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
 
-<img align="left" src=".github/images/console.png" alt="Flipt Console" width=49% />
-<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=49% />
+<img align="left" src=".github/images/console.png" alt="Flipt Console" width=40% />
+<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=40% />
 
 <br clear="both"/>
 
@@ -259,9 +259,7 @@ Some of the organizations depending on Flipt in production.
     </a>
 </p>
 
-<p align="center">
 Using Flipt at your company? Open a [PR](https://github.com/flipt-io/flipt/pulls) and add your logo here!
-</p>
 
 <br clear="both"/>
 
