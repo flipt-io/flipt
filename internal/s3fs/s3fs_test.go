@@ -25,18 +25,19 @@ type fakeS3Client struct {
 	objects map[string]fakeS3Object
 }
 
-func (fs3 *fakeS3Client) ListObjectsV2(context.Context, *s3.ListObjectsV2Input, ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
-	objects := make([]types.Object, len(fs3.objects))
-	i := 0
+func (fs3 *fakeS3Client) ListObjectsV2(_ context.Context, input *s3.ListObjectsV2Input, _ ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	objects := []types.Object{}
 	for k, v := range fs3.objects {
 		k := k
 		v := v
-		objects[i] = types.Object{
-			Key:          &k,
-			Size:         int64(len(v.content)),
-			LastModified: &v.lastModified,
+		if input.Prefix == nil || strings.HasPrefix(k, *input.Prefix) {
+			obj := types.Object{
+				Key:          &k,
+				Size:         int64(len(v.content)),
+				LastModified: &v.lastModified,
+			}
+			objects = append(objects, obj)
 		}
-		i++
 	}
 	return &s3.ListObjectsV2Output{
 		Contents: objects,
@@ -70,7 +71,19 @@ func newFakeS3Client() *fakeS3Client {
 			},
 			"two": {
 				content:      "twodata",
-				lastModified: t.Add(time.Hour * 24),
+				lastModified: t.Add(time.Hour * 20),
+			},
+			"prefix/three": {
+				content:      "threedata",
+				lastModified: t.Add(time.Hour * 30),
+			},
+			"prefix/four/five": {
+				content:      "fivedata",
+				lastModified: t.Add(time.Hour * 50),
+			},
+			"anotherprefix/six": {
+				content:      "sixdata",
+				lastModified: t.Add(time.Hour * 60),
 			},
 		},
 	}
@@ -79,7 +92,8 @@ func newFakeS3Client() *fakeS3Client {
 func Test_FS(t *testing.T) {
 	fakeS3Client := newFakeS3Client()
 	logger := zaptest.NewLogger(t)
-	s3fs, err := New(logger, fakeS3Client, fakeS3Client.bucket)
+	// run with no prefix, returning all files
+	s3fs, err := New(logger, fakeS3Client, fakeS3Client.bucket, "")
 	require.NoError(t, err)
 
 	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
@@ -131,8 +145,11 @@ func Test_FS(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := map[string]string{
-			"one": "onedata",
-			"two": "twodata",
+			"one":               "onedata",
+			"two":               "twodata",
+			"prefix/three":      "threedata",
+			"prefix/four/five":  "fivedata",
+			"anotherprefix/six": "sixdata",
 		}
 
 		assert.Equal(t, expected, seen)
@@ -142,4 +159,79 @@ func Test_FS(t *testing.T) {
 		}, dirs)
 	})
 
+}
+
+func Test_FS_Prefix(t *testing.T) {
+	fakeS3Client := newFakeS3Client()
+	logger := zaptest.NewLogger(t)
+	// run with no prefix, returning all files
+	s3fs, err := New(logger, fakeS3Client, fakeS3Client.bucket, "prefix/")
+	require.NoError(t, err)
+
+	t.Run("Ensure invalid and non existent paths produce an error", func(t *testing.T) {
+		_, err := s3fs.Open("..")
+		require.Equal(t, &fs.PathError{
+			Op:   "Open",
+			Path: "..",
+			Err:  fs.ErrInvalid,
+		}, err)
+
+		_, err = s3fs.Open("zero.txt")
+		require.Equal(t, &fs.PathError{
+			Op:   "Open",
+			Path: "zero.txt",
+			Err:  fs.ErrNotExist,
+		}, err)
+
+		_, err = s3fs.Open("one")
+		require.Equal(t, &fs.PathError{
+			Op:   "Open",
+			Path: "one",
+			Err:  fs.ErrNotExist,
+		}, err)
+	})
+
+	t.Run("Ensure files exist with expected contents", func(t *testing.T) {
+		seen := map[string]string{}
+		dirs := map[string]int{}
+
+		err := fs.WalkDir(s3fs, ".", func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			fi, err := s3fs.Open(path)
+			require.NoError(t, err)
+
+			defer fi.Close()
+
+			if d.IsDir() {
+				entries, err := s3fs.ReadDir(d.Name())
+				require.NoError(t, err)
+
+				dirs[path] = len(entries)
+
+				return nil
+			}
+
+			contents, err := io.ReadAll(fi)
+			require.NoError(t, err)
+
+			seen[path] = string(contents)
+
+			return nil
+		})
+		require.NoError(t, err)
+
+		expected := map[string]string{
+			"prefix/three":     "threedata",
+			"prefix/four/five": "fivedata",
+		}
+
+		assert.Equal(t, expected, seen)
+
+		assert.Equal(t, map[string]int{
+			".": len(expected),
+		}, dirs)
+	})
 }

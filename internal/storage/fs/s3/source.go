@@ -24,6 +24,7 @@ type Source struct {
 	endpoint string
 	region   string
 	bucket   string
+	prefix   string
 	interval time.Duration
 }
 
@@ -65,6 +66,13 @@ func NewSource(logger *zap.Logger, bucket string, opts ...containers.Option[Sour
 	return s, nil
 }
 
+// WithPrefix configures the prefix for s3
+func WithPrefix(prefix string) containers.Option[Source] {
+	return func(s *Source) {
+		s.prefix = prefix
+	}
+}
+
 // WithRegion configures the region for s3
 func WithRegion(region string) containers.Option[Source] {
 	return func(s *Source) {
@@ -89,7 +97,7 @@ func WithPollInterval(tick time.Duration) containers.Option[Source] {
 
 // Get returns an fs.FS for the local filesystem.
 func (s *Source) Get() (fs.FS, error) {
-	return s3fs.New(s.logger, s.s3, s.bucket)
+	return s3fs.New(s.logger, s.s3, s.bucket, s.prefix)
 }
 
 // Subscribe feeds local fs.FS implementations onto the provided channel.

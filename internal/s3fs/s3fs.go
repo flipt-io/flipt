@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"io/fs"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -24,7 +25,11 @@ type FS struct {
 	logger   *zap.Logger
 	s3Client S3ClientAPI
 
-	bucket   string
+	// configuration
+	bucket string
+	prefix string
+
+	// cached entries
 	dirEntry *Dir
 	entries  []fs.DirEntry
 }
@@ -39,11 +44,12 @@ var _ fs.StatFS = &FS{}
 var _ fs.ReadDirFS = &FS{}
 
 // New creates a FS for the single bucket
-func New(logger *zap.Logger, s3Client S3ClientAPI, bucket string) (*FS, error) {
+func New(logger *zap.Logger, s3Client S3ClientAPI, bucket string, prefix string) (*FS, error) {
 	return &FS{
 		logger:   logger,
 		s3Client: s3Client,
 		bucket:   bucket,
+		prefix:   prefix,
 	}, nil
 }
 
@@ -60,6 +66,11 @@ func (f *FS) Open(name string) (fs.File, error) {
 	}
 	if !fs.ValidPath(name) {
 		pathError.Err = fs.ErrInvalid
+		return nil, pathError
+	}
+
+	// If a prefix is provided, cannot Open files without the prefix
+	if f.prefix != "" && !strings.HasPrefix(name, f.prefix) {
 		return nil, pathError
 	}
 
@@ -109,9 +120,20 @@ func (f *FS) Stat(name string) (fs.FileInfo, error) {
 	f.dirEntry = &Dir{
 		FileInfo: dirInfo,
 	}
+
+	// If a prefix is provided, only list objects with that prefix
+	// This lets the user configure a portion of a bucket for
+	// feature flags, simulating a subdirectory.
+	//
+	// See https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html
+	var prefix *string
+	if f.prefix != "" {
+		prefix = &f.prefix
+	}
 	output, err := f.s3Client.ListObjectsV2(context.Background(),
 		&s3.ListObjectsV2Input{
 			Bucket: &f.bucket,
+			Prefix: prefix,
 		})
 	if err != nil {
 		return nil, err
