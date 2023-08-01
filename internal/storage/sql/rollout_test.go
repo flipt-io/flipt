@@ -530,13 +530,31 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
+	segmentOne, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:       "segment_one",
+		Name:      "Segment One",
+		MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segmentOne)
+
+	segmentTwo, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
+		Key:       "segment_two",
+		Name:      "Segment Two",
+		MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, segmentTwo)
+
 	rollout, err := s.store.CreateRollout(context.TODO(), &flipt.CreateRolloutRequest{
 		FlagKey: flag.Key,
 		Rank:    1,
-		Rule: &flipt.CreateRolloutRequest_Threshold{
-			Threshold: &flipt.RolloutThreshold{
+		Rule: &flipt.CreateRolloutRequest_Segment{
+			Segment: &flipt.RolloutSegment{
 				Value:      true,
-				Percentage: 40,
+				SegmentKey: "segment_one",
 			},
 		},
 	})
@@ -548,9 +566,9 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Equal(t, storage.DefaultNamespace, rollout.NamespaceKey)
 	assert.Equal(t, flag.Key, rollout.FlagKey)
 	assert.Equal(t, int32(1), rollout.Rank)
-	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, rollout.Type)
-	assert.Equal(t, float32(40), rollout.GetThreshold().Percentage)
-	assert.Equal(t, true, rollout.GetThreshold().Value)
+	assert.Equal(t, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE, rollout.Type)
+	assert.Equal(t, segmentOne.Key, rollout.GetSegment().SegmentKey)
+	assert.Equal(t, true, rollout.GetSegment().Value)
 	assert.NotZero(t, rollout.CreatedAt)
 	assert.Equal(t, rollout.CreatedAt.Seconds, rollout.UpdatedAt.Seconds)
 
@@ -558,10 +576,10 @@ func (s *DBTestSuite) TestUpdateRollout() {
 		Id:          rollout.Id,
 		FlagKey:     rollout.FlagKey,
 		Description: "foobar",
-		Rule: &flipt.UpdateRolloutRequest_Threshold{
-			Threshold: &flipt.RolloutThreshold{
-				Value:      false,
-				Percentage: 80,
+		Rule: &flipt.UpdateRolloutRequest_Segment{
+			Segment: &flipt.RolloutSegment{
+				Value:       false,
+				SegmentKeys: []string{segmentOne.Key, segmentTwo.Key},
 			},
 		},
 	})
@@ -573,9 +591,10 @@ func (s *DBTestSuite) TestUpdateRollout() {
 	assert.Equal(t, rollout.FlagKey, updated.FlagKey)
 	assert.Equal(t, "foobar", updated.Description)
 	assert.Equal(t, int32(1), updated.Rank)
-	assert.Equal(t, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE, updated.Type)
-	assert.Equal(t, float32(80), updated.GetThreshold().Percentage)
-	assert.Equal(t, false, updated.GetThreshold().Value)
+	assert.Equal(t, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE, updated.Type)
+	assert.Contains(t, updated.GetSegment().SegmentKeys, segmentOne.Key)
+	assert.Contains(t, updated.GetSegment().SegmentKeys, segmentTwo.Key)
+	assert.Equal(t, false, updated.GetSegment().Value)
 	assert.NotZero(t, updated.CreatedAt)
 	assert.NotZero(t, updated.UpdatedAt)
 }

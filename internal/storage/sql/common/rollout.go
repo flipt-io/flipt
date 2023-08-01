@@ -96,6 +96,12 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 			return nil, err
 		}
 
+		defer func() {
+			if cerr := rows.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
+
 		var segmentKeys = []string{}
 
 		for rows.Next() {
@@ -108,10 +114,6 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 			}
 
 			segmentKeys = append(segmentKeys, segmentKey)
-		}
-
-		if err := rows.Close(); err != nil {
-			return nil, err
 		}
 
 		if len(segmentKeys) < 2 {

@@ -9,7 +9,7 @@ import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 )
 
-func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRule, error) {
+func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) (_ []*storage.EvaluationRule, err error) {
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
@@ -115,10 +115,8 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 				}
 
 				existingRule.Segments[intermediateStorageRule.SegmentKey] = ses
-			} else {
-				if constraint != nil {
-					segment.Constraints = append(segment.Constraints, *constraint)
-				}
+			} else if constraint != nil {
+				segment.Constraints = append(segment.Constraints, *constraint)
 			}
 		} else {
 			// haven't seen this rule before
@@ -169,7 +167,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	return rules, nil
 }
 
-func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) ([]*storage.EvaluationDistribution, error) {
+func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (_ []*storage.EvaluationDistribution, err error) {
 	rows, err := s.builder.Select("d.id, d.rule_id, d.variant_id, d.rollout, v.\"key\", v.attachment").
 		From("distributions d").
 		Join("variants v ON (d.variant_id = v.id)").
@@ -222,7 +220,7 @@ func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (
 	return distributions, nil
 }
 
-func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRollout, error) {
+func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey string) (_ []*storage.EvaluationRollout, err error) {
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}

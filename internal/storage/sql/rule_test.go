@@ -986,6 +986,26 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	// assert.Equal(t, rule.CreatedAt.Seconds, updatedRule.CreatedAt.Seconds)
 	assert.NotZero(t, rule.UpdatedAt)
 
+	t.Log("Update rule to references two segments.")
+
+	updatedRule, err = s.store.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
+		Id:              rule.Id,
+		FlagKey:         flag.Key,
+		SegmentKeys:     []string{segmentOne.Key, segmentTwo.Key},
+		SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, updatedRule)
+
+	assert.Equal(t, rule.Id, updatedRule.Id)
+	assert.Equal(t, rule.FlagKey, updatedRule.FlagKey)
+	assert.Contains(t, updatedRule.SegmentKeys, segmentOne.Key)
+	assert.Contains(t, updatedRule.SegmentKeys, segmentTwo.Key)
+	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, updatedRule.SegmentOperator)
+	assert.Equal(t, int32(1), updatedRule.Rank)
+	assert.NotZero(t, rule.UpdatedAt)
+
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		FlagKey:   flag.Key,
 		Id:        distribution.Id,

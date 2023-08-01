@@ -457,19 +457,31 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		t.Log(`Create rule "rank 3".`)
 
 		ruleThree, err := client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
-			NamespaceKey:    namespace,
-			FlagKey:         "test",
-			SegmentKeys:     []string{"segment", "another-segment"},
-			SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
-			Rank:            3,
+			NamespaceKey: namespace,
+			FlagKey:      "test",
+			SegmentKey:   "another-segment",
+			Rank:         3,
 		})
 
 		require.NoError(t, err)
 
 		assert.Equal(t, "test", ruleThree.FlagKey)
-		assert.Contains(t, ruleThree.SegmentKeys, "segment")
-		assert.Contains(t, ruleThree.SegmentKeys, "another-segment")
+		assert.Equal(t, "another-segment", ruleThree.SegmentKey)
 		assert.Equal(t, int32(3), ruleThree.Rank)
+
+		updatedRuleThree, err := client.Flipt().UpdateRule(ctx, &flipt.UpdateRuleRequest{
+			Id:              ruleThree.Id,
+			NamespaceKey:    namespace,
+			FlagKey:         "test",
+			SegmentKeys:     []string{"segment", "another-segment"},
+			SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "test", updatedRuleThree.FlagKey)
+		assert.Contains(t, updatedRuleThree.SegmentKeys, "another-segment")
+		assert.Contains(t, updatedRuleThree.SegmentKeys, "segment")
+		assert.Equal(t, int32(3), updatedRuleThree.Rank)
 
 		// ensure you can not link flags and segments from different namespaces.
 		if !namespaceIsDefault(namespace) {
@@ -665,8 +677,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			Rank:         2,
 			Rule: &flipt.CreateRolloutRequest_Segment{
 				Segment: &flipt.RolloutSegment{
-					SegmentKeys: []string{"segment", "another-segment"},
-					Value:       false,
+					SegmentKey: "another-segment",
+					Value:      false,
 				},
 			},
 		})
@@ -675,9 +687,28 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, namespace, anotherRolloutSegment.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", anotherRolloutSegment.FlagKey)
 		assert.Equal(t, int32(2), anotherRolloutSegment.Rank)
-		assert.Contains(t, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "segment")
-		assert.Contains(t, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "another-segment")
+		assert.Equal(t, "another-segment", anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
 		assert.Equal(t, false, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
+
+		updatedAnotherRolloutSegment, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
+			Id:           anotherRolloutSegment.Id,
+			NamespaceKey: namespace,
+			FlagKey:      "boolean_disabled",
+			Rule: &flipt.UpdateRolloutRequest_Segment{
+				Segment: &flipt.RolloutSegment{
+					SegmentKeys: []string{"segment", "another-segment"},
+					Value:       false,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, namespace, updatedAnotherRolloutSegment.NamespaceKey)
+		assert.Equal(t, "boolean_disabled", updatedAnotherRolloutSegment.FlagKey)
+		assert.Equal(t, int32(2), updatedAnotherRolloutSegment.Rank)
+		assert.Contains(t, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "segment")
+		assert.Contains(t, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys, "another-segment")
+		assert.Equal(t, false, updatedAnotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 		rolloutThreshold, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
 			NamespaceKey: namespace,
@@ -742,7 +773,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		assert.Empty(t, cmp.Diff([]*flipt.Rollout{
 			rolloutSegment,
-			anotherRolloutSegment,
+			updatedAnotherRolloutSegment,
 			rolloutThreshold,
 		}, rollouts.Rules, protocmp.Transform()))
 

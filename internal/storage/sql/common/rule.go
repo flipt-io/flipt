@@ -50,6 +50,12 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 		Where(sq.Eq{"rule_id": rule.Id}).
 		QueryContext(ctx)
 
+	defer func() {
+		if cerr := segmentRows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
 	segmentKeys := make([]string, 0)
 	for segmentRows.Next() {
 		var segmentKey string
@@ -212,11 +218,15 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 
 	// For each rule, find the segment keys and add them to the rule proto definition.
 	for _, r := range rules {
+		// Since we are querying within a loop, we do not want to defer within the loop
+		// so we will disable the sqlclosecheck linter.
 		segmentRows, err := s.builder.Select("segment_key").
 			From("rule_segments").
 			Where(sq.Eq{"rule_id": r.Id}).
 			QueryContext(ctx)
 		if err != nil {
+			//nolint:sqlclosecheck
+			_ = segmentRows.Close()
 			return results, err
 		}
 
@@ -230,6 +240,7 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 			segmentKeys = append(segmentKeys, segmentKey)
 		}
 
+		//nolint:sqlclosecheck
 		err = segmentRows.Close()
 		if err != nil {
 			return results, err
