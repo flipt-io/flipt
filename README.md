@@ -124,6 +124,9 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
 </p>
+<p align="center">
+    <img src="./logos/git.svg" alt="Git" width=150 height=150 />
+</p>
 
 ## Integration
 
