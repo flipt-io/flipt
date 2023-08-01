@@ -18,12 +18,12 @@ const (
 // EvaluationRule represents a rule and constraints required for evaluating if a
 // given flagKey matches a segment
 type EvaluationRule struct {
-	ID              string
-	NamespaceKey    string
-	FlagKey         string
-	Segments        map[string]*EvaluationSegment
-	Rank            int32
-	SegmentOperator flipt.SegmentOperator
+	ID              string                        `json:"id"`
+	NamespaceKey    string                        `json:"namespace_key,omitempty"`
+	FlagKey         string                        `json:"flag_key,omitempty"`
+	Segments        map[string]*EvaluationSegment `json:"segments,omitempty"`
+	Rank            int32                         `json:"rank,omitempty"`
+	SegmentOperator flipt.SegmentOperator         `json:"segmentOperator,omitempty"`
 }
 
 type EvaluationSegment struct {

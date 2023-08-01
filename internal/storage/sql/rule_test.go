@@ -105,7 +105,7 @@ func (s *DBTestSuite) TestGetRule_MultipleSegments() {
 	assert.NotNil(t, firstSegment)
 
 	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
-		Key:         "another_segment",
+		Key:         "another_segment_1",
 		Name:        "bar",
 		Description: "foo",
 	})
@@ -311,7 +311,7 @@ func (s *DBTestSuite) TestListRules_MultipleSegments() {
 	assert.NotNil(t, firstSegment)
 
 	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
-		Key:         "another_segment",
+		Key:         "another_segment_2",
 		Name:        "foo",
 		Description: "bar",
 	})

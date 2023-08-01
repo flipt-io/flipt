@@ -205,16 +205,6 @@ func (s *DBTestSuite) TestListRollouts_MultipleSegments() {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
-		FlagKey:     flag.Key,
-		Key:         t.Name(),
-		Name:        "foo",
-		Description: "bar",
-	})
-
-	require.NoError(t, err)
-	assert.NotNil(t, variant)
-
 	firstSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         t.Name(),
 		Name:        "foo",
@@ -225,7 +215,7 @@ func (s *DBTestSuite) TestListRollouts_MultipleSegments() {
 	assert.NotNil(t, firstSegment)
 
 	secondSegment, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
-		Key:         "another_segment",
+		Key:         "another_segment_3",
 		Name:        "foo",
 		Description: "bar",
 	})
