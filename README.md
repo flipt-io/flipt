@@ -93,6 +93,8 @@ Flipt supports use cases such as:
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
 
+<br clear="both"/>
+
 <img align="left" src=".github/images/console.png" alt="Flipt Console" width=40% />
 <img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=40% />
 
