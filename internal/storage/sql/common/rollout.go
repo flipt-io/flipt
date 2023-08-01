@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	tableRollouts           = "rollouts"
-	tableRolloutPercentages = "rollout_thresholds"
-	tableRolloutSegments    = "rollout_segments"
+	tableRollouts                 = "rollouts"
+	tableRolloutPercentages       = "rollout_thresholds"
+	tableRolloutSegments          = "rollout_segments"
+	tableRolloutSegmentReferences = "rollout_segment_references"
 )
 
 func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
@@ -88,7 +89,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 		segmentRule.Segment.SegmentOperator = segmentOperator
 
 		rows, err := builder.Select("segment_key").
-			From("rollout_segment_references").
+			From(tableRolloutSegmentReferences).
 			Where(sq.And{sq.Eq{"rollout_segment_id": rolloutSegmentId}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
 			QueryContext(ctx)
 		if err != nil {
@@ -478,7 +479,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 		}
 
 		for _, segmentKey := range segmentKeys {
-			if _, err := s.builder.Insert("rollout_segment_references").
+			if _, err := s.builder.Insert(tableRolloutSegmentReferences).
 				RunWith(tx).
 				Columns("rollout_segment_id", "namespace_key", "segment_key").
 				Values(rolloutSegmentId, rollout.NamespaceKey, segmentKey).
@@ -563,6 +564,8 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 	switch r.Rule.(type) {
 	case *flipt.UpdateRolloutRequest_Segment:
+		var segmentKeys = []string{}
+
 		// enforce that rollout type is consistent with the DB
 		if err := ensureRolloutType(rollout, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE); err != nil {
 			return nil, err
@@ -570,13 +573,58 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 		var segmentRule = r.GetSegment()
 
+		if segmentRule.SegmentKey != "" {
+			segmentKeys = append(segmentKeys, segmentRule.SegmentKey)
+		}
+
+		if len(segmentRule.SegmentKeys) > 0 {
+			segmentKeys = append(segmentKeys, segmentRule.SegmentKeys...)
+		}
+
 		if _, err := s.builder.Update(tableRolloutSegments).
 			RunWith(tx).
-			Set("segment_key", segmentRule.SegmentKey).
+			Set("segment_operator", segmentRule.SegmentOperator).
 			Set("value", segmentRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
 			return nil, err
 		}
+
+		// Delete and reinsert rollout_segment_references.
+		row := s.builder.Select("id").
+			RunWith(tx).
+			From(tableRolloutSegments).
+			Where(sq.Eq{"rollout_id": r.Id}).
+			Limit(1).
+			QueryRowContext(ctx)
+
+		var rolloutSegmentId string
+
+		if err := row.Scan(&rolloutSegmentId); err != nil {
+			return nil, err
+		}
+
+		if _, err := s.builder.Delete(tableRolloutSegmentReferences).
+			RunWith(tx).
+			Where(sq.And{sq.Eq{"rollout_segment_id": rolloutSegmentId}, sq.Eq{"namespace_key": r.NamespaceKey}}).
+			ExecContext(ctx); err != nil {
+			return nil, err
+		}
+
+		for _, segmentKey := range segmentKeys {
+			if _, err := s.builder.
+				Insert(tableRolloutSegmentReferences).
+				RunWith(tx).
+				Columns("rollout_segment_id", "namespace_key", "segment_key").
+				Values(
+					rolloutSegmentId,
+					r.NamespaceKey,
+					segmentKey,
+				).
+				ExecContext(ctx); err != nil {
+				return nil, err
+			}
+		}
+
 	case *flipt.UpdateRolloutRequest_Threshold:
 		// enforce that rollout type is consistent with the DB
 		if err := ensureRolloutType(rollout, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE); err != nil {
@@ -596,12 +644,16 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		return nil, errs.InvalidFieldError("rule", "invalid rollout rule type")
 	}
 
-	rollout, err = getRollout(ctx, s.builder.RunWith(tx), r.NamespaceKey, r.Id)
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	rollout, err = getRollout(ctx, s.builder, r.NamespaceKey, r.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return rollout, tx.Commit()
+	return rollout, nil
 }
 
 func ensureRolloutType(rollout *flipt.Rollout, typ flipt.RolloutType) error {

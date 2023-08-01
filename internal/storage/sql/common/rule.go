@@ -425,23 +425,59 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*fl
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	query := s.builder.Update("rules").
-		Set("segment_key", r.SegmentKey).
+	var segmentKeys = []string{}
+
+	if r.SegmentKey != "" {
+		segmentKeys = append(segmentKeys, r.SegmentKey)
+	}
+
+	if len(r.SegmentKeys) > 0 {
+		segmentKeys = append(segmentKeys, r.SegmentKeys...)
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	// Set segment operator.
+	if _, err = s.builder.Update("rules").
+		RunWith(tx).
+		Set("segment_operator", r.SegmentOperator).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}})
-
-	res, err := query.ExecContext(ctx)
-	if err != nil {
+		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
+		ExecContext(ctx); err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 
-	count, err := res.RowsAffected()
-	if err != nil {
+	// Delete and reinsert segmentKeys.
+	if _, err = s.builder.Delete("rule_segments").
+		RunWith(tx).
+		Where(sq.And{sq.Eq{"rule_id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}}).
+		ExecContext(ctx); err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 
-	if count != 1 {
-		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
+	for _, segmentKey := range segmentKeys {
+		if _, err := s.builder.
+			Insert("rule_segments").
+			RunWith(tx).
+			Columns("rule_id", "namespace_key", "segment_key").
+			Values(
+				r.Id,
+				r.NamespaceKey,
+				segmentKey,
+			).
+			ExecContext(ctx); err != nil {
+			_ = tx.Rollback()
+			return nil, err
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return s.GetRule(ctx, r.NamespaceKey, r.Id)

@@ -208,8 +208,12 @@ func (req *UpdateRuleRequest) Validate() error {
 		return errors.EmptyFieldError("flagKey")
 	}
 
-	if req.SegmentKey == "" {
-		return errors.EmptyFieldError("segmentKey")
+	if req.SegmentKey == "" && len(req.SegmentKeys) == 0 {
+		return errors.EmptyFieldError("segmentKey or segmentKeys")
+	}
+
+	if req.SegmentKey != "" && len(req.SegmentKeys) > 0 {
+		return errors.InvalidFieldError("segmentKey or segmentKeys", "only one can be present")
 	}
 
 	return nil
@@ -560,9 +564,14 @@ func (req *UpdateRolloutRequest) Validate() error {
 			return errors.InvalidFieldError("threshold.percentage", "must be within range [0, 100]")
 		}
 	case *UpdateRolloutRequest_Segment:
-		if rule.Segment.SegmentKey == "" {
-			return errors.EmptyFieldError("segmentKey")
+		if rule.Segment.SegmentKey == "" && len(rule.Segment.SegmentKeys) == 0 {
+			return errors.EmptyFieldError("segmentKey or segmentKeys")
 		}
+
+		if rule.Segment.SegmentKey != "" && len(rule.Segment.SegmentKeys) > 0 {
+			return errors.InvalidFieldError("segmentKey or segmentKeys", "only one can be present")
+		}
+
 	}
 
 	return nil
