@@ -77,8 +77,6 @@ Flipt supports use cases such as:
 
 ## Features
 
-<img align="right" src=".github/images/console.png" alt="Flipt Console" width=40% />
-
 - Fast. Written in Go. Optimized for performance
 - Stand alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
@@ -90,10 +88,13 @@ Flipt supports use cases such as:
 - Import and export to allow storing your data as code
 - Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box
-- [Filesystem + Git storage backends](https://www.flipt.io/docs/experimental/filesystem-backends) (experimental)
+- [Filesystem, S3, and Git storage backends](https://www.flipt.io/docs/experimental/filesystem-backends) 
 - Audit logging to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
+
+<img align="left" src=".github/images/console.png" alt="Flipt Console" width=49% />
+<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=49% />
 
 <br clear="both"/>
 
