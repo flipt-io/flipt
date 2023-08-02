@@ -30,7 +30,7 @@ func NewStore(store auth.Store, cacher cache.Cacher, logger *zap.Logger) *Store 
 	}
 }
 
-func (s *Store) setCache(ctx context.Context, key string, value protoreflect.ProtoMessage) {
+func (s *Store) set(ctx context.Context, key string, value protoreflect.ProtoMessage) {
 	cachePayload, err := proto.Marshal(value)
 	if err != nil {
 		s.logger.Error("marshalling for storage cache", zap.Error(err))
@@ -43,7 +43,7 @@ func (s *Store) setCache(ctx context.Context, key string, value protoreflect.Pro
 	}
 }
 
-func (s *Store) getCache(ctx context.Context, key string, value protoreflect.ProtoMessage) bool {
+func (s *Store) get(ctx context.Context, key string, value protoreflect.ProtoMessage) bool {
 	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
 	if err != nil {
 		s.logger.Error("getting from storage cache", zap.Error(err))
@@ -67,7 +67,7 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 		auth     = &authrpc.Authentication{}
 	)
 
-	cacheHit := s.getCache(ctx, cacheKey, auth)
+	cacheHit := s.get(ctx, cacheKey, auth)
 	if cacheHit {
 		s.logger.Debug("auth client token storage cache hit")
 		return auth, nil
@@ -78,7 +78,6 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 		return nil, err
 	}
 
-	s.setCache(ctx, cacheKey, auth)
-
+	s.set(ctx, cacheKey, auth)
 	return auth, nil
 }

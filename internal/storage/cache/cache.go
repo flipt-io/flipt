@@ -21,11 +21,11 @@ type Store struct {
 // storage:evaluationRules:<namespaceKey>:<flagKey>
 const evaluationRulesCacheKeyFmt = "s:er:%s:%s"
 
-func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) storage.Store {
+func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
 	return &Store{Store: store, cacher: cacher, logger: logger}
 }
 
-func (s *Store) setCache(ctx context.Context, key string, value any) {
+func (s *Store) set(ctx context.Context, key string, value any) {
 	cachePayload, err := json.Marshal(value)
 	if err != nil {
 		s.logger.Error("marshalling for storage cache", zap.Error(err))
@@ -38,7 +38,7 @@ func (s *Store) setCache(ctx context.Context, key string, value any) {
 	}
 }
 
-func (s *Store) getCache(ctx context.Context, key string, value any) bool {
+func (s *Store) get(ctx context.Context, key string, value any) bool {
 	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
 	if err != nil {
 		s.logger.Error("getting from storage cache", zap.Error(err))
@@ -61,7 +61,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 	var rules []*storage.EvaluationRule
 
-	cacheHit := s.getCache(ctx, cacheKey, &rules)
+	cacheHit := s.get(ctx, cacheKey, &rules)
 	if cacheHit {
 		s.logger.Debug("evaluation rules storage cache hit")
 		return rules, nil
@@ -72,7 +72,6 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		return nil, err
 	}
 
-	s.setCache(ctx, cacheKey, rules)
-
+	s.set(ctx, cacheKey, rules)
 	return rules, nil
 }
