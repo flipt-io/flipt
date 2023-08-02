@@ -233,6 +233,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 
 	return suite(ctx, "readonly", base, flipt, conf)
 }
+
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
