@@ -35,6 +35,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			retrieved, err := client.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
 				Key: namespace,
 			})
+			require.NoError(t, err)
 
 			assert.Equal(t, created.Name, retrieved.Name)
 
