@@ -1,8 +1,11 @@
+import { OperatorType } from '~/types/Operator';
 import { IDistribution } from './Distribution';
 import { IPageable } from './Pageable';
 
 export interface IRuleBase {
-  segmentKey: string;
+  segmentKey?: string;
+  segmentKeys?: string[];
+  segmentOperator?: OperatorType;
   rank: number;
 }
 
