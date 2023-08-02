@@ -1,4 +1,3 @@
 version: "1.0"
 include:
   - default.yaml
-  - production.yaml
