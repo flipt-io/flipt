@@ -14,6 +14,8 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 
 	flipt = flipt.
 		WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+		WithEnvVariable("FLIPT_DB_MAX_OPEN_CONN", "5").
+		WithEnvVariable("FLIPT_DB_MAX_IDLE_CONN", "5").
 		WithEnvVariable("FLIPT_LOG_LEVEL", "warn").
 		WithServiceBinding("postgres", client.Container().
 			From("postgres").
@@ -56,7 +58,7 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 		WithExec([]string{"go", "build", "-o", "./out/loadtest", "./cmd/loadtest/..."}).
 		File("out/loadtest")
 
-	cmd := []string{"./loadtest", "-duration", "60s"}
+	cmd := []string{"./loadtest", "-duration", "60s", "-rate", "300"}
 	if authToken != "" {
 		cmd = append(cmd, "-flipt-auth-token", authToken)
 	}
