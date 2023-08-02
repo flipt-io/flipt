@@ -87,7 +87,9 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 
 	// set token by id in cache for expiration
 	idCacheKey := fmt.Sprintf(authIDCacheKeyFmt, auth.Id)
-	s.cacher.Set(ctx, idCacheKey, []byte(token))
+	if err := s.cacher.Set(ctx, idCacheKey, []byte(token)); err != nil {
+		s.logger.Error("setting in storage cache", zap.Error(err))
+	}
 
 	return auth, nil
 }
@@ -108,7 +110,6 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 		tokenCacheKey := fmt.Sprintf(authTokenCacheKeyFmt, string(cachePayload))
 		_ = s.cacher.Delete(ctx, tokenCacheKey)
 		_ = s.cacher.Delete(ctx, idCacheKey)
-		return nil
 	}
 
 	return nil
