@@ -79,7 +79,7 @@ func WithSQLite(ctx context.Context, client *dagger.Client, container *dagger.Co
 
 func WithPostgres(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
 	return ctx, client, flipt.
-		WithEnvVariable("FLIPT_TEST_DB_URL", "postgres://postgres:password@postgres:5432").
+		WithEnvVariable("FLIPT_TEST_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
 		WithServiceBinding("postgres", client.Container().
 			From("postgres").
 			WithEnvVariable("POSTGRES_PASSWORD", "password").

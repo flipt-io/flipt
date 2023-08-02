@@ -2,6 +2,7 @@ package hack
 
 import (
 	"context"
+	"os"
 
 	"dagger.io/dagger"
 	"github.com/google/uuid"
@@ -10,6 +11,15 @@ import (
 func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
 	seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
 	importCmd := []string{"/flipt", "import", "--create-namespace", "import.yaml"}
+
+	flipt = flipt.
+		WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
+		WithEnvVariable("FLIPT_LOG_LEVEL", "warn").
+		WithServiceBinding("postgres", client.Container().
+			From("postgres").
+			WithEnvVariable("POSTGRES_PASSWORD", "password").
+			WithExposedPort(5432).
+			WithExec(nil))
 
 	// import some test data
 	flipt, err := flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -22,8 +32,23 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 	}
 
 	flipt = flipt.WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExposedPort(8080).
-		WithExec(nil)
+		WithExposedPort(8080)
+
+	var authToken string
+	if authEnabled := os.Getenv("FLIPT_AUTH_ENABLED"); authEnabled == "true" || authEnabled == "1" {
+		authToken = uuid.New().String()
+		flipt = flipt.WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", authToken)
+	}
+
+	var cacheEnabled bool
+	if cacheEnabledEnv := os.Getenv("FLIPT_CACHE_ENABLED"); cacheEnabledEnv == "true" || cacheEnabledEnv == "1" {
+		cacheEnabled = true
+		flipt = flipt.WithEnvVariable("FLIPT_CACHE_ENABLED", "true")
+	}
+
+	flipt = flipt.WithExec(nil)
 
 	// build the loadtest binary
 	loadtest := base.
@@ -31,13 +56,21 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 		WithExec([]string{"go", "build", "-o", "./out/loadtest", "./cmd/loadtest/..."}).
 		File("out/loadtest")
 
+	cmd := []string{"./loadtest", "-duration", "60s"}
+	if authToken != "" {
+		cmd = append(cmd, "-flipt-auth-token", authToken)
+	}
+	if cacheEnabled {
+		cmd = append(cmd, "-flipt-cache-enabled")
+	}
+
 	// run the loadtest binary from within the pyroscope container and export the adhoc data
 	// output to the host
 	_, err = client.Container().
 		From("pyroscope/pyroscope:latest").
 		WithFile("loadtest", loadtest).
 		WithServiceBinding("flipt", flipt).
-		WithExec([]string{"adhoc", "--log-level", "debug", "--url", "flipt:8080", "./loadtest", "-duration", "60s"}).
+		WithExec(append([]string{"adhoc", "--log-level", "info", "--url", "flipt:8080"}, cmd...)).
 		Directory("/home/pyroscope/.local/share/pyroscope").
 		Export(ctx, "build/hack/out/profiles")
 
