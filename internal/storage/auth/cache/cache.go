@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Store struct {
@@ -18,9 +19,13 @@ type Store struct {
 	logger *zap.Logger
 }
 
-// storage:auth:token:<token>
-// nolint:gosec
-const authTokenCacheKeyFmt = "s:a:t:%s"
+const (
+	// storage:auth:token:<token>
+	// nolint:gosec
+	authTokenCacheKeyFmt = "s:a:t:%s"
+	// storage:auth:id:<id>
+	authIDCacheKeyFmt = "s:a:i:%s"
+)
 
 func NewStore(store auth.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
 	return &Store{
@@ -63,11 +68,11 @@ func (s *Store) get(ctx context.Context, key string, value protoreflect.ProtoMes
 
 func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string) (*authrpc.Authentication, error) {
 	var (
-		cacheKey = fmt.Sprintf(authTokenCacheKeyFmt, token)
-		auth     = &authrpc.Authentication{}
+		tokenCacheKey = fmt.Sprintf(authTokenCacheKeyFmt, token)
+		auth          = &authrpc.Authentication{}
 	)
 
-	cacheHit := s.get(ctx, cacheKey, auth)
+	cacheHit := s.get(ctx, tokenCacheKey, auth)
 	if cacheHit {
 		s.logger.Debug("auth client token storage cache hit")
 		return auth, nil
@@ -78,6 +83,33 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 		return nil, err
 	}
 
-	s.set(ctx, cacheKey, auth)
+	s.set(ctx, tokenCacheKey, auth)
+
+	// set token by id in cache for expiration
+	idCacheKey := fmt.Sprintf(authIDCacheKeyFmt, auth.Id)
+	s.cacher.Set(ctx, idCacheKey, []byte(token))
+
 	return auth, nil
+}
+
+func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireAt *timestamppb.Timestamp) error {
+	idCacheKey := fmt.Sprintf(authIDCacheKeyFmt, id)
+
+	// expire token in db
+	err := s.Store.ExpireAuthenticationByID(ctx, id, expireAt)
+	if err != nil {
+		return err
+	}
+
+	// lookup token by id to get token, then delete in cache
+	cachePayload, cacheHit, err := s.cacher.Get(ctx, idCacheKey)
+	if err == nil && cacheHit {
+		s.logger.Debug("auth client token storage cache hit")
+		tokenCacheKey := fmt.Sprintf(authTokenCacheKeyFmt, string(cachePayload))
+		_ = s.cacher.Delete(ctx, tokenCacheKey)
+		_ = s.cacher.Delete(ctx, idCacheKey)
+		return nil
+	}
+
+	return nil
 }
