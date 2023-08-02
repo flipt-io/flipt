@@ -45,7 +45,8 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        test: ["api", "fs/git", "fs/local", "import/export"]
+        test:
+          ["api", "api/cache", "fs/git", "fs/local", "fs/s3", "import/export"]
     steps:
       - uses: actions/checkout@v3
 
