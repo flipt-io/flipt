@@ -2,7 +2,6 @@ package grpc_middleware
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -405,15 +404,11 @@ type variantFlagKeyger interface {
 }
 
 func flagCacheKey(namespaceKey, key string) string {
-	var k string
 	// for backward compatibility
 	if namespaceKey != "" {
-		k = fmt.Sprintf("f:%s:%s", namespaceKey, key)
-	} else {
-		k = fmt.Sprintf("f:%s", key)
+		return fmt.Sprintf("f:%s:%s", namespaceKey, key)
 	}
-
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
+	return fmt.Sprintf("f:%s", key)
 }
 
 type evaluationRequest interface {
@@ -429,13 +424,10 @@ func evaluationCacheKey(r evaluationRequest) (string, error) {
 		return "", fmt.Errorf("marshalling req to json: %w", err)
 	}
 
-	var k string
 	// for backward compatibility
 	if r.GetNamespaceKey() != "" {
-		k = fmt.Sprintf("e:%s:%s:%s:%s", r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out)
-	} else {
-		k = fmt.Sprintf("e:%s:%s:%s", r.GetFlagKey(), r.GetEntityId(), out)
+		return fmt.Sprintf("e:%s:%s:%s:%s", r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out), nil
 	}
 
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k))), nil
+	return fmt.Sprintf("e:%s:%s:%s", r.GetFlagKey(), r.GetEntityId(), out), nil
 }

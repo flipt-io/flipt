@@ -10,11 +10,11 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
-	fauth "go.flipt.io/flipt/internal/server/auth"
+	"go.flipt.io/flipt/internal/server/auth"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
-	"go.flipt.io/flipt/rpc/flipt/auth"
+	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -33,9 +33,9 @@ func TestActorFromContext(t *testing.T) {
 	)
 
 	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
-	ctx = fauth.ContextWithAuthentication(ctx, &auth.Authentication{Method: auth.Method_METHOD_TOKEN})
+	ctx = auth.ContextWithAuthentication(ctx, &rpcauth.Authentication{Method: rpcauth.Method_METHOD_TOKEN})
 
-	actor := fauth.ActorFromContext(ctx)
+	actor := auth.ActorFromContext(ctx)
 
 	require.Equal(t, actor["ip"], ipAddress)
 	require.Equal(t, actor["authentication"], authentication)
@@ -48,7 +48,7 @@ func TestServer(t *testing.T) {
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
 			grpc_middleware.WithUnaryServerChain(
-				fauth.UnaryInterceptor(logger, store),
+				auth.UnaryInterceptor(logger, store),
 				middleware.ErrorUnaryInterceptor,
 			),
 		)
@@ -65,7 +65,7 @@ func TestServer(t *testing.T) {
 
 	defer shutdown(t)
 
-	auth.RegisterAuthenticationServiceServer(server, fauth.NewServer(logger, store, fauth.WithAuditLoggingEnabled(true)))
+	rpcauth.RegisterAuthenticationServiceServer(server, auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(true)))
 
 	go func() {
 		errC <- server.Serve(listener)
@@ -79,7 +79,7 @@ func TestServer(t *testing.T) {
 	)
 
 	req := &storageauth.CreateAuthenticationRequest{
-		Method:    auth.Method_METHOD_TOKEN,
+		Method:    rpcauth.Method_METHOD_TOKEN,
 		ExpiresAt: timestamppb.New(time.Now().Add(time.Hour).UTC()),
 	}
 
@@ -90,7 +90,7 @@ func TestServer(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 
-	client := auth.NewAuthenticationServiceClient(conn)
+	client := rpcauth.NewAuthenticationServiceClient(conn)
 
 	authorize := func(context.Context) context.Context {
 		return metadata.AppendToOutgoingContext(
@@ -113,7 +113,7 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("GetAuthentication", func(t *testing.T) {
-		retrievedAuth, err := client.GetAuthentication(authorize(ctx), &auth.GetAuthenticationRequest{
+		retrievedAuth, err := client.GetAuthentication(authorize(ctx), &rpcauth.GetAuthenticationRequest{
 			Id: authentication.Id,
 		})
 		require.NoError(t, err)
@@ -124,13 +124,13 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("ListAuthentications", func(t *testing.T) {
-		expected := &auth.ListAuthenticationsResponse{
-			Authentications: []*auth.Authentication{
+		expected := &rpcauth.ListAuthenticationsResponse{
+			Authentications: []*rpcauth.Authentication{
 				authentication,
 			},
 		}
 
-		response, err := client.ListAuthentications(authorize(ctx), &auth.ListAuthenticationsRequest{})
+		response, err := client.ListAuthentications(authorize(ctx), &rpcauth.ListAuthenticationsRequest{})
 		require.NoError(t, err)
 
 		if diff := cmp.Diff(response, expected, protocmp.Transform()); err != nil {
@@ -138,8 +138,8 @@ func TestServer(t *testing.T) {
 		}
 
 		// by method token
-		response, err = client.ListAuthentications(authorize(ctx), &auth.ListAuthenticationsRequest{
-			Method: auth.Method_METHOD_TOKEN,
+		response, err = client.ListAuthentications(authorize(ctx), &rpcauth.ListAuthenticationsRequest{
+			Method: rpcauth.Method_METHOD_TOKEN,
 		})
 		require.NoError(t, err)
 
@@ -151,7 +151,7 @@ func TestServer(t *testing.T) {
 	t.Run("DeleteAuthentication", func(t *testing.T) {
 		ctx := authorize(ctx)
 		// delete self
-		_, err := client.DeleteAuthentication(ctx, &auth.DeleteAuthenticationRequest{
+		_, err := client.DeleteAuthentication(ctx, &rpcauth.DeleteAuthenticationRequest{
 			Id: authentication.Id,
 		})
 		require.NoError(t, err)
@@ -169,7 +169,7 @@ func TestServer(t *testing.T) {
 	t.Run("ExpireAuthenticationSelf", func(t *testing.T) {
 		// create new authentication
 		req := &storageauth.CreateAuthenticationRequest{
-			Method:    auth.Method_METHOD_TOKEN,
+			Method:    rpcauth.Method_METHOD_TOKEN,
 			ExpiresAt: timestamppb.New(time.Now().Add(time.Hour).UTC()),
 		}
 
@@ -189,7 +189,7 @@ func TestServer(t *testing.T) {
 		require.NoError(t, err)
 
 		// expire self
-		_, err = client.ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{})
+		_, err = client.ExpireAuthenticationSelf(ctx, &rpcauth.ExpireAuthenticationSelfRequest{})
 		require.NoError(t, err)
 
 		// get self with authenticated context now unauthorized

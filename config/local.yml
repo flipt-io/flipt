@@ -4,8 +4,13 @@
 log:
   level: DEBUG
 
-# authentication:
-#   required: false
+authentication:
+  required: true
+  methods:
+    token:
+      enabled: true
+      bootstrap:
+        expiration: 24h
 
 # ui:
 #   enabled: true
@@ -14,8 +19,8 @@ cors:
   enabled: true
   allowed_origins: ["*"]
 
-# cache:
-#   enabled: false
+cache:
+  enabled: true
 #   backend: memory
 #   ttl: 60s
 #   redis:

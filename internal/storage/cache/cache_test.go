@@ -15,7 +15,7 @@ func TestSetCacheHandleMarshalError(t *testing.T) {
 		store          = &storeMock{}
 		cacher         = &cacheSpy{}
 		logger         = zaptest.NewLogger(t)
-		cachedStore, _ = New(store, cacher, logger).(*Store)
+		cachedStore, _ = NewStore(store, cacher, logger).(*Store)
 	)
 
 	cachedStore.setCache(context.TODO(), "key", make(chan int))
@@ -27,7 +27,7 @@ func TestGetCacheHandleGetError(t *testing.T) {
 		store          = &storeMock{}
 		cacher         = &cacheSpy{getErr: errors.New("get error")}
 		logger         = zaptest.NewLogger(t)
-		cachedStore, _ = New(store, cacher, logger).(*Store)
+		cachedStore, _ = NewStore(store, cacher, logger).(*Store)
 	)
 
 	value := make(map[string]string)
@@ -43,7 +43,7 @@ func TestGetCacheHandleUnmarshalError(t *testing.T) {
 			cachedValue: []byte(`{"invalid":"123"`),
 		}
 		logger         = zaptest.NewLogger(t)
-		cachedStore, _ = New(store, cacher, logger).(*Store)
+		cachedStore, _ = NewStore(store, cacher, logger).(*Store)
 	)
 
 	value := make(map[string]string)
@@ -64,7 +64,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	var (
 		cacher      = &cacheSpy{}
 		logger      = zaptest.NewLogger(t)
-		cachedStore = New(store, cacher, logger)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
 	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
@@ -92,7 +92,7 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 		}
 
 		logger      = zaptest.NewLogger(t)
-		cachedStore = New(store, cacher, logger)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
 	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")

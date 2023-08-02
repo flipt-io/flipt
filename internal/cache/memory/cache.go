@@ -2,6 +2,8 @@ package memory
 
 import (
 	"context"
+	"crypto/md5"
+	"fmt"
 
 	gocache "github.com/patrickmn/go-cache"
 	"go.flipt.io/flipt/internal/cache"
@@ -21,6 +23,7 @@ func NewCache(cfg config.CacheConfig) *Cache {
 }
 
 func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
+	key = cacheKey(key)
 	v, ok := c.c.Get(key)
 	if !ok {
 		cache.Observe(ctx, cacheType, cache.Miss)
@@ -32,15 +35,21 @@ func (c *Cache) Get(ctx context.Context, key string) ([]byte, bool, error) {
 }
 
 func (c *Cache) Set(_ context.Context, key string, value []byte) error {
+	key = cacheKey(key)
 	c.c.SetDefault(key, value)
 	return nil
 }
 
 func (c *Cache) Delete(_ context.Context, key string) error {
+	key = cacheKey(key)
 	c.c.Delete(key)
 	return nil
 }
 
 func (c *Cache) String() string {
 	return cacheType
+}
+
+func cacheKey(k string) string {
+	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
