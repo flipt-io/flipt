@@ -982,6 +982,9 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 			NamespaceKey: namespace,
 		})
+
+		require.NoError(t, err)
+
 		for _, flag := range flags.Flags {
 			err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
 				NamespaceKey: namespace,

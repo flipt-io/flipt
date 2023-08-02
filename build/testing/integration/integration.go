@@ -38,7 +38,7 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, ns string, authent
 
 	var (
 		opts           []sdk.Option
-		authentication = false
+		authentication bool
 	)
 
 	if authentication = *fliptToken != ""; authentication {
