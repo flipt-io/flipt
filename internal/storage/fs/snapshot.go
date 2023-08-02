@@ -350,6 +350,9 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 
 			evalRules = append(evalRules, evalRule)
 
+			// Set segment operator on rule.
+			rule.SegmentOperator = flipt.SegmentOperator(segmentOperator)
+
 			for _, d := range r.Distributions {
 				variant, found := findByKey(d.VariantKey, flag.Variants...)
 				if !found {
@@ -457,7 +460,8 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				s.RolloutType = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
 
 				frs := &flipt.RolloutSegment{
-					Value: rollout.Segment.Value,
+					Value:           rollout.Segment.Value,
+					SegmentOperator: flipt.SegmentOperator(segmentOperator),
 				}
 
 				if len(segmentKeys) < 2 {

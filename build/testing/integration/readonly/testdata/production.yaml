@@ -15562,7 +15562,9 @@ flags:
   - key: variant_002
     name: VARIANT_002
   rules:
-  - segments: [segment_001, segment_anding]
+  - segments:
+    - segment_001
+    - segment_anding
     operator: AND_SEGMENT_OPERATOR
     distributions:
     - variant: variant_001
@@ -15601,9 +15603,11 @@ flags:
   rollouts:
   - description: enabled for segment_001
     segment:
+      keys:
+      - segment_001
+      - segment_anding
       operator: AND_SEGMENT_OPERATOR
       value: true
-      keys: [segment_001, segment_anding]
 - key: flag_disabled
   name: FLAG_DISABLED
   type: VARIANT_FLAG_TYPE
@@ -16277,9 +16281,9 @@ segments:
 - key: segment_anding
   name: SEGMENT_ANDING
   description: Some Segment Description
-  match_type: ALL_MATCH_TYPE
   constraints:
   - type: STRING_COMPARISON_TYPE
     property: anding
     operator: eq
     value: segment
+  match_type: ALL_MATCH_TYPE

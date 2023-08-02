@@ -506,7 +506,6 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 				segmentKey,
 			).
 			ExecContext(ctx); err != nil {
-			fmt.Println("ERROR ON INSERTING: ", err)
 			return nil, err
 		}
 	}

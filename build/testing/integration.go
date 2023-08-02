@@ -233,6 +233,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 
 	return suite(ctx, "readonly", base, flipt, conf)
 }
+
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
@@ -287,7 +288,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		if namespace == "" {
 			namespace = "default"
 			// replace namespace in expected yaml
-			expected = strings.ReplaceAll(expected, "version: \"1.1\"\n", fmt.Sprintf("version: \"1.1\"\nnamespace: %s\n", namespace))
+			expected = strings.ReplaceAll(expected, "version: \"1.2\"\n", fmt.Sprintf("version: \"1.2\"\nnamespace: %s\n", namespace))
 		}
 
 		// use target flipt binary to invoke import

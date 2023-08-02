@@ -569,7 +569,6 @@ func TestReadOnly(t *testing.T) {
 					result, err := sdk.Evaluation().Boolean(ctx, &evaluation.EvaluationRequest{
 						NamespaceKey: namespace,
 						FlagKey:      "flag_boolean_and_segments",
-						EntityId:     "some-fixed-entity-id",
 						Context: map[string]string{
 							"in_segment": "segment_001",
 							"anding":     "segment",

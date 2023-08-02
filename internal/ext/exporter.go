@@ -129,7 +129,16 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 			rules := resp.Rules
 			for _, r := range rules {
-				rule := &Rule{SegmentKey: r.SegmentKey}
+				rule := &Rule{}
+				if r.SegmentKey != "" {
+					rule.SegmentKey = r.SegmentKey
+				} else if len(r.SegmentKeys) > 0 {
+					rule.SegmentKeys = r.SegmentKeys
+				}
+
+				if r.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
+					rule.SegmentOperator = r.SegmentOperator.String()
+				}
 
 				for _, d := range r.Distributions {
 					rule.Distributions = append(rule.Distributions, &Distribution{
@@ -157,8 +166,17 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 				switch rule := r.Rule.(type) {
 				case *flipt.Rollout_Segment:
 					rollout.Segment = &SegmentRule{
-						Key:   rule.Segment.SegmentKey,
 						Value: rule.Segment.Value,
+					}
+
+					if rule.Segment.SegmentKey != "" {
+						rollout.Segment.Key = rule.Segment.SegmentKey
+					} else if len(rule.Segment.SegmentKeys) > 0 {
+						rollout.Segment.Keys = rule.Segment.SegmentKeys
+					}
+
+					if rule.Segment.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
+						rollout.Segment.Operator = rule.Segment.SegmentOperator.String()
 					}
 				case *flipt.Rollout_Threshold:
 					rollout.Threshold = &ThresholdRule{
