@@ -95,8 +95,10 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 
 <br clear="both"/>
 
-<img align="left" src=".github/images/console.png" alt="Flipt Console" width=40% />
-<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=40% />
+<div align="center">
+<img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
+<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=45% />
+</div>
 
 <br clear="both"/>
 
