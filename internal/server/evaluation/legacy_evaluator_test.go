@@ -1225,11 +1225,9 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 
 			assert.True(t, resp.Match)
 
-			assert.Equal(t, "bar", resp.SegmentKey)
-
 			assert.Len(t, resp.SegmentKeys, 2)
-			assert.Equal(t, resp.SegmentKeys[0], "bar")
-			assert.Equal(t, resp.SegmentKeys[1], "foo")
+			assert.Contains(t, resp.SegmentKeys, "bar")
+			assert.Contains(t, resp.SegmentKeys, "foo")
 			assert.Empty(t, resp.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
 		})

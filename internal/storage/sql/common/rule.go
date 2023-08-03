@@ -468,7 +468,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 	}()
 
 	// Set segment operator.
-	res, err := s.builder.Update("rules").
+	_, err = s.builder.Update("rules").
 		RunWith(tx).
 		Set("segment_operator", r.SegmentOperator).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
@@ -476,15 +476,6 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		ExecContext(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return nil, err
-	}
-
-	if count != 1 {
-		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
 	}
 
 	// Delete and reinsert segmentKeys.

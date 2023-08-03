@@ -182,6 +182,22 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	return rule, nil
 }
 
+func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+	rule, err := s.Store.UpdateRule(ctx, r)
+
+	if err != nil {
+		var perr *pq.Error
+
+		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
+			return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
+		}
+
+		return nil, err
+	}
+
+	return rule, nil
+}
+
 func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	dist, err := s.Store.CreateDistribution(ctx, r)
 
