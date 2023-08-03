@@ -14,6 +14,9 @@ on:
       - "**.txt"
   workflow_dispatch:
 
+env:
+  DAGGER_VERSION: 0.6.4
+
 jobs:
   test:
     name: "Tests (Go)"
@@ -33,7 +36,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - name: Unit Test ${{ matrix.database }}
         uses: GeorgeMac/mage-action@gm/tools-add-path-debug
@@ -77,7 +80,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
