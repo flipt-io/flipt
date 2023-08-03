@@ -74,7 +74,6 @@ func (s *Store) GetAuthenticationByClientToken(ctx context.Context, token string
 
 	cacheHit := s.get(ctx, tokenCacheKey, auth)
 	if cacheHit {
-		s.logger.Debug("auth client token storage cache hit")
 		return auth, nil
 	}
 
@@ -106,7 +105,6 @@ func (s *Store) ExpireAuthenticationByID(ctx context.Context, id string, expireA
 	// lookup token by id to get token, then delete in cache
 	cachePayload, cacheHit, err := s.cacher.Get(ctx, idCacheKey)
 	if err == nil && cacheHit {
-		s.logger.Debug("auth client token storage cache hit")
 		tokenCacheKey := fmt.Sprintf(authTokenCacheKeyFmt, string(cachePayload))
 		_ = s.cacher.Delete(ctx, tokenCacheKey)
 		_ = s.cacher.Delete(ctx, idCacheKey)

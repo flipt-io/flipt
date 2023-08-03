@@ -14,11 +14,15 @@ import (
 var _ cache.Cacher = &cacheSpy{}
 
 type cacheSpy struct {
-	cached      bool
-	cachedValue []byte
-	cacheKey    string
+	getCacheKeys    []string
+	setCacheKeys    []string
+	deleteCacheKeys []string
+
+	cache map[string][]byte
+
 	getErr      error
 	setErr      error
+	deleteError error
 }
 
 func (c *cacheSpy) String() string {
@@ -26,27 +30,39 @@ func (c *cacheSpy) String() string {
 }
 
 func (c *cacheSpy) Get(ctx context.Context, key string) ([]byte, bool, error) {
-	c.cacheKey = key
+	c.getCacheKeys = append(c.getCacheKeys, key)
 
-	if c.getErr != nil || !c.cached {
-		return nil, c.cached, c.getErr
+	if c.getErr != nil {
+		return nil, false, c.getErr
 	}
 
-	return c.cachedValue, true, nil
+	got, ok := c.cache[key]
+	return got, ok, nil
 }
 
 func (c *cacheSpy) Set(ctx context.Context, key string, value []byte) error {
-	c.cacheKey = key
-	c.cachedValue = value
+	c.setCacheKeys = append(c.setCacheKeys, key)
 
 	if c.setErr != nil {
 		return c.setErr
 	}
 
+	if c.cache == nil {
+		c.cache = make(map[string][]byte)
+	}
+
+	c.cache[key] = value
 	return nil
 }
 
 func (c *cacheSpy) Delete(ctx context.Context, key string) error {
+	c.deleteCacheKeys = append(c.deleteCacheKeys, key)
+
+	if c.deleteError != nil {
+		return c.deleteError
+	}
+
+	delete(c.cache, key)
 	return nil
 }
 

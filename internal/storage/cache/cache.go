@@ -63,7 +63,6 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 	cacheHit := s.get(ctx, cacheKey, &rules)
 	if cacheHit {
-		s.logger.Debug("evaluation rules storage cache hit")
 		return rules, nil
 	}
 

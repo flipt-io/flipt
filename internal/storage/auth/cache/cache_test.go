@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
@@ -31,25 +32,29 @@ func TestGetAuthenticationByClientToken(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, got)
 	assert.Equal(t, auth.Id, got.Id)
-	assert.Equal(t, "s:a:t:foo", cacher.cacheKey)
-	assert.NotNil(t, cacher.cachedValue)
+	assert.Equal(t, "s:a:t:foo", cacher.getCacheKeys[0])      // assert we looked up the key first
+	assert.Equal(t, "s:a:t:foo", cacher.setCacheKeys[0])      // assert we cached the key
+	assert.Equal(t, "s:a:i:123", cacher.setCacheKeys[1])      // assert we cached the id
+	assert.Equal(t, []byte("foo"), cacher.cache["s:a:i:123"]) // assert we cached the token
+	assert.NotNil(t, cacher.cache["s:a:t:foo"])               // assert we cached the auth
 }
 
-func TestGetEvaluationRulesCached(t *testing.T) {
+func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 	var (
 		auth  = &rpcauth.Authentication{Id: "123"}
 		store = &storeMock{}
 	)
 
-	store.AssertNotCalled(t, "GetAuthenticationByClientToken", context.TODO(), "foo")
+	store.AssertNotCalled(t, "GetAuthenticationByClientToken", mock.Anything, mock.Anything)
 
 	b, err := proto.Marshal(auth)
 	require.NoError(t, err)
 
 	var (
 		cacher = &cacheSpy{
-			cached:      true,
-			cachedValue: b,
+			cache: map[string][]byte{
+				"s:a:t:foo": b,
+			},
 		}
 
 		logger      = zaptest.NewLogger(t)
@@ -60,5 +65,32 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, got)
 	assert.Equal(t, auth.Id, got.Id)
-	assert.Equal(t, "s:a:t:foo", cacher.cacheKey)
+	assert.Equal(t, "s:a:t:foo", cacher.getCacheKeys[0]) // assert we looked up the key
+}
+
+func TestExpireAuthenticationByID(t *testing.T) {
+	store := &storeMock{}
+
+	store.On("ExpireAuthenticationByID", context.TODO(), "123", mock.Anything).Return(
+		nil,
+	)
+
+	var (
+		cacher = &cacheSpy{
+			cache: map[string][]byte{
+				"s:a:i:123": []byte("foo"),
+				"s:a:t:foo": []byte("deleteme"),
+			},
+		}
+
+		logger      = zaptest.NewLogger(t)
+		cachedStore = NewStore(store, cacher, logger)
+	)
+
+	err := cachedStore.ExpireAuthenticationByID(context.TODO(), "123", nil)
+	assert.Nil(t, err)
+
+	assert.Equal(t, "s:a:i:123", cacher.getCacheKeys[0])    // assert we looked up the key by id
+	assert.Equal(t, "s:a:t:foo", cacher.deleteCacheKeys[0]) // assert we cached the key
+	assert.Equal(t, "s:a:i:123", cacher.deleteCacheKeys[1]) // assert we cached the id
 }
