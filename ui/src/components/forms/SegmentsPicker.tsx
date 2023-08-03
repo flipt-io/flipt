@@ -1,6 +1,5 @@
-import { MinusIcon } from '@heroicons/react/24/outline';
+import { MinusSmallIcon } from '@heroicons/react/24/outline';
 import { useRef } from 'react';
-import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
@@ -57,7 +56,7 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
   return (
     <div className="space-y-2">
       {parentSegments.map((selectedSegment, index) => (
-        <div className="flex space-x-4" key={index}>
+        <div className="flex space-x-2" key={index}>
           <div className="w-5/6">
             <Combobox<FilterableSegment>
               id={`segmentKey-${index}`}
@@ -79,13 +78,14 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
             />
           </div>
           <div className="w-1/6">
-            <Button
-              primary
+            <button
               type="button"
+              className="text-gray-400 mt-2 hover:text-gray-500"
               onClick={() => handleSegmentRemove(index)}
             >
-              <MinusIcon className="text-white h-5" aria-hidden="true" />
-            </Button>
+              <span className="sr-only">Close panel</span>
+              <MinusSmallIcon className="h-6 w-6" aria-hidden="true" />
+            </button>
           </div>
         </div>
       ))}
