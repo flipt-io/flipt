@@ -35,6 +35,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			retrieved, err := client.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
 				Key: namespace,
 			})
+			require.NoError(t, err)
 
 			assert.Equal(t, created.Name, retrieved.Name)
 
@@ -1158,6 +1159,9 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 			NamespaceKey: namespace,
 		})
+
+		require.NoError(t, err)
+
 		for _, flag := range flags.Flags {
 			err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
 				NamespaceKey: namespace,
