@@ -3,8 +3,8 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 code.gitea.io/gitea-vet v0.2.1/go.mod h1:zcNbT/aJEmivCAhfmkHOlT645KNOf9W2KnkLgFjGGfE=
 code.gitea.io/sdk/gitea v0.15.1 h1:WJreC7YYuxbn0UDaPuWIe/mtiNKTvLN8MLkaw71yx/M=
 code.gitea.io/sdk/gitea v0.15.1/go.mod h1:klY2LVI3s3NChzIk/MzMn7G1FHrfU7qd63iSMVoHRBA=
-dagger.io/dagger v0.7.3 h1:3DJ3b2l2g1E6UoDHqkylELy98MyKju82Hj7B2q+0W+Q=
-dagger.io/dagger v0.7.3/go.mod h1:1bvuGds3VUv3sdgkwoNKhSymNyqsjF8JZvZw7bmwBKs=
+dagger.io/dagger v0.8.0 h1:gOW2XrkOHTWvLsIQV0jBjvTLGBeWi67s8u9PBFgwSus=
+dagger.io/dagger v0.8.0/go.mod h1:CZwYt0FfVsEEYTFytzf2ihESB2P4H1S3/UfnrVxjBsE=
 github.com/99designs/gqlgen v0.17.34 h1:5cS5/OKFguQt+Ws56uj9FlG2xm1IlcJWNF2jrMIKYFQ=
 github.com/99designs/gqlgen v0.17.34/go.mod h1:Axcd3jIFHBVcqzixujJQr1wGqE+lGTpz6u4iZBZg1G8=
 github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 h1:L/gRVlceqvL25UVaW/CKtUDjefjrs0SPonmDGUVOYP0=
