@@ -20,12 +20,6 @@ type Evaluation struct {
 	Context  map[string]string `json:"context"`
 }
 
-type BooleanRollout struct {
-	EntityId string            `json:"entityId"`
-	FlagKey  string            `json:"flagKey"`
-	Context  map[string]string `json:"context"`
-}
-
 var (
 	dur               time.Duration
 	rate              int
@@ -45,12 +39,12 @@ func init() {
 func main() {
 	flag.Parse()
 
-	evaluationTargeter := vegeta.Targeter(func(t *vegeta.Target) error {
+	variantTargeter := vegeta.Targeter(func(t *vegeta.Target) error {
 		t.Header = http.Header{
 			"Authorization": []string{fmt.Sprintf("Bearer %s", fliptAuthToken)},
 		}
 		t.Method = postMethod
-		t.URL = fmt.Sprintf("%s/api/v1/evaluate", fliptAddr)
+		t.URL = fmt.Sprintf("%s/evaluate/v1/variant", fliptAddr)
 
 		variantEvaluation := Evaluation{
 			EntityId: uuid.Must(uuid.NewV4()).String(),
@@ -75,7 +69,7 @@ func main() {
 		t.Method = postMethod
 		t.URL = fmt.Sprintf("%s/evaluate/v1/boolean", fliptAddr)
 
-		booleanEvaluation := BooleanRollout{
+		booleanEvaluation := Evaluation{
 			EntityId: uuid.Must(uuid.NewV4()).String(),
 			FlagKey:  "flag_boolean",
 			Context: map[string]string{
@@ -120,6 +114,6 @@ func main() {
 		fmt.Printf("Success: %f %%\n\n", metrics.Success*100.0)
 	}
 
-	attack("evaluate", evaluationTargeter)
+	attack("variant", variantTargeter)
 	attack("boolean", booleanTargeter)
 }
