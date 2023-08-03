@@ -44,8 +44,10 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"go.flipt.io/flipt/internal/storage/fs/git"
@@ -120,12 +122,12 @@ func NewGRPCServer(
 
 	switch cfg.Storage.Type {
 	case "", config.DatabaseStorageType:
-		db, builder, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
+		db, builder, driver, dbShutdown, err := getDB(ctx, logger, cfg, forceMigrate)
 		if err != nil {
 			return nil, err
 		}
 
-		server.onShutdown(shutdown)
+		server.onShutdown(dbShutdown)
 
 		switch driver {
 		case fliptsql.SQLite:
@@ -230,7 +232,10 @@ func NewGRPCServer(
 
 	// base observability inteceptors
 	interceptors := []grpc.UnaryServerInterceptor{
-		grpc_recovery.UnaryServerInterceptor(),
+		grpc_recovery.UnaryServerInterceptor(grpc_recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+			logger.Error("panic recovered", zap.Any("panic", p))
+			return status.Errorf(codes.Internal, "%v", p)
+		})),
 		grpc_ctxtags.UnaryServerInterceptor(),
 		grpc_zap.UnaryServerInterceptor(logger),
 		grpc_prometheus.UnaryServerInterceptor,
@@ -239,35 +244,14 @@ func NewGRPCServer(
 
 	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
-		switch cfg.Cache.Backend {
-		case config.CacheMemory:
-			cacher = memory.NewCache(cfg.Cache)
-		case config.CacheRedis:
-			rdb := goredis.NewClient(&goredis.Options{
-				Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
-				Password: cfg.Cache.Redis.Password,
-				DB:       cfg.Cache.Redis.DB,
-			})
-
-			server.onShutdown(func(ctx context.Context) error {
-				return rdb.Shutdown(ctx).Err()
-			})
-
-			status := rdb.Ping(ctx)
-			if status == nil {
-				return nil, errors.New("connecting to redis: no status")
-			}
-
-			if status.Err() != nil {
-				return nil, fmt.Errorf("connecting to redis: %w", status.Err())
-			}
-
-			cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
-				Redis: rdb,
-			}))
+		cacher, cacheShutdown, err := getCache(ctx, cfg)
+		if err != nil {
+			return nil, err
 		}
 
-		store = storagecache.New(store, cacher, logger)
+		server.onShutdown(cacheShutdown)
+
+		store = storagecache.NewStore(store, cacher, logger)
 
 		logger.Debug("cache enabled", zap.Stringer("backend", cacher))
 	}
@@ -439,8 +423,10 @@ func (s *GRPCServer) Shutdown(ctx context.Context) error {
 
 	// call in reverse order to emulate pop semantics of a stack
 	for i := len(s.shutdownFuncs) - 1; i >= 0; i-- {
-		if err := s.shutdownFuncs[i](ctx); err != nil {
-			return err
+		if fn := s.shutdownFuncs[i]; fn != nil {
+			if err := fn(ctx); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -454,7 +440,50 @@ func (s *GRPCServer) onShutdown(fn errFunc) {
 }
 
 var (
-	once    sync.Once
+	cacheOnce sync.Once
+	cacher    cache.Cacher
+	cacheFunc errFunc = func(context.Context) error { return nil }
+	cacheErr  error
+)
+
+func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, error) {
+	cacheOnce.Do(func() {
+		switch cfg.Cache.Backend {
+		case config.CacheMemory:
+			cacher = memory.NewCache(cfg.Cache)
+		case config.CacheRedis:
+			rdb := goredis.NewClient(&goredis.Options{
+				Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
+				Password: cfg.Cache.Redis.Password,
+				DB:       cfg.Cache.Redis.DB,
+			})
+
+			cacheFunc = func(ctx context.Context) error {
+				return rdb.Shutdown(ctx).Err()
+			}
+
+			status := rdb.Ping(ctx)
+			if status == nil {
+				cacheErr = errors.New("connecting to redis: no status")
+				return
+			}
+
+			if status.Err() != nil {
+				cacheErr = fmt.Errorf("connecting to redis: %w", status.Err())
+				return
+			}
+
+			cacher = redis.NewCache(cfg.Cache, goredis_cache.New(&goredis_cache.Options{
+				Redis: rdb,
+			}))
+		}
+	})
+
+	return cacher, cacheFunc, cacheErr
+}
+
+var (
+	dbOnce  sync.Once
 	db      *sql.DB
 	builder sq.StatementBuilderType
 	driver  fliptsql.Driver
@@ -463,7 +492,7 @@ var (
 )
 
 func getDB(ctx context.Context, logger *zap.Logger, cfg *config.Config, forceMigrate bool) (*sql.DB, sq.StatementBuilderType, fliptsql.Driver, errFunc, error) {
-	once.Do(func() {
+	dbOnce.Do(func() {
 		migrator, err := fliptsql.NewMigrator(*cfg, logger)
 		if err != nil {
 			dbErr = err

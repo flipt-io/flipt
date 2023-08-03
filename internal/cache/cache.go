@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"crypto/md5"
 	"fmt"
 )
 
@@ -14,4 +15,8 @@ type Cacher interface {
 	// Delete removes a value from the cache
 	Delete(ctx context.Context, key string) error
 	fmt.Stringer
+}
+
+func Key(k string) string {
+	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
