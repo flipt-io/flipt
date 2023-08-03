@@ -153,7 +153,7 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 		// create unique instance for test case
 		flipt.
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(nil), conf)
+			WithExec([]string{"/flipt"}), conf)
 }
 
 const (
@@ -169,7 +169,7 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec(nil)
+		WithExec([]string{"/flipt"})
 
 	return suite(ctx, "readonly", base, flipt, conf)
 }
@@ -195,7 +195,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec(nil)
+		WithExec([]string{"/flipt"})
 
 	return suite(ctx, "readonly", base, flipt, conf)
 }
@@ -229,7 +229,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_ENDPOINT", "http://minio:9009").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_BUCKET", "testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
-		WithExec(nil)
+		WithExec([]string{"/flipt"})
 
 	return suite(ctx, "readonly", base, flipt, conf)
 }
@@ -253,7 +253,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			// create unique instance for test case
 			fliptToTest = flipt.
 					WithEnvVariable("UNIQUE", uuid.New().String()).
-					WithExec(nil)
+					WithExec([]string{"/flipt"})
 
 			importCmd = append([]string{"/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
 		)
