@@ -35,7 +35,6 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
     index: number,
     segment: FilterableSegment | null
   ) => {
-    // Do the replace logic here.
     const selectedSegmentList = [...parentSegments];
     const segmentSetCurrent = segmentsSet.current!;
 
@@ -56,7 +55,7 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
   return (
     <div className="space-y-2">
       {parentSegments.map((selectedSegment, index) => (
-        <div className="flex space-x-2" key={index}>
+        <div className="flex w-full space-x-1" key={index}>
           <div className="w-5/6">
             <Combobox<FilterableSegment>
               id={`segmentKey-${index}`}
@@ -64,32 +63,29 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
               placeholder="Select or search for a segment"
               values={segments
                 .filter((s) => !segmentsSet.current!.has(s.key))
-                .map((s) => {
-                  return {
-                    ...s,
-                    filterValue: truncateKey(s.key),
-                    displayValue: s.name
-                  };
-                })}
+                .map((s) => ({
+                  ...s,
+                  filterValue: truncateKey(s.key),
+                  displayValue: s.name
+                }))}
               selected={selectedSegment}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
             />
           </div>
-          <div className="w-1/6">
+          <div>
             <button
               type="button"
               className="text-gray-400 mt-2 hover:text-gray-500"
               onClick={() => handleSegmentRemove(index)}
             >
-              <span className="sr-only">Close panel</span>
               <MinusSmallIcon className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
         </div>
       ))}
-      <div className="flex space-x-4">
+      <div className="w-full">
         <div className="w-5/6">
           <Combobox<FilterableSegment>
             id={`segmentKey-${parentSegments.length}`}
@@ -97,13 +93,11 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
             placeholder="Select or search for a segment"
             values={segments
               .filter((s) => !segmentsSet.current!.has(s.key))
-              .map((s) => {
-                return {
-                  ...s,
-                  filterValue: truncateKey(s.key),
-                  displayValue: s.name
-                };
-              })}
+              .map((s) => ({
+                ...s,
+                filterValue: truncateKey(s.key),
+                displayValue: s.name
+              }))}
             selected={null}
             setSelected={(filterableSegment) => {
               handleSegmentSelected(parentSegments.length, filterableSegment);

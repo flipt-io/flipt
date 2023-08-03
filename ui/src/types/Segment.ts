@@ -20,6 +20,11 @@ export enum SegmentMatchType {
   ANY = 'ANY_MATCH_TYPE'
 }
 
+export enum SegmentOperatorType {
+  OR = 'OR_SEGMENT_OPERATOR',
+  AND = 'AND_SEGMENT_OPERATOR'
+}
+
 export function segmentMatchTypeToLabel(matchType: SegmentMatchType): string {
   switch (matchType) {
     case SegmentMatchType.ALL:

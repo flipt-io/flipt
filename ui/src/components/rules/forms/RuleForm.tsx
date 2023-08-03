@@ -16,8 +16,11 @@ import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 import { DistributionType, IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
-import { OperatorType } from '~/types/Operator';
-import { FilterableSegment, ISegment } from '~/types/Segment';
+import {
+  FilterableSegment,
+  ISegment,
+  SegmentOperatorType
+} from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './MultiDistributionForm';
@@ -25,12 +28,12 @@ import SingleDistributionFormInput from './SingleDistributionForm';
 
 const segmentOperators = [
   {
-    id: OperatorType.OR,
+    id: SegmentOperatorType.OR,
     name: 'OR',
     meta: '(ANY Segment)'
   },
   {
-    id: OperatorType.AND,
+    id: SegmentOperatorType.AND,
     name: 'AND',
     meta: '(ALL Segments)'
   }
@@ -88,7 +91,7 @@ type RuleFormProps = {
 
 interface Segment {
   segmentKeys: FilterableSegment[];
-  operator: OperatorType;
+  operator: SegmentOperatorType;
 }
 
 export default function RuleForm(props: RuleFormProps) {
@@ -106,7 +109,9 @@ export default function RuleForm(props: RuleFormProps) {
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(null);
 
-  const [operator, setOperator] = useState<OperatorType>(OperatorType.OR);
+  const [operator, setOperator] = useState<SegmentOperatorType>(
+    SegmentOperatorType.OR
+  );
 
   const [distributions, setDistributions] = useState(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
@@ -165,7 +170,7 @@ export default function RuleForm(props: RuleFormProps) {
     <Formik
       initialValues={{
         segmentKeys: initialSegmentKeys,
-        operator: OperatorType.OR
+        operator: SegmentOperatorType.OR
       }}
       validationSchema={Yup.object({
         segmentKeys: Yup.array()

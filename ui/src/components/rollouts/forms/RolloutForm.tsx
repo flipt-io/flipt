@@ -13,18 +13,21 @@ import MoreInfo from '~/components/MoreInfo';
 import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { OperatorType } from '~/types/Operator';
 import { RolloutType } from '~/types/Rollout';
-import { FilterableSegment, ISegment } from '~/types/Segment';
+import {
+  FilterableSegment,
+  ISegment,
+  SegmentOperatorType
+} from '~/types/Segment';
 
 const segmentOperators = [
   {
-    id: OperatorType.OR,
+    id: SegmentOperatorType.OR,
     name: 'OR',
     meta: '(ANY Segment)'
   },
   {
-    id: OperatorType.AND,
+    id: SegmentOperatorType.AND,
     name: 'AND',
     meta: '(ALL Segments)'
   }
@@ -55,7 +58,7 @@ interface RolloutFormValues {
   type: string;
   description?: string;
   segmentKeys?: FilterableSegment[];
-  operator?: OperatorType;
+  operator?: SegmentOperatorType;
   percentage?: number;
   value: string;
 }
@@ -70,7 +73,9 @@ export default function RolloutForm(props: RolloutFormProps) {
 
   const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
 
-  const [operator, setOperator] = useState<OperatorType>(OperatorType.OR);
+  const [operator, setOperator] = useState<SegmentOperatorType>(
+    SegmentOperatorType.OR
+  );
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
@@ -104,7 +109,7 @@ export default function RolloutForm(props: RolloutFormProps) {
         type: rolloutRuleType,
         description: '',
         segmentKeys: [],
-        operator: OperatorType.OR,
+        operator: SegmentOperatorType.OR,
         percentage: 50, // TODO: make this 0?
         value: 'true'
       }}

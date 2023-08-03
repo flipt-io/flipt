@@ -1,5 +1,5 @@
-import { OperatorType } from './Operator';
 import { IPageable } from './Pageable';
+import { SegmentOperatorType } from './Segment';
 
 export enum RolloutType {
   SEGMENT = 'SEGMENT_ROLLOUT_TYPE',
@@ -18,7 +18,7 @@ export function rolloutTypeToLabel(rolloutType: RolloutType): string {
 }
 
 export interface IRolloutRuleSegment {
-  segmentOperator?: OperatorType;
+  segmentOperator?: SegmentOperatorType;
   segmentKey?: string;
   segmentKeys?: string[];
   value: boolean;
