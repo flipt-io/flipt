@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -73,7 +72,6 @@ func TestGetEvaluationRules(t *testing.T) {
 	assert.Equal(t, expectedRules, rules)
 
 	assert.Equal(t, "s:er:ns:flag-1", cacher.cacheKey)
-	fmt.Println(string(cacher.cachedValue))
 	assert.Equal(t, []byte(`[{"id":"123"}]`), cacher.cachedValue)
 }
 

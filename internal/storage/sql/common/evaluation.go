@@ -333,7 +333,8 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			}
 
 			if existingRolloutSegment, ok := uniqueSegmentedRollouts[rolloutId]; ok {
-				// check if segment exists then do some things in that case.
+				// check if segment exists and either append constraints to an already existing segment,
+				// or add another segment to the map.
 				es, innerOk := existingRolloutSegment.Segment.Segments[rsSegmentKey.String]
 				if innerOk {
 					if c != nil {
