@@ -25,6 +25,7 @@ var (
 	// AllCases are the top-level filterable integration test cases.
 	AllCases = map[string]testCaseFn{
 		"api":           api,
+		"api/cache":     cache,
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
@@ -156,6 +157,15 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 			WithExec(nil), conf)
 }
 
+func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	flipt = flipt.
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
+		WithExec(nil)
+
+	return suite(ctx, "api", base, flipt, conf)
+}
+
 const (
 	testdataDir     = "build/testing/integration/readonly/testdata"
 	testdataPathFmt = testdataDir + "/%s.yaml"
@@ -233,6 +243,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 
 	return suite(ctx, "readonly", base, flipt, conf)
 }
+
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
