@@ -75,7 +75,7 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 		return nil, err
 	}
 
-	if len(segmentKeys) < 2 {
+	if len(segmentKeys) == 1 {
 		rule.SegmentKey = segmentKeys[0]
 	} else {
 		rule.SegmentKeys = segmentKeys
@@ -254,7 +254,7 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 			return results, err
 		}
 
-		if len(segmentKeys) < 2 {
+		if len(segmentKeys) == 1 {
 			r.SegmentKey = segmentKeys[0]
 		} else {
 			r.SegmentKeys = segmentKeys
@@ -433,7 +433,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 		}
 	}
 
-	if len(segmentKeys) < 2 {
+	if len(segmentKeys) == 1 {
 		rule.SegmentKey = segmentKeys[0]
 	} else {
 		rule.SegmentKeys = segmentKeys

@@ -464,7 +464,7 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 					SegmentOperator: flipt.SegmentOperator(segmentOperator),
 				}
 
-				if len(segmentKeys) < 2 {
+				if len(segmentKeys) == 1 {
 					frs.SegmentKey = segmentKeys[0]
 				} else {
 					frs.SegmentKeys = segmentKeys
