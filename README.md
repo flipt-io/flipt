@@ -93,8 +93,12 @@ Flipt supports use cases such as:
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
 
-<img align="left" src=".github/images/console.png" alt="Flipt Console" width=49% />
-<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=49% />
+<br clear="both"/>
+
+<div align="center">
+<img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
+<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=45% />
+</div>
 
 <br clear="both"/>
 
@@ -121,6 +125,9 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
     <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
+</p>
+<p align="center">
+    <img src="./logos/git.svg" alt="Git" width=150 height=150 />
 </p>
 
 ## Integration
@@ -259,9 +266,7 @@ Some of the organizations depending on Flipt in production.
     </a>
 </p>
 
-<p align="center">
 Using Flipt at your company? Open a [PR](https://github.com/flipt-io/flipt/pulls) and add your logo here!
-</p>
 
 <br clear="both"/>
 
