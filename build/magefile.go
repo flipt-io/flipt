@@ -60,7 +60,7 @@ func (b Build) Base(ctx context.Context) error {
 			return err
 		}
 
-		_, err = base.ExitCode(ctx)
+		_, err = base.Sync(ctx)
 		return err
 	})
 }

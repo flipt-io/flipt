@@ -69,7 +69,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 	_, err = flipt.WithUser("root").
 		WithMountedCache("/logs", logs).
 		WithExec([]string{"chown", "flipt:flipt", "/logs"}).
-		ExitCode(ctx)
+		Sync(ctx)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			// time for the target Flipt to come up.
 			// However, in this case the flipt binary is prebuilt and needs a little sleep.
 			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && %s", strings.Join(importCmd, " "))}).
-			ExitCode(ctx)
+			Sync(ctx)
 		if err != nil {
 			return err
 		}
@@ -342,7 +342,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithExec(append([]string{"go", "test", "-v", "-timeout=1m", "-race"}, append(flags, ".")...)).
-			ExitCode(ctx)
+			Sync(ctx)
 
 		return err
 	}
