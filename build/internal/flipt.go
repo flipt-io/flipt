@@ -71,7 +71,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})
-	if _, err := golang.Sync(ctx); err != nil {
+	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
 
@@ -124,7 +124,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 		WithWorkdir("/src")
 
 	golang = golang.WithExec([]string{"go", "mod", "download"})
-	if _, err := golang.Sync(ctx); err != nil {
+	if _, err := golang.ExitCode(ctx); err != nil {
 		return nil, err
 	}
 
