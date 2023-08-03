@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cleanup"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
@@ -63,10 +62,8 @@ func authenticationGRPC(
 		public                    = public.NewServer(logger, authCfg)
 	)
 
-	var cacher cache.Cacher
-
 	if cfg.Cache.Enabled {
-		cacher, _, err = getCache(ctx, cfg)
+		cacher, _, err := getCache(ctx, cfg)
 		if err != nil {
 			return nil, nil, nil, err
 		}
