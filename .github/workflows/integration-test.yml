@@ -14,6 +14,9 @@ on:
       - "**.txt"
   workflow_dispatch:
 
+env:
+  DAGGER_VERSION: 0.6.4
+
 jobs:
   cli:
     name: CLI Integration Tests
@@ -32,7 +35,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
@@ -45,7 +48,8 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        test: ["api", "fs/git", "fs/local", "import/export"]
+        test:
+          ["api", "api/cache", "fs/git", "fs/local", "fs/s3", "import/export"]
     steps:
       - uses: actions/checkout@v3
 
@@ -58,7 +62,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
@@ -90,7 +94,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:

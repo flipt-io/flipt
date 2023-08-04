@@ -10,44 +10,44 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestSetCacheHandleMarshalError(t *testing.T) {
+func TestSetHandleMarshalError(t *testing.T) {
 	var (
-		store          = &storeMock{}
-		cacher         = &cacheSpy{}
-		logger         = zaptest.NewLogger(t)
-		cachedStore, _ = New(store, cacher, logger).(*Store)
+		store       = &storeMock{}
+		cacher      = &cacheSpy{}
+		logger      = zaptest.NewLogger(t)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
-	cachedStore.setCache(context.TODO(), "key", make(chan int))
+	cachedStore.set(context.TODO(), "key", make(chan int))
 	assert.Empty(t, cacher.cacheKey)
 }
 
-func TestGetCacheHandleGetError(t *testing.T) {
+func TestGetHandleGetError(t *testing.T) {
 	var (
-		store          = &storeMock{}
-		cacher         = &cacheSpy{getErr: errors.New("get error")}
-		logger         = zaptest.NewLogger(t)
-		cachedStore, _ = New(store, cacher, logger).(*Store)
+		store       = &storeMock{}
+		cacher      = &cacheSpy{getErr: errors.New("get error")}
+		logger      = zaptest.NewLogger(t)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
 	value := make(map[string]string)
-	cacheHit := cachedStore.getCache(context.TODO(), "key", &value)
+	cacheHit := cachedStore.get(context.TODO(), "key", &value)
 	assert.False(t, cacheHit)
 }
 
-func TestGetCacheHandleUnmarshalError(t *testing.T) {
+func TestGetHandleUnmarshalError(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		cacher = &cacheSpy{
 			cached:      true,
 			cachedValue: []byte(`{"invalid":"123"`),
 		}
-		logger         = zaptest.NewLogger(t)
-		cachedStore, _ = New(store, cacher, logger).(*Store)
+		logger      = zaptest.NewLogger(t)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
 	value := make(map[string]string)
-	cacheHit := cachedStore.getCache(context.TODO(), "key", &value)
+	cacheHit := cachedStore.get(context.TODO(), "key", &value)
 	assert.False(t, cacheHit)
 }
 
@@ -64,7 +64,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	var (
 		cacher      = &cacheSpy{}
 		logger      = zaptest.NewLogger(t)
-		cachedStore = New(store, cacher, logger)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
 	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
@@ -81,9 +81,7 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 		store         = &storeMock{}
 	)
 
-	store.On("GetEvaluationRules", context.TODO(), "ns", "flag-1").Return(
-		expectedRules, nil,
-	)
+	store.AssertNotCalled(t, "GetEvaluationRules", context.TODO(), "ns", "flag-1")
 
 	var (
 		cacher = &cacheSpy{
@@ -92,7 +90,7 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 		}
 
 		logger      = zaptest.NewLogger(t)
-		cachedStore = New(store, cacher, logger)
+		cachedStore = NewStore(store, cacher, logger)
 	)
 
 	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
