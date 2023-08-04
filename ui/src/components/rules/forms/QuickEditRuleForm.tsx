@@ -78,6 +78,8 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
+  const [operator, setOperator] = useState<SegmentOperatorType>(rule.operator);
+
   const handleSubmit = async (values: RuleFormValues) => {
     const originalRuleSegments = rule.segments.map((s) => s.key);
     const comparableRuleSegments = values.segmentKeys.map((s) => s.key);
