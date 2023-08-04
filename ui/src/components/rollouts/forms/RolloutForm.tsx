@@ -184,6 +184,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                               className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               onChange={() => {
                                 setRolloutRuleType(rolloutRule.id);
+                                formik.setFieldValue('type', rolloutRule.id);
                               }}
                               checked={rolloutRule.id === rolloutRuleType}
                               value={rolloutRule.id}
