@@ -1,12 +1,12 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Form, Formik } from 'formik';
+import { FieldArray, Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
+import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
@@ -14,8 +14,24 @@ import { createRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { RolloutType } from '~/types/Rollout';
-import { FilterableSegment, ISegment } from '~/types/Segment';
-import { truncateKey } from '~/utils/helpers';
+import {
+  FilterableSegment,
+  ISegment,
+  SegmentOperatorType
+} from '~/types/Segment';
+
+const segmentOperators = [
+  {
+    id: SegmentOperatorType.OR,
+    name: 'OR',
+    meta: '(ANY Segment)'
+  },
+  {
+    id: SegmentOperatorType.AND,
+    name: 'AND',
+    meta: '(ALL Segments)'
+  }
+];
 
 const rolloutRuleTypes = [
   {
@@ -41,7 +57,8 @@ type RolloutFormProps = {
 interface RolloutFormValues {
   type: string;
   description?: string;
-  segmentKey?: string;
+  segmentKeys?: FilterableSegment[];
+  operator?: SegmentOperatorType;
   percentage?: number;
   value: string;
 }
@@ -55,8 +72,10 @@ export default function RolloutForm(props: RolloutFormProps) {
   const namespace = useSelector(selectCurrentNamespace);
 
   const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
-  const [selectedSegment, setSelectedSegment] =
-    useState<FilterableSegment | null>(null);
+
+  const [operator, setOperator] = useState<SegmentOperatorType>(
+    SegmentOperatorType.OR
+  );
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
@@ -64,7 +83,8 @@ export default function RolloutForm(props: RolloutFormProps) {
       type: rolloutRuleType,
       description: values.description,
       segment: {
-        segmentKey: values.segmentKey || '',
+        segmentKeys: values.segmentKeys?.map((s) => s.key),
+        segmentOperator: values.operator,
         value: values.value === 'true'
       }
     });
@@ -88,15 +108,16 @@ export default function RolloutForm(props: RolloutFormProps) {
       initialValues={{
         type: rolloutRuleType,
         description: '',
-        segmentKey: '',
+        segmentKeys: [],
+        operator: SegmentOperatorType.OR,
         percentage: 50, // TODO: make this 0?
         value: 'true'
       }}
       validate={(values) => {
         if (values.type === RolloutType.SEGMENT) {
-          if (!values.segmentKey) {
+          if (values.segmentKeys.length <= 0) {
             return {
-              segmentKey: true
+              segmentKeys: true
             };
           }
         } else if (values.type === RolloutType.THRESHOLD) {
@@ -183,6 +204,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                               type="radio"
                               className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               onChange={() => {
+                                formik.setFieldValue('type', rolloutRule.id);
                                 setRolloutRuleType(rolloutRule.id);
                               }}
                               checked={rolloutRule.id === rolloutRuleType}
@@ -249,18 +271,71 @@ export default function RolloutForm(props: RolloutFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<FilterableSegment>
-                      id="segmentKey"
-                      name="segmentKey"
-                      placeholder="Select or search for a segment"
-                      values={segments.map((s) => ({
-                        ...s,
-                        filterValue: truncateKey(s.key),
-                        displayValue: s.name
-                      }))}
-                      selected={selectedSegment}
-                      setSelected={setSelectedSegment}
+                    <FieldArray
+                      name="segmentKeys"
+                      render={(arrayHelpers) => (
+                        <SegmentsPicker
+                          segments={segments}
+                          segmentAdd={(segment: FilterableSegment) =>
+                            arrayHelpers.push(segment)
+                          }
+                          segmentRemove={(index: number) =>
+                            arrayHelpers.remove(index)
+                          }
+                          segmentReplace={(
+                            index: number,
+                            segment: FilterableSegment
+                          ) => arrayHelpers.replace(index, segment)}
+                          selectedSegments={formik.values.segmentKeys}
+                        />
+                      )}
                     />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="operator"
+                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                    >
+                      Operator
+                    </label>
+                  </div>
+                  <div>
+                    <div className="sm:col-span-2">
+                      <div className="w-48 space-y-4">
+                        {segmentOperators.map((segmentOperator, index) => (
+                          <div className="flex space-x-4" key={index}>
+                            <div>
+                              <input
+                                id={segmentOperator.id}
+                                name="operator"
+                                type="radio"
+                                className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                                onChange={() => {
+                                  formik.setFieldValue(
+                                    'operator',
+                                    segmentOperator.id
+                                  );
+                                  setOperator(segmentOperator.id);
+                                }}
+                                checked={segmentOperator.id === operator}
+                                value={segmentOperator.id}
+                              />
+                            </div>
+                            <div className="mt-1">
+                              <label
+                                htmlFor={segmentOperator.id}
+                                className="text-gray-700 block text-sm"
+                              >
+                                {segmentOperator.name}{' '}
+                                <span className="font-light">
+                                  {segmentOperator.meta}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
