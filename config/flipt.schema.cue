@@ -81,6 +81,7 @@ import "strings"
 			client_id?:        string
 			client_secret?:    string
 			redirect_address?: string
+			scopes?:           [...string]
 		}
 	}
 
