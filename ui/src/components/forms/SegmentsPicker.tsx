@@ -82,7 +82,7 @@ export default function SegmentsPicker({
               }}
             />
           </div>
-          {editing ? (
+          {editing && parentSegments.length - 1 === index ? (
             <div>
               <button
                 type="button"
@@ -105,7 +105,7 @@ export default function SegmentsPicker({
           )}
         </div>
       ))}
-      {!editing && (
+      {(!editing || parentSegments.length === 0) && (
         <div className="w-full">
           <div className="w-5/6">
             <Combobox<FilterableSegment>

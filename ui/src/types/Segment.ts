@@ -25,6 +25,19 @@ export enum SegmentOperatorType {
   AND = 'AND_SEGMENT_OPERATOR'
 }
 
+export const segmentOperators = [
+  {
+    id: SegmentOperatorType.OR,
+    name: 'OR',
+    meta: '(ANY Segment)'
+  },
+  {
+    id: SegmentOperatorType.AND,
+    name: 'AND',
+    meta: '(ALL Segments)'
+  }
+];
+
 export function segmentMatchTypeToLabel(matchType: SegmentMatchType): string {
   switch (matchType) {
     case SegmentMatchType.ALL:

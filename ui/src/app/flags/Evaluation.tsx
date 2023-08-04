@@ -91,6 +91,8 @@ export default function Evaluation() {
 
       const size = rule.segmentKeys ? rule.segmentKeys.length : 0;
 
+      // Combine both segment and segments for legacy purposes.
+      // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
       for (let i = 0; i < size; i++) {
         const ruleSegment = rule.segmentKeys && rule.segmentKeys[i];
         const segment = segments.find(

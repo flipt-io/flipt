@@ -40,7 +40,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IFlag } from '~/types/Flag';
 import { IRollout, IRolloutList } from '~/types/Rollout';
-import { ISegment, ISegmentList } from '~/types/Segment';
+import { ISegment, ISegmentList, SegmentOperatorType } from '~/types/Segment';
 
 type RolloutsProps = {
   flag: IFlag;
@@ -84,7 +84,37 @@ export default function Rollouts(props: RolloutsProps) {
       flag.key
     )) as IRolloutList;
 
-    setRollouts(rolloutList.rules);
+    // Combine both segmentKey and segmentKeys for legacy purposes.
+    // TODO(yquansah): Should be removed once there are no more references to `segmentKey`.
+    const rolloutRules = rolloutList.rules.map((rollout) => {
+      if (rollout.segment) {
+        let segmentKeys: string[] = [];
+        if (
+          rollout.segment.segmentKeys &&
+          rollout.segment.segmentKeys.length > 0
+        ) {
+          segmentKeys = rollout.segment.segmentKeys;
+        } else if (rollout.segment.segmentKey) {
+          segmentKeys = [rollout.segment.segmentKey];
+        }
+
+        return {
+          ...rollout,
+          segment: {
+            segmentOperator:
+              rollout.segment.segmentOperator || SegmentOperatorType.OR,
+            segmentKeys,
+            value: rollout.segment.value
+          }
+        };
+      }
+
+      return {
+        ...rollout
+      };
+    });
+
+    setRollouts(rolloutRules);
   }, [namespace.key, flag.key]);
 
   const incrementRolloutsVersion = () => {

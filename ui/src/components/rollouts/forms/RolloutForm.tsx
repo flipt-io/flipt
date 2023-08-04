@@ -17,21 +17,9 @@ import { RolloutType } from '~/types/Rollout';
 import {
   FilterableSegment,
   ISegment,
+  segmentOperators,
   SegmentOperatorType
 } from '~/types/Segment';
-
-const segmentOperators = [
-  {
-    id: SegmentOperatorType.OR,
-    name: 'OR',
-    meta: '(ANY Segment)'
-  },
-  {
-    id: SegmentOperatorType.AND,
-    name: 'AND',
-    meta: '(ALL Segments)'
-  }
-];
 
 const rolloutRuleTypes = [
   {
@@ -72,10 +60,6 @@ export default function RolloutForm(props: RolloutFormProps) {
   const namespace = useSelector(selectCurrentNamespace);
 
   const [rolloutRuleType, setRolloutRuleType] = useState(RolloutType.THRESHOLD);
-
-  const [operator, setOperator] = useState<SegmentOperatorType>(
-    SegmentOperatorType.OR
-  );
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     return createRollout(namespace.key, flagKey, {
@@ -315,9 +299,10 @@ export default function RolloutForm(props: RolloutFormProps) {
                                     'operator',
                                     segmentOperator.id
                                   );
-                                  setOperator(segmentOperator.id);
                                 }}
-                                checked={segmentOperator.id === operator}
+                                checked={
+                                  segmentOperator.id === formik.values.operator
+                                }
                                 value={segmentOperator.id}
                               />
                             </div>

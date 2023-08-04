@@ -53,6 +53,7 @@ test.describe('Rules', () => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
 
+    await page.getByLabel('AND (ALL Segments)').check();
     await page
       .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
       .click();

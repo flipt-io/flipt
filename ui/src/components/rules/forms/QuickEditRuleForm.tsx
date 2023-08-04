@@ -15,6 +15,7 @@ import { IFlag } from '~/types/Flag';
 import {
   FilterableSegment,
   ISegment,
+  segmentOperators,
   SegmentOperatorType
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
@@ -27,19 +28,6 @@ type QuickEditRuleFormProps = {
   segments: ISegment[];
   onSuccess?: () => void;
 };
-
-const segmentOperators = [
-  {
-    id: SegmentOperatorType.OR,
-    name: 'OR',
-    meta: '(ANY Segment)'
-  },
-  {
-    id: SegmentOperatorType.AND,
-    name: 'AND',
-    meta: '(ALL Segments)'
-  }
-];
 
 export const validRollout = (rollouts: IVariantRollout[]): boolean => {
   const sum = rollouts.reduce(function (acc, d) {
@@ -90,14 +78,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
-  const [operator, setOperator] = useState<SegmentOperatorType>(rule.operator);
-
   const handleSubmit = async (values: RuleFormValues) => {
     const originalRuleSegments = rule.segments.map((s) => s.key);
     const comparableRuleSegments = values.segmentKeys.map((s) => s.key);
 
-    const segmentsDidntChange = originalRuleSegments.every((rs) => {
-      return comparableRuleSegments.includes(rs);
+    const segmentsDidntChange = comparableRuleSegments.every((rs) => {
+      return originalRuleSegments.includes(rs);
     });
 
     if (!segmentsDidntChange || values.operator !== rule.operator) {
@@ -174,7 +160,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
         })),
         // variantId: rule.rollouts[0].distribution.variantId,
         rollouts: rule.rollouts,
-        operator: operator
+        operator: rule.operator
       }}
       validate={(values) => {
         const errors: any = {};
@@ -206,7 +192,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
                   <div>
                     <label
-                      htmlFor="segmentKey"
+                      htmlFor="segmentKeys"
                       className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Segment
@@ -249,9 +235,10 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                   'operator',
                                   segmentOperator.id
                                 );
-                                setOperator(segmentOperator.id);
                               }}
-                              checked={segmentOperator.id === operator}
+                              checked={
+                                segmentOperator.id === formik.values.operator
+                              }
                               value={segmentOperator.id}
                             />
                           </div>
