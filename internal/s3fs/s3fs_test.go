@@ -2,8 +2,10 @@ package s3fs
 
 import (
 	"context"
+	"errors"
 	"io"
 	"io/fs"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -23,28 +25,70 @@ type fakeS3Object struct {
 type fakeS3Client struct {
 	bucket  string
 	objects map[string]fakeS3Object
+	// objectChunks simulates truncated responses from S3
+	objectChunks [][]string
 }
 
 func (fs3 *fakeS3Client) ListObjectsV2(_ context.Context, input *s3.ListObjectsV2Input, _ ...func(*s3.Options)) (*s3.ListObjectsV2Output, error) {
+	chunkIndex := 0
+	var err error
+	// Fake a continuation token by converting the index of the
+	// objectChunks to a string
+	if input != nil && input.ContinuationToken != nil {
+		chunkIndex, err = strconv.Atoi(*input.ContinuationToken)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if chunkIndex > len(fs3.objectChunks) {
+		return nil, errors.New("Invalid ContinuationToken")
+	}
+
+	// If there are more chunks after this one, we need to provide
+	// a continuation token
+	var continuationToken *string
+	if chunkIndex+1 < len(fs3.objectChunks) {
+		tmp := strconv.Itoa(chunkIndex + 1)
+		continuationToken = &tmp
+	}
+
+	// create the chunked output
+	chunk := fs3.objectChunks[chunkIndex]
 	objects := []types.Object{}
-	for k, v := range fs3.objects {
+	for _, k := range chunk {
 		k := k
-		v := v
+		v, ok := fs3.objects[k]
+		if !ok {
+			// this would mean an error when setting up
+			// the fake s3 client
+			return nil, errors.New("Cannot find object for chunk")
+		}
 		if input.Prefix == nil || strings.HasPrefix(k, *input.Prefix) {
-			obj := types.Object{
+			objects = append(objects, types.Object{
 				Key:          &k,
 				Size:         int64(len(v.content)),
 				LastModified: &v.lastModified,
-			}
-			objects = append(objects, obj)
+			})
 		}
 	}
 	return &s3.ListObjectsV2Output{
-		Contents: objects,
+		Contents:              objects,
+		IsTruncated:           continuationToken != nil,
+		ContinuationToken:     input.ContinuationToken,
+		NextContinuationToken: continuationToken,
 	}, nil
 }
 
 func (fs3 *fakeS3Client) GetObject(ctx context.Context, input *s3.GetObjectInput, opts ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
+	keyNotFound := "key not found"
+	errNotFound := &types.NotFound{
+		Message: &keyNotFound,
+	}
+
+	if input.Key == nil {
+		return nil, errNotFound
+	}
+
 	obj, ok := fs3.objects[*input.Key]
 	if ok {
 		return &s3.GetObjectOutput{
@@ -54,15 +98,12 @@ func (fs3 *fakeS3Client) GetObject(ctx context.Context, input *s3.GetObjectInput
 		}, nil
 	}
 
-	keyNotFound := "key not found"
-	return nil, &types.NotFound{
-		Message: &keyNotFound,
-	}
+	return nil, errNotFound
 }
 
 func newFakeS3Client() *fakeS3Client {
 	t := time.Date(2020, 1, 2, 3, 4, 5, 6, time.UTC)
-	return &fakeS3Client{
+	f := &fakeS3Client{
 		bucket: "mybucket",
 		objects: map[string]fakeS3Object{
 			"one": {
@@ -87,6 +128,19 @@ func newFakeS3Client() *fakeS3Client {
 			},
 		},
 	}
+	// create chunks to test out {non-}truncated responses
+	f.objectChunks = [][]string{
+		{
+			"one", "two",
+		},
+		{
+			"prefix/three", "anotherprefix/six",
+		},
+		{
+			"prefix/four/five",
+		},
+	}
+	return f
 }
 
 func Test_FS(t *testing.T) {
@@ -164,7 +218,7 @@ func Test_FS(t *testing.T) {
 func Test_FS_Prefix(t *testing.T) {
 	fakeS3Client := newFakeS3Client()
 	logger := zaptest.NewLogger(t)
-	// run with no prefix, returning all files
+	// run with prefix, returning only prefixed files
 	s3fs, err := New(logger, fakeS3Client, fakeS3Client.bucket, "prefix/")
 	require.NoError(t, err)
 
