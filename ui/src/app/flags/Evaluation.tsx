@@ -34,7 +34,7 @@ import { IDistribution } from '~/types/Distribution';
 import { IEvaluatable } from '~/types/Evaluatable';
 import { FlagType } from '~/types/Flag';
 import { IRule, IRuleList } from '~/types/Rule';
-import { ISegment, ISegmentList } from '~/types/Segment';
+import { ISegment, ISegmentList, SegmentOperatorType } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
 import { FlagProps } from './FlagProps';
 
@@ -87,17 +87,42 @@ export default function Evaluation() {
         }
       );
 
+      const ruleSegments: ISegment[] = [];
+
+      const size = rule.segmentKeys ? rule.segmentKeys.length : 0;
+
+      for (let i = 0; i < size; i++) {
+        const ruleSegment = rule.segmentKeys && rule.segmentKeys[i];
+        const segment = segments.find(
+          (segment: ISegment) => ruleSegment === segment.key
+        );
+        if (segment) {
+          ruleSegments.push(segment);
+        }
+      }
+
       const segment = segments.find(
         (segment: ISegment) => segment.key === rule.segmentKey
       );
-      if (!segment) {
+
+      if (segment) {
+        ruleSegments.push(segment);
+      }
+
+      // If there are no ruleSegments return an empty array.
+      if (ruleSegments.length === 0) {
         return [];
       }
+
+      const operator = rule.segmentOperator
+        ? rule.segmentOperator
+        : SegmentOperatorType.OR;
 
       return {
         id: rule.id,
         flag,
-        segment,
+        segments: ruleSegments,
+        operator,
         rank: rule.rank,
         rollouts,
         createdAt: rule.createdAt,

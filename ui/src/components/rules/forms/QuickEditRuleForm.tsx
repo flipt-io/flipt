@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
 import Combobox from '~/components/forms/Combobox';
+import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import { updateDistribution, updateRule } from '~/data/api';
 import { useError } from '~/data/hooks/error';
@@ -11,7 +12,11 @@ import { useSuccess } from '~/data/hooks/success';
 import { DistributionType } from '~/types/Distribution';
 import { IEvaluatable, IVariantRollout } from '~/types/Evaluatable';
 import { IFlag } from '~/types/Flag';
-import { FilterableSegment, ISegment } from '~/types/Segment';
+import {
+  FilterableSegment,
+  ISegment,
+  SegmentOperatorType
+} from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
@@ -23,6 +28,19 @@ type QuickEditRuleFormProps = {
   onSuccess?: () => void;
 };
 
+const segmentOperators = [
+  {
+    id: SegmentOperatorType.OR,
+    name: 'OR',
+    meta: '(ANY Segment)'
+  },
+  {
+    id: SegmentOperatorType.AND,
+    name: 'AND',
+    meta: '(ALL Segments)'
+  }
+];
+
 export const validRollout = (rollouts: IVariantRollout[]): boolean => {
   const sum = rollouts.reduce(function (acc, d) {
     return acc + Number(d.distribution.rollout);
@@ -32,8 +50,10 @@ export const validRollout = (rollouts: IVariantRollout[]): boolean => {
 };
 
 interface RuleFormValues {
-  segmentKey: string;
+  segmentKeys: FilterableSegment[];
+  segmentKey?: string;
   rollouts: IVariantRollout[];
+  operator: SegmentOperatorType;
 }
 
 export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
@@ -50,19 +70,6 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       : rule.rollouts.length === 1
       ? DistributionType.Single
       : DistributionType.Multi;
-
-  const [selectedSegment, setSelectedSegment] =
-    useState<FilterableSegment | null>(() => {
-      let selected = segments.find((s) => s.key === rule.segment.key) || null;
-      if (selected) {
-        return {
-          ...selected,
-          displayValue: selected.name,
-          filterValue: selected.key
-        };
-      }
-      return null;
-    });
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(() => {
@@ -83,13 +90,23 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
+  const [operator, setOperator] = useState<SegmentOperatorType>(rule.operator);
+
   const handleSubmit = async (values: RuleFormValues) => {
-    if (rule.segment.key !== values.segmentKey) {
+    const originalRuleSegments = rule.segments.map((s) => s.key);
+    const comparableRuleSegments = values.segmentKeys.map((s) => s.key);
+
+    const segmentsDidntChange = originalRuleSegments.every((rs) => {
+      return comparableRuleSegments.includes(rs);
+    });
+
+    if (!segmentsDidntChange || values.operator !== rule.operator) {
       // update segment if changed
       try {
         await updateRule(namespace.key, flag.key, rule.id, {
           rank: rule.rank,
-          segmentKey: values.segmentKey
+          segmentKeys: comparableRuleSegments,
+          segmentOperator: values.operator
         });
       } catch (err) {
         setError(err as Error);
@@ -150,9 +167,14 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
   return (
     <Formik
       initialValues={{
-        segmentKey: rule.segment.key,
+        segmentKeys: rule.segments.map((segment) => ({
+          ...segment,
+          displayValue: segment.name,
+          filterValue: segment.key
+        })),
         // variantId: rule.rollouts[0].distribution.variantId,
-        rollouts: rule.rollouts
+        rollouts: rule.rollouts,
+        operator: operator
       }}
       validate={(values) => {
         const errors: any = {};
@@ -191,18 +213,62 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<FilterableSegment>
-                      id="segmentKey"
-                      name="segmentKey"
-                      placeholder="Select or search for a segment"
-                      values={segments.map((s) => ({
-                        ...s,
-                        filterValue: truncateKey(s.key),
-                        displayValue: s.name
-                      }))}
-                      selected={selectedSegment}
-                      setSelected={setSelectedSegment}
-                    />
+                    <div>
+                      <FieldArray
+                        name="segmentKeys"
+                        render={(arrayHelpers) => (
+                          <SegmentsPicker
+                            editMode
+                            segments={segments}
+                            segmentAdd={(segment: FilterableSegment) =>
+                              arrayHelpers.push(segment)
+                            }
+                            segmentRemove={(index: number) =>
+                              arrayHelpers.remove(index)
+                            }
+                            segmentReplace={(
+                              index: number,
+                              segment: FilterableSegment
+                            ) => arrayHelpers.replace(index, segment)}
+                            selectedSegments={formik.values.segmentKeys}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="mt-6 flex space-x-8">
+                      {segmentOperators.map((segmentOperator, index) => (
+                        <div className="flex space-x-2" key={index}>
+                          <div>
+                            <input
+                              id={segmentOperator.id}
+                              name="operator"
+                              type="radio"
+                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                              onChange={() => {
+                                formik.setFieldValue(
+                                  'operator',
+                                  segmentOperator.id
+                                );
+                                setOperator(segmentOperator.id);
+                              }}
+                              checked={segmentOperator.id === operator}
+                              value={segmentOperator.id}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor={segmentOperator.id}
+                              className="text-gray-700 block text-sm"
+                            >
+                              {segmentOperator.name}{' '}
+                              <span className="font-light">
+                                {segmentOperator.meta}
+                              </span>
+                            </label>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-2">
