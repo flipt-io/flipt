@@ -117,9 +117,9 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 	return handler(ctx, req)
 }
 
-// CacheUnaryInterceptor caches the response of a request if the request is cacheable.
+// EvaluationCacheUnaryInterceptor caches the response of a request if the request is cacheable.
 // TODO: we could clean this up by using generics in 1.18+ to avoid the type switch/duplicate code.
-func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnaryServerInterceptor {
+func EvaluationCacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if cache == nil {
 			return handler(ctx, req)
@@ -171,62 +171,6 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 
 			return resp, err
 
-		case *flipt.GetFlagRequest:
-			key := flagCacheKey(r.GetNamespaceKey(), r.GetKey())
-
-			cached, ok, err := cache.Get(ctx, key)
-			if err != nil {
-				// if error, log and continue without cache
-				logger.Error("getting from cache", zap.Error(err))
-				return handler(ctx, req)
-			}
-
-			if ok {
-				// if cached, return it
-				flag := &flipt.Flag{}
-				if err := proto.Unmarshal(cached, flag); err != nil {
-					logger.Error("unmarshalling from cache", zap.Error(err))
-					return handler(ctx, req)
-				}
-
-				logger.Debug("flag cache hit", zap.Stringer("flag", flag))
-				return flag, nil
-			}
-
-			logger.Debug("flag cache miss")
-			resp, err := handler(ctx, req)
-			if err != nil {
-				return nil, err
-			}
-
-			// marshal response
-			data, merr := proto.Marshal(resp.(*flipt.Flag))
-			if merr != nil {
-				logger.Error("marshalling for cache", zap.Error(err))
-				return resp, err
-			}
-
-			// set in cache
-			if cerr := cache.Set(ctx, key, data); cerr != nil {
-				logger.Error("setting in cache", zap.Error(err))
-			}
-
-			return resp, err
-
-		case *flipt.UpdateFlagRequest, *flipt.DeleteFlagRequest:
-			// need to do this assertion because the request type is not known in this block
-			keyer := r.(flagKeyer)
-			// delete from cache
-			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetKey())); err != nil {
-				logger.Error("deleting from cache", zap.Error(err))
-			}
-		case *flipt.CreateVariantRequest, *flipt.UpdateVariantRequest, *flipt.DeleteVariantRequest:
-			// need to do this assertion because the request type is not known in this block
-			keyer := r.(variantFlagKeyger)
-			// delete from cache
-			if err := cache.Delete(ctx, flagCacheKey(keyer.GetNamespaceKey(), keyer.GetFlagKey())); err != nil {
-				logger.Error("deleting from cache", zap.Error(err))
-			}
 		case *evaluation.EvaluationRequest:
 			key, err := evaluationCacheKey(r)
 			if err != nil {
@@ -387,28 +331,6 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 
 		return resp, err
 	}
-}
-
-type namespaceKeyer interface {
-	GetNamespaceKey() string
-}
-
-type flagKeyer interface {
-	namespaceKeyer
-	GetKey() string
-}
-
-type variantFlagKeyger interface {
-	namespaceKeyer
-	GetFlagKey() string
-}
-
-func flagCacheKey(namespaceKey, key string) string {
-	// for backward compatibility
-	if namespaceKey != "" {
-		return fmt.Sprintf("f:%s:%s", namespaceKey, key)
-	}
-	return fmt.Sprintf("f:%s", key)
 }
 
 type evaluationRequest interface {

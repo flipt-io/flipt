@@ -25,7 +25,7 @@ func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Sto
 	return &Store{Store: store, cacher: cacher, logger: logger}
 }
 
-func (s *Store) set(ctx context.Context, key string, value any) {
+func (s *Store) setJSON(ctx context.Context, key string, value any) {
 	cachePayload, err := json.Marshal(value)
 	if err != nil {
 		s.logger.Error("marshalling for storage cache", zap.Error(err))
@@ -38,7 +38,7 @@ func (s *Store) set(ctx context.Context, key string, value any) {
 	}
 }
 
-func (s *Store) get(ctx context.Context, key string, value any) bool {
+func (s *Store) getJSON(ctx context.Context, key string, value any) bool {
 	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
 	if err != nil {
 		s.logger.Error("getting from storage cache", zap.Error(err))
@@ -61,7 +61,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 	var rules []*storage.EvaluationRule
 
-	cacheHit := s.get(ctx, cacheKey, &rules)
+	cacheHit := s.getJSON(ctx, cacheKey, &rules)
 	if cacheHit {
 		return rules, nil
 	}
@@ -71,6 +71,6 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		return nil, err
 	}
 
-	s.set(ctx, cacheKey, rules)
+	s.setJSON(ctx, cacheKey, rules)
 	return rules, nil
 }

@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func TestSetHandleMarshalError(t *testing.T) {
+func TestSetJSONHandleMarshalError(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		cacher      = &cacheSpy{}
@@ -18,11 +18,11 @@ func TestSetHandleMarshalError(t *testing.T) {
 		cachedStore = NewStore(store, cacher, logger)
 	)
 
-	cachedStore.set(context.TODO(), "key", make(chan int))
+	cachedStore.setJSON(context.TODO(), "key", make(chan int))
 	assert.Empty(t, cacher.cacheKey)
 }
 
-func TestGetHandleGetError(t *testing.T) {
+func TestGetJSONHandleGetError(t *testing.T) {
 	var (
 		store       = &storeMock{}
 		cacher      = &cacheSpy{getErr: errors.New("get error")}
@@ -31,11 +31,11 @@ func TestGetHandleGetError(t *testing.T) {
 	)
 
 	value := make(map[string]string)
-	cacheHit := cachedStore.get(context.TODO(), "key", &value)
+	cacheHit := cachedStore.getJSON(context.TODO(), "key", &value)
 	assert.False(t, cacheHit)
 }
 
-func TestGetHandleUnmarshalError(t *testing.T) {
+func TestGetJSONHandleUnmarshalError(t *testing.T) {
 	var (
 		store  = &storeMock{}
 		cacher = &cacheSpy{
@@ -47,7 +47,7 @@ func TestGetHandleUnmarshalError(t *testing.T) {
 	)
 
 	value := make(map[string]string)
-	cacheHit := cachedStore.get(context.TODO(), "key", &value)
+	cacheHit := cachedStore.getJSON(context.TODO(), "key", &value)
 	assert.False(t, cacheHit)
 }
 
