@@ -8,6 +8,7 @@ import (
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/storage"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ storage.Store = &Store{}
@@ -18,11 +19,46 @@ type Store struct {
 	logger *zap.Logger
 }
 
-// storage:evaluationRules:<namespaceKey>:<flagKey>
-const evaluationRulesCacheKeyFmt = "s:er:%s:%s"
+const (
+	// storage:evaluationRules:<namespaceKey>:<flagKey>
+	evaluationRulesCacheKeyFmt = "s:er:%s:%s"
+	// storage:flag:<namespaceKey>:<flagKey>
+	flagCacheKeyFmt = "s:f:%s:%s"
+)
 
 func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Store {
 	return &Store{Store: store, cacher: cacher, logger: logger}
+}
+
+func (s *Store) setProto(ctx context.Context, key string, value proto.Message) {
+	cachePayload, err := proto.Marshal(value)
+	if err != nil {
+		s.logger.Error("marshalling for storage cache", zap.Error(err))
+		return
+	}
+
+	err = s.cacher.Set(ctx, key, cachePayload)
+	if err != nil {
+		s.logger.Error("setting in storage cache", zap.Error(err))
+	}
+}
+
+func (s *Store) getProto(ctx context.Context, key string, value proto.Message) bool {
+	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
+	if err != nil {
+		s.logger.Error("getting from storage cache", zap.Error(err))
+		return false
+	} else if !cacheHit {
+		return false
+	}
+
+	err = proto.Unmarshal(cachePayload, value)
+	if err != nil {
+		s.logger.Error("unmarshalling from storage cache", zap.Error(err))
+		return false
+	}
+
+	return true
 }
 
 func (s *Store) setJSON(ctx context.Context, key string, value any) {
