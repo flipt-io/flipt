@@ -13,6 +13,7 @@ const authURL = '/auth/v1';
 const evaluateURL = '/evaluate/v1';
 const metaURL = '/meta';
 const csrfTokenHeaderKey = 'x-csrf-token';
+const sessionKey = 'session';
 
 export class APIError extends Error {
   status: number;
@@ -47,7 +48,8 @@ export async function request(method: string, uri: string, body?: any) {
   const res = await fetch(uri, req);
   if (!res.ok) {
     if (res.status === 401) {
-      window.localStorage.clear();
+      window.localStorage.removeItem(csrfTokenHeaderKey);
+      window.localStorage.removeItem(sessionKey);
       window.location.reload();
     }
 
