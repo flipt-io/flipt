@@ -361,6 +361,110 @@ func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
 	assert.NotZero(t, resp.RequestDurationMillis)
 }
 
+func TestSegmentKeysUnaryInterceptor(t *testing.T) {
+	type segmentKeysGetter interface {
+		GetSegmentKeys() []string
+	}
+
+	for _, test := range []struct {
+		name   string
+		req    interface{}
+		length int
+	}{
+		{
+			name: "flipt.CreateRuleRequest with just SegmentKey",
+			req: &flipt.CreateRuleRequest{
+				FlagKey:    "foo",
+				SegmentKey: "segment_foo",
+			},
+			length: 1,
+		},
+		{
+			name: "flipt.UpdateRuleRequest with SegmentKeys and deduplicating",
+			req: &flipt.UpdateRuleRequest{
+				FlagKey:     "foo",
+				SegmentKeys: []string{"segment_foo", "segment_foo", "segment_bar"},
+			},
+			length: 2,
+		},
+	} {
+		var (
+			handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+				// ensure that the request can be asserted to `segmentKeysGetter`.
+				req, ok := r.(segmentKeysGetter)
+				require.True(t, ok)
+
+				assert.Len(t, req.GetSegmentKeys(), test.length)
+
+				return nil, nil
+			}
+
+			info = &grpc.UnaryServerInfo{
+				FullMethod: "FakeMethod",
+			}
+		)
+
+		_, err := SegmentKeysUnaryInterceptor(context.Background(), test.req, info, handler)
+		require.NoError(t, err)
+	}
+
+	type segmentGetter interface {
+		GetSegment() *flipt.RolloutSegment
+	}
+
+	for _, test := range []struct {
+		name   string
+		req    interface{}
+		length int
+	}{
+		{
+			name: "flipt.CreateRolloutRequest with just SegmentKeys",
+			req: &flipt.CreateRolloutRequest{
+				FlagKey: "foo",
+				Rank:    1,
+				Rule: &flipt.CreateRolloutRequest_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentKeys: []string{"segment_foo", "segment_bar"},
+						Value:       true,
+					},
+				},
+			},
+			length: 2,
+		},
+		{
+			name: "flipt.UpdateRolloutRequest with SegmentKey",
+			req: &flipt.UpdateRolloutRequest{
+				FlagKey: "foo",
+				Rule: &flipt.UpdateRolloutRequest_Segment{
+					Segment: &flipt.RolloutSegment{
+						SegmentKey: "segment_foo",
+					},
+				},
+			},
+			length: 1,
+		},
+	} {
+		var (
+			handler = func(ctx context.Context, r interface{}) (interface{}, error) {
+				// ensure that the request can be asserted to `segmentGetter`.
+				req, ok := r.(segmentGetter)
+				require.True(t, ok)
+
+				assert.Len(t, req.GetSegment().GetSegmentKeys(), test.length)
+
+				return nil, nil
+			}
+
+			info = &grpc.UnaryServerInfo{
+				FullMethod: "FakeMethod",
+			}
+		)
+
+		_, err := SegmentKeysUnaryInterceptor(context.Background(), test.req, info, handler)
+		require.NoError(t, err)
+	}
+}
+
 func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	var (
 		store = &storeMock{}

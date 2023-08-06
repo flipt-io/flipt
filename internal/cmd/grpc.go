@@ -301,6 +301,7 @@ func NewGRPCServer(
 	// add auth interceptors to the server
 	interceptors = append(interceptors,
 		append(authInterceptors,
+			middlewaregrpc.SegmentKeysUnaryInterceptor,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
 			middlewaregrpc.EvaluationUnaryInterceptor,

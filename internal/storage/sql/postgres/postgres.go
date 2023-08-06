@@ -173,7 +173,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 		var perr *pq.Error
 
 		if errors.As(err, &perr) && perr.Code.Name() == constraintForeignKeyErr {
-			return nil, errs.ErrNotFoundf(`flag "%s/%s" or segment "%s/%s"`, r.NamespaceKey, r.FlagKey, r.NamespaceKey, r.SegmentKey)
+			return nil, errs.ErrNotFoundf(`flag "%s/%s" or segments "%s"`, r.NamespaceKey, r.FlagKey, r.NamespaceKey)
 		}
 
 		return nil, err

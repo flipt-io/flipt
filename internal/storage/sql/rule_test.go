@@ -602,7 +602,7 @@ func (s *DBTestSuite) TestListRulesPagination_FullWalk() {
 		req := flipt.CreateRuleRequest{
 			NamespaceKey: namespace,
 			FlagKey:      flag.Key,
-			SegmentKey:   segment.Key,
+			SegmentKeys:  []string{segment.Key},
 			Rank:         int32(i + 1),
 		}
 
@@ -693,9 +693,9 @@ func (s *DBTestSuite) TestCreateRuleAndDistribution() {
 	assert.NotNil(t, segment)
 
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        1,
 	})
 
 	require.NoError(t, err)
@@ -762,7 +762,7 @@ func (s *DBTestSuite) TestCreateRuleAndDistributionNamespace() {
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
-		SegmentKey:   segment.Key,
+		SegmentKeys:  []string{segment.Key},
 		Rank:         1,
 	})
 
@@ -831,12 +831,12 @@ func (s *DBTestSuite) TestCreateRule_FlagNotFound() {
 	t := s.T()
 
 	_, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    "foo",
-		SegmentKey: "bar",
-		Rank:       1,
+		FlagKey:     "foo",
+		SegmentKeys: []string{"bar"},
+		Rank:        1,
 	})
 
-	assert.EqualError(t, err, "flag \"default/foo\" or segment \"default/bar\" not found")
+	assert.EqualError(t, err, "flag \"default/foo\" or segments \"default\" not found")
 }
 
 func (s *DBTestSuite) TestCreateRuleNamespace_FlagNotFound() {
@@ -845,11 +845,11 @@ func (s *DBTestSuite) TestCreateRuleNamespace_FlagNotFound() {
 	_, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      "foo",
-		SegmentKey:   "bar",
+		SegmentKeys:  []string{"bar"},
 		Rank:         1,
 	})
 
-	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" or segment \"%s/bar\" not found", s.namespace, s.namespace))
+	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/foo\" or segments \"%s\" not found", s.namespace, s.namespace))
 }
 
 func (s *DBTestSuite) TestCreateRule_SegmentNotFound() {
@@ -866,12 +866,12 @@ func (s *DBTestSuite) TestCreateRule_SegmentNotFound() {
 	assert.NotNil(t, flag)
 
 	_, err = s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: "foo",
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{"foo"},
+		Rank:        1,
 	})
 
-	assert.EqualError(t, err, "flag \"default/TestDBTestSuite/TestCreateRule_SegmentNotFound\" or segment \"default/foo\" not found")
+	assert.EqualError(t, err, "flag \"default/TestDBTestSuite/TestCreateRule_SegmentNotFound\" or segments \"default\" not found")
 }
 
 func (s *DBTestSuite) TestCreateRuleNamespace_SegmentNotFound() {
@@ -891,11 +891,11 @@ func (s *DBTestSuite) TestCreateRuleNamespace_SegmentNotFound() {
 	_, err = s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
-		SegmentKey:   "foo",
+		SegmentKeys:  []string{"foo"},
 		Rank:         1,
 	})
 
-	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/%s\" or segment \"%s/foo\" not found", s.namespace, t.Name(), s.namespace))
+	assert.EqualError(t, err, fmt.Sprintf("flag \"%s/%s\" or segments \"%s\" not found", s.namespace, t.Name(), s.namespace))
 }
 
 func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
@@ -931,9 +931,9 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.NotNil(t, segmentOne)
 
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segmentOne.Key,
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segmentOne.Key},
+		Rank:        1,
 	})
 
 	require.NoError(t, err)
@@ -971,9 +971,9 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.NotNil(t, segmentTwo)
 
 	updatedRule, err := s.store.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
-		Id:         rule.Id,
-		FlagKey:    flag.Key,
-		SegmentKey: segmentTwo.Key,
+		Id:          rule.Id,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segmentTwo.Key},
 	})
 
 	require.NoError(t, err)
@@ -1068,7 +1068,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
-		SegmentKey:   segmentOne.Key,
+		SegmentKeys:  []string{segmentOne.Key},
 		Rank:         1,
 	})
 
@@ -1113,7 +1113,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 		NamespaceKey: s.namespace,
 		Id:           rule.Id,
 		FlagKey:      flag.Key,
-		SegmentKey:   segmentTwo.Key,
+		SegmentKeys:  []string{segmentTwo.Key},
 	})
 
 	require.NoError(t, err)
@@ -1175,9 +1175,9 @@ func (s *DBTestSuite) TestUpdateRule_NotFound() {
 	assert.NotNil(t, segment)
 
 	_, err = s.store.UpdateRule(context.TODO(), &flipt.UpdateRuleRequest{
-		Id:         "foo",
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
+		Id:          "foo",
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
 	})
 
 	assert.EqualError(t, err, "rule \"default/foo\" not found")
@@ -1211,7 +1211,7 @@ func (s *DBTestSuite) TestUpdateRuleNamespace_NotFound() {
 		NamespaceKey: s.namespace,
 		Id:           "foo",
 		FlagKey:      flag.Key,
-		SegmentKey:   segment.Key,
+		SegmentKeys:  []string{segment.Key},
 	})
 
 	assert.EqualError(t, err, fmt.Sprintf("rule \"%s/foo\" not found", s.namespace))

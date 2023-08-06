@@ -65,18 +65,18 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 
 	// rule rank 1
 	rule1, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        1,
 	})
 
 	require.NoError(t, err)
 
 	// rule rank 2
 	rule2, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       2,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        2,
 	})
 
 	require.NoError(t, err)
@@ -151,18 +151,18 @@ func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
 
 	// rule rank 1
 	rule1, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        1,
 	})
 
 	require.NoError(t, err)
 
 	// rule rank 2
 	rule2, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       2,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        2,
 	})
 
 	require.NoError(t, err)
@@ -330,9 +330,9 @@ func (s *DBTestSuite) TestGetEvaluationDistributions() {
 	require.NoError(t, err)
 
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        1,
 	})
 
 	require.NoError(t, err)
@@ -434,7 +434,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
-		SegmentKey:   segment.Key,
+		SegmentKeys:  []string{segment.Key},
 		Rank:         1,
 	})
 
@@ -532,9 +532,9 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 	require.NoError(t, err)
 
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:    flag.Key,
-		SegmentKey: segment.Key,
-		Rank:       1,
+		FlagKey:     flag.Key,
+		SegmentKeys: []string{segment.Key},
+		Rank:        1,
 	})
 
 	require.NoError(t, err)
@@ -661,8 +661,8 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 		Rank:    2,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				SegmentKey: segment.Key,
-				Value:      true,
+				SegmentKeys: []string{segment.Key},
+				Value:       true,
 			},
 		},
 	})
@@ -836,8 +836,8 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 		Rank:         2,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				SegmentKey: segment.Key,
-				Value:      true,
+				SegmentKeys: []string{segment.Key},
+				Value:       true,
 			},
 		},
 	})

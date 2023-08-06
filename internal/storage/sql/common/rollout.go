@@ -475,16 +475,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			return nil, err
 		}
 
-		// Check for segmentKey or segmentKeys for legacy reasons.
-		segmentKeys := []string{}
-
-		if segmentRule.SegmentKey != "" {
-			segmentKeys = append(segmentKeys, segmentRule.SegmentKey)
-		} else if len(segmentRule.SegmentKeys) > 0 {
-			segmentKeys = append(segmentKeys, segmentRule.SegmentKeys...)
-		}
-
-		for _, segmentKey := range segmentKeys {
+		for _, segmentKey := range segmentRule.SegmentKeys {
 			if _, err := s.builder.Insert(tableRolloutSegmentReferences).
 				RunWith(tx).
 				Columns("rollout_segment_id", "namespace_key", "segment_key").
@@ -570,20 +561,12 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 	switch r.Rule.(type) {
 	case *flipt.UpdateRolloutRequest_Segment:
-		var segmentKeys = []string{}
-
 		// enforce that rollout type is consistent with the DB
 		if err := ensureRolloutType(rollout, flipt.RolloutType_SEGMENT_ROLLOUT_TYPE); err != nil {
 			return nil, err
 		}
 
 		var segmentRule = r.GetSegment()
-
-		if segmentRule.SegmentKey != "" {
-			segmentKeys = append(segmentKeys, segmentRule.SegmentKey)
-		} else if len(segmentRule.SegmentKeys) > 0 {
-			segmentKeys = append(segmentKeys, segmentRule.SegmentKeys...)
-		}
 
 		if _, err := s.builder.Update(tableRolloutSegments).
 			RunWith(tx).
@@ -614,7 +597,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			return nil, err
 		}
 
-		for _, segmentKey := range segmentKeys {
+		for _, segmentKey := range segmentRule.SegmentKeys {
 			if _, err := s.builder.
 				Insert(tableRolloutSegmentReferences).
 				RunWith(tx).
