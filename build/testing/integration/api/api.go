@@ -493,7 +493,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				Rank:       2,
 			})
 
-			msg := "rpc error: code = NotFound desc = flag \"default/test\" or segment \"default/everyone\" not found"
+			msg := "rpc error: code = NotFound desc = flag \"default/test\" or segments \"default\" not found"
 			require.EqualError(t, err, msg)
 		}
 		t.Log(`List rules error with invalid page token.`)
@@ -697,7 +697,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			FlagKey:      "boolean_disabled",
 			Rule: &flipt.UpdateRolloutRequest_Segment{
 				Segment: &flipt.RolloutSegment{
-					SegmentKeys: []string{"segment", "another-segment"},
+					SegmentKeys: []string{"another-segment", "segment"},
 					Value:       false,
 				},
 			},

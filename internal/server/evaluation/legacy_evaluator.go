@@ -128,10 +128,9 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 			if matched {
 				e.logger.Debug(reason)
+				segmentKeys = append(segmentKeys, k)
 				segmentMatches++
 			}
-
-			segmentKeys = append(segmentKeys, k)
 		}
 
 		switch rule.SegmentOperator {

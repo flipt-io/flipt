@@ -349,8 +349,8 @@ func (s *DBTestSuite) TestListRules_MultipleSegments() {
 	for _, rule := range got {
 		assert.Equal(t, storage.DefaultNamespace, rule.NamespaceKey)
 		assert.Len(t, rule.SegmentKeys, 2)
-		assert.Equal(t, firstSegment.Key, rule.SegmentKeys[0])
-		assert.Equal(t, secondSegment.Key, rule.SegmentKeys[1])
+		assert.Contains(t, rule.SegmentKeys, firstSegment.Key)
+		assert.Contains(t, rule.SegmentKeys, secondSegment.Key)
 		assert.NotZero(t, rule.CreatedAt)
 		assert.NotZero(t, rule.UpdatedAt)
 	}

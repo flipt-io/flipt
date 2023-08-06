@@ -485,8 +485,19 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			}
 		}
 
+		innerSegment := &flipt.RolloutSegment{
+			Value:           segmentRule.Value,
+			SegmentOperator: segmentRule.SegmentOperator,
+		}
+
+		if len(segmentRule.SegmentKeys) == 1 {
+			innerSegment.SegmentKey = segmentRule.SegmentKeys[0]
+		} else {
+			innerSegment.SegmentKeys = segmentRule.SegmentKeys
+		}
+
 		rollout.Rule = &flipt.Rollout_Segment{
-			Segment: segmentRule,
+			Segment: innerSegment,
 		}
 	case *flipt.CreateRolloutRequest_Threshold:
 		rollout.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE

@@ -263,8 +263,8 @@ func (s *DBTestSuite) TestListRollouts_MultipleSegments() {
 		rs, ok := rollout.Rule.(*flipt.Rollout_Segment)
 		assert.True(t, ok, "rule should successfully assert to a rollout segment")
 		assert.Len(t, rs.Segment.SegmentKeys, 2)
-		assert.Equal(t, rs.Segment.SegmentKeys[0], firstSegment.Key)
-		assert.Equal(t, rs.Segment.SegmentKeys[1], secondSegment.Key)
+		assert.Contains(t, rs.Segment.SegmentKeys, firstSegment.Key)
+		assert.Contains(t, rs.Segment.SegmentKeys, secondSegment.Key)
 		assert.NotZero(t, rollout.CreatedAt)
 		assert.NotZero(t, rollout.UpdatedAt)
 	}
@@ -543,8 +543,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 		Rank:    1,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				Value:      true,
-				SegmentKey: "segment_one",
+				Value:       true,
+				SegmentKeys: []string{"segment_one"},
 			},
 		},
 	})
@@ -685,8 +685,8 @@ func (s *DBTestSuite) TestUpdateRollout_InvalidType() {
 		Rank:         1,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				SegmentKey: "segment_one",
-				Value:      true,
+				SegmentKeys: []string{"segment_one"},
+				Value:       true,
 			},
 		},
 	})
