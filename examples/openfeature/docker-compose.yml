@@ -10,10 +10,21 @@ services:
     environment:
       - COLLECTOR_ZIPKIN_HTTP_PORT=9411
 
+  init:
+    image: flipt/flipt:latest
+    command: ["./flipt", "import", "flipt.yml"]
+    environment:
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_META_TELEMETRY_ENABLED=false
+    volumes:
+      - "./flipt.yml:/flipt.yml"
+      - "flipt_data:/var/opt/flipt"
+
   flipt:
     image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
     depends_on:
+      - init
       - jaeger
     ports:
       - "8080:8080"
@@ -26,7 +37,7 @@ services:
       - FLIPT_TRACING_JAEGER_HOST=jaeger
       - FLIPT_META_TELEMETRY_ENABLED=false
     volumes:
-      - "./flipt.db:/var/opt/flipt/flipt.db"
+      - "flipt_data:/var/opt/flipt"
 
   example:
     build: .
@@ -36,6 +47,9 @@ services:
       - "8000:8000"
     networks:
       - flipt_network
+
+volumes:
+  flipt_data:
 
 networks:
   flipt_network:

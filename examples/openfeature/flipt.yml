@@ -1,0 +1,29 @@
+namespace: default
+flags:
+  - key: language
+    name: Language
+    description: The language of the user
+    enabled: true
+    variants:
+      - key: es
+        name: Spanish
+        description: Habla español
+      - key: en
+        name: English
+        description: The user speaks English
+      - key: fr
+        name: French
+        description: Parle français
+    rules:
+      - segment: all
+        distributions:
+          - variant: es
+            rollout: 33.34
+          - variant: en
+            rollout: 33.33
+          - variant: fr
+            rollout: 33.33
+segments:
+  - key: all
+    name: all
+    match_type: ALL_MATCH_TYPE
