@@ -2,7 +2,7 @@ import {
   faDiscord,
   faGithub,
   faMastodon,
-  faTwitter
+  faXTwitter
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from 'react-redux';
@@ -35,7 +35,7 @@ export default function Footer() {
     {
       name: 'Twitter',
       href: 'https://www.twitter.com/flipt_io',
-      icon: faTwitter
+      icon: faXTwitter
     },
     {
       name: 'Mastadon',
