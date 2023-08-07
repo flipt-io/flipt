@@ -84,7 +84,7 @@ export default function SegmentsPicker({
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
-              inputClassNames={
+              inputClassName={
                 readonly
                   ? 'cursor-not-allowed bg-gray-100 text-gray-500'
                   : undefined

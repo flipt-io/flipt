@@ -15,7 +15,7 @@ type ComboboxProps<T extends IFilterable> = {
   setSelected?: (v: T | null) => void;
   disabled?: boolean;
   className?: string;
-  inputClassNames?: string;
+  inputClassName?: string;
 };
 
 export default function Combobox<T extends IFilterable>(
@@ -24,7 +24,7 @@ export default function Combobox<T extends IFilterable>(
   const {
     id,
     className,
-    inputClassNames,
+    inputClassName,
     values,
     selected,
     setSelected,
@@ -55,7 +55,7 @@ export default function Combobox<T extends IFilterable>(
         <C.Input
           id={id}
           className={twMerge(
-            `text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm ${inputClassNames}`
+            `text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm ${inputClassName}`
           )}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
