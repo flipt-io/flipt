@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `auth/middleware`: only enforce email matches on OIDC method tokens  (#1934)
 - `ui`: rule form inputs in darkmode (#1968)
 - store namespace in localstorage (#1950)
 - dont clear all localstorage on 401 (#1951)
