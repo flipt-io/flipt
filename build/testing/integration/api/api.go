@@ -35,6 +35,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			retrieved, err := client.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
 				Key: namespace,
 			})
+			require.NoError(t, err)
 
 			assert.Equal(t, created.Name, retrieved.Name)
 
@@ -794,6 +795,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.Contains(t, result.SegmentKeys, "everyone")
 				assert.Equal(t, "one", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, namespace, result.NamespaceKey)
+				assert.Equal(t, "test", result.FlagKey)
 			})
 
 			t.Run("no match", func(t *testing.T) {
@@ -810,6 +813,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.False(t, result.Match, "Evaluation should not have matched.")
 				assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, result.Reason)
 				assert.Empty(t, result.VariantKey)
+				assert.Equal(t, namespace, result.NamespaceKey)
+				assert.Equal(t, "test", result.FlagKey)
 			})
 
 			t.Run("flag disabled", func(t *testing.T) {
@@ -824,6 +829,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.False(t, result.Match, "Evaluation should not have matched.")
 				assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
 				assert.Empty(t, result.VariantKey)
+				assert.Equal(t, namespace, result.NamespaceKey)
+				assert.Equal(t, "disabled", result.FlagKey)
 			})
 
 			t.Run("flag not found", func(t *testing.T) {
@@ -856,6 +863,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
 				assert.False(t, result.Enabled, "value should be the flag state")
+				assert.Equal(t, namespace, result.NamespaceKey)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 			})
 
 			t.Run("percentage match", func(t *testing.T) {
@@ -872,6 +881,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				assert.False(t, result.Enabled, "value should be threshold match value")
+				assert.Equal(t, namespace, result.NamespaceKey)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 			})
 
 			t.Run("segment match", func(t *testing.T) {
@@ -889,6 +900,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				assert.True(t, result.Enabled, "value should be segment match value")
+				assert.Equal(t, namespace, result.NamespaceKey)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 			})
 		})
 
@@ -934,6 +947,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.Equal(t, evaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, result.Responses[0].Type)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
 				assert.False(t, b.BooleanResponse.Enabled, "value should be threshold match value")
+				assert.Equal(t, namespace, b.BooleanResponse.NamespaceKey)
+				assert.Equal(t, "boolean_disabled", b.BooleanResponse.FlagKey)
 
 				v, ok := result.Responses[1].Response.(*evaluation.EvaluationResponse_VariantResponse)
 				assert.True(t, ok, "value should be variant response")
@@ -941,11 +956,14 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 				assert.Contains(t, v.VariantResponse.SegmentKeys, "everyone")
 				assert.Equal(t, "one", v.VariantResponse.VariantKey)
+				assert.Equal(t, namespace, v.VariantResponse.NamespaceKey)
+				assert.Equal(t, "test", v.VariantResponse.FlagKey)
 
 				e, ok := result.Responses[2].Response.(*evaluation.EvaluationResponse_ErrorResponse)
 				assert.True(t, ok, "value should be error response")
 				assert.Equal(t, evaluation.EvaluationResponseType_ERROR_EVALUATION_RESPONSE_TYPE, result.Responses[2].Type)
 				assert.Equal(t, evaluation.ErrorEvaluationReason_NOT_FOUND_ERROR_EVALUATION_REASON, e.ErrorResponse.Reason)
+				assert.Equal(t, namespace, e.ErrorResponse.NamespaceKey)
 				assert.Equal(t, "flagnotfound", e.ErrorResponse.FlagKey)
 			})
 		})
@@ -982,6 +1000,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		flags, err := client.Flipt().ListFlags(ctx, &flipt.ListFlagRequest{
 			NamespaceKey: namespace,
 		})
+		require.NoError(t, err)
+
 		for _, flag := range flags.Flags {
 			err = client.Flipt().DeleteFlag(ctx, &flipt.DeleteFlagRequest{
 				NamespaceKey: namespace,
