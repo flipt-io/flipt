@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams
+} from 'react-router-dom';
 import Footer from '~/components/Footer';
 import Header from '~/components/Header';
 import { NotificationProvider } from '~/components/NotificationProvider';
@@ -9,13 +16,36 @@ import Sidebar from '~/components/Sidebar';
 import { useSession } from '~/data/hooks/session';
 import { useAppDispatch } from '~/data/hooks/store';
 import { fetchConfigAsync, fetchInfoAsync } from './meta/metaSlice';
-import { fetchNamespacesAsync } from './namespaces/namespacesSlice';
+import {
+  currentNamespaceChanged,
+  fetchNamespacesAsync,
+  selectCurrentNamespace
+} from './namespaces/namespacesSlice';
 
 function InnerLayout() {
   const { session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dispatch = useAppDispatch();
+
+  const { namespaceKey } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentNamespace = useSelector(selectCurrentNamespace);
+
+  useEffect(() => {
+    if (!namespaceKey) {
+      return;
+    }
+
+    // if the namespaceKey in the url is not the same as the currentNamespace, then
+    // dispatch the currentNamespaceChanged action to update the currentNamespace in the store
+    // this allows the namespace to be changed by the url and not just the namespace dropdown,
+    // which is required for 'deep' linking
+    if (currentNamespace?.key !== namespaceKey) {
+      dispatch(currentNamespaceChanged({ key: namespaceKey }));
+    }
+  }, [namespaceKey, currentNamespace, dispatch, navigate, location.pathname]);
 
   useEffect(() => {
     dispatch(fetchNamespacesAsync());
