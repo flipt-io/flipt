@@ -69,7 +69,7 @@ func (f *FS) Open(name string) (fs.File, error) {
 	}
 
 	// If a prefix is not provided, prepend the prefix. This
-	// allows s3fs to support `.flipt.yml` under the prifx
+	// allows s3fs to support `.flipt.yml` under the prefix
 	if f.prefix != "" && !strings.HasPrefix(name, f.prefix) {
 		name = f.prefix + name
 	}
