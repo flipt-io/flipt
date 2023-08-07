@@ -78,6 +78,7 @@ export default function Segment() {
     getSegment(namespace.key, segmentKey)
       .then((segment: ISegment) => {
         setSegment(segment);
+        clearError();
       })
       .catch((err) => {
         setError(err);

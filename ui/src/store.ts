@@ -7,10 +7,12 @@ import {
 import { metaSlice } from './app/meta/metaSlice';
 import { namespacesSlice } from './app/namespaces/namespacesSlice';
 import { preferencesSlice } from './app/preferences/preferencesSlice';
+import { LoadingStatus } from './types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
 
 const preferencesKey = 'preferences';
+const namespaceKey = 'namespace';
 
 listenerMiddleware.startListening({
   matcher: isAnyOf(
@@ -26,13 +28,32 @@ listenerMiddleware.startListening({
   }
 });
 
+listenerMiddleware.startListening({
+  matcher: isAnyOf(namespacesSlice.actions.currentNamespaceChanged),
+  effect: (_action, api) => {
+    // save to local storage
+    localStorage.setItem(
+      namespaceKey,
+      (api.getState() as RootState).namespaces.currentNamespace
+    );
+  }
+});
+
 const preferencesState = JSON.parse(
   localStorage.getItem(preferencesKey) || '{}'
 );
 
+const currentNamespace = localStorage.getItem(namespaceKey) || 'default';
+
 export const store = configureStore({
   preloadedState: {
-    preferences: preferencesState
+    preferences: preferencesState,
+    namespaces: {
+      namespaces: {},
+      status: LoadingStatus.IDLE,
+      currentNamespace,
+      error: undefined
+    }
   },
   reducer: {
     namespaces: namespacesSlice.reducer,
