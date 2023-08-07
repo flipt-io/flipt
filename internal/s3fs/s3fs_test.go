@@ -245,6 +245,16 @@ func Test_FS_Prefix(t *testing.T) {
 		}, err)
 	})
 
+	t.Run("Ensure Open prepends prefix if not provided", func(t *testing.T) {
+		fi, err := s3fs.Open("three")
+		require.NoError(t, err)
+
+		contents, err := io.ReadAll(fi)
+		require.NoError(t, err)
+
+		require.Equal(t, "threedata", string(contents))
+	})
+
 	t.Run("Ensure files exist with expected contents", func(t *testing.T) {
 		seen := map[string]string{}
 		dirs := map[string]int{}

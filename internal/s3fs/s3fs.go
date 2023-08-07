@@ -68,9 +68,10 @@ func (f *FS) Open(name string) (fs.File, error) {
 		return nil, pathError
 	}
 
-	// If a prefix is provided, cannot Open files without the prefix
+	// If a prefix is not provided, prepend the prefix. This
+	// allows s3fs to support `.flipt.yml` under the prifx
 	if f.prefix != "" && !strings.HasPrefix(name, f.prefix) {
-		return nil, pathError
+		name = f.prefix + name
 	}
 
 	output, err := f.s3Client.GetObject(context.Background(),
