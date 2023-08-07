@@ -309,7 +309,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                       <Field
                                         key={index}
                                         type="number"
-                                        className="border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
+                                        className="text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
                                         value={dist.distribution.rollout}
                                         name={`rollouts.[${index}].distribution.rollout`}
                                         // eslint-disable-next-line react/no-unknown-property
