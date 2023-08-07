@@ -467,6 +467,8 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 
 		var segmentRule = r.GetSegment()
 
+		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
+
 		if _, err := s.builder.Insert(tableRolloutSegments).
 			RunWith(tx).
 			Columns("id", "rollout_id", "\"value\"", "segment_operator").
@@ -475,7 +477,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			return nil, err
 		}
 
-		for _, segmentKey := range segmentRule.SegmentKeys {
+		for _, segmentKey := range segmentKeys {
 			if _, err := s.builder.Insert(tableRolloutSegmentReferences).
 				RunWith(tx).
 				Columns("rollout_segment_id", "namespace_key", "segment_key").
@@ -490,10 +492,10 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 			SegmentOperator: segmentRule.SegmentOperator,
 		}
 
-		if len(segmentRule.SegmentKeys) == 1 {
-			innerSegment.SegmentKey = segmentRule.SegmentKeys[0]
+		if len(segmentKeys) == 1 {
+			innerSegment.SegmentKey = segmentKeys[0]
 		} else {
-			innerSegment.SegmentKeys = segmentRule.SegmentKeys
+			innerSegment.SegmentKeys = segmentKeys
 		}
 
 		rollout.Rule = &flipt.Rollout_Segment{
@@ -579,6 +581,8 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 		var segmentRule = r.GetSegment()
 
+		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
+
 		if _, err := s.builder.Update(tableRolloutSegments).
 			RunWith(tx).
 			Set("segment_operator", segmentRule.SegmentOperator).
@@ -608,7 +612,7 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 			return nil, err
 		}
 
-		for _, segmentKey := range segmentRule.SegmentKeys {
+		for _, segmentKey := range segmentKeys {
 			if _, err := s.builder.
 				Insert(tableRolloutSegmentReferences).
 				RunWith(tx).

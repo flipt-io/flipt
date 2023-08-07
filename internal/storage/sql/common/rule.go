@@ -365,6 +365,8 @@ func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (u
 
 // CreateRule creates a rule
 func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *flipt.Rule, err error) {
+	segmentKeys := sanitizeSegmentKeys(r.GetSegmentKey(), r.GetSegmentKeys())
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -410,7 +412,7 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 		return nil, err
 	}
 
-	for _, segmentKey := range r.SegmentKeys {
+	for _, segmentKey := range segmentKeys {
 		if _, err := s.builder.
 			Insert("rule_segments").
 			RunWith(tx).
@@ -425,10 +427,10 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 		}
 	}
 
-	if len(r.SegmentKeys) == 1 {
-		rule.SegmentKey = r.SegmentKeys[0]
+	if len(segmentKeys) == 1 {
+		rule.SegmentKey = segmentKeys[0]
 	} else {
-		rule.SegmentKeys = r.SegmentKeys
+		rule.SegmentKeys = segmentKeys
 	}
 
 	return rule, tx.Commit()
@@ -436,6 +438,8 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 
 // UpdateRule updates an existing rule
 func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *flipt.Rule, err error) {
+	segmentKeys := sanitizeSegmentKeys(r.GetSegmentKey(), r.GetSegmentKeys())
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -470,7 +474,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		return nil, err
 	}
 
-	for _, segmentKey := range r.SegmentKeys {
+	for _, segmentKey := range segmentKeys {
 		if _, err := s.builder.
 			Insert("rule_segments").
 			RunWith(tx).

@@ -27,3 +27,32 @@ func decodePageToken(logger *zap.Logger, pageToken string) (PageToken, error) {
 
 	return token, nil
 }
+
+// removeDuplicates is an inner utility function that will deduplicate a slice of strings.
+func removeDuplicates(src []string) []string {
+	allKeys := make(map[string]bool)
+
+	dest := []string{}
+
+	for _, item := range src {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			dest = append(dest, item)
+		}
+	}
+
+	return dest
+}
+
+// sanitizeSegmentKeys is a utility function that will transform segment keys into the right input.
+func sanitizeSegmentKeys(segmentKey string, segmentKeys []string) []string {
+	result := make([]string, 0)
+
+	if len(segmentKeys) > 0 {
+		result = append(result, segmentKeys...)
+	} else if segmentKey != "" {
+		result = append(result, segmentKey)
+	}
+
+	return removeDuplicates(result)
+}

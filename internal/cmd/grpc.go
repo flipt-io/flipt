@@ -303,7 +303,6 @@ func NewGRPCServer(
 		append(authInterceptors,
 			middlewaregrpc.ErrorUnaryInterceptor,
 			middlewaregrpc.ValidationUnaryInterceptor,
-			middlewaregrpc.SegmentKeysUnaryInterceptor,
 			middlewaregrpc.EvaluationUnaryInterceptor,
 		)...,
 	)

@@ -117,22 +117,6 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 	return handler(ctx, req)
 }
 
-type SegmentKeysSanitizer interface {
-	// SanitizeSegmentKeys deduplicates the requests' `SegmentKey`, and `SegmentKeys`
-	// field, and combine it into one slice.
-	SanitizeSegmentKeys()
-}
-
-// SegmentKeysUnaryInterceptor sets the `SegmentKeys` field to the correct value for the request.
-// TODO(yquansah): remove this once `SegmentKey` is no longer needed.
-func SegmentKeysUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	if r, ok := req.(SegmentKeysSanitizer); ok {
-		r.SanitizeSegmentKeys()
-	}
-
-	return handler(ctx, req)
-}
-
 // CacheUnaryInterceptor caches the response of a request if the request is cacheable.
 // TODO: we could clean this up by using generics in 1.18+ to avoid the type switch/duplicate code.
 func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnaryServerInterceptor {

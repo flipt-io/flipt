@@ -253,7 +253,6 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				Rank:            rank,
 				NamespaceKey:    namespace,
 				SegmentOperator: flipt.SegmentOperator(flipt.SegmentOperator_value[r.SegmentOperator]),
-				SegmentKey:      r.SegmentKey,
 			}
 
 			if len(r.SegmentKeys) > 0 && r.SegmentKey != "" {
@@ -264,8 +263,10 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				)
 			}
 
-			// support explicitly setting only "segments" on rules from 1.2
-			if len(r.SegmentKeys) > 0 {
+			if r.SegmentKey != "" {
+				fcr.SegmentKey = r.SegmentKey
+			} else if len(r.SegmentKeys) > 0 {
+				// support explicitly setting only "segments" on rules from 1.2
 				if err := ensureFieldSupported("flag.rules[*].segments", semver.Version{
 					Major: 1,
 					Minor: 2,

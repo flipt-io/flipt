@@ -543,8 +543,8 @@ func (s *DBTestSuite) TestUpdateRollout() {
 		Rank:    1,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				Value:       true,
-				SegmentKeys: []string{"segment_one"},
+				Value:      true,
+				SegmentKey: "segment_one",
 			},
 		},
 	})
