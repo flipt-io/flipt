@@ -9,7 +9,7 @@ export default function Greeting() {
 
   useEffect(() => {
     async function fetchData() {
-      let language = "french";
+      let language = "fr";
       try {
         const evaluation = await flipt.evaluate.evaluate({
           flagKey: "language",
@@ -24,7 +24,7 @@ export default function Greeting() {
         }
 
         let greeting =
-          language == "spanish"
+          language == "es"
             ? "Hola, from Next.js client-side"
             : "Bonjour, from Next.js client-side";
 

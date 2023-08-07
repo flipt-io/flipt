@@ -36,7 +36,7 @@ const client = new FliptApiClient({
 });
 
 export async function getServerSideProps() {
-  let language = "english";
+  let language = "en";
   try {
     const evaluation = await client.evaluate.evaluate({
       flagKey: "language",
@@ -54,7 +54,7 @@ export async function getServerSideProps() {
   }
 
   const greeting =
-    language == "spanish"
+    language == "es"
       ? "Hola, from Next.js server-side"
       : "Hello, from Next.js server-side";
 
