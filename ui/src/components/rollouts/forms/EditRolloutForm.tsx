@@ -2,6 +2,8 @@ import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
+import { twMerge } from 'tailwind-merge';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
@@ -61,6 +63,8 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
     rollout.segment && rollout.segment.segmentOperator
       ? rollout.segment.segmentOperator
       : SegmentOperatorType.OR;
+
+  const readOnly = useSelector(selectReadonly);
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     let rolloutSegment = rollout;
@@ -282,6 +286,7 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                         name="segmentKeys"
                         render={(arrayHelpers) => (
                           <SegmentsPicker
+                            readonly={readOnly}
                             editMode
                             segments={segments}
                             segmentAdd={(segment: FilterableSegment) =>
@@ -307,7 +312,11 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                               id={segmentOperator.id}
                               name="operator"
                               type="radio"
-                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                              className={twMerge(
+                                `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
+                                  readOnly ? 'cursor-not-allowed' : undefined
+                                }`
+                              )}
                               onChange={() => {
                                 formik.setFieldValue(
                                   'operator',
@@ -318,6 +327,12 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                                 segmentOperator.id === formik.values.operator
                               }
                               value={segmentOperator.id}
+                              disabled={readOnly}
+                              title={
+                                readOnly
+                                  ? 'Not allowed in Read-Only mode'
+                                  : undefined
+                              }
                             />
                           </div>
                           <div>

@@ -2,6 +2,7 @@ import { Combobox as C } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import { useField } from 'formik';
 import { useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import { IFilterable } from '~/types/Selectable';
 import { classNames } from '~/utils/helpers';
 
@@ -14,6 +15,7 @@ type ComboboxProps<T extends IFilterable> = {
   setSelected?: (v: T | null) => void;
   disabled?: boolean;
   className?: string;
+  inputClassNames?: string;
 };
 
 export default function Combobox<T extends IFilterable>(
@@ -22,6 +24,7 @@ export default function Combobox<T extends IFilterable>(
   const {
     id,
     className,
+    inputClassNames,
     values,
     selected,
     setSelected,
@@ -51,7 +54,9 @@ export default function Combobox<T extends IFilterable>(
       <div className="relative flex w-full flex-row">
         <C.Input
           id={id}
-          className="text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm"
+          className={twMerge(
+            `text-gray-900 bg-gray-50 border-gray-300 w-full rounded-md border py-2 pl-3 pr-10 shadow-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-sm ${inputClassNames}`
+          )}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             setQuery(e.target.value);
           }}

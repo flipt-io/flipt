@@ -1,10 +1,12 @@
 import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import Combobox from '~/components/forms/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
 type SegmentPickerProps = {
+  readonly?: boolean;
   editMode?: boolean;
   segments: ISegment[];
   selectedSegments: FilterableSegment[];
@@ -14,6 +16,7 @@ type SegmentPickerProps = {
 };
 
 export default function SegmentsPicker({
+  readonly = false,
   editMode = false,
   segments,
   selectedSegments: parentSegments,
@@ -24,6 +27,8 @@ export default function SegmentsPicker({
   const segmentsSet = useRef<Set<string>>(
     new Set<string>(parentSegments.map((s) => s.key))
   );
+
+  const [editing, setEditing] = useState<boolean>(editMode);
 
   const handleSegmentRemove = (index: number) => {
     const filterableSegment = parentSegments[index];
@@ -36,8 +41,6 @@ export default function SegmentsPicker({
       setEditing(true);
     }
   };
-
-  const [editing, setEditing] = useState<boolean>(editMode);
 
   const handleSegmentSelected = (
     index: number,
@@ -76,18 +79,29 @@ export default function SegmentsPicker({
                   filterValue: truncateKey(s.key),
                   displayValue: s.name
                 }))}
+              disabled={readonly}
               selected={selectedSegment}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
+              inputClassNames={
+                readonly
+                  ? 'cursor-not-allowed bg-gray-100 text-gray-500'
+                  : undefined
+              }
             />
           </div>
           {editing && parentSegments.length - 1 === index ? (
             <div>
               <button
                 type="button"
-                className="text-gray-400 mt-2 hover:text-gray-500"
+                className={twMerge(`
+                  text-gray-400 mt-2 hover:text-gray-500 ${
+                    readonly ? 'hover:text-gray-400' : undefined
+                  }`)}
                 onClick={() => setEditing(false)}
+                title={readonly ? 'Not allowed in Read-Only mode' : undefined}
+                disabled={readonly}
               >
                 <PlusSmallIcon className="h-6 w-6" aria-hidden="true" />
               </button>
@@ -98,6 +112,8 @@ export default function SegmentsPicker({
                 type="button"
                 className="text-gray-400 mt-2 hover:text-gray-500"
                 onClick={() => handleSegmentRemove(index)}
+                title={readonly ? 'Not allowed in Read-Only mode' : undefined}
+                disabled={readonly}
               >
                 <MinusSmallIcon className="h-6 w-6" aria-hidden="true" />
               </button>

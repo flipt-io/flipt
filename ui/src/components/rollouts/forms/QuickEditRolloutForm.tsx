@@ -1,5 +1,7 @@
 import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
+import { twMerge } from 'tailwind-merge';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
 import Input from '~/components/forms/Input';
@@ -44,6 +46,8 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
     rollout.segment && rollout.segment.segmentOperator
       ? rollout.segment.segmentOperator
       : SegmentOperatorType.OR;
+
+  const readOnly = useSelector(selectReadonly);
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     let rolloutSegment = rollout;
@@ -188,6 +192,7 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                         name="segmentKeys"
                         render={(arrayHelpers) => (
                           <SegmentsPicker
+                            readonly={readOnly}
                             editMode
                             segments={segments}
                             segmentAdd={(segment: FilterableSegment) =>
@@ -213,7 +218,11 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                               id={segmentOperator.id}
                               name="operator"
                               type="radio"
-                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                              className={twMerge(
+                                `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
+                                  readOnly ? 'cursor-not-allowed' : undefined
+                                }`
+                              )}
                               onChange={() => {
                                 formik.setFieldValue(
                                   'operator',
@@ -224,6 +233,12 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                                 segmentOperator.id === formik.values.operator
                               }
                               value={segmentOperator.id}
+                              disabled={readOnly}
+                              title={
+                                readOnly
+                                  ? 'Not allowed in Read-Only mode'
+                                  : undefined
+                              }
                             />
                           </div>
                           <div>
@@ -258,7 +273,14 @@ export default function QuickEditRolloutForm(props: QuickEditRolloutFormProps) {
                     { label: 'True', value: 'true' },
                     { label: 'False', value: 'false' }
                   ]}
-                  className="w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle"
+                  className={twMerge(
+                    `w-full cursor-pointer appearance-none self-center rounded-lg py-1 align-middle ${
+                      readOnly
+                        ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
+                        : undefined
+                    }`
+                  )}
+                  disabled={readOnly}
                 />
               </div>
             </div>

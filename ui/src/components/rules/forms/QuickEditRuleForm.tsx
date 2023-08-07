@@ -1,6 +1,8 @@
 import { Field, FieldArray, Form, Formik } from 'formik';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { twMerge } from 'tailwind-merge';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import TextButton from '~/components/forms/buttons/TextButton';
 import Combobox from '~/components/forms/Combobox';
@@ -19,7 +21,7 @@ import {
   SegmentOperatorType
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
-import { truncateKey } from '~/utils/helpers';
+import { classNames, truncateKey } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
 
 type QuickEditRuleFormProps = {
@@ -78,7 +80,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
       return null;
     });
 
-  const [operator, setOperator] = useState<SegmentOperatorType>(rule.operator);
+  const readOnly = useSelector(selectReadonly);
 
   const handleSubmit = async (values: RuleFormValues) => {
     const originalRuleSegments = rule.segments.map((s) => s.key);
@@ -206,6 +208,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                         name="segmentKeys"
                         render={(arrayHelpers) => (
                           <SegmentsPicker
+                            readonly={readOnly}
                             editMode
                             segments={segments}
                             segmentAdd={(segment: FilterableSegment) =>
@@ -231,7 +234,11 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                               id={segmentOperator.id}
                               name="operator"
                               type="radio"
-                              className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                              className={twMerge(
+                                `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
+                                  readOnly ? 'cursor-not-allowed' : undefined
+                                }`
+                              )}
                               onChange={() => {
                                 formik.setFieldValue(
                                   'operator',
@@ -242,6 +249,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                 segmentOperator.id === formik.values.operator
                               }
                               value={segmentOperator.id}
+                              disabled={readOnly}
+                              title={
+                                readOnly
+                                  ? 'Not allowed in Read-Only mode'
+                                  : undefined
+                              }
                             />
                           </div>
                           <div>
@@ -324,7 +337,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                           }))}
                           selected={selectedVariant}
                           setSelected={setSelectedVariant}
-                          disabled
+                          disabled={readOnly}
                         />
                       </div>
                     </div>
@@ -364,7 +377,13 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                       <Field
                                         key={index}
                                         type="number"
-                                        className="border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm"
+                                        className={classNames(
+                                          `${
+                                            readOnly
+                                              ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
+                                              : undefined
+                                          } border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm`
+                                        )}
                                         value={dist.distribution.rollout}
                                         name={`rollouts.[${index}].distribution.rollout`}
                                         // eslint-disable-next-line react/no-unknown-property
@@ -372,6 +391,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                         step=".01"
                                         min="0"
                                         max="100"
+                                        disabled={readOnly}
                                       />
                                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                         <span className="text-gray-500 sm:text-sm">
