@@ -9,4 +9,4 @@ COPY . .
 
 RUN go mod tidy
 
-ENTRYPOINT ["go", "run", "-tags", "example", "main.go"]
+CMD ["go", "run", "-tags", "example", "main.go"]
