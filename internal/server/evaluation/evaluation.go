@@ -81,6 +81,8 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 		Reason:            reason,
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,
+		NamespaceKey:      r.NamespaceKey,
+		FlagKey:           r.FlagKey,
 	}
 
 	return ver, nil
@@ -128,7 +130,10 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	}
 
 	var (
-		resp     = &rpcevaluation.BooleanEvaluationResponse{}
+		resp = &rpcevaluation.BooleanEvaluationResponse{
+			NamespaceKey: r.NamespaceKey,
+			FlagKey:      r.FlagKey,
+		}
 		lastRank int32
 	)
 

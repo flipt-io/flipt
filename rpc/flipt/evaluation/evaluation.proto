@@ -58,6 +58,8 @@ message BooleanEvaluationResponse {
   string request_id = 3;
   double request_duration_millis = 4;
   google.protobuf.Timestamp timestamp = 5;
+  string flag_key = 6;
+  string namespace_key = 7;
 }
 
 message VariantEvaluationResponse {
@@ -69,6 +71,8 @@ message VariantEvaluationResponse {
   string request_id = 6;
   double request_duration_millis = 7;
   google.protobuf.Timestamp timestamp = 8;
+  string flag_key = 9;
+  string namespace_key = 10;
 }
 
 message ErrorEvaluationResponse {
