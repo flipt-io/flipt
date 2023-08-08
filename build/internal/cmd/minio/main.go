@@ -83,15 +83,15 @@ func main() {
 
 		fmt.Fprintln(os.Stderr, "Copying", path)
 
-		name := d.Name()
 		f, err := dir.Open(path)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
+		// use path to get full path to file
 		_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 			Bucket: &bucketName,
-			Key:    &name,
+			Key:    &path,
 			Body:   f,
 		})
 

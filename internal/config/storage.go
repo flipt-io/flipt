@@ -119,6 +119,7 @@ func (o *Object) validate() error {
 type S3 struct {
 	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint"`
 	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket"`
+	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix"`
 	Region       string        `json:"region,omitempty" mapstructure:"region"`
 	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
 }
