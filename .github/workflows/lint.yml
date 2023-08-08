@@ -75,3 +75,11 @@ jobs:
 
       - name: Ensure clean git state.
         run: git diff-index --quiet HEAD -- || (echo "Please run 'go mod tidy' and commit changes." && exit 1)
+
+  flipt-validate:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the target repository
+      - uses: actions/checkout@v3
+
+      - uses: flipt-io/validate-action@v0.1.0
