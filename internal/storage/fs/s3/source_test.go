@@ -42,7 +42,7 @@ func Test_SourceGet(t *testing.T) {
 
 	assert.Equal(t, []byte("namespace: production\n"), data)
 
-	fi, err = s3fs.Open("prefix/features.yml")
+	fi, err = s3fs.Open("prefix/prefix_features.yml")
 	require.NoError(t, err)
 
 	data, err = io.ReadAll(fi)
@@ -64,7 +64,12 @@ func Test_SourceGetPrefix(t *testing.T) {
 	_, err = s3fs.Open("features.yml")
 	require.Error(t, err)
 
-	fi, err := s3fs.Open("prefix/features.yml")
+	// Open without a prefix path prepends the prefix
+	fi, err := s3fs.Open("prefix_features.yml")
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	fi, err = s3fs.Open("prefix/prefix_features.yml")
 	require.NoError(t, err)
 
 	data, err := io.ReadAll(fi)
