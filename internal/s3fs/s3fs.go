@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"io/fs"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -24,9 +25,12 @@ type FS struct {
 	logger   *zap.Logger
 	s3Client S3ClientAPI
 
-	bucket   string
+	// configuration
+	bucket string
+	prefix string
+
+	// cached entries
 	dirEntry *Dir
-	entries  []fs.DirEntry
 }
 
 // ensure FS implements fs.FS aka Open
@@ -39,11 +43,12 @@ var _ fs.StatFS = &FS{}
 var _ fs.ReadDirFS = &FS{}
 
 // New creates a FS for the single bucket
-func New(logger *zap.Logger, s3Client S3ClientAPI, bucket string) (*FS, error) {
+func New(logger *zap.Logger, s3Client S3ClientAPI, bucket string, prefix string) (*FS, error) {
 	return &FS{
 		logger:   logger,
 		s3Client: s3Client,
 		bucket:   bucket,
+		prefix:   prefix,
 	}, nil
 }
 
@@ -61,6 +66,12 @@ func (f *FS) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
 		pathError.Err = fs.ErrInvalid
 		return nil, pathError
+	}
+
+	// If a prefix is not provided, prepend the prefix. This
+	// allows s3fs to support `.flipt.yml` under the prefix
+	if f.prefix != "" && !strings.HasPrefix(name, f.prefix) {
+		name = f.prefix + name
 	}
 
 	output, err := f.s3Client.GetObject(context.Background(),
@@ -109,40 +120,21 @@ func (f *FS) Stat(name string) (fs.FileInfo, error) {
 	f.dirEntry = &Dir{
 		FileInfo: dirInfo,
 	}
-	output, err := f.s3Client.ListObjectsV2(context.Background(),
-		&s3.ListObjectsV2Input{
-			Bucket: &f.bucket,
-		})
-	if err != nil {
-		return nil, err
-	}
 
-	f.entries = make([]fs.DirEntry, len(output.Contents))
-	for i := range output.Contents {
-		c := output.Contents[i]
-		fi := &FileInfo{
-			name:    *c.Key,
-			size:    c.Size,
-			modTime: *c.LastModified,
-		}
-		f.entries[i] = fi
-		if dirInfo.modTime.IsZero() ||
-			dirInfo.modTime.Compare(fi.modTime) < 0 {
-			dirInfo.modTime = fi.modTime
-		}
-	}
+	// AWS S3 does not store the last modified time for the bucket
+	// anywhere. We'd have to iterate through all the objects to
+	// calculate it, which doesn't seem worth it.
 
 	return f.dirEntry, nil
 }
 
-// ReadDir implements fs.ReadDirFS. For the s3 filesystem, this
-// returns the previously fetched objects in the bucket. This can only
-// be called on the current directory as the s3 filesystem does not
-// support any kind of recursive directory structure
+// ReadDir implements fs.ReadDirFS. This can only be called on the
+// current directory as the s3 filesystem does not support any kind of
+// recursive directory structure
 func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
-	// ReadDir can only be called after Stat and only on the
-	// current directory, aka "." or the bucket
-	if (name != "." && name != f.bucket) || f.entries == nil {
+	// ReadDir can only be called on the current directory, aka
+	// "." or the bucket
+	if name != "." && name != f.bucket {
 		return nil, &fs.PathError{
 			Op:   "ReadDir",
 			Path: name,
@@ -150,7 +142,59 @@ func (f *FS) ReadDir(name string) ([]fs.DirEntry, error) {
 		}
 	}
 
-	return f.entries, nil
+	// If a prefix is provided, only list objects with that prefix
+	// This lets the user configure a portion of a bucket for
+	// feature flags, simulating a subdirectory.
+	//
+	// See https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-prefixes.html
+	var prefix *string
+	if f.prefix != "" {
+		prefix = &f.prefix
+	}
+
+	// instead of caching the entries in Open, fetch them here so
+	// if the list is large, they are not stored on the FS object.
+	entries := []fs.DirEntry{}
+
+	// loop until all results are retrieved, but don't loop more
+	// than 100 times (creating 100,000 entries) as a safety
+	// measure to ensure we don't run out of memory and/or loop
+	// forever
+	var continuationToken *string
+	for i := 0; i < 100; i++ {
+		output, err := f.s3Client.ListObjectsV2(context.Background(),
+			&s3.ListObjectsV2Input{
+				Bucket:            &f.bucket,
+				Prefix:            prefix,
+				ContinuationToken: continuationToken,
+			})
+		if err != nil {
+			return nil, err
+		}
+
+		for i := range output.Contents {
+			c := output.Contents[i]
+			fi := &FileInfo{
+				name:    *c.Key,
+				size:    c.Size,
+				modTime: *c.LastModified,
+			}
+			entries = append(entries, fi)
+		}
+		if !output.IsTruncated {
+			return entries, nil
+		}
+		continuationToken = output.NextContinuationToken
+	}
+
+	// We looped more than 100 times. Instead of silently
+	// truncating, return an error. Should we return a custom
+	// error?
+	return nil, &fs.PathError{
+		Op:   "ReadDir",
+		Path: name,
+		Err:  fs.ErrClosed,
+	}
 }
 
 type Dir struct {

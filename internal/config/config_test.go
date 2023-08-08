@@ -670,6 +670,27 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "s3 full config provided",
+			path: "./testdata/storage/s3_full.yml",
+			expected: func() *Config {
+				cfg := DefaultConfig()
+				cfg.Experimental.FilesystemStorage.Enabled = true
+				cfg.Storage = StorageConfig{
+					Type: ObjectStorageType,
+					Object: &Object{
+						Type: S3ObjectSubStorageType,
+						S3: &S3{
+							Bucket:       "testbucket",
+							Prefix:       "prefix",
+							Region:       "region",
+							PollInterval: 5 * time.Minute,
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
 			name:    "s3 config invalid",
 			path:    "./testdata/storage/s3_bucket_missing.yml",
 			wantErr: errors.New("s3 bucket must be specified"),

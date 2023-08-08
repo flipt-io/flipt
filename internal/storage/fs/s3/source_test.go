@@ -38,8 +38,45 @@ func Test_SourceGet(t *testing.T) {
 
 	data, err := io.ReadAll(fi)
 	require.NoError(t, err)
+	require.NoError(t, fi.Close())
 
 	assert.Equal(t, []byte("namespace: production\n"), data)
+
+	fi, err = s3fs.Open("prefix/prefix_features.yml")
+	require.NoError(t, err)
+
+	data, err = io.ReadAll(fi)
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	assert.Equal(t, []byte("namespace: prefix\n"), data)
+}
+
+func Test_SourceGetPrefix(t *testing.T) {
+	source, skip := testSource(t, WithPrefix("prefix/"))
+	if skip {
+		return
+	}
+
+	s3fs, err := source.Get()
+	require.NoError(t, err)
+
+	_, err = s3fs.Open("features.yml")
+	require.Error(t, err)
+
+	// Open without a prefix path prepends the prefix
+	fi, err := s3fs.Open("prefix_features.yml")
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	fi, err = s3fs.Open("prefix/prefix_features.yml")
+	require.NoError(t, err)
+
+	data, err := io.ReadAll(fi)
+	require.NoError(t, err)
+	require.NoError(t, fi.Close())
+
+	assert.Equal(t, []byte("namespace: prefix\n"), data)
 }
 
 func Test_SourceSubscribe(t *testing.T) {
