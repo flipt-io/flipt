@@ -86,9 +86,10 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
     const originalRuleSegments = rule.segments.map((s) => s.key);
     const comparableRuleSegments = values.segmentKeys.map((s) => s.key);
 
-    const segmentsDidntChange = comparableRuleSegments.every((rs) => {
-      return originalRuleSegments.includes(rs);
-    });
+    const segmentsDidntChange =
+      comparableRuleSegments.every((rs) => {
+        return originalRuleSegments.includes(rs);
+      }) && comparableRuleSegments.length === originalRuleSegments.length;
 
     if (!segmentsDidntChange || values.operator !== rule.operator) {
       // update segment if changed
