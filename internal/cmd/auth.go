@@ -18,7 +18,8 @@ import (
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
-	"go.flipt.io/flipt/internal/storage/auth/memory"
+	storageauthcache "go.flipt.io/flipt/internal/storage/auth/cache"
+	storageauthmemory "go.flipt.io/flipt/internal/storage/auth/memory"
 	authsql "go.flipt.io/flipt/internal/storage/auth/sql"
 	oplocksql "go.flipt.io/flipt/internal/storage/oplock/sql"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -33,6 +34,11 @@ func authenticationGRPC(
 	forceMigrate bool,
 	authOpts ...containers.Option[auth.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
+
+	shutdown := func(ctx context.Context) error {
+		return nil
+	}
+
 	// NOTE: we skip attempting to connect to any database in the situation that either the git or local
 	// FS backends are configured.
 	// All that is required to establish a connection for authentication is to either make auth required
@@ -40,20 +46,31 @@ func authenticationGRPC(
 	if !cfg.Authentication.Enabled() && (cfg.Storage.Type == config.GitStorageType || cfg.Storage.Type == config.LocalStorageType) {
 		return grpcRegisterers{
 			public.NewServer(logger, cfg.Authentication),
-			auth.NewServer(logger, memory.NewStore()),
-		}, nil, func(ctx context.Context) error { return nil }, nil
+			auth.NewServer(logger, storageauthmemory.NewStore()),
+		}, nil, shutdown, nil
 	}
 
-	_, builder, driver, shutdown, err := getDB(ctx, logger, cfg, forceMigrate)
+	_, builder, driver, dbShutdown, err := getDB(ctx, logger, cfg, forceMigrate)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
 	var (
-		authCfg  = cfg.Authentication
-		store    = authsql.NewStore(driver, builder, logger)
-		oplock   = oplocksql.New(logger, driver, builder)
-		public   = public.NewServer(logger, authCfg)
+		authCfg                   = cfg.Authentication
+		store   storageauth.Store = authsql.NewStore(driver, builder, logger)
+		oplock                    = oplocksql.New(logger, driver, builder)
+		public                    = public.NewServer(logger, authCfg)
+	)
+
+	if cfg.Cache.Enabled {
+		cacher, _, err := getCache(ctx, cfg)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		store = storageauthcache.NewStore(store, cacher, logger)
+	}
+
+	var (
 		register = grpcRegisterers{
 			public,
 			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(cfg.Audit.Enabled())),
@@ -150,7 +167,6 @@ func authenticationGRPC(
 		)
 		cleanupAuthService.Run(ctx)
 
-		dbShutdown := shutdown
 		shutdown = func(ctx context.Context) error {
 			logger.Info("shutting down authentication cleanup service...")
 

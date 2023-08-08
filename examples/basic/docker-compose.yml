@@ -1,9 +1,21 @@
 version: "3"
 
 services:
+  init:
+    image: flipt/flipt:latest
+    command: ["./flipt", "import", "flipt.yml"]
+    environment:
+      - FLIPT_LOG_LEVEL=debug
+      - FLIPT_META_TELEMETRY_ENABLED=false
+    volumes:
+      - "./flipt.yml:/flipt.yml"
+      - "flipt_data:/var/opt/flipt"
+
   flipt:
     image: flipt/flipt:latest
-    command: ["./flipt", "--force-migrate"]
+    command: ["./flipt"]
+    depends_on:
+      - init
     ports:
       - "8080:8080"
       - "9000:9000"
@@ -13,16 +25,19 @@ services:
       - FLIPT_LOG_LEVEL=debug
       - FLIPT_META_TELEMETRY_ENABLED=false
     volumes:
-      - "./flipt.db:/var/opt/flipt/flipt.db"
+      - "flipt_data:/var/opt/flipt"
 
   example:
     build: .
+    depends_on:
+      - flipt
     ports:
       - "8000:8000"
     networks:
       - flipt_network
-    depends_on:
-      - flipt
+
+volumes:
+  flipt_data:
 
 networks:
   flipt_network:

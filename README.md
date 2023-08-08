@@ -77,8 +77,6 @@ Flipt supports use cases such as:
 
 ## Features
 
-<img align="right" src=".github/images/console.png" alt="Flipt Console" width=40% />
-
 - Fast. Written in Go. Optimized for performance
 - Stand alone, single binary that's easy to run and [configure](https://www.flipt.io/docs/configuration/overview)
 - Ability to create advanced distribution rules to target segments of users
@@ -90,10 +88,17 @@ Flipt supports use cases such as:
 - Import and export to allow storing your data as code
 - Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box
-- [Filesystem + Git storage backends](https://www.flipt.io/docs/experimental/filesystem-backends) (experimental)
+- [Filesystem, S3, and Git storage backends](https://www.flipt.io/docs/experimental/filesystem-backends) 
 - Audit logging to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
+
+<br clear="both"/>
+
+<div align="center">
+<img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
+<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=45% />
+</div>
 
 <br clear="both"/>
 
@@ -120,6 +125,9 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
     <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
+</p>
+<p align="center">
+    <img src="./logos/git.svg" alt="Git" width=150 height=150 />
 </p>
 
 ## Integration
@@ -258,9 +266,7 @@ Some of the organizations depending on Flipt in production.
     </a>
 </p>
 
-<p align="center">
 Using Flipt at your company? Open a [PR](https://github.com/flipt-io/flipt/pulls) and add your logo here!
-</p>
 
 <br clear="both"/>
 
@@ -335,6 +341,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/charles-oconor-77187455/"><img src="https://avatars.githubusercontent.com/u/8228660?v=4?s=100" width="100px;" alt="Charles OConor"/><br /><sub><b>Charles OConor</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=charlesoconor" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ahobson"><img src="https://avatars.githubusercontent.com/u/21983?v=4?s=100" width="100px;" alt="Andrew Hobson"/><br /><sub><b>Andrew Hobson</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=ahobson" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rudineirk"><img src="https://avatars.githubusercontent.com/u/5260987?v=4?s=100" width="100px;" alt="Rudinei Goi Roecker"/><br /><sub><b>Rudinei Goi Roecker</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=rudineirk" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/testwill"><img src="https://avatars.githubusercontent.com/u/8717479?v=4?s=100" width="100px;" alt="guangwu"/><br /><sub><b>guangwu</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=testwill" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Provinite"><img src="https://avatars.githubusercontent.com/u/13734094?v=4?s=100" width="100px;" alt="Collin Driscoll"/><br /><sub><b>Collin Driscoll</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=Provinite" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

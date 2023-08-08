@@ -400,8 +400,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	assert.Equal(t, 10, cacheSpy.getCalled)
 	assert.NotEmpty(t, cacheSpy.getKeys)
 
-	// cache key is flipt:(md5(f:foo))
-	const cacheKey = "flipt:864ce319cc64891a59e4745fbe7ecc47"
+	const cacheKey = "f:foo"
 	_, ok := cacheSpy.getKeys[cacheKey]
 	assert.True(t, ok)
 
