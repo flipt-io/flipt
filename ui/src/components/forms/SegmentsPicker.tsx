@@ -1,10 +1,13 @@
-import { MinusSmallIcon } from '@heroicons/react/24/outline';
-import { useRef } from 'react';
+import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
+import { useRef, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 import Combobox from '~/components/forms/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
 import { truncateKey } from '~/utils/helpers';
 
 type SegmentPickerProps = {
+  readonly?: boolean;
+  editMode?: boolean;
   segments: ISegment[];
   selectedSegments: FilterableSegment[];
   segmentAdd: (segment: FilterableSegment) => void;
@@ -12,16 +15,20 @@ type SegmentPickerProps = {
   segmentRemove: (index: number) => void;
 };
 
-export default function SegmentsPicker(props: SegmentPickerProps) {
-  const {
-    segmentAdd,
-    selectedSegments: parentSegments,
-    segments,
-    segmentRemove,
-    segmentReplace
-  } = props;
+export default function SegmentsPicker({
+  readonly = false,
+  editMode = false,
+  segments,
+  selectedSegments: parentSegments,
+  segmentAdd,
+  segmentReplace,
+  segmentRemove
+}: SegmentPickerProps) {
+  const segmentsSet = useRef<Set<string>>(
+    new Set<string>(parentSegments.map((s) => s.key))
+  );
 
-  const segmentsSet = useRef<Set<string>>(new Set<string>());
+  const [editing, setEditing] = useState<boolean>(editMode);
 
   const handleSegmentRemove = (index: number) => {
     const filterableSegment = parentSegments[index];
@@ -29,6 +36,10 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
     // Remove references to the segment that is being deleted.
     segmentsSet.current!.delete(filterableSegment.key);
     segmentRemove(index);
+
+    if (editMode && parentSegments.length == 1) {
+      setEditing(true);
+    }
   };
 
   const handleSegmentSelected = (
@@ -68,43 +79,70 @@ export default function SegmentsPicker(props: SegmentPickerProps) {
                   filterValue: truncateKey(s.key),
                   displayValue: s.name
                 }))}
+              disabled={readonly}
               selected={selectedSegment}
               setSelected={(filterableSegment) => {
                 handleSegmentSelected(index, filterableSegment);
               }}
+              inputClassName={
+                readonly
+                  ? 'cursor-not-allowed bg-gray-100 text-gray-500'
+                  : undefined
+              }
             />
           </div>
-          <div>
-            <button
-              type="button"
-              className="text-gray-400 mt-2 hover:text-gray-500"
-              onClick={() => handleSegmentRemove(index)}
-            >
-              <MinusSmallIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
+          {editing && parentSegments.length - 1 === index ? (
+            <div>
+              <button
+                type="button"
+                className={twMerge(`
+                  text-gray-400 mt-2 hover:text-gray-500 ${
+                    readonly ? 'hover:text-gray-400' : undefined
+                  }`)}
+                onClick={() => setEditing(false)}
+                title={readonly ? 'Not allowed in Read-Only mode' : undefined}
+                disabled={readonly}
+              >
+                <PlusSmallIcon className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <div>
+              <button
+                type="button"
+                className="text-gray-400 mt-2 hover:text-gray-500"
+                onClick={() => handleSegmentRemove(index)}
+                title={readonly ? 'Not allowed in Read-Only mode' : undefined}
+                disabled={readonly}
+              >
+                <MinusSmallIcon className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+          )}
         </div>
       ))}
-      <div className="w-full">
-        <div className="w-5/6">
-          <Combobox<FilterableSegment>
-            id={`segmentKey-${parentSegments.length}`}
-            name={`segmentKey-${parentSegments.length}`}
-            placeholder="Select or search for a segment"
-            values={segments
-              .filter((s) => !segmentsSet.current!.has(s.key))
-              .map((s) => ({
-                ...s,
-                filterValue: truncateKey(s.key),
-                displayValue: s.name
-              }))}
-            selected={null}
-            setSelected={(filterableSegment) => {
-              handleSegmentSelected(parentSegments.length, filterableSegment);
-            }}
-          />
+      {(!editing || parentSegments.length === 0) && (
+        <div className="w-full">
+          <div className="w-5/6">
+            <Combobox<FilterableSegment>
+              id={`segmentKey-${parentSegments.length}`}
+              name={`segmentKey-${parentSegments.length}`}
+              placeholder="Select or search for a segment"
+              values={segments
+                .filter((s) => !segmentsSet.current!.has(s.key))
+                .map((s) => ({
+                  ...s,
+                  filterValue: truncateKey(s.key),
+                  displayValue: s.name
+                }))}
+              selected={null}
+              setSelected={(filterableSegment) => {
+                handleSegmentSelected(parentSegments.length, filterableSegment);
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

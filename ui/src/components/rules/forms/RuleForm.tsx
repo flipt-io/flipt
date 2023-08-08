@@ -19,25 +19,13 @@ import { IFlag } from '~/types/Flag';
 import {
   FilterableSegment,
   ISegment,
+  segmentOperators,
   SegmentOperatorType
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './MultiDistributionForm';
 import SingleDistributionFormInput from './SingleDistributionForm';
-
-const segmentOperators = [
-  {
-    id: SegmentOperatorType.OR,
-    name: 'OR',
-    meta: '(ANY Segment)'
-  },
-  {
-    id: SegmentOperatorType.AND,
-    name: 'AND',
-    meta: '(ALL Segments)'
-  }
-];
 
 export const distTypes = [
   {
@@ -108,10 +96,6 @@ export default function RuleForm(props: RuleFormProps) {
 
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(null);
-
-  const [operator, setOperator] = useState<SegmentOperatorType>(
-    SegmentOperatorType.OR
-  );
 
   const [distributions, setDistributions] = useState(() => {
     const percentages = computePercentages(flag.variants?.length || 0);
@@ -279,9 +263,10 @@ export default function RuleForm(props: RuleFormProps) {
                                     'operator',
                                     segmentOperator.id
                                   );
-                                  setOperator(segmentOperator.id);
                                 }}
-                                checked={segmentOperator.id === operator}
+                                checked={
+                                  segmentOperator.id === formik.values.operator
+                                }
                                 value={segmentOperator.id}
                               />
                             </div>
