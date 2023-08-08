@@ -190,6 +190,7 @@ export default function RolloutForm(props: RolloutFormProps) {
                               onChange={() => {
                                 formik.setFieldValue('type', rolloutRule.id);
                                 setRolloutRuleType(rolloutRule.id);
+                                formik.setFieldValue('type', rolloutRule.id);
                               }}
                               checked={rolloutRule.id === rolloutRuleType}
                               value={rolloutRule.id}

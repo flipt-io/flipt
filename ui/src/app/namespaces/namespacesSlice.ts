@@ -14,6 +14,8 @@ import { RootState } from '~/store';
 import { LoadingStatus } from '~/types/Meta';
 import { INamespace, INamespaceBase } from '~/types/Namespace';
 
+const namespaceKey = 'namespace';
+
 interface INamespacesState {
   namespaces: { [key: string]: INamespace };
   status: LoadingStatus;
@@ -24,7 +26,7 @@ interface INamespacesState {
 const initialState: INamespacesState = {
   namespaces: {},
   status: LoadingStatus.IDLE,
-  currentNamespace: 'default',
+  currentNamespace: localStorage.getItem(namespaceKey) || 'default',
   error: undefined
 };
 
@@ -85,7 +87,7 @@ export const selectNamespaces = createSelector(
 export const selectCurrentNamespace = createSelector(
   [
     (state: RootState) => {
-      if (state.namespaces.status === LoadingStatus.SUCCEEDED) {
+      if (state.namespaces.namespaces[state.namespaces.currentNamespace]) {
         return state.namespaces.namespaces[state.namespaces.currentNamespace];
       }
       return { key: 'default', name: 'Default', description: '' } as INamespace;

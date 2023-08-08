@@ -21,7 +21,7 @@ import {
   SegmentOperatorType
 } from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
-import { classNames, truncateKey } from '~/utils/helpers';
+import { truncateKey } from '~/utils/helpers';
 import { distTypes } from './RuleForm';
 
 type QuickEditRuleFormProps = {
@@ -378,12 +378,12 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
                                       <Field
                                         key={index}
                                         type="number"
-                                        className={classNames(
-                                          `${
+                                        className={twMerge(
+                                          `text-gray-900 bg-gray-50 border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm ${
                                             readOnly
                                               ? 'text-gray-500 bg-gray-100 cursor-not-allowed'
                                               : undefined
-                                          } border-gray-300 block w-full rounded-md pl-7 pr-12 shadow-sm focus:border-violet-300 focus:ring-violet-300 sm:text-sm`
+                                          }`
                                         )}
                                         value={dist.distribution.rollout}
                                         name={`rollouts.[${index}].distribution.rollout`}

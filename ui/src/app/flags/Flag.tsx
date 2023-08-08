@@ -53,6 +53,7 @@ export default function Flag() {
     getFlag(namespace.key, flagKey)
       .then((flag: IFlag) => {
         setFlag(flag);
+        clearError();
       })
       .catch((err) => {
         setError(err);
