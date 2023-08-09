@@ -163,7 +163,7 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | Language | Version | Status |
 | -------- | ------- | ------ |
 | [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod&label=go) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+| [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
 
 ### Generate Your Own
 
