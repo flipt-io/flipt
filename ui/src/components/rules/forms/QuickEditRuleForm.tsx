@@ -157,6 +157,7 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
 
   return (
     <Formik
+      enableReinitialize
       initialValues={{
         segmentKeys: rule.segments.map((segment) => ({
           ...segment,

@@ -46,6 +46,10 @@ export default function SegmentsPicker({
     index: number,
     segment: FilterableSegment | null
   ) => {
+    if (!segment) {
+      return;
+    }
+
     const selectedSegmentList = [...parentSegments];
     const segmentSetCurrent = segmentsSet.current!;
 
@@ -55,11 +59,11 @@ export default function SegmentsPicker({
         segmentSetCurrent.delete(previousSegment.key);
       }
 
-      segmentSetCurrent.add(segment?.key!);
-      segmentReplace(index, segment!);
+      segmentSetCurrent.add(segment.key);
+      segmentReplace(index, segment);
     } else {
-      segmentSetCurrent.add(segment?.key!);
-      segmentAdd(segment!);
+      segmentSetCurrent.add(segment.key);
+      segmentAdd(segment);
     }
   };
 
