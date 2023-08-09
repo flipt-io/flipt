@@ -42,7 +42,6 @@ test.describe('Rules', () => {
       await page.getByRole('button', { name: 'New Rule' }).click();
       await page.locator('#segmentKey-0-select-button').click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
-      await page.getByLabel('AND (ALL Segments)').check();
       await page.getByLabel('Multi-Variate').check();
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(page.getByText('Successfully created rule')).toBeVisible();
@@ -52,8 +51,6 @@ test.describe('Rules', () => {
   test('can update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Evaluation' }).click();
-
-    await page.getByLabel('AND (ALL Segments)').check();
     await page
       .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
       .click();
