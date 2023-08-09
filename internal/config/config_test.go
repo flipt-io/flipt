@@ -448,7 +448,6 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := DefaultConfig()
 
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Audit = AuditConfig{
 					Sinks: SinksConfig{
 						LogFile: LogFileSinkConfig{
@@ -613,7 +612,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/local_provided.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: LocalStorageType,
 					Local: &Local{
@@ -628,7 +626,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/git_provided.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
@@ -655,7 +652,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/s3_provided.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
 					Object: &Object{
@@ -674,7 +670,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/s3_full.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
 					Object: &Object{

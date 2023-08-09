@@ -22,8 +22,6 @@ import "strings"
 	tracing?:        #tracing
 	ui?:             #ui
 
-	#experimental: filesystem_storage?: enabled?: bool
-
 	#authentication: {
 		required?: bool | *false
 		exclude?: {
@@ -112,7 +110,7 @@ import "strings"
 	}
 
 	#storage: {
-		type: "database" | "git" | "local" | *""
+		type: "database" | "git" | "local" | "object" | *""
 		local?: path: string | *"."
 		git?: {
 			repository:      string

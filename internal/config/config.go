@@ -46,7 +46,7 @@ type Config struct {
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache"`
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server"`
-	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" experiment:"filesystem_storage"`
+	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing"`
 	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db"`
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
@@ -474,6 +474,10 @@ func DefaultConfig() *Config {
 			URL:                       "file:/var/opt/flipt/flipt.db",
 			MaxIdleConn:               2,
 			PreparedStatementsEnabled: true,
+		},
+
+		Storage: StorageConfig{
+			Type: DatabaseStorageType,
 		},
 
 		Meta: MetaConfig{
