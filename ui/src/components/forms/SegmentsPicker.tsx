@@ -1,5 +1,5 @@
 import { MinusSmallIcon, PlusSmallIcon } from '@heroicons/react/24/outline';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import Combobox from '~/components/forms/Combobox';
 import { FilterableSegment, ISegment } from '~/types/Segment';
@@ -7,7 +7,6 @@ import { truncateKey } from '~/utils/helpers';
 
 type SegmentPickerProps = {
   readonly?: boolean;
-  editMode?: boolean;
   segments: ISegment[];
   selectedSegments: FilterableSegment[];
   segmentAdd: (segment: FilterableSegment) => void;
@@ -17,7 +16,6 @@ type SegmentPickerProps = {
 
 export default function SegmentsPicker({
   readonly = false,
-  editMode = false,
   segments,
   selectedSegments: parentSegments,
   segmentAdd,
@@ -28,7 +26,11 @@ export default function SegmentsPicker({
     new Set<string>(parentSegments.map((s) => s.key))
   );
 
-  const [editing, setEditing] = useState<boolean>(editMode);
+  const [editing, setEditing] = useState<boolean>(true);
+
+  useEffect(() => {
+    setEditing(true);
+  }, [parentSegments]);
 
   const handleSegmentRemove = (index: number) => {
     const filterableSegment = parentSegments[index];
@@ -37,7 +39,7 @@ export default function SegmentsPicker({
     segmentsSet.current!.delete(filterableSegment.key);
     segmentRemove(index);
 
-    if (editMode && parentSegments.length == 1) {
+    if (editing && parentSegments.length == 1) {
       setEditing(true);
     }
   };

@@ -287,7 +287,6 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                         render={(arrayHelpers) => (
                           <SegmentsPicker
                             readonly={readOnly}
-                            editMode
                             segments={segments}
                             segmentAdd={(segment: FilterableSegment) =>
                               arrayHelpers.push(segment)
@@ -305,49 +304,50 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                       />
                     </div>
                     <div className="mt-6 flex space-x-8">
-                      {segmentOperators.map((segmentOperator, index) => (
-                        <div className="flex space-x-2" key={index}>
-                          <div>
-                            <input
-                              id={segmentOperator.id}
-                              name="operator"
-                              type="radio"
-                              className={twMerge(
-                                `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
-                                  readOnly ? 'cursor-not-allowed' : undefined
-                                }`
-                              )}
-                              onChange={() => {
-                                formik.setFieldValue(
-                                  'operator',
-                                  segmentOperator.id
-                                );
-                              }}
-                              checked={
-                                segmentOperator.id === formik.values.operator
-                              }
-                              value={segmentOperator.id}
-                              disabled={readOnly}
-                              title={
-                                readOnly
-                                  ? 'Not allowed in Read-Only mode'
-                                  : undefined
-                              }
-                            />
+                      {formik.values.segmentKeys.length > 1 &&
+                        segmentOperators.map((segmentOperator, index) => (
+                          <div className="flex space-x-2" key={index}>
+                            <div>
+                              <input
+                                id={segmentOperator.id}
+                                name="operator"
+                                type="radio"
+                                className={twMerge(
+                                  `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
+                                    readOnly ? 'cursor-not-allowed' : undefined
+                                  }`
+                                )}
+                                onChange={() => {
+                                  formik.setFieldValue(
+                                    'operator',
+                                    segmentOperator.id
+                                  );
+                                }}
+                                checked={
+                                  segmentOperator.id === formik.values.operator
+                                }
+                                value={segmentOperator.id}
+                                disabled={readOnly}
+                                title={
+                                  readOnly
+                                    ? 'Not allowed in Read-Only mode'
+                                    : undefined
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor={segmentOperator.id}
+                                className="text-gray-700 block text-sm"
+                              >
+                                {segmentOperator.name}{' '}
+                                <span className="font-light">
+                                  {segmentOperator.meta}
+                                </span>
+                              </label>
+                            </div>
                           </div>
-                          <div>
-                            <label
-                              htmlFor={segmentOperator.id}
-                              className="text-gray-700 block text-sm"
-                            >
-                              {segmentOperator.name}{' '}
-                              <span className="font-light">
-                                {segmentOperator.meta}
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </div>
                 </div>

@@ -239,53 +239,59 @@ export default function RuleForm(props: RuleFormProps) {
                       )}
                     />
                   </div>
-                  <div>
-                    <label
-                      htmlFor="operator"
-                      className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
-                    >
-                      Operator
-                    </label>
-                  </div>
-                  <div>
-                    <div className="sm:col-span-2">
-                      <div className="w-48 space-y-4">
-                        {segmentOperators.map((segmentOperator, index) => (
-                          <div className="flex space-x-4" key={index}>
-                            <div>
-                              <input
-                                id={segmentOperator.id}
-                                name="operator"
-                                type="radio"
-                                className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
-                                onChange={() => {
-                                  formik.setFieldValue(
-                                    'operator',
-                                    segmentOperator.id
-                                  );
-                                }}
-                                checked={
-                                  segmentOperator.id === formik.values.operator
-                                }
-                                value={segmentOperator.id}
-                              />
-                            </div>
-                            <div className="mt-1">
-                              <label
-                                htmlFor={segmentOperator.id}
-                                className="text-gray-700 block text-sm"
-                              >
-                                {segmentOperator.name}{' '}
-                                <span className="font-light">
-                                  {segmentOperator.meta}
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                        ))}
+                  {formik.values.segmentKeys.length > 1 && (
+                    <>
+                      <div>
+                        <label
+                          htmlFor="operator"
+                          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                        >
+                          Operator
+                        </label>
                       </div>
-                    </div>
-                  </div>
+                      <div>
+                        <div className="sm:col-span-2">
+                          <div className="w-48 space-y-4">
+                            {formik.values.segmentKeys.length > 1 &&
+                              segmentOperators.map((segmentOperator, index) => (
+                                <div className="flex space-x-4" key={index}>
+                                  <div>
+                                    <input
+                                      id={segmentOperator.id}
+                                      name="operator"
+                                      type="radio"
+                                      className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                                      onChange={() => {
+                                        formik.setFieldValue(
+                                          'operator',
+                                          segmentOperator.id
+                                        );
+                                      }}
+                                      checked={
+                                        segmentOperator.id ===
+                                        formik.values.operator
+                                      }
+                                      value={segmentOperator.id}
+                                    />
+                                  </div>
+                                  <div className="mt-1">
+                                    <label
+                                      htmlFor={segmentOperator.id}
+                                      className="text-gray-700 block text-sm"
+                                    >
+                                      {segmentOperator.name}{' '}
+                                      <span className="font-light">
+                                        {segmentOperator.meta}
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>
