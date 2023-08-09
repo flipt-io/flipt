@@ -25,10 +25,11 @@ const (
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Type   StorageType `json:"type,omitempty" mapstructure:"type"`
-	Local  *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
-	Git    *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
-	Object *Object     `json:"object,omitempty" mapstructure:"object,omitempty"`
+	Type     StorageType `json:"type,omitempty" mapstructure:"type"`
+	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
+	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
+	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty"`
+	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"readOnly,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) {
@@ -52,7 +53,8 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 }
 
 func (c *StorageConfig) validate() error {
-	if c.Type == GitStorageType {
+	switch c.Type {
+	case GitStorageType:
 		if c.Git.Ref == "" {
 			return errors.New("git ref must be specified")
 		}
@@ -63,21 +65,26 @@ func (c *StorageConfig) validate() error {
 		if err := c.Git.Authentication.validate(); err != nil {
 			return err
 		}
-	}
 
-	if c.Type == LocalStorageType {
+	case LocalStorageType:
+
 		if c.Local.Path == "" {
 			return errors.New("local path must be specified")
 		}
-	}
 
-	if c.Type == ObjectStorageType {
+	case ObjectStorageType:
+
 		if c.Object == nil {
 			return errors.New("object storage type must be specified")
 		}
 		if err := c.Object.validate(); err != nil {
 			return err
 		}
+	}
+
+	// setting read only mode is only supported with database storage
+	if c.ReadOnly != nil && !*c.ReadOnly && c.Type != DatabaseStorageType {
+		return errors.New("setting read only mode is only supported with database storage")
 	}
 
 	return nil

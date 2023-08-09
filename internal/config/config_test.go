@@ -691,6 +691,11 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name:    "storage readonly config invalid",
+			path:    "./testdata/storage/invalid_readonly.yml",
+			wantErr: errors.New("setting read only mode is only supported with database storage"),
+		},
+		{
 			name:    "s3 config invalid",
 			path:    "./testdata/storage/s3_bucket_missing.yml",
 			wantErr: errors.New("s3 bucket must be specified"),

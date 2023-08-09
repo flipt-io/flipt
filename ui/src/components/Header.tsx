@@ -1,7 +1,14 @@
+import {
+  CircleStackIcon,
+  CloudIcon,
+  CodeBracketIcon,
+  DocumentIcon
+} from '@heroicons/react/20/solid';
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline';
 import { useSelector } from 'react-redux';
-import { selectInfo, selectReadonly } from '~/app/meta/metaSlice';
+import { selectConfig, selectInfo, selectReadonly } from '~/app/meta/metaSlice';
 import { useSession } from '~/data/hooks/session';
+import { Icon } from '~/types/Icon';
 import Notifications from './header/Notifications';
 import UserProfile from './header/UserProfile';
 
@@ -9,13 +16,25 @@ type HeaderProps = {
   setSidebarOpen: (sidebarOpen: boolean) => void;
 };
 
+const storageTypes: Record<string, Icon> = {
+  local: DocumentIcon,
+  object: CloudIcon,
+  git: CodeBracketIcon,
+  database: CircleStackIcon
+};
+
 export default function Header(props: HeaderProps) {
   const { setSidebarOpen } = props;
 
   const info = useSelector(selectInfo);
+  const config = useSelector(selectConfig);
   const readOnly = useSelector(selectReadonly);
 
   const { session } = useSession();
+
+  const StorageIcon = config.storage?.type
+    ? storageTypes[config.storage?.type]
+    : undefined;
 
   return (
     <div className="bg-violet-400 sticky top-0 z-10 flex h-16 flex-shrink-0">
@@ -33,14 +52,16 @@ export default function Header(props: HeaderProps) {
         <div className="ml-4 flex items-center space-x-1.5 md:ml-6">
           {/* read-only mode */}
           {readOnly && (
-            <span className="nightwind-prevent bg-violet-200 inline-flex items-center gap-x-1.5 rounded-full px-3 py-1 text-xs font-medium text-violet-950">
-              <svg
-                className="h-1.5 w-1.5 fill-orange-400"
-                viewBox="0 0 6 6"
-                aria-hidden="true"
-              >
-                <circle cx={3} cy={3} r={3} />
-              </svg>
+            <span
+              className="nightwind-prevent text-gray-900 bg-violet-200 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1 text-xs font-medium"
+              title={`Backed by ${config.storage?.type || 'unknown'} storage`}
+            >
+              {StorageIcon && (
+                <StorageIcon
+                  className="h-3 w-3 fill-violet-400"
+                  aria-hidden="true"
+                />
+              )}
               Read-Only
             </span>
           )}

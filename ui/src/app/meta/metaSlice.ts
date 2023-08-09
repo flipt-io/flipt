@@ -6,7 +6,6 @@ import { IConfig, IInfo, StorageType } from '~/types/Meta';
 interface IMetaSlice {
   info: IInfo;
   config: IConfig;
-  readonly: boolean;
 }
 
 const initialState: IMetaSlice = {
@@ -22,10 +21,10 @@ const initialState: IMetaSlice = {
   },
   config: {
     storage: {
-      type: StorageType.DATABASE
+      type: StorageType.DATABASE,
+      readOnly: false
     }
-  },
-  readonly: false
+  }
 };
 
 export const metaSlice = createSlice({
@@ -39,16 +38,19 @@ export const metaSlice = createSlice({
       })
       .addCase(fetchConfigAsync.fulfilled, (state, action) => {
         state.config = action.payload;
-        state.readonly =
-          action.payload.storage?.type &&
-          action.payload.storage?.type !== StorageType.DATABASE;
+        if (action.payload.storage?.readOnly === undefined) {
+          state.config.storage.readOnly =
+            action.payload.storage?.type &&
+            action.payload.storage?.type !== StorageType.DATABASE;
+        }
       });
   }
 });
 
 export const selectInfo = (state: { meta: IMetaSlice }) => state.meta.info;
+export const selectConfig = (state: { meta: IMetaSlice }) => state.meta.config;
 export const selectReadonly = (state: { meta: IMetaSlice }) =>
-  state.meta.readonly;
+  state.meta.config.storage.readOnly;
 
 export const fetchInfoAsync = createAsyncThunk('meta/fetchInfo', async () => {
   const response = await getInfo();
