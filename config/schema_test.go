@@ -27,7 +27,7 @@ func Test_CUE(t *testing.T) {
 
 	dflt := ctx.Encode(conf)
 
-	err = v.LookupDef("#FliptSpec").Unify(dflt).Validate(
+	err = v.LookupPath(cue.MakePath(cue.Def("#FliptSpec"))).Unify(dflt).Validate(
 		cue.Concrete(true),
 	)
 
