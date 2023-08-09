@@ -31,5 +31,12 @@ cors:
 #   http_port: 8080
 #   grpc_port: 9000
 
+experimental:
+  filesystem_storage:
+    enabled: true
+
+storage:
+  readOnly: true
+
 db:
   url: file:flipt.db
