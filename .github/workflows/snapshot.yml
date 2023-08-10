@@ -63,3 +63,31 @@ jobs:
         with:
           name: flipt-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
+
+  snapshot-pkg:
+    runs-on: ubuntu-latest
+    needs: snapshot-build
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: flipt-linux
+          path: dist
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: flipt-darwin
+          path: dist
+
+      - name: List goreleaser dist folder contents
+        run: |
+          ls -lash dist
