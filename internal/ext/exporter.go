@@ -136,11 +136,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 					rule.Segment = &SegmentEmbed{
 						IsSegment: SegmentKey(r.SegmentKey),
 					}
-				case len(r.SegmentKeys) == 1:
-					rule.Segment = &SegmentEmbed{
-						IsSegment: SegmentKey(r.SegmentKeys[0]),
-					}
-				case len(r.SegmentKeys) > 1:
+				case len(r.SegmentKeys) > 0:
 					rule.Segment = &SegmentEmbed{
 						IsSegment: &Segments{
 							Keys:            r.SegmentKeys,

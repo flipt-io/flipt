@@ -384,6 +384,11 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *
 		}
 	)
 
+	// Force segment operator to be OR when `segmentKeys` length is 1.
+	if len(segmentKeys) == 1 {
+		rule.SegmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
@@ -455,10 +460,15 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		}
 	}()
 
+	var segmentOperator = r.SegmentOperator
+	if len(segmentKeys) == 1 {
+		segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+	}
+
 	// Set segment operator.
 	_, err = s.builder.Update("rules").
 		RunWith(tx).
-		Set("segment_operator", r.SegmentOperator).
+		Set("segment_operator", segmentOperator).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
 		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
 		ExecContext(ctx)
