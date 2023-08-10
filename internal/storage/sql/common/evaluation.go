@@ -25,6 +25,12 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		return nil, err
 	}
 
+	defer func() {
+		if cerr := ruleMetaRows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
 	type RuleMeta struct {
 		ID              string
 		Rank            int32
@@ -181,7 +187,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		}
 	}
 
-	sort.Slice(rules[:], func(i, j int) bool {
+	sort.Slice(rules, func(i, j int) bool {
 		return rules[i].Rank < rules[j].Rank
 	})
 
