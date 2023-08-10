@@ -46,7 +46,7 @@ type Config struct {
 	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors"`
 	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache"`
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server"`
-	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" experiment:"filesystem_storage"`
+	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing"`
 	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db"`
 	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
@@ -134,7 +134,7 @@ func Load(path string) (*Result, error) {
 	for _, deprecator := range deprecators {
 		warnings := deprecator.deprecations(v)
 		for _, warning := range warnings {
-			result.Warnings = append(result.Warnings, warning.String())
+			result.Warnings = append(result.Warnings, warning.Message())
 		}
 	}
 
@@ -170,7 +170,7 @@ type validator interface {
 }
 
 type deprecator interface {
-	deprecations(v *viper.Viper) []deprecation
+	deprecations(v *viper.Viper) []deprecated
 }
 
 // fieldKey returns the name to be used when deriving a fields env var key.
@@ -474,6 +474,10 @@ func DefaultConfig() *Config {
 			URL:                       "file:/var/opt/flipt/flipt.db",
 			MaxIdleConn:               2,
 			PreparedStatementsEnabled: true,
+		},
+
+		Storage: StorageConfig{
+			Type: DatabaseStorageType,
 		},
 
 		Meta: MetaConfig{

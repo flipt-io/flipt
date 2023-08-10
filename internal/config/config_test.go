@@ -222,7 +222,7 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 			warnings: []string{
-				"\"tracing.jaeger.enabled\" is deprecated and will be removed in a future version. Please use 'tracing.enabled' and 'tracing.exporter' instead.",
+				"\"tracing.jaeger.enabled\" is deprecated. Please use 'tracing.enabled' and 'tracing.exporter' instead.",
 			},
 		},
 		{
@@ -236,8 +236,8 @@ func TestLoad(t *testing.T) {
 				return cfg
 			},
 			warnings: []string{
-				"\"cache.memory.enabled\" is deprecated and will be removed in a future version. Please use 'cache.enabled' and 'cache.backend' instead.",
-				"\"cache.memory.expiration\" is deprecated and will be removed in a future version. Please use 'cache.ttl' instead.",
+				"\"cache.memory.enabled\" is deprecated. Please use 'cache.enabled' and 'cache.backend' instead.",
+				"\"cache.memory.expiration\" is deprecated. Please use 'cache.ttl' instead.",
 			},
 		},
 		{
@@ -245,20 +245,20 @@ func TestLoad(t *testing.T) {
 			path:     "./testdata/deprecated/cache_memory_items.yml",
 			expected: DefaultConfig,
 			warnings: []string{
-				"\"cache.memory.enabled\" is deprecated and will be removed in a future version. Please use 'cache.enabled' and 'cache.backend' instead.",
+				"\"cache.memory.enabled\" is deprecated. Please use 'cache.enabled' and 'cache.backend' instead.",
 			},
 		},
 		{
 			name:     "deprecated database migrations path",
 			path:     "./testdata/deprecated/database_migrations_path.yml",
 			expected: DefaultConfig,
-			warnings: []string{"\"db.migrations.path\" is deprecated and will be removed in a future version. Migrations are now embedded within Flipt and are no longer required on disk."},
+			warnings: []string{"\"db.migrations.path\" is deprecated. Migrations are now embedded within Flipt and are no longer required on disk."},
 		},
 		{
 			name:     "deprecated database migrations path legacy",
 			path:     "./testdata/deprecated/database_migrations_path_legacy.yml",
 			expected: DefaultConfig,
-			warnings: []string{"\"db.migrations.path\" is deprecated and will be removed in a future version. Migrations are now embedded within Flipt and are no longer required on disk."},
+			warnings: []string{"\"db.migrations.path\" is deprecated. Migrations are now embedded within Flipt and are no longer required on disk."},
 		},
 		{
 			name: "deprecated ui disabled",
@@ -268,7 +268,13 @@ func TestLoad(t *testing.T) {
 				cfg.UI.Enabled = false
 				return cfg
 			},
-			warnings: []string{"\"ui.enabled\" is deprecated and will be removed in a future version."},
+			warnings: []string{"\"ui.enabled\" is deprecated."},
+		},
+		{
+			name:     "deprecated experimental filesystem_storage",
+			path:     "./testdata/deprecated/experimental_filesystem_storage.yml",
+			expected: DefaultConfig,
+			warnings: []string{"\"experimental.filesystem_storage\" is deprecated. The experimental filesystem storage backend has graduated to a stable feature. Please use 'storage' instead."},
 		},
 		{
 			name: "cache no backend set",
@@ -448,7 +454,6 @@ func TestLoad(t *testing.T) {
 			expected: func() *Config {
 				cfg := DefaultConfig()
 
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Audit = AuditConfig{
 					Sinks: SinksConfig{
 						LogFile: LogFileSinkConfig{
@@ -613,7 +618,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/local_provided.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: LocalStorageType,
 					Local: &Local{
@@ -628,7 +632,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/git_provided.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: GitStorageType,
 					Git: &Git{
@@ -655,7 +658,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/s3_provided.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
 					Object: &Object{
@@ -674,7 +676,6 @@ func TestLoad(t *testing.T) {
 			path: "./testdata/storage/s3_full.yml",
 			expected: func() *Config {
 				cfg := DefaultConfig()
-				cfg.Experimental.FilesystemStorage.Enabled = true
 				cfg.Storage = StorageConfig{
 					Type: ObjectStorageType,
 					Object: &Object{

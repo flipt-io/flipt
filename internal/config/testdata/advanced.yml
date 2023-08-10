@@ -1,7 +1,3 @@
-experimental:
-  filesystem_storage:
-    enabled: true
-
 audit:
   sinks:
     log:

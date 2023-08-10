@@ -1,6 +1,3 @@
-experimental:
-  filesystem_storage:
-    enabled: true
 storage:
   type: object
   readOnly: false
