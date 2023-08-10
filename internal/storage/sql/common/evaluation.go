@@ -19,7 +19,6 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		Select("id, rank, segment_operator").
 		From("rules").
 		Where(sq.And{sq.Eq{"flag_key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
-		OrderBy(`"rank" ASC`).
 		QueryContext(ctx)
 	if err != nil {
 		return nil, err
