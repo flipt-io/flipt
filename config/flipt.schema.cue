@@ -128,7 +128,7 @@ import "strings"
 			s3?: {
 				region: string
 				bucket: string
-				prefix: string
+				prefix?: string
 				endpoint?: string
 				poll_interval?: =~#duration | *"1m"
 			}
