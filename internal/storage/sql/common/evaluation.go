@@ -16,7 +16,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	}
 
 	ruleMetaRows, err := s.builder.
-		Select("id, rank, segment_operator").
+		Select("id, \"rank\", segment_operator").
 		From("rules").
 		Where(sq.And{sq.Eq{"flag_key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
 		QueryContext(ctx)
