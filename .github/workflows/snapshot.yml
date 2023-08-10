@@ -49,13 +49,14 @@ jobs:
           version: latest
           args: prep
 
-      - name: GoReleaser (Snapshot)
+      - name: GoReleaser (Snapshot) Build
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
           args: release --clean --snapshot -f .goreleaser.${{ matrix.name }}.yml
         env:
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
 
@@ -91,3 +92,13 @@ jobs:
       - name: List goreleaser dist folder contents
         run: |
           ls -lash dist
+
+      - name: GoReleaser (Snapshot) Release
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser-pro
+          version: latest
+          args: release --clean --snapshot
+        env:
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
