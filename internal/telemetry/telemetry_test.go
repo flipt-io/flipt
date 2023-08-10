@@ -104,9 +104,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "file",
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 		{
@@ -121,9 +119,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 		{
@@ -138,9 +134,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "unknown",
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 		{
@@ -159,9 +153,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "file",
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 		{
@@ -181,9 +173,7 @@ func TestPing(t *testing.T) {
 					"database": "file",
 					"cache":    "redis",
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 		{
@@ -206,9 +196,7 @@ func TestPing(t *testing.T) {
 				"storage": map[string]any{
 					"database": "file",
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 		{
@@ -236,31 +224,7 @@ func TestPing(t *testing.T) {
 						"token",
 					},
 				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{},
-				},
-			},
-		},
-		{
-			name: "with experimental filesystem_storage enabled",
-			cfg: config.Config{
-				Database: config.DatabaseConfig{
-					Protocol: config.DatabaseSQLite,
-				},
-				Experimental: config.ExperimentalConfig{
-					FilesystemStorage: config.ExperimentalFlag{
-						Enabled: true,
-					},
-				},
-			},
-			want: map[string]any{
-				"version": "1.0.0",
-				"storage": map[string]any{
-					"database": "file",
-				},
-				"experimental": map[string]any{
-					"filesystem_storage": map[string]any{"enabled": true},
-				},
+				"experimental": map[string]any{},
 			},
 		},
 	}

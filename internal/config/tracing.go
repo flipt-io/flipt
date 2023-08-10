@@ -43,14 +43,11 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) {
 	}
 }
 
-func (c *TracingConfig) deprecations(v *viper.Viper) []deprecation {
-	var deprecations []deprecation
+func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
+	var deprecations []deprecated
 
 	if v.InConfig("tracing.jaeger.enabled") {
-		deprecations = append(deprecations, deprecation{
-			option:            "tracing.jaeger.enabled",
-			additionalMessage: deprecatedMsgTracingJaegerEnabled,
-		})
+		deprecations = append(deprecations, "tracing.jaeger.enabled")
 	}
 
 	return deprecations
