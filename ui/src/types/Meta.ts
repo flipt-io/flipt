@@ -11,21 +11,18 @@ export interface IInfo {
 
 export interface IStorage {
   type: StorageType;
+  readOnly?: boolean;
 }
-
-// export interface IAuthentication {
-//   required?: boolean;
-// }
 
 export interface IConfig {
   storage: IStorage;
-  //authentication: IAuthentication;
 }
 
 export enum StorageType {
   DATABASE = 'database',
   GIT = 'git',
-  LOCAL = 'local'
+  LOCAL = 'local',
+  OBJECT = 'object'
 }
 
 export enum LoadingStatus {
