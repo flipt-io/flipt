@@ -15562,10 +15562,11 @@ flags:
   - key: variant_002
     name: VARIANT_002
   rules:
-  - segments:
-    - segment_001
-    - segment_anding
-    operator: AND_SEGMENT_OPERATOR
+  - segment:
+      keys:
+      - segment_001
+      - segment_anding
+      operator: AND_SEGMENT_OPERATOR
     distributions:
     - variant: variant_001
       rollout: 50

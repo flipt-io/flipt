@@ -296,8 +296,6 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				NamespaceKey: doc.Namespace,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				FlagKey:      f.Key,
-				SegmentKey:   r.SegmentKey,
-				SegmentKeys:  r.SegmentKeys,
 				Rank:         rank,
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,
@@ -308,6 +306,16 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				FlagKey:      f.Key,
 				ID:           rule.Id,
 				Rank:         rank,
+			}
+
+			switch s := r.Segment.IsSegment.(type) {
+			case ext.SegmentKey:
+				rule.SegmentKey = string(s)
+			case *ext.Segments:
+				rule.SegmentKeys = s.Keys
+				segmentOperator := flipt.SegmentOperator_value[s.SegmentOperator]
+
+				rule.SegmentOperator = flipt.SegmentOperator(segmentOperator)
 			}
 
 			var (
@@ -344,14 +352,13 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				}
 			}
 
-			segmentOperator := flipt.SegmentOperator_value[r.SegmentOperator]
-			evalRule.SegmentOperator = flipt.SegmentOperator(segmentOperator)
+			if rule.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
+				evalRule.SegmentOperator = flipt.SegmentOperator_AND_SEGMENT_OPERATOR
+			}
+
 			evalRule.Segments = segments
 
 			evalRules = append(evalRules, evalRule)
-
-			// Set segment operator on rule.
-			rule.SegmentOperator = flipt.SegmentOperator(segmentOperator)
 
 			for _, d := range r.Distributions {
 				variant, found := findByKey(d.VariantKey, flag.Variants...)
