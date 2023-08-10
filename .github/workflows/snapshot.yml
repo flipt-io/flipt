@@ -102,7 +102,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot
+          args: release --snapshot
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
