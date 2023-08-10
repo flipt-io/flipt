@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"database/sql"
+	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/storage"
@@ -14,37 +15,58 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		namespaceKey = storage.DefaultNamespace
 	}
 
+	ruleMetaRows, err := s.builder.
+		Select("id, rank, segment_operator").
+		From("rules").
+		Where(sq.And{sq.Eq{"flag_key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
+		OrderBy(`"rank" ASC`).
+		QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	type RuleMeta struct {
+		ID              string
+		Rank            int32
+		SegmentOperator flipt.SegmentOperator
+	}
+
+	var rmMap = make(map[string]*RuleMeta)
+
+	ruleIDs := make([]string, 0)
+	for ruleMetaRows.Next() {
+		var rm RuleMeta
+
+		if err := ruleMetaRows.Scan(&rm.ID, &rm.Rank, &rm.SegmentOperator); err != nil {
+			return nil, err
+		}
+
+		rmMap[rm.ID] = &rm
+		ruleIDs = append(ruleIDs, rm.ID)
+	}
+
+	if err := ruleMetaRows.Err(); err != nil {
+		return nil, err
+	}
+
+	if err := ruleMetaRows.Close(); err != nil {
+		return nil, err
+	}
+
 	rows, err := s.builder.Select(`
-		r.id,
-		r.namespace_key,
-		r.flag_key,
-		rss.segment_key,
-		rss.segment_match_type,
-		r.segment_operator,
-		r."rank",
-		rss.constraint_id,
-		rss.constraint_type,
-		rss.constraint_property,
-		rss.constraint_operator,
-		rss.constraint_value`,
-	).
-		From("rules AS r").
-		LeftJoin(`(
-		SELECT
-			rs.rule_id,
-			rs.segment_key,
-			s.match_type AS segment_match_type,
-			c.id AS constraint_id,
-			c."type" AS constraint_type,
-			c.property AS constraint_property,
-			c.operator AS constraint_operator,
-			c.value AS constraint_value
-		FROM rule_segments AS rs
-		JOIN segments AS s ON rs.segment_key = s."key"
-		LEFT JOIN constraints AS c ON (s."key" = c.segment_key AND s.namespace_key = c.namespace_key)
-	) rss ON (r.id = rss.rule_id)`).
-		Where(sq.And{sq.Eq{"r.flag_key": flagKey}, sq.Eq{"r.namespace_key": namespaceKey}}).
-		OrderBy("r.\"rank\" ASC").
+		rs.rule_id,
+		rs.segment_key,
+		s.match_type AS segment_match_type,
+		c.id AS constraint_id,
+		c."type" AS constraint_type,
+		c.property AS constraint_property,
+		c.operator AS constraint_operator,
+		c.value AS constraint_value
+	`).
+		From("rule_segments AS rs").
+		Join(`segments AS s ON rs.segment_key = s."key"`).
+		LeftJoin(`constraints AS c ON (s."key" = c.segment_key AND s.namespace_key = c.namespace_key)`).
+		Where(sq.Eq{"rs.rule_id": ruleIDs}).
 		QueryContext(ctx)
 	if err != nil {
 		return nil, err
@@ -77,12 +99,8 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 		if err := rows.Scan(
 			&intermediateStorageRule.ID,
-			&intermediateStorageRule.NamespaceKey,
-			&intermediateStorageRule.FlagKey,
 			&intermediateStorageRule.SegmentKey,
 			&intermediateStorageRule.SegmentMatchType,
-			&intermediateStorageRule.SegmentOperator,
-			&intermediateStorageRule.Rank,
 			&optionalConstraint.Id,
 			&optionalConstraint.Type,
 			&optionalConstraint.Property,
@@ -90,6 +108,13 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			&optionalConstraint.Value); err != nil {
 			return rules, err
 		}
+
+		rm := rmMap[intermediateStorageRule.ID]
+
+		intermediateStorageRule.FlagKey = flagKey
+		intermediateStorageRule.NamespaceKey = namespaceKey
+		intermediateStorageRule.Rank = rm.Rank
+		intermediateStorageRule.SegmentOperator = rm.SegmentOperator
 
 		if existingRule, ok := uniqueRules[intermediateStorageRule.ID]; ok {
 			var constraint *storage.EvaluationConstraint
@@ -155,6 +180,10 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			rules = append(rules, newRule)
 		}
 	}
+
+	sort.Slice(rules[:], func(i, j int) bool {
+		return rules[i].Rank < rules[j].Rank
+	})
 
 	if err := rows.Err(); err != nil {
 		return rules, err
