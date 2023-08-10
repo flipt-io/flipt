@@ -89,9 +89,13 @@ jobs:
           name: flipt-darwin
           path: dist
 
+      - run: |
+          sudo apt-get update && \
+          sudo apt-get install -y tree
+
       - name: List goreleaser dist folder contents
         run: |
-          ls -lash dist
+          tree dist
 
       - name: GoReleaser (Snapshot) Release
         uses: goreleaser/goreleaser-action@v4
