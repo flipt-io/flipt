@@ -89,20 +89,21 @@ jobs:
           name: flipt-darwin
           path: tmp/dist
 
-      - run: |
-          sudo apt-get update && \
-          sudo apt-get install -y tree
-
-      - name: List goreleaser dist folder contents
+      - name: Install Syft
         run: |
-          tree tmp/dist
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: GoReleaser (Snapshot) Release
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot
+          args: release --snapshot
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: flipt-snapshot
+          path: dist/*
