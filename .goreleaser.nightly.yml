@@ -2,7 +2,7 @@
 
 includes:
   - from_file:
-      path: .goreleaser.yml
+      path: .goreleaser.linux.yml
 
 changelog:
   skip: true

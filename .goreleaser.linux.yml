@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+monorepo:
+  tag_prefix: v
+
+builds:
+  - main: ./cmd/flipt/.
+    ldflags:
+      - -s -w
+      - -X main.version={{ .PrefixedTag }}
+      - -X main.commit={{ .Commit }}
+      - -X main.date={{ .Date }}
+      - -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
+      - -linkmode external -extldflags "-static"
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -tags=assets,netgo
+      - -trimpath
+    overrides:
+      - goos: linux
+        goarch: amd64
+        goamd64: v1
+        env:
+          - CGO_ENABLED=1
+          - CC=x86_64-linux-gnu-gcc
+
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=aarch64-linux-gnu-gcc
+
+archives:
+  - format: binary

@@ -4,56 +4,18 @@ monorepo:
   tag_prefix: v
 
 builds:
-  - main: ./cmd/flipt/.
-    ldflags:
-      - -s -w -X main.version={{ .PrefixedTag }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
-      - -linkmode external
+  - builder: prebuilt
     goos:
       - linux
       - darwin
     goarch:
       - amd64
       - arm64
-    flags:
-      - -tags=assets,netgo
-      - -trimpath
-    env:
-      - CGO_ENABLED=1
-    overrides:
-      - goos: linux
-        goarch: amd64
-        goamd64: v1
-        env:
-          - CC=x86_64-linux-gnu-gcc
-        ldflags:
-          - -s -w -X main.version={{ .PrefixedTag }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
-          - -linkmode external -extldflags "-static"
-
-      - goos: linux
-        goarch: arm64
-        env:
-          - CC=aarch64-linux-gnu-gcc
-        ldflags:
-          - -s -w -X main.version={{ .PrefixedTag }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
-          - -linkmode external -extldflags "-static"
-
-      - goos: darwin
-        goarch: arm64
-
-    ignore:
-      - goos: darwin
-        goarch: amd64
-
-release:
-  prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
-  target_commitish: "{{ .Commit }}"
-
-snapshot:
-  name_template: "{{ .ShortCommit }}-snapshot"
-
-nightly:
-  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  name_template: "{{ incpatch .Version }}-nightly"
+    goamd64:
+      - v1
+    prebuilt:
+      path: dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}/flipt
+    binary: flipt
 
 sboms:
   - artifacts: archive
@@ -73,6 +35,17 @@ archives:
 
 checksum:
   name_template: "checksums.txt"
+
+release:
+  prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
+  target_commitish: "{{ .Commit }}"
+
+snapshot:
+  name_template: "{{ .ShortCommit }}-snapshot"
+
+nightly:
+  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
+  name_template: "{{ incpatch .Version }}-nightly"
 
 changelog:
   skip: true

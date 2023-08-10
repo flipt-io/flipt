@@ -46,22 +46,29 @@ jobs:
           sudo apt-get update && \
           sudo apt-get install -y gcc-aarch64-linux-gnu
 
-      - name: Install Syft
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
       - uses: magefile/mage-action@v2
         with:
           version: latest
           args: prep
 
-      - name: GoReleaser (Snapshot)
+      - name: GoReleaser (Snapshot) Linux
+        if: matrix.os == 'ubuntu-latest'
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot
+          args: release --clean --snapshot -f .goreleaser.linux.yml --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
+
+      - name: GoReleaser (Snapshot) MacOS
+        if: matrix.os == 'macos-latest'
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser-pro
+          version: latest
+          args: release --clean --snapshot -f .goreleaser.darwin.yml --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
