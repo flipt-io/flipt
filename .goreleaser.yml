@@ -17,7 +17,7 @@ builds:
       - goos: darwin
         goarch: amd64
     prebuilt:
-      path: dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}/flipt
+      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}/flipt
     binary: flipt
 
 sboms:

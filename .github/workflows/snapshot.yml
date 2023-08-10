@@ -82,12 +82,12 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: flipt-linux
-          path: dist
+          path: tmp/dist
 
       - uses: actions/download-artifact@v3
         with:
           name: flipt-darwin
-          path: dist
+          path: tmp/dist
 
       - run: |
           sudo apt-get update && \
@@ -95,14 +95,14 @@ jobs:
 
       - name: List goreleaser dist folder contents
         run: |
-          tree dist
+          tree tmp/dist
 
       - name: GoReleaser (Snapshot) Release
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --snapshot
+          args: release --clean --snapshot
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
