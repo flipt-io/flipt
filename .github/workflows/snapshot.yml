@@ -6,7 +6,7 @@ on:
       - "release/*"
 
 jobs:
-  snapshot:
+  snapshot-build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -57,7 +57,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot -f .goreleaser.linux.yml --rm-dist
+          args: release --clean --snapshot -f .goreleaser.linux.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
@@ -68,7 +68,20 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot -f .goreleaser.darwin.yml --rm-dist
+          args: release --clean --snapshot -f .goreleaser.darwin.yml
         env:
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
+
+      - uses: actions/upload-artifact@v2
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: flipt-linux
+          path: dist/flipt_linux_*/flipt
+
+      - uses: actions/upload-artifact@v2
+        if: matrix.os == 'macos-latest'
+        with:
+          name: flipt-darwin
+          path: dist/flipt_darwin_*/flipt
