@@ -62,10 +62,10 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: flipt-${{ matrix.name }}
+          name: flipt-snapshot-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
 
-  snapshot-pkg:
+  snapshot-release:
     runs-on: ubuntu-latest
     needs: snapshot-build
     steps:
@@ -85,12 +85,12 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: flipt-linux
+          name: flipt-snapshot-linux
           path: tmp/dist
 
       - uses: actions/download-artifact@v3
         with:
-          name: flipt-darwin
+          name: flipt-snapshot-darwin
           path: tmp/dist
 
       - name: Install Syft
