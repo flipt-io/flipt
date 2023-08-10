@@ -11,7 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            name: linux
+          - os: macos-latest
+            name: darwin
     steps:
       - uses: actions/checkout@v3
         with:
@@ -34,12 +38,6 @@ jobs:
         with:
           node-version: "18"
 
-      - uses: docker/setup-qemu-action@v2
-        if: matrix.os == 'ubuntu-latest'
-
-      - uses: docker/setup-buildx-action@v2
-        if: matrix.os == 'ubuntu-latest'
-
       - name: Install GCC for arm64
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -51,37 +49,17 @@ jobs:
           version: latest
           args: prep
 
-      - name: GoReleaser (Snapshot) Linux
-        if: matrix.os == 'ubuntu-latest'
+      - name: GoReleaser (Snapshot)
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot -f .goreleaser.linux.yml
+          args: release --clean --snapshot -f .goreleaser.${{ matrix.name }}.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
 
-      - name: GoReleaser (Snapshot) MacOS
-        if: matrix.os == 'macos-latest'
-        uses: goreleaser/goreleaser-action@v4
+      - uses: actions/upload-artifact@v3
         with:
-          distribution: goreleaser-pro
-          version: latest
-          args: release --clean --snapshot -f .goreleaser.darwin.yml
-        env:
-          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
-
-      - uses: actions/upload-artifact@v2
-        if: matrix.os == 'ubuntu-latest'
-        with:
-          name: flipt-linux
-          path: dist/flipt_linux_*/flipt
-
-      - uses: actions/upload-artifact@v2
-        if: matrix.os == 'macos-latest'
-        with:
-          name: flipt-darwin
-          path: dist/flipt_darwin_*/flipt
+          name: flipt-${{ matrix.name }}
+          path: dist/flipt_${{ matrix.name }}_*/flipt
