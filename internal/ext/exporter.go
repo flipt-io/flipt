@@ -130,14 +130,21 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			rules := resp.Rules
 			for _, r := range rules {
 				rule := &Rule{}
-				if r.SegmentKey != "" {
-					rule.SegmentKey = r.SegmentKey
-				} else if len(r.SegmentKeys) > 0 {
-					rule.SegmentKeys = r.SegmentKeys
-				}
 
-				if r.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
-					rule.SegmentOperator = r.SegmentOperator.String()
+				switch {
+				case r.SegmentKey != "":
+					rule.Segment = &SegmentEmbed{
+						IsSegment: SegmentKey(r.SegmentKey),
+					}
+				case len(r.SegmentKeys) > 0:
+					rule.Segment = &SegmentEmbed{
+						IsSegment: &Segments{
+							Keys:            r.SegmentKeys,
+							SegmentOperator: r.SegmentOperator.String(),
+						},
+					}
+				default:
+					return fmt.Errorf("wrong format for rule segments")
 				}
 
 				for _, d := range r.Distributions {

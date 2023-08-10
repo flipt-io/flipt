@@ -469,10 +469,15 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 
 		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
 
+		var segmentOperator = segmentRule.SegmentOperator
+		if len(segmentKeys) == 1 {
+			segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+		}
+
 		if _, err := s.builder.Insert(tableRolloutSegments).
 			RunWith(tx).
 			Columns("id", "rollout_id", "\"value\"", "segment_operator").
-			Values(rolloutSegmentId, rollout.Id, segmentRule.Value, segmentRule.SegmentOperator).
+			Values(rolloutSegmentId, rollout.Id, segmentRule.Value, segmentOperator).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
@@ -489,7 +494,7 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 
 		innerSegment := &flipt.RolloutSegment{
 			Value:           segmentRule.Value,
-			SegmentOperator: segmentRule.SegmentOperator,
+			SegmentOperator: segmentOperator,
 		}
 
 		if len(segmentKeys) == 1 {
@@ -583,9 +588,14 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
 
+		var segmentOperator = segmentRule.SegmentOperator
+		if len(segmentKeys) == 1 {
+			segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+		}
+
 		if _, err := s.builder.Update(tableRolloutSegments).
 			RunWith(tx).
-			Set("segment_operator", segmentRule.SegmentOperator).
+			Set("segment_operator", segmentOperator).
 			Set("value", segmentRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
 			return nil, err

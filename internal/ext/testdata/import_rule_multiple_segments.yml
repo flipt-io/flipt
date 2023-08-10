@@ -1,5 +1,3 @@
-version: "1.2"
-namespace: default
 flags:
   - key: flag1
     name: flag1
@@ -9,11 +7,11 @@ flags:
     variants:
       - key: variant1
         name: variant1
+        description: "variant description"
         attachment:
           pi: 3.141
           happy: true
           name: Niels
-          nothing:
           answer:
             everything: 42
           list:
@@ -23,17 +21,14 @@ flags:
           object:
             currency: USD
             value: 42.99
-      - key: foo
     rules:
-      - segment: segment1
-        distributions:
-          - variant: variant1
-            rollout: 100
       - segment:
           keys:
           - segment1
-          - segment2
-          operator: AND_SEGMENT_OPERATOR
+          operator: OR_SEGMENT_OPERATOR
+        distributions:
+          - variant: variant1
+            rollout: 100
   - key: flag2
     name: flag2
     type: "BOOLEAN_FLAG_TYPE"
@@ -55,16 +50,6 @@ segments:
     description: description
     constraints:
       - type: STRING_COMPARISON_TYPE
-        property: foo
-        operator: eq
-        value: baz
-        description: desc
-      - type: STRING_COMPARISON_TYPE
         property: fizz
         operator: neq
         value: buzz
-        description: desc
-  - key: segment2
-    name: segment2
-    match_type: "ANY_MATCH_TYPE"
-    description: description
