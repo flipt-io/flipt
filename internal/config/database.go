@@ -59,14 +59,11 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
 	v.SetDefault("db.prepared_statements_enabled", true)
 }
 
-func (c *DatabaseConfig) deprecations(v *viper.Viper) []deprecation {
-	var deprecations []deprecation
+func (c *DatabaseConfig) deprecations(v *viper.Viper) []deprecated {
+	var deprecations []deprecated
 
 	if v.IsSet("db.migrations.path") || v.IsSet("db.migrations_path") {
-		deprecations = append(deprecations, deprecation{
-			option:            "db.migrations.path",
-			additionalMessage: deprecatedMsgDatabaseMigrations,
-		})
+		deprecations = append(deprecations, "db.migrations.path")
 	}
 
 	return deprecations

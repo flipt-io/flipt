@@ -22,8 +22,6 @@ import "strings"
 	tracing?:        #tracing
 	ui?:             #ui
 
-	#experimental: filesystem_storage?: enabled?: bool
-
 	#authentication: {
 		required?: bool | *false
 		exclude?: {
@@ -90,7 +88,6 @@ import "strings"
 		backend?: *"memory" | "redis"
 		ttl?:     =~#duration | int | *"60s"
 
-		// Redis
 		redis?: {
 			host?:     string | *"localhost"
 			port?:     int | *6379
@@ -98,7 +95,6 @@ import "strings"
 			password?: string
 		}
 
-		// Memory
 		memory?: {
 			enabled?:           bool | *false
 			eviction_interval?: =~#duration | int | *"5m"
@@ -112,7 +108,7 @@ import "strings"
 	}
 
 	#storage: {
-		type: "database" | "git" | "local" | *""
+		type: "database" | "git" | "local" | "object" | *""
 		local?: path: string | *"."
 		git?: {
 			repository:      string
@@ -126,6 +122,16 @@ import "strings"
 			} | {
 				token: access_token: string
 			})
+		}
+		object?: {
+			type: "s3" | *""
+			s3?: {
+				region: string
+				bucket: string
+				prefix?: string
+				endpoint?: string
+				poll_interval?: =~#duration | *"1m"
+			}
 		}
 	}
 
@@ -181,19 +187,16 @@ import "strings"
 		enabled?:  bool | *false
 		exporter?: *"jaeger" | "zipkin" | "otlp"
 
-		// Jaeger
 		jaeger?: {
 			enabled?: bool | *false
 			host?:    string | *"localhost"
 			port?:    int | *6831
 		}
 
-		// Zipkin
 		zipkin?: {
 			endpoint?: string | *"http://localhost:9411/api/v2/spans"
 		}
 
-		// OTLP
 		otlp?: {
 			endpoint?: string | *"localhost:4317"
 		}
@@ -213,6 +216,8 @@ import "strings"
 			flush_period?: string | *"2m"
 		}
 	}
+
+	#experimental: {}
 
 	#duration: "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
 }

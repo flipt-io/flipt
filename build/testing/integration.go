@@ -175,7 +175,6 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 	flipt = flipt.
 		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "local").
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -201,7 +200,6 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 	flipt = flipt.
 		WithServiceBinding("gitea", gitea).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "git").
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
 		WithEnvVariable("UNIQUE", uuid.New().String()).
@@ -231,7 +229,6 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	flipt = flipt.
 		WithServiceBinding("minio", minio).
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-		WithEnvVariable("FLIPT_EXPERIMENTAL_FILESYSTEM_STORAGE_ENABLED", "true").
 		WithEnvVariable("AWS_ACCESS_KEY_ID", "user").
 		WithEnvVariable("AWS_SECRET_ACCESS_KEY", "password").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "object").
