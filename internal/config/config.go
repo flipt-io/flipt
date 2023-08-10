@@ -134,7 +134,7 @@ func Load(path string) (*Result, error) {
 	for _, deprecator := range deprecators {
 		warnings := deprecator.deprecations(v)
 		for _, warning := range warnings {
-			result.Warnings = append(result.Warnings, warning.String())
+			result.Warnings = append(result.Warnings, warning.Message())
 		}
 	}
 
@@ -170,7 +170,7 @@ type validator interface {
 }
 
 type deprecator interface {
-	deprecations(v *viper.Viper) []deprecation
+	deprecations(v *viper.Viper) []deprecated
 }
 
 // fieldKey returns the name to be used when deriving a fields env var key.
