@@ -5,8 +5,8 @@ on:
       - "v*"
 
 jobs:
-  proto-lint:
-    name: "Lint Proto"
+  proto-push:
+    name: "Push Protos"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

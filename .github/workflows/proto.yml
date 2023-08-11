@@ -13,7 +13,7 @@ on:
 
 jobs:
   proto-lint:
-    name: "Lint Proto"
+    name: "Lint Protos"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
           against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
 
   proto-check:
-    name: "Proto Check"
+    name: "Check Generated Code"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
