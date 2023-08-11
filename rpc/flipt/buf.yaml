@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/markphelps/flipt
+name: buf.build/flipt-io/flipt
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/grpc-ecosystem/grpc-gateway
