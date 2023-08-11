@@ -1,10 +1,8 @@
 name: Proto Push
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "rpc/**"
+    tags:
+      - "v*"
 
 jobs:
   proto-lint:
