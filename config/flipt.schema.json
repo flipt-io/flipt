@@ -264,12 +264,48 @@
               "type": "integer",
               "default": 6379
             },
+            "require_tls": {
+              "type": "boolean",
+              "default": false
+            },
             "db": {
               "type": "integer",
               "default": 0
             },
             "password": {
               "type": "string"
+            },
+            "pool_size": {
+              "type": "integer",
+              "default": 0
+            },
+            "min_idle_conn": {
+              "type": "integer",
+              "default": 0
+            },
+            "conn_max_idle_time": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": 0
+            },
+            "net_timeout": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": 0
             }
           },
           "required": [],

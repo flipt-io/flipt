@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"crypto/tls"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -452,10 +453,23 @@ func getCache(ctx context.Context, cfg *config.Config) (cache.Cacher, errFunc, e
 		case config.CacheMemory:
 			cacher = memory.NewCache(cfg.Cache)
 		case config.CacheRedis:
+			var tlsConfig *tls.Config
+			if cfg.Cache.Redis.RequireTLS {
+				tlsConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+			}
+
 			rdb := goredis.NewClient(&goredis.Options{
-				Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
-				Password: cfg.Cache.Redis.Password,
-				DB:       cfg.Cache.Redis.DB,
+				Addr:            fmt.Sprintf("%s:%d", cfg.Cache.Redis.Host, cfg.Cache.Redis.Port),
+				TLSConfig:       tlsConfig,
+				Password:        cfg.Cache.Redis.Password,
+				DB:              cfg.Cache.Redis.DB,
+				PoolSize:        cfg.Cache.Redis.PoolSize,
+				MinIdleConns:    cfg.Cache.Redis.MinIdleConn,
+				ConnMaxIdleTime: cfg.Cache.Redis.ConnMaxIdleTime,
+				DialTimeout:     cfg.Cache.Redis.NetTimeout,
+				ReadTimeout:     cfg.Cache.Redis.NetTimeout * 2,
+				WriteTimeout:    cfg.Cache.Redis.NetTimeout * 2,
+				PoolTimeout:     cfg.Cache.Redis.NetTimeout * 2,
 			})
 
 			cacheFunc = func(ctx context.Context) error {
