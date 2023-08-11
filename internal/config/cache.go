@@ -103,8 +103,13 @@ type MemoryCacheConfig struct {
 // RedisCacheConfig contains fields, which configure the connection
 // credentials for redis backed caching.
 type RedisCacheConfig struct {
-	Host     string `json:"host,omitempty" mapstructure:"host"`
-	Port     int    `json:"port,omitempty" mapstructure:"port"`
-	Password string `json:"password,omitempty" mapstructure:"password"`
-	DB       int    `json:"db,omitempty" mapstructure:"db"`
+	Host            string        `json:"host,omitempty" mapstructure:"host"`
+	Port            int           `json:"port,omitempty" mapstructure:"port"`
+	RequireTLS      bool          `json:"requireTLS" mapstructure:"require_tls"`
+	Password        string        `json:"password,omitempty" mapstructure:"password"`
+	DB              int           `json:"db,omitempty" mapstructure:"db"`
+	PoolSize        int           `json:"poolSize" mapstructure:"pool_size"`
+	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn"`
+	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time"`
+	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout"`
 }
