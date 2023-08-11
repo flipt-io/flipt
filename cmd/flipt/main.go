@@ -309,6 +309,8 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		LatestVersionURL: releaseInfo.LatestVersionURL,
 		IsRelease:        isRelease,
 		UpdateAvailable:  releaseInfo.UpdateAvailable,
+		OS:               goOS,
+		Arch:             goArch,
 	}
 
 	if cfg.Meta.TelemetryEnabled {
