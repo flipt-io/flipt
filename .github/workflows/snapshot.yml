@@ -1,9 +1,6 @@
 name: Release (Snapshot)
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - "release/*"
 
 jobs:
   snapshot-build:
@@ -102,7 +99,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --snapshot
+          args: release --snapshot -f .goreleaser.multi.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
