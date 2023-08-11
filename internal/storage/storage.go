@@ -27,9 +27,9 @@ type EvaluationRule struct {
 }
 
 type EvaluationSegment struct {
-	SegmentKey  string
-	MatchType   flipt.MatchType
-	Constraints []EvaluationConstraint
+	SegmentKey  string                 `json:"segment_key,omitempty"`
+	MatchType   flipt.MatchType        `json:"match_type,omitempty"`
+	Constraints []EvaluationConstraint `json:"constraints,omitempty"`
 }
 
 // EvaluationRollout represents a rollout in the form that helps with evaluation.
