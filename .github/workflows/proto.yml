@@ -18,9 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: bufbuild/buf-setup-action@v1.7.0
+      - uses: bufbuild/buf-setup-action@v1.26.0
         with:
-          version: "latest"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: bufbuild/buf-lint-action@v1
@@ -44,9 +43,8 @@ jobs:
           check-latest: true
           cache: true
 
-      - uses: bufbuild/buf-setup-action@v1.7.0
+      - uses: bufbuild/buf-setup-action@v1.26.0
         with:
-          version: "latest"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: magefile/mage-action@v2
