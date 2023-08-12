@@ -116,8 +116,7 @@ test.describe('Segments - Read Only', () => {
 
   test('can not update segment', async ({ page }) => {
     await page.getByRole('link', { name: 'test-segment' }).click();
-    await page.getByLabel('Description').click();
-    await page.getByLabel('Description').fill("i'm a test 2");
+    await expect(page.getByLabel('Description')).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Update' })).toBeDisabled();
   });
 
