@@ -1,0 +1,30 @@
+name: Proto Push
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  proto-push:
+    name: "Push Protos"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: bufbuild/buf-setup-action@v1.26.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: bufbuild/buf-lint-action@v1
+        with:
+          input: "rpc/flipt"
+
+      - uses: bufbuild/buf-breaking-action@v1
+        with:
+          input: "rpc/flipt"
+          against: "https://github.com/${GITHUB_REPOSITORY}.git#branch=main"
+
+      - uses: bufbuild/buf-push-action@v1
+        with:
+          input: "rpc/flipt"
+          buf_token: ${{ secrets.BUF_TOKEN }}
