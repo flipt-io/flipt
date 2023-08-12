@@ -148,9 +148,13 @@ export default function FlagForm(props: FlagFormProps) {
                   >
                     Key
                   </label>
-                  <div className="flex items-center justify-between">
+                  <div
+                    className={classNames(
+                      isNew ? '' : 'flex items-center justify-between'
+                    )}
+                  >
                     <Input
-                      className="mt-1 md:mr-2"
+                      className={classNames(isNew ? 'mt-1' : 'mt-1 md:mr-2')}
                       name="key"
                       id="key"
                       disabled={!isNew || readOnly}
@@ -159,35 +163,37 @@ export default function FlagForm(props: FlagFormProps) {
                         formik.setFieldValue('key', formatted);
                       }}
                     />
-                    <button
-                      aria-label="Copy"
-                      className="hidden md:block"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        copyTextToClipboard(flag?.key || '');
-                        setKeyCopied(true);
-                        setTimeout(() => {
-                          setKeyCopied(false);
-                        }, 2000);
-                      }}
-                    >
-                      <CheckIcon
-                        className={classNames(
-                          'nightwind-prevent text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
-                          keyCopied
-                            ? 'visible opacity-100'
-                            : 'invisible opacity-0'
-                        )}
-                      />
-                      <ClipboardDocumentIcon
-                        className={classNames(
-                          'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500',
-                          keyCopied
-                            ? 'invisible opacity-0'
-                            : 'visible opacity-100'
-                        )}
-                      />
-                    </button>
+                    {!isNew && (
+                      <button
+                        aria-label="Copy"
+                        className="hidden md:block"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyTextToClipboard(flag?.key || '');
+                          setKeyCopied(true);
+                          setTimeout(() => {
+                            setKeyCopied(false);
+                          }, 2000);
+                        }}
+                      >
+                        <CheckIcon
+                          className={classNames(
+                            'nightwind-prevent text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
+                            keyCopied
+                              ? 'visible opacity-100'
+                              : 'invisible opacity-0'
+                          )}
+                        />
+                        <ClipboardDocumentIcon
+                          className={classNames(
+                            'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500',
+                            keyCopied
+                              ? 'invisible opacity-0'
+                              : 'visible opacity-100'
+                          )}
+                        />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="col-span-3">
