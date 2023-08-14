@@ -1,8 +1,8 @@
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 
 includes:
   - from_file:
-      path: .goreleaser.yml
+      path: .goreleaser.multi.yml
 
 changelog:
   skip: true

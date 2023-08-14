@@ -14,6 +14,8 @@ type Flipt struct {
 	GoVersion        string `json:"goVersion,omitempty"`
 	UpdateAvailable  bool   `json:"updateAvailable"`
 	IsRelease        bool   `json:"isRelease"`
+	OS               string `json:"os,omitempty"`
+	Arch             string `json:"arch,omitempty"`
 }
 
 func (f Flipt) IsDevelopment() bool {
