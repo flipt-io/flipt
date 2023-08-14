@@ -3,7 +3,7 @@ module go.flipt.io/flipt
 go 1.20
 
 require (
-	cuelang.org/go v0.5.0
+	cuelang.org/go v0.6.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.23.0
 	github.com/aws/aws-sdk-go-v2 v1.20.1
@@ -98,7 +98,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
-	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
+	github.com/cockroachdb/apd/v3 v3.2.0 // indirect
 	github.com/cockroachdb/cockroach-go/v2 v2.1.1 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-00010101000000-000000000000 // indirect
 	github.com/containerd/containerd v1.6.19 // indirect
