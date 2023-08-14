@@ -264,6 +264,9 @@ Some of the organizations depending on Flipt in production.
     </a>&nbsp;&nbsp;
     <a href="https://www.gov.uk/government/organisations/ministry-of-justice">
         <img src="./logos/users/uk-moj.png" alt="UK Ministry of Justice" width="200" />
+    </a>&nbsp;&nbsp;
+    <a href="https://www.ocrolus.com">
+        <img src="./logos/users/ocrolus.svg" alt="Ocrolus" width="250" />
     </a>
 </p>
 
