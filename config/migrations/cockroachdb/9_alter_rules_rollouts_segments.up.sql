@@ -1,5 +1,3 @@
-SET sql_safe_updates = false;
-
 -- Rules
 ALTER TABLE IF EXISTS rules DROP CONSTRAINT fk_namespace_key_ref_segments;
 
@@ -15,5 +13,3 @@ ALTER TABLE IF EXISTS rollout_segments DROP COLUMN segment_key;
 ALTER TABLE IF EXISTS rollout_segments DROP COLUMN namespace_key;
 
 ALTER TABLE IF EXISTS rollout_segments ADD COLUMN segment_operator INTEGER NOT NULL DEFAULT 0;
-
-SET sql_safe_updates = true;
