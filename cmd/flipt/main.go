@@ -43,6 +43,8 @@ var (
 	commit       string
 	date         string
 	goVersion    = runtime.Version()
+	goOS         = runtime.GOOS
+	goArch       = runtime.GOARCH
 	analyticsKey string
 	banner       string
 )
@@ -83,7 +85,7 @@ func main() {
 	var (
 		rootCmd = &cobra.Command{
 			Use:     "flipt",
-			Short:   "Flipt is a modern feature flag solution",
+			Short:   "Flipt is a modern, self-hosted, feature flag solution",
 			Version: version,
 			Run: func(cmd *cobra.Command, _ []string) {
 				logger, cfg := buildConfig()
@@ -133,6 +135,8 @@ func main() {
 		Commit:    commit,
 		Date:      date,
 		GoVersion: goVersion,
+		GoOS:      goOS,
+		GoArch:    goArch,
 	}); err != nil {
 		defaultLogger.Fatal("executing template", zap.Error(err))
 	}
@@ -305,6 +309,8 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 		LatestVersionURL: releaseInfo.LatestVersionURL,
 		IsRelease:        isRelease,
 		UpdateAvailable:  releaseInfo.UpdateAvailable,
+		OS:               goOS,
+		Arch:             goArch,
 	}
 
 	if cfg.Meta.TelemetryEnabled {

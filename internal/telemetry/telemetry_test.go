@@ -101,6 +101,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "file",
 				},
@@ -116,6 +118,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "sqlite",
 				},
@@ -131,6 +135,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "unknown",
 				},
@@ -150,6 +156,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "file",
 				},
@@ -169,6 +177,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "file",
 					"cache":    "redis",
@@ -193,6 +203,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "file",
 				},
@@ -216,6 +228,8 @@ func TestPing(t *testing.T) {
 			},
 			want: map[string]any{
 				"version": "1.0.0",
+				"os":      "linux",
+				"arch":    "amd64",
 				"storage": map[string]any{
 					"database": "file",
 				},
@@ -246,6 +260,8 @@ func TestPing(t *testing.T) {
 					client: mockAnalytics,
 					info: info.Flipt{
 						Version: "1.0.0",
+						OS:      "linux",
+						Arch:    "amd64",
 					},
 				}
 
@@ -288,6 +304,8 @@ func TestPing_Existing(t *testing.T) {
 			client: mockAnalytics,
 			info: info.Flipt{
 				Version: "1.0.0",
+				OS:      "linux",
+				Arch:    "amd64",
 			},
 		}
 
@@ -329,6 +347,8 @@ func TestPing_Disabled(t *testing.T) {
 			client: mockAnalytics,
 			info: info.Flipt{
 				Version: "1.0.0",
+				OS:      "linux",
+				Arch:    "amd64",
 			},
 		}
 	)
@@ -357,6 +377,8 @@ func TestPing_SpecifyStateDir(t *testing.T) {
 			client: mockAnalytics,
 			info: info.Flipt{
 				Version: "1.0.0",
+				OS:      "linux",
+				Arch:    "amd64",
 			},
 		}
 	)

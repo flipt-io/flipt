@@ -4,41 +4,21 @@ monorepo:
   tag_prefix: v
 
 builds:
-  - main: ./cmd/flipt/.
-    ldflags:
-      - -s -w -X main.version={{ .PrefixedTag }} -X main.commit={{ .Commit }} -X main.date={{ .Date }} -X main.analyticsKey={{ .Env.ANALYTICS_KEY }}
-      - -linkmode external -extldflags -static
+  - builder: prebuilt
     goos:
       - linux
+      - darwin
     goarch:
       - amd64
       - arm64
-    flags:
-      - -tags=assets,netgo
-      - -trimpath
-    overrides:
-      - goos: linux
+    goamd64:
+      - v1
+    ignore:
+      - goos: darwin
         goarch: amd64
-        goamd64: v1
-        env:
-          - CGO_ENABLED=1
-          - CC=x86_64-linux-gnu-gcc
-      - goos: linux
-        goarch: arm64
-        env:
-          - CGO_ENABLED=1
-          - CC=aarch64-linux-gnu-gcc
-
-release:
-  prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
-  target_commitish: "{{ .Commit }}"
-
-snapshot:
-  name_template: "{{ .ShortCommit }}-snapshot"
-
-nightly:
-  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
-  name_template: "{{ incpatch .Version }}-nightly"
+    prebuilt:
+      path: tmp/dist/flipt_{{ .Os }}_{{ .Arch }}{{ with .Amd64 }}_{{ . }}{{ end }}/flipt
+    binary: flipt
 
 sboms:
   - artifacts: archive
@@ -52,12 +32,22 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
     files:
       - LICENSE
-      - README.md
       - CHANGELOG.md
       - ./config/default.yml
 
 checksum:
   name_template: "checksums.txt"
+
+release:
+  prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
+  target_commitish: "{{ .Commit }}"
+
+snapshot:
+  name_template: "{{ .ShortCommit }}-snapshot"
+
+nightly:
+  # Default is `{{ incpatch .Version }}-{{ .ShortCommit }}-nightly`.
+  name_template: "{{ incpatch .Version }}-nightly"
 
 changelog:
   skip: true
@@ -65,6 +55,7 @@ changelog:
 dockers:
   - dockerfile: ./build/Dockerfile
     use: buildx
+    goos: linux
     goarch: amd64
     image_templates:
       - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-amd64{{ else }}flipt/flipt:v{{ .Tag }}-amd64{{ end }}"
@@ -79,6 +70,7 @@ dockers:
 
   - dockerfile: ./build/Dockerfile
     use: buildx
+    goos: linux
     goarch: arm64
     image_templates:
       - "{{ if .IsNightly }}flipt/flipt:v{{ incpatch .Version }}-nightly-arm64{{ else }}flipt/flipt:v{{ .Tag }}-arm64{{ end }}"

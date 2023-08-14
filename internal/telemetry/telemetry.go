@@ -43,6 +43,8 @@ type authentication struct {
 
 type flipt struct {
 	Version        string                    `json:"version"`
+	OS             string                    `json:"os"`
+	Arch           string                    `json:"arch"`
 	Storage        *storage                  `json:"storage,omitempty"`
 	Authentication *authentication           `json:"authentication,omitempty"`
 	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
@@ -175,6 +177,8 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	var (
 		props = analytics.NewProperties()
 		flipt = flipt{
+			OS:           info.OS,
+			Arch:         info.Arch,
 			Version:      info.Version,
 			Experimental: r.cfg.Experimental,
 		}
