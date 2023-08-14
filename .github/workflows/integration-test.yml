@@ -47,6 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         test:
           ["api", "api/cache", "fs/git", "fs/local", "fs/s3", "import/export"]

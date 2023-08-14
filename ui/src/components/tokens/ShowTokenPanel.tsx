@@ -6,7 +6,7 @@ import 'highlight.js/styles/tokyo-night-dark.css';
 import { useEffect, useState } from 'react';
 import Button from '~/components/forms/buttons/Button';
 import { IAuthTokenSecret } from '~/types/auth/Token';
-import { classNames } from '~/utils/helpers';
+import { classNames, copyTextToClipboard } from '~/utils/helpers';
 
 hljs.registerLanguage('text', text);
 
@@ -23,14 +23,6 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
   useEffect(() => {
     hljs.initHighlighting();
   }, [token]);
-
-  const copyTextToClipboard = (text: string) => {
-    if ('clipboard' in navigator) {
-      return navigator.clipboard.writeText(text);
-    } else {
-      return document.execCommand('copy', true, text);
-    }
-  };
 
   return (
     <>
