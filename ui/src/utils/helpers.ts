@@ -2,6 +2,14 @@ export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
+export function copyTextToClipboard(text: string) {
+  if ('clipboard' in navigator) {
+    navigator.clipboard.writeText(text);
+  } else {
+    document.execCommand('copy', true, text);
+  }
+}
+
 export function stringAsKey(str: string) {
   return str.toLowerCase().split(/\s+/).join('-');
 
