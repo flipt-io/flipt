@@ -36,6 +36,18 @@ func TestValidate_Latest_Success(t *testing.T) {
 	assert.Empty(t, res.Errors)
 }
 
+func TestValidate_Latest_Segments_V2(t *testing.T) {
+	b, err := os.ReadFile("testdata/valid_segments_v2.yaml")
+	require.NoError(t, err)
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	res, err := v.Validate("testdata/valid_segments_v2.yaml", b)
+	assert.NoError(t, err)
+	assert.Empty(t, res.Errors)
+}
+
 func TestValidate_Failure(t *testing.T) {
 	b, err := os.ReadFile("testdata/invalid.yaml")
 	require.NoError(t, err)

@@ -28,14 +28,19 @@ close({
 }
 
 #Variant: {
-	key:        string & =~"^.+$"
-	name:       string & =~"^.+$"
+	key:          string & =~"^.+$"
+	name:         string & =~"^.+$"
 	description?: string
-	attachment: {...} | *null
+	attachment:   {...} | *null
+}
+
+#RuleSegment: {
+	keys: [...string]
+	operator: "OR_SEGMENT_OPERATOR" | "AND_SEGMENT_OPERATOR" | *null
 }
 
 #Rule: {
-	segment: string & =~"^.+$"
+	segment: string & =~"^[-_,A-Za-z0-9]+$" | #RuleSegment
 	rank?:   int
 	distributions: [...#Distribution]
 }
@@ -45,10 +50,13 @@ close({
 	rollout: >=0 & <=100
 }
 
+#RolloutSegment: {key: string & =~"^[-_,A-Za-z0-9]+$"} | {keys: [...string]}
+
 #Rollout: {
 	segment: {
-		key:   string
-		value: bool
+		#RolloutSegment
+		operator: "OR_SEGMENT_OPERATOR" | "AND_SEGMENT_OPERATOR" | *null
+		value:    bool
 	}
 } | {
 	threshold: {
