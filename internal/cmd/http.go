@@ -84,7 +84,7 @@ func NewHTTPServer(
 		})
 
 		r.Use(cors.Handler)
-		logger.Info("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
+		logger.Debug("CORS enabled", zap.Strings("allowed_origins", cfg.Cors.AllowedOrigins))
 	}
 
 	// TODO: replace with more robust 'mode' detection

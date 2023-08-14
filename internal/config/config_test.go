@@ -309,8 +309,13 @@ func TestLoad(t *testing.T) {
 				cfg.Cache.TTL = time.Minute
 				cfg.Cache.Redis.Host = "localhost"
 				cfg.Cache.Redis.Port = 6378
+				cfg.Cache.Redis.RequireTLS = true
 				cfg.Cache.Redis.DB = 1
 				cfg.Cache.Redis.Password = "s3cr3t!"
+				cfg.Cache.Redis.PoolSize = 50
+				cfg.Cache.Redis.MinIdleConn = 2
+				cfg.Cache.Redis.ConnMaxIdleTime = 10 * time.Minute
+				cfg.Cache.Redis.NetTimeout = 500 * time.Millisecond
 				return cfg
 			},
 		},

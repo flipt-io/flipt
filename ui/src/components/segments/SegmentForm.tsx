@@ -1,4 +1,6 @@
+import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
@@ -12,7 +14,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { ISegment, ISegmentBase, SegmentMatchType } from '~/types/Segment';
-import { stringAsKey } from '~/utils/helpers';
+import { classNames, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
 
 const segmentMatchTypes = [
   {
@@ -59,6 +61,8 @@ export default function SegmentForm(props: SegmentFormProps) {
     matchType: segment?.matchType || SegmentMatchType.ALL
   };
 
+  const [keyCopied, setKeyCopied] = useState(false);
+
   return (
     <Formik
       enableReinitialize
@@ -104,6 +108,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   className="mt-1"
                   name="name"
                   id="name"
+                  disabled={readOnly}
                   autoFocus={isNew}
                   onChange={(e) => {
                     // check if the name and key are currently in sync
@@ -125,16 +130,53 @@ export default function SegmentForm(props: SegmentFormProps) {
                 >
                   Key
                 </label>
-                <Input
-                  className="mt-1"
-                  name="key"
-                  id="key"
-                  disabled={!isNew}
-                  onChange={(e) => {
-                    const formatted = stringAsKey(e.target.value);
-                    formik.setFieldValue('key', formatted);
-                  }}
-                />
+                <div
+                  className={classNames(
+                    isNew ? '' : 'flex items-center justify-between'
+                  )}
+                >
+                  <Input
+                    className={classNames(isNew ? 'mt-1' : 'mt-1 md:mr-2')}
+                    name="key"
+                    id="key"
+                    disabled={!isNew || readOnly}
+                    onChange={(e) => {
+                      const formatted = stringAsKey(e.target.value);
+                      formik.setFieldValue('key', formatted);
+                    }}
+                  />
+                  {!isNew && (
+                    <button
+                      aria-label="Copy"
+                      className="hidden md:block"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        copyTextToClipboard(segment?.key || '');
+                        setKeyCopied(true);
+                        setTimeout(() => {
+                          setKeyCopied(false);
+                        }, 2000);
+                      }}
+                    >
+                      <CheckIcon
+                        className={classNames(
+                          'nightwind-prevent text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
+                          keyCopied
+                            ? 'visible opacity-100'
+                            : 'invisible opacity-0'
+                        )}
+                      />
+                      <ClipboardDocumentIcon
+                        className={classNames(
+                          'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500',
+                          keyCopied
+                            ? 'invisible opacity-0'
+                            : 'visible opacity-100'
+                        )}
+                      />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="col-span-3">
                 <label
@@ -157,6 +199,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                             aria-describedby={`${matchType.id}-description`}
                             name="matchType"
                             type="radio"
+                            disabled={readOnly}
                             className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                             onChange={() => {
                               formik.setFieldValue('matchType', matchType.id);
@@ -199,7 +242,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                     Optional
                   </span>
                 </div>
-                <Input className="mt-1" name="description" id="description" />
+                <Input
+                  className="mt-1"
+                  name="description"
+                  id="description"
+                  disabled={readOnly}
+                />
               </div>
             </div>
             <div className="flex justify-end">

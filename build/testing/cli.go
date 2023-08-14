@@ -167,7 +167,7 @@ exit $?`,
 }
 
 const (
-	expectedFliptHelp = `Flipt is a modern feature flag solution
+	expectedFliptHelp = `Flipt is a modern, self-hosted, feature flag solution
 
 Usage:
   flipt [flags]
