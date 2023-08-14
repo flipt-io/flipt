@@ -330,9 +330,9 @@ func (s *DBTestSuite) TestGetEvaluationDistributions() {
 	require.NoError(t, err)
 
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:     flag.Key,
-		SegmentKeys: []string{segment.Key},
-		Rank:        1,
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+		Rank:       1,
 	})
 
 	require.NoError(t, err)
@@ -434,7 +434,7 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
-		SegmentKeys:  []string{segment.Key},
+		SegmentKey:   segment.Key,
 		Rank:         1,
 	})
 
@@ -532,9 +532,9 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 	require.NoError(t, err)
 
 	rule, err := s.store.CreateRule(context.TODO(), &flipt.CreateRuleRequest{
-		FlagKey:     flag.Key,
-		SegmentKeys: []string{segment.Key},
-		Rank:        1,
+		FlagKey:    flag.Key,
+		SegmentKey: segment.Key,
+		Rank:       1,
 	})
 
 	require.NoError(t, err)
@@ -836,8 +836,8 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 		Rank:         2,
 		Rule: &flipt.CreateRolloutRequest_Segment{
 			Segment: &flipt.RolloutSegment{
-				SegmentKeys: []string{segment.Key},
-				Value:       true,
+				SegmentKey: segment.Key,
+				Value:      true,
 			},
 		},
 	})
