@@ -104,6 +104,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   className="mt-1"
                   name="name"
                   id="name"
+                  disabled={readOnly}
                   autoFocus={isNew}
                   onChange={(e) => {
                     // check if the name and key are currently in sync
@@ -129,7 +130,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                   className="mt-1"
                   name="key"
                   id="key"
-                  disabled={!isNew}
+                  disabled={!isNew || readOnly}
                   onChange={(e) => {
                     const formatted = stringAsKey(e.target.value);
                     formik.setFieldValue('key', formatted);
@@ -157,6 +158,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                             aria-describedby={`${matchType.id}-description`}
                             name="matchType"
                             type="radio"
+                            disabled={readOnly}
                             className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                             onChange={() => {
                               formik.setFieldValue('matchType', matchType.id);
@@ -199,7 +201,12 @@ export default function SegmentForm(props: SegmentFormProps) {
                     Optional
                   </span>
                 </div>
-                <Input className="mt-1" name="description" id="description" />
+                <Input
+                  className="mt-1"
+                  name="description"
+                  id="description"
+                  disabled={readOnly}
+                />
               </div>
             </div>
             <div className="flex justify-end">
