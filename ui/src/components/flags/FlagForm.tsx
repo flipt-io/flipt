@@ -1,4 +1,6 @@
+import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/20/solid';
 import { Form, Formik } from 'formik';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
@@ -13,7 +15,7 @@ import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
-import { stringAsKey } from '~/utils/helpers';
+import { classNames, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
 
 type FlagFormProps = {
   flag?: IFlag;
@@ -58,6 +60,8 @@ export default function FlagForm(props: FlagFormProps) {
     type: flag?.type || FlagType.VARIANT,
     enabled: flag?.enabled || false
   };
+
+  const [keyCopied, setKeyCopied] = useState(false);
 
   return (
     <Formik
@@ -144,16 +148,53 @@ export default function FlagForm(props: FlagFormProps) {
                   >
                     Key
                   </label>
-                  <Input
-                    className="mt-1"
-                    name="key"
-                    id="key"
-                    disabled={!isNew || readOnly}
-                    onChange={(e) => {
-                      const formatted = stringAsKey(e.target.value);
-                      formik.setFieldValue('key', formatted);
-                    }}
-                  />
+                  <div
+                    className={classNames(
+                      isNew ? '' : 'flex items-center justify-between'
+                    )}
+                  >
+                    <Input
+                      className={classNames(isNew ? 'mt-1' : 'mt-1 md:mr-2')}
+                      name="key"
+                      id="key"
+                      disabled={!isNew || readOnly}
+                      onChange={(e) => {
+                        const formatted = stringAsKey(e.target.value);
+                        formik.setFieldValue('key', formatted);
+                      }}
+                    />
+                    {!isNew && (
+                      <button
+                        aria-label="Copy"
+                        className="hidden md:block"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyTextToClipboard(flag?.key || '');
+                          setKeyCopied(true);
+                          setTimeout(() => {
+                            setKeyCopied(false);
+                          }, 2000);
+                        }}
+                      >
+                        <CheckIcon
+                          className={classNames(
+                            'nightwind-prevent text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
+                            keyCopied
+                              ? 'visible opacity-100'
+                              : 'invisible opacity-0'
+                          )}
+                        />
+                        <ClipboardDocumentIcon
+                          className={classNames(
+                            'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500',
+                            keyCopied
+                              ? 'invisible opacity-0'
+                              : 'visible opacity-100'
+                          )}
+                        />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="col-span-3">
                   <label
