@@ -17,7 +17,7 @@
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
     </a>
     <a href="https://github.com/flipt-io/flipt/actions">
-        <img src="https://github.com/flipt-io/flipt/workflows/Tests/badge.svg" alt="Build Status" />
+        <img src="https://github.com/flipt-io/flipt/actions/workflows/test.yml/badge.svg" alt="Build Status" />
     </a>
     <a href="https://github.com/flipt-io/flipt/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/flipt-io/flipt.svg" alt="GPL 3.0" />
@@ -62,6 +62,10 @@ Flipt is an open-source, self-hosted feature flag application that allows you to
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
 <br clear="both"/>
+
+<p align="center">
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="https://console.dev/img/badges/1.0/png/console-badge-logo-dark.png" width=350 alt="Console - Developer Tool of the Week" /></a>
+</p>
 
 ## Usecases
 
