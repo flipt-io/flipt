@@ -63,6 +63,10 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 
 <br clear="both"/>
 
+<p align="center">
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="https://console.dev/img/badges/1.0/png/console-badge-logo-dark.png" width=350 alt="Console - Developer Tool of the Week" /></a>
+</p>
+
 ## Usecases
 
 Flipt supports use cases such as:
