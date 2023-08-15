@@ -78,7 +78,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 		)
 		if err := builder.Select("id, \"value\", segment_operator").
 			From(tableRolloutSegments).
-			Where(sq.And{sq.Eq{"rollout_id": rollout.Id}}).
+			Where(sq.Eq{"rollout_id": rollout.Id}).
 			Limit(1).
 			QueryRowContext(ctx).
 			Scan(&rolloutSegmentId, &value, &segmentOperator); err != nil {
@@ -90,7 +90,7 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 
 		rows, err := builder.Select("segment_key").
 			From(tableRolloutSegmentReferences).
-			Where(sq.And{sq.Eq{"rollout_segment_id": rolloutSegmentId}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
+			Where(sq.Eq{"rollout_segment_id": rolloutSegmentId, "namespace_key": rollout.NamespaceKey}).
 			QueryContext(ctx)
 		if err != nil {
 			return nil, err

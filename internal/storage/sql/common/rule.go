@@ -470,7 +470,7 @@ func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *
 		RunWith(tx).
 		Set("segment_operator", segmentOperator).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}}).
+		Where(sq.Eq{"id": r.Id, "namespace_key": r.NamespaceKey, "flag_key": r.FlagKey}).
 		ExecContext(ctx)
 	if err != nil {
 		return nil, err

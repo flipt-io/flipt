@@ -46,13 +46,11 @@ func removeDuplicates(src []string) []string {
 
 // sanitizeSegmentKeys is a utility function that will transform segment keys into the right input.
 func sanitizeSegmentKeys(segmentKey string, segmentKeys []string) []string {
-	result := make([]string, 0)
-
 	if len(segmentKeys) > 0 {
-		result = append(result, segmentKeys...)
+		return removeDuplicates(segmentKeys)
 	} else if segmentKey != "" {
-		result = append(result, segmentKey)
+		return []string{segmentKey}
 	}
 
-	return removeDuplicates(result)
+	return nil
 }
