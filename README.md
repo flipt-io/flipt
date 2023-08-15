@@ -17,7 +17,7 @@
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
     </a>
     <a href="https://github.com/flipt-io/flipt/actions">
-        <img src="https://github.com/flipt-io/flipt/workflows/Tests/badge.svg" alt="Build Status" />
+        <img src="https://github.com/flipt-io/flipt/actions/workflows/test.yml/badge.svg" alt="Build Status" />
     </a>
     <a href="https://github.com/flipt-io/flipt/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/flipt-io/flipt.svg" alt="GPL 3.0" />
