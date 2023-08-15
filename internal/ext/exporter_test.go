@@ -124,6 +124,12 @@ func TestExport(t *testing.T) {
 					},
 				},
 			},
+			{
+				Key:         "segment2",
+				Name:        "segment2",
+				Description: "description",
+				MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+			},
 		},
 		rules: []*flipt.Rule{
 			{
@@ -138,6 +144,12 @@ func TestExport(t *testing.T) {
 						Rollout:   100,
 					},
 				},
+			},
+			{
+				Id:              "2",
+				SegmentKeys:     []string{"segment1", "segment2"},
+				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				Rank:            2,
 			},
 		},
 		rollouts: []*flipt.Rollout{

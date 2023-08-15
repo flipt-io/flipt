@@ -437,7 +437,7 @@ func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
 			assert.Equal(t, int32(1), rollouts[0].Rank)
 
 			require.NotNil(t, rollouts[0].Segment)
-			assert.Equal(t, "segment1", rollouts[0].Segment.Key)
+			assert.Contains(t, rollouts[0].Segment.Segments, "segment1")
 			assert.True(t, rollouts[0].Segment.Value, "segment value should be true")
 
 			assert.Equal(t, tc.namespace, rollouts[1].NamespaceKey)
@@ -517,11 +517,12 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 			assert.Equal(t, tc.namespace, rules[0].NamespaceKey)
 			assert.Equal(t, tc.flagKey, rules[0].FlagKey)
 			assert.Equal(t, int32(1), rules[0].Rank)
-			assert.Equal(t, "segment1", rules[0].SegmentKey)
+			assert.Contains(t, rules[0].Segments, "segment1")
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
-				c := rules[0].Constraints[i]
+				c := rules[0].Segments[fc.SegmentKey].Constraints[i]
+
 				assert.Equal(t, fc.Type, c.Type)
 				assert.Equal(t, fc.Property, c.Property)
 				assert.Equal(t, fc.Operator, c.Operator)
@@ -1342,7 +1343,7 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
 			assert.Equal(t, int32(1), rollouts[0].Rank)
 
 			require.NotNil(t, rollouts[0].Segment)
-			assert.Equal(t, "segment1", rollouts[0].Segment.Key)
+			assert.Contains(t, rollouts[0].Segment.Segments, "segment1")
 			assert.True(t, rollouts[0].Segment.Value, "segment value should be true")
 
 			assert.Equal(t, tc.namespace, rollouts[1].NamespaceKey)
@@ -1445,11 +1446,12 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 			assert.Equal(t, tc.namespace, rules[0].NamespaceKey)
 			assert.Equal(t, tc.flagKey, rules[0].FlagKey)
 			assert.Equal(t, int32(1), rules[0].Rank)
-			assert.Equal(t, "segment1", rules[0].SegmentKey)
+			assert.Contains(t, rules[0].Segments, "segment1")
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
-				c := rules[0].Constraints[i]
+				c := rules[0].Segments[fc.SegmentKey].Constraints[i]
+
 				assert.Equal(t, fc.Type, c.Type)
 				assert.Equal(t, fc.Property, c.Property)
 				assert.Equal(t, fc.Operator, c.Operator)

@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	tableRollouts           = "rollouts"
-	tableRolloutPercentages = "rollout_thresholds"
-	tableRolloutSegments    = "rollout_segments"
+	tableRollouts                 = "rollouts"
+	tableRolloutPercentages       = "rollout_thresholds"
+	tableRolloutSegments          = "rollout_segments"
+	tableRolloutSegmentReferences = "rollout_segment_references"
 )
 
 func (s *Store) GetRollout(ctx context.Context, namespaceKey, id string) (*flipt.Rollout, error) {
@@ -70,15 +71,59 @@ func getRollout(ctx context.Context, builder sq.StatementBuilderType, namespaceK
 			Segment: &flipt.RolloutSegment{},
 		}
 
-		if err := builder.Select("segment_key, \"value\"").
+		var (
+			value            bool
+			rolloutSegmentId string
+			segmentOperator  flipt.SegmentOperator
+		)
+		if err := builder.Select("id, \"value\", segment_operator").
 			From(tableRolloutSegments).
-			Where(sq.And{sq.Eq{"rollout_id": rollout.Id}, sq.Eq{"namespace_key": rollout.NamespaceKey}}).
+			Where(sq.Eq{"rollout_id": rollout.Id}).
 			Limit(1).
 			QueryRowContext(ctx).
-			Scan(
-				&segmentRule.Segment.SegmentKey,
-				&segmentRule.Segment.Value); err != nil {
+			Scan(&rolloutSegmentId, &value, &segmentOperator); err != nil {
 			return nil, err
+		}
+
+		segmentRule.Segment.Value = value
+		segmentRule.Segment.SegmentOperator = segmentOperator
+
+		rows, err := builder.Select("segment_key").
+			From(tableRolloutSegmentReferences).
+			Where(sq.Eq{"rollout_segment_id": rolloutSegmentId, "namespace_key": rollout.NamespaceKey}).
+			QueryContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		defer func() {
+			if cerr := rows.Close(); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
+
+		var segmentKeys = []string{}
+
+		for rows.Next() {
+			var (
+				segmentKey string
+			)
+
+			if err := rows.Scan(&segmentKey); err != nil {
+				return nil, err
+			}
+
+			segmentKeys = append(segmentKeys, segmentKey)
+		}
+
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+
+		if len(segmentKeys) == 1 {
+			segmentRule.Segment.SegmentKey = segmentKeys[0]
+		} else {
+			segmentRule.Segment.SegmentKeys = segmentKeys
 		}
 
 		rollout.Rule = segmentRule
@@ -202,8 +247,9 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 			allRuleIds = append(allRuleIds, rollout.Id)
 		}
 
-		rows, err := s.builder.Select("rollout_id, segment_key, \"value\"").
-			From(tableRolloutSegments).
+		rows, err := s.builder.Select("rs.rollout_id, rs.\"value\", rs.segment_operator, rsr.segment_key").
+			From("rollout_segments AS rs").
+			Join("rollout_segment_references AS rsr ON (rs.id = rsr.rollout_segment_id)").
 			Where(sq.Eq{"rollout_id": allRuleIds}).
 			QueryContext(ctx)
 
@@ -217,18 +263,52 @@ func (s *Store) ListRollouts(ctx context.Context, namespaceKey, flagKey string, 
 			}
 		}()
 
+		type intermediateValues struct {
+			segmentKeys     []string
+			segmentOperator flipt.SegmentOperator
+			value           bool
+		}
+
+		intermediate := make(map[string]*intermediateValues)
+
 		for rows.Next() {
 			var (
-				rolloutId string
-				rule      = &flipt.RolloutSegment{}
+				rolloutId       string
+				segmentKey      string
+				value           bool
+				segmentOperator flipt.SegmentOperator
 			)
 
-			if err := rows.Scan(&rolloutId, &rule.SegmentKey, &rule.Value); err != nil {
+			if err := rows.Scan(&rolloutId, &value, &segmentOperator, &segmentKey); err != nil {
 				return results, err
 			}
 
-			rollout := rolloutsById[rolloutId]
-			rollout.Rule = &flipt.Rollout_Segment{Segment: rule}
+			rs, ok := intermediate[rolloutId]
+			if ok {
+				rs.segmentKeys = append(rs.segmentKeys, segmentKey)
+			} else {
+				intermediate[rolloutId] = &intermediateValues{
+					segmentKeys:     []string{segmentKey},
+					segmentOperator: segmentOperator,
+					value:           value,
+				}
+			}
+		}
+
+		for k, v := range intermediate {
+			rollout := rolloutsById[k]
+			rs := &flipt.RolloutSegment{}
+
+			if len(v.segmentKeys) == 1 {
+				rs.SegmentKey = v.segmentKeys[0]
+			} else {
+				rs.SegmentKeys = v.segmentKeys
+			}
+
+			rs.Value = v.value
+			rs.SegmentOperator = v.segmentOperator
+
+			rollout.Rule = &flipt.Rollout_Segment{Segment: rs}
 		}
 
 		if err := rows.Err(); err != nil {
@@ -383,19 +463,48 @@ func (s *Store) CreateRollout(ctx context.Context, r *flipt.CreateRolloutRequest
 	switch r.GetRule().(type) {
 	case *flipt.CreateRolloutRequest_Segment:
 		rollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+		rolloutSegmentId := uuid.Must(uuid.NewV4()).String()
 
 		var segmentRule = r.GetSegment()
 
+		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
+
+		var segmentOperator = segmentRule.SegmentOperator
+		if len(segmentKeys) == 1 {
+			segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+		}
+
 		if _, err := s.builder.Insert(tableRolloutSegments).
 			RunWith(tx).
-			Columns("id", "rollout_id", "namespace_key", "segment_key", "\"value\"").
-			Values(uuid.Must(uuid.NewV4()).String(), rollout.Id, rollout.NamespaceKey, segmentRule.SegmentKey, segmentRule.Value).
+			Columns("id", "rollout_id", "\"value\"", "segment_operator").
+			Values(rolloutSegmentId, rollout.Id, segmentRule.Value, segmentOperator).
 			ExecContext(ctx); err != nil {
 			return nil, err
 		}
 
+		for _, segmentKey := range segmentKeys {
+			if _, err := s.builder.Insert(tableRolloutSegmentReferences).
+				RunWith(tx).
+				Columns("rollout_segment_id", "namespace_key", "segment_key").
+				Values(rolloutSegmentId, rollout.NamespaceKey, segmentKey).
+				ExecContext(ctx); err != nil {
+				return nil, err
+			}
+		}
+
+		innerSegment := &flipt.RolloutSegment{
+			Value:           segmentRule.Value,
+			SegmentOperator: segmentOperator,
+		}
+
+		if len(segmentKeys) == 1 {
+			innerSegment.SegmentKey = segmentKeys[0]
+		} else {
+			innerSegment.SegmentKeys = segmentKeys
+		}
+
 		rollout.Rule = &flipt.Rollout_Segment{
-			Segment: segmentRule,
+			Segment: innerSegment,
 		}
 	case *flipt.CreateRolloutRequest_Threshold:
 		rollout.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
@@ -477,13 +586,57 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 
 		var segmentRule = r.GetSegment()
 
+		segmentKeys := sanitizeSegmentKeys(segmentRule.GetSegmentKey(), segmentRule.GetSegmentKeys())
+
+		var segmentOperator = segmentRule.SegmentOperator
+		if len(segmentKeys) == 1 {
+			segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+		}
+
 		if _, err := s.builder.Update(tableRolloutSegments).
 			RunWith(tx).
-			Set("segment_key", segmentRule.SegmentKey).
+			Set("segment_operator", segmentOperator).
 			Set("value", segmentRule.Value).
 			Where(sq.Eq{"rollout_id": r.Id}).ExecContext(ctx); err != nil {
 			return nil, err
 		}
+
+		// Delete and reinsert rollout_segment_references.
+		row := s.builder.Select("id").
+			RunWith(tx).
+			From(tableRolloutSegments).
+			Where(sq.Eq{"rollout_id": r.Id}).
+			Limit(1).
+			QueryRowContext(ctx)
+
+		var rolloutSegmentId string
+
+		if err := row.Scan(&rolloutSegmentId); err != nil {
+			return nil, err
+		}
+
+		if _, err := s.builder.Delete(tableRolloutSegmentReferences).
+			RunWith(tx).
+			Where(sq.And{sq.Eq{"rollout_segment_id": rolloutSegmentId}, sq.Eq{"namespace_key": r.NamespaceKey}}).
+			ExecContext(ctx); err != nil {
+			return nil, err
+		}
+
+		for _, segmentKey := range segmentKeys {
+			if _, err := s.builder.
+				Insert(tableRolloutSegmentReferences).
+				RunWith(tx).
+				Columns("rollout_segment_id", "namespace_key", "segment_key").
+				Values(
+					rolloutSegmentId,
+					r.NamespaceKey,
+					segmentKey,
+				).
+				ExecContext(ctx); err != nil {
+				return nil, err
+			}
+		}
+
 	case *flipt.UpdateRolloutRequest_Threshold:
 		// enforce that rollout type is consistent with the DB
 		if err := ensureRolloutType(rollout, flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE); err != nil {
@@ -503,12 +656,16 @@ func (s *Store) UpdateRollout(ctx context.Context, r *flipt.UpdateRolloutRequest
 		return nil, errs.InvalidFieldError("rule", "invalid rollout rule type")
 	}
 
-	rollout, err = getRollout(ctx, s.builder.RunWith(tx), r.NamespaceKey, r.Id)
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	rollout, err = getRollout(ctx, s.builder, r.NamespaceKey, r.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return rollout, tx.Commit()
+	return rollout, nil
 }
 
 func ensureRolloutType(rollout *flipt.Rollout, typ flipt.RolloutType) error {
@@ -523,7 +680,7 @@ func ensureRolloutType(rollout *flipt.Rollout, typ flipt.RolloutType) error {
 	)
 }
 
-func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) error {
+func (s *Store) DeleteRollout(ctx context.Context, r *flipt.DeleteRolloutRequest) (err error) {
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}

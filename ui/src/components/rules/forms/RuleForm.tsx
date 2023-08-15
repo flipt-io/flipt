@@ -1,13 +1,13 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Form, Formik } from 'formik';
+import { FieldArray, Form, Formik } from 'formik';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox from '~/components/forms/Combobox';
+import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
 import { createDistribution, createRule } from '~/data/api';
@@ -16,7 +16,12 @@ import { useSuccess } from '~/data/hooks/success';
 import { keyValidation } from '~/data/validations';
 import { DistributionType, IDistributionVariant } from '~/types/Distribution';
 import { IFlag } from '~/types/Flag';
-import { FilterableSegment, ISegment } from '~/types/Segment';
+import {
+  FilterableSegment,
+  ISegment,
+  segmentOperators,
+  SegmentOperatorType
+} from '~/types/Segment';
 import { FilterableVariant } from '~/types/Variant';
 import { truncateKey } from '~/utils/helpers';
 import MultiDistributionFormInputs from './MultiDistributionForm';
@@ -72,6 +77,11 @@ type RuleFormProps = {
   segments: ISegment[];
 };
 
+interface Segment {
+  segmentKeys: FilterableSegment[];
+  operator: SegmentOperatorType;
+}
+
 export default function RuleForm(props: RuleFormProps) {
   const { setOpen, onSuccess, flag, rank, segments } = props;
 
@@ -84,8 +94,6 @@ export default function RuleForm(props: RuleFormProps) {
 
   const [ruleType, setRuleType] = useState(DistributionType.None);
 
-  const [selectedSegment, setSelectedSegment] =
-    useState<FilterableSegment | null>(null);
   const [selectedVariant, setSelectedVariant] =
     useState<FilterableVariant | null>(null);
 
@@ -99,6 +107,8 @@ export default function RuleForm(props: RuleFormProps) {
     }));
   });
 
+  const initialSegmentKeys: FilterableSegment[] = [];
+
   useEffect(() => {
     if (
       ruleType === DistributionType.Multi &&
@@ -111,13 +121,14 @@ export default function RuleForm(props: RuleFormProps) {
     }
   }, [distributions, ruleType]);
 
-  const handleSubmit = async () => {
-    if (!selectedSegment) {
-      throw new Error('No segment selected');
+  const handleSubmit = async (values: Segment) => {
+    if (values.segmentKeys.length === 0) {
+      throw new Error('No segments selected');
     }
 
     const rule = await createRule(namespace.key, flag.key, {
-      segmentKey: selectedSegment.key,
+      segmentKeys: values.segmentKeys.map((s) => s.key),
+      segmentOperator: values.operator,
       rank
     });
 
@@ -142,13 +153,21 @@ export default function RuleForm(props: RuleFormProps) {
   return (
     <Formik
       initialValues={{
-        segmentKey: selectedSegment?.key || ''
+        segmentKeys: initialSegmentKeys,
+        operator: SegmentOperatorType.OR
       }}
       validationSchema={Yup.object({
-        segmentKey: keyValidation
+        segmentKeys: Yup.array()
+          .of(
+            Yup.object().shape({
+              key: keyValidation
+            })
+          )
+          .required()
+          .min(1)
       })}
-      onSubmit={(_, { setSubmitting }) => {
-        handleSubmit()
+      onSubmit={(values, { setSubmitting }) => {
+        handleSubmit(values)
           .then(() => {
             onSuccess();
             clearError();
@@ -200,19 +219,79 @@ export default function RuleForm(props: RuleFormProps) {
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<FilterableSegment>
-                      id="segmentKey"
-                      name="segmentKey"
-                      placeholder="Select or search for a segment"
-                      values={segments.map((s) => ({
-                        ...s,
-                        filterValue: truncateKey(s.key),
-                        displayValue: s.name
-                      }))}
-                      selected={selectedSegment}
-                      setSelected={setSelectedSegment}
+                    <FieldArray
+                      name="segmentKeys"
+                      render={(arrayHelpers) => (
+                        <SegmentsPicker
+                          segments={segments}
+                          segmentAdd={(segment: FilterableSegment) =>
+                            arrayHelpers.push(segment)
+                          }
+                          segmentRemove={(index: number) =>
+                            arrayHelpers.remove(index)
+                          }
+                          segmentReplace={(
+                            index: number,
+                            segment: FilterableSegment
+                          ) => arrayHelpers.replace(index, segment)}
+                          selectedSegments={formik.values.segmentKeys}
+                        />
+                      )}
                     />
                   </div>
+                  {formik.values.segmentKeys.length > 1 && (
+                    <>
+                      <div>
+                        <label
+                          htmlFor="operator"
+                          className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                        >
+                          Operator
+                        </label>
+                      </div>
+                      <div>
+                        <div className="sm:col-span-2">
+                          <div className="w-48 space-y-4">
+                            {formik.values.segmentKeys.length > 1 &&
+                              segmentOperators.map((segmentOperator, index) => (
+                                <div className="flex space-x-4" key={index}>
+                                  <div>
+                                    <input
+                                      id={segmentOperator.id}
+                                      name="operator"
+                                      type="radio"
+                                      className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
+                                      onChange={() => {
+                                        formik.setFieldValue(
+                                          'operator',
+                                          segmentOperator.id
+                                        );
+                                      }}
+                                      checked={
+                                        segmentOperator.id ===
+                                        formik.values.operator
+                                      }
+                                      value={segmentOperator.id}
+                                    />
+                                  </div>
+                                  <div className="mt-1">
+                                    <label
+                                      htmlFor={segmentOperator.id}
+                                      className="text-gray-700 block text-sm"
+                                    >
+                                      {segmentOperator.name}{' '}
+                                      <span className="font-light">
+                                        {segmentOperator.meta}
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>

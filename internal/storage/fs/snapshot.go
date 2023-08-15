@@ -296,7 +296,6 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				NamespaceKey: doc.Namespace,
 				Id:           uuid.Must(uuid.NewV4()).String(),
 				FlagKey:      f.Key,
-				SegmentKey:   r.SegmentKey,
 				Rank:         rank,
 				CreatedAt:    ss.now,
 				UpdatedAt:    ss.now,
@@ -307,24 +306,57 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 				FlagKey:      f.Key,
 				ID:           rule.Id,
 				Rank:         rank,
-				SegmentKey:   rule.SegmentKey,
 			}
 
-			segment := ns.segments[rule.SegmentKey]
-			if segment == nil {
-				return errs.ErrNotFoundf("segment %q in rule %d", rule.SegmentKey, rank)
+			switch s := r.Segment.IsSegment.(type) {
+			case ext.SegmentKey:
+				rule.SegmentKey = string(s)
+			case *ext.Segments:
+				rule.SegmentKeys = s.Keys
+				segmentOperator := flipt.SegmentOperator_value[s.SegmentOperator]
+
+				rule.SegmentOperator = flipt.SegmentOperator(segmentOperator)
 			}
 
-			evalRule.SegmentMatchType = segment.MatchType
+			var (
+				segmentKeys = []string{}
+				segments    = make(map[string]*storage.EvaluationSegment)
+			)
 
-			for _, constraint := range segment.Constraints {
-				evalRule.Constraints = append(evalRule.Constraints, storage.EvaluationConstraint{
-					Operator: constraint.Operator,
-					Property: constraint.Property,
-					Type:     constraint.Type,
-					Value:    constraint.Value,
-				})
+			if rule.SegmentKey != "" {
+				segmentKeys = append(segmentKeys, rule.SegmentKey)
+			} else if len(rule.SegmentKeys) > 0 {
+				segmentKeys = append(segmentKeys, rule.SegmentKeys...)
 			}
+
+			for _, segmentKey := range segmentKeys {
+				segment := ns.segments[segmentKey]
+				if segment == nil {
+					return errs.ErrNotFoundf("segment %q in rule %d", segmentKey, rank)
+				}
+
+				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
+				for _, constraint := range segment.Constraints {
+					evc = append(evc, storage.EvaluationConstraint{
+						Operator: constraint.Operator,
+						Property: constraint.Property,
+						Type:     constraint.Type,
+						Value:    constraint.Value,
+					})
+				}
+
+				segments[segmentKey] = &storage.EvaluationSegment{
+					SegmentKey:  segmentKey,
+					MatchType:   segment.MatchType,
+					Constraints: evc,
+				}
+			}
+
+			if rule.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
+				evalRule.SegmentOperator = flipt.SegmentOperator_AND_SEGMENT_OPERATOR
+			}
+
+			evalRule.Segments = segments
 
 			evalRules = append(evalRules, evalRule)
 
@@ -390,35 +422,64 @@ func (ss *storeSnapshot) addDoc(doc *ext.Document) error {
 					},
 				}
 			} else if rollout.Segment != nil {
-				segment, ok := ns.segments[rollout.Segment.Key]
-				if !ok {
-					return errs.ErrNotFoundf("segment %q not found", rollout.Segment.Key)
+				var (
+					segmentKeys = []string{}
+					segments    = make(map[string]*storage.EvaluationSegment)
+				)
+
+				if rollout.Segment.Key != "" {
+					segmentKeys = append(segmentKeys, rollout.Segment.Key)
+				} else if len(rollout.Segment.Keys) > 0 {
+					segmentKeys = append(segmentKeys, rollout.Segment.Keys...)
 				}
+
+				for _, segmentKey := range segmentKeys {
+					segment, ok := ns.segments[segmentKey]
+					if !ok {
+						return errs.ErrNotFoundf("segment %q not found", rollout.Segment.Key)
+					}
+
+					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
+					for _, c := range segment.Constraints {
+						constraints = append(constraints, storage.EvaluationConstraint{
+							Operator: c.Operator,
+							Property: c.Property,
+							Type:     c.Type,
+							Value:    c.Value,
+						})
+					}
+
+					segments[segmentKey] = &storage.EvaluationSegment{
+						SegmentKey:  segmentKey,
+						MatchType:   segment.MatchType,
+						Constraints: constraints,
+					}
+				}
+
+				segmentOperator := flipt.SegmentOperator_value[rollout.Segment.Operator]
 
 				s.Segment = &storage.RolloutSegment{
-					Key:   rollout.Segment.Key,
-					Value: rollout.Segment.Value,
+					Segments:        segments,
+					SegmentOperator: flipt.SegmentOperator(segmentOperator),
+					Value:           rollout.Segment.Value,
 				}
+
 				s.RolloutType = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
 
-				constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
-				for _, c := range segment.Constraints {
-					constraints = append(constraints, storage.EvaluationConstraint{
-						Operator: c.Operator,
-						Property: c.Property,
-						Type:     c.Type,
-						Value:    c.Value,
-					})
+				frs := &flipt.RolloutSegment{
+					Value:           rollout.Segment.Value,
+					SegmentOperator: flipt.SegmentOperator(segmentOperator),
 				}
 
-				s.Segment.Constraints = constraints
+				if len(segmentKeys) == 1 {
+					frs.SegmentKey = segmentKeys[0]
+				} else {
+					frs.SegmentKeys = segmentKeys
+				}
 
 				flagRollout.Type = s.RolloutType
 				flagRollout.Rule = &flipt.Rollout_Segment{
-					Segment: &flipt.RolloutSegment{
-						SegmentKey: rollout.Segment.Key,
-						Value:      rollout.Segment.Value,
-					},
+					Segment: frs,
 				}
 			}
 

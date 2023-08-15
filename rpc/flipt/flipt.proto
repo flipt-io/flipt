@@ -34,13 +34,14 @@ message EvaluationResponse {
   map<string, string> request_context = 3;
   bool match = 4;
   string flag_key = 5;
-  string segment_key = 6;
+  string segment_key = 6 [deprecated = true];
   google.protobuf.Timestamp timestamp = 7;
   string value = 8;
   double request_duration_millis = 9;
   string attachment = 10;
   EvaluationReason reason = 11;
   string namespace_key = 12;
+  repeated string segment_keys = 13;
 }
 
 enum EvaluationReason {
@@ -295,6 +296,11 @@ enum RolloutType {
   THRESHOLD_ROLLOUT_TYPE = 2;
 }
 
+enum SegmentOperator {
+  OR_SEGMENT_OPERATOR = 0;
+  AND_SEGMENT_OPERATOR = 1;
+}
+
 message Rollout {
   string id = 1;
   string namespace_key = 2;
@@ -311,8 +317,10 @@ message Rollout {
 }
 
 message RolloutSegment {
-  string segment_key = 1;
+  string segment_key = 1 [deprecated = true];
   bool value = 2;
+  repeated string segment_keys = 3;
+  SegmentOperator segment_operator = 4;
 }
 
 message RolloutThreshold {
@@ -382,6 +390,8 @@ message Rule {
   google.protobuf.Timestamp created_at = 6;
   google.protobuf.Timestamp updated_at = 7;
   string namespace_key = 8;
+  repeated string segment_keys = 9;
+  SegmentOperator segment_operator = 10;
 }
 
 message RuleList {
@@ -405,16 +415,20 @@ message GetRuleRequest {
 
 message CreateRuleRequest {
   string flag_key = 1;
-  string segment_key = 2;
+  string segment_key = 2 [deprecated = true];
   int32 rank = 3;
   string namespace_key = 4;
+  repeated string segment_keys = 5;
+  SegmentOperator segment_operator = 6;
 }
 
 message UpdateRuleRequest {
   string id = 1;
   string flag_key = 2;
-  string segment_key = 3;
+  string segment_key = 3 [deprecated = true];
   string namespace_key = 4;
+  repeated string segment_keys = 5;
+  SegmentOperator segment_operator = 6;
 }
 
 message DeleteRuleRequest {

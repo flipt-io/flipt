@@ -295,7 +295,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		if namespace == "" {
 			namespace = "default"
 			// replace namespace in expected yaml
-			expected = strings.ReplaceAll(expected, "version: \"1.1\"\n", fmt.Sprintf("version: \"1.1\"\nnamespace: %s\n", namespace))
+			expected = strings.ReplaceAll(expected, "version: \"1.2\"\n", fmt.Sprintf("version: \"1.2\"\nnamespace: %s\n", namespace))
 		}
 
 		// use target flipt binary to invoke import

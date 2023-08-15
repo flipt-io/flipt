@@ -1,5 +1,9 @@
 package ext
 
+import (
+	"errors"
+)
+
 type Document struct {
 	Version   string     `yaml:"version,omitempty"`
 	Namespace string     `yaml:"namespace,omitempty"`
@@ -26,7 +30,7 @@ type Variant struct {
 }
 
 type Rule struct {
-	SegmentKey    string          `yaml:"segment,omitempty"`
+	Segment       *SegmentEmbed   `yaml:"segment,omitempty"`
 	Rank          uint            `yaml:"rank,omitempty"`
 	Distributions []*Distribution `yaml:"distributions,omitempty"`
 }
@@ -43,8 +47,10 @@ type Rollout struct {
 }
 
 type SegmentRule struct {
-	Key   string `yaml:"key,omitempty"`
-	Value bool   `yaml:"value,omitempty"`
+	Key      string   `yaml:"key,omitempty"`
+	Keys     []string `yaml:"keys,omitempty"`
+	Operator string   `yaml:"operator,omitempty"`
+	Value    bool     `yaml:"value,omitempty"`
 }
 
 type ThresholdRule struct {
@@ -67,3 +73,60 @@ type Constraint struct {
 	Value       string `yaml:"value,omitempty"`
 	Description string `yaml:"description,omitempty"`
 }
+
+type SegmentEmbed struct {
+	IsSegment `yaml:"-"`
+}
+
+// MarshalYAML tries to type assert to either of the following types that implement
+// IsSegment, and returns the marshaled value.
+func (s *SegmentEmbed) MarshalYAML() (interface{}, error) {
+	switch t := s.IsSegment.(type) {
+	case SegmentKey:
+		return string(t), nil
+	case *Segments:
+		sk := &Segments{
+			Keys:            t.Keys,
+			SegmentOperator: t.SegmentOperator,
+		}
+		return sk, nil
+	}
+
+	return nil, errors.New("failed to marshal to string or segmentKeys")
+}
+
+// UnmarshalYAML attempts to unmarshal a string or `SegmentKeys`, and fails if it can not
+// do so.
+func (s *SegmentEmbed) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var sk SegmentKey
+
+	if err := unmarshal(&sk); err == nil {
+		s.IsSegment = sk
+		return nil
+	}
+
+	var sks *Segments
+	if err := unmarshal(&sks); err == nil {
+		s.IsSegment = sks
+		return nil
+	}
+
+	return errors.New("failed to unmarshal to string or segmentKeys")
+}
+
+// IsSegment is used to unify the two types of segments that can come in
+// from the import.
+type IsSegment interface {
+	IsSegment()
+}
+
+type SegmentKey string
+
+func (s SegmentKey) IsSegment() {}
+
+type Segments struct {
+	Keys            []string `yaml:"keys,omitempty"`
+	SegmentOperator string   `yaml:"operator,omitempty"`
+}
+
+func (s *Segments) IsSegment() {}

@@ -116,20 +116,44 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 		lastRank = rule.Rank
 
-		matched, reason, err := matchConstraints(r.Context, rule.Constraints, rule.SegmentMatchType)
-		if err != nil {
-			resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
-			return resp, err
+		segmentKeys := make([]string, 0, len(rule.Segments))
+		segmentMatches := 0
+
+		for k, v := range rule.Segments {
+			matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
+			if err != nil {
+				resp.Reason = flipt.EvaluationReason_ERROR_EVALUATION_REASON
+				return resp, err
+			}
+
+			if matched {
+				e.logger.Debug(reason)
+				segmentKeys = append(segmentKeys, k)
+				segmentMatches++
+			}
 		}
 
-		if !matched {
-			e.logger.Debug(reason)
-			continue
+		switch rule.SegmentOperator {
+		case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+			if segmentMatches < 1 {
+				e.logger.Debug("did not match ANY segments")
+				continue
+			}
+		case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+			if len(rule.Segments) != segmentMatches {
+				e.logger.Debug("did not match ALL segments")
+				continue
+			}
 		}
 
-		// otherwise, this is our matching rule, determine the flag variant to return
-		// based on the distributions
-		resp.SegmentKey = rule.SegmentKey
+		// For legacy reasons of supporting SegmentKey.
+		// The old EvaluationResponse will return both the SegmentKey, and SegmentKeys.
+		// If there are multiple segmentKeys, the old EvaluationResponse will take the first value
+		// in the segmentKeys slice.
+		if len(segmentKeys) > 0 {
+			resp.SegmentKey = segmentKeys[0]
+			resp.SegmentKeys = segmentKeys
+		}
 
 		distributions, err := e.store.GetEvaluationDistributions(ctx, rule.ID)
 		if err != nil {

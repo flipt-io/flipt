@@ -179,6 +179,22 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	return rule, nil
 }
 
+func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+	rule, err := s.Store.UpdateRule(ctx, r)
+
+	if err != nil {
+		var serr sqlite3.Error
+
+		if errors.As(err, &serr) && serr.Code == sqlite3.ErrConstraint {
+			return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
+		}
+
+		return nil, err
+	}
+
+	return rule, nil
+}
+
 func (s *Store) CreateDistribution(ctx context.Context, r *flipt.CreateDistributionRequest) (*flipt.Distribution, error) {
 	dist, err := s.Store.CreateDistribution(ctx, r)
 

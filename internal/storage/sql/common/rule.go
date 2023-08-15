@@ -30,11 +30,11 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 
 		rule = &flipt.Rule{}
 
-		err = s.builder.Select("id, namespace_key, flag_key, segment_key, \"rank\", created_at, updated_at").
+		err = s.builder.Select("id, namespace_key, flag_key, \"rank\", segment_operator, created_at, updated_at").
 			From("rules").
 			Where(sq.And{sq.Eq{"id": id}, sq.Eq{"namespace_key": namespaceKey}}).
 			QueryRowContext(ctx).
-			Scan(&rule.Id, &rule.NamespaceKey, &rule.FlagKey, &rule.SegmentKey, &rule.Rank, &createdAt, &updatedAt)
+			Scan(&rule.Id, &rule.NamespaceKey, &rule.FlagKey, &rule.Rank, &rule.SegmentOperator, &createdAt, &updatedAt)
 	)
 
 	if err != nil {
@@ -43,6 +43,42 @@ func (s *Store) GetRule(ctx context.Context, namespaceKey, id string) (*flipt.Ru
 		}
 
 		return nil, err
+	}
+
+	segmentRows, err := s.builder.Select("segment_key").
+		From("rule_segments").
+		Where(sq.Eq{"rule_id": rule.Id}).
+		QueryContext(ctx)
+
+	defer func() {
+		if cerr := segmentRows.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	segmentKeys := make([]string, 0)
+	for segmentRows.Next() {
+		var segmentKey string
+
+		if err := segmentRows.Scan(&segmentKey); err != nil {
+			return nil, err
+		}
+
+		segmentKeys = append(segmentKeys, segmentKey)
+	}
+
+	if err := segmentRows.Err(); err != nil {
+		return nil, err
+	}
+
+	if err := segmentRows.Close(); err != nil {
+		return nil, err
+	}
+
+	if len(segmentKeys) == 1 {
+		rule.SegmentKey = segmentKeys[0]
+	} else {
+		rule.SegmentKeys = segmentKeys
 	}
 
 	rule.CreatedAt = createdAt.Timestamp
@@ -114,7 +150,7 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 		rules   []*flipt.Rule
 		results = storage.ResultSet[*flipt.Rule]{}
 
-		query = s.builder.Select("id, namespace_key, flag_key, segment_key, \"rank\", created_at, updated_at").
+		query = s.builder.Select("id, namespace_key, flag_key, \"rank\", segment_operator, created_at, updated_at").
 			From("rules").
 			Where(sq.Eq{"flag_key": flagKey, "namespace_key": namespaceKey}).
 			OrderBy(fmt.Sprintf("\"rank\" %s", params.Order))
@@ -162,10 +198,11 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 			&rule.Id,
 			&rule.NamespaceKey,
 			&rule.FlagKey,
-			&rule.SegmentKey,
 			&rule.Rank,
+			&rule.SegmentOperator,
 			&rCreatedAt,
-			&rUpdatedAt); err != nil {
+			&rUpdatedAt,
+		); err != nil {
 			return results, err
 		}
 
@@ -182,6 +219,46 @@ func (s *Store) ListRules(ctx context.Context, namespaceKey, flagKey string, opt
 
 	if err := rows.Close(); err != nil {
 		return results, err
+	}
+
+	// For each rule, find the segment keys and add them to the rule proto definition.
+	for _, r := range rules {
+		// Since we are querying within a loop, we do not want to defer within the loop
+		// so we will disable the sqlclosecheck linter.
+		segmentRows, err := s.builder.Select("segment_key").
+			From("rule_segments").
+			Where(sq.Eq{"rule_id": r.Id}).
+			QueryContext(ctx)
+		if err != nil {
+			//nolint:sqlclosecheck
+			_ = segmentRows.Close()
+			return results, err
+		}
+
+		segmentKeys := make([]string, 0)
+		for segmentRows.Next() {
+			var segmentKey string
+			if err := segmentRows.Scan(&segmentKey); err != nil {
+				return results, err
+			}
+
+			segmentKeys = append(segmentKeys, segmentKey)
+		}
+
+		if err := segmentRows.Err(); err != nil {
+			return results, err
+		}
+
+		//nolint:sqlclosecheck
+		if err := segmentRows.Close(); err != nil {
+			return results, err
+		}
+
+		if len(segmentKeys) == 1 {
+			r.SegmentKey = segmentKeys[0]
+		} else {
+			r.SegmentKeys = segmentKeys
+		}
 	}
 
 	if err := s.setDistributions(ctx, rulesById); err != nil {
@@ -243,7 +320,8 @@ func (s *Store) setDistributions(ctx context.Context, rulesById map[string]*flip
 			&distribution.VariantId,
 			&distribution.Rollout,
 			&dCreatedAt,
-			&dUpdatedAt); err != nil {
+			&dUpdatedAt,
+		); err != nil {
 			return err
 		}
 
@@ -286,7 +364,9 @@ func (s *Store) CountRules(ctx context.Context, namespaceKey, flagKey string) (u
 }
 
 // CreateRule creates a rule
-func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*flipt.Rule, error) {
+func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (_ *flipt.Rule, err error) {
+	segmentKeys := sanitizeSegmentKeys(r.GetSegmentKey(), r.GetSegmentKeys())
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
@@ -294,57 +374,133 @@ func (s *Store) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest) (*fl
 	var (
 		now  = timestamppb.Now()
 		rule = &flipt.Rule{
-			Id:           uuid.Must(uuid.NewV4()).String(),
-			NamespaceKey: r.NamespaceKey,
-			FlagKey:      r.FlagKey,
-			SegmentKey:   r.SegmentKey,
-			Rank:         r.Rank,
-			CreatedAt:    now,
-			UpdatedAt:    now,
+			Id:              uuid.Must(uuid.NewV4()).String(),
+			NamespaceKey:    r.NamespaceKey,
+			FlagKey:         r.FlagKey,
+			Rank:            r.Rank,
+			SegmentOperator: r.SegmentOperator,
+			CreatedAt:       now,
+			UpdatedAt:       now,
 		}
 	)
 
+	// Force segment operator to be OR when `segmentKeys` length is 1.
+	if len(segmentKeys) == 1 {
+		rule.SegmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
 	if _, err := s.builder.
 		Insert("rules").
-		Columns("id", "namespace_key", "flag_key", "segment_key", "\"rank\"", "created_at", "updated_at").
+		RunWith(tx).
+		Columns("id", "namespace_key", "flag_key", "\"rank\"", "segment_operator", "created_at", "updated_at").
 		Values(
 			rule.Id,
 			rule.NamespaceKey,
 			rule.FlagKey,
-			rule.SegmentKey,
 			rule.Rank,
+			rule.SegmentOperator,
 			&fliptsql.Timestamp{Timestamp: rule.CreatedAt},
-			&fliptsql.Timestamp{Timestamp: rule.UpdatedAt}).
+			&fliptsql.Timestamp{Timestamp: rule.UpdatedAt},
+		).
 		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
-	return rule, nil
+	for _, segmentKey := range segmentKeys {
+		if _, err := s.builder.
+			Insert("rule_segments").
+			RunWith(tx).
+			Columns("rule_id", "namespace_key", "segment_key").
+			Values(
+				rule.Id,
+				rule.NamespaceKey,
+				segmentKey,
+			).
+			ExecContext(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(segmentKeys) == 1 {
+		rule.SegmentKey = segmentKeys[0]
+	} else {
+		rule.SegmentKeys = segmentKeys
+	}
+
+	return rule, tx.Commit()
 }
 
 // UpdateRule updates an existing rule
-func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (*flipt.Rule, error) {
+func (s *Store) UpdateRule(ctx context.Context, r *flipt.UpdateRuleRequest) (_ *flipt.Rule, err error) {
+	segmentKeys := sanitizeSegmentKeys(r.GetSegmentKey(), r.GetSegmentKeys())
+
 	if r.NamespaceKey == "" {
 		r.NamespaceKey = storage.DefaultNamespace
 	}
 
-	query := s.builder.Update("rules").
-		Set("segment_key", r.SegmentKey).
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	var segmentOperator = r.SegmentOperator
+	if len(segmentKeys) == 1 {
+		segmentOperator = flipt.SegmentOperator_OR_SEGMENT_OPERATOR
+	}
+
+	// Set segment operator.
+	_, err = s.builder.Update("rules").
+		RunWith(tx).
+		Set("segment_operator", segmentOperator).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}, sq.Eq{"flag_key": r.FlagKey}})
-
-	res, err := query.ExecContext(ctx)
+		Where(sq.Eq{"id": r.Id, "namespace_key": r.NamespaceKey, "flag_key": r.FlagKey}).
+		ExecContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	count, err := res.RowsAffected()
-	if err != nil {
+	// Delete and reinsert segmentKeys.
+	if _, err = s.builder.Delete("rule_segments").
+		RunWith(tx).
+		Where(sq.And{sq.Eq{"rule_id": r.Id}, sq.Eq{"namespace_key": r.NamespaceKey}}).
+		ExecContext(ctx); err != nil {
 		return nil, err
 	}
 
-	if count != 1 {
-		return nil, errs.ErrNotFoundf(`rule "%s/%s"`, r.NamespaceKey, r.Id)
+	for _, segmentKey := range segmentKeys {
+		if _, err := s.builder.
+			Insert("rule_segments").
+			RunWith(tx).
+			Columns("rule_id", "namespace_key", "segment_key").
+			Values(
+				r.Id,
+				r.NamespaceKey,
+				segmentKey,
+			).
+			ExecContext(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return s.GetRule(ctx, r.NamespaceKey, r.Id)

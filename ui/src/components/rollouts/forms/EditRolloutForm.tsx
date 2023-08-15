@@ -1,12 +1,13 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Form, Formik } from 'formik';
-import { useState } from 'react';
+import { FieldArray, Form, Formik } from 'formik';
 import { useSelector } from 'react-redux';
+import { twMerge } from 'tailwind-merge';
+import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
-import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
+import SegmentsPicker from '~/components/forms/SegmentsPicker';
 import Select from '~/components/forms/Select';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
@@ -14,8 +15,12 @@ import { updateRollout } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { IRollout, RolloutType } from '~/types/Rollout';
-import { FilterableSegment, ISegment } from '~/types/Segment';
-import { truncateKey } from '~/utils/helpers';
+import {
+  FilterableSegment,
+  ISegment,
+  segmentOperators,
+  SegmentOperatorType
+} from '~/types/Segment';
 
 const rolloutRuleTypes = [
   {
@@ -39,9 +44,10 @@ type EditRolloutFormProps = {
 };
 
 interface RolloutFormValues {
-  description?: string;
-  segmentKey?: string;
+  description: string;
+  operator?: SegmentOperatorType;
   percentage?: number;
+  segmentKeys?: FilterableSegment[];
   value: string;
 }
 
@@ -53,19 +59,12 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
 
   const namespace = useSelector(selectCurrentNamespace);
 
-  const [selectedSegment, setSelectedSegment] =
-    useState<FilterableSegment | null>(() => {
-      let selected =
-        segments.find((s) => s.key === rollout.segment?.segmentKey) || null;
-      if (selected) {
-        return {
-          ...selected,
-          displayValue: selected.name,
-          filterValue: selected.key
-        };
-      }
-      return null;
-    });
+  const segmentOperator =
+    rollout.segment && rollout.segment.segmentOperator
+      ? rollout.segment.segmentOperator
+      : SegmentOperatorType.OR;
+
+  const readOnly = useSelector(selectReadonly);
 
   const handleSegmentSubmit = (values: RolloutFormValues) => {
     let rolloutSegment = rollout;
@@ -75,7 +74,8 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
       ...rolloutSegment,
       description: values.description,
       segment: {
-        segmentKey: values.segmentKey || '',
+        segmentKeys: values.segmentKeys?.map((s) => s.key),
+        segmentOperator: values.operator,
         value: values.value === 'true'
       }
     });
@@ -110,15 +110,24 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
       initialValues={{
         type: rollout.type,
         description: rollout.description || '',
-        segmentKey: rollout.segment?.segmentKey || '',
+        segmentKeys: segments.flatMap((s) =>
+          rollout.segment?.segmentKeys?.includes(s.key)
+            ? {
+                ...s,
+                displayValue: s.name,
+                filterValue: s.key
+              }
+            : []
+        ),
+        operator: segmentOperator,
         percentage: rollout.threshold?.percentage,
         value: initialValue
       }}
       validate={(values) => {
         if (values.type === RolloutType.SEGMENT) {
-          if (!values.segmentKey) {
+          if (values.segmentKeys.length <= 0) {
             return {
-              segmentKey: true
+              segmentKeys: true
             };
           }
         } else if (values.type === RolloutType.THRESHOLD) {
@@ -265,25 +274,81 @@ export default function EditRolloutForm(props: EditRolloutFormProps) {
                 <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                   <div>
                     <label
-                      htmlFor="segmentKey"
+                      htmlFor="segmentKeys"
                       className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
                     >
                       Segment
                     </label>
                   </div>
                   <div className="sm:col-span-2">
-                    <Combobox<FilterableSegment>
-                      id="segmentKey"
-                      name="segmentKey"
-                      placeholder="Select or search for a segment"
-                      values={segments.map((s) => ({
-                        ...s,
-                        filterValue: truncateKey(s.key),
-                        displayValue: s.name
-                      }))}
-                      selected={selectedSegment}
-                      setSelected={setSelectedSegment}
-                    />
+                    <div>
+                      <FieldArray
+                        name="segmentKeys"
+                        render={(arrayHelpers) => (
+                          <SegmentsPicker
+                            readonly={readOnly}
+                            segments={segments}
+                            segmentAdd={(segment: FilterableSegment) =>
+                              arrayHelpers.push(segment)
+                            }
+                            segmentRemove={(index: number) =>
+                              arrayHelpers.remove(index)
+                            }
+                            segmentReplace={(
+                              index: number,
+                              segment: FilterableSegment
+                            ) => arrayHelpers.replace(index, segment)}
+                            selectedSegments={formik.values.segmentKeys}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="mt-6 flex space-x-8">
+                      {formik.values.segmentKeys.length > 1 &&
+                        segmentOperators.map((segmentOperator, index) => (
+                          <div className="flex space-x-2" key={index}>
+                            <div>
+                              <input
+                                id={segmentOperator.id}
+                                name="operator"
+                                type="radio"
+                                className={twMerge(
+                                  `text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400 ${
+                                    readOnly ? 'cursor-not-allowed' : undefined
+                                  }`
+                                )}
+                                onChange={() => {
+                                  formik.setFieldValue(
+                                    'operator',
+                                    segmentOperator.id
+                                  );
+                                }}
+                                checked={
+                                  segmentOperator.id === formik.values.operator
+                                }
+                                value={segmentOperator.id}
+                                disabled={readOnly}
+                                title={
+                                  readOnly
+                                    ? 'Not allowed in Read-Only mode'
+                                    : undefined
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor={segmentOperator.id}
+                                className="text-gray-700 block text-sm"
+                              >
+                                {segmentOperator.name}{' '}
+                                <span className="font-light">
+                                  {segmentOperator.meta}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
               )}

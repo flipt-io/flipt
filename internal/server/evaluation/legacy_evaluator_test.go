@@ -849,34 +849,42 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             1,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    1,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
 			{
-				ID:               "2",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "2",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -906,18 +914,22 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             1,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "boz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    1,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "boz",
+							},
+						},
 					},
 				},
 			},
@@ -946,18 +958,22 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             1,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_DATETIME_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "boz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    1,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_DATETIME_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "boz",
+							},
+						},
 					},
 				},
 			},
@@ -987,18 +1003,22 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -1030,18 +1050,22 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -1104,6 +1128,112 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 	}
 }
 
+func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
+	var (
+		store  = &evaluationStoreMock{}
+		logger = zaptest.NewLogger(t)
+		s      = NewEvaluator(logger, store)
+	)
+
+	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
+		[]*storage.EvaluationRule{
+			{
+				ID:              "1",
+				FlagKey:         "foo",
+				Rank:            0,
+				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
+					},
+					"foo": {
+						SegmentKey: "foo",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "company",
+								Operator: flipt.OpEQ,
+								Value:    "flipt",
+							},
+						},
+					},
+				},
+			},
+		}, nil)
+
+	store.On("GetEvaluationDistributions", mock.Anything, "1").Return([]*storage.EvaluationDistribution{}, nil)
+
+	tests := []struct {
+		name      string
+		req       *flipt.EvaluationRequest
+		wantMatch bool
+	}{
+		{
+			name: "match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar":     "baz",
+					"company": "flipt",
+				},
+			},
+			wantMatch: true,
+		},
+		{
+			name: "no match string value",
+			req: &flipt.EvaluationRequest{
+				FlagKey:  "foo",
+				EntityId: "1",
+				Context: map[string]string{
+					"bar": "boz",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		var (
+			req       = tt.req
+			wantMatch = tt.wantMatch
+		)
+
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := s.Evaluate(context.TODO(), enabledFlag, req)
+			assert.NoError(t, err)
+			assert.NotNil(t, resp)
+			assert.Equal(t, "foo", resp.FlagKey)
+			assert.Equal(t, req.Context, resp.RequestContext)
+
+			if !wantMatch {
+				assert.False(t, resp.Match)
+				assert.Empty(t, resp.SegmentKey, "segment key should be empty")
+				return
+			}
+
+			assert.True(t, resp.Match)
+
+			assert.Len(t, resp.SegmentKeys, 2)
+			assert.Contains(t, resp.SegmentKeys, "bar")
+			assert.Contains(t, resp.SegmentKeys, "foo")
+			assert.Empty(t, resp.Value)
+			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, resp.Reason)
+		})
+	}
+}
+
 func TestEvaluator_DistributionNotMatched(t *testing.T) {
 	var (
 		store  = &evaluationStoreMock{}
@@ -1114,26 +1244,30 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
-					},
-					// constraint: admin (bool) == true
-					{
-						ID:       "3",
-						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-						Property: "admin",
-						Operator: flipt.OpTrue,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+							// constraint: admin (bool) == true
+							{
+								ID:       "3",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "admin",
+								Operator: flipt.OpTrue,
+							},
+						},
 					},
 				},
 			},
@@ -1177,26 +1311,30 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
-					},
-					// constraint: admin (bool) == true
-					{
-						ID:       "3",
-						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-						Property: "admin",
-						Operator: flipt.OpTrue,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+							// constraint: admin (bool) == true
+							{
+								ID:       "3",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "admin",
+								Operator: flipt.OpTrue,
+							},
+						},
 					},
 				},
 			},
@@ -1302,19 +1440,23 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -1418,27 +1560,35 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "subscribers",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: premium_user (bool) == true
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-						Property: "premium_user",
-						Operator: flipt.OpTrue,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"subscribers": {
+						SegmentKey: "subscribers",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: premium_user (bool) == true
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "premium_user",
+								Operator: flipt.OpTrue,
+							},
+						},
 					},
 				},
 			},
 			{
-				ID:               "2",
-				FlagKey:          "foo",
-				SegmentKey:       "all_users",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             1,
+				ID:      "2",
+				FlagKey: "foo",
+				Rank:    1,
+				Segments: map[string]*storage.EvaluationSegment{
+					"all_users": {
+						SegmentKey: "all_users",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+					},
+				},
 			},
 		}, nil)
 
@@ -1488,11 +1638,15 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+					},
+				},
 			},
 		}, nil)
 
@@ -1594,18 +1748,22 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -1678,26 +1836,30 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
-					},
-					// constraint: admin (bool) == true
-					{
-						ID:       "3",
-						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-						Property: "admin",
-						Operator: flipt.OpTrue,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+							// constraint: admin (bool) == true
+							{
+								ID:       "3",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "admin",
+								Operator: flipt.OpTrue,
+							},
+						},
 					},
 				},
 			},
@@ -1835,19 +1997,23 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -1951,27 +2117,44 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "subscribers",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: premium_user (bool) == true
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-						Property: "premium_user",
-						Operator: flipt.OpTrue,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"subscribers": {
+						SegmentKey: "subscribers",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: premium_user (bool) == true
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "premium_user",
+								Operator: flipt.OpTrue,
+							},
+						},
 					},
 				},
 			},
 			{
-				ID:               "2",
-				FlagKey:          "foo",
-				SegmentKey:       "all_users",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             1,
+				ID:      "2",
+				FlagKey: "foo",
+				Rank:    1,
+				Segments: map[string]*storage.EvaluationSegment{
+					"all_users": {
+						SegmentKey: "all_users",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: premium_user (bool) == true
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Property: "premium_user",
+								Operator: flipt.OpTrue,
+							},
+						},
+					},
+				},
 			},
 		}, nil)
 
@@ -2021,11 +2204,15 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ANY_MATCH_TYPE,
-				Rank:             0,
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
 			},
 		}, nil)
 
@@ -2127,19 +2314,23 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},
@@ -2222,19 +2413,23 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:               "1",
-				FlagKey:          "foo",
-				SegmentKey:       "bar",
-				SegmentMatchType: flipt.MatchType_ALL_MATCH_TYPE,
-				Rank:             0,
-				Constraints: []storage.EvaluationConstraint{
-					// constraint: bar (string) == baz
-					{
-						ID:       "2",
-						Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-						Property: "bar",
-						Operator: flipt.OpEQ,
-						Value:    "baz",
+				ID:      "1",
+				FlagKey: "foo",
+				Rank:    0,
+				Segments: map[string]*storage.EvaluationSegment{
+					"bar": {
+						SegmentKey: "bar",
+						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []storage.EvaluationConstraint{
+							// constraint: bar (string) == baz
+							{
+								ID:       "2",
+								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Property: "bar",
+								Operator: flipt.OpEQ,
+								Value:    "baz",
+							},
+						},
 					},
 				},
 			},

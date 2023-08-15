@@ -1,5 +1,5 @@
 import { IDistribution } from './Distribution';
-import { ISegment } from './Segment';
+import { ISegment, SegmentOperatorType } from './Segment';
 import { IVariant } from './Variant';
 
 export interface IVariantRollout {
@@ -9,7 +9,9 @@ export interface IVariantRollout {
 
 export interface IEvaluatable {
   id: string;
-  segment: ISegment;
+  segment?: ISegment;
+  segments: ISegment[];
+  operator: SegmentOperatorType;
   rank: number;
   rollouts: IVariantRollout[];
   createdAt: string;

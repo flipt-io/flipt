@@ -77,10 +77,13 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 	ver := &rpcevaluation.VariantEvaluationResponse{
 		Match:             resp.Match,
-		SegmentKeys:       []string{resp.SegmentKey},
 		Reason:            reason,
 		VariantKey:        resp.Value,
 		VariantAttachment: resp.Attachment,
+	}
+
+	if len(resp.SegmentKeys) > 0 {
+		ver.SegmentKeys = resp.SegmentKeys
 	}
 
 	return ver, nil
@@ -190,20 +193,43 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 				return resp, nil
 			}
 		} else if rollout.Segment != nil {
-			matched, reason, err := matchConstraints(r.Context, rollout.Segment.Constraints, rollout.Segment.MatchType)
-			if err != nil {
-				return nil, err
+
+			var (
+				segmentMatches = 0
+				segmentKeys    = []string{}
+			)
+
+			for k, v := range rollout.Segment.Segments {
+				segmentKeys = append(segmentKeys, k)
+				matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
+				if err != nil {
+					return nil, err
+				}
+
+				// if we don't match the segment, fall through to the next rollout.
+				if matched {
+					s.logger.Debug(reason)
+					segmentMatches++
+				}
 			}
 
-			// if we don't match the segment, fall through to the next rollout.
-			if !matched {
-				s.logger.Debug(reason)
-				continue
+			switch rollout.Segment.SegmentOperator {
+			case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+				if segmentMatches < 1 {
+					s.logger.Debug("did not match ANY segments")
+					continue
+				}
+			case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+				if len(rollout.Segment.Segments) != segmentMatches {
+					s.logger.Debug("did not match ALL segments")
+					continue
+				}
 			}
 
 			resp.Enabled = rollout.Segment.Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
-			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.String("segment", rollout.Segment.Key))
+
+			s.logger.Debug("segment based matched", zap.Int("rank", int(rollout.Rank)), zap.Strings("segments", segmentKeys))
 			return resp, nil
 		}
 	}
@@ -211,6 +237,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	// If we have exhausted all rollouts and we still don't have a match, return flag enabled value.
 	resp.Reason = rpcevaluation.EvaluationReason_DEFAULT_EVALUATION_REASON
 	resp.Enabled = flag.Enabled
+
 	s.logger.Debug("default rollout matched", zap.Bool("enabled", flag.Enabled))
 	return resp, nil
 }

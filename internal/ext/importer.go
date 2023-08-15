@@ -248,12 +248,21 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				rank = int32(idx) + 1
 			}
 
-			rule, err := i.creator.CreateRule(ctx, &flipt.CreateRuleRequest{
+			fcr := &flipt.CreateRuleRequest{
 				FlagKey:      f.Key,
-				SegmentKey:   r.SegmentKey,
 				Rank:         rank,
 				NamespaceKey: namespace,
-			})
+			}
+
+			switch s := r.Segment.IsSegment.(type) {
+			case SegmentKey:
+				fcr.SegmentKey = string(s)
+			case *Segments:
+				fcr.SegmentKeys = s.Keys
+				fcr.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[s.SegmentOperator])
+			}
+
+			rule, err := i.creator.CreateRule(ctx, fcr)
 
 			if err != nil {
 				return fmt.Errorf("creating rule: %w", err)
@@ -309,11 +318,35 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				}
 
 				if r.Segment != nil {
+					frs := &flipt.RolloutSegment{
+						Value:      r.Segment.Value,
+						SegmentKey: r.Segment.Key,
+					}
+
+					if len(r.Segment.Keys) > 0 && r.Segment.Key != "" {
+						return fmt.Errorf("rollout %s/%s/%d cannot have both segment.keys and segment.key",
+							namespace,
+							f.Key,
+							idx,
+						)
+					}
+
+					// support explicitly setting only "keys" on rules from 1.2
+					if len(r.Segment.Keys) > 0 {
+						if err := ensureFieldSupported("flag.rollouts[*].segment.keys", semver.Version{
+							Major: 1,
+							Minor: 2,
+						}, v); err != nil {
+							return err
+						}
+
+						frs.SegmentKeys = r.Segment.Keys
+					}
+
+					frs.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[r.Segment.Operator])
+
 					req.Rule = &flipt.CreateRolloutRequest_Segment{
-						Segment: &flipt.RolloutSegment{
-							SegmentKey: r.Segment.Key,
-							Value:      r.Segment.Value,
-						},
+						Segment: frs,
 					}
 				} else if r.Threshold != nil {
 					req.Rule = &flipt.CreateRolloutRequest_Threshold{
