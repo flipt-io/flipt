@@ -7,7 +7,7 @@ export default function ErrorNotification() {
 
   return (
     <Transition show={error !== null}>
-      <div className="max-w-s fixed bottom-0 right-2 z-50 m-4">
+      <div className="max-w-s fixed bottom-0 right-2 z-50 m-4 w-1/3">
         <div
           className="bg-red-50 border-red-100 rounded-md border p-4 shadow"
           role="alert"
