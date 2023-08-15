@@ -155,7 +155,7 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod&label=go) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [Node/TypeScript](https://github.com/flipt-io/flipt-node) | [![npm](https://img.shields.io/npm/v/@flipt-io/flipt)](https://www.npmjs.com/package/@flipt-io/flipt) | ![status](https://img.shields.io/badge/status-hardening-orange) |
 | [Java](https://github.com/flipt-io/flipt-java) | ![Maven Central](https://img.shields.io/maven-central/v/io.flipt/flipt-java) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
-| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
+| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 | [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 
 ### GRPC Client Libraries
@@ -164,6 +164,7 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | -------- | ------- | ------ |
 | [Go](./sdk/go) | ![Go mod](https://img.shields.io/github/go-mod/go-version/flipt-io/flipt?filename=sdk%2Fgo%2Fgo.mod&label=go) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [Ruby](https://github.com/flipt-io/flipt-grpc-ruby) | ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/flipt-io/flipt-grpc-ruby?color=red&label=gem&sort=semver) | ![stable](https://img.shields.io/badge/status-stable-green) |
+| [.NET](https://github.com/flipt-io/flipt-grpc-dotnet) | ![Nuget](https://img.shields.io/nuget/v/flipt.grpc) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
 
 ### Generate Your Own
 
@@ -263,6 +264,9 @@ Some of the organizations depending on Flipt in production.
     </a>&nbsp;&nbsp;
     <a href="https://www.gov.uk/government/organisations/ministry-of-justice">
         <img src="./logos/users/uk-moj.png" alt="UK Ministry of Justice" width="200" />
+    </a>&nbsp;&nbsp;
+    <a href="https://www.ocrolus.com">
+        <img src="./logos/users/ocrolus.svg" alt="Ocrolus" width="250" />
     </a>
 </p>
 
