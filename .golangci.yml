@@ -16,6 +16,7 @@ run:
     - "dist"
     - "rpc/flipt"
     - "ui"
+    - "sdk"
 
   skip-files:
     - ".*pb.go"
