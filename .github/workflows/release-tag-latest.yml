@@ -49,7 +49,7 @@ jobs:
           username: "${{ github.repository_owner }}"
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: magefile/mage-action@v2
+      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
           version: latest
           args: prep
@@ -69,4 +69,5 @@ jobs:
 
             docker pull ghcr.io/flipt-io/flipt:$TAG
             skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
+          fi
  
