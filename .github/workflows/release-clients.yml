@@ -29,6 +29,7 @@ jobs:
         run: |
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${{ inputs.tag }}"
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-ruby -f tag="${{ inputs.tag }}"
+          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-dotnet -f tag="${{ inputs.tag }}"
 
       - name: Trigger Workflow (Release)
         if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
@@ -38,3 +39,4 @@ jobs:
           tag=$(echo $GITHUB_REF_NAME)
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-go -f tag="${tag}"
           gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-ruby -f tag="${tag}"
+          gh workflow run proto-upgrade.yml -R flipt-io/flipt-grpc-dotnet -f tag="${{ inputs.tag }}"
