@@ -1,6 +1,10 @@
 name: Tag Latest Release
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Flipt release version to attempt tagging
+        required: true
 
 permissions:
   contents: write
@@ -52,7 +56,7 @@ jobs:
 
       - name: Tag and Push latest
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag }}
         run: |
           cd build
 
