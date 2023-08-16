@@ -69,4 +69,5 @@ jobs:
 
             docker pull ghcr.io/flipt-io/flipt:$TAG
             skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
+          fi
  
