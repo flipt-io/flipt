@@ -8,6 +8,8 @@ import { toLower, upperFirst } from 'lodash';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import logoFlag from '~/assets/logo-flag.png';
+import { NotificationProvider } from '~/components/NotificationProvider';
+import ErrorNotification from '~/components/notifications/ErrorNotification';
 import { listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
@@ -33,7 +35,7 @@ const knownProviders: Record<string, ILoginProvider> = {
   }
 };
 
-export default function Login() {
+function InnerLogin() {
   const { session } = useSession();
 
   const [providers, setProviders] = useState<
@@ -56,7 +58,8 @@ export default function Login() {
     });
 
     if (!res.ok || res.status !== 200) {
-      setError('Unable to authenticate: ' + res.text());
+      const { message } = await res.json();
+      setError('Unable to authenticate: ' + message);
       return;
     }
 
@@ -179,5 +182,14 @@ export default function Login() {
         </main>
       </div>
     </>
+  );
+}
+
+export default function Login() {
+  return (
+    <NotificationProvider>
+      <InnerLogin />
+      <ErrorNotification />
+    </NotificationProvider>
   );
 }
