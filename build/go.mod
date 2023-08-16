@@ -21,7 +21,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tsenart/vegeta v12.7.0+incompatible
 	go.flipt.io/flipt v1.23.3
-	go.flipt.io/flipt/rpc/flipt v1.24.0
+	go.flipt.io/flipt/rpc/flipt v1.25.0
 	go.flipt.io/flipt/sdk/go v0.4.0
 	golang.org/x/mod v0.12.0
 	golang.org/x/sync v0.3.0
