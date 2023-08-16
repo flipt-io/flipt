@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.25.0](https://github.com/flipt-io/flipt/releases/tag/v1.25.0) - 2023-08-16
+
+### Added
+
+- `ui`: copy flag/segment key to clipboard button in ui (#1987)
+- `storage/cache`: add redis connection optional params (#1983)
+- `ui`: Force readonly (#1973)
+- `fs/s3`: Add support for prefix filtering (#1938)
+- `config/flipt.schema.*`: add oidc provider scopes property (#1946)
+- `segment-anding`: the ability to and or or multiple segments in rules and rollouts (#1941)
+
+### Changed
+
+- `fs`: Graduate filesystem storage (#1976)
+
+### Fixed
+
+- `ui`: make flags/segments inputs disabled in readonly mode (#1986)
+
 ## [v1.24.2](https://github.com/flipt-io/flipt/releases/tag/v1.24.2) - 2023-08-07
 
 ### Fixed
