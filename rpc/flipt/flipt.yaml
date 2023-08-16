@@ -306,3 +306,7 @@ http:
   - selector: flipt.auth.AuthenticationMethodKubernetesService.VerifyServiceAccount
     post: /auth/v1/method/kubernetes/serviceaccount
     body: "*"
+  # method: github
+  - selector: flipt.auth.AuthenticationMethodGithubService.GithubCallback
+    post: /auth/v1/method/github/callback
+    body: "*"
