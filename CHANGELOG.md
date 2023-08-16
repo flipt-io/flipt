@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `config/flipt.schema.*`: add oidc provider scopes property (#1946)
 - `segment-anding`: the ability to and or or multiple segments in rules and rollouts (#1941)
 
+### Changed
+
+- `fs`: Graduate external storage ([#1976](https://github.com/flipt-io/flipt/pull/1976))
+
 ### Fixed
 
 - `ui`: make flags/segments inputs disabled in readonly mode (#1986)
