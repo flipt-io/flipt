@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- `fs`: Graduate external storage ([#1976](https://github.com/flipt-io/flipt/pull/1976))
+- `fs`: Graduate filesystem storage (#1976)
 
 ### Fixed
 
