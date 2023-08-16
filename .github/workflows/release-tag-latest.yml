@@ -49,7 +49,7 @@ jobs:
           username: "${{ github.repository_owner }}"
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: magefile/mage-action@v2
+      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
         with:
           version: latest
           args: prep
