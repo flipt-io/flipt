@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/cache/memory"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
@@ -26,6 +27,7 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -156,6 +158,38 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestCacheControlUnaryInterceptor(t *testing.T) {
+	var (
+		ctx       = context.Background()
+		req       = "request"
+		info      = &grpc.UnaryServerInfo{}
+		wantCache = false
+		handler   = func(ctx context.Context, grpc_recovery interface{}) (interface{}, error) {
+			// Check if do not store was set on context
+			ok := cache.IsDoNotStore(ctx)
+			require.Equal(t, wantCache, ok)
+			return "response", nil
+		}
+	)
+
+	t.Run("No Cache Control", func(t *testing.T) {
+		wantCache = false
+		resp, err := CacheControlUnaryInterceptor(ctx, req, info, handler)
+		assert.NoError(t, err)
+		assert.Equal(t, "response", resp)
+	})
+
+	t.Run("Cache Control No Store", func(t *testing.T) {
+		wantCache = true
+		md := metadata.Pairs(cacheControlHeaderKey, cacheControlNoStore)
+		ctx := metadata.NewIncomingContext(ctx, md)
+
+		resp, err := CacheControlUnaryInterceptor(ctx, req, info, handler)
+		assert.NoError(t, err)
+		assert.Equal(t, "response", resp)
+	})
 }
 
 func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {
