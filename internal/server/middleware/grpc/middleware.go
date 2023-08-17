@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -20,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
@@ -29,6 +31,29 @@ func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 	if v, ok := req.(flipt.Validator); ok {
 		if err := v.Validate(); err != nil {
 			return nil, err
+		}
+	}
+
+	return handler(ctx, req)
+}
+
+const (
+	cacheControlHeaderKey = "cache-control"
+	cacheControlNoStore   = "no-store"
+)
+
+func CacheControlUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+
+	md, _ := metadata.FromIncomingContext(ctx)
+	cacheControl := md.Get(cacheControlHeaderKey)
+	if len(cacheControl) > 0 {
+		// check for no-store
+		for _, cc := range cacheControl {
+			if strings.TrimSpace(cc) == cacheControlNoStore {
+				// set do not store on context if requested by client
+				ctx = cache.WithDoNotStore(ctx)
+				return handler(ctx, req)
+			}
 		}
 	}
 

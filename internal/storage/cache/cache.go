@@ -32,6 +32,11 @@ func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Sto
 }
 
 func (s *Store) set(ctx context.Context, key string, value interface{}, marshal func(interface{}) ([]byte, error)) {
+	if cache.IsDoNotStore(ctx) {
+		s.logger.Debug("skipping storage cache as 'no-store' was set")
+		return
+	}
+
 	cachePayload, err := marshal(value)
 	if err != nil {
 		s.logger.Error("marshalling for storage cache", zap.Error(err))
