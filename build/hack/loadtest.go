@@ -47,7 +47,13 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 	var cacheEnabled bool
 	if cacheEnabledEnv := os.Getenv("FLIPT_CACHE_ENABLED"); cacheEnabledEnv == "true" || cacheEnabledEnv == "1" {
 		cacheEnabled = true
-		flipt = flipt.WithEnvVariable("FLIPT_CACHE_ENABLED", "true")
+		flipt = flipt.WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
+			WithEnvVariable("FLIPT_CACHE_BACKEND", "redis").
+			WithEnvVariable("FLIPT_CACHE_REDIS_HOST", "redis").
+			WithServiceBinding("redis", client.Container().
+				From("redis").
+				WithExposedPort(6379).
+				WithExec(nil))
 	}
 
 	flipt = flipt.WithExec(nil)
