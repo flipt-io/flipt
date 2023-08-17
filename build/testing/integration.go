@@ -323,6 +323,11 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			return
 		}
 
+		// NOTE: this is a hack to give Dagger a chance to prepare the service container.
+		// I dont know why it works, but I have had success elsewhere.
+		// Without this, in CI, I see the tests starting before the service container is ready and they receive no such host.
+		_, _ = flipt.Endpoint(ctx)
+
 		flags := []string{"--flipt-addr", conf.address}
 		if conf.namespace != "" {
 			flags = append(flags, "--flipt-namespace", conf.namespace)
