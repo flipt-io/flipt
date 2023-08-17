@@ -257,7 +257,8 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		var (
 			// create unique instance for test case
 			fliptToTest = flipt.
-					WithEnvVariable("UNIQUE", uuid.New().String())
+					WithEnvVariable("UNIQUE", uuid.New().String()).
+					WithExec(nil)
 
 			importCmd = append([]string{"/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
 		)
@@ -266,7 +267,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			// copy testdata import yaml from base
 			WithFile("import.yaml", seed).
-			WithServiceBinding("flipt", fliptToTest.WithExec(nil)).
+			WithServiceBinding("flipt", fliptToTest).
 			// it appears it takes a little while for Flipt to come online
 			// For the go tests they have to compile and that seems to be enough
 			// time for the target Flipt to come up.
