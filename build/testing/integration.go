@@ -155,7 +155,7 @@ func take(fn func() error) func() error {
 func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return suite(ctx, "api", base,
 		// create unique instance for test case
-		flipt.WithEnvVariable("UNIQUE", uuid.New().String()), conf)
+		flipt.WithEnvVariable("UNIQUE", uuid.New().String()).WithExec(nil), conf)
 }
 
 func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -163,7 +163,7 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true")
 
-	return suite(ctx, "api", base, flipt, conf)
+	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
 }
 
 const (
@@ -179,7 +179,7 @@ func local(ctx context.Context, client *dagger.Client, base, flipt *dagger.Conta
 		WithEnvVariable("FLIPT_STORAGE_LOCAL_PATH", "/tmp/testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt, conf)
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
 
 func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -203,7 +203,7 @@ func git(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_STORAGE_GIT_REPOSITORY", "http://gitea:3000/root/features.git").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt, conf)
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
 
 func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -235,7 +235,7 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_BUCKET", "testdata").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
-	return suite(ctx, "readonly", base, flipt, conf)
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
 
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
@@ -322,11 +322,6 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 
 func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() (err error) {
-		flipt, err = flipt.Sync(ctx)
-		if err != nil {
-			return
-		}
-
 		flags := []string{"--flipt-addr", conf.address}
 		if conf.namespace != "" {
 			flags = append(flags, "--flipt-namespace", conf.namespace)
@@ -339,7 +334,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		_, err = base.
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithServiceBinding("flipt", flipt.WithExec(nil)).
+			WithServiceBinding("flipt", flipt).
 			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=1m -race %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
