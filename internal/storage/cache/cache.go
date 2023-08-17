@@ -30,8 +30,8 @@ func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Sto
 	return &Store{Store: store, cacher: cacher, logger: logger}
 }
 
-func (s *Store) setProto(ctx context.Context, key string, value proto.Message) {
-	cachePayload, err := proto.Marshal(value)
+func (s *Store) set(ctx context.Context, key string, value interface{}, marshal func(interface{}) ([]byte, error)) {
+	cachePayload, err := marshal(value)
 	if err != nil {
 		s.logger.Error("marshalling for storage cache", zap.Error(err))
 		return
@@ -41,55 +41,43 @@ func (s *Store) setProto(ctx context.Context, key string, value proto.Message) {
 	if err != nil {
 		s.logger.Error("setting in storage cache", zap.Error(err))
 	}
+}
+
+func (s *Store) get(ctx context.Context, key string, value interface{}, unmarshal func([]byte, interface{}) error) bool {
+	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
+	if err != nil {
+		s.logger.Error("getting from storage cache", zap.Error(err))
+		return false
+	} else if !cacheHit {
+		return false
+	}
+
+	err = unmarshal(cachePayload, value)
+	if err != nil {
+		s.logger.Error("unmarshalling from storage cache", zap.Error(err))
+		return false
+	}
+
+	return true
+}
+
+func (s *Store) setProto(ctx context.Context, key string, value proto.Message) {
+	s.set(ctx, key, value, func(v interface{}) ([]byte, error) {
+		return proto.Marshal(v.(proto.Message))
+	})
 }
 
 func (s *Store) getProto(ctx context.Context, key string, value proto.Message) bool {
-	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
-	if err != nil {
-		s.logger.Error("getting from storage cache", zap.Error(err))
-		return false
-	} else if !cacheHit {
-		return false
-	}
-
-	err = proto.Unmarshal(cachePayload, value)
-	if err != nil {
-		s.logger.Error("unmarshalling from storage cache", zap.Error(err))
-		return false
-	}
-
-	return true
+	return s.get(ctx, key, value, func(data []byte, v interface{}) error {
+		return proto.Unmarshal(data, v.(proto.Message))
+	})
 }
-
 func (s *Store) setJSON(ctx context.Context, key string, value any) {
-	cachePayload, err := json.Marshal(value)
-	if err != nil {
-		s.logger.Error("marshalling for storage cache", zap.Error(err))
-		return
-	}
-
-	err = s.cacher.Set(ctx, key, cachePayload)
-	if err != nil {
-		s.logger.Error("setting in storage cache", zap.Error(err))
-	}
+	s.set(ctx, key, value, json.Marshal)
 }
 
 func (s *Store) getJSON(ctx context.Context, key string, value any) bool {
-	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
-	if err != nil {
-		s.logger.Error("getting from storage cache", zap.Error(err))
-		return false
-	} else if !cacheHit {
-		return false
-	}
-
-	err = json.Unmarshal(cachePayload, value)
-	if err != nil {
-		s.logger.Error("unmarshalling from storage cache", zap.Error(err))
-		return false
-	}
-
-	return true
+	return s.get(ctx, key, value, json.Unmarshal)
 }
 
 func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRule, error) {
