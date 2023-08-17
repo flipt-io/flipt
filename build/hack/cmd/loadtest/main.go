@@ -50,7 +50,7 @@ func main() {
 			EntityId: uuid.Must(uuid.NewV4()).String(),
 			FlagKey:  "flag_010",
 			Context: map[string]string{
-				"in_segment": "segment_001",
+				"in_segment": "baz",
 			},
 		}
 
@@ -73,7 +73,7 @@ func main() {
 			EntityId: uuid.Must(uuid.NewV4()).String(),
 			FlagKey:  "flag_boolean",
 			Context: map[string]string{
-				"in_segment": "segment_001",
+				"in_segment": "baz",
 			},
 		}
 
