@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	protocolPorts = map[string]string{"http": "8080", "grpc": "9000"}
+	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
 	sema          = make(chan struct{}, 6)
 
@@ -38,6 +38,7 @@ type testConfig struct {
 	namespace string
 	address   string
 	token     string
+	port      int
 }
 
 type testCaseFn func(_ context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error
@@ -88,8 +89,9 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					testConfig{
 						name:      name,
 						namespace: namespace,
-						address:   fmt.Sprintf("%s://flipt:%s", protocol, port),
+						address:   fmt.Sprintf("%s://flipt:%d", protocol, port),
 						token:     token,
+						port:      port,
 					},
 				)
 			}
@@ -120,7 +122,8 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				WithEnvVariable("CI", os.Getenv("CI")).
 				WithEnvVariable("FLIPT_LOG_LEVEL", "debug").
 				WithEnvVariable("FLIPT_LOG_FILE", fmt.Sprintf("/var/opt/flipt/logs/%s.log", name)).
-				WithMountedCache("/var/opt/flipt/logs", logs)
+				WithMountedCache("/var/opt/flipt/logs", logs).
+				WithExposedPort(config.port)
 
 			g.Go(take(fn(ctx, client, base, flipt, config)))
 		}
@@ -323,11 +326,6 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			return
 		}
 
-		// NOTE: this is a hack to give Dagger a chance to prepare the service container.
-		// I dont know why it works, but I have had success elsewhere.
-		// Without this, in CI, I see the tests starting before the service container is ready and they receive no such host.
-		_, _ = flipt.Endpoint(ctx)
-
 		flags := []string{"--flipt-addr", conf.address}
 		if conf.namespace != "" {
 			flags = append(flags, "--flipt-namespace", conf.namespace)
@@ -338,10 +336,10 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 		}
 
 		_, err = base.
-			WithServiceBinding("flipt", flipt.WithExec(nil)).
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
-			WithExec(append([]string{"go", "test", "-v", "-timeout=1m", "-race"}, append(flags, ".")...)).
+			WithServiceBinding("flipt", flipt.WithExec(nil)).
+			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && go test -v -timeout=1m -race %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
 		return err
