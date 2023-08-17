@@ -7,6 +7,7 @@ import (
 
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
@@ -72,12 +73,32 @@ func (s *Store) getProto(ctx context.Context, key string, value proto.Message) b
 		return proto.Unmarshal(data, v.(proto.Message))
 	})
 }
+
 func (s *Store) setJSON(ctx context.Context, key string, value any) {
 	s.set(ctx, key, value, json.Marshal)
 }
 
 func (s *Store) getJSON(ctx context.Context, key string, value any) bool {
 	return s.get(ctx, key, value, json.Unmarshal)
+}
+
+func (s *Store) GetFlag(ctx context.Context, namespaceKey, key string) (*flipt.Flag, error) {
+	cacheKey := fmt.Sprintf(flagCacheKeyFmt, namespaceKey, key)
+
+	var flag = &flipt.Flag{}
+
+	cacheHit := s.getProto(ctx, cacheKey, flag)
+	if cacheHit {
+		return flag, nil
+	}
+
+	flag, err := s.Store.GetFlag(ctx, namespaceKey, key)
+	if err != nil {
+		return nil, err
+	}
+
+	s.setProto(ctx, cacheKey, flag)
+	return flag, nil
 }
 
 func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRule, error) {
