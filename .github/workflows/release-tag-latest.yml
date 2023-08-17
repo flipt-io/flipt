@@ -1,15 +1,17 @@
-name: Release
+name: Tag Latest Release
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Flipt release version to attempt tagging
+        required: true
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  release:
+  tag-latest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -29,27 +31,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-tools-
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - uses: docker/setup-qemu-action@v2
-
-      - uses: docker/setup-buildx-action@v2
-
-      - name: Install GCC for arm64
-        run: |
-          sudo apt-get update &&
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-
       - name: Install Skopeo
         run: |
           sudo apt-get update
           sudo apt-get -y install skopeo
-
-      - name: Install Syft
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -69,22 +54,9 @@ jobs:
           version: latest
           args: prep
 
-      - name: GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          distribution: goreleaser-pro
-          version: latest
-          args: release --clean
-        env:
-          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
-          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
-          DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-
       - name: Tag and Push latest
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ inputs.tag }}
         run: |
           cd build
 
@@ -98,3 +70,4 @@ jobs:
             docker pull ghcr.io/flipt-io/flipt:$TAG
             skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
           fi
+ 
