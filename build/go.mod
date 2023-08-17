@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	code.gitea.io/sdk/gitea v0.15.1
-	dagger.io/dagger v0.7.3
+	dagger.io/dagger v0.8.3
 	github.com/aws/aws-sdk-go-v2 v1.19.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.28
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.37.0
@@ -32,7 +32,7 @@ require (
 )
 
 require (
-	github.com/99designs/gqlgen v0.17.34 // indirect
+	github.com/99designs/gqlgen v0.17.36 // indirect
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/Khan/genqlient v0.6.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -83,6 +83,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matryer/is v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
@@ -94,18 +95,18 @@ require (
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/streadway/quantile v0.0.0-20220407130108-4246515d968d // indirect
-	github.com/vektah/gqlparser/v2 v2.5.6 // indirect
+	github.com/vektah/gqlparser/v2 v2.5.8 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	go.flipt.io/flipt/errors v1.19.3 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/oauth2 v0.8.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
-	golang.org/x/tools v0.11.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/tools v0.12.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230526203410-71b5a4ffd15e // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
