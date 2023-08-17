@@ -161,35 +161,45 @@ func TestErrorUnaryInterceptor(t *testing.T) {
 }
 
 func TestCacheControlUnaryInterceptor(t *testing.T) {
-	var (
-		ctx       = context.Background()
-		req       = "request"
-		info      = &grpc.UnaryServerInfo{}
-		wantCache = false
-		handler   = func(ctx context.Context, grpc_recovery interface{}) (interface{}, error) {
-			// Check if do not store was set on context
-			ok := cache.IsDoNotStore(ctx)
-			require.Equal(t, wantCache, ok)
-			return "response", nil
-		}
-	)
+	tests := []struct {
+		name      string
+		ctxFn     func() context.Context
+		wantCache bool
+	}{
+		{
+			name:  "no cache control",
+			ctxFn: context.Background,
+		},
+		{
+			name: "cache control no store",
+			ctxFn: func() context.Context {
+				md := metadata.Pairs(cacheControlHeaderKey, cacheControlNoStore)
+				return metadata.NewIncomingContext(context.Background(), md)
+			},
+			wantCache: true,
+		},
+	}
 
-	t.Run("No Cache Control", func(t *testing.T) {
-		wantCache = false
-		resp, err := CacheControlUnaryInterceptor(ctx, req, info, handler)
-		assert.NoError(t, err)
-		assert.Equal(t, "response", resp)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-	t.Run("Cache Control No Store", func(t *testing.T) {
-		wantCache = true
-		md := metadata.Pairs(cacheControlHeaderKey, cacheControlNoStore)
-		ctx := metadata.NewIncomingContext(ctx, md)
+			var (
+				req     = "request"
+				info    = &grpc.UnaryServerInfo{}
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					// check if do not store was set on context
+					ok := cache.IsDoNotStore(ctx)
+					require.Equal(t, tt.wantCache, ok)
+					return "response", nil
+				}
+				ctx = tt.ctxFn()
+			)
 
-		resp, err := CacheControlUnaryInterceptor(ctx, req, info, handler)
-		assert.NoError(t, err)
-		assert.Equal(t, "response", resp)
-	})
+			resp, err := CacheControlUnaryInterceptor(ctx, req, info, handler)
+			assert.NoError(t, err)
+			assert.Equal(t, "response", resp)
+		})
+	}
 }
 
 func TestEvaluationUnaryInterceptor_Noop(t *testing.T) {

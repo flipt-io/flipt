@@ -245,7 +245,12 @@ func NewGRPCServer(
 
 	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
-		cacher, cacheShutdown, err := getCache(ctx, cfg)
+		var (
+			cacheShutdown errFunc
+			err           error
+		)
+
+		cacher, cacheShutdown, err = getCache(ctx, cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -310,7 +315,7 @@ func NewGRPCServer(
 
 	// cache must come after auth interceptors
 	if cfg.Cache.Enabled && cacher != nil {
-		interceptors = append(interceptors, middlewaregrpc.EvaluationCacheUnaryInterceptor(cacher, logger))
+		interceptors = append(interceptors, middlewaregrpc.CacheControlUnaryInterceptor, middlewaregrpc.EvaluationCacheUnaryInterceptor(cacher, logger))
 	}
 
 	// audit sinks configuration
@@ -380,7 +385,7 @@ func NewGRPCServer(
 	return server, nil
 }
 
-// NewObjectStore create a new storate.Store from the object config
+// NewObjectStore create a new storate.Store from tDefaultHeaderMatcher object config
 func NewObjectStore(cfg *config.Config, logger *zap.Logger) (storage.Store, error) {
 	objectCfg := cfg.Storage.Object
 	var store storage.Store

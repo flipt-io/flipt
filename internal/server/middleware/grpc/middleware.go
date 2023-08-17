@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/cache"
 	"go.flipt.io/flipt/internal/server/audit"
@@ -38,12 +39,11 @@ func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 }
 
 const (
-	cacheControlHeaderKey = "cache-control"
+	cacheControlHeaderKey = runtime.MetadataPrefix + "cache-control"
 	cacheControlNoStore   = "no-store"
 )
 
 func CacheControlUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-
 	md, _ := metadata.FromIncomingContext(ctx)
 	cacheControl := md.Get(cacheControlHeaderKey)
 	if len(cacheControl) > 0 {
