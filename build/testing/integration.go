@@ -125,7 +125,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 				WithMountedCache("/var/opt/flipt/logs", logs).
 				WithExposedPort(config.port)
 
-			g.Go(take(fn(ctx, client, base, flipt, config)))
+			g.Go(take(fn(ctx, client, base.Pipeline(name), flipt, config)))
 		}
 	}
 
@@ -266,7 +266,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			// copy testdata import yaml from base
 			WithFile("import.yaml", seed).
-			WithServiceBinding("flipt", fliptToTest).
+			WithServiceBinding("flipt", fliptToTest.WithExec(nil)).
 			// it appears it takes a little while for Flipt to come online
 			// For the go tests they have to compile and that seems to be enough
 			// time for the target Flipt to come up.
@@ -339,7 +339,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			WithWorkdir(path.Join("build/testing/integration", dir)).
 			WithEnvVariable("UNIQUE", uuid.New().String()).
 			WithServiceBinding("flipt", flipt.WithExec(nil)).
-			WithExec([]string{"sh", "-c", fmt.Sprintf("sleep 2 && go test -v -timeout=1m -race %s .", strings.Join(flags, " "))}).
+			WithExec([]string{"sh", "-c", fmt.Sprintf("go test -v -timeout=1m -race %s .", strings.Join(flags, " "))}).
 			Sync(ctx)
 
 		return err
