@@ -231,7 +231,9 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 		t.Log("Get flag \"test\" and check variants.")
 
-		time.Sleep(1 * time.Second)
+		// TODO: don't love this..
+		// wait for flag cache to expire when running with cache
+		time.Sleep(750 * time.Microsecond)
 
 		flag, err = client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
 			NamespaceKey: namespace,
