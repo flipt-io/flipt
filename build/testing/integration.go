@@ -161,6 +161,7 @@ func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container,
 	flipt = flipt.
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
+		WithEnvVariable("FLIPT_CACHE_TTL", "500ms").
 		WithExec(nil)
 
 	return suite(ctx, "api", base, flipt, conf)
