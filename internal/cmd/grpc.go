@@ -385,7 +385,7 @@ func NewGRPCServer(
 	return server, nil
 }
 
-// NewObjectStore create a new storate.Store from tDefaultHeaderMatcher object config
+// NewObjectStore create a new storate.Store from the object config
 func NewObjectStore(cfg *config.Config, logger *zap.Logger) (storage.Store, error) {
 	objectCfg := cfg.Storage.Object
 	var store storage.Store
