@@ -238,6 +238,8 @@ func authenticationHTTPMount(
 			runtime.WithMetadata(method.ForwardCookies),
 			runtime.WithForwardResponseOption(oauthmiddleware.ForwardResponseOption),
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOAuthServiceHandler))
+
+		middleware = append(middleware, oauthmiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {

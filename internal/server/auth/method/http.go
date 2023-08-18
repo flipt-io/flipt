@@ -94,7 +94,7 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 // The payload is then also encoded as a http cookie which is bound to the callback path.
 func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		provider, method, match := parts(r.URL.Path)
+		provider, method, prefix, match := parts(r.URL.Path)
 		if !match {
 			next.ServeHTTP(w, r)
 			return
@@ -130,7 +130,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 				Name:  stateCookieKey,
 				Value: encoded,
 				// bind state cookie to provider callback
-				Path:     "/auth/v1/method/oidc/" + provider + "/callback",
+				Path:     prefix + provider + "/callback",
 				Expires:  time.Now().Add(m.config.StateLifetime),
 				Secure:   m.config.Secure,
 				HttpOnly: true,
@@ -154,13 +154,20 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 	})
 }
 
-func parts(path string) (provider, method string, ok bool) {
-	const prefix = "/auth/v1/method/oidc/"
-	if !strings.HasPrefix(path, prefix) {
-		return "", "", false
+func parts(path string) (provider, method, prefix string, ok bool) {
+	var oidcPrefix = "/auth/v1/method/oidc/"
+	if strings.HasPrefix(path, oidcPrefix) {
+		b, a, f := strings.Cut(path[len(oidcPrefix):], "/")
+		return b, a, oidcPrefix, f
 	}
 
-	return strings.Cut(path[len(prefix):], "/")
+	var oauthPrefix = "/auth/v1/method/oauth/"
+	if strings.HasPrefix(path, oauthPrefix) {
+		b, a, f := strings.Cut(path[len(oauthPrefix):], "/")
+		return b, a, oauthPrefix, f
+	}
+
+	return "", "", "", false
 }
 
 func generateSecurityToken() string {

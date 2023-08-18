@@ -126,11 +126,13 @@ service AuthenticationMethodKubernetesService {
 
 message OAuthAuthorizeRequest {
   string host = 1;
+  string state = 2;
 }
 
 message OAuthCallbackRequest {
   string host = 1;
   string code = 2;
+  string state = 3;
 }
 
 message OAuthCallbackResponse {

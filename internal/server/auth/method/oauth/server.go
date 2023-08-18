@@ -8,11 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -79,6 +81,7 @@ func (s *Server) AuthorizeURL(ctx context.Context, a *auth.OAuthAuthorizeRequest
 	q.Set("client_id", oauthConfig.ClientId)
 	q.Set("scope", strings.Join(oauthConfig.Scopes, ":"))
 	q.Set("redirect_uri", callbackURL(oauthConfig.RedirectAddress, a.Host))
+	q.Set("state", a.State)
 
 	u.RawQuery = q.Encode()
 
@@ -91,6 +94,22 @@ func (s *Server) AuthorizeURL(ctx context.Context, a *auth.OAuthAuthorizeRequest
 // which is the OAuth grant passed in by the OAuth service, and exchange the grant with an Authentication
 // that includes the access token.
 func (s *Server) OAuthCallback(ctx context.Context, oauth *auth.OAuthCallbackRequest) (*auth.OAuthCallbackResponse, error) {
+	if oauth.State != "" {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			return nil, errors.ErrUnauthenticatedf("missing state parameter")
+		}
+
+		state, ok := md["flipt_client_state"]
+		if !ok || len(state) < 1 {
+			return nil, errors.ErrUnauthenticatedf("missing state parameter")
+		}
+
+		if oauth.State != state[0] {
+			return nil, errors.ErrUnauthenticatedf("unexpected state parameter")
+		}
+	}
+
 	oauthConfig := s.config.Methods.OAuth.Method.Hosts[oauth.Host]
 
 	c := &http.Client{

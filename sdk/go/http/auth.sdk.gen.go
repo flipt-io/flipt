@@ -379,7 +379,8 @@ type authenticationMethodOAuthServiceClient struct {
 
 func (x *authenticationMethodOAuthServiceClient) AuthorizeURL(ctx context.Context, v *auth.OAuthAuthorizeRequest, _ ...grpc.CallOption) (*auth.AuthorizeURLResponse, error) {
 	var body io.Reader
-	var values url.Values
+	values := url.Values{}
+	values.Set("state", v.State)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oauth/%v/authorize", v.Host), body)
 	if err != nil {
 		return nil, err
@@ -408,6 +409,7 @@ func (x *authenticationMethodOAuthServiceClient) OAuthCallback(ctx context.Conte
 	var body io.Reader
 	values := url.Values{}
 	values.Set("code", v.Code)
+	values.Set("state", v.State)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oauth/%v/callback", v.Host), body)
 	if err != nil {
 		return nil, err

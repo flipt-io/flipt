@@ -452,6 +452,10 @@ func local_request_AuthenticationMethodKubernetesService_VerifyServiceAccount_0(
 
 }
 
+var (
+	filter_AuthenticationMethodOAuthService_AuthorizeURL_0 = &utilities.DoubleArray{Encoding: map[string]int{"host": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+)
+
 func request_AuthenticationMethodOAuthService_AuthorizeURL_0(ctx context.Context, marshaler runtime.Marshaler, client AuthenticationMethodOAuthServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq OAuthAuthorizeRequest
 	var metadata runtime.ServerMetadata
@@ -471,6 +475,13 @@ func request_AuthenticationMethodOAuthService_AuthorizeURL_0(ctx context.Context
 	protoReq.Host, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOAuthService_AuthorizeURL_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.AuthorizeURL(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -497,6 +508,13 @@ func local_request_AuthenticationMethodOAuthService_AuthorizeURL_0(ctx context.C
 	protoReq.Host, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "host", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AuthenticationMethodOAuthService_AuthorizeURL_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.AuthorizeURL(ctx, &protoReq)
