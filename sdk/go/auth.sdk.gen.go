@@ -14,6 +14,7 @@ type AuthClient interface {
 	AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient
 	AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient
 	AuthenticationMethodKubernetesServiceClient() auth.AuthenticationMethodKubernetesServiceClient
+	AuthenticationMethodOAuthServiceClient() auth.AuthenticationMethodOAuthServiceClient
 }
 
 type Auth struct {
@@ -156,4 +157,31 @@ func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context
 		return nil, err
 	}
 	return x.transport.VerifyServiceAccount(ctx, v)
+}
+
+type AuthenticationMethodOAuthService struct {
+	transport     auth.AuthenticationMethodOAuthServiceClient
+	tokenProvider ClientTokenProvider
+}
+
+func (s Auth) AuthenticationMethodOAuthService() *AuthenticationMethodOAuthService {
+	return &AuthenticationMethodOAuthService{
+		transport:     s.transport.AuthenticationMethodOAuthServiceClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+func (x *AuthenticationMethodOAuthService) AuthorizeURL(ctx context.Context, v *auth.OAuthAuthorizeRequest) (*auth.AuthorizeURLResponse, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.AuthorizeURL(ctx, v)
+}
+
+func (x *AuthenticationMethodOAuthService) OAuthCallback(ctx context.Context, v *auth.OAuthCallbackRequest) (*auth.OAuthCallbackResponse, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.OAuthCallback(ctx, v)
 }

@@ -1,7 +1,8 @@
 import {
   faGitlab,
   faGoogle,
-  faOpenid
+  faOpenid,
+  faGithub
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toLower, upperFirst } from 'lodash';
@@ -15,6 +16,7 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
 import { IAuthMethodOIDC } from '~/types/auth/OIDC';
+import { IAuthMethodOAuth } from '~/types/auth/OAuth';
 
 interface ILoginProvider {
   displayName: string;
@@ -32,6 +34,10 @@ const knownProviders: Record<string, ILoginProvider> = {
   },
   auth0: {
     displayName: 'Auth0'
+  },
+  github: {
+    displayName: 'Github',
+    icon: faGithub
   }
 };
 
@@ -77,22 +83,47 @@ function InnerLogin() {
           (m: IAuthMethod) => m.method === 'METHOD_OIDC' && m.enabled
         ) as IAuthMethodOIDC;
 
-        if (!authOIDC) {
+        const authOAuth = resp.methods.find(
+          (m: IAuthMethod) => m.method === 'METHOD_OAUTH' && m.enabled
+        ) as IAuthMethodOAuth;
+
+        if (!authOIDC && !authOAuth) {
           return;
         }
 
-        const loginProviders = Object.entries(authOIDC.metadata.providers).map(
-          ([k, v]) => {
-            k = toLower(k);
-            return {
-              name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
-              authorize_url: v.authorize_url,
-              callback_url: v.callback_url,
-              icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
-            };
-          }
-        );
-        setProviders(loginProviders);
+        let oidcLoginProviders: any[] = [];
+
+        if (authOIDC) {
+          oidcLoginProviders = Object.entries(authOIDC.metadata.providers).map(
+            ([k, v]) => {
+              k = toLower(k);
+              return {
+                name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
+                authorize_url: v.authorize_url,
+                callback_url: v.callback_url,
+                icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
+              };
+            }
+          );
+        }
+
+        let oauthLoginProviders: any[] = [];
+
+        if (authOAuth) {
+          oauthLoginProviders = Object.entries(authOAuth.metadata.hosts).map(
+            ([k, v]) => {
+              k = toLower(k);
+              return {
+                name: knownProviders[k]?.displayName || upperFirst(k),
+                authorize_url: v.authorize_url,
+                callback_url: v.callback_url,
+                icon: knownProviders[k]?.icon
+              };
+            }
+          );
+        }
+
+        setProviders([...oauthLoginProviders, ...oidcLoginProviders]);
       } catch (err) {
         setError(err);
       }

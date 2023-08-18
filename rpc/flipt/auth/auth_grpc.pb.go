@@ -657,3 +657,131 @@ var AuthenticationMethodKubernetesService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "auth/auth.proto",
 }
+
+const (
+	AuthenticationMethodOAuthService_AuthorizeURL_FullMethodName  = "/flipt.auth.AuthenticationMethodOAuthService/AuthorizeURL"
+	AuthenticationMethodOAuthService_OAuthCallback_FullMethodName = "/flipt.auth.AuthenticationMethodOAuthService/OAuthCallback"
+)
+
+// AuthenticationMethodOAuthServiceClient is the client API for AuthenticationMethodOAuthService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type AuthenticationMethodOAuthServiceClient interface {
+	AuthorizeURL(ctx context.Context, in *OAuthAuthorizeRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
+	OAuthCallback(ctx context.Context, in *OAuthCallbackRequest, opts ...grpc.CallOption) (*OAuthCallbackResponse, error)
+}
+
+type authenticationMethodOAuthServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAuthenticationMethodOAuthServiceClient(cc grpc.ClientConnInterface) AuthenticationMethodOAuthServiceClient {
+	return &authenticationMethodOAuthServiceClient{cc}
+}
+
+func (c *authenticationMethodOAuthServiceClient) AuthorizeURL(ctx context.Context, in *OAuthAuthorizeRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error) {
+	out := new(AuthorizeURLResponse)
+	err := c.cc.Invoke(ctx, AuthenticationMethodOAuthService_AuthorizeURL_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authenticationMethodOAuthServiceClient) OAuthCallback(ctx context.Context, in *OAuthCallbackRequest, opts ...grpc.CallOption) (*OAuthCallbackResponse, error) {
+	out := new(OAuthCallbackResponse)
+	err := c.cc.Invoke(ctx, AuthenticationMethodOAuthService_OAuthCallback_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthenticationMethodOAuthServiceServer is the server API for AuthenticationMethodOAuthService service.
+// All implementations must embed UnimplementedAuthenticationMethodOAuthServiceServer
+// for forward compatibility
+type AuthenticationMethodOAuthServiceServer interface {
+	AuthorizeURL(context.Context, *OAuthAuthorizeRequest) (*AuthorizeURLResponse, error)
+	OAuthCallback(context.Context, *OAuthCallbackRequest) (*OAuthCallbackResponse, error)
+	mustEmbedUnimplementedAuthenticationMethodOAuthServiceServer()
+}
+
+// UnimplementedAuthenticationMethodOAuthServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthenticationMethodOAuthServiceServer struct {
+}
+
+func (UnimplementedAuthenticationMethodOAuthServiceServer) AuthorizeURL(context.Context, *OAuthAuthorizeRequest) (*AuthorizeURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeURL not implemented")
+}
+func (UnimplementedAuthenticationMethodOAuthServiceServer) OAuthCallback(context.Context, *OAuthCallbackRequest) (*OAuthCallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OAuthCallback not implemented")
+}
+func (UnimplementedAuthenticationMethodOAuthServiceServer) mustEmbedUnimplementedAuthenticationMethodOAuthServiceServer() {
+}
+
+// UnsafeAuthenticationMethodOAuthServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthenticationMethodOAuthServiceServer will
+// result in compilation errors.
+type UnsafeAuthenticationMethodOAuthServiceServer interface {
+	mustEmbedUnimplementedAuthenticationMethodOAuthServiceServer()
+}
+
+func RegisterAuthenticationMethodOAuthServiceServer(s grpc.ServiceRegistrar, srv AuthenticationMethodOAuthServiceServer) {
+	s.RegisterService(&AuthenticationMethodOAuthService_ServiceDesc, srv)
+}
+
+func _AuthenticationMethodOAuthService_AuthorizeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OAuthAuthorizeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodOAuthServiceServer).AuthorizeURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthenticationMethodOAuthService_AuthorizeURL_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodOAuthServiceServer).AuthorizeURL(ctx, req.(*OAuthAuthorizeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthenticationMethodOAuthService_OAuthCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OAuthCallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthenticationMethodOAuthServiceServer).OAuthCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthenticationMethodOAuthService_OAuthCallback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthenticationMethodOAuthServiceServer).OAuthCallback(ctx, req.(*OAuthCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AuthenticationMethodOAuthService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodOAuthService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AuthenticationMethodOAuthService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.auth.AuthenticationMethodOAuthService",
+	HandlerType: (*AuthenticationMethodOAuthServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AuthorizeURL",
+			Handler:    _AuthenticationMethodOAuthService_AuthorizeURL_Handler,
+		},
+		{
+			MethodName: "OAuthCallback",
+			Handler:    _AuthenticationMethodOAuthService_OAuthCallback_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "auth/auth.proto",
+}

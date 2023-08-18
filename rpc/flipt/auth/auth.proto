@@ -13,7 +13,7 @@ enum Method {
   METHOD_TOKEN = 1;
   METHOD_OIDC = 2;
   METHOD_KUBERNETES = 3;
-  METHOD_GITHUB = 4;
+  METHOD_OAUTH = 4;
 }
 
 message MethodInfo {
@@ -124,16 +124,21 @@ service AuthenticationMethodKubernetesService {
   rpc VerifyServiceAccount(VerifyServiceAccountRequest) returns (VerifyServiceAccountResponse) {}
 }
 
-message GithubCallbackRequest {
-  string client_id = 1;
-  string client_secret = 2;
+message OAuthAuthorizeRequest {
+  string host = 1;
 }
 
-message GithubCallbackResponse {
+message OAuthCallbackRequest {
+  string host = 1;
+  string code = 2;
+}
+
+message OAuthCallbackResponse {
   string client_token = 1;
   Authentication authentication = 2;
 }
 
-service AuthenticationMethodGithubService {
-  rpc GithubCallback(GithubCallbackRequest) returns (GithubCallbackResponse) {}
+service AuthenticationMethodOAuthService {
+  rpc AuthorizeURL(OAuthAuthorizeRequest) returns (AuthorizeURLResponse) {}
+  rpc OAuthCallback(OAuthCallbackRequest) returns (OAuthCallbackResponse) {}
 }

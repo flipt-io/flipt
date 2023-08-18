@@ -368,6 +368,70 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	return &output, nil
 }
 
+func (t authClient) AuthenticationMethodOAuthServiceClient() auth.AuthenticationMethodOAuthServiceClient {
+	return &authenticationMethodOAuthServiceClient{client: t.client, addr: t.addr}
+}
+
+type authenticationMethodOAuthServiceClient struct {
+	client *http.Client
+	addr   string
+}
+
+func (x *authenticationMethodOAuthServiceClient) AuthorizeURL(ctx context.Context, v *auth.OAuthAuthorizeRequest, _ ...grpc.CallOption) (*auth.AuthorizeURLResponse, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oauth/%v/authorize", v.Host), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output auth.AuthorizeURLResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (x *authenticationMethodOAuthServiceClient) OAuthCallback(ctx context.Context, v *auth.OAuthCallbackRequest, _ ...grpc.CallOption) (*auth.OAuthCallbackResponse, error) {
+	var body io.Reader
+	values := url.Values{}
+	values.Set("code", v.Code)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oauth/%v/callback", v.Host), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output auth.OAuthCallbackResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{client: t.client, addr: t.addr}
 }

@@ -13,7 +13,9 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
+	"go.flipt.io/flipt/internal/server/auth/method"
 	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
+	"go.flipt.io/flipt/internal/server/auth/method/oauth"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
@@ -119,6 +121,15 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
+	if authCfg.Methods.OAuth.Enabled {
+		oauthServer := oauth.NewServer(logger, store, authCfg)
+		register.Add(oauthServer)
+
+		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oauthServer))
+
+		logger.Debug("authentication method \"oauth\" registered")
+	}
+
 	if authCfg.Methods.Kubernetes.Enabled {
 		kubernetesServer, err := authkubernetes.New(logger, store, authCfg)
 		if err != nil {
@@ -212,13 +223,21 @@ func authenticationHTTPMount(
 	}
 
 	if cfg.Methods.OIDC.Enabled {
-		oidcmiddleware := authoidc.NewHTTPMiddleware(cfg.Session)
+		oidcmiddleware := method.NewHTTPMiddleware(cfg.Session)
 		muxOpts = append(muxOpts,
-			runtime.WithMetadata(authoidc.ForwardCookies),
+			runtime.WithMetadata(method.ForwardCookies),
 			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
 			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
 
 		middleware = append(middleware, oidcmiddleware.Handler)
+	}
+
+	if cfg.Methods.OAuth.Enabled {
+		oauthmiddleware := method.NewHTTPMiddleware(cfg.Session)
+		muxOpts = append(muxOpts,
+			runtime.WithMetadata(method.ForwardCookies),
+			runtime.WithForwardResponseOption(oauthmiddleware.ForwardResponseOption),
+			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOAuthServiceHandler))
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {
