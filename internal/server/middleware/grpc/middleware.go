@@ -39,6 +39,8 @@ func ValidationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 }
 
 const (
+	// grpc-gateway adds a prefix to 'well-known' header keys so we need to use the same prefix
+	// https://github.com/grpc-ecosystem/grpc-gateway/blob/094a6fe78b3ca888297d090185cdf30f0e42e157/runtime/mux.go#L75
 	cacheControlHeaderKey = runtime.MetadataPrefix + "cache-control"
 	cacheControlNoStore   = "no-store"
 )
