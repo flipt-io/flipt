@@ -45,8 +45,8 @@ func (t authClient) AuthenticationMethodKubernetesServiceClient() auth.Authentic
 	return auth.NewAuthenticationMethodKubernetesServiceClient(t.cc)
 }
 
-func (t authClient) AuthenticationMethodOAuthServiceClient() auth.AuthenticationMethodOAuthServiceClient {
-	return auth.NewAuthenticationMethodOAuthServiceClient(t.cc)
+func (t authClient) AuthenticationMethodGithubServiceClient() auth.AuthenticationMethodGithubServiceClient {
+	return auth.NewAuthenticationMethodGithubServiceClient(t.cc)
 }
 
 func (t Transport) AuthClient() _go.AuthClient {

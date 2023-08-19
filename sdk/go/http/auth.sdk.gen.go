@@ -368,20 +368,21 @@ func (x *authenticationMethodKubernetesServiceClient) VerifyServiceAccount(ctx c
 	return &output, nil
 }
 
-func (t authClient) AuthenticationMethodOAuthServiceClient() auth.AuthenticationMethodOAuthServiceClient {
-	return &authenticationMethodOAuthServiceClient{client: t.client, addr: t.addr}
+func (t authClient) AuthenticationMethodGithubServiceClient() auth.AuthenticationMethodGithubServiceClient {
+	return &authenticationMethodGithubServiceClient{client: t.client, addr: t.addr}
 }
 
-type authenticationMethodOAuthServiceClient struct {
+type authenticationMethodGithubServiceClient struct {
 	client *http.Client
 	addr   string
 }
 
-func (x *authenticationMethodOAuthServiceClient) AuthorizeURL(ctx context.Context, v *auth.OAuthAuthorizeRequest, _ ...grpc.CallOption) (*auth.AuthorizeURLResponse, error) {
+func (x *authenticationMethodGithubServiceClient) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest, _ ...grpc.CallOption) (*auth.AuthorizeURLResponse, error) {
 	var body io.Reader
 	values := url.Values{}
+	values.Set("provider", v.Provider)
 	values.Set("state", v.State)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oauth/%v/authorize", v.Host), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/auth/v1/method/github/authorize", body)
 	if err != nil {
 		return nil, err
 	}
@@ -405,12 +406,13 @@ func (x *authenticationMethodOAuthServiceClient) AuthorizeURL(ctx context.Contex
 	return &output, nil
 }
 
-func (x *authenticationMethodOAuthServiceClient) OAuthCallback(ctx context.Context, v *auth.OAuthCallbackRequest, _ ...grpc.CallOption) (*auth.OAuthCallbackResponse, error) {
+func (x *authenticationMethodGithubServiceClient) Callback(ctx context.Context, v *auth.CallbackRequest, _ ...grpc.CallOption) (*auth.CallbackResponse, error) {
 	var body io.Reader
 	values := url.Values{}
+	values.Set("provider", v.Provider)
 	values.Set("code", v.Code)
 	values.Set("state", v.State)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/auth/v1/method/oauth/%v/callback", v.Host), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+"/auth/v1/method/github/callback", body)
 	if err != nil {
 		return nil, err
 	}
@@ -420,7 +422,7 @@ func (x *authenticationMethodOAuthServiceClient) OAuthCallback(ctx context.Conte
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output auth.OAuthCallbackResponse
+	var output auth.CallbackResponse
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

@@ -14,8 +14,8 @@ import (
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/auth/method"
+	authgithub "go.flipt.io/flipt/internal/server/auth/method/github"
 	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
-	"go.flipt.io/flipt/internal/server/auth/method/oauth"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
 	"go.flipt.io/flipt/internal/server/auth/public"
@@ -121,11 +121,11 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
-	if authCfg.Methods.OAuth.Enabled {
-		oauthServer := oauth.NewServer(logger, store, authCfg)
-		register.Add(oauthServer)
+	if authCfg.Methods.Github.Enabled {
+		githubServer := authgithub.NewServer(logger, store, authCfg)
+		register.Add(githubServer)
 
-		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oauthServer))
+		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(githubServer))
 
 		logger.Debug("authentication method \"oauth\" registered")
 	}
@@ -232,14 +232,14 @@ func authenticationHTTPMount(
 		middleware = append(middleware, oidcmiddleware.Handler)
 	}
 
-	if cfg.Methods.OAuth.Enabled {
-		oauthmiddleware := method.NewHTTPMiddleware(cfg.Session)
+	if cfg.Methods.Github.Enabled {
+		githubMiddleware := method.NewHTTPMiddleware(cfg.Session)
 		muxOpts = append(muxOpts,
 			runtime.WithMetadata(method.ForwardCookies),
-			runtime.WithForwardResponseOption(oauthmiddleware.ForwardResponseOption),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOAuthServiceHandler))
+			runtime.WithForwardResponseOption(githubMiddleware.ForwardResponseOption),
+			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
 
-		middleware = append(middleware, oauthmiddleware.Handler)
+		middleware = append(middleware, githubMiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {

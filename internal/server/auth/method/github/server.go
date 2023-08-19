@@ -1,8 +1,9 @@
-package oauth
+package github
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,25 +20,17 @@ import (
 )
 
 const (
-	storageMetadataGithubAccessToken = "io.flipt.auth.oauth.access_token"
+	storageMetadataGithubEmail = "io.flipt.auth.github.email"
+	storageMetadataGithubName  = "io.flipt.auth.github.name"
 )
 
-var (
-	hostToAuthorizeBaseURL = map[string]string{
-		"github": "https://github.com/login/oauth/authorize",
-	}
-	hostToAccessTokenBaseURL = map[string]string{
-		"github": "https://github.com/login/oauth/access_token",
-	}
-)
-
-// Server is an OAuth server side handler.
+// Server is an Github server side handler.
 type Server struct {
 	logger *zap.Logger
 	store  storageauth.Store
 	config config.AuthenticationConfig
 
-	auth.UnimplementedAuthenticationMethodOAuthServiceServer
+	auth.UnimplementedAuthenticationMethodGithubServiceServer
 }
 
 // NewServer constructs a Server.
@@ -55,33 +48,31 @@ func NewServer(
 
 // RegisterGRPC registers the server as an Server on the provided grpc server.
 func (s *Server) RegisterGRPC(server *grpc.Server) {
-	auth.RegisterAuthenticationMethodOAuthServiceServer(server, s)
+	auth.RegisterAuthenticationMethodGithubServiceServer(server, s)
 }
 
-func callbackURL(host, oauthHost string) string {
+func callbackURL(host string) string {
 	// strip trailing slash from host
 	host = strings.TrimSuffix(host, "/")
-	return host + "/auth/v1/method/oauth/" + oauthHost + "/callback"
+	return host + "/auth/v1/method/github/callback"
 }
 
 // AuthorizeURL will return a URL for the client to redirect to for completion of the OAuth flow with GitHub.
-func (s *Server) AuthorizeURL(ctx context.Context, a *auth.OAuthAuthorizeRequest) (*auth.AuthorizeURLResponse, error) {
-	oauthConfig := s.config.Methods.OAuth.Method.Hosts[a.Host]
+func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
+	githubConfig := s.config.Methods.Github.Method
 
-	authorizeBaseURL := hostToAuthorizeBaseURL[a.Host]
-
-	u, err := url.Parse(authorizeBaseURL)
+	u, err := url.Parse("https://github.com/login/oauth/authorize")
 	if err != nil {
 		return nil, err
 	}
 
-	// Build OAuth authorize url.
+	// Build Github authorize url.
 	q := u.Query()
 
-	q.Set("client_id", oauthConfig.ClientId)
-	q.Set("scope", strings.Join(oauthConfig.Scopes, ":"))
-	q.Set("redirect_uri", callbackURL(oauthConfig.RedirectAddress, a.Host))
-	q.Set("state", a.State)
+	q.Set("client_id", githubConfig.ClientId)
+	q.Set("scope", strings.Join(githubConfig.Scopes, ":"))
+	q.Set("redirect_uri", callbackURL(githubConfig.RedirectAddress))
+	q.Set("state", req.State)
 
 	u.RawQuery = q.Encode()
 
@@ -90,11 +81,11 @@ func (s *Server) AuthorizeURL(ctx context.Context, a *auth.OAuthAuthorizeRequest
 	}, nil
 }
 
-// OAuthCallback is the OAuth callback method for OAuth authentication. It will take in a SessionCode
+// Callback is the OAuth callback method for Github authentication. It will take in a Code
 // which is the OAuth grant passed in by the OAuth service, and exchange the grant with an Authentication
-// that includes the access token.
-func (s *Server) OAuthCallback(ctx context.Context, oauth *auth.OAuthCallbackRequest) (*auth.OAuthCallbackResponse, error) {
-	if oauth.State != "" {
+// that includes the user information.
+func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.CallbackResponse, error) {
+	if r.State != "" {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, errors.ErrUnauthenticatedf("missing state parameter")
@@ -105,28 +96,26 @@ func (s *Server) OAuthCallback(ctx context.Context, oauth *auth.OAuthCallbackReq
 			return nil, errors.ErrUnauthenticatedf("missing state parameter")
 		}
 
-		if oauth.State != state[0] {
+		if r.State != state[0] {
 			return nil, errors.ErrUnauthenticatedf("unexpected state parameter")
 		}
 	}
 
-	oauthConfig := s.config.Methods.OAuth.Method.Hosts[oauth.Host]
+	githubConfig := s.config.Methods.Github.Method
 
 	c := &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	accessTokenURL := hostToAccessTokenBaseURL[oauth.Host]
-
-	req, err := http.NewRequestWithContext(ctx, "POST", accessTokenURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://github.com/login/oauth/access_token", nil)
 	if err != nil {
 		return nil, err
 	}
 
 	q := req.URL.Query()
-	q.Set("client_id", oauthConfig.ClientId)
-	q.Set("client_secret", oauthConfig.ClientSecret)
-	q.Set("code", oauth.Code)
+	q.Set("client_id", githubConfig.ClientId)
+	q.Set("client_secret", githubConfig.ClientSecret)
+	q.Set("code", r.Code)
 	e := q.Encode()
 	req.URL.RawQuery = e
 
@@ -137,23 +126,52 @@ func (s *Server) OAuthCallback(ctx context.Context, oauth *auth.OAuthCallbackReq
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		resp.Body.Close()
+	}()
 
-	var oauthAccessTokenResponse struct {
+	var githubAccessTokenResponse struct {
 		AccessToken string   `json:"access_token,omitempty"`
 		Scopes      []string `json:"scopes,omitempty"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&oauthAccessTokenResponse); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&githubAccessTokenResponse); err != nil {
+		return nil, err
+	}
+
+	userReq, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/user", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", githubAccessTokenResponse.AccessToken))
+	userReq.Header.Set("Accept", "application/vnd.github+json")
+
+	var githubUserResponse struct {
+		Name  string `json:"name,omitempty"`
+		Email string `json:"email,omitempty"`
+	}
+
+	userResp, err := c.Do(userReq)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		userResp.Body.Close()
+	}()
+
+	if err := json.NewDecoder(userResp.Body).Decode(&githubUserResponse); err != nil {
 		return nil, err
 	}
 
 	metadata := map[string]string{
-		storageMetadataGithubAccessToken: oauthAccessTokenResponse.AccessToken,
+		storageMetadataGithubEmail: githubUserResponse.Email,
+		storageMetadataGithubName:  githubUserResponse.Name,
 	}
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
-		Method:    auth.Method_METHOD_OAUTH,
+		Method:    auth.Method_METHOD_GITHUB,
 		ExpiresAt: timestamppb.New(time.Now().UTC().Add(s.config.Session.TokenLifetime)),
 		Metadata:  metadata,
 	})
@@ -161,7 +179,7 @@ func (s *Server) OAuthCallback(ctx context.Context, oauth *auth.OAuthCallbackReq
 		return nil, err
 	}
 
-	return &auth.OAuthCallbackResponse{
+	return &auth.CallbackResponse{
 		ClientToken:    clientToken,
 		Authentication: a,
 	}, nil

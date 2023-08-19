@@ -16,7 +16,7 @@ import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
 import { IAuthMethodOIDC } from '~/types/auth/OIDC';
-import { IAuthMethodOAuth } from '~/types/auth/OAuth';
+import { IAuthMethodGithub } from '~/types/auth/Github';
 
 interface ILoginProvider {
   displayName: string;
@@ -83,11 +83,11 @@ function InnerLogin() {
           (m: IAuthMethod) => m.method === 'METHOD_OIDC' && m.enabled
         ) as IAuthMethodOIDC;
 
-        const authOAuth = resp.methods.find(
-          (m: IAuthMethod) => m.method === 'METHOD_OAUTH' && m.enabled
-        ) as IAuthMethodOAuth;
+        const authGithub = resp.methods.find(
+          (m: IAuthMethod) => m.method === 'METHOD_GITHUB' && m.enabled
+        ) as IAuthMethodGithub;
 
-        if (!authOIDC && !authOAuth) {
+        if (!authOIDC && !authGithub) {
           return;
         }
 
@@ -109,18 +109,15 @@ function InnerLogin() {
 
         let oauthLoginProviders: any[] = [];
 
-        if (authOAuth) {
-          oauthLoginProviders = Object.entries(authOAuth.metadata.hosts).map(
-            ([k, v]) => {
-              k = toLower(k);
-              return {
-                name: knownProviders[k]?.displayName || upperFirst(k),
-                authorize_url: v.authorize_url,
-                callback_url: v.callback_url,
-                icon: knownProviders[k]?.icon
-              };
+        if (authGithub) {
+          oauthLoginProviders = [
+            {
+              name: "GitHub",
+              authorize_url: authGithub.metadata.authorize_url,
+              callback_url: authGithub.metadata.callback_url,
+              icon: faGithub
             }
-          );
+          ]
         }
 
         setProviders([...oauthLoginProviders, ...oidcLoginProviders]);

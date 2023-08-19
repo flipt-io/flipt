@@ -659,127 +659,127 @@ var AuthenticationMethodKubernetesService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AuthenticationMethodOAuthService_AuthorizeURL_FullMethodName  = "/flipt.auth.AuthenticationMethodOAuthService/AuthorizeURL"
-	AuthenticationMethodOAuthService_OAuthCallback_FullMethodName = "/flipt.auth.AuthenticationMethodOAuthService/OAuthCallback"
+	AuthenticationMethodGithubService_AuthorizeURL_FullMethodName = "/flipt.auth.AuthenticationMethodGithubService/AuthorizeURL"
+	AuthenticationMethodGithubService_Callback_FullMethodName     = "/flipt.auth.AuthenticationMethodGithubService/Callback"
 )
 
-// AuthenticationMethodOAuthServiceClient is the client API for AuthenticationMethodOAuthService service.
+// AuthenticationMethodGithubServiceClient is the client API for AuthenticationMethodGithubService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuthenticationMethodOAuthServiceClient interface {
-	AuthorizeURL(ctx context.Context, in *OAuthAuthorizeRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
-	OAuthCallback(ctx context.Context, in *OAuthCallbackRequest, opts ...grpc.CallOption) (*OAuthCallbackResponse, error)
+type AuthenticationMethodGithubServiceClient interface {
+	AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error)
+	Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error)
 }
 
-type authenticationMethodOAuthServiceClient struct {
+type authenticationMethodGithubServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAuthenticationMethodOAuthServiceClient(cc grpc.ClientConnInterface) AuthenticationMethodOAuthServiceClient {
-	return &authenticationMethodOAuthServiceClient{cc}
+func NewAuthenticationMethodGithubServiceClient(cc grpc.ClientConnInterface) AuthenticationMethodGithubServiceClient {
+	return &authenticationMethodGithubServiceClient{cc}
 }
 
-func (c *authenticationMethodOAuthServiceClient) AuthorizeURL(ctx context.Context, in *OAuthAuthorizeRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error) {
+func (c *authenticationMethodGithubServiceClient) AuthorizeURL(ctx context.Context, in *AuthorizeURLRequest, opts ...grpc.CallOption) (*AuthorizeURLResponse, error) {
 	out := new(AuthorizeURLResponse)
-	err := c.cc.Invoke(ctx, AuthenticationMethodOAuthService_AuthorizeURL_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, AuthenticationMethodGithubService_AuthorizeURL_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authenticationMethodOAuthServiceClient) OAuthCallback(ctx context.Context, in *OAuthCallbackRequest, opts ...grpc.CallOption) (*OAuthCallbackResponse, error) {
-	out := new(OAuthCallbackResponse)
-	err := c.cc.Invoke(ctx, AuthenticationMethodOAuthService_OAuthCallback_FullMethodName, in, out, opts...)
+func (c *authenticationMethodGithubServiceClient) Callback(ctx context.Context, in *CallbackRequest, opts ...grpc.CallOption) (*CallbackResponse, error) {
+	out := new(CallbackResponse)
+	err := c.cc.Invoke(ctx, AuthenticationMethodGithubService_Callback_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuthenticationMethodOAuthServiceServer is the server API for AuthenticationMethodOAuthService service.
-// All implementations must embed UnimplementedAuthenticationMethodOAuthServiceServer
+// AuthenticationMethodGithubServiceServer is the server API for AuthenticationMethodGithubService service.
+// All implementations must embed UnimplementedAuthenticationMethodGithubServiceServer
 // for forward compatibility
-type AuthenticationMethodOAuthServiceServer interface {
-	AuthorizeURL(context.Context, *OAuthAuthorizeRequest) (*AuthorizeURLResponse, error)
-	OAuthCallback(context.Context, *OAuthCallbackRequest) (*OAuthCallbackResponse, error)
-	mustEmbedUnimplementedAuthenticationMethodOAuthServiceServer()
+type AuthenticationMethodGithubServiceServer interface {
+	AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error)
+	Callback(context.Context, *CallbackRequest) (*CallbackResponse, error)
+	mustEmbedUnimplementedAuthenticationMethodGithubServiceServer()
 }
 
-// UnimplementedAuthenticationMethodOAuthServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedAuthenticationMethodOAuthServiceServer struct {
+// UnimplementedAuthenticationMethodGithubServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedAuthenticationMethodGithubServiceServer struct {
 }
 
-func (UnimplementedAuthenticationMethodOAuthServiceServer) AuthorizeURL(context.Context, *OAuthAuthorizeRequest) (*AuthorizeURLResponse, error) {
+func (UnimplementedAuthenticationMethodGithubServiceServer) AuthorizeURL(context.Context, *AuthorizeURLRequest) (*AuthorizeURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeURL not implemented")
 }
-func (UnimplementedAuthenticationMethodOAuthServiceServer) OAuthCallback(context.Context, *OAuthCallbackRequest) (*OAuthCallbackResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OAuthCallback not implemented")
+func (UnimplementedAuthenticationMethodGithubServiceServer) Callback(context.Context, *CallbackRequest) (*CallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Callback not implemented")
 }
-func (UnimplementedAuthenticationMethodOAuthServiceServer) mustEmbedUnimplementedAuthenticationMethodOAuthServiceServer() {
+func (UnimplementedAuthenticationMethodGithubServiceServer) mustEmbedUnimplementedAuthenticationMethodGithubServiceServer() {
 }
 
-// UnsafeAuthenticationMethodOAuthServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AuthenticationMethodOAuthServiceServer will
+// UnsafeAuthenticationMethodGithubServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AuthenticationMethodGithubServiceServer will
 // result in compilation errors.
-type UnsafeAuthenticationMethodOAuthServiceServer interface {
-	mustEmbedUnimplementedAuthenticationMethodOAuthServiceServer()
+type UnsafeAuthenticationMethodGithubServiceServer interface {
+	mustEmbedUnimplementedAuthenticationMethodGithubServiceServer()
 }
 
-func RegisterAuthenticationMethodOAuthServiceServer(s grpc.ServiceRegistrar, srv AuthenticationMethodOAuthServiceServer) {
-	s.RegisterService(&AuthenticationMethodOAuthService_ServiceDesc, srv)
+func RegisterAuthenticationMethodGithubServiceServer(s grpc.ServiceRegistrar, srv AuthenticationMethodGithubServiceServer) {
+	s.RegisterService(&AuthenticationMethodGithubService_ServiceDesc, srv)
 }
 
-func _AuthenticationMethodOAuthService_AuthorizeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OAuthAuthorizeRequest)
+func _AuthenticationMethodGithubService_AuthorizeURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeURLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthenticationMethodOAuthServiceServer).AuthorizeURL(ctx, in)
+		return srv.(AuthenticationMethodGithubServiceServer).AuthorizeURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthenticationMethodOAuthService_AuthorizeURL_FullMethodName,
+		FullMethod: AuthenticationMethodGithubService_AuthorizeURL_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationMethodOAuthServiceServer).AuthorizeURL(ctx, req.(*OAuthAuthorizeRequest))
+		return srv.(AuthenticationMethodGithubServiceServer).AuthorizeURL(ctx, req.(*AuthorizeURLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthenticationMethodOAuthService_OAuthCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OAuthCallbackRequest)
+func _AuthenticationMethodGithubService_Callback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CallbackRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthenticationMethodOAuthServiceServer).OAuthCallback(ctx, in)
+		return srv.(AuthenticationMethodGithubServiceServer).Callback(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthenticationMethodOAuthService_OAuthCallback_FullMethodName,
+		FullMethod: AuthenticationMethodGithubService_Callback_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationMethodOAuthServiceServer).OAuthCallback(ctx, req.(*OAuthCallbackRequest))
+		return srv.(AuthenticationMethodGithubServiceServer).Callback(ctx, req.(*CallbackRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// AuthenticationMethodOAuthService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodOAuthService service.
+// AuthenticationMethodGithubService_ServiceDesc is the grpc.ServiceDesc for AuthenticationMethodGithubService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var AuthenticationMethodOAuthService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "flipt.auth.AuthenticationMethodOAuthService",
-	HandlerType: (*AuthenticationMethodOAuthServiceServer)(nil),
+var AuthenticationMethodGithubService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.auth.AuthenticationMethodGithubService",
+	HandlerType: (*AuthenticationMethodGithubServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "AuthorizeURL",
-			Handler:    _AuthenticationMethodOAuthService_AuthorizeURL_Handler,
+			Handler:    _AuthenticationMethodGithubService_AuthorizeURL_Handler,
 		},
 		{
-			MethodName: "OAuthCallback",
-			Handler:    _AuthenticationMethodOAuthService_OAuthCallback_Handler,
+			MethodName: "Callback",
+			Handler:    _AuthenticationMethodGithubService_Callback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

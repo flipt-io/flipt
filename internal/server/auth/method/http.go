@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/rpc/flipt/auth"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
@@ -56,12 +57,7 @@ func ForwardCookies(ctx context.Context, req *http.Request) metadata.MD {
 // This ensures a secure browser session can be established.
 // The user-agent is then redirected to the root of the domain.
 func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
-	type CallbackResponseCleaner interface {
-		GetClientToken() string
-		StripClientToken()
-	}
-
-	r, ok := resp.(CallbackResponseCleaner)
+	r, ok := resp.(*auth.CallbackResponse)
 	if ok {
 		cookie := &http.Cookie{
 			Name:     tokenCookieKey,
@@ -77,7 +73,7 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 		http.SetCookie(w, cookie)
 
 		// clear out token now that it is set via cookie
-		r.StripClientToken()
+		r.ClientToken = ""
 
 		w.Header().Set("Location", "/")
 		w.WriteHeader(http.StatusFound)
@@ -126,11 +122,16 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 			query.Set("state", encoded)
 			r.URL.RawQuery = query.Encode()
 
+			path := prefix + "/callback"
+			if provider != "" {
+				path = prefix + provider + "/callback"
+			}
+
 			cookie := &http.Cookie{
 				Name:  stateCookieKey,
 				Value: encoded,
 				// bind state cookie to provider callback
-				Path:     prefix + provider + "/callback",
+				Path:     path,
 				Expires:  time.Now().Add(m.config.StateLifetime),
 				Secure:   m.config.Secure,
 				HttpOnly: true,
@@ -161,10 +162,10 @@ func parts(path string) (provider, method, prefix string, ok bool) {
 		return b, a, oidcPrefix, f
 	}
 
-	var oauthPrefix = "/auth/v1/method/oauth/"
-	if strings.HasPrefix(path, oauthPrefix) {
-		b, a, f := strings.Cut(path[len(oauthPrefix):], "/")
-		return b, a, oauthPrefix, f
+	var githubPrefix = "/auth/v1/method/github"
+	if strings.HasPrefix(path, githubPrefix) {
+		b, a, f := strings.Cut(path[len(githubPrefix):], "/")
+		return b, a, githubPrefix, f
 	}
 
 	return "", "", "", false

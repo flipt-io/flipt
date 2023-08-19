@@ -14,7 +14,7 @@ type AuthClient interface {
 	AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient
 	AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient
 	AuthenticationMethodKubernetesServiceClient() auth.AuthenticationMethodKubernetesServiceClient
-	AuthenticationMethodOAuthServiceClient() auth.AuthenticationMethodOAuthServiceClient
+	AuthenticationMethodGithubServiceClient() auth.AuthenticationMethodGithubServiceClient
 }
 
 type Auth struct {
@@ -159,18 +159,18 @@ func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context
 	return x.transport.VerifyServiceAccount(ctx, v)
 }
 
-type AuthenticationMethodOAuthService struct {
-	transport     auth.AuthenticationMethodOAuthServiceClient
+type AuthenticationMethodGithubService struct {
+	transport     auth.AuthenticationMethodGithubServiceClient
 	tokenProvider ClientTokenProvider
 }
 
-func (s Auth) AuthenticationMethodOAuthService() *AuthenticationMethodOAuthService {
-	return &AuthenticationMethodOAuthService{
-		transport:     s.transport.AuthenticationMethodOAuthServiceClient(),
+func (s Auth) AuthenticationMethodGithubService() *AuthenticationMethodGithubService {
+	return &AuthenticationMethodGithubService{
+		transport:     s.transport.AuthenticationMethodGithubServiceClient(),
 		tokenProvider: s.tokenProvider,
 	}
 }
-func (x *AuthenticationMethodOAuthService) AuthorizeURL(ctx context.Context, v *auth.OAuthAuthorizeRequest) (*auth.AuthorizeURLResponse, error) {
+func (x *AuthenticationMethodGithubService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
@@ -178,10 +178,10 @@ func (x *AuthenticationMethodOAuthService) AuthorizeURL(ctx context.Context, v *
 	return x.transport.AuthorizeURL(ctx, v)
 }
 
-func (x *AuthenticationMethodOAuthService) OAuthCallback(ctx context.Context, v *auth.OAuthCallbackRequest) (*auth.OAuthCallbackResponse, error) {
+func (x *AuthenticationMethodGithubService) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.OAuthCallback(ctx, v)
+	return x.transport.Callback(ctx, v)
 }

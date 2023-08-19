@@ -192,7 +192,7 @@ type AuthenticationSessionCSRF struct {
 // method available for use within Flipt.
 type AuthenticationMethods struct {
 	Token      AuthenticationMethod[AuthenticationMethodTokenConfig]      `json:"token,omitempty" mapstructure:"token"`
-	OAuth      AuthenticationMethod[AuthenticationMethodOAuthConfig]      `json:"oauth,omitempty" mapstructure:"oauth"`
+	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github"`
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes"`
 }
@@ -201,7 +201,7 @@ type AuthenticationMethods struct {
 func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 	return []StaticAuthenticationMethodInfo{
 		a.Token.info(),
-		a.OAuth.info(),
+		a.Github.info(),
 		a.OIDC.info(),
 		a.Kubernetes.info(),
 	}
@@ -408,48 +408,30 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 	}
 }
 
-// AuthenticationMethodOAuthConfig maps an OAuth hosts to pieces of configuration
-// that will allow for completion of the OAuth flow.
-type AuthenticationMethodOAuthConfig struct {
-	Hosts map[string]AuthenticationMethodOAuthProvider `json:"hosts,omitempty" mapstructure:"hosts"`
-}
-
-func (a AuthenticationMethodOAuthConfig) setDefaults(defaults map[string]any) {}
-
-// info describes properties of the authentication method "oauth".
-func (a AuthenticationMethodOAuthConfig) info() AuthenticationMethodInfo {
-	c := AuthenticationMethodInfo{
-		Method:            auth.Method_METHOD_OAUTH,
-		SessionCompatible: false,
-	}
-
-	var (
-		metadata = make(map[string]any)
-		hosts    = make(map[string]any, len(a.Hosts))
-	)
-
-	// this ensures we expose the authorize and callback URL endpoint
-	// to the UI via the /auth/v1/method endpoint
-	for host := range a.Hosts {
-		hosts[host] = map[string]any{
-			"authorize_url": fmt.Sprintf("/auth/v1/method/oauth/%s/authorize", host),
-			"callback_url":  fmt.Sprintf("/auth/v1/method/oauth/%s/callback", host),
-		}
-	}
-
-	metadata["hosts"] = hosts
-
-	c.Metadata, _ = structpb.NewStruct(metadata)
-
-	return c
-}
-
-// AuthenticationMethodOAuthProvider holds all relevant configuration for providing the client
-// with an AuthorizeURL to use, and to issue back to the client an access token
-// for authorized requests on the relevant server.
-type AuthenticationMethodOAuthProvider struct {
+// AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
+// 2.0 flow with GitHub as a provider.
+type AuthenticationMethodGithubConfig struct {
 	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
 	ClientId        string   `json:"clientId,omitempty" mapstructure:"client_id"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
+}
+
+func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}
+
+// info describes properties of the authentication method "github".
+func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
+	info := AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_GITHUB,
+		SessionCompatible: true,
+	}
+
+	var metadata = make(map[string]any)
+
+	metadata["authorize_url"] = "/auth/v1/method/github/authorize"
+	metadata["callback_url"] = "/auth/v1/method/github/callback"
+
+	info.Metadata, _ = structpb.NewStruct(metadata)
+
+	return info
 }
