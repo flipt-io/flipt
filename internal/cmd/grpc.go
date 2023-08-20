@@ -245,7 +245,12 @@ func NewGRPCServer(
 
 	var cacher cache.Cacher
 	if cfg.Cache.Enabled {
-		cacher, cacheShutdown, err := getCache(ctx, cfg)
+		var (
+			cacheShutdown errFunc
+			err           error
+		)
+
+		cacher, cacheShutdown, err = getCache(ctx, cfg)
 		if err != nil {
 			return nil, err
 		}
