@@ -188,7 +188,10 @@
                 "redirect_address": {
                   "type": "string"
                 },
-                "scopes": { "type": "array", "items": { "type": "string" } }
+                "scopes": {
+                  "type": ["array", "null"],
+                  "items": { "type": "string" }
+                }
               },
               "title": "Github",
               "additionalProperties": false

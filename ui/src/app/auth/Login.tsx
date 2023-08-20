@@ -91,26 +91,26 @@ function InnerLogin() {
           return;
         }
 
-        let oidcLoginProviders: any[] = [];
+        let loginProviders: any[] = [];
 
         if (authOIDC) {
-          oidcLoginProviders = Object.entries(authOIDC.metadata.providers).map(
-            ([k, v]) => {
-              k = toLower(k);
-              return {
-                name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
-                authorize_url: v.authorize_url,
-                callback_url: v.callback_url,
-                icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
-              };
-            }
-          );
+          const oidcLoginProviders = Object.entries(
+            authOIDC.metadata.providers
+          ).map(([k, v]) => {
+            k = toLower(k);
+            return {
+              name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
+              authorize_url: v.authorize_url,
+              callback_url: v.callback_url,
+              icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
+            };
+          });
+
+          loginProviders = loginProviders.concat(oidcLoginProviders);
         }
 
-        let oauthLoginProviders: any[] = [];
-
         if (authGithub) {
-          oauthLoginProviders = [
+          const githubLogin = [
             {
               name: 'GitHub',
               authorize_url: authGithub.metadata.authorize_url,
@@ -118,9 +118,11 @@ function InnerLogin() {
               icon: faGithub
             }
           ];
+
+          loginProviders = loginProviders.concat(githubLogin);
         }
 
-        setProviders([...oauthLoginProviders, ...oidcLoginProviders]);
+        setProviders([...loginProviders]);
       } catch (err) {
         setError(err);
       }
