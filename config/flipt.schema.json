@@ -171,6 +171,27 @@
               "required": [],
               "title": "Kubernetes",
               "additionalProperties": false
+            },
+            "github": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "client_secret": {
+                  "type": "string"
+                },
+                "client_id": {
+                  "type": "string"
+                },
+                "redirect_address": {
+                  "type": "string"
+                },
+                "scopes": { "type": "array", "items": { "type": "string" } }
+              },
+              "title": "Github",
+              "additionalProperties": false
             }
           },
           "required": [],

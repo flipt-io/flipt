@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -14,10 +13,23 @@ import (
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
+	oauth2GitHub "golang.org/x/oauth2/github"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+const (
+	githubUserAPI = "https://api.github.com/user"
+)
+
+// OAuth2Client is our abstraction of communication with an OAuth2 Provider.
+type OAuth2Client interface {
+	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+	Client(ctx context.Context, t *oauth2.Token) *http.Client
+}
 
 const (
 	storageMetadataGithubEmail = "io.flipt.auth.github.email"
@@ -26,9 +38,10 @@ const (
 
 // Server is an Github server side handler.
 type Server struct {
-	logger *zap.Logger
-	store  storageauth.Store
-	config config.AuthenticationConfig
+	logger       *zap.Logger
+	store        storageauth.Store
+	config       config.AuthenticationConfig
+	oauth2Config OAuth2Client
 
 	auth.UnimplementedAuthenticationMethodGithubServiceServer
 }
@@ -43,6 +56,13 @@ func NewServer(
 		logger: logger,
 		store:  store,
 		config: config,
+		oauth2Config: &oauth2.Config{
+			ClientID:     config.Methods.Github.Method.ClientId,
+			ClientSecret: config.Methods.Github.Method.ClientSecret,
+			Endpoint:     oauth2GitHub.Endpoint,
+			RedirectURL:  callbackURL(config.Methods.Github.Method.RedirectAddress),
+			Scopes:       []string{strings.Join(config.Methods.Github.Method.Scopes, ":")},
+		},
 	}
 }
 
@@ -59,25 +79,10 @@ func callbackURL(host string) string {
 
 // AuthorizeURL will return a URL for the client to redirect to for completion of the OAuth flow with GitHub.
 func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
-	githubConfig := s.config.Methods.Github.Method
-
-	u, err := url.Parse("https://github.com/login/oauth/authorize")
-	if err != nil {
-		return nil, err
-	}
-
-	// Build Github authorize url.
-	q := u.Query()
-
-	q.Set("client_id", githubConfig.ClientId)
-	q.Set("scope", strings.Join(githubConfig.Scopes, ":"))
-	q.Set("redirect_uri", callbackURL(githubConfig.RedirectAddress))
-	q.Set("state", req.State)
-
-	u.RawQuery = q.Encode()
+	u := s.oauth2Config.AuthCodeURL(req.State)
 
 	return &auth.AuthorizeURLResponse{
-		AuthorizeUrl: u.String(),
+		AuthorizeUrl: u,
 	}, nil
 }
 
@@ -101,50 +106,25 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		}
 	}
 
-	githubConfig := s.config.Methods.Github.Method
+	token, err := s.oauth2Config.Exchange(ctx, r.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid() {
+		return nil, errors.New("invalid token")
+	}
 
 	c := &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://github.com/login/oauth/access_token", nil)
+	userReq, err := http.NewRequestWithContext(ctx, "GET", githubUserAPI, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	q := req.URL.Query()
-	q.Set("client_id", githubConfig.ClientId)
-	q.Set("client_secret", githubConfig.ClientSecret)
-	q.Set("code", r.Code)
-	e := q.Encode()
-	req.URL.RawQuery = e
-
-	// We have to accept JSON from the GitHub server when requesting the access token.
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		resp.Body.Close()
-	}()
-
-	var githubAccessTokenResponse struct {
-		AccessToken string   `json:"access_token,omitempty"`
-		Scopes      []string `json:"scopes,omitempty"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&githubAccessTokenResponse); err != nil {
-		return nil, err
-	}
-
-	userReq, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/user", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", githubAccessTokenResponse.AccessToken))
+	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
 	userReq.Header.Set("Accept", "application/vnd.github+json")
 
 	var githubUserResponse struct {
