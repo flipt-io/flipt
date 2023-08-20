@@ -1,8 +1,8 @@
 import {
+  faGithub,
   faGitlab,
   faGoogle,
-  faOpenid,
-  faGithub
+  faOpenid
 } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { toLower, upperFirst } from 'lodash';
@@ -15,8 +15,8 @@ import { listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
-import { IAuthMethodOIDC } from '~/types/auth/OIDC';
 import { IAuthMethodGithub } from '~/types/auth/Github';
+import { IAuthMethodOIDC } from '~/types/auth/OIDC';
 
 interface ILoginProvider {
   displayName: string;
@@ -112,12 +112,12 @@ function InnerLogin() {
         if (authGithub) {
           oauthLoginProviders = [
             {
-              name: "GitHub",
+              name: 'GitHub',
               authorize_url: authGithub.metadata.authorize_url,
               callback_url: authGithub.metadata.callback_url,
               icon: faGithub
             }
-          ]
+          ];
         }
 
         setProviders([...oauthLoginProviders, ...oidcLoginProviders]);
