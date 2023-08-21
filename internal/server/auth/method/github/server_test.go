@@ -125,7 +125,7 @@ func TestServer_Github(t *testing.T) {
 		MatchHeader("Accept", "application/vnd.github+json").
 		Get("/user").
 		Reply(200).
-		JSON(map[string]string{"name": "fliptuser", "email": "user@flipt.io"})
+		JSON(map[string]string{"name": "fliptuser", "email": "user@flipt.io", "avatar_url": "https://thispicture.com"})
 
 	c, err := client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
 	require.NoError(t, err)
@@ -133,7 +133,8 @@ func TestServer_Github(t *testing.T) {
 	assert.NotEmpty(t, c.ClientToken)
 	assert.Equal(t, auth.Method_METHOD_GITHUB, c.Authentication.Method)
 	assert.Equal(t, map[string]string{
-		storageMetadataGithubEmail: "user@flipt.io",
-		storageMetadataGithubName:  "fliptuser",
+		storageMetadataGithubEmail:   "user@flipt.io",
+		storageMetadataGithubName:    "fliptuser",
+		storageMetadataGithubPicture: "https://thispicture.com",
 	}, c.Authentication.Metadata)
 }

@@ -222,11 +222,9 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodTokenServiceHandler))
 	}
 
-	if cfg.SessionEnabled() && (cfg.Methods.OIDC.Enabled || cfg.Methods.Github.Enabled) {
+	if cfg.SessionEnabled() {
 		muxOpts = append(muxOpts, runtime.WithMetadata(method.ForwardCookies))
-	}
 
-	if cfg.Methods.OIDC.Enabled || cfg.Methods.Github.Enabled {
 		methodMiddleware := method.NewHTTPMiddleware(cfg.Session)
 		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
 

@@ -9,10 +9,11 @@ export interface IAuthMethodGithub extends IAuthMethod {
 }
 
 export interface IAuthMethodGithubMetadata {
-  'io.flipt.auth.oauth.email'?: string;
-  'io.flipt.auth.oauth.user'?: string;
+  'io.flipt.auth.github.email'?: string;
+  'io.flipt.auth.github.name'?: string;
+  'io.flipt.auth.github.picture'?: string;
 }
 
-export interface IAuthOIDCInternal extends IAuth {
+export interface IAuthGithubInternal extends IAuth {
   metadata: IAuthMethodGithubMetadata;
 }

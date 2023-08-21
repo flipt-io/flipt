@@ -32,8 +32,9 @@ type OAuth2Client interface {
 }
 
 const (
-	storageMetadataGithubEmail = "io.flipt.auth.github.email"
-	storageMetadataGithubName  = "io.flipt.auth.github.name"
+	storageMetadataGithubEmail   = "io.flipt.auth.github.email"
+	storageMetadataGithubName    = "io.flipt.auth.github.name"
+	storageMetadataGithubPicture = "io.flipt.auth.github.picture"
 )
 
 // Server is an Github server side handler.
@@ -118,8 +119,9 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	userReq.Header.Set("Accept", "application/vnd.github+json")
 
 	var githubUserResponse struct {
-		Name  string `json:"name,omitempty"`
-		Email string `json:"email,omitempty"`
+		Name      string `json:"name,omitempty"`
+		Email     string `json:"email,omitempty"`
+		AvatarURL string `json:"avatar_url,omitempty"`
 	}
 
 	userResp, err := c.Do(userReq)
@@ -136,8 +138,21 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	}
 
 	metadata := map[string]string{
-		storageMetadataGithubEmail: githubUserResponse.Email,
-		storageMetadataGithubName:  githubUserResponse.Name,
+		storageMetadataGithubEmail:   githubUserResponse.Email,
+		storageMetadataGithubName:    githubUserResponse.Name,
+		storageMetadataGithubPicture: githubUserResponse.AvatarURL,
+	}
+
+	if githubUserResponse.Name != "" {
+		metadata[storageMetadataGithubName] = githubUserResponse.Name
+	}
+
+	if githubUserResponse.Email != "" {
+		metadata[storageMetadataGithubEmail] = githubUserResponse.Email
+	}
+
+	if githubUserResponse.AvatarURL != "" {
+		metadata[storageMetadataGithubPicture] = githubUserResponse.AvatarURL
 	}
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
