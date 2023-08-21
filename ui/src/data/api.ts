@@ -40,7 +40,8 @@ export async function request(method: string, uri: string, body?: any) {
     method,
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'application/json'
+      Accept: 'application/json',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify(body)
   });
