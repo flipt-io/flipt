@@ -16,6 +16,8 @@ import (
 )
 
 var (
+	githubPrefix   = "/auth/v1/method/github"
+	oidcPrefix     = "/auth/v1/method/oidc/"
 	stateCookieKey = "flipt_client_state"
 	tokenCookieKey = "flipt_client_token"
 )
@@ -90,7 +92,7 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 // The payload is then also encoded as a http cookie which is bound to the callback path.
 func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		provider, method, prefix, match := parts(r.URL.Path)
+		prefix, provider, method, match := parts(r.URL.Path)
 		if !match {
 			next.ServeHTTP(w, r)
 			return
@@ -155,20 +157,18 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 	})
 }
 
-func parts(path string) (provider, method, prefix string, ok bool) {
-	var oidcPrefix = "/auth/v1/method/oidc/"
+func parts(path string) (prefix, provider, method string, ok bool) {
 	if strings.HasPrefix(path, oidcPrefix) {
-		b, a, f := strings.Cut(path[len(oidcPrefix):], "/")
-		return b, a, oidcPrefix, f
+		prefix = oidcPrefix
+		provider, method, ok = strings.Cut(path[len(oidcPrefix):], "/")
 	}
 
-	var githubPrefix = "/auth/v1/method/github"
 	if strings.HasPrefix(path, githubPrefix) {
-		b, a, f := strings.Cut(path[len(githubPrefix):], "/")
-		return b, a, githubPrefix, f
+		prefix = githubPrefix
+		provider, method, ok = strings.Cut(path[len(githubPrefix):], "/")
 	}
 
-	return "", "", "", false
+	return
 }
 
 func generateSecurityToken() string {

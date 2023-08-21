@@ -10,13 +10,13 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server/auth/method"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	oauth2GitHub "golang.org/x/oauth2/github"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -61,7 +61,7 @@ func NewServer(
 			ClientSecret: config.Methods.Github.Method.ClientSecret,
 			Endpoint:     oauth2GitHub.Endpoint,
 			RedirectURL:  callbackURL(config.Methods.Github.Method.RedirectAddress),
-			Scopes:       []string{strings.Join(config.Methods.Github.Method.Scopes, ":")},
+			Scopes:       config.Methods.Github.Method.Scopes,
 		},
 	}
 }
@@ -91,18 +91,8 @@ func (s *Server) AuthorizeURL(ctx context.Context, req *auth.AuthorizeURLRequest
 // that includes the user information.
 func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.CallbackResponse, error) {
 	if r.State != "" {
-		md, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			return nil, errors.ErrUnauthenticatedf("missing state parameter")
-		}
-
-		state, ok := md["flipt_client_state"]
-		if !ok || len(state) < 1 {
-			return nil, errors.ErrUnauthenticatedf("missing state parameter")
-		}
-
-		if r.State != state[0] {
-			return nil, errors.ErrUnauthenticatedf("unexpected state parameter")
+		if err := method.CallbackValidateState(ctx, r.State); err != nil {
+			return nil, err
 		}
 	}
 

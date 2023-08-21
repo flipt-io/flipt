@@ -127,7 +127,7 @@ func authenticationGRPC(
 
 		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(githubServer))
 
-		logger.Debug("authentication method \"oauth\" registered")
+		logger.Debug("authentication method \"github\" registered")
 	}
 
 	if authCfg.Methods.Kubernetes.Enabled {
@@ -222,24 +222,23 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodTokenServiceHandler))
 	}
 
-	if cfg.Methods.OIDC.Enabled {
-		oidcmiddleware := method.NewHTTPMiddleware(cfg.Session)
-		muxOpts = append(muxOpts,
-			runtime.WithMetadata(method.ForwardCookies),
-			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
-
-		middleware = append(middleware, oidcmiddleware.Handler)
+	if cfg.SessionEnabled() && (cfg.Methods.OIDC.Enabled || cfg.Methods.Github.Enabled) {
+		muxOpts = append(muxOpts, runtime.WithMetadata(method.ForwardCookies))
 	}
 
-	if cfg.Methods.Github.Enabled {
-		githubMiddleware := method.NewHTTPMiddleware(cfg.Session)
-		muxOpts = append(muxOpts,
-			runtime.WithMetadata(method.ForwardCookies),
-			runtime.WithForwardResponseOption(githubMiddleware.ForwardResponseOption),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
+	if cfg.Methods.OIDC.Enabled || cfg.Methods.Github.Enabled {
+		methodMiddleware := method.NewHTTPMiddleware(cfg.Session)
+		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
 
-		middleware = append(middleware, githubMiddleware.Handler)
+		if cfg.Methods.OIDC.Enabled {
+			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
+		}
+
+		if cfg.Methods.Github.Enabled {
+			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
+		}
+
+		middleware = append(middleware, methodMiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {
