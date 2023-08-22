@@ -1,4 +1,4 @@
-package oidc
+package method
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 
@@ -16,6 +17,8 @@ import (
 )
 
 var (
+	githubPrefix   = "/auth/v1/method/github"
+	oidcPrefix     = "/auth/v1/method/oidc/"
 	stateCookieKey = "flipt_client_state"
 	tokenCookieKey = "flipt_client_token"
 )
@@ -61,7 +64,7 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 	if ok {
 		cookie := &http.Cookie{
 			Name:     tokenCookieKey,
-			Value:    r.ClientToken,
+			Value:    r.GetClientToken(),
 			Domain:   m.config.Domain,
 			Path:     "/",
 			Expires:  time.Now().Add(m.config.TokenLifetime),
@@ -90,8 +93,9 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 // The payload is then also encoded as a http cookie which is bound to the callback path.
 func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		provider, method, match := parts(r.URL.Path)
-		if !match {
+		prefix, method := path.Split(r.URL.Path)
+
+		if !((strings.HasPrefix(prefix, oidcPrefix) || strings.HasPrefix(prefix, githubPrefix)) && method == "authorize") {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -126,7 +130,7 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 				Name:  stateCookieKey,
 				Value: encoded,
 				// bind state cookie to provider callback
-				Path:     "/auth/v1/method/oidc/" + provider + "/callback",
+				Path:     prefix + "callback",
 				Expires:  time.Now().Add(m.config.StateLifetime),
 				Secure:   m.config.Secure,
 				HttpOnly: true,
@@ -148,15 +152,6 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 		// run decorated handler
 		next.ServeHTTP(w, r)
 	})
-}
-
-func parts(path string) (provider, method string, ok bool) {
-	const prefix = "/auth/v1/method/oidc/"
-	if !strings.HasPrefix(path, prefix) {
-		return "", "", false
-	}
-
-	return strings.Cut(path[len(prefix):], "/")
 }
 
 func generateSecurityToken() string {

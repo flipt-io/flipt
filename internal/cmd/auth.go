@@ -13,6 +13,8 @@ import (
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gateway"
 	"go.flipt.io/flipt/internal/server/auth"
+	"go.flipt.io/flipt/internal/server/auth/method"
+	authgithub "go.flipt.io/flipt/internal/server/auth/method/github"
 	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
@@ -119,6 +121,15 @@ func authenticationGRPC(
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
 
+	if authCfg.Methods.Github.Enabled {
+		githubServer := authgithub.NewServer(logger, store, authCfg)
+		register.Add(githubServer)
+
+		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(githubServer))
+
+		logger.Debug("authentication method \"github\" registered")
+	}
+
 	if authCfg.Methods.Kubernetes.Enabled {
 		kubernetesServer, err := authkubernetes.New(logger, store, authCfg)
 		if err != nil {
@@ -211,14 +222,21 @@ func authenticationHTTPMount(
 		muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodTokenServiceHandler))
 	}
 
-	if cfg.Methods.OIDC.Enabled {
-		oidcmiddleware := authoidc.NewHTTPMiddleware(cfg.Session)
-		muxOpts = append(muxOpts,
-			runtime.WithMetadata(authoidc.ForwardCookies),
-			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
-			registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
+	if cfg.SessionEnabled() {
+		muxOpts = append(muxOpts, runtime.WithMetadata(method.ForwardCookies))
 
-		middleware = append(middleware, oidcmiddleware.Handler)
+		methodMiddleware := method.NewHTTPMiddleware(cfg.Session)
+		muxOpts = append(muxOpts, runtime.WithForwardResponseOption(methodMiddleware.ForwardResponseOption))
+
+		if cfg.Methods.OIDC.Enabled {
+			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodOIDCServiceHandler))
+		}
+
+		if cfg.Methods.Github.Enabled {
+			muxOpts = append(muxOpts, registerFunc(ctx, conn, rpcauth.RegisterAuthenticationMethodGithubServiceHandler))
+		}
+
+		middleware = append(middleware, methodMiddleware.Handler)
 	}
 
 	if cfg.Methods.Kubernetes.Enabled {

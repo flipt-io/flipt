@@ -4,18 +4,36 @@ import { Fragment } from 'react';
 import { expireAuthSelf } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
+import { IAuthMethodGithubMetadata } from '~/types/auth/Github';
+import { IAuthMethodOIDCMetadata } from '~/types/auth/OIDC';
 import { classNames } from '~/utils/helpers';
 
 type UserProfileProps = {
-  name?: string;
-  imgURL?: string;
+  metadata?: IAuthMethodOIDCMetadata | IAuthMethodGithubMetadata;
 };
 
 export default function UserProfile(props: UserProfileProps) {
-  const { name, imgURL } = props;
+  const { metadata } = props;
 
   const { setError } = useError();
   const { clearSession } = useSession();
+
+  let name: string | undefined;
+  let imgURL: string | undefined;
+
+  if (metadata) {
+    if ('io.flipt.auth.github.name' in metadata) {
+      name = metadata['io.flipt.auth.github.name'] ?? 'User';
+      if (metadata['io.flipt.auth.github.picture']) {
+        imgURL = metadata['io.flipt.auth.github.picture'];
+      }
+    } else if ('io.flipt.auth.oidc.name' in metadata) {
+      name = metadata['io.flipt.auth.oidc.name'] ?? 'User';
+      if (metadata['io.flipt.auth.oidc.picture']) {
+        imgURL = metadata['io.flipt.auth.oidc.picture'];
+      }
+    }
+  }
 
   const logout = async () => {
     expireAuthSelf()
@@ -37,8 +55,8 @@ export default function UserProfile(props: UserProfileProps) {
             <img
               className="h-8 w-8 rounded-full"
               src={imgURL}
-              alt={name || 'User'}
-              title={name || 'User'}
+              alt={name}
+              title={name}
               referrerPolicy="no-referrer"
             />
           )}

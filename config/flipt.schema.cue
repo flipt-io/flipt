@@ -65,6 +65,14 @@ import "strings"
 				service_account_token_path: string
 				cleanup?:                   #authentication.#authentication_cleanup
 			}
+
+			github?: {
+				enabled?:          bool | *false
+				client_secret?:    string
+				client_id?:        string
+				redirect_address?: string
+				scopes?: [...string]
+			}
 		}
 
 		#authentication_cleanup: {
