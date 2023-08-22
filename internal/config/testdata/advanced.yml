@@ -95,3 +95,11 @@ authentication:
       cleanup:
         interval: 2h
         grace_period: 48h
+    github:
+      enabled: true
+      client_id: "abcdefg"
+      client_secret: "bcdefgh"
+      redirect_address: "http://auth.flipt.io"
+      cleanup:
+        interval: 2h
+        grace_period: 48h
