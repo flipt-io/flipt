@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
@@ -229,6 +230,10 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		}
 
 		t.Log("Get flag \"test\" and check variants.")
+
+		// TODO: don't love this..
+		// wait for flag cache to expire when running with cache
+		time.Sleep(750 * time.Millisecond)
 
 		flag, err = client.Flipt().GetFlag(ctx, &flipt.GetFlagRequest{
 			NamespaceKey: namespace,

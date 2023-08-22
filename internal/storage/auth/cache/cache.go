@@ -9,7 +9,6 @@ import (
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -35,7 +34,7 @@ func NewStore(store auth.Store, cacher cache.Cacher, logger *zap.Logger) *Store 
 	}
 }
 
-func (s *Store) set(ctx context.Context, key string, value protoreflect.ProtoMessage) {
+func (s *Store) set(ctx context.Context, key string, value proto.Message) {
 	cachePayload, err := proto.Marshal(value)
 	if err != nil {
 		s.logger.Error("marshalling for storage cache", zap.Error(err))
@@ -48,7 +47,7 @@ func (s *Store) set(ctx context.Context, key string, value protoreflect.ProtoMes
 	}
 }
 
-func (s *Store) get(ctx context.Context, key string, value protoreflect.ProtoMessage) bool {
+func (s *Store) get(ctx context.Context, key string, value proto.Message) bool {
 	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
 	if err != nil {
 		s.logger.Error("getting from storage cache", zap.Error(err))
