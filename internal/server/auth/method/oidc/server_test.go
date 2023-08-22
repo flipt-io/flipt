@@ -214,7 +214,7 @@ func Test_Server_PKCE(t *testing.T) {
 								ClientID:        id,
 								ClientSecret:    secret,
 								RedirectAddress: clientAddress,
-								PKCE:            true,
+								UsePKCE:         true,
 							},
 						},
 					},

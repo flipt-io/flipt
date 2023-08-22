@@ -195,7 +195,7 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
 	}
 
-	if pConfig.PKCE {
+	if pConfig.UsePKCE {
 		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
 	}
 
