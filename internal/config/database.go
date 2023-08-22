@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
@@ -53,20 +54,17 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
 	}
 
 	if setDefaultURL {
-		v.SetDefault("db.url", "file:/var/opt/flipt/flipt.db")
+		dbRoot, err := defaultDatabaseRoot()
+		if err != nil {
+			// TODO:
+			panic(err)
+		}
+
+		path := filepath.Join(dbRoot, "flipt", "flipt.db")
+		v.SetDefault("db.url", "file:"+path)
 	}
 
 	v.SetDefault("db.prepared_statements_enabled", true)
-}
-
-func (c *DatabaseConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.IsSet("db.migrations.path") || v.IsSet("db.migrations_path") {
-		deprecations = append(deprecations, "db.migrations.path")
-	}
-
-	return deprecations
 }
 
 func (c *DatabaseConfig) validate() (err error) {
