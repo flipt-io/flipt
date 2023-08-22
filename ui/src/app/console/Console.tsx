@@ -1,7 +1,7 @@
 import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
-import 'highlight.js/styles/tokyo-night-dark.css';
+import 'highlight.js/styles/tomorrow-night-bright.css';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
+import '~/components/console/worker';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
@@ -83,8 +84,15 @@ export default function Console() {
       return;
     }
 
-    // need to unescape the context string
-    const parsed = context ? JSON.parse(context) : undefined;
+    let parsed = null;
+    try {
+      // need to unescape the context string
+      parsed = context ? JSON.parse(context) : undefined;
+    } catch (err) {
+      setHasEvaluationError(true);
+      setResponse('error: ' + err.message);
+      return;
+    }
 
     const rest = {
       entityId,
@@ -143,11 +151,6 @@ export default function Console() {
                 onSubmit={(values) => {
                   handleSubmit(selectedFlag, values);
                 }}
-                onReset={() => {
-                  setResponse(null);
-                  setHasEvaluationError(false);
-                  setSelectedFlag(null);
-                }}
               >
                 {(formik) => (
                   <Form className="px-1 sm:overflow-hidden sm:rounded-md">
@@ -191,25 +194,16 @@ export default function Console() {
                           >
                             Request Context
                           </label>
-                          <ContextEditor
-                            id="context"
-                            value={context || undefined}
-                            setValue={setContext}
-                          />
+                          <div className="nightwind-prevent">
+                            <ContextEditor
+                              id="context"
+                              value={context || undefined}
+                              setValue={setContext}
+                            />
+                          </div>
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button
-                          type="reset"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            formik.resetForm();
-                            formik.setFieldValue('entityId', uuidv4());
-                            formik.setFieldValue('context', '');
-                          }}
-                        >
-                          Reset
-                        </Button>
                         <Button
                           primary
                           className="ml-3"

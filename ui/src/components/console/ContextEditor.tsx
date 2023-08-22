@@ -1,7 +1,7 @@
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import tmrw from 'monaco-themes/themes/Tomorrow-Night-Bright.json';
 import { useEffect, useRef, useState } from 'react';
 import styles from './ContextEditor.module.css';
-import './worker';
 
 type ContextEditorProps = {
   id: string;
@@ -25,14 +25,27 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
       setEditor((editor) => {
         if (editor) return editor;
 
+        monaco.editor.defineTheme(
+          'tmrw',
+          tmrw as monaco.editor.IStandaloneThemeData
+        );
+
         return monaco.editor.create(monacoEl.current!, {
-          lineNumbers: 'off',
-          fontSize: 14,
-          autoDetectHighContrast: true,
-          folding: false,
-          formatOnType: true,
+          value: ['{', '}'].join('\n'),
           language: 'json',
-          value: value || ['{', '\t"hello": "world"', '}'].join('\n')
+          fontSize: 14,
+          lineNumbers: 'off',
+          colorDecorators: true,
+          renderLineHighlight: 'none',
+          minimap: {
+            enabled: false
+          },
+          contextmenu: false,
+          folding: false,
+          autoDetectHighContrast: false,
+          autoClosingBrackets: 'always',
+          scrollBeyondLastLine: false,
+          theme: 'tmrw'
         });
       });
     }
@@ -42,7 +55,7 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
         setValue(editor.getValue());
       });
     }
-  }, [editor, value, setValue]);
+  }, [editor, value, setValue, monacoEl]);
 
   useEffect(
     () => () => {
