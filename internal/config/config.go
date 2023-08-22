@@ -141,7 +141,9 @@ func Load(path string) (*Result, error) {
 
 	// run any defaulters
 	for _, defaulter := range defaulters {
-		defaulter.setDefaults(v)
+		if err := defaulter.setDefaults(v); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := v.Unmarshal(cfg, viper.DecodeHook(
@@ -163,7 +165,7 @@ func Load(path string) (*Result, error) {
 }
 
 type defaulter interface {
-	setDefaults(v *viper.Viper)
+	setDefaults(v *viper.Viper) error
 }
 
 type validator interface {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -41,7 +42,7 @@ type DatabaseConfig struct {
 	PreparedStatementsEnabled bool             `json:"preparedStatementsEnabled,omitempty" mapstructure:"prepared_statements_enabled"`
 }
 
-func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
+func (c *DatabaseConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("db", map[string]any{
 		"max_idle_conn": 2,
 	})
@@ -56,8 +57,7 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
 	if setDefaultURL {
 		dbRoot, err := defaultDatabaseRoot()
 		if err != nil {
-			// TODO:
-			panic(err)
+			return fmt.Errorf("getting default database directory: %w", err)
 		}
 
 		path := filepath.Join(dbRoot, "flipt", "flipt.db")
@@ -65,6 +65,7 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
 	}
 
 	v.SetDefault("db.prepared_statements_enabled", true)
+	return nil
 }
 
 func (c *DatabaseConfig) validate() (err error) {

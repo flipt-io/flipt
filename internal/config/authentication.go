@@ -82,7 +82,7 @@ func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
 	return
 }
 
-func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
+func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 	methods := map[string]any{}
 
 	// set default for each methods
@@ -112,6 +112,8 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 		},
 		"methods": methods,
 	})
+
+	return nil
 }
 
 func (c *AuthenticationConfig) validate() error {

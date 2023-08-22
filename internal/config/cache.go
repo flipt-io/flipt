@@ -22,7 +22,7 @@ type CacheConfig struct {
 	Redis   RedisCacheConfig  `json:"redis,omitempty" mapstructure:"redis"`
 }
 
-func (c *CacheConfig) setDefaults(v *viper.Viper) {
+func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("cache", map[string]any{
 		"enabled": false,
 		"backend": CacheMemory,
@@ -48,6 +48,8 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) {
 		// ensure ttl default is set
 		v.SetDefault("cache.memory.expiration", 1*time.Minute)
 	}
+
+	return nil
 }
 
 func (c *CacheConfig) deprecations(v *viper.Viper) []deprecated {
