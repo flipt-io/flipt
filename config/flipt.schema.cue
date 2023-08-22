@@ -79,7 +79,8 @@ import "strings"
 			client_id?:        string
 			client_secret?:    string
 			redirect_address?: string
-			scopes?:           [...string]
+			scopes?: [...string]
+			pkce?: bool
 		}
 	}
 
@@ -131,10 +132,10 @@ import "strings"
 		object?: {
 			type: "s3" | *""
 			s3?: {
-				region: string
-				bucket: string
-				prefix?: string
-				endpoint?: string
+				region:         string
+				bucket:         string
+				prefix?:        string
+				endpoint?:      string
 				poll_interval?: =~#duration | *"1m"
 			}
 		}

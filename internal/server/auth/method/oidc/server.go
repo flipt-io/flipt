@@ -31,6 +31,11 @@ const (
 // was not configured
 var errProviderNotFound = errors.ErrNotFound("provider not found")
 
+// PCKEVerifier is a code verifier used for a PKCE flow during OIDC authentication.
+// This value is declared outside the scope of the function because of consistency throughout
+// the authenciation legs of OIDC.
+var PKCEVerifier, _ = capoidc.NewCodeVerifier()
+
 // Server is the core OIDC server implementation for Flipt.
 // It supports two primary operations:
 // - AuthorizeURL
@@ -194,10 +199,18 @@ func (s *Server) providerFor(provider string, state string) (*capoidc.Provider, 
 		return nil, nil, err
 	}
 
-	req, err := capoidc.NewRequest(2*time.Minute, callback,
+	var oidcOpts = []capoidc.Option{
 		capoidc.WithState(state),
 		capoidc.WithScopes(pConfig.Scopes...),
 		capoidc.WithNonce("static"), // TODO(georgemac): dropping nonce for now
+	}
+
+	if pConfig.PKCE {
+		oidcOpts = append(oidcOpts, capoidc.WithPKCE(PKCEVerifier))
+	}
+
+	req, err := capoidc.NewRequest(2*time.Minute, callback,
+		oidcOpts...,
 	)
 	if err != nil {
 		return nil, nil, err

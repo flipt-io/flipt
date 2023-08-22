@@ -368,6 +368,7 @@ type AuthenticationMethodOIDCProvider struct {
 	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
+	PKCE            bool     `json:"pkce,omitempty" mapstructure:"pkce"`
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.
