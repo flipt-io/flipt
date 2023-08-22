@@ -114,6 +114,15 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 	})
 }
 
+func (c *AuthenticationConfig) SessionEnabled() bool {
+	var sessionEnabled bool
+	for _, info := range c.Methods.AllMethods() {
+		sessionEnabled = sessionEnabled || (info.Enabled && info.SessionCompatible)
+	}
+
+	return sessionEnabled
+}
+
 func (c *AuthenticationConfig) validate() error {
 	var sessionEnabled bool
 	for _, info := range c.Methods.AllMethods() {
@@ -192,6 +201,7 @@ type AuthenticationSessionCSRF struct {
 // method available for use within Flipt.
 type AuthenticationMethods struct {
 	Token      AuthenticationMethod[AuthenticationMethodTokenConfig]      `json:"token,omitempty" mapstructure:"token"`
+	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github"`
 	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc"`
 	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes"`
 }
@@ -200,6 +210,7 @@ type AuthenticationMethods struct {
 func (a *AuthenticationMethods) AllMethods() []StaticAuthenticationMethodInfo {
 	return []StaticAuthenticationMethodInfo{
 		a.Token.info(),
+		a.Github.info(),
 		a.OIDC.info(),
 		a.Kubernetes.info(),
 	}
@@ -404,4 +415,32 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 		Method:            auth.Method_METHOD_KUBERNETES,
 		SessionCompatible: false,
 	}
+}
+
+// AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
+// 2.0 flow with GitHub as a provider.
+type AuthenticationMethodGithubConfig struct {
+	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
+	ClientId        string   `json:"clientId,omitempty" mapstructure:"client_id"`
+	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
+	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
+}
+
+func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}
+
+// info describes properties of the authentication method "github".
+func (a AuthenticationMethodGithubConfig) info() AuthenticationMethodInfo {
+	info := AuthenticationMethodInfo{
+		Method:            auth.Method_METHOD_GITHUB,
+		SessionCompatible: true,
+	}
+
+	var metadata = make(map[string]any)
+
+	metadata["authorize_url"] = "/auth/v1/method/github/authorize"
+	metadata["callback_url"] = "/auth/v1/method/github/callback"
+
+	info.Metadata, _ = structpb.NewStruct(metadata)
+
+	return info
 }

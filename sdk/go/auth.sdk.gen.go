@@ -14,6 +14,7 @@ type AuthClient interface {
 	AuthenticationMethodTokenServiceClient() auth.AuthenticationMethodTokenServiceClient
 	AuthenticationMethodOIDCServiceClient() auth.AuthenticationMethodOIDCServiceClient
 	AuthenticationMethodKubernetesServiceClient() auth.AuthenticationMethodKubernetesServiceClient
+	AuthenticationMethodGithubServiceClient() auth.AuthenticationMethodGithubServiceClient
 }
 
 type Auth struct {
@@ -156,4 +157,31 @@ func (x *AuthenticationMethodKubernetesService) VerifyServiceAccount(ctx context
 		return nil, err
 	}
 	return x.transport.VerifyServiceAccount(ctx, v)
+}
+
+type AuthenticationMethodGithubService struct {
+	transport     auth.AuthenticationMethodGithubServiceClient
+	tokenProvider ClientTokenProvider
+}
+
+func (s Auth) AuthenticationMethodGithubService() *AuthenticationMethodGithubService {
+	return &AuthenticationMethodGithubService{
+		transport:     s.transport.AuthenticationMethodGithubServiceClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+func (x *AuthenticationMethodGithubService) AuthorizeURL(ctx context.Context, v *auth.AuthorizeURLRequest) (*auth.AuthorizeURLResponse, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.AuthorizeURL(ctx, v)
+}
+
+func (x *AuthenticationMethodGithubService) Callback(ctx context.Context, v *auth.CallbackRequest) (*auth.CallbackResponse, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.Callback(ctx, v)
 }

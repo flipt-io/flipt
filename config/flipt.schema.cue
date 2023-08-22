@@ -65,6 +65,14 @@ import "strings"
 				service_account_token_path: string
 				cleanup?:                   #authentication.#authentication_cleanup
 			}
+
+			github?: {
+				enabled?:          bool | *false
+				client_secret?:    string
+				client_id?:        string
+				redirect_address?: string
+				scopes?: [...string]
+			}
 		}
 
 		#authentication_cleanup: {
@@ -79,7 +87,7 @@ import "strings"
 			client_id?:        string
 			client_secret?:    string
 			redirect_address?: string
-			scopes?:           [...string]
+			scopes?: [...string]
 		}
 	}
 
@@ -131,10 +139,10 @@ import "strings"
 		object?: {
 			type: "s3" | *""
 			s3?: {
-				region: string
-				bucket: string
-				prefix?: string
-				endpoint?: string
+				region:         string
+				bucket:         string
+				prefix?:        string
+				endpoint?:      string
 				poll_interval?: =~#duration | *"1m"
 			}
 		}
