@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -411,6 +412,13 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 
 // DefaultConfig is the base config used when no configuration is explicit provided.
 func DefaultConfig() *Config {
+	dbRoot, err := defaultDatabaseRoot()
+	if err != nil {
+		panic(err)
+	}
+
+	dbPath := filepath.Join(dbRoot, "flipt", "flipt.db")
+
 	return &Config{
 		Log: LogConfig{
 			Level:     "INFO",
@@ -476,7 +484,7 @@ func DefaultConfig() *Config {
 		},
 
 		Database: DatabaseConfig{
-			URL:                       "file:/var/opt/flipt/flipt.db",
+			URL:                       "file:" + dbPath,
 			MaxIdleConn:               2,
 			PreparedStatementsEnabled: true,
 		},

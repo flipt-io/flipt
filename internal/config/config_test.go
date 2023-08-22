@@ -249,18 +249,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name:     "deprecated database migrations path",
-			path:     "./testdata/deprecated/database_migrations_path.yml",
-			expected: DefaultConfig,
-			warnings: []string{"\"db.migrations.path\" is deprecated. Migrations are now embedded within Flipt and are no longer required on disk."},
-		},
-		{
-			name:     "deprecated database migrations path legacy",
-			path:     "./testdata/deprecated/database_migrations_path_legacy.yml",
-			expected: DefaultConfig,
-			warnings: []string{"\"db.migrations.path\" is deprecated. Migrations are now embedded within Flipt and are no longer required on disk."},
-		},
-		{
 			name: "deprecated ui disabled",
 			path: "./testdata/deprecated/ui_disabled.yml",
 			expected: func() *Config {
