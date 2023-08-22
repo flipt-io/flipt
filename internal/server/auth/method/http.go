@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 
@@ -92,8 +93,9 @@ func (m Middleware) ForwardResponseOption(ctx context.Context, w http.ResponseWr
 // The payload is then also encoded as a http cookie which is bound to the callback path.
 func (m Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		prefix, provider, method, match := parts(r.URL.Path)
-		if !match {
+		prefix, method := path.Split(r.URL.Path)
+
+		if !((strings.HasPrefix(prefix, oidcPrefix) || strings.HasPrefix(prefix, githubPrefix)) && method == "authorize") {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -124,16 +126,11 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 			query.Set("state", encoded)
 			r.URL.RawQuery = query.Encode()
 
-			path := prefix + "/callback"
-			if provider != "" {
-				path = prefix + provider + "/callback"
-			}
-
 			cookie := &http.Cookie{
 				Name:  stateCookieKey,
 				Value: encoded,
 				// bind state cookie to provider callback
-				Path:     path,
+				Path:     prefix + "callback",
 				Expires:  time.Now().Add(m.config.StateLifetime),
 				Secure:   m.config.Secure,
 				HttpOnly: true,
@@ -155,20 +152,6 @@ func (m Middleware) Handler(next http.Handler) http.Handler {
 		// run decorated handler
 		next.ServeHTTP(w, r)
 	})
-}
-
-func parts(path string) (prefix, provider, method string, ok bool) {
-	if strings.HasPrefix(path, oidcPrefix) {
-		prefix = oidcPrefix
-		provider, method, ok = strings.Cut(path[len(oidcPrefix):], "/")
-	}
-
-	if strings.HasPrefix(path, githubPrefix) {
-		prefix = githubPrefix
-		provider, method, ok = strings.Cut(path[len(githubPrefix):], "/")
-	}
-
-	return
 }
 
 func generateSecurityToken() string {
