@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/gateway"
-	"go.flipt.io/flipt/internal/server/auth/method/oidc"
+	"go.flipt.io/flipt/internal/server/auth/method"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 )
@@ -32,10 +32,10 @@ func StartHTTPServer(
 			GRPCServer: StartGRPCServer(t, ctx, logger, conf),
 		}
 
-		oidcmiddleware = oidc.NewHTTPMiddleware(conf.Session)
+		oidcmiddleware = method.NewHTTPMiddleware(conf.Session)
 		mux            = gateway.NewGatewayServeMux(
 			logger,
-			runtime.WithMetadata(oidc.ForwardCookies),
+			runtime.WithMetadata(method.ForwardCookies),
 			runtime.WithForwardResponseOption(oidcmiddleware.ForwardResponseOption),
 		)
 	)

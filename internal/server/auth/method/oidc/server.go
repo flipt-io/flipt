@@ -10,11 +10,11 @@ import (
 	capoidc "github.com/hashicorp/cap/oidc"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/config"
+	"go.flipt.io/flipt/internal/server/auth/method"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -107,18 +107,8 @@ func (s *Server) Callback(ctx context.Context, req *auth.CallbackRequest) (_ *au
 	}()
 
 	if req.State != "" {
-		md, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			return nil, errors.ErrUnauthenticatedf("missing state parameter")
-		}
-
-		state, ok := md["flipt_client_state"]
-		if !ok || len(state) < 1 {
-			return nil, errors.ErrUnauthenticatedf("missing state parameter")
-		}
-
-		if req.State != state[0] {
-			return nil, errors.ErrUnauthenticatedf("unexpected state parameter")
+		if err := method.CallbackValidateState(ctx, req.State); err != nil {
+			return nil, err
 		}
 	}
 

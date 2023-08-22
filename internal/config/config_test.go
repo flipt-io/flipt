@@ -577,6 +577,18 @@ func TestLoad(t *testing.T) {
 								GracePeriod: 48 * time.Hour,
 							},
 						},
+						Github: AuthenticationMethod[AuthenticationMethodGithubConfig]{
+							Method: AuthenticationMethodGithubConfig{
+								ClientId:        "abcdefg",
+								ClientSecret:    "bcdefgh",
+								RedirectAddress: "http://auth.flipt.io",
+							},
+							Enabled: true,
+							Cleanup: &AuthenticationCleanupSchedule{
+								Interval:    2 * time.Hour,
+								GracePeriod: 48 * time.Hour,
+							},
+						},
 					},
 				}
 				return cfg

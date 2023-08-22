@@ -1,4 +1,5 @@
 import {
+  faGithub,
   faGitlab,
   faGoogle,
   faOpenid
@@ -14,6 +15,7 @@ import { listAuthMethods } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSession } from '~/data/hooks/session';
 import { IAuthMethod } from '~/types/Auth';
+import { IAuthMethodGithub } from '~/types/auth/Github';
 import { IAuthMethodOIDC } from '~/types/auth/OIDC';
 
 interface ILoginProvider {
@@ -32,6 +34,10 @@ const knownProviders: Record<string, ILoginProvider> = {
   },
   auth0: {
     displayName: 'Auth0'
+  },
+  github: {
+    displayName: 'Github',
+    icon: faGithub
   }
 };
 
@@ -77,12 +83,20 @@ function InnerLogin() {
           (m: IAuthMethod) => m.method === 'METHOD_OIDC' && m.enabled
         ) as IAuthMethodOIDC;
 
-        if (!authOIDC) {
+        const authGithub = resp.methods.find(
+          (m: IAuthMethod) => m.method === 'METHOD_GITHUB' && m.enabled
+        ) as IAuthMethodGithub;
+
+        if (!authOIDC && !authGithub) {
           return;
         }
 
-        const loginProviders = Object.entries(authOIDC.metadata.providers).map(
-          ([k, v]) => {
+        let loginProviders: any[] = [];
+
+        if (authOIDC) {
+          const oidcLoginProviders = Object.entries(
+            authOIDC.metadata.providers
+          ).map(([k, v]) => {
             k = toLower(k);
             return {
               name: knownProviders[k]?.displayName || upperFirst(k), // if we dont know the provider, just capitalize the first letter
@@ -90,9 +104,25 @@ function InnerLogin() {
               callback_url: v.callback_url,
               icon: knownProviders[k]?.icon || faOpenid // if we dont know the provider icon, use the openid icon
             };
-          }
-        );
-        setProviders(loginProviders);
+          });
+
+          loginProviders = loginProviders.concat(oidcLoginProviders);
+        }
+
+        if (authGithub) {
+          const githubLogin = [
+            {
+              name: 'GitHub',
+              authorize_url: authGithub.metadata.authorize_url,
+              callback_url: authGithub.metadata.callback_url,
+              icon: faGithub
+            }
+          ];
+
+          loginProviders = loginProviders.concat(githubLogin);
+        }
+
+        setProviders([...loginProviders]);
       } catch (err) {
         setError(err);
       }

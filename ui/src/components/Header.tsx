@@ -70,10 +70,7 @@ export default function Header(props: HeaderProps) {
 
           {/* user profile */}
           {session && session.self && (
-            <UserProfile
-              name={session.self.metadata['io.flipt.auth.oidc.name']}
-              imgURL={session.self.metadata['io.flipt.auth.oidc.picture']}
-            />
+            <UserProfile metadata={session.self.metadata} />
           )}
         </div>
       </div>
