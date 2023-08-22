@@ -45,7 +45,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
-          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/bin/quill" >> $GITHUB_ENV
 
       - uses: magefile/mage-action@v2
         with:
