@@ -69,6 +69,12 @@ jobs:
           QUILL_NOTARY_ISSUER: ${{ secrets.QUILL_NOTARY_ISSUER }}
 
       - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: quill-log
+          path: /tmp/quill.log
+
+      - uses: actions/upload-artifact@v3
         with:
           name: flipt-snapshot-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
