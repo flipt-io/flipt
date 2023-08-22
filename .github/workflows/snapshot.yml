@@ -72,7 +72,7 @@ jobs:
         if: always()
         with:
           name: quill-log
-          path: /tmp/quill.log
+          path: /tmp/quill-*.log
 
       - uses: actions/upload-artifact@v3
         with:
