@@ -118,12 +118,6 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	userReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
 	userReq.Header.Set("Accept", "application/vnd.github+json")
 
-	var githubUserResponse struct {
-		Name      string `json:"name,omitempty"`
-		Email     string `json:"email,omitempty"`
-		AvatarURL string `json:"avatar_url,omitempty"`
-	}
-
 	userResp, err := c.Do(userReq)
 	if err != nil {
 		return nil, err
@@ -132,6 +126,16 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 	defer func() {
 		userResp.Body.Close()
 	}()
+
+	if userResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("github user info response status: %q", userResp.Status)
+	}
+
+	var githubUserResponse struct {
+		Name      string `json:"name,omitempty"`
+		Email     string `json:"email,omitempty"`
+		AvatarURL string `json:"avatar_url,omitempty"`
+	}
 
 	if err := json.NewDecoder(userResp.Body).Decode(&githubUserResponse); err != nil {
 		return nil, err

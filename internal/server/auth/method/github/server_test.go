@@ -118,8 +118,6 @@ func TestServer_Github(t *testing.T) {
 
 	assert.Equal(t, "http://github.com/login/oauth/authorize?state=random-state", a.AuthorizeUrl)
 
-	defer gock.Off()
-
 	gock.New("https://api.github.com").
 		MatchHeader("Authorization", "Bearer AccessToken").
 		MatchHeader("Accept", "application/vnd.github+json").
@@ -137,4 +135,17 @@ func TestServer_Github(t *testing.T) {
 		storageMetadataGithubName:    "fliptuser",
 		storageMetadataGithubPicture: "https://thispicture.com",
 	}, c.Authentication.Metadata)
+
+	gock.Off()
+
+	gock.New("https://api.github.com").
+		MatchHeader("Authorization", "Bearer AccessToken").
+		MatchHeader("Accept", "application/vnd.github+json").
+		Get("/user").
+		Reply(400)
+
+	_, err = client.Callback(ctx, &auth.CallbackRequest{Code: "github_code"})
+	assert.EqualError(t, err, "rpc error: code = Internal desc = github user info response status: \"400 Bad Request\"")
+
+	gock.Off()
 }
