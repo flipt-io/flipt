@@ -28,7 +28,7 @@ import {
   IFlagList
 } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
-import { classNames } from '~/utils/helpers';
+import { classNames, getErrorMessage } from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
 
@@ -90,7 +90,7 @@ export default function Console() {
       parsed = context ? JSON.parse(context) : undefined;
     } catch (err) {
       setHasEvaluationError(true);
-      setResponse('error: ' + err.message);
+      setResponse('error: ' + getErrorMessage(err));
       return;
     }
 
@@ -194,7 +194,7 @@ export default function Console() {
                           >
                             Request Context
                           </label>
-                          <div className="nightwind-prevent">
+                          <div className="nightwind-prevent mt-1">
                             <ContextEditor
                               id="context"
                               value={context || undefined}
