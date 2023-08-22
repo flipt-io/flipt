@@ -149,3 +149,11 @@ func TestServer_Github(t *testing.T) {
 
 	gock.Off()
 }
+
+func TestCallbackURL(t *testing.T) {
+	callback := callbackURL("https://flipt.io")
+	assert.Equal(t, callback, "https://flipt.io/auth/v1/method/github/callback")
+
+	callback = callbackURL("https://flipt.io/")
+	assert.Equal(t, callback, "https://flipt.io/auth/v1/method/github/callback")
+}
