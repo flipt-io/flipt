@@ -1,5 +1,5 @@
 close({
-	version:   "1.0" | *"1.1"
+	version:   "1.0" | "1.1" | *"1.2"
 	namespace: string & =~"^[-_,A-Za-z0-9]+$" | *"default"
 	flags: [...{_version: version} & #Flag]
 	segments: [...#Segment]
@@ -13,7 +13,7 @@ close({
 	enabled:      bool | *false
 	variants: [...#Variant]
 	rules: [...#Rule]
-	if _version == "1.1" {
+	if _version == "1.1" || _version == "1.2" {
 		type: "BOOLEAN_FLAG_TYPE" | *"VARIANT_FLAG_TYPE"
 		#FlagBoolean | *{}
 	}
