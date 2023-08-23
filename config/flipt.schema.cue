@@ -88,6 +88,7 @@ import "strings"
 			client_secret?:    string
 			redirect_address?: string
 			scopes?: [...string]
+			use_pkce?: bool
 		}
 	}
 

@@ -82,7 +82,7 @@ func (c AuthenticationConfig) ShouldRunCleanup() (shouldCleanup bool) {
 	return
 }
 
-func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
+func (c *AuthenticationConfig) setDefaults(v *viper.Viper) error {
 	methods := map[string]any{}
 
 	// set default for each methods
@@ -112,6 +112,8 @@ func (c *AuthenticationConfig) setDefaults(v *viper.Viper) {
 		},
 		"methods": methods,
 	})
+
+	return nil
 }
 
 func (c *AuthenticationConfig) SessionEnabled() bool {
@@ -379,6 +381,7 @@ type AuthenticationMethodOIDCProvider struct {
 	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
+	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce"`
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.

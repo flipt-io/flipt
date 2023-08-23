@@ -25,7 +25,7 @@ type LogKeys struct {
 	Message string `json:"message" mapstructure:"message"`
 }
 
-func (c *LogConfig) setDefaults(v *viper.Viper) {
+func (c *LogConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("log", map[string]any{
 		"level":      "INFO",
 		"encoding":   "console",
@@ -36,6 +36,8 @@ func (c *LogConfig) setDefaults(v *viper.Viper) {
 			"message": "M",
 		},
 	})
+
+	return nil
 }
 
 var (
