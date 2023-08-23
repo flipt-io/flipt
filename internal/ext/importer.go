@@ -29,7 +29,6 @@ type Importer struct {
 	creator   Creator
 	namespace string
 	createNS  bool
-	idGen     func() string
 }
 
 type ImportOpt func(*Importer)
