@@ -2,13 +2,13 @@ package ext
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -73,7 +73,7 @@ func (m *mockCreator) CreateVariant(ctx context.Context, r *flipt.CreateVariantR
 		return nil, m.variantErr
 	}
 	return &flipt.Variant{
-		Id:          uuid.Must(uuid.NewV4()).String(),
+		Id:          "static_variant_id",
 		FlagKey:     r.FlagKey,
 		Key:         r.Key,
 		Name:        r.Name,
@@ -101,7 +101,7 @@ func (m *mockCreator) CreateConstraint(ctx context.Context, r *flipt.CreateConst
 		return nil, m.constraintErr
 	}
 	return &flipt.Constraint{
-		Id:         uuid.Must(uuid.NewV4()).String(),
+		Id:         "static_constraint_id",
 		SegmentKey: r.SegmentKey,
 		Type:       r.Type,
 		Property:   r.Property,
@@ -116,7 +116,7 @@ func (m *mockCreator) CreateRule(ctx context.Context, r *flipt.CreateRuleRequest
 		return nil, m.ruleErr
 	}
 	return &flipt.Rule{
-		Id:         uuid.Must(uuid.NewV4()).String(),
+		Id:         "static_rule_id",
 		FlagKey:    r.FlagKey,
 		SegmentKey: r.SegmentKey,
 		Rank:       r.Rank,
@@ -129,7 +129,7 @@ func (m *mockCreator) CreateDistribution(ctx context.Context, r *flipt.CreateDis
 		return nil, m.distributionErr
 	}
 	return &flipt.Distribution{
-		Id:        uuid.Must(uuid.NewV4()).String(),
+		Id:        "static_distribution_id",
 		RuleId:    r.RuleId,
 		VariantId: r.VariantId,
 		Rollout:   r.Rollout,
@@ -143,7 +143,7 @@ func (m *mockCreator) CreateRollout(ctx context.Context, r *flipt.CreateRolloutR
 	}
 
 	rollout := &flipt.Rollout{
-		Id:           uuid.Must(uuid.NewV4()).String(),
+		Id:           "static_rollout_id",
 		NamespaceKey: r.NamespaceKey,
 		FlagKey:      r.FlagKey,
 		Description:  r.Description,
@@ -164,33 +164,518 @@ func (m *mockCreator) CreateRollout(ctx context.Context, r *flipt.CreateRolloutR
 	}
 
 	return rollout, nil
+
 }
+
+const variantAttachment = `{
+  "pi": 3.141,
+  "happy": true,
+  "name": "Niels",
+  "answer": {
+    "everything": 42
+  },
+  "list": [1, 0, 2],
+  "object": {
+    "currency": "USD",
+    "value": 42.99
+  }
+}`
 
 func TestImport(t *testing.T) {
 	tests := []struct {
-		name          string
-		path          string
-		hasAttachment bool
+		name     string
+		path     string
+		expected *mockCreator
 	}{
 		{
-			name:          "import with attachment",
-			path:          "testdata/import.yml",
-			hasAttachment: true,
+			name: "import with attachment",
+			path: "testdata/import.yml",
+			expected: &mockCreator{
+				flagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
 		},
 		{
-			name:          "import without attachment",
-			path:          "testdata/import_no_attachment.yml",
-			hasAttachment: false,
+			name: "import without attachment",
+			path: "testdata/import_no_attachment.yml",
+			expected: &mockCreator{
+				flagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
 		},
 		{
-			name:          "import with implicit rule ranks",
-			path:          "testdata/import_implicit_rule_rank.yml",
-			hasAttachment: true,
+			name: "import with implicit rule ranks",
+			path: "testdata/import_implicit_rule_rank.yml",
+			expected: &mockCreator{
+				flagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
 		},
 		{
-			name:          "import with multiple segments",
-			path:          "testdata/import_rule_multiple_segments.yml",
-			hasAttachment: true,
+			name: "import with multiple segments",
+			path: "testdata/import_rule_multiple_segments.yml",
+			expected: &mockCreator{
+				flagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:     "flag1",
+						SegmentKeys: []string{"segment1"},
+						Rank:        1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "import v1",
+			path: "testdata/import_v1.yml",
+			expected: &mockCreator{
+				flagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+			},
+		},
+		{
+			name: "import v1.1",
+			path: "testdata/import_v1_1.yml",
+			expected: &mockCreator{
+				flagReqs: []*flipt.CreateFlagRequest{
+					{
+						Key:         "flag1",
+						Name:        "flag1",
+						Description: "description",
+						Type:        flipt.FlagType_VARIANT_FLAG_TYPE,
+						Enabled:     true,
+					},
+					{
+						Key:         "flag2",
+						Name:        "flag2",
+						Description: "a boolean flag",
+						Type:        flipt.FlagType_BOOLEAN_FLAG_TYPE,
+						Enabled:     false,
+					},
+				},
+				variantReqs: []*flipt.CreateVariantRequest{
+					{
+						FlagKey:     "flag1",
+						Key:         "variant1",
+						Name:        "variant1",
+						Description: "variant description",
+						Attachment:  compact(t, variantAttachment),
+					},
+				},
+				segmentReqs: []*flipt.CreateSegmentRequest{
+					{
+						Key:         "segment1",
+						Name:        "segment1",
+						Description: "description",
+						MatchType:   flipt.MatchType_ANY_MATCH_TYPE,
+					},
+				},
+				constraintReqs: []*flipt.CreateConstraintRequest{
+					{
+						SegmentKey: "segment1",
+						Type:       flipt.ComparisonType_STRING_COMPARISON_TYPE,
+						Property:   "fizz",
+						Operator:   "neq",
+						Value:      "buzz",
+					},
+				},
+				ruleReqs: []*flipt.CreateRuleRequest{
+					{
+						FlagKey:    "flag1",
+						SegmentKey: "segment1",
+						Rank:       1,
+					},
+				},
+				distributionReqs: []*flipt.CreateDistributionRequest{
+					{
+						RuleId:    "static_rule_id",
+						VariantId: "static_variant_id",
+						FlagKey:   "flag1",
+						Rollout:   100,
+					},
+				},
+				rolloutReqs: []*flipt.CreateRolloutRequest{
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for internal users",
+						Rank:        1,
+						Rule: &flipt.CreateRolloutRequest_Segment{
+							Segment: &flipt.RolloutSegment{
+								SegmentKey: "internal_users",
+								Value:      true,
+							},
+						},
+					},
+					{
+						FlagKey:     "flag2",
+						Description: "enabled for 50%",
+						Rank:        2,
+						Rule: &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: 50.0,
+								Value:      true,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 
@@ -209,96 +694,7 @@ func TestImport(t *testing.T) {
 			err = importer.Import(context.Background(), in)
 			assert.NoError(t, err)
 
-			require.Len(t, creator.flagReqs, 2)
-
-			flag := creator.flagReqs[0]
-			assert.Equal(t, "flag1", flag.Key)
-			assert.Equal(t, "flag1", flag.Name)
-			assert.Equal(t, "description", flag.Description)
-			assert.Equal(t, flipt.FlagType_VARIANT_FLAG_TYPE, flag.Type)
-			assert.Equal(t, true, flag.Enabled)
-
-			assert.NotEmpty(t, creator.variantReqs)
-			assert.Equal(t, 1, len(creator.variantReqs))
-			variant := creator.variantReqs[0]
-			assert.Equal(t, "variant1", variant.Key)
-			assert.Equal(t, "variant1", variant.Name)
-			assert.Equal(t, "variant description", variant.Description)
-
-			if tc.hasAttachment {
-				attachment := `{
-					"pi": 3.141,
-					"happy": true,
-					"name": "Niels",
-					"answer": {
-					  "everything": 42
-					},
-					"list": [1, 0, 2],
-					"object": {
-					  "currency": "USD",
-					  "value": 42.99
-					}
-				  }`
-
-				assert.JSONEq(t, attachment, variant.Attachment)
-			} else {
-				assert.Empty(t, variant.Attachment)
-			}
-
-			boolFlag := creator.flagReqs[1]
-			assert.Equal(t, "flag2", boolFlag.Key)
-			assert.Equal(t, "flag2", boolFlag.Name)
-			assert.Equal(t, "a boolean flag", boolFlag.Description)
-			assert.Equal(t, flipt.FlagType_BOOLEAN_FLAG_TYPE, boolFlag.Type)
-			assert.Equal(t, false, boolFlag.Enabled)
-
-			require.Len(t, creator.segmentReqs, 1)
-			segment := creator.segmentReqs[0]
-			assert.Equal(t, "segment1", segment.Key)
-			assert.Equal(t, "segment1", segment.Name)
-			assert.Equal(t, "description", segment.Description)
-			assert.Equal(t, flipt.MatchType_ANY_MATCH_TYPE, segment.MatchType)
-
-			require.Len(t, creator.constraintReqs, 1)
-			constraint := creator.constraintReqs[0]
-			assert.Equal(t, flipt.ComparisonType_STRING_COMPARISON_TYPE, constraint.Type)
-			assert.Equal(t, "fizz", constraint.Property)
-			assert.Equal(t, "neq", constraint.Operator)
-			assert.Equal(t, "buzz", constraint.Value)
-
-			require.Len(t, creator.ruleReqs, 1)
-			rule := creator.ruleReqs[0]
-			if rule.SegmentKey != "" {
-				assert.Equal(t, "segment1", rule.SegmentKey)
-			} else {
-				assert.Len(t, rule.SegmentKeys, 1)
-				assert.Equal(t, "segment1", rule.SegmentKeys[0])
-			}
-			assert.Equal(t, int32(1), rule.Rank)
-
-			require.Len(t, creator.distributionReqs, 1)
-			distribution := creator.distributionReqs[0]
-			assert.Equal(t, "flag1", distribution.FlagKey)
-			assert.NotEmpty(t, distribution.VariantId)
-			assert.NotEmpty(t, distribution.RuleId)
-			assert.Equal(t, float32(100), distribution.Rollout)
-
-			require.Len(t, creator.rolloutReqs, 2)
-			segmentRollout := creator.rolloutReqs[0]
-			assert.Equal(t, "flag2", segmentRollout.FlagKey)
-			assert.Equal(t, "enabled for internal users", segmentRollout.Description)
-			assert.Equal(t, int32(1), segmentRollout.Rank)
-			require.NotNil(t, segmentRollout.GetSegment())
-			assert.Equal(t, "internal_users", segmentRollout.GetSegment().SegmentKey)
-			assert.Equal(t, true, segmentRollout.GetSegment().Value)
-
-			percentageRollout := creator.rolloutReqs[1]
-			assert.Equal(t, "flag2", percentageRollout.FlagKey)
-			assert.Equal(t, "enabled for 50%", percentageRollout.Description)
-			assert.Equal(t, int32(2), percentageRollout.Rank)
-			require.NotNil(t, percentageRollout.GetThreshold())
-			assert.Equal(t, float32(50.0), percentageRollout.GetThreshold().Percentage)
-			assert.Equal(t, true, percentageRollout.GetThreshold().Value)
+			assert.Equal(t, tc.expected, creator)
 		})
 	}
 }
@@ -408,4 +804,16 @@ func TestImport_Namespaces(t *testing.T) {
 		})
 	}
 
+}
+
+func compact(t *testing.T, v string) string {
+	t.Helper()
+
+	var m any
+	require.NoError(t, json.Unmarshal([]byte(v), &m))
+
+	d, err := json.Marshal(m)
+	require.NoError(t, err)
+
+	return string(d)
 }
