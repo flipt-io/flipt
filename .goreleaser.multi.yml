@@ -132,6 +132,9 @@ brews:
     service: |
       run [opt_bin/"flipt"]
       environment_variables PATH: std_service_path_env
+      keep_alive true
+      error_log_path "#{var}/log/flipt/server-stderr.log"
+      log_path "#{var}/log/flipt/server-stdout.log"
 
     repository:
       owner: flipt-io
