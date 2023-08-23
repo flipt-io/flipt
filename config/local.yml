@@ -13,7 +13,6 @@ log:
 cors:
   enabled: true
   allowed_origins: ["*"]
-
 # cache:
 #   enabled: false
 #   backend: memory
@@ -30,6 +29,3 @@ cors:
 #   https_port: 443
 #   http_port: 8080
 #   grpc_port: 9000
-
-db:
-  url: file:flipt.db

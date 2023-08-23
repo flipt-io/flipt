@@ -13,8 +13,6 @@ var (
 		"tracing.jaeger.enabled":          deprecatedMsgTracingJaegerEnabled,
 		"cache.memory.enabled":            deprecatedMsgCacheMemoryEnabled,
 		"cache.memory.expiration":         deprecatedMsgCacheMemoryExpiration,
-		"database.migrations":             deprecatedMsgDatabaseMigrations,
-		"db.migrations.path":              deprecatedMsgDatabaseMigrations,
 		"experimental.filesystem_storage": deprecatedMsgExperimentalFilesystemStorage,
 	}
 )
@@ -26,7 +24,6 @@ const (
 	deprecatedMsgTracingJaegerEnabled          = `Please use 'tracing.enabled' and 'tracing.exporter' instead.`
 	deprecatedMsgCacheMemoryEnabled            = `Please use 'cache.enabled' and 'cache.backend' instead.`
 	deprecatedMsgCacheMemoryExpiration         = `Please use 'cache.ttl' instead.`
-	deprecatedMsgDatabaseMigrations            = `Migrations are now embedded within Flipt and are no longer required on disk.`
 	deprecatedMsgExperimentalFilesystemStorage = `The experimental filesystem storage backend has graduated to a stable feature. Please use 'storage' instead.`
 )
 

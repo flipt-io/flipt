@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -140,7 +141,9 @@ func Load(path string) (*Result, error) {
 
 	// run any defaulters
 	for _, defaulter := range defaulters {
-		defaulter.setDefaults(v)
+		if err := defaulter.setDefaults(v); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := v.Unmarshal(cfg, viper.DecodeHook(
@@ -162,7 +165,7 @@ func Load(path string) (*Result, error) {
 }
 
 type defaulter interface {
-	setDefaults(v *viper.Viper)
+	setDefaults(v *viper.Viper) error
 }
 
 type validator interface {
@@ -411,6 +414,13 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 
 // DefaultConfig is the base config used when no configuration is explicit provided.
 func DefaultConfig() *Config {
+	dbRoot, err := defaultDatabaseRoot()
+	if err != nil {
+		panic(err)
+	}
+
+	dbPath := filepath.Join(dbRoot, "flipt", "flipt.db")
+
 	return &Config{
 		Log: LogConfig{
 			Level:     "INFO",
@@ -476,7 +486,7 @@ func DefaultConfig() *Config {
 		},
 
 		Database: DatabaseConfig{
-			URL:                       "file:/var/opt/flipt/flipt.db",
+			URL:                       "file:" + dbPath,
 			MaxIdleConn:               2,
 			PreparedStatementsEnabled: true,
 		},
