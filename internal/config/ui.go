@@ -11,10 +11,12 @@ type UIConfig struct {
 	Enabled bool `json:"enabled" mapstructure:"enabled"`
 }
 
-func (c *UIConfig) setDefaults(v *viper.Viper) {
+func (c *UIConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("ui", map[string]any{
 		"enabled": true,
 	})
+
+	return nil
 }
 
 func (c *UIConfig) deprecations(v *viper.Viper) []deprecated {
