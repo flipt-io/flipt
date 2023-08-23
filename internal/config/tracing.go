@@ -19,7 +19,7 @@ type TracingConfig struct {
 	OTLP     OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp"`
 }
 
-func (c *TracingConfig) setDefaults(v *viper.Viper) {
+func (c *TracingConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("tracing", map[string]any{
 		"enabled":  false,
 		"exporter": TracingJaeger,
@@ -41,6 +41,8 @@ func (c *TracingConfig) setDefaults(v *viper.Viper) {
 		v.Set("tracing.enabled", true)
 		v.Set("tracing.exporter", TracingJaeger)
 	}
+
+	return nil
 }
 
 func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {

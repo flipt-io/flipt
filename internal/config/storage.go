@@ -7,6 +7,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// cheers up the unparam linter
+var _ defaulter = (*StorageConfig)(nil)
+
 type StorageType string
 
 const (
@@ -32,7 +35,7 @@ type StorageConfig struct {
 	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"readOnly,omitempty"`
 }
 
-func (c *StorageConfig) setDefaults(v *viper.Viper) {
+func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	switch v.GetString("storage.type") {
 	case string(LocalStorageType):
 		v.SetDefault("storage.local.path", ".")
@@ -50,6 +53,8 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) {
 	default:
 		v.SetDefault("storage.type", "database")
 	}
+
+	return nil
 }
 
 func (c *StorageConfig) validate() error {
