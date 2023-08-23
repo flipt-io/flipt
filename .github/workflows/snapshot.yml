@@ -64,9 +64,6 @@ jobs:
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
           QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
           QUILL_SIGN_PASSWORD: ${{ secrets.QUILL_SIGN_PASSWORD }}
-          QUILL_NOTARY_KEY: ${{ secrets.QUILL_NOTARY_KEY }}
-          QUILL_NOTARY_KEY_ID: ${{ secrets.QUILL_NOTARY_KEY_ID }}
-          QUILL_NOTARY_ISSUER: ${{ secrets.QUILL_NOTARY_ISSUER }}
 
       - uses: actions/upload-artifact@v3
         with:
