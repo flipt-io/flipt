@@ -2,6 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
@@ -40,7 +42,7 @@ type DatabaseConfig struct {
 	PreparedStatementsEnabled bool             `json:"preparedStatementsEnabled,omitempty" mapstructure:"prepared_statements_enabled"`
 }
 
-func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
+func (c *DatabaseConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("db", map[string]any{
 		"max_idle_conn": 2,
 	})
@@ -53,20 +55,17 @@ func (c *DatabaseConfig) setDefaults(v *viper.Viper) {
 	}
 
 	if setDefaultURL {
-		v.SetDefault("db.url", "file:/var/opt/flipt/flipt.db")
+		dbRoot, err := defaultDatabaseRoot()
+		if err != nil {
+			return fmt.Errorf("getting default database directory: %w", err)
+		}
+
+		path := filepath.Join(dbRoot, "flipt", "flipt.db")
+		v.SetDefault("db.url", "file:"+path)
 	}
 
 	v.SetDefault("db.prepared_statements_enabled", true)
-}
-
-func (c *DatabaseConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.IsSet("db.migrations.path") || v.IsSet("db.migrations_path") {
-		deprecations = append(deprecations, "db.migrations.path")
-	}
-
-	return deprecations
+	return nil
 }
 
 func (c *DatabaseConfig) validate() (err error) {

@@ -293,7 +293,7 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 
 	g, ctx := errgroup.WithContext(ctx)
 
-	if err := initLocalState(cfg); err != nil {
+	if err := initMetaStateDir(cfg); err != nil {
 		logger.Debug("disabling telemetry, state directory not accessible", zap.String("path", cfg.Meta.StateDirectory), zap.Error(err))
 		cfg.Meta.TelemetryEnabled = false
 	} else {
@@ -369,31 +369,43 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	return g.Wait()
 }
 
-// check if state directory already exists, create it if not
-func initLocalState(cfg *config.Config) error {
-	if cfg.Meta.StateDirectory == "" {
-		configDir, err := os.UserConfigDir()
-		if err != nil {
-			return fmt.Errorf("getting user config dir: %w", err)
-		}
-		cfg.Meta.StateDirectory = filepath.Join(configDir, "flipt")
+func defaultUserStateDir() (string, error) {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("getting user state dir: %w", err)
 	}
 
-	fp, err := os.Stat(cfg.Meta.StateDirectory)
+	return filepath.Join(configDir, "flipt"), nil
+}
+
+func ensureDir(path string) error {
+	fp, err := os.Stat(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			// state directory doesnt exist, so try to create it
-			return os.MkdirAll(cfg.Meta.StateDirectory, 0700)
+			// directory doesnt exist, so try to create it
+			return os.MkdirAll(path, 0700)
 		}
-		return fmt.Errorf("checking state directory: %w", err)
+		return fmt.Errorf("checking directory: %w", err)
 	}
 
 	if fp != nil && !fp.IsDir() {
-		return fmt.Errorf("state directory is not a directory")
+		return fmt.Errorf("not a directory")
 	}
 
-	// assume state directory exists and is a directory
 	return nil
+}
+
+// check if state directory already exists, create it if not
+func initMetaStateDir(cfg *config.Config) error {
+	if cfg.Meta.StateDirectory == "" {
+		var err error
+		cfg.Meta.StateDirectory, err = defaultUserStateDir()
+		if err != nil {
+			return err
+		}
+	}
+
+	return ensureDir(cfg.Meta.StateDirectory)
 }
 
 // clientConn constructs and configures a client connection to the underlying gRPC server.

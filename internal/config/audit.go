@@ -7,6 +7,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// cheers up the unparam linter
+var _ defaulter = (*AuditConfig)(nil)
+
 // AuditConfig contains fields, which enable and configure
 // Flipt's various audit sink mechanisms.
 type AuditConfig struct {
@@ -19,7 +22,7 @@ func (c *AuditConfig) Enabled() bool {
 	return c.Sinks.LogFile.Enabled
 }
 
-func (c *AuditConfig) setDefaults(v *viper.Viper) {
+func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
 			"log": map[string]any{
@@ -32,6 +35,8 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) {
 			"flush_period": "2m",
 		},
 	})
+
+	return nil
 }
 
 func (c *AuditConfig) validate() error {

@@ -12,9 +12,11 @@ type CorsConfig struct {
 	AllowedOrigins []string `json:"allowedOrigins,omitempty" mapstructure:"allowed_origins"`
 }
 
-func (c *CorsConfig) setDefaults(v *viper.Viper) {
+func (c *CorsConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("cors", map[string]any{
 		"enabled":         false,
 		"allowed_origins": "*",
 	})
+
+	return nil
 }
