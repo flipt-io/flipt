@@ -7,19 +7,10 @@ on:
 permissions:
   contents: write
   packages: write
-  pull-requests: write
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            name: linux
-          - os: macos-latest
-            name: darwin
+  release:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -42,87 +33,54 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install GCC for arm64
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update && \
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-
-      - name: Install Quill
-        if: matrix.os == 'macos-latest'
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
-          echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
-
-      - uses: magefile/mage-action@v2
-        with:
-          version: latest
-          args: prep
-
-      - name: GoReleaser Build
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          distribution: goreleaser-pro
-          version: latest
-          args: release --clean -f .goreleaser.${{ matrix.name }}.yml
-        env:
-          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
-          QUILL_SIGN_P12: ${{ secrets.QUILL_SIGN_P12 }}
-          QUILL_SIGN_PASSWORD: ${{ secrets.QUILL_SIGN_PASSWORD }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: flipt-${{ matrix.name }}
-          path: dist/flipt_${{ matrix.name }}_*/flipt
-
-  release:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
-
       - uses: docker/setup-qemu-action@v2
 
       - uses: docker/setup-buildx-action@v2
 
-      - uses: actions/download-artifact@v3
-        with:
-          name: flipt-linux
-          path: tmp/dist
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: flipt-darwin
-          path: tmp/dist
-
-      - name: Install Syft
+      - name: Install GCC for arm64
         run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          sudo apt-get update &&
+          sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Install Skopeo
         run: |
           sudo apt-get update
           sudo apt-get -y install skopeo
 
-      - name: GoReleaser Release
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: "${{ github.repository_owner }}"
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+        with:
+          version: latest
+          args: prep
+
+      - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release -f .goreleaser.multi.yml
+          args: release --clean
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
+          DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
+          DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
       - name: Tag and Push latest
         env:
