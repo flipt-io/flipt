@@ -117,3 +117,16 @@ docker_manifests:
 announce:
   discord:
     enabled: true
+
+brews:
+  - name: flipt
+    homepage: https://flipt.io
+    description: An open source, self-hosted feature flag solution
+    license: GPL-3.0-only
+    folder: Formula
+    skip_upload: auto
+    repository:
+      owner: flipt-io
+      name: homebrew-brew
+      pull_request:
+        enabled: true
