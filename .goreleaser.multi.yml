@@ -125,6 +125,14 @@ brews:
     license: GPL-3.0-only
     folder: Formula
     skip_upload: auto
+
+    post_install: |
+      (var/"log/flipt").mkpath
+
+    service: |
+      run [opt_bin/"flipt"]
+      environment_variables PATH: std_service_path_env
+
     repository:
       owner: flipt-io
       name: homebrew-brew
