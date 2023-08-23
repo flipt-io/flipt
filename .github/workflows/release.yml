@@ -73,7 +73,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: flipt-snapshot-${{ matrix.name }}
+          name: flipt-${{ matrix.name }}
           path: dist/flipt_${{ matrix.name }}_*/flipt
 
   release:
