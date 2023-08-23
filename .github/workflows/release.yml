@@ -131,6 +131,14 @@ jobs:
           version: latest
           args: prep
 
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.FLIPT_RELEASE_BOT_APP_ID }}
+          private_key: ${{ secrets.FLIPT_RELEASE_BOT_APP_PEM }}
+          installation_id: ${{ secrets.FLIPT_RELEASE_BOT_INSTALLATION_ID }}
+
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:
@@ -139,7 +147,7 @@ jobs:
           args: release --clean
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           ANALYTICS_KEY: ${{ secrets.ANALYTICS_KEY }}
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
