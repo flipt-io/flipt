@@ -806,6 +806,7 @@ func TestImport_Namespaces(t *testing.T) {
 
 }
 
+//nolint:unparam
 func compact(t *testing.T, v string) string {
 	t.Helper()
 
