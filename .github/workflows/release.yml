@@ -59,12 +59,12 @@ jobs:
           version: latest
           args: prep
 
-      - name: GoReleaser (Snapshot) Build
+      - name: GoReleaser Build
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot -f .goreleaser.${{ matrix.name }}.yml
+          args: release --clean -f .goreleaser.${{ matrix.name }}.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
