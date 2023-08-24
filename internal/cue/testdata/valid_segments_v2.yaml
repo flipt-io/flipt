@@ -1,3 +1,4 @@
+version: "1.2"
 namespace: default
 flags:
 - key: flipt
