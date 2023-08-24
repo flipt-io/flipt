@@ -15632,6 +15632,10 @@ segments:
     property: in_segment
     operator: eq
     value: segment_001
+  - type: STRING_COMPARISON_TYPE
+    property: in_segment
+    operator: eq
+    value: segment_001
   match_type: ALL_MATCH_TYPE
 - key: segment_002
   name: SEGMENT_002
