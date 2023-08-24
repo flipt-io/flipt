@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	oidctesting "go.flipt.io/flipt/internal/server/auth/method/oidc/testing"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
@@ -29,7 +30,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func Test_Server(t *testing.T) {
+func Test_Server_ImplicitFlow(t *testing.T) {
 	var (
 		router = chi.NewRouter()
 		// httpServer is the test server used for hosting
@@ -133,7 +134,116 @@ func Test_Server(t *testing.T) {
 		Jar: jar,
 	}
 
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+}
+
+func Test_Server_PKCE(t *testing.T) {
+	var (
+		router        = chi.NewRouter()
+		httpServer    = httptest.NewServer(router)
+		clientAddress = strings.Replace(httpServer.URL, "127.0.0.1", "localhost", 1)
+
+		id, secret = "client_id", "client_secret"
+
+		logger = zaptest.NewLogger(t)
+		ctx    = context.Background()
+	)
+
+	priv, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n\n", err)
+		return
+	}
+
+	tp := oidc.StartTestProvider(t, oidc.WithNoTLS(), oidc.WithTestDefaults(&oidc.TestProviderDefaults{
+		CustomClaims: map[string]interface{}{},
+		SubjectInfo: map[string]*oidc.TestSubject{
+			"mark": {
+				Password: "phelps",
+				UserInfo: map[string]interface{}{
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+				},
+				CustomClaims: map[string]interface{}{
+					"email": "mark@flipt.io",
+					"name":  "Mark Phelps",
+				},
+			},
+			"george": {
+				Password: "macrorie",
+				UserInfo: map[string]interface{}{
+					"email": "george@flipt.io",
+					"name":  "George MacRorie",
+				},
+				CustomClaims: map[string]interface{}{
+					"email": "george@flipt.io",
+					"name":  "George MacRorie",
+				},
+			},
+		},
+		SigningKey: &oidc.TestSigningKey{
+			PrivKey: priv,
+			PubKey:  priv.Public(),
+			Alg:     oidc.RS256,
+		},
+		AllowedRedirectURIs: []string{
+			fmt.Sprintf("%s/auth/v1/method/oidc/google/callback", clientAddress),
+		},
+		ClientID:     &id,
+		ClientSecret: &secret,
+		PKCEVerifier: authoidc.PKCEVerifier,
+	}))
+
+	defer tp.Stop()
+
+	var (
+		authConfig = config.AuthenticationConfig{
+			Session: config.AuthenticationSession{
+				Domain:        "localhost",
+				Secure:        false,
+				TokenLifetime: 1 * time.Hour,
+				StateLifetime: 10 * time.Minute,
+			},
+			Methods: config.AuthenticationMethods{
+				OIDC: config.AuthenticationMethod[config.AuthenticationMethodOIDCConfig]{
+					Enabled: true,
+					Method: config.AuthenticationMethodOIDCConfig{
+						Providers: map[string]config.AuthenticationMethodOIDCProvider{
+							"google": {
+								IssuerURL:       tp.Addr(),
+								ClientID:        id,
+								ClientSecret:    secret,
+								RedirectAddress: clientAddress,
+								UsePKCE:         true,
+							},
+						},
+					},
+				},
+			},
+		}
+		server = oidctesting.StartHTTPServer(t, ctx, logger, authConfig, router)
+	)
+
+	t.Cleanup(func() { _ = server.Stop() })
+
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	require.NoError(t, err)
+
+	client := &http.Client{
+		// skip redirects
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		// establish a cookie jar
+		Jar: jar,
+	}
+
+	testOIDCFlow(t, ctx, tp.Addr(), clientAddress, client, server)
+}
+
+func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress string, client *http.Client, server *oidctesting.HTTPServer) {
 	var authURL *url.URL
+
 	t.Run("AuthorizeURL", func(t *testing.T) {
 		authorizeURL := clientAddress + "/auth/v1/method/oidc/google/authorize"
 
@@ -175,7 +285,7 @@ func Test_Server(t *testing.T) {
 		values.Set("uname", "mark")
 		values.Set("psw", "phelps")
 
-		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tp.Addr()+"/login", strings.NewReader(values.Encode()))
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tpAddr+"/login", strings.NewReader(values.Encode()))
 		require.NoError(t, err)
 
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
