@@ -1,3 +1,4 @@
+import { ArrowPathIcon } from '@heroicons/react/20/solid';
 import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
@@ -9,7 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import { ContextEditor } from '~/components/console/ContextEditor';
-import '~/components/console/worker';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
@@ -180,12 +180,29 @@ export default function Console() {
                           >
                             Entity ID
                           </label>
-                          <Input
-                            className="mt-1"
-                            name="entityId"
-                            id="entityId"
-                            type="text"
-                          />
+                          <div className="flex items-center justify-between">
+                            <Input
+                              className="mr-2 mt-1"
+                              name="entityId"
+                              id="entityId"
+                              type="text"
+                            />
+                            <button
+                              aria-label="New Entity ID"
+                              title="New Entity ID"
+                              className="hidden md:block"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                formik.setFieldValue('entityId', uuidv4());
+                              }}
+                            >
+                              <ArrowPathIcon
+                                className={classNames(
+                                  'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500'
+                                )}
+                              />
+                            </button>
+                          </div>
                         </div>
                         <div className="col-span-3">
                           <label
@@ -195,11 +212,7 @@ export default function Console() {
                             Request Context
                           </label>
                           <div className="nightwind-prevent mt-1">
-                            <ContextEditor
-                              id="context"
-                              value={context || undefined}
-                              setValue={setContext}
-                            />
+                            <ContextEditor id="context" setValue={setContext} />
                           </div>
                         </div>
                       </div>

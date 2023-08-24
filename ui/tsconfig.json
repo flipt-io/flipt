@@ -29,7 +29,6 @@
   "include": [
     "src",
     "tests",
-    "src/components/console/worker.ts"
   ],
   "references": [
     {
