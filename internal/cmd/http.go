@@ -77,7 +77,7 @@ func NewHTTPServer(
 		cors := cors.New(cors.Options{
 			AllowedOrigins:   cfg.Cors.AllowedOrigins,
 			AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Cache-Control"},
+			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 			ExposedHeaders:   []string{"Link"},
 			AllowCredentials: true,
 			MaxAge:           300,
