@@ -107,7 +107,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: build --snapshot -f .goreleaser.multi.yml
+          args: build --snapshot
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
