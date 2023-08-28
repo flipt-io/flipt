@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Dependency updates
 
+### Fixed
+
+- hover icon visibility for copy key to clipboard in lightmode (#2056)
+
 ## [v1.25.2](https://github.com/flipt-io/flipt/releases/tag/v1.25.2) - 2023-08-23
 
 ### Fixed
