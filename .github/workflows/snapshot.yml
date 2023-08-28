@@ -57,7 +57,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean --snapshot -f .goreleaser.${{ matrix.name }}.yml
+          args: build --clean --snapshot -f .goreleaser.${{ matrix.name }}.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,7 +107,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --snapshot -f .goreleaser.multi.yml
+          args: build --snapshot -f .goreleaser.multi.yml
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
