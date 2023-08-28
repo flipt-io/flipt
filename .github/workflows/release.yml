@@ -144,7 +144,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean -f .goreleaser.multi.yml
+          args: release --clean 
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
