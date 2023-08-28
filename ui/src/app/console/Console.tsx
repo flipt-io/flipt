@@ -1,18 +1,19 @@
+import { ArrowPathIcon } from '@heroicons/react/20/solid';
 import { Form, Formik, useFormikContext } from 'formik';
 import hljs from 'highlight.js';
 import javascript from 'highlight.js/lib/languages/json';
-import 'highlight.js/styles/tokyo-night-dark.css';
+import 'highlight.js/styles/tomorrow-night-bright.css';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import * as Yup from 'yup';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
+import { ContextEditor } from '~/components/console/ContextEditor';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Combobox from '~/components/forms/Combobox';
 import Input from '~/components/forms/Input';
-import TextArea from '~/components/forms/TextArea';
 import { evaluateV2, listFlags } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import {
@@ -27,7 +28,7 @@ import {
   IFlagList
 } from '~/types/Flag';
 import { INamespace } from '~/types/Namespace';
-import { classNames } from '~/utils/helpers';
+import { classNames, getErrorMessage } from '~/utils/helpers';
 
 hljs.registerLanguage('json', javascript);
 
@@ -44,12 +45,12 @@ function ResetOnNamespaceChange({ namespace }: { namespace: INamespace }) {
 interface ConsoleFormValues {
   flagKey: string;
   entityId: string;
-  context: string | undefined;
 }
 
 export default function Console() {
   const [flags, setFlags] = useState<FilterableFlag[]>([]);
   const [selectedFlag, setSelectedFlag] = useState<FilterableFlag | null>(null);
+  const [context, setContext] = useState<string | null>(null);
   const [response, setResponse] = useState<string | null>(null);
   const [hasEvaluationError, setHasEvaluationError] = useState<boolean>(false);
 
@@ -77,14 +78,21 @@ export default function Console() {
   }, [namespace.key]);
 
   const handleSubmit = (flag: IFlag | null, values: ConsoleFormValues) => {
-    const { entityId, context } = values;
+    const { entityId } = values;
 
     if (!flag) {
       return;
     }
 
-    // need to unescape the context string
-    const parsed = context ? JSON.parse(context) : undefined;
+    let parsed = null;
+    try {
+      // need to unescape the context string
+      parsed = context ? JSON.parse(context) : undefined;
+    } catch (err) {
+      setHasEvaluationError(true);
+      setResponse('error: ' + getErrorMessage(err));
+      return;
+    }
 
     const rest = {
       entityId,
@@ -116,8 +124,7 @@ export default function Console() {
 
   const initialvalues: ConsoleFormValues = {
     flagKey: selectedFlag?.key || '',
-    entityId: uuidv4(),
-    context: undefined
+    entityId: uuidv4()
   };
 
   return (
@@ -143,11 +150,6 @@ export default function Console() {
                 })}
                 onSubmit={(values) => {
                   handleSubmit(selectedFlag, values);
-                }}
-                onReset={() => {
-                  setResponse(null);
-                  setHasEvaluationError(false);
-                  setSelectedFlag(null);
                 }}
               >
                 {(formik) => (
@@ -178,12 +180,29 @@ export default function Console() {
                           >
                             Entity ID
                           </label>
-                          <Input
-                            className="mt-1"
-                            name="entityId"
-                            id="entityId"
-                            type="text"
-                          />
+                          <div className="flex items-center justify-between">
+                            <Input
+                              className="mr-2 mt-1"
+                              name="entityId"
+                              id="entityId"
+                              type="text"
+                            />
+                            <button
+                              aria-label="New Entity ID"
+                              title="New Entity ID"
+                              className="hidden md:block"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                formik.setFieldValue('entityId', uuidv4());
+                              }}
+                            >
+                              <ArrowPathIcon
+                                className={classNames(
+                                  'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500'
+                                )}
+                              />
+                            </button>
+                          </div>
                         </div>
                         <div className="col-span-3">
                           <label
@@ -192,27 +211,12 @@ export default function Console() {
                           >
                             Request Context
                           </label>
-                          <TextArea
-                            rows={10}
-                            name="context"
-                            id="context"
-                            className="mt-1"
-                            placeholder="{}"
-                          />
+                          <div className="nightwind-prevent mt-1">
+                            <ContextEditor id="context" setValue={setContext} />
+                          </div>
                         </div>
                       </div>
                       <div className="flex justify-end">
-                        <Button
-                          type="reset"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            formik.resetForm();
-                            formik.setFieldValue('entityId', uuidv4());
-                            formik.setFieldValue('context', '');
-                          }}
-                        >
-                          Reset
-                        </Button>
                         <Button
                           primary
                           className="ml-3"
