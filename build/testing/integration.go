@@ -161,8 +161,7 @@ func api(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, c
 func cache(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	flipt = flipt.
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
-		WithEnvVariable("FLIPT_CACHE_ENABLED", "true").
-		WithEnvVariable("FLIPT_CACHE_TTL", "500ms")
+		WithEnvVariable("FLIPT_CACHE_ENABLED", "true")
 
 	return suite(ctx, "api", base, flipt.WithExec(nil), conf)
 }

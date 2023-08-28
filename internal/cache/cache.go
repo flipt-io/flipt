@@ -20,16 +20,3 @@ type Cacher interface {
 func Key(k string) string {
 	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
 }
-
-type contextCacheKey string
-
-// do not store informs the cache to not store the value in the cache
-var doNotStore contextCacheKey = "no-store"
-
-func WithDoNotStore(ctx context.Context) context.Context {
-	return context.WithValue(ctx, doNotStore, true)
-}
-
-func IsDoNotStore(ctx context.Context) bool {
-	return ctx.Value(doNotStore) != nil
-}
