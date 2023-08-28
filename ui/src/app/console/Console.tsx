@@ -198,7 +198,7 @@ export default function Console() {
                             >
                               <ArrowPathIcon
                                 className={classNames(
-                                  'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500'
+                                  'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-500'
                                 )}
                               />
                             </button>
