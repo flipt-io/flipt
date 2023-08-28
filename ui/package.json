@@ -47,7 +47,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.22.5",
     "@playwright/test": "^1.36.2",
-    "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/forms": "^0.5.5",
     "@types/jest": "^29.5.3",
     "@types/loadable__component": "^5.13.4",
     "@types/lodash": "^4.14.197",
