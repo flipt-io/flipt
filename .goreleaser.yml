@@ -42,22 +42,23 @@ release:
   prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
   target_commitish: "{{ .Commit }}"
   footer: |
-    We hope you :heart: this release! Feel free to open issues/discussions or reach out to us on Discord if you have any questions or feedback.
-
-    - [Discord](https://flipt.io/discord)
-    - [Github Discussions](https://github.com/flipt-io/flipt/discussions)
-    - [Github Issues](https://github.com/flipt-io/flipt/issues)
-    - [Newsletter](https://www.flipt.io/#newsletter)
-
     ## Docker Images
 
-    - [flipt-io/flipt](https://hub.docker.com/r/flipt/flipt/tags)
+    - [flipt/flipt](https://hub.docker.com/r/flipt/flipt/tags)
 
     ```bash
       docker pull docker.io/flipt/flipt:v{{ .Tag }}
       # or
       docker pull ghcr.io/flipt-io/flipt:v{{ .Tag }}
     ```
+    ## Thank you!
+
+    We hope you :heart: this release! Feel free to open issues/discussions or reach out to us on Discord if you have any questions or feedback.
+
+    - [Discord](https://flipt.io/discord)
+    - [Github Discussions](https://github.com/flipt-io/flipt/discussions)
+    - [Github Issues](https://github.com/flipt-io/flipt/issues)
+    - [Newsletter](https://www.flipt.io/#newsletter)
 
 snapshot:
   name_template: "{{ .ShortCommit }}-snapshot"
