@@ -51,6 +51,7 @@ release:
       # or
       docker pull ghcr.io/flipt-io/flipt:v{{ .Tag }}
     ```
+
     ## Thank you!
 
     We hope you :heart: this release! Feel free to open issues/discussions or reach out to us on Discord if you have any questions or feedback.
