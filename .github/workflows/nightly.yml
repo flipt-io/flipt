@@ -53,10 +53,13 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
-      - uses: magefile/mage-action@v2
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: prep
+          install-only: true
+
+      - name: Prep Build
+        run: mage prep
 
       - name: GoReleaser (Nightly) Build
         uses: goreleaser/goreleaser-action@v4
