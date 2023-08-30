@@ -1,3 +1,5 @@
+import { Theme } from './Preferences';
+
 export interface IInfo {
   version: string;
   latestVersion?: string;
@@ -14,8 +16,13 @@ export interface IStorage {
   readOnly?: boolean;
 }
 
+export interface IUI {
+  defaultTheme: Theme;
+}
+
 export interface IConfig {
   storage: IStorage;
+  ui: IUI;
 }
 
 export enum StorageType {
