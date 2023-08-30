@@ -35,11 +35,13 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
-      - name: Unit Test ${{ matrix.database }}
-        uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: dagger:run "test:database ${{ matrix.database }}"
+          install-only: true
+
+      - name: Unit Test ${{ matrix.database }}
+        run: mage dagger:run "test:database ${{ matrix.database }}"
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.4
@@ -79,10 +81,10 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: dagger:run test:migration
+          install-only: true
 
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3.1.4
+      - name: Run UI Tests
+        run: mage dagger:run test:migration

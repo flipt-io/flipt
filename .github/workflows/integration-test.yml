@@ -34,10 +34,13 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: dagger:run test:cli
+          install-only: true
+
+      - name: Run CLI Tests
+        run: mage dagger:run test:cli
 
   test:
     name: Integration Tests
@@ -62,10 +65,13 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: dagger:run "test:integration ${{ matrix.test }}"
+          install-only: true
+
+      - name: Run Integration Tests
+        run: mage dagger:run "test:integration ${{ matrix.test }}"
 
       - name: Upload Flipt Service Logs
         uses: actions/upload-artifact@v3
@@ -94,7 +100,10 @@ jobs:
           cd /usr/local
           curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: dagger:run test:ui
+          install-only: true
+
+      - name: Run UI Tests
+        run: mage dagger:run test:ui
