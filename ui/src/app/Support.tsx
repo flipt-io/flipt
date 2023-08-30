@@ -21,7 +21,7 @@ export default function Support() {
           <a
             className="text-white bg-violet-500 mb-1 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm hover:bg-violet-600 hover:cursor-pointer focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
             target="_blank"
-            rel="noopener"
+            rel="noreferrer"
             href="https://www.flipt.io/docs/"
           >
             <span>Documentation</span>
