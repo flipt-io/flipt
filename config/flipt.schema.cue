@@ -216,7 +216,10 @@ import "strings"
 		}
 	}
 
-	#ui: enabled?: bool | *true
+	#ui: {
+		enabled?: 		bool | *true
+		default_theme?: string | "system"
+	}
 
 	#audit: {
 		sinks?: {
