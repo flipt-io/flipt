@@ -80,7 +80,7 @@ export default function Namespaces() {
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-gray-700 text-xl font-semibold">Namespaces</h1>
+            <h3 className="text-gray-700 text-xl font-semibold">Namespaces</h3>
             <p className="text-gray-500 mt-2 text-sm">
               Namespaces allow you to group your flags, segments and rules under
               a single name

@@ -2,6 +2,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getConfig, getInfo } from '~/data/api';
 import { IConfig, IInfo, StorageType } from '~/types/Meta';
+import { Theme } from '~/types/Preferences';
 
 interface IMetaSlice {
   info: IInfo;
@@ -23,6 +24,9 @@ const initialState: IMetaSlice = {
     storage: {
       type: StorageType.DATABASE,
       readOnly: false
+    },
+    ui: {
+      defaultTheme: Theme.SYSTEM
     }
   }
 };

@@ -49,10 +49,10 @@ jobs:
           username: "${{ github.repository_owner }}"
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: prep
+          install-only: true
 
       - name: Tag and Push latest
         env:
@@ -70,4 +70,3 @@ jobs:
             docker pull ghcr.io/flipt-io/flipt:$TAG
             skopeo copy --all docker://ghcr.io/flipt-io/flipt:$TAG docker://ghcr.io/flipt-io/flipt:latest
           fi
- 

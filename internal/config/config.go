@@ -434,7 +434,8 @@ func DefaultConfig() *Config {
 		},
 
 		UI: UIConfig{
-			Enabled: true,
+			Enabled:      true,
+			DefaultTheme: SystemUITheme,
 		},
 
 		Cors: CorsConfig{

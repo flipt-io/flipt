@@ -166,6 +166,7 @@ export default function FlagForm(props: FlagFormProps) {
                     {!isNew && (
                       <button
                         aria-label="Copy"
+                        title="Copy to Clipboard"
                         className="hidden md:block"
                         onClick={(e) => {
                           e.preventDefault();
@@ -178,7 +179,7 @@ export default function FlagForm(props: FlagFormProps) {
                       >
                         <CheckIcon
                           className={classNames(
-                            'nightwind-prevent text-green-400 absolute m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white',
+                            'nightwind-prevent text-green-400 absolute m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out',
                             keyCopied
                               ? 'visible opacity-100'
                               : 'invisible opacity-0'
@@ -186,7 +187,7 @@ export default function FlagForm(props: FlagFormProps) {
                         />
                         <ClipboardDocumentIcon
                           className={classNames(
-                            'text-gray-400 m-auto h-6 w-6 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-white dark:hover:text-gray-500',
+                            'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-500',
                             keyCopied
                               ? 'invisible opacity-0'
                               : 'visible opacity-100'

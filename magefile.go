@@ -278,6 +278,28 @@ func (u UI) Run() error {
 	return cmd.Run()
 }
 
+// Formats UI code
+func (u UI) Fmt() error {
+	fmt.Println("Formatting UI...")
+
+	cmd := exec.Command("npm", "run", "format")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// Runs the UI linters
+func (u UI) Lint() error {
+	fmt.Println("Linting UI...")
+
+	cmd := exec.Command("npm", "run", "lint")
+	cmd.Dir = "ui"
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 // Builds all UI assets for release distribution
 func (u UI) Build() error {
 	mg.Deps(u.Deps)
