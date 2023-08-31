@@ -218,7 +218,7 @@ import "strings"
 
 	#ui: {
 		enabled?: 		bool | *true
-		default_theme?: string | "system"
+		default_theme?: "light" | "dark" | *"system"
 	}
 
 	#audit: {
