@@ -637,6 +637,7 @@
         },
         "default_theme": {
           "type": "string",
+          "enum": ["light", "dark", "system"],
           "default": "system",
           "deprecated": false
         }
