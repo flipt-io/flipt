@@ -2,6 +2,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { RootState } from '~/store';
 import { Theme, Timezone } from '~/types/Preferences';
+import { fetchConfigAsync } from '~/app/meta/metaSlice';
+
+export const preferencesKey = 'preferences';
 
 interface IPreferencesState {
   theme: Theme;
@@ -9,7 +12,7 @@ interface IPreferencesState {
 }
 
 const initialState: IPreferencesState = {
-  theme: Theme.LIGHT,
+  theme: Theme.SYSTEM,
   timezone: Timezone.LOCAL
 };
 
@@ -23,6 +26,18 @@ export const preferencesSlice = createSlice({
     timezoneChanged: (state, action) => {
       state.timezone = action.payload;
     }
+  },
+  extraReducers(builder) {
+    builder.addCase(fetchConfigAsync.fulfilled, (state, action) => {
+      const currentPreference = JSON.parse(
+        localStorage.getItem(preferencesKey) || '{}'
+      ) as IPreferencesState;
+
+      // If there isn't currently a set theme, set to the default theme
+      if (!currentPreference.theme) {
+        state.theme = action.payload.ui.defaultTheme;
+      }
+    });
   }
 });
 
