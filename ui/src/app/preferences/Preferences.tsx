@@ -26,7 +26,7 @@ export default function Preferences() {
     <Formik initialValues={initialValues} onSubmit={() => {}}>
       <div className="my-10 divide-y divide-gray-200">
         <div className="space-y-1">
-          <h1 className="text-gray-700 text-xl font-semibold">Preferences</h1>
+          <h3 className="text-gray-700 text-xl font-semibold">Preferences</h3>
           <p className="text-gray-500 mt-2 text-sm">
             Manage how information is displayed in the UI
           </p>
