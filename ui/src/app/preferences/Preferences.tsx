@@ -1,6 +1,5 @@
 import { Switch } from '@headlessui/react';
 import { Formik } from 'formik';
-import nightwind from 'nightwind/helper';
 import { useDispatch, useSelector } from 'react-redux';
 import Select from '~/components/forms/Select';
 import { Theme, Timezone } from '~/types/Preferences';
@@ -45,7 +44,7 @@ export default function Preferences() {
               <Select
                 id="location"
                 name="location"
-                value={theme || Theme.LIGHT}
+                value={theme || Theme.SYSTEM}
                 options={[
                   { value: Theme.LIGHT, label: 'Light' },
                   { value: Theme.DARK, label: 'Dark' },
@@ -53,7 +52,6 @@ export default function Preferences() {
                 ]}
                 onChange={(e) => {
                   dispatch(themeChanged(e.target.value as Theme));
-                  nightwind.enable(Theme.DARK === (e.target.value as Theme));
                 }}
               />
             </div>

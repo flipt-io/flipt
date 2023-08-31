@@ -9,6 +9,7 @@
 
 # ui:
 #   enabled: true
+#   default_theme: system
 
 # cors:
 #   enabled: false
