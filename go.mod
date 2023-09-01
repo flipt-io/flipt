@@ -45,7 +45,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.23.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xeipuuv/gojsonschema v1.2.0
-	github.com/xo/dburl v0.14.2
+	github.com/xo/dburl v0.16.0
 	go.flipt.io/flipt/errors v1.19.3
 	go.flipt.io/flipt/rpc/flipt v1.25.0
 	go.flipt.io/flipt/sdk/go v0.3.0
