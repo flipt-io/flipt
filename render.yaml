@@ -1,10 +1,10 @@
 services:
   - type: pserv
     name: flipt
-    env: docker
+    runtime: image
     plan: standard
-    rootDir: deploy
-    autoDeploy: false
+    image:
+      url: ghcr.io/flipt-io/flipt:latest
     disk:
       name: data
       mountPath: /var/opt/flipt
