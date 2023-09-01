@@ -1,0 +1,11 @@
+services:
+  - type: pserv
+    name: flipt
+    env: docker
+    plan: standard
+    rootDir: deploy
+    autoDeploy: false
+    disk:
+      name: data
+      mountPath: /var/opt/flipt
+      sizeGB: 5
