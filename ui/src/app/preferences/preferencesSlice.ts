@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { createSlice } from '@reduxjs/toolkit';
+import { fetchConfigAsync } from '~/app/meta/metaSlice';
 import { RootState } from '~/store';
 import { Theme, Timezone } from '~/types/Preferences';
-import { fetchConfigAsync } from '~/app/meta/metaSlice';
 
 export const preferencesKey = 'preferences';
 
