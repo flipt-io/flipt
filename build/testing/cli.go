@@ -173,7 +173,7 @@ exit $?`,
 		}
 
 		// import valid yaml path and retrieve resulting container
-		container, err = assertExec(ctx, container, flipt("import", "/tmp/flipt.yml"))
+		container, err = assertExec(ctx, container, flipt("import", "--create-namespace ", "/tmp/flipt.yml"))
 		if err != nil {
 			return err
 		}
