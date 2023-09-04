@@ -104,7 +104,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			Key: namespace,
 		})
 
-		if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
+		if status.Code(err) != codes.NotFound || !errors.AsMatch[errors.ErrNotFound](err) {
 			return err
 		}
 
