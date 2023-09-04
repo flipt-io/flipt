@@ -199,7 +199,7 @@ func buildConfig() (*zap.Logger, *config.Config) {
 		cfg = res.Config
 		warnings = res.Warnings
 	} else {
-		defaultLogger.Warn("no configuration file found, using defaults")
+		defaultLogger.Info("no configuration file found, using defaults")
 	}
 
 	encoding := defaultEncoding
