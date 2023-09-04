@@ -186,7 +186,7 @@ exit $?`,
 		}
 
 		container, err = assertExec(ctx, container,
-			flipt("export", "-o", "/tmp/export.yml"),
+			flipt("export", "--namespace", "foo", "-o", "/tmp/export.yml"),
 		)
 		if err != nil {
 			return err
