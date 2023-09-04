@@ -179,7 +179,7 @@ exit $?`,
 		}
 
 		if _, err = assertExec(ctx, container,
-			flipt("export"),
+			flipt("export", "--namespace", "foo"),
 			stdout(contains(expectedFliptYAML)),
 		); err != nil {
 			return err
