@@ -157,6 +157,52 @@ exit $?`,
 	}
 
 	{
+		container := container.Pipeline("flipt import create namespace")
+
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			client.Host().Directory("build/testing/testdata").File("flipt-namespace-foo.yml"), opts)
+
+		// import via STDIN succeeds
+		_, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		if err != nil {
+			return err
+		}
+
+		// import valid yaml path and retrieve resulting container
+		container, err = assertExec(ctx, container, flipt("import", "/tmp/flipt.yml"))
+		if err != nil {
+			return err
+		}
+
+		if _, err = assertExec(ctx, container,
+			flipt("export"),
+			stdout(contains(expectedFliptYAML)),
+		); err != nil {
+			return err
+		}
+
+		container, err = assertExec(ctx, container,
+			flipt("export", "-o", "/tmp/export.yml"),
+		)
+		if err != nil {
+			return err
+		}
+
+		contents, err := container.File("/tmp/export.yml").Contents(ctx)
+		if err != nil {
+			return err
+		}
+
+		if !strings.Contains(contents, expectedFliptYAML) {
+			return fmt.Errorf("unexpected output: %q does not contain %q", contents, expectedFliptYAML)
+		}
+	}
+
+	{
 		container := container.Pipeline("flipt migrate")
 		if _, err := assertExec(ctx, container, flipt("migrate")); err != nil {
 			return err
