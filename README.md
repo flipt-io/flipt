@@ -134,6 +134,40 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/git.svg" alt="Git" width=150 height=150 />
 </p>
 
+## Try It
+
+Try the latest version of Flipt for yourself.
+
+### Deploy 
+
+[![Deploy to Render](http://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+### Sandbox
+
+[Try Flipt](https://try.flipt.io) in a deployed environment!
+
+**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
+
+### Docker
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
+```
+
+Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
+
+For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
+
+### Nightly Build
+
+Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
+```
+
+<br clear="both"/>
+
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
@@ -187,36 +221,6 @@ We welcome contributions of any kind, including but not limited to bug fixes, fe
 <br clear="both"/>
 
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
-
-<br clear="both"/>
-
-## Try It
-
-Try the latest version of Flipt for yourself.
-
-### Sandbox
-
-[Try Flipt](https://try.flipt.io) in a deployed environment!
-
-**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
-
-### Docker
-
-```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
-```
-
-Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
-
-For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
-
-### Nightly Build
-
-Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
-
-```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
-```
 
 <br clear="both"/>
 
