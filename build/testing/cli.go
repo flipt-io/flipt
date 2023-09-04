@@ -167,7 +167,7 @@ exit $?`,
 			client.Host().Directory("build/testing/testdata").File("flipt-namespace-foo.yml"), opts)
 
 		// import via STDIN succeeds
-		_, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		_, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --create-namespace --stdin"))
 		if err != nil {
 			return err
 		}
