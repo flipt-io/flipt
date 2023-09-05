@@ -32,3 +32,36 @@ To run this example application you'll need:
 1. Select `serviceName=flipt` from the search box
 1. Click 'Run Query'
 1. You should see a list of traces to explore
+
+### Datadog UI
+
+!['Datadog Example'](../../images/datadog.png)
+
+For exporting traces from [OpenTelemetry to Datadog](https://docs.datadoghq.com/opentelemetry/otel_collector_datadog_exporter) you have to configure the exporter in the `otel-collector-config.yaml`:
+
+```yaml
+exporters:
+  datadog:
+    api:
+      site: datadoghq.com
+      key: ${DD_API_KEY}
+```
+
+**Note:** The `DD_API_KEY` should be replaced with your actual api key from Datadog.
+
+Furthermore, you also have to add `datadog` as an entry in `exporters` under `service.pipelines.traces.exporters`.
+
+For example:
+
+```yaml
+service:
+  extensions: [pprof, zpages, health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, zipkin, jaeger, datadog]
+```
+
+1. Open the Datadog traces UI under the menu item on the left `APM` then `Traces`
+1. You should see a list of traces to explore
