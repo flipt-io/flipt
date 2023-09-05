@@ -134,6 +134,40 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/git.svg" alt="Git" width=150 height=150 />
 </p>
 
+## Try It
+
+Try the latest version of Flipt for yourself.
+
+### Deploy 
+
+[![Deploy to Render](http://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+### Sandbox
+
+[Try Flipt](https://try.flipt.io) in a deployed environment!
+
+**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
+
+### Docker
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
+```
+
+Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
+
+For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
+
+### Nightly Build
+
+Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
+
+```bash
+docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
+```
+
+<br clear="both"/>
+
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
@@ -187,36 +221,6 @@ We welcome contributions of any kind, including but not limited to bug fixes, fe
 <br clear="both"/>
 
 [![Open in Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/?repo=flipt-io/flipt)
-
-<br clear="both"/>
-
-## Try It
-
-Try the latest version of Flipt for yourself.
-
-### Sandbox
-
-[Try Flipt](https://try.flipt.io) in a deployed environment!
-
-**Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
-
-### Docker
-
-```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
-```
-
-Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
-
-For more permanent methods of running Flipt, see the [Installation](https://flipt.io/docs/installation/) section.
-
-### Nightly Build
-
-Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
-
-```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
-```
 
 <br clear="both"/>
 
@@ -351,6 +355,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/rudineirk"><img src="https://avatars.githubusercontent.com/u/5260987?v=4?s=100" width="100px;" alt="Rudinei Goi Roecker"/><br /><sub><b>Rudinei Goi Roecker</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=rudineirk" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/testwill"><img src="https://avatars.githubusercontent.com/u/8717479?v=4?s=100" width="100px;" alt="guangwu"/><br /><sub><b>guangwu</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=testwill" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Provinite"><img src="https://avatars.githubusercontent.com/u/13734094?v=4?s=100" width="100px;" alt="Collin Driscoll"/><br /><sub><b>Collin Driscoll</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=Provinite" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jamess-Lucass"><img src="https://avatars.githubusercontent.com/u/23193271?v=4?s=100" width="100px;" alt="James"/><br /><sub><b>James</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=Jamess-Lucass" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

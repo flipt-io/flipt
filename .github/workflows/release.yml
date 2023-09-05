@@ -53,10 +53,13 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/quill/main/install.sh | sh -s -- -b $GITHUB_WORKSPACE/bin
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
-      - uses: magefile/mage-action@v2
+      - name: Install Mage
+        uses: magefile/mage-action@v2
         with:
-          version: latest
-          args: prep
+          install-only: true
+
+      - name: Prep Build
+        run: mage prep
 
       - name: GoReleaser Build
         uses: goreleaser/goreleaser-action@v4
@@ -126,11 +129,6 @@ jobs:
           username: "${{ github.repository_owner }}"
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: GeorgeMac/mage-action@gm/tools-add-path-debug
-        with:
-          version: latest
-          args: prep
-
       - name: Generate token
         id: generate_token
         uses: tibdex/github-app-token@v1
@@ -144,7 +142,7 @@ jobs:
         with:
           distribution: goreleaser-pro
           version: latest
-          args: release --clean -f .goreleaser.multi.yml
+          args: release --clean
         env:
           GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -152,6 +150,13 @@ jobs:
           DISCORD_WEBHOOK_ID: ${{ secrets.DISCORD_WEBHOOK_ID }}
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
+      - name: Install Mage
+        uses: magefile/mage-action@v2
+        with:
+          install-only: true
+
+        # TODO: see if we can wire up the `release-tag-latest` workflow to run
+        # after release with the same tag
       - name: Tag and Push latest
         env:
           TAG: ${{ github.ref_name }}

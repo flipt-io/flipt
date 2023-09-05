@@ -66,8 +66,8 @@
           "properties": {
             "domain": { "type": "string" },
             "secure": { "type": "boolean" },
-            "token_lifetime": {"type": "string"},
-            "state_lifetime": {"type": "string"},
+            "token_lifetime": { "type": "string" },
+            "state_lifetime": { "type": "string" },
             "csrf": {
               "type": "object",
               "properties": {
@@ -436,10 +436,7 @@
           "type": "integer"
         },
         "conn_max_lifetime": {
-          "oneOf": [
-            {"type": "integer"},
-            {"type": "string"}
-          ]
+          "oneOf": [{ "type": "integer" }, { "type": "string" }]
         },
         "prepared_statements_enabled": {
           "type": "boolean"
@@ -637,6 +634,12 @@
           "type": "boolean",
           "default": true,
           "deprecated": true
+        },
+        "default_theme": {
+          "type": "string",
+          "enum": ["light", "dark", "system"],
+          "default": "system",
+          "deprecated": false
         }
       },
       "title": "UI"

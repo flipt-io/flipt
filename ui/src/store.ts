@@ -6,12 +6,14 @@ import {
 
 import { metaSlice } from './app/meta/metaSlice';
 import { namespacesSlice } from './app/namespaces/namespacesSlice';
-import { preferencesSlice } from './app/preferences/preferencesSlice';
+import {
+  preferencesKey,
+  preferencesSlice
+} from './app/preferences/preferencesSlice';
 import { LoadingStatus } from './types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
 
-const preferencesKey = 'preferences';
 const namespaceKey = 'namespace';
 
 listenerMiddleware.startListening({

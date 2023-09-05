@@ -203,7 +203,7 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 		return 0, nil, fmt.Errorf("error parsing url: %q, %w", url, err)
 	}
 
-	driver := stringToDriver[url.Unaliased]
+	driver := stringToDriver[url.UnaliasedDriver]
 	if driver == 0 {
 		return 0, nil, fmt.Errorf("unknown database driver for: %q", url.Driver)
 	}

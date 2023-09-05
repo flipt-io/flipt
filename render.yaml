@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: flipt
+    runtime: image
+    plan: standard
+    autoDeploy: false
+    image:
+      url: ghcr.io/flipt-io/flipt:latest
+    disk:
+      name: data
+      mountPath: /var/opt/flipt
+      sizeGB: 5

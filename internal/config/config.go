@@ -412,8 +412,8 @@ func stringToSliceHookFunc() mapstructure.DecodeHookFunc {
 	}
 }
 
-// DefaultConfig is the base config used when no configuration is explicit provided.
-func DefaultConfig() *Config {
+// Default is the base config used when no configuration is explicit provided.
+func Default() *Config {
 	dbRoot, err := defaultDatabaseRoot()
 	if err != nil {
 		panic(err)
@@ -434,7 +434,8 @@ func DefaultConfig() *Config {
 		},
 
 		UI: UIConfig{
-			Enabled: true,
+			Enabled:      true,
+			DefaultTheme: SystemUITheme,
 		},
 
 		Cors: CorsConfig{

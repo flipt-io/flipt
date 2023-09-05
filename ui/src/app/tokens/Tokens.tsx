@@ -160,9 +160,9 @@ export default function Tokens() {
       <div className="my-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-gray-700 text-xl font-semibold">
+            <h3 className="text-gray-700 text-xl font-semibold">
               Static Tokens
-            </h1>
+            </h3>
             <p className="text-gray-500 mt-2 text-sm">
               Static tokens are used to authenticate with the API
             </p>
