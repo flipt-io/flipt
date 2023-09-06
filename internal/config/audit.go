@@ -29,6 +29,9 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 				"enabled": "false",
 				"file":    "",
 			},
+			"webhook": map[string]any{
+				"enabled": "false",
+			},
 		},
 		"buffer": map[string]any{
 			"capacity":     2,
@@ -42,6 +45,10 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 func (c *AuditConfig) validate() error {
 	if c.Sinks.LogFile.Enabled && c.Sinks.LogFile.File == "" {
 		return errors.New("file not specified")
+	}
+
+	if c.Sinks.Webhook.Enabled && c.Sinks.Webhook.URL == "" {
+		return errors.New("url not provided")
 	}
 
 	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
@@ -59,6 +66,16 @@ func (c *AuditConfig) validate() error {
 // that we will send audits to.
 type SinksConfig struct {
 	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
+	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
+}
+
+// WebhookSinkConfig contains configuration for sending POST requests to specific
+// URL as its configured.
+type WebhookSinkConfig struct {
+	Enabled         bool          `json:"enabled,omitempty" mapstructure:"enabled"`
+	URL             string        `json:"url,omitempty" mapstructure:"url"`
+	BackoffDuration time.Duration `json:"retries,omitempty" mapstructure:"retries"`
+	SigningSecret   string        `json:"signingSecret,omitempty" mapstructure:"signing_secret"`
 }
 
 // LogFileSinkConfig contains fields that hold configuration for sending audits
