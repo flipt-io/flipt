@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
@@ -66,13 +67,13 @@ func WithBackoffDuration(backoffDuration time.Duration) ClientOption {
 }
 
 // SendAudit will send an audit event to a configured server at a URL.
-func (w *HTTPClient) SendAudit(e *audit.Event) error {
+func (w *HTTPClient) SendAudit(e audit.Event) error {
 	body, err := json.Marshal(e)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, w.url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, w.url, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -99,9 +100,11 @@ func (w *HTTPClient) SendAudit(e *audit.Event) error {
 		}
 		if resp.StatusCode != http.StatusOK {
 			w.logger.Debug("webhook request failed, retrying...", zap.Int("status_code", resp.StatusCode), zap.Error(err))
+			_ = resp.Body.Close()
 			continue
 		}
 
+		_ = resp.Body.Close()
 		w.logger.Debug("successful request to webhook")
 		break
 	}
