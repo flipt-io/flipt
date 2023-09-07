@@ -217,7 +217,7 @@ import "strings"
 	}
 
 	#ui: {
-		enabled?: 		bool | *true
+		enabled?:       bool | *true
 		default_theme?: "light" | "dark" | *"system"
 	}
 
@@ -226,6 +226,12 @@ import "strings"
 			log?: {
 				enabled?: bool | *false
 				file?:    string | *""
+			}
+			webhook?: {
+				enabled?:          bool | *false
+				url?:              string | *""
+				backoff_duration?: =~#duration | *"15s"
+				signing_secret?:   string | *""
 			}
 		}
 		buffer?: {

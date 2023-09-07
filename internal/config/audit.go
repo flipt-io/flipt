@@ -74,7 +74,7 @@ type SinksConfig struct {
 type WebhookSinkConfig struct {
 	Enabled         bool          `json:"enabled,omitempty" mapstructure:"enabled"`
 	URL             string        `json:"url,omitempty" mapstructure:"url"`
-	BackoffDuration time.Duration `json:"retries,omitempty" mapstructure:"retries"`
+	BackoffDuration time.Duration `json:"backoffDuration,omitempty" mapstructure:"backoff_duration"`
 	SigningSecret   string        `json:"signingSecret,omitempty" mapstructure:"signing_secret"`
 }
 
