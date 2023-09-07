@@ -104,16 +104,18 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			Key: namespace,
 		})
 
-		if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
-			return err
-		}
-
-		_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-			Key:  namespace,
-			Name: namespace,
-		})
 		if err != nil {
-			return err
+			if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
+				return err
+			}
+
+			_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+				Key:  namespace,
+				Name: namespace,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 
