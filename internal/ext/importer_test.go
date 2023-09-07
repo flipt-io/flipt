@@ -832,7 +832,7 @@ func TestImport_CreateNamespace(t *testing.T) {
 	creator.getNSErr = nil
 
 	// rewind the file so it can be read again
-	in.Seek(0, io.SeekStart)
+	_, _ = in.Seek(0, io.SeekStart)
 
 	// returns a nil error because namespace exists
 	err = importer.Import(context.Background(), in)
