@@ -826,6 +826,8 @@ func TestImport_CreateNamespace(t *testing.T) {
 
 	// namespace was created
 	assert.Len(t, creator.createNSReqs, 1)
+	// flag was created
+	assert.Len(t, creator.flagReqs, 1)
 
 	// next call is assumed to return a nil error on get namespace
 	// now that is has been created
@@ -840,6 +842,9 @@ func TestImport_CreateNamespace(t *testing.T) {
 
 	// no new namespaces were requested because it already existed
 	assert.Len(t, creator.createNSReqs, 1)
+	// new flag creation was attempted even though it should
+	// fail in reality because the flag already exists
+	assert.Len(t, creator.flagReqs, 2)
 }
 
 //nolint:unparam
