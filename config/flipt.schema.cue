@@ -217,12 +217,13 @@ import "strings"
 	}
 
 	#ui: {
-		enabled?: 		bool | *true
+		enabled?:       bool | *true
 		default_theme?: "light" | "dark" | *"system"
 	}
 
 	#audit: {
 		sinks?: {
+			events?: [...string]
 			log?: {
 				enabled?: bool | *false
 				file?:    string | *""

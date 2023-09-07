@@ -58,6 +58,7 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
+	Events  []string          `json:"events,omitempty" mapstructure:"events"`
 	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
 }
 

@@ -652,6 +652,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "events": {
+              "type": ["array", "null"],
+              "additionalProperties": false
+            },
             "log": {
               "type": "object",
               "additionalProperties": false,
