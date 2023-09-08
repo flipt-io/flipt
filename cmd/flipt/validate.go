@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
-	"go.flipt.io/flipt/internal/cue"
+	"go.flipt.io/flipt/internal/storage/fs"
+	"go.uber.org/zap"
 )
 
 type validateCommand struct {
@@ -42,48 +42,35 @@ func newValidateCommand() *cobra.Command {
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) {
-	validator, err := cue.NewFeaturesValidator()
-	if err != nil {
+	var err error
+	if len(args) == 0 {
+		_, err = fs.SnapshotFromFS(zap.NewNop(), os.DirFS("."))
+	} else {
+		_, err = fs.SnapshotFromPaths(os.DirFS("."), args...)
+	}
+
+	u, ok := err.(interface{ Unwrap() []error })
+	if !ok {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	for _, arg := range args {
-		f, err := os.ReadFile(arg)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		res, err := validator.Validate(arg, f)
-		if err != nil && !errors.Is(err, cue.ErrValidationFailed) {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		if len(res.Errors) > 0 {
-			if v.format == jsonFormat {
-				if err := json.NewEncoder(os.Stdout).Encode(res); err != nil {
-					fmt.Println(err)
-					os.Exit(1)
-				}
-				os.Exit(v.issueExitCode)
-				return
+	if errs := u.Unwrap(); len(errs) > 0 {
+		if v.format == jsonFormat {
+			if err := json.NewEncoder(os.Stdout).Encode(errs); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
 			}
-
-			fmt.Println("Validation failed!")
-
-			for _, e := range res.Errors {
-				fmt.Printf(
-					`
-- Message  : %s
-  File     : %s
-  Line     : %d
-  Column   : %d
-`, e.Message, e.Location.File, e.Location.Line, e.Location.Column)
-			}
-
 			os.Exit(v.issueExitCode)
+			return
 		}
+
+		fmt.Println("Validation failed!")
+
+		for _, err := range errs {
+			fmt.Println(err)
+		}
+
+		os.Exit(v.issueExitCode)
 	}
 }

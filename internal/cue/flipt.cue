@@ -29,7 +29,7 @@ close({
 
 #Variant: {
 	key:          string & =~"^.+$"
-	name:         string & =~"^.+$"
+	name?:        string & =~"^.+$"
 	description?: string
 	attachment:   {...} | *null
 }
@@ -60,7 +60,7 @@ close({
 	}
 } | {
 	threshold: {
-		percentage: float
+		percentage: float | int
 		value:      bool
 	}
 	// failure to add the following causes it not to close

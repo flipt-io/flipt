@@ -3,6 +3,7 @@ package cue
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
@@ -31,9 +32,13 @@ type Error struct {
 	Location Location `json:"location"`
 }
 
-// Result is a collection of errors that occurred during validation.
-type Result struct {
-	Errors []Error `json:"errors"`
+func (e Error) Error() string {
+	return fmt.Sprintf(`
+- Message  : %s
+  File     : %s
+  Line     : %d
+  Column   : %d
+`, e.Message, e.Location.File, e.Location.Line, e.Location.Column)
 }
 
 type FeaturesValidator struct {
@@ -55,23 +60,22 @@ func NewFeaturesValidator() (*FeaturesValidator, error) {
 }
 
 // Validate validates a YAML file against our cue definition of features.
-func (v FeaturesValidator) Validate(file string, b []byte) (Result, error) {
-	var result Result
-
+func (v FeaturesValidator) Validate(file string, b []byte) error {
 	f, err := yaml.Extract("", b)
 	if err != nil {
-		return result, err
+		return err
 	}
 
 	yv := v.cue.BuildFile(f)
 	if err := yv.Err(); err != nil {
-		return Result{}, err
+		return err
 	}
 
 	err = v.v.
 		Unify(yv).
 		Validate(cue.All(), cue.Concrete(true))
 
+	var errs []error
 	for _, e := range cueerrors.Errors(err) {
 		rerr := Error{
 			Message: e.Error(),
@@ -86,12 +90,8 @@ func (v FeaturesValidator) Validate(file string, b []byte) (Result, error) {
 			rerr.Location.Column = p.Column()
 		}
 
-		result.Errors = append(result.Errors, rerr)
+		errs = append(errs, rerr)
 	}
 
-	if len(result.Errors) > 0 {
-		return result, ErrValidationFailed
-	}
-
-	return result, nil
+	return errors.Join(errs...)
 }
