@@ -679,7 +679,7 @@
                   "type": "string",
                   "default": ""
                 },
-                "backoff_duration": {
+                "max_backoff_duration": {
                   "oneOf": [
                     {
                       "type": "string",

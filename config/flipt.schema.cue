@@ -228,10 +228,10 @@ import "strings"
 				file?:    string | *""
 			}
 			webhook?: {
-				enabled?:          bool | *false
-				url?:              string | *""
-				backoff_duration?: =~#duration | *"15s"
-				signing_secret?:   string | *""
+				enabled?:              bool | *false
+				url?:                  string | *""
+				max_backoff_duration?: =~#duration | *"15s"
+				signing_secret?:       string | *""
 			}
 		}
 		buffer?: {

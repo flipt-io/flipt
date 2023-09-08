@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -26,7 +27,7 @@ type HTTPClient struct {
 	url           string
 	signingSecret string
 
-	backoffDuration time.Duration
+	maxBackoffDuration time.Duration
 }
 
 // signPayload takes in a marshalled payload and returns the sha256 hash of it.
@@ -43,11 +44,11 @@ func NewHTTPClient(logger *zap.Logger, url, signingSecret string, opts ...Client
 	}
 
 	h := &HTTPClient{
-		logger:          logger,
-		Client:          c,
-		url:             url,
-		signingSecret:   signingSecret,
-		backoffDuration: 15 * time.Second,
+		logger:             logger,
+		Client:             c,
+		url:                url,
+		signingSecret:      signingSecret,
+		maxBackoffDuration: 15 * time.Second,
 	}
 
 	for _, o := range opts {
@@ -59,10 +60,10 @@ func NewHTTPClient(logger *zap.Logger, url, signingSecret string, opts ...Client
 
 type ClientOption func(h *HTTPClient)
 
-// WithBackoffDuration allows for a configurable backoff duration configuration.
-func WithBackoffDuration(backoffDuration time.Duration) ClientOption {
+// WithMaxBackoffDuration allows for a configurable backoff duration configuration.
+func WithMaxBackoffDuration(maxBackoffDuration time.Duration) ClientOption {
 	return func(h *HTTPClient) {
-		h.backoffDuration = backoffDuration
+		h.maxBackoffDuration = maxBackoffDuration
 	}
 }
 
@@ -81,16 +82,18 @@ func (w *HTTPClient) SendAudit(e audit.Event) error {
 	// If the signing secret is configured, add the specific header to it.
 	if w.signingSecret != "" {
 		signedPayload := w.signPayload(body)
+		fmt.Printf("THE SIGNED PAYLOAD IS: %x\n", signedPayload)
 
 		req.Header.Add(fliptSignatureHeader, fmt.Sprintf("%x", signedPayload))
 	}
 
 	be := backoff.NewExponentialBackOff()
-	be.MaxElapsedTime = w.backoffDuration
+	be.MaxElapsedTime = w.maxBackoffDuration
 
 	ticker := backoff.NewTicker(be)
 	defer ticker.Stop()
 
+	successfulRequest := false
 	// Make requests with configured retries.
 	for range ticker.C {
 		resp, err := w.Client.Do(req)
@@ -100,13 +103,21 @@ func (w *HTTPClient) SendAudit(e audit.Event) error {
 		}
 		if resp.StatusCode != http.StatusOK {
 			w.logger.Debug("webhook request failed, retrying...", zap.Int("status_code", resp.StatusCode), zap.Error(err))
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			continue
 		}
 
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
+
 		w.logger.Debug("successful request to webhook")
+		successfulRequest = true
 		break
+	}
+
+	if !successfulRequest {
+		return fmt.Errorf("failed to send event to webhook url: %s after %s", w.url, w.maxBackoffDuration)
 	}
 
 	return nil

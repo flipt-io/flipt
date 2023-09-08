@@ -333,8 +333,8 @@ func NewGRPCServer(
 
 	if cfg.Audit.Sinks.Webhook.Enabled {
 		opts := []webhook.ClientOption{}
-		if cfg.Audit.Sinks.Webhook.BackoffDuration != 0 {
-			opts = append(opts, webhook.WithBackoffDuration(cfg.Audit.Sinks.Webhook.BackoffDuration))
+		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration != 0 {
+			opts = append(opts, webhook.WithMaxBackoffDuration(cfg.Audit.Sinks.Webhook.MaxBackoffDuration))
 		}
 
 		webhookSink := webhook.NewSink(logger, webhook.NewHTTPClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
