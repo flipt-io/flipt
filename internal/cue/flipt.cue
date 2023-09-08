@@ -56,12 +56,12 @@ close({
 	segment: {
 		#RolloutSegment
 		operator: "OR_SEGMENT_OPERATOR" | "AND_SEGMENT_OPERATOR" | *null
-		value:    bool
+		value?:   bool | *false
 	}
 } | {
 	threshold: {
 		percentage: float | int
-		value:      bool
+		value?:     bool | *false
 	}
 	// failure to add the following causes it not to close
 } | *{} // I found a comment somewhere that this helps with distinguishing disjunctions
