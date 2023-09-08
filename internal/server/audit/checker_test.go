@@ -42,7 +42,7 @@ func TestChecker(t *testing.T) {
 				"rollout:updated":      false,
 				"rule:updated":         false,
 				"segment:updated":      false,
-				"variant:udpated":      false,
+				"variant:updated":      false,
 			},
 		},
 		{
@@ -73,7 +73,7 @@ func TestChecker(t *testing.T) {
 				"rollout:updated":      false,
 				"rule:updated":         false,
 				"segment:updated":      false,
-				"variant:udpated":      false,
+				"variant:updated":      false,
 			},
 		},
 		{
@@ -104,7 +104,7 @@ func TestChecker(t *testing.T) {
 				"rollout:updated":      false,
 				"rule:updated":         false,
 				"segment:updated":      false,
-				"variant:udpated":      false,
+				"variant:updated":      false,
 			},
 		},
 		{
