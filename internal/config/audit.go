@@ -25,6 +25,7 @@ func (c *AuditConfig) Enabled() bool {
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
+			"events": []string{"*:*"},
 			"log": map[string]any{
 				"enabled": "false",
 				"file":    "",

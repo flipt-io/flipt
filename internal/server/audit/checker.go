@@ -27,10 +27,10 @@ func NewChecker(eventPairs []string) (*Checker, error) {
 	}
 
 	verbs := map[string][]string{
-		"create": {"create"},
-		"delete": {"delete"},
-		"update": {"update"},
-		"*":      {"create", "delete", "update"},
+		"created": {"created"},
+		"deleted": {"deleted"},
+		"updated": {"updated"},
+		"*":       {"created", "deleted", "updated"},
 	}
 
 	eventActions := make(map[string]struct{})

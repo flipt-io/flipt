@@ -653,8 +653,8 @@
           "additionalProperties": false,
           "properties": {
             "events": {
-              "type": ["array", "null"],
-              "additionalProperties": false
+              "type": "array",
+              "default": ["*:*"]
             },
             "log": {
               "type": "object",
