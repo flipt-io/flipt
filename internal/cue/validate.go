@@ -11,11 +11,8 @@ import (
 	"cuelang.org/go/encoding/yaml"
 )
 
-var (
-	//go:embed flipt.cue
-	cueFile             []byte
-	ErrValidationFailed = errors.New("validation failed")
-)
+//go:embed flipt.cue
+var cueFile []byte
 
 // Location contains information about where an error has occurred during cue
 // validation.
@@ -32,13 +29,22 @@ type Error struct {
 	Location Location `json:"location"`
 }
 
-func (e Error) Error() string {
-	return fmt.Sprintf(`
+func (e Error) Format(f fmt.State, verb rune) {
+	if verb != 'v' {
+		f.Write([]byte(e.Error()))
+		return
+	}
+
+	fmt.Fprintf(f, `
 - Message  : %s
   File     : %s
   Line     : %d
   Column   : %d
 `, e.Message, e.Location.File, e.Location.Line, e.Location.Column)
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("%s (%s %d:%d)", e.Message, e.Location.File, e.Location.Line, e.Location.Column)
 }
 
 type FeaturesValidator struct {

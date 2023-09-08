@@ -68,7 +68,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 		fmt.Println("Validation failed!")
 
 		for _, err := range errs {
-			fmt.Println(err)
+			fmt.Printf("%v\n", err)
 		}
 
 		os.Exit(v.issueExitCode)
