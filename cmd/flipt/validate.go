@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
 )
@@ -49,13 +50,13 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 		_, err = fs.SnapshotFromPaths(os.DirFS("."), args...)
 	}
 
-	u, ok := err.(interface{ Unwrap() []error })
+	errs, ok := cue.Unwrap(err)
 	if !ok {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	if errs := u.Unwrap(); len(errs) > 0 {
+	if len(errs) > 0 {
 		if v.format == jsonFormat {
 			if err := json.NewEncoder(os.Stdout).Encode(errs); err != nil {
 				fmt.Println(err)

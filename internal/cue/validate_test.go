@@ -1,6 +1,7 @@
 package cue
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -50,9 +51,12 @@ func TestValidate_Failure(t *testing.T) {
 
 	err = v.Validate("testdata/invalid.yaml", b)
 
-	errs := err.(interface{ Unwrap() []error }).Unwrap()
+	errs, ok := Unwrap(err)
+	require.True(t, ok)
 
-	ferr := errs[0].(Error)
+	var ferr Error
+	require.True(t, errors.As(errs[0], &ferr))
+
 	assert.Equal(t, "flags.0.rules.1.distributions.0.rollout: invalid value 110 (out of bound <=100)", ferr.Message)
 	assert.Equal(t, "testdata/invalid.yaml", ferr.Location.File)
 	assert.Equal(t, 22, ferr.Location.Line)

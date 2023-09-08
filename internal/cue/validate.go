@@ -22,6 +22,21 @@ type Location struct {
 	Column int    `json:"column"`
 }
 
+type unwrapable interface {
+	Unwrap() []error
+}
+
+// Unwrap checks for the version of Unwrap which returns a slice
+// see std errors package for details
+func Unwrap(err error) ([]error, bool) {
+	var u unwrapable
+	if !errors.As(err, &u) {
+		return nil, false
+	}
+
+	return u.Unwrap(), true
+}
+
 // Error is a collection of fields that represent positions in files where the user
 // has made some kind of error.
 type Error struct {
