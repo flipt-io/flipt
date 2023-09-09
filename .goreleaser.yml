@@ -44,11 +44,11 @@ release:
   footer: |
     ## Docker Images
 
-    - [flipt/flipt](https://hub.docker.com/r/flipt/flipt/tags)
-
     ```bash
       docker pull docker.io/flipt/flipt:v{{ .Tag }}
-      # or
+    ```
+
+    ```bash
       docker pull ghcr.io/flipt-io/flipt:v{{ .Tag }}
     ```
 
