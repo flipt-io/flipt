@@ -121,6 +121,9 @@ docker_manifests:
 announce:
   discord:
     enabled: true
+  slack:
+    enabled: true
+    channel: '#releases'
 
 brews:
   - name: flipt
@@ -144,5 +147,3 @@ brews:
       owner: flipt-io
       name: homebrew-brew
       branch: main
-      pull_request:
-        enabled: true
