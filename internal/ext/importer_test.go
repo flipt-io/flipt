@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -786,7 +788,6 @@ func TestImport_Namespaces(t *testing.T) {
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-
 			var (
 				creator  = &mockCreator{}
 				importer = NewImporter(creator, WithNamespace(tc.cliNamespace))
@@ -803,7 +804,47 @@ func TestImport_Namespaces(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
 
+func TestImport_CreateNamespace(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator, WithCreateNamespace())
+	)
+
+	in, err := os.Open("testdata/import_new_namespace.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	// first attempt to create namespace should be met with
+	// a namespace not found and still succeed, by attempting
+	// to create it
+	creator.getNSErr = ferrors.ErrNotFoundf("namespace not found")
+
+	err = importer.Import(context.Background(), in)
+	require.NoError(t, err)
+
+	// namespace was created
+	assert.Len(t, creator.createNSReqs, 1)
+	// flag was created
+	assert.Len(t, creator.flagReqs, 1)
+
+	// next call is assumed to return a nil error on get namespace
+	// now that is has been created
+	creator.getNSErr = nil
+
+	// rewind the file so it can be read again
+	_, _ = in.Seek(0, io.SeekStart)
+
+	// returns a nil error because namespace exists
+	err = importer.Import(context.Background(), in)
+	require.NoError(t, err)
+
+	// no new namespaces were requested because it already existed
+	assert.Len(t, creator.createNSReqs, 1)
+	// new flag creation was attempted even though it should
+	// fail in reality because the flag already exists
+	assert.Len(t, creator.flagReqs, 2)
 }
 
 //nolint:unparam

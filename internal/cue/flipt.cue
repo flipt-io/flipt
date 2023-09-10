@@ -22,7 +22,7 @@ close({
 #FlagBoolean: {
 	type: "BOOLEAN_FLAG_TYPE"
 	rollouts: [...{
-		description: string
+		description?: string
 		#Rollout
 	}]
 }

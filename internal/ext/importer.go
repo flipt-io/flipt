@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/blang/semver/v4"
+	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -103,16 +104,18 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			Key: namespace,
 		})
 
-		if status.Code(err) != codes.NotFound {
-			return err
-		}
-
-		_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-			Key:  namespace,
-			Name: namespace,
-		})
 		if err != nil {
-			return err
+			if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
+				return err
+			}
+
+			_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+				Key:  namespace,
+				Name: namespace,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 
