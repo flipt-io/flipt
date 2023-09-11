@@ -50,7 +50,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 

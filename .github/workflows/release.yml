@@ -54,7 +54,7 @@ jobs:
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 
@@ -151,7 +151,7 @@ jobs:
           DISCORD_WEBHOOK_TOKEN: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 
