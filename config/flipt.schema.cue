@@ -223,6 +223,7 @@ import "strings"
 
 	#audit: {
 		sinks?: {
+			events?: [...string] | *["*:*"]
 			log?: {
 				enabled?: bool | *false
 				file?:    string | *""
