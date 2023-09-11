@@ -20,7 +20,7 @@ jobs:
           - os: macos-latest
             name: darwin
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -54,7 +54,7 @@ jobs:
           echo "${GITHUB_WORKSPACE}/bin" >> $GITHUB_PATH
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: nightly-build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -145,7 +145,7 @@ jobs:
           - 8080:8080
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download OpenAPI Spec
         run: |
