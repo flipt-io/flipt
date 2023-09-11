@@ -25,6 +25,7 @@ func (c *AuditConfig) Enabled() bool {
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
+			"events": []string{"*:*"},
 			"log": map[string]any{
 				"enabled": "false",
 				"file":    "",
@@ -65,6 +66,7 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
+	Events  []string          `json:"events,omitempty" mapstructure:"events"`
 	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
 	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
 }

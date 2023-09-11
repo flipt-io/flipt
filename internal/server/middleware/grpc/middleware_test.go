@@ -1072,6 +1072,12 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 	}
 }
 
+type checkerDummy struct{}
+
+func (c *checkerDummy) Check(e string) bool {
+	return true
+}
+
 func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 	var (
 		store       = &storeMock{}
@@ -1091,7 +1097,7 @@ func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 		Description: req.Description,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateFlag(ctx, r.(*flipt.CreateFlagRequest))
@@ -1137,7 +1143,7 @@ func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 		Enabled:     req.Enabled,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateFlag(ctx, r.(*flipt.UpdateFlagRequest))
@@ -1175,7 +1181,7 @@ func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
 
 	store.On("DeleteFlag", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteFlag(ctx, r.(*flipt.DeleteFlagRequest))
@@ -1222,7 +1228,7 @@ func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
 		Attachment:  req.Attachment,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateVariant(ctx, r.(*flipt.CreateVariantRequest))
@@ -1270,7 +1276,7 @@ func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
 		Attachment:  req.Attachment,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateVariant(ctx, r.(*flipt.UpdateVariantRequest))
@@ -1307,7 +1313,7 @@ func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
 
 	store.On("DeleteVariant", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteVariant(ctx, r.(*flipt.DeleteVariantRequest))
@@ -1352,7 +1358,7 @@ func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
 		Rollout:   req.Rollout,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateDistribution(ctx, r.(*flipt.CreateDistributionRequest))
@@ -1398,7 +1404,7 @@ func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
 		Rollout:   req.Rollout,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateDistribution(ctx, r.(*flipt.UpdateDistributionRequest))
@@ -1438,7 +1444,7 @@ func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
 
 	store.On("DeleteDistribution", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteDistribution(ctx, r.(*flipt.DeleteDistributionRequest))
@@ -1483,7 +1489,7 @@ func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
 		MatchType:   req.MatchType,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateSegment(ctx, r.(*flipt.CreateSegmentRequest))
@@ -1528,7 +1534,7 @@ func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
 		MatchType:   req.MatchType,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateSegment(ctx, r.(*flipt.UpdateSegmentRequest))
@@ -1565,7 +1571,7 @@ func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
 
 	store.On("DeleteSegment", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteSegment(ctx, r.(*flipt.DeleteSegmentRequest))
@@ -1613,7 +1619,7 @@ func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
 		Value:      req.Value,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateConstraint(ctx, r.(*flipt.CreateConstraintRequest))
@@ -1662,7 +1668,7 @@ func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
 		Value:      req.Value,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateConstraint(ctx, r.(*flipt.UpdateConstraintRequest))
@@ -1700,7 +1706,7 @@ func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 
 	store.On("DeleteConstraint", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteConstraint(ctx, r.(*flipt.DeleteConstraintRequest))
@@ -1749,7 +1755,7 @@ func TestAuditUnaryInterceptor_CreateRollout(t *testing.T) {
 		FlagKey:      req.FlagKey,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateRollout(ctx, r.(*flipt.CreateRolloutRequest))
@@ -1791,7 +1797,7 @@ func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
 		Rank:         1,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateRollout(ctx, r.(*flipt.UpdateRolloutRequest))
@@ -1829,7 +1835,7 @@ func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
 
 	store.On("DeleteRollout", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteRollout(ctx, r.(*flipt.DeleteRolloutRequest))
@@ -1872,7 +1878,7 @@ func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 		FlagKey:    req.FlagKey,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateRule(ctx, r.(*flipt.CreateRuleRequest))
@@ -1915,7 +1921,7 @@ func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 		FlagKey:    req.FlagKey,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateRule(ctx, r.(*flipt.UpdateRuleRequest))
@@ -1953,7 +1959,7 @@ func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 
 	store.On("DeleteRule", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteRule(ctx, r.(*flipt.DeleteRuleRequest))
@@ -1994,7 +2000,7 @@ func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
 		Name: req.Name,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateNamespace(ctx, r.(*flipt.CreateNamespaceRequest))
@@ -2037,7 +2043,7 @@ func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
 		Description: req.Description,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.UpdateNamespace(ctx, r.(*flipt.UpdateNamespaceRequest))
@@ -2080,7 +2086,7 @@ func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 
 	store.On("DeleteNamespace", mock.Anything, req).Return(nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.DeleteNamespace(ctx, r.(*flipt.DeleteNamespaceRequest))
@@ -2123,7 +2129,7 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 		Description: req.Description,
 	}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateFlag(ctx, r.(*flipt.CreateFlagRequest))
@@ -2178,7 +2184,7 @@ func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
 		"email": "example@flipt.io",
 	}}, nil)
 
-	unaryInterceptor := AuditUnaryInterceptor(logger)
+	unaryInterceptor := AuditUnaryInterceptor(logger, &checkerDummy{})
 
 	handler := func(ctx context.Context, r interface{}) (interface{}, error) {
 		return s.CreateToken(ctx, r.(*authrpc.CreateTokenRequest))

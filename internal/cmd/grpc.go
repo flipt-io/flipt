@@ -345,14 +345,20 @@ func NewGRPCServer(
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
+		checker, err := audit.NewChecker(cfg.Audit.Sinks.Events)
+		if err != nil {
+			return nil, err
+		}
+
 		sse := audit.NewSinkSpanExporter(logger, sinks)
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(sse, tracesdk.WithBatchTimeout(cfg.Audit.Buffer.FlushPeriod), tracesdk.WithMaxExportBatchSize(cfg.Audit.Buffer.Capacity)))
 
-		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger))
+		interceptors = append(interceptors, middlewaregrpc.AuditUnaryInterceptor(logger, checker))
 		logger.Debug("audit sinks enabled",
 			zap.Stringers("sinks", sinks),
 			zap.Int("buffer capacity", cfg.Audit.Buffer.Capacity),
 			zap.String("flush period", cfg.Audit.Buffer.FlushPeriod.String()),
+			zap.Strings("events", checker.Events()),
 		)
 
 		server.onShutdown(func(ctx context.Context) error {

@@ -300,8 +300,13 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 	}
 }
 
+// EventPairChecker is the middleware side contract for checking if an event pair exists.
+type EventPairChecker interface {
+	Check(eventPair string) bool
+}
+
 // AuditUnaryInterceptor sends audit logs to configured sinks upon successful RPC requests for auditable events.
-func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+func AuditUnaryInterceptor(logger *zap.Logger, eventPairChecker EventPairChecker) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := handler(ctx, req)
 		if err != nil {
@@ -314,8 +319,15 @@ func AuditUnaryInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 
 		defer func() {
 			if event != nil {
-				span := trace.SpanFromContext(ctx)
-				span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+				ts := string(event.Type)
+				as := string(event.Action)
+				eventPair := fmt.Sprintf("%s:%s", ts, as)
+
+				exists := eventPairChecker.Check(eventPair)
+				if exists {
+					span := trace.SpanFromContext(ctx)
+					span.AddEvent("event", trace.WithAttributes(event.DecodeToAttributes()...))
+				}
 			}
 		}()
 

@@ -449,6 +449,7 @@ func TestLoad(t *testing.T) {
 
 				cfg.Audit = AuditConfig{
 					Sinks: SinksConfig{
+						Events: []string{"*:*"},
 						LogFile: LogFileSinkConfig{
 							Enabled: true,
 							File:    "/path/to/logs.txt",
