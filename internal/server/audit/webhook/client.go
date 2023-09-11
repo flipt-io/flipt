@@ -79,10 +79,11 @@ func (w *HTTPClient) SendAudit(e audit.Event) error {
 		return err
 	}
 
+	req.Header.Add("Content-Type", "application/json")
+
 	// If the signing secret is configured, add the specific header to it.
 	if w.signingSecret != "" {
 		signedPayload := w.signPayload(body)
-		fmt.Printf("THE SIGNED PAYLOAD IS: %x\n", signedPayload)
 
 		req.Header.Add(fliptSignatureHeader, fmt.Sprintf("%x", signedPayload))
 	}
