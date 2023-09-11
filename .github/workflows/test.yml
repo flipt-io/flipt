@@ -36,7 +36,7 @@ jobs:
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 
@@ -82,7 +82,7 @@ jobs:
           curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 

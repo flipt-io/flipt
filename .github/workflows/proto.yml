@@ -47,7 +47,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: magefile/mage-action@v2
+      - uses: magefile/mage-action@v3
         with:
           version: latest
           args: proto
