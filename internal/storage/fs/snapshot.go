@@ -355,7 +355,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 			for _, segmentKey := range segmentKeys {
 				segment := ns.segments[segmentKey]
 				if segment == nil {
-					return errs.ErrNotFoundf("segment %q in rule %d", segmentKey, rank)
+					return errs.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", doc.Namespace, flag.Key, rank, segmentKey)
 				}
 
 				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
@@ -386,7 +386,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 			for _, d := range r.Distributions {
 				variant, found := findByKey(d.VariantKey, flag.Variants...)
 				if !found {
-					continue
+					return errs.ErrInvalidf("flag %s/%s rule %d references unknown variant %q", doc.Namespace, flag.Key, rank, d.VariantKey)
 				}
 
 				id := uuid.Must(uuid.NewV4()).String()
@@ -459,7 +459,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 				for _, segmentKey := range segmentKeys {
 					segment, ok := ns.segments[segmentKey]
 					if !ok {
-						return errs.ErrNotFoundf("segment %q not found", rollout.Segment.Key)
+						return errs.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", doc.Namespace, flag.Key, rank, segmentKey)
 					}
 
 					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
