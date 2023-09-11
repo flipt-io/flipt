@@ -620,6 +620,11 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("file not specified"),
 		},
 		{
+			name:    "url not specified",
+			path:    "./testdata/audit/invalid_webhook_url_not_provided.yml",
+			wantErr: errors.New("url not provided"),
+		},
+		{
 			name: "local config provided",
 			path: "./testdata/storage/local_provided.yml",
 			expected: func() *Config {

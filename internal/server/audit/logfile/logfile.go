@@ -1,6 +1,7 @@
 package logfile
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -35,7 +36,7 @@ func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
 	}, nil
 }
 
-func (l *Sink) SendAudits(events []audit.Event) error {
+func (l *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
 	var result error
