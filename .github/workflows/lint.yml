@@ -11,7 +11,7 @@ jobs:
     name: "Lint Go"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
@@ -32,7 +32,7 @@ jobs:
     name: "Lint Markdown"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: DavidAnson/markdownlint-cli2-action@v12
         with:
           config: .markdownlint.yaml
@@ -44,7 +44,7 @@ jobs:
     name: "Lint UI"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v3
         with:
@@ -62,7 +62,7 @@ jobs:
     name: "Go Mod Tidy"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
