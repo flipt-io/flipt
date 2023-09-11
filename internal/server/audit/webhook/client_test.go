@@ -14,6 +14,7 @@ func TestHTTPClient_Failure(t *testing.T) {
 	hclient := NewHTTPClient(zap.NewNop(), "https://respond.io/webhook", "", WithMaxBackoffDuration(5*time.Second))
 
 	gock.New("https://respond.io").
+		MatchHeader("Content-Type", "application/json").
 		Post("/webhook").
 		Reply(500)
 	defer gock.Off()
@@ -31,6 +32,7 @@ func TestHTTPClient_Success(t *testing.T) {
 	hclient := NewHTTPClient(zap.NewNop(), "https://respond.io/webhook", "", WithMaxBackoffDuration(5*time.Second))
 
 	gock.New("https://respond.io").
+		MatchHeader("Content-Type", "application/json").
 		Post("/webhook").
 		Reply(200)
 	defer gock.Off()
@@ -48,6 +50,7 @@ func TestHTTPClient_Success_WithSignedPayload(t *testing.T) {
 	hclient := NewHTTPClient(zap.NewNop(), "https://respond.io/webhook", "supersecret", WithMaxBackoffDuration(5*time.Second))
 
 	gock.New("https://respond.io").
+		MatchHeader("Content-Type", "application/json").
 		MatchHeader(fliptSignatureHeader, "daae3795b8b2762be113870086d6d04ea3618b90ff14925fe4caaa1425638e4f").
 		Post("/webhook").
 		Reply(200)
