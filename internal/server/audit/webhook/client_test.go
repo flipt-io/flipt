@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -19,7 +20,7 @@ func TestHTTPClient_Failure(t *testing.T) {
 		Reply(500)
 	defer gock.Off()
 
-	err := hclient.SendAudit(audit.Event{
+	err := hclient.SendAudit(context.TODO(), audit.Event{
 		Version: "0.1",
 		Type:    audit.FlagType,
 		Action:  audit.Create,
@@ -37,7 +38,7 @@ func TestHTTPClient_Success(t *testing.T) {
 		Reply(200)
 	defer gock.Off()
 
-	err := hclient.SendAudit(audit.Event{
+	err := hclient.SendAudit(context.TODO(), audit.Event{
 		Version: "0.1",
 		Type:    audit.FlagType,
 		Action:  audit.Create,
@@ -56,7 +57,7 @@ func TestHTTPClient_Success_WithSignedPayload(t *testing.T) {
 		Reply(200)
 	defer gock.Off()
 
-	err := hclient.SendAudit(audit.Event{
+	err := hclient.SendAudit(context.TODO(), audit.Event{
 		Version: "0.1",
 		Type:    audit.FlagType,
 		Action:  audit.Create,

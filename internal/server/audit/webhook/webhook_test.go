@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,7 @@ import (
 
 type dummy struct{}
 
-func (d *dummy) SendAudit(e audit.Event) error {
+func (d *dummy) SendAudit(ctx context.Context, e audit.Event) error {
 	return nil
 }
 
@@ -20,7 +21,7 @@ func TestSink(t *testing.T) {
 
 	assert.Equal(t, "webhook", s.String())
 
-	err := s.SendAudits([]audit.Event{
+	err := s.SendAudits(context.TODO(), []audit.Event{
 		{
 			Version: "0.1",
 			Type:    audit.FlagType,

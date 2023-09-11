@@ -68,13 +68,13 @@ func WithMaxBackoffDuration(maxBackoffDuration time.Duration) ClientOption {
 }
 
 // SendAudit will send an audit event to a configured server at a URL.
-func (w *HTTPClient) SendAudit(e audit.Event) error {
+func (w *HTTPClient) SendAudit(ctx context.Context, e audit.Event) error {
 	body, err := json.Marshal(e)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, w.url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, w.url, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
