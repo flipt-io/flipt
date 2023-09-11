@@ -22,7 +22,7 @@ jobs:
       matrix:
         database: ["mysql", "postgres", "cockroachdb", "sqlite"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
@@ -36,7 +36,7 @@ jobs:
           curl -L https://dl.dagger.io/dagger/install.sh | sh
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 
@@ -50,7 +50,7 @@ jobs:
     name: "Tests (UI)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v3
         with:
@@ -68,7 +68,7 @@ jobs:
     name: "Tests (Migration)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
@@ -82,7 +82,7 @@ jobs:
           curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
 
       - name: Install Mage
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           install-only: true
 
