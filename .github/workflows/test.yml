@@ -22,7 +22,7 @@ jobs:
       matrix:
         database: ["mysql", "postgres", "cockroachdb", "sqlite"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
@@ -50,7 +50,7 @@ jobs:
     name: "Tests (UI)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v3
         with:
@@ -68,7 +68,7 @@ jobs:
     name: "Tests (Migration)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
