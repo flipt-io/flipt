@@ -223,16 +223,22 @@ import "strings"
 
 	#audit: {
 		sinks?: {
-			events?: [...string] | *["*:*"]
 			log?: {
 				enabled?: bool | *false
 				file?:    string | *""
+			}
+			webhook?: {
+				enabled?:              bool | *false
+				url?:                  string | *""
+				max_backoff_duration?: =~#duration | *"15s"
+				signing_secret?:       string | *""
 			}
 		}
 		buffer?: {
 			capacity?:     int | *2
 			flush_period?: string | *"2m"
 		}
+		events?: [...string] | *["*:*"]
 	}
 
 	#experimental: {}

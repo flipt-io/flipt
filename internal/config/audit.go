@@ -15,26 +15,30 @@ var _ defaulter = (*AuditConfig)(nil)
 type AuditConfig struct {
 	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
 	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
+	Events []string     `json:"events,omitempty" mapstructure:"events"`
 }
 
 // Enabled returns true if any nested sink is enabled
 func (c *AuditConfig) Enabled() bool {
-	return c.Sinks.LogFile.Enabled
+	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
 }
 
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
-			"events": []string{"*:*"},
 			"log": map[string]any{
 				"enabled": "false",
 				"file":    "",
+			},
+			"webhook": map[string]any{
+				"enabled": "false",
 			},
 		},
 		"buffer": map[string]any{
 			"capacity":     2,
 			"flush_period": "2m",
 		},
+		"events": []string{"*:*"},
 	})
 
 	return nil
@@ -43,6 +47,10 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 func (c *AuditConfig) validate() error {
 	if c.Sinks.LogFile.Enabled && c.Sinks.LogFile.File == "" {
 		return errors.New("file not specified")
+	}
+
+	if c.Sinks.Webhook.Enabled && c.Sinks.Webhook.URL == "" {
+		return errors.New("url not provided")
 	}
 
 	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
@@ -59,8 +67,17 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	Events  []string          `json:"events,omitempty" mapstructure:"events"`
 	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
+	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
+}
+
+// WebhookSinkConfig contains configuration for sending POST requests to specific
+// URL as its configured.
+type WebhookSinkConfig struct {
+	Enabled            bool          `json:"enabled,omitempty" mapstructure:"enabled"`
+	URL                string        `json:"url,omitempty" mapstructure:"url"`
+	MaxBackoffDuration time.Duration `json:"maxBackoffDuration,omitempty" mapstructure:"max_backoff_duration"`
+	SigningSecret      string        `json:"signingSecret,omitempty" mapstructure:"signing_secret"`
 }
 
 // LogFileSinkConfig contains fields that hold configuration for sending audits

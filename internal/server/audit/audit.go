@@ -180,7 +180,7 @@ type Metadata struct {
 // Sink is the abstraction for various audit sink configurations
 // that Flipt will support.
 type Sink interface {
-	SendAudits([]Event) error
+	SendAudits(context.Context, []Event) error
 	Close() error
 	fmt.Stringer
 }
@@ -195,7 +195,7 @@ type SinkSpanExporter struct {
 type EventExporter interface {
 	ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error
 	Shutdown(ctx context.Context) error
-	SendAudits(es []Event) error
+	SendAudits(ctx context.Context, es []Event) error
 }
 
 // NewSinkSpanExporter is the constructor for a SinkSpanExporter.
@@ -224,7 +224,7 @@ func (s *SinkSpanExporter) ExportSpans(ctx context.Context, spans []sdktrace.Rea
 		}
 	}
 
-	return s.SendAudits(es)
+	return s.SendAudits(ctx, es)
 }
 
 // Shutdown will close all the registered sinks.
@@ -242,14 +242,14 @@ func (s *SinkSpanExporter) Shutdown(ctx context.Context) error {
 }
 
 // SendAudits wraps the methods of sending audits to various sinks.
-func (s *SinkSpanExporter) SendAudits(es []Event) error {
+func (s *SinkSpanExporter) SendAudits(ctx context.Context, es []Event) error {
 	if len(es) < 1 {
 		return nil
 	}
 
 	for _, sink := range s.sinks {
 		s.logger.Debug("performing batched sending of audit events", zap.Stringer("sink", sink), zap.Int("batch size", len(es)))
-		err := sink.SendAudits(es)
+		err := sink.SendAudits(ctx, es)
 		if err != nil {
 			s.logger.Debug("failed to send audits to sink", zap.Stringer("sink", sink))
 		}

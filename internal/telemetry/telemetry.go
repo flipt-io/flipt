@@ -21,7 +21,7 @@ import (
 
 const (
 	filename = "telemetry.json"
-	version  = "1.2"
+	version  = "1.3"
 	event    = "flipt.ping"
 )
 
@@ -37,6 +37,10 @@ type storage struct {
 	Cache    string `json:"cache,omitempty"`
 }
 
+type audit struct {
+	Sinks []string `json:"sinks,omitempty"`
+}
+
 type authentication struct {
 	Methods []string `json:"methods,omitempty"`
 }
@@ -47,6 +51,7 @@ type flipt struct {
 	Arch           string                    `json:"arch"`
 	Storage        *storage                  `json:"storage,omitempty"`
 	Authentication *authentication           `json:"authentication,omitempty"`
+	Audit          *audit                    `json:"audit,omitempty"`
 	Experimental   config.ExperimentalConfig `json:"experimental,omitempty"`
 }
 
@@ -207,16 +212,34 @@ func (r *Reporter) ping(_ context.Context, f file) error {
 	}
 
 	// authentication
-	methods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))
+	authMethods := make([]string, 0, len(r.cfg.Authentication.Methods.EnabledMethods()))
 
 	for _, m := range r.cfg.Authentication.Methods.EnabledMethods() {
-		methods = append(methods, m.Name())
+		authMethods = append(authMethods, m.Name())
 	}
 
 	// only report authentications if enabled
-	if len(methods) > 0 {
+	if len(authMethods) > 0 {
 		flipt.Authentication = &authentication{
-			Methods: methods,
+			Methods: authMethods,
+		}
+	}
+
+	auditSinks := []string{}
+
+	if r.cfg.Audit.Enabled() {
+		if r.cfg.Audit.Sinks.LogFile.Enabled {
+			auditSinks = append(auditSinks, "log")
+		}
+		if r.cfg.Audit.Sinks.Webhook.Enabled {
+			auditSinks = append(auditSinks, "webhook")
+		}
+	}
+
+	// only report auditsinks if enabled
+	if len(auditSinks) > 0 {
+		flipt.Audit = &audit{
+			Sinks: auditSinks,
 		}
 	}
 

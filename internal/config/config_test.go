@@ -449,7 +449,6 @@ func TestLoad(t *testing.T) {
 
 				cfg.Audit = AuditConfig{
 					Sinks: SinksConfig{
-						Events: []string{"*:*"},
 						LogFile: LogFileSinkConfig{
 							Enabled: true,
 							File:    "/path/to/logs.txt",
@@ -459,6 +458,7 @@ func TestLoad(t *testing.T) {
 						Capacity:    10,
 						FlushPeriod: 3 * time.Minute,
 					},
+					Events: []string{"*:*"},
 				}
 
 				cfg.Log = LogConfig{
@@ -618,6 +618,11 @@ func TestLoad(t *testing.T) {
 			name:    "file not specified",
 			path:    "./testdata/audit/invalid_enable_without_file.yml",
 			wantErr: errors.New("file not specified"),
+		},
+		{
+			name:    "url not specified",
+			path:    "./testdata/audit/invalid_webhook_url_not_provided.yml",
+			wantErr: errors.New("url not provided"),
 		},
 		{
 			name: "local config provided",

@@ -652,10 +652,6 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "events": {
-              "type": "array",
-              "default": ["*:*"]
-            },
             "log": {
               "type": "object",
               "additionalProperties": false,
@@ -670,6 +666,36 @@
                 }
               },
               "title": "Log File"
+            },
+            "webhook": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "url": {
+                  "type": "string",
+                  "default": ""
+                },
+                "max_backoff_duration": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": "15s"
+                },
+                "signing_secret": {
+                  "type": "string",
+                  "default": ""
+                }
+              }
             }
           }
         },
@@ -686,6 +712,10 @@
               "default": "2m"
             }
           }
+        },
+        "events": {
+          "type": "array",
+          "default": ["*:*"]
         }
       },
       "title": "Audit"

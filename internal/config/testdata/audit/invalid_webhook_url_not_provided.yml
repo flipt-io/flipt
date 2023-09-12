@@ -1,0 +1,4 @@
+audit:
+  sinks:
+    webhook:
+      enabled: true

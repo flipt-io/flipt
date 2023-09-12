@@ -21,6 +21,7 @@ import (
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
+	"go.flipt.io/flipt/internal/server/audit/webhook"
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metadata"
@@ -330,10 +331,21 @@ func NewGRPCServer(
 		sinks = append(sinks, logFileSink)
 	}
 
+	if cfg.Audit.Sinks.Webhook.Enabled {
+		opts := []webhook.ClientOption{}
+		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration != 0 {
+			opts = append(opts, webhook.WithMaxBackoffDuration(cfg.Audit.Sinks.Webhook.MaxBackoffDuration))
+		}
+
+		webhookSink := webhook.NewSink(logger, webhook.NewHTTPClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+
+		sinks = append(sinks, webhookSink)
+	}
+
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
-		checker, err := audit.NewChecker(cfg.Audit.Sinks.Events)
+		checker, err := audit.NewChecker(cfg.Audit.Events)
 		if err != nil {
 			return nil, err
 		}
