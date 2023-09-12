@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support page instead of link to docs (#2063)
 - Ability to set default theme for UI (#2062)
 
+### Changed
+
+- Dependency updates
+
 ### Fixed
 
 - `schema`: make rollout description optional in cue schema (#2091)
