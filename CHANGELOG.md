@@ -3,6 +3,25 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.27.0](https://github.com/flipt-io/flipt/releases/tag/v1.27.0) - 2023-09-12
+
+### Added
+
+- Audit info to telemetry (#2116)
+- Webhook configuration for sending event payloads (#2087)
+- `events`: Add feature for scoping the emission of events
+- Datadog as an exporter for OTLP traces (#2083)
+- Default config (#2067)
+- Support page instead of link to docs (#2063)
+- Ability to set default theme for UI (#2062)
+
+### Fixed
+
+- `schema`: make rollout description optional in cue schema (#2091)
+- `ext`: attempt to import when namespace exists on create namespace (#2089)
+- `cmd/import`: check for correct not found error on create namespace (#2082)
+- `build/generate`: add exposed port to flipt (#2060)
+
 ## [v1.26.1](https://github.com/flipt-io/flipt/releases/tag/v1.26.1) - 2023-09-09
 
 ### Fixed
