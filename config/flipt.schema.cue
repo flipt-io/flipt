@@ -223,7 +223,6 @@ import "strings"
 
 	#audit: {
 		sinks?: {
-			events?: [...string] | *["*:*"]
 			log?: {
 				enabled?: bool | *false
 				file?:    string | *""
@@ -239,6 +238,7 @@ import "strings"
 			capacity?:     int | *2
 			flush_period?: string | *"2m"
 		}
+		events?: [...string] | *["*:*"]
 	}
 
 	#experimental: {}

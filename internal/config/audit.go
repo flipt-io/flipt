@@ -15,17 +15,17 @@ var _ defaulter = (*AuditConfig)(nil)
 type AuditConfig struct {
 	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
 	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
+	Events []string     `json:"events,omitempty" mapstructure:"events"`
 }
 
 // Enabled returns true if any nested sink is enabled
 func (c *AuditConfig) Enabled() bool {
-	return c.Sinks.LogFile.Enabled
+	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
 }
 
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 	v.SetDefault("audit", map[string]any{
 		"sinks": map[string]any{
-			"events": []string{"*:*"},
 			"log": map[string]any{
 				"enabled": "false",
 				"file":    "",
@@ -38,6 +38,7 @@ func (c *AuditConfig) setDefaults(v *viper.Viper) error {
 			"capacity":     2,
 			"flush_period": "2m",
 		},
+		"events": []string{"*:*"},
 	})
 
 	return nil
@@ -66,7 +67,6 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	Events  []string          `json:"events,omitempty" mapstructure:"events"`
 	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
 	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
 }
