@@ -345,7 +345,7 @@ func NewGRPCServer(
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,
 	// and if the slice has a non-zero length, add the audit sink interceptor
 	if len(sinks) > 0 {
-		checker, err := audit.NewChecker(cfg.Audit.Events)
+		checker, err := audit.NewChecker(cfg.Audit.Sinks.Events)
 		if err != nil {
 			return nil, err
 		}

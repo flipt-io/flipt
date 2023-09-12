@@ -652,6 +652,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "events": {
+              "type": "array",
+              "default": ["*:*"]
+            },
             "log": {
               "type": "object",
               "additionalProperties": false,
@@ -712,10 +716,6 @@
               "default": "2m"
             }
           }
-        },
-        "events": {
-          "type": "array",
-          "default": ["*:*"]
         }
       },
       "title": "Audit"

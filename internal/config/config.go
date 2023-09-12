@@ -511,6 +511,7 @@ func Default() *Config {
 
 		Audit: AuditConfig{
 			Sinks: SinksConfig{
+				Events: []string{"*:*"},
 				LogFile: LogFileSinkConfig{
 					Enabled: false,
 					File:    "",
@@ -520,7 +521,6 @@ func Default() *Config {
 				Capacity:    2,
 				FlushPeriod: 2 * time.Minute,
 			},
-			Events: []string{"*:*"},
 		},
 	}
 }
