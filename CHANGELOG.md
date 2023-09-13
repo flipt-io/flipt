@@ -17,13 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `flipt/validate`: build entire snapshot on validate (#2093)
 - Dependency updates
 
 ### Fixed
 
-- `schema`: make rollout description optional in cue schema (#2091)
-- `ext`: attempt to import when namespace exists on create namespace (#2089)
-- `cmd/import`: check for correct not found error on create namespace (#2082)
 - `build/generate`: add exposed port to flipt (#2060)
 
 ## [v1.26.1](https://github.com/flipt-io/flipt/releases/tag/v1.26.1) - 2023-09-09
