@@ -1,0 +1,12 @@
+namespace: fruit
+flags:
+- key: apple
+  name: Apple
+  type: BOOLEAN_FLAG_TYPE
+  rollouts:
+  - segment:
+      key: unknown
+segments:
+- key: internal
+  name: Internal
+  match_type: ANY_MATCH_TYPE

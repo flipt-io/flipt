@@ -1,0 +1,13 @@
+namespace: fruit
+flags:
+- key: apple
+  name: Apple
+  variants:
+  - key: royal-gala
+  - key: pink-lady
+  rules:
+    - segment: unknown
+segments:
+- key: internal
+  name: Internal
+  match_type: ANY_MATCH_TYPE
