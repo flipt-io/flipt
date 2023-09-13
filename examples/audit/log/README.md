@@ -1,5 +1,5 @@
 <p align="center">
-    <img src=".././images/logos/loki.svg" alt="Grafana Loki" width=250 height=250 />
+    <img src="../../images/logos/loki.svg" alt="Grafana Loki" width=250 height=250 />
 </p>
 
 # Audit Event Logging / Grafana Loki Example
