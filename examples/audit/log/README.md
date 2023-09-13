@@ -15,7 +15,7 @@ FLIPT_AUDIT_SINKS_LOG_ENABLED=true
 FLIPT_AUDIT_SINKS_LOG_FILE=/var/log/flipt/audit.log
 ```
 
-The auditable events currently are `create`, `update`, and `delete` operations on `flags`, `variants`, `segments`, `constraints`, `rules`, `distributions`, `namespaces`, and `tokens`. If you do any of these operations through the API, Flipt will emit an audit event log to the specified location.
+The auditable events currently are `created`, `updated`, and `deleted` operations on `flags`, `variants`, `segments`, `constraints`, `rules`, `distributions`, `namespaces`, and `tokens`. If you do any of these operations through the API, Flipt will emit an audit event log to the specified location.
 
 In this example, we are using Grafana's [Loki](https://grafana.com/docs/loki/latest/) to scrape, aggregate, and label the audit logs on the container and index them for searching via the Grafana/Loki integration. 
 

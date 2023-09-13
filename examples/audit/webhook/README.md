@@ -1,6 +1,6 @@
 # Audit Events to Webhook Example
 
-This example shows how you can run Flipt with audit event logging enabled to POST to a webhook using the `webhook` audit sink. It also configures filtering of audit events to only send `create` and `update` events for `flags` instead of the default of all events for all types.
+This example shows how you can run Flipt with audit event logging enabled to POST to a webhook using the `webhook` audit sink. It also configures filtering of audit events to only send `created` and `updated` events for `flag` instead of the default of all events for all types.
 
 This works by setting the three environment variables `FLIPT_AUDIT_SINKS_WEBHOOK_ENABLED`, `FLIPT_AUDIT_EVENT_SINKS_WEBHOOK_URL`, and `FLIPT_AUDIT_EVENTS`:
 
@@ -9,7 +9,7 @@ This works by setting the three environment variables `FLIPT_AUDIT_SINKS_WEBHOOK
 ```bash
 FLIPT_AUDIT_SINKS_WEBHOOK_ENABLED=true
 FLIPT_AUDIT_SINKS_WEBHOOK_URL=http://localhost:8081
-FLIPT_AUDIT_EVENTS=flag:create flag:update
+FLIPT_AUDIT_EVENTS=flag:created flag:updated
 ```
 
 In this example we spin up a simple HTTP server in Python to receive and log the received webhook events. You can see the code in [server.py](server.py).
@@ -26,7 +26,7 @@ To run this example application you'll need:
 1. Run `docker-compose up` from this directory
 1. Open the Flipt UI (default: [http://localhost:8080](http://localhost:8080))
 1. Create some sample data: Flags/Segments/etc.
-1. View the logs of the webhook server to see the audit events being sent to the webhook server. Note that only `create` and `update` events for `flags` are sent as that is what we configured in the `FLIPT_AUDIT_EVENTS` environment variable.
+1. View the logs of the webhook server to see the audit events being sent to the webhook server. Note that only `created` and `updated` events for `flag` are sent as that is what we configured in the `FLIPT_AUDIT_EVENTS` environment variable.
 
 ```console
 webhook-flipt-1    | 2023-09-13T17:41:53Z       DEBUG   create flag     {"server": "grpc", "request": "key:\"asdf\" name:\"asdf\" namespace_key:\"default\""}
