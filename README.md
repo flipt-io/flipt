@@ -151,7 +151,7 @@ Try the latest version of Flipt for yourself.
 ### Homebrew :beer:
 
 ```bash
-brew install flipt-io/tap/flipt
+brew install flipt-io/brew/flipt
 brew services start flipt
 
 # or run in the foreground
