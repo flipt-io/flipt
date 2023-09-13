@@ -108,7 +108,7 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 
 ## Values
 
-- :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+- :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. [Auditing](https://www.flipt.io/docs/configuration/observability#audit-events). No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis... Flipt supports it all.
@@ -148,7 +148,19 @@ Try the latest version of Flipt for yourself.
 
 **Note:** The database gets cleared **every 30 minutes** in this sandbox environment!
 
-### Docker
+### Homebrew :beer:
+
+```bash
+brew install flipt-io/tap/flipt
+brew services start flipt
+
+# or run in the foreground
+flipt
+```
+
+Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
+
+### Docker :whale:
 
 ```bash
 docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest

@@ -42,7 +42,15 @@ release:
   prerelease: auto # enable rc releases (e.g. v1.0.0-rc.1)
   target_commitish: "{{ .Commit }}"
   footer: |
-    ## Docker Images
+    ## Installation
+
+    ### Homebrew :beer:
+
+    ```bash
+      brew install flipt-io/brew/flipt
+    ```
+
+    ### Docker Images :whale:
 
     ```bash
       docker pull docker.io/flipt/flipt:v{{ .Tag }}
@@ -123,7 +131,7 @@ announce:
     enabled: true
   slack:
     enabled: true
-    channel: '#releases'
+    channel: "#releases"
 
 brews:
   - name: flipt
