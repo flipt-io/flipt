@@ -22,8 +22,9 @@ func NewChecker(eventPairs []string) (*Checker, error) {
 		"rollout":      {"rollout"},
 		"rule":         {"rule"},
 		"segment":      {"segment"},
+		"token":        {"token"},
 		"variant":      {"variant"},
-		"*":            {"constraint", "distribution", "flag", "namespace", "rollout", "rule", "segment", "variant"},
+		"*":            {"constraint", "distribution", "flag", "namespace", "rollout", "rule", "segment", "token", "variant"},
 	}
 
 	verbs := map[string][]string{
