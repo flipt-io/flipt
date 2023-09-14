@@ -18,6 +18,7 @@ The ability to filter audit events was added in [v1.27.0](https://github.com/fli
 - `distribution`
 - `namespace`
 - `rollout`
+- `token`
 
 ### Verbs
 

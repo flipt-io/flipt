@@ -34,6 +34,7 @@ func authenticationGRPC(
 	logger *zap.Logger,
 	cfg *config.Config,
 	forceMigrate bool,
+	tokenDeletedEnabled bool,
 	authOpts ...containers.Option[auth.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
@@ -75,7 +76,7 @@ func authenticationGRPC(
 	var (
 		register = grpcRegisterers{
 			public,
-			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(cfg.Audit.Enabled())),
+			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(tokenDeletedEnabled)),
 		}
 		interceptors []grpc.UnaryServerInterceptor
 	)
