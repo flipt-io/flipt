@@ -20,7 +20,7 @@ type AuditConfig struct {
 
 // Enabled returns true if any nested sink is enabled
 func (c *AuditConfig) Enabled() bool {
-	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
+	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.WebhookTemplate.Enabled
 }
 
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
@@ -67,8 +67,9 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
-	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
+	LogFile         LogFileSinkConfig     `json:"log,omitempty" mapstructure:"log"`
+	Webhook         WebhookSinkConfig     `json:"webhook,omitempty" mapstructure:"webhook"`
+	WebhookTemplate WebhookTemplateConfig `json:"webhookTemplate,omitempty" mapstructure:"webhook_template"`
 }
 
 // WebhookSinkConfig contains configuration for sending POST requests to specific
@@ -92,4 +93,16 @@ type LogFileSinkConfig struct {
 type BufferConfig struct {
 	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity"`
 	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period"`
+}
+
+type WebhookTemplateConfig struct {
+	Enabled   bool              `json:"enabled,omitempty" mapstructure:"enabled"`
+	Templates []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates"`
+}
+
+type WebhookTemplate struct {
+	Method  string            `json:"method,omitempty" mapstructure:"method"`
+	URL     string            `json:"url,omitempty" mapstructure:"url"`
+	Body    string            `json:"body,omitempty" mapstructure:"body"`
+	Headers map[string]string `json:"headers,omitempty" mapstructure:"headers"`
 }
