@@ -442,7 +442,6 @@ func Default() *Config {
 		},
 
 		UI: UIConfig{
-			Enabled:      true,
 			DefaultTheme: SystemUITheme,
 		},
 

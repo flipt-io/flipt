@@ -264,16 +264,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated ui disabled",
-			path: "./testdata/deprecated/ui_disabled.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.UI.Enabled = false
-				return cfg
-			},
-			warnings: []string{"\"ui.enabled\" is deprecated."},
-		},
-		{
 			name:     "deprecated experimental filesystem_storage",
 			path:     "./testdata/deprecated/experimental_filesystem_storage.yml",
 			expected: Default,

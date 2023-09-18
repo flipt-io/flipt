@@ -39,31 +39,7 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 		},
 	})
 
-	if v.GetBool("cache.memory.enabled") {
-		// forcibly set top-level `enabled` to true
-		v.Set("cache.enabled", true)
-		v.Set("cache.backend", CacheMemory)
-		// ensure ttl is mapped to the value at memory.expiration
-		v.RegisterAlias("cache.ttl", "cache.memory.expiration")
-		// ensure ttl default is set
-		v.SetDefault("cache.memory.expiration", 1*time.Minute)
-	}
-
 	return nil
-}
-
-func (c *CacheConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.InConfig("cache.memory.enabled") {
-		deprecations = append(deprecations, "cache.memory.enabled")
-	}
-
-	if v.InConfig("cache.memory.expiration") {
-		deprecations = append(deprecations, "cache.memory.expiration")
-	}
-
-	return deprecations
 }
 
 // CacheBackend is either memory or redis
