@@ -66,14 +66,19 @@ func Load(path string) (*Result, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	v.SetConfigFile(path)
+	var cfg *Config
 
-	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("loading configuration: %w", err)
+	if path == "" {
+		cfg = Default()
+	} else {
+		cfg = &Config{}
+		v.SetConfigFile(path)
+		if err := v.ReadInConfig(); err != nil {
+			return nil, fmt.Errorf("loading configuration: %w", err)
+		}
 	}
 
 	var (
-		cfg         = &Config{}
 		result      = &Result{Config: cfg}
 		deprecators []deprecator
 		defaulters  []defaulter
