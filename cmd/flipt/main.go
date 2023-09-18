@@ -20,7 +20,6 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/info"
 	"go.flipt.io/flipt/internal/release"
-	"go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/telemetry"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -98,30 +97,6 @@ func main() {
 			},
 		}
 
-		migrateCmd = &cobra.Command{
-			Use:   "migrate",
-			Short: "Run pending database migrations",
-			Run: func(cmd *cobra.Command, _ []string) {
-				logger, cfg := buildConfig()
-				defer func() {
-					_ = logger.Sync()
-				}()
-
-				migrator, err := sql.NewMigrator(*cfg, logger)
-				if err != nil {
-					logger.Fatal("initializing migrator", zap.Error(err))
-				}
-
-				defer migrator.Close()
-
-				if err := migrator.Up(true); err != nil {
-					logger.Fatal("running migrator", zap.Error(err))
-				}
-			},
-		}
-	)
-
-	var (
 		t   = template.Must(template.New("banner").Parse(bannerTmpl))
 		buf = new(bytes.Buffer)
 	)
@@ -144,10 +119,11 @@ func main() {
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
-	rootCmd.AddCommand(migrateCmd)
+	rootCmd.AddCommand(newMigrateCommand())
 	rootCmd.AddCommand(newExportCommand())
 	rootCmd.AddCommand(newImportCommand())
 	rootCmd.AddCommand(newValidateCommand())
+	rootCmd.AddCommand(newConfigCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

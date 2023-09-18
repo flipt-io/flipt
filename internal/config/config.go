@@ -16,6 +16,8 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+const Version = "1.0"
+
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
@@ -324,7 +326,7 @@ func getFliptEnvs() (envs []string) {
 
 func (c *Config) validate() (err error) {
 	if c.Version != "" {
-		if strings.TrimSpace(c.Version) != "1.0" {
+		if strings.TrimSpace(c.Version) != Version {
 			return fmt.Errorf("invalid version: %s", c.Version)
 		}
 	}
@@ -427,6 +429,7 @@ func Default() *Config {
 	dbPath := filepath.Join(dbRoot, "flipt", "flipt.db")
 
 	return &Config{
+		Version: Version,
 		Log: LogConfig{
 			Level:     "INFO",
 			Encoding:  LogEncodingConsole,
