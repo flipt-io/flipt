@@ -67,16 +67,10 @@ func WithMaxBackoffDuration(maxBackoffDuration time.Duration) ClientOption {
 	}
 }
 
-// SendAudit will send an audit event to a configured server at a URL.
-func (w *HTTPClient) SendAudit(ctx context.Context, e audit.Event) error {
-	body, err := json.Marshal(e)
-	if err != nil {
-		return err
-	}
-
+func (w *HTTPClient) createRequest(ctx context.Context, body []byte) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, w.url, bytes.NewBuffer(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
@@ -88,6 +82,16 @@ func (w *HTTPClient) SendAudit(ctx context.Context, e audit.Event) error {
 		req.Header.Add(fliptSignatureHeader, fmt.Sprintf("%x", signedPayload))
 	}
 
+	return req, nil
+}
+
+// SendAudit will send an audit event to a configured server at a URL.
+func (w *HTTPClient) SendAudit(ctx context.Context, e audit.Event) error {
+	body, err := json.Marshal(e)
+	if err != nil {
+		return err
+	}
+
 	be := backoff.NewExponentialBackOff()
 	be.MaxElapsedTime = w.maxBackoffDuration
 
@@ -95,15 +99,23 @@ func (w *HTTPClient) SendAudit(ctx context.Context, e audit.Event) error {
 	defer ticker.Stop()
 
 	successfulRequest := false
+
 	// Make requests with configured retries.
 	for range ticker.C {
+		req, err := w.createRequest(ctx, body)
+		if err != nil {
+			w.logger.Error("error creating HTTP request", zap.Error(err))
+			return err
+		}
+
 		resp, err := w.Client.Do(req)
 		if err != nil {
 			w.logger.Debug("webhook request failed, retrying...", zap.Error(err))
 			continue
 		}
+
 		if resp.StatusCode != http.StatusOK {
-			w.logger.Debug("webhook request failed, retrying...", zap.Int("status_code", resp.StatusCode), zap.Error(err))
+			w.logger.Debug("webhook request failed, retrying...", zap.Int("status_code", resp.StatusCode))
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			continue
