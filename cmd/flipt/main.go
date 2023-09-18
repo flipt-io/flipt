@@ -184,23 +184,20 @@ func determinePath(cfgPath string) (string, bool) {
 }
 
 func buildConfig() (*zap.Logger, *config.Config) {
-	cfg := config.Default()
-
-	var warnings []string
-
 	path, found := determinePath(cfgPath)
-	if found {
-		// read in config
-		res, err := config.Load(path)
-		if err != nil {
-			defaultLogger.Fatal("loading configuration", zap.Error(err), zap.String("config_path", path))
-		}
 
-		cfg = res.Config
-		warnings = res.Warnings
-	} else {
+	// read in config if it exists
+	// otherwise, use defaults
+	res, err := config.Load(path)
+	if err != nil {
+		defaultLogger.Fatal("loading configuration", zap.Error(err), zap.String("config_path", path))
+	}
+
+	if !found {
 		defaultLogger.Info("no configuration file found, using defaults")
 	}
+
+	cfg := res.Config
 
 	encoding := defaultEncoding
 	encoding.TimeKey = cfg.Log.Keys.Time
@@ -214,7 +211,6 @@ func buildConfig() (*zap.Logger, *config.Config) {
 		loggerConfig.OutputPaths = []string{cfg.Log.File}
 	}
 
-	var err error
 	// parse/set log level
 	loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
 	if err != nil {
@@ -231,7 +227,7 @@ func buildConfig() (*zap.Logger, *config.Config) {
 	logger := zap.Must(loggerConfig.Build())
 
 	// print out any warnings from config parsing
-	for _, warning := range warnings {
+	for _, warning := range res.Warnings {
 		logger.Warn("configuration warning", zap.String("message", warning))
 	}
 

@@ -62,7 +62,7 @@ jobs:
         run: mage prep
 
       - name: GoReleaser (Nightly) Build
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser-pro
           version: latest
@@ -98,13 +98,13 @@ jobs:
       - uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: "${{ github.repository_owner }}"
@@ -125,7 +125,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: GoReleaser (Nightly) Release
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser-pro
           version: latest
@@ -157,6 +157,6 @@ jobs:
           cmd: yq -i '.app.env = "Nightly"' stackhawk.yml
 
       - name: Run HawkScan
-        uses: stackhawk/hawkscan-action@v2.1.0
+        uses: stackhawk/hawkscan-action@v2.1.1
         with:
           apiKey: ${{ secrets.HAWK_API_KEY }}
