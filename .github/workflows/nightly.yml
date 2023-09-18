@@ -62,7 +62,7 @@ jobs:
         run: mage prep
 
       - name: GoReleaser (Nightly) Build
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser-pro
           version: latest
@@ -125,7 +125,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: GoReleaser (Nightly) Release
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser-pro
           version: latest
