@@ -34,7 +34,7 @@ func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container
 		container := container.Pipeline("flipt --config")
 		if _, err := assertExec(ctx, container, flipt("foo"),
 			fails,
-			stderr(equals(`Error: unknown command "foo" for "flipt"
+			stderr(contains(`unknown command "foo" for "flipt"
 Run 'flipt --help' for usage.`))); err != nil {
 			return err
 		}
@@ -110,7 +110,7 @@ exit $?`,
 		if _, err = assertExec(ctx, container,
 			flipt("import", "foo"),
 			fails,
-			stdout(contains("opening import file: open foo: no such file or directory")),
+			stderr(contains("opening import file: open foo: no such file or directory")),
 		); err != nil {
 			return err
 		}
@@ -220,6 +220,7 @@ Usage:
   flipt [command]
 
 Available Commands:
+  config      Manage Flipt configuration
   export      Export flags/segments/rules to file/stdout
   help        Help about any command
   import      Import flags/segments/rules from file

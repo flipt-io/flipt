@@ -78,7 +78,6 @@ func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
 
 func main() {
 	if err := exec(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
