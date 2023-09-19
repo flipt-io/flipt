@@ -12,11 +12,11 @@ var _ defaulter = (*TracingConfig)(nil)
 // TracingConfig contains fields, which configure tracing telemetry
 // output destinations.
 type TracingConfig struct {
-	Enabled  bool                `json:"enabled,omitempty" mapstructure:"enabled"`
-	Exporter TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter"`
-	Jaeger   JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger"`
-	Zipkin   ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin"`
-	OTLP     OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp"`
+	Enabled  bool                `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	Exporter TracingExporter     `json:"exporter,omitempty" mapstructure:"exporter" yaml:"exporter,omitempty"`
+	Jaeger   JaegerTracingConfig `json:"jaeger,omitempty" mapstructure:"jaeger" yaml:"jaeger,omitempty"`
+	Zipkin   ZipkinTracingConfig `json:"zipkin,omitempty" mapstructure:"zipkin" yaml:"zipkin,omitempty"`
+	OTLP     OTLPTracingConfig   `json:"otlp,omitempty" mapstructure:"otlp" yaml:"otlp,omitempty"`
 }
 
 func (c *TracingConfig) setDefaults(v *viper.Viper) error {
@@ -93,18 +93,18 @@ var (
 // JaegerTracingConfig contains fields, which configure
 // Jaeger span and tracing output destination.
 type JaegerTracingConfig struct {
-	Host string `json:"host,omitempty" mapstructure:"host"`
-	Port int    `json:"port,omitempty" mapstructure:"port"`
+	Host string `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Port int    `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
 }
 
 // ZipkinTracingConfig contains fields, which configure
 // Zipkin span and tracing output destination.
 type ZipkinTracingConfig struct {
-	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint"`
+	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 }
 
 // OTLPTracingConfig contains fields, which configure
 // OTLP span and tracing output destination.
 type OTLPTracingConfig struct {
-	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint"`
+	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
 }
