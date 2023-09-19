@@ -57,6 +57,8 @@ func (c *ServerConfig) validate() (err error) {
 	return
 }
 
+// Scheme is either HTTP or HTTPS.
+// TODO: can we use a string instead?
 type Scheme uint
 
 func (s Scheme) String() string {
@@ -65,6 +67,10 @@ func (s Scheme) String() string {
 
 func (s Scheme) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
+}
+
+func (s Scheme) MarshalYAML() (interface{}, error) {
+	return s.String(), nil
 }
 
 const (

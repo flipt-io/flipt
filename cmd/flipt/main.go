@@ -77,6 +77,13 @@ func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
 }
 
 func main() {
+	if err := exec(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func exec() error {
 	var (
 		rootCmd = &cobra.Command{
 			Use:     "flipt",
@@ -109,7 +116,7 @@ func main() {
 		GoOS:      goOS,
 		GoArch:    goArch,
 	}); err != nil {
-		defaultLogger.Fatal("executing template", zap.Error(err))
+		return fmt.Errorf("executing template %w", err)
 	}
 
 	banner = buf.String()
@@ -136,9 +143,7 @@ func main() {
 		cancel()
 	}()
 
-	if err := rootCmd.ExecuteContext(ctx); err != nil {
-		defaultLogger.Fatal("execute", zap.Error(err))
-	}
+	return rootCmd.ExecuteContext(ctx)
 }
 
 // determinePath will figure out which (if any) path to use for Flipt configuration.

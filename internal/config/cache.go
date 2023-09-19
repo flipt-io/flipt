@@ -43,6 +43,7 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 }
 
 // CacheBackend is either memory or redis
+// TODO: can we use a string here instead?
 type CacheBackend uint8
 
 func (c CacheBackend) String() string {
@@ -51,6 +52,10 @@ func (c CacheBackend) String() string {
 
 func (c CacheBackend) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
+}
+
+func (c CacheBackend) MarshalYAML() (interface{}, error) {
+	return c.String(), nil
 }
 
 const (

@@ -56,6 +56,7 @@ func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
 }
 
 // TracingExporter represents the supported tracing exporters.
+// TODO: can we use a string here instead?
 type TracingExporter uint8
 
 func (e TracingExporter) String() string {
@@ -64,6 +65,10 @@ func (e TracingExporter) String() string {
 
 func (e TracingExporter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
+}
+
+func (e TracingExporter) MarshalYAML() (interface{}, error) {
+	return e.String(), nil
 }
 
 const (

@@ -52,7 +52,8 @@ var (
 	}
 )
 
-// LogEncoding is either console or JSON
+// LogEncoding is either console or JSON.
+// TODO: can we use a string instead?
 type LogEncoding uint8
 
 const (
@@ -67,4 +68,8 @@ func (e LogEncoding) String() string {
 
 func (e LogEncoding) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
+}
+
+func (e LogEncoding) MarshalYAML() (interface{}, error) {
+	return e.String(), nil
 }
