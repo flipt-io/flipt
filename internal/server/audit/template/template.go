@@ -12,22 +12,20 @@ import (
 	"go.uber.org/zap"
 )
 
-const sinkType = "webhookTemplate"
+const sinkType = "templates"
 
 type Sink struct {
 	logger *zap.Logger
-
-	*http.Client
 
 	executers []Executer
 }
 
 // NewSink is the constructor for a Sink.
-func NewSink(logger *zap.Logger, webhookTemplates []config.WebhookTemplate) (audit.Sink, error) {
+func NewSink(logger *zap.Logger, webhookTemplates []config.WebhookTemplate, maxBackoffDuration time.Duration) (audit.Sink, error) {
 	executers := make([]Executer, 0, len(webhookTemplates))
 
 	for _, wht := range webhookTemplates {
-		executer, err := NewWebhookTemplate(logger, wht.Method, wht.URL, wht.Body, wht.Headers, 15*time.Second)
+		executer, err := NewWebhookTemplate(logger, http.MethodPost, wht.URL, wht.Body, wht.Headers, maxBackoffDuration)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create webhook template sink: %w", err)
 		}
@@ -36,10 +34,7 @@ func NewSink(logger *zap.Logger, webhookTemplates []config.WebhookTemplate) (aud
 	}
 
 	return &Sink{
-		logger: logger,
-		Client: &http.Client{
-			Timeout: 5 * time.Second,
-		},
+		logger:    logger,
 		executers: executers,
 	}, nil
 }
@@ -49,7 +44,7 @@ func (t *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
 
 	for _, e := range events {
 		for _, executer := range t.executers {
-			err := executer.Execute(ctx, t.Client, e)
+			err := executer.Execute(ctx, e)
 			if err != nil {
 				t.logger.Error("failed to send audit to webhook", zap.Error(err))
 				result = multierror.Append(result, err)

@@ -356,18 +356,25 @@ func NewGRPCServer(
 			opts = append(opts, webhook.WithMaxBackoffDuration(cfg.Audit.Sinks.Webhook.MaxBackoffDuration))
 		}
 
-		webhookSink := webhook.NewSink(logger, webhook.NewHTTPClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+		var webhookSink audit.Sink
 
-		sinks = append(sinks, webhookSink)
-	}
+		// Enable basic webhook sink if URL is non-empty, otherwise enable template sink if the length of templates is greater
+		// than 0 for the webhook.
+		if cfg.Audit.Sinks.Webhook.URL != "" {
+			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+		} else if len(cfg.Audit.Sinks.Webhook.Templates) > 0 {
+			maxBackoffDuration := 15 * time.Second
+			if cfg.Audit.Sinks.Webhook.MaxBackoffDuration != 0 {
+				maxBackoffDuration = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
+			}
 
-	if cfg.Audit.Sinks.WebhookTemplate.Enabled {
-		webhookTemplateSink, err := template.NewSink(logger, cfg.Audit.Sinks.WebhookTemplate.Templates)
-		if err != nil {
-			return nil, err
+			webhookSink, err = template.NewSink(logger, cfg.Audit.Sinks.Webhook.Templates, maxBackoffDuration)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		sinks = append(sinks, webhookTemplateSink)
+		sinks = append(sinks, webhookSink)
 	}
 
 	// based on audit sink configuration from the user, provision the audit sinks and add them to a slice,

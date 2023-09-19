@@ -1,13 +1,13 @@
-package webhook
+package template
 
 import (
 	"context"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
-	"go.uber.org/zap"
 )
 
 type dummyRetrier struct{}
@@ -16,15 +16,22 @@ func (d *dummyRetrier) RequestRetry(_ context.Context, _ []byte, _ audit.Request
 	return nil
 }
 
-func TestWebhookClient(t *testing.T) {
-	whclient := &webhookClient{
-		logger:             zap.NewNop(),
+func TestExecuter(t *testing.T) {
+	tmpl, err := template.New("").Parse(`{
+		"type": "{{ .Type }}",
+		"action": "{{ .Action }}"
+	}`)
+
+	require.NoError(t, err)
+
+	whTemplate := &webhookTemplate{
 		url:                "https://flipt-webhook.io/webhook",
 		maxBackoffDuration: 15 * time.Second,
 		retryableClient:    &dummyRetrier{},
+		bodyTemplate:       tmpl,
 	}
 
-	err := whclient.SendAudit(context.TODO(), audit.Event{
+	err = whTemplate.Execute(context.TODO(), audit.Event{
 		Type:   audit.FlagType,
 		Action: audit.Create,
 	})

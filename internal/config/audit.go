@@ -20,7 +20,7 @@ type AuditConfig struct {
 
 // Enabled returns true if any nested sink is enabled
 func (c *AuditConfig) Enabled() bool {
-	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled || c.Sinks.WebhookTemplate.Enabled
+	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
 }
 
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
@@ -49,8 +49,14 @@ func (c *AuditConfig) validate() error {
 		return errors.New("file not specified")
 	}
 
-	if c.Sinks.Webhook.Enabled && c.Sinks.Webhook.URL == "" {
-		return errors.New("url not provided")
+	if c.Sinks.Webhook.Enabled {
+		if c.Sinks.Webhook.URL == "" && len(c.Sinks.Webhook.Templates) == 0 {
+			return errors.New("url or templates not provided")
+		}
+
+		if c.Sinks.Webhook.URL != "" && len(c.Sinks.Webhook.Templates) > 0 {
+			return errors.New("url and templates both provided")
+		}
 	}
 
 	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
@@ -67,18 +73,18 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	LogFile         LogFileSinkConfig     `json:"log,omitempty" mapstructure:"log"`
-	Webhook         WebhookSinkConfig     `json:"webhook,omitempty" mapstructure:"webhook"`
-	WebhookTemplate WebhookTemplateConfig `json:"webhookTemplate,omitempty" mapstructure:"webhook_template"`
+	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
+	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
 }
 
 // WebhookSinkConfig contains configuration for sending POST requests to specific
 // URL as its configured.
 type WebhookSinkConfig struct {
-	Enabled            bool          `json:"enabled,omitempty" mapstructure:"enabled"`
-	URL                string        `json:"url,omitempty" mapstructure:"url"`
-	MaxBackoffDuration time.Duration `json:"maxBackoffDuration,omitempty" mapstructure:"max_backoff_duration"`
-	SigningSecret      string        `json:"signingSecret,omitempty" mapstructure:"signing_secret"`
+	Enabled            bool              `json:"enabled,omitempty" mapstructure:"enabled"`
+	URL                string            `json:"url,omitempty" mapstructure:"url"`
+	MaxBackoffDuration time.Duration     `json:"maxBackoffDuration,omitempty" mapstructure:"max_backoff_duration"`
+	SigningSecret      string            `json:"signingSecret,omitempty" mapstructure:"signing_secret"`
+	Templates          []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates"`
 }
 
 // LogFileSinkConfig contains fields that hold configuration for sending audits
@@ -95,13 +101,8 @@ type BufferConfig struct {
 	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period"`
 }
 
-type WebhookTemplateConfig struct {
-	Enabled   bool              `json:"enabled,omitempty" mapstructure:"enabled"`
-	Templates []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates"`
-}
-
+// WebhookTemplate specifies configuration for a user to send a payload a particular destination URL.
 type WebhookTemplate struct {
-	Method  string            `json:"method,omitempty" mapstructure:"method"`
 	URL     string            `json:"url,omitempty" mapstructure:"url"`
 	Body    string            `json:"body,omitempty" mapstructure:"body"`
 	Headers map[string]string `json:"headers,omitempty" mapstructure:"headers"`

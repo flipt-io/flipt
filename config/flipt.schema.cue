@@ -232,6 +232,11 @@ import "strings"
 				url?:                  string | *""
 				max_backoff_duration?: =~#duration | *"15s"
 				signing_secret?:       string | *""
+				templates?: [...{
+					url:  string
+					body: string
+					headers?: [string]: string
+				}]
 			}
 		}
 		buffer?: {

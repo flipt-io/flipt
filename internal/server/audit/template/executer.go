@@ -3,35 +3,32 @@ package template
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
 )
 
-// WebhookTemplate contains fields that pertain to constructing an HTTP request.
-type WebhookTemplate struct {
-	logger *zap.Logger
-
-	url    string
+// webhookTemplate contains fields that pertain to constructing an HTTP request.
+type webhookTemplate struct {
 	method string
+	url    string
 
 	headers      map[string]string
 	bodyTemplate *template.Template
 
 	maxBackoffDuration time.Duration
+
+	retryableClient audit.Retrier
 }
 
 // Executer will try and send the event to the configured URL with all of the parameters.
-// It will send the request with retries, according to the backoff strategy.
+// It will send the request with the retyrable client.
 type Executer interface {
-	Execute(context.Context, *http.Client, audit.Event) error
+	Execute(context.Context, audit.Event) error
 }
 
 // NewWebhookTemplate is the constructor for a WebhookTemplate.
@@ -41,17 +38,17 @@ func NewWebhookTemplate(logger *zap.Logger, method, url, body string, headers ma
 		return nil, err
 	}
 
-	return &WebhookTemplate{
-		logger:             logger,
+	return &webhookTemplate{
 		url:                url,
 		method:             method,
 		bodyTemplate:       tmpl,
 		headers:            headers,
 		maxBackoffDuration: maxBackoffDuration,
+		retryableClient:    audit.NewRetrier(logger, maxBackoffDuration),
 	}, nil
 }
 
-func (w *WebhookTemplate) createRequest(ctx context.Context, body []byte) (*http.Request, error) {
+func (w *webhookTemplate) createRequest(ctx context.Context, body []byte) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, w.method, w.url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
@@ -72,7 +69,7 @@ func (w *WebhookTemplate) createRequest(ctx context.Context, body []byte) (*http
 
 // Execute will take in an HTTP client, and the event to send upstream to a destination. It will house the logic
 // of doing the exponential backoff for sending the event upon failure to do so.
-func (w *WebhookTemplate) Execute(ctx context.Context, client *http.Client, event audit.Event) error {
+func (w *webhookTemplate) Execute(ctx context.Context, event audit.Event) error {
 	buf := &bytes.Buffer{}
 
 	err := w.bodyTemplate.Execute(buf, event)
@@ -80,45 +77,9 @@ func (w *WebhookTemplate) Execute(ctx context.Context, client *http.Client, even
 		return err
 	}
 
-	be := backoff.NewExponentialBackOff()
-	be.MaxElapsedTime = w.maxBackoffDuration
-
-	ticker := backoff.NewTicker(be)
-	defer ticker.Stop()
-
-	successfulRequest := false
-
-	// Make requests with configured retries.
-	for range ticker.C {
-		req, err := w.createRequest(ctx, buf.Bytes())
-		if err != nil {
-			w.logger.Error("error creating HTTP request", zap.Error(err))
-			return err
-		}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			w.logger.Debug("webhook request failed, retrying...", zap.Error(err))
-			continue
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			w.logger.Debug("webhook request failed, retrying...", zap.Int("status_code", resp.StatusCode))
-			_, _ = io.Copy(io.Discard, resp.Body)
-			_ = resp.Body.Close()
-			continue
-		}
-
-		_, _ = io.Copy(io.Discard, resp.Body)
-		_ = resp.Body.Close()
-
-		w.logger.Debug("successful request to webhook")
-		successfulRequest = true
-		break
-	}
-
-	if !successfulRequest {
-		return fmt.Errorf("failed to send event to webhook url: %s", w.url)
+	err = w.retryableClient.RequestRetry(ctx, buf.Bytes(), w.createRequest)
+	if err != nil {
+		return err
 	}
 
 	return nil
