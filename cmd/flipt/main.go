@@ -89,15 +89,13 @@ func exec() error {
 			Use:     "flipt",
 			Short:   "Flipt is a modern, self-hosted, feature flag solution",
 			Version: version,
-			Run: func(cmd *cobra.Command, _ []string) {
+			RunE: func(cmd *cobra.Command, _ []string) error {
 				logger, cfg := buildConfig()
 				defer func() {
 					_ = logger.Sync()
 				}()
 
-				if err := run(cmd.Context(), logger, cfg); err != nil {
-					logger.Fatal("flipt", zap.Error(err))
-				}
+				return run(cmd.Context(), logger, cfg)
 			},
 			CompletionOptions: cobra.CompletionOptions{
 				DisableDefaultCmd: true,
