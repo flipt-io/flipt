@@ -212,7 +212,9 @@ func buildConfig() (*zap.Logger, *config.Config) {
 		logger.Warn("configuration warning", zap.String("message", warning))
 	}
 
-	logger.Debug("configuration source", zap.String("path", path))
+	if found {
+		logger.Debug("configuration source", zap.String("path", path))
+	}
 
 	return logger, cfg
 }
