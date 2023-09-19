@@ -89,7 +89,15 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
-	logger, cfg := buildConfig()
+	logger, cfg, err := buildConfig()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = logger.Sync()
+	}()
+
 	server, cleanup, err := fliptServer(logger, cfg)
 	if err != nil {
 		return err

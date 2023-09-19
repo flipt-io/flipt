@@ -12,7 +12,11 @@ func newMigrateCommand() *cobra.Command {
 		Use:   "migrate",
 		Short: "Run pending database migrations",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			logger, cfg := buildConfig()
+			logger, cfg, err := buildConfig()
+			if err != nil {
+				return err
+			}
+
 			defer func() {
 				_ = logger.Sync()
 			}()

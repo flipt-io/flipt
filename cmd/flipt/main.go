@@ -89,7 +89,11 @@ func exec() error {
 			Short:   "Flipt is a modern, self-hosted, feature flag solution",
 			Version: version,
 			RunE: func(cmd *cobra.Command, _ []string) error {
-				logger, cfg := buildConfig()
+				logger, cfg, err := buildConfig()
+				if err != nil {
+					return err
+				}
+
 				defer func() {
 					_ = logger.Sync()
 				}()
@@ -161,14 +165,14 @@ func determinePath(cfgPath string) (string, bool) {
 	return defaultCfgPath, defaultCfgPath != ""
 }
 
-func buildConfig() (*zap.Logger, *config.Config) {
+func buildConfig() (*zap.Logger, *config.Config, error) {
 	path, found := determinePath(cfgPath)
 
 	// read in config if it exists
 	// otherwise, use defaults
 	res, err := config.Load(path)
 	if err != nil {
-		defaultLogger.Fatal("loading configuration", zap.Error(err), zap.String("config_path", path))
+		return nil, nil, fmt.Errorf("loading configuration %w", err)
 	}
 
 	if !found {
@@ -192,7 +196,9 @@ func buildConfig() (*zap.Logger, *config.Config) {
 	// parse/set log level
 	loggerConfig.Level, err = zap.ParseAtomicLevel(cfg.Log.Level)
 	if err != nil {
-		defaultLogger.Fatal("parsing log level", zap.String("level", cfg.Log.Level), zap.Error(err))
+		defaultLogger.Warn("parsing log level, defaulting to INFO", zap.String("level", cfg.Log.Level), zap.Error(err))
+		// default to info level
+		loggerConfig.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	}
 
 	if cfg.Log.Encoding > config.LogEncodingConsole {
@@ -213,7 +219,7 @@ func buildConfig() (*zap.Logger, *config.Config) {
 		logger.Debug("configuration source", zap.String("path", path))
 	}
 
-	return logger, cfg
+	return logger, cfg, nil
 }
 
 func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {

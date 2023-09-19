@@ -41,14 +41,14 @@ Run 'flipt --help' for usage.`))); err != nil {
 
 		if _, err := assertExec(ctx, container, flipt("--config", "/foo/bar.yml"),
 			fails,
-			stdout(contains(`loading configuration	{"error": "loading configuration: open /foo/bar.yml: no such file or directory", "config_path": "/foo/bar.yml"}`)),
+			stderr(contains("loading configuration: open /foo/bar.yml: no such file or directory")),
 		); err != nil {
 			return err
 		}
 
 		if _, err := assertExec(ctx, container, flipt("--config", "/tmp"),
 			fails,
-			stdout(contains(`loading configuration: Unsupported Config Type`)),
+			stderr(contains(`loading configuration: Unsupported Config Type`)),
 		); err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ Run 'flipt --help' for usage.`))); err != nil {
 		container := container.Pipeline("flipt (no config)")
 		if _, err := assertExec(ctx, container.WithExec([]string{"rm", "/etc/flipt/config/default.yml"}), flipt(),
 			fails,
-			stdout(contains(`loading configuration	{"error": "loading configuration: open /etc/flipt/config/default.yml: no such file or directory", "config_path": "/etc/flipt/config/default.yml"}`)),
+			stderr(contains(`loading configuration: open /etc/flipt/config/default.yml: no such file or directory`)),
 		); err != nil {
 			return err
 		}
