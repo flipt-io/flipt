@@ -241,29 +241,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated cache memory enabled",
-			path: "./testdata/deprecated/cache_memory_enabled.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
-				cfg.Cache.TTL = -time.Second
-				return cfg
-			},
-			warnings: []string{
-				"\"cache.memory.enabled\" is deprecated. Please use 'cache.enabled' and 'cache.backend' instead.",
-				"\"cache.memory.expiration\" is deprecated. Please use 'cache.ttl' instead.",
-			},
-		},
-		{
-			name:     "deprecated cache memory items defaults",
-			path:     "./testdata/deprecated/cache_memory_items.yml",
-			expected: Default,
-			warnings: []string{
-				"\"cache.memory.enabled\" is deprecated. Please use 'cache.enabled' and 'cache.backend' instead.",
-			},
-		},
-		{
 			name:     "deprecated experimental filesystem_storage",
 			path:     "./testdata/deprecated/experimental_filesystem_storage.yml",
 			expected: Default,

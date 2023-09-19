@@ -9,7 +9,7 @@ var _ defaulter = (*CorsConfig)(nil)
 // HTTPServer relating to the CORS header-based mechanisms.
 type CorsConfig struct {
 	Enabled        bool     `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
-	AllowedOrigins []string `json:"allowedOrigins,omitempty" mapstructure:"allowed_origins" yaml:"allowedOrigins,omitempty"`
+	AllowedOrigins []string `json:"allowedOrigins,omitempty" mapstructure:"allowed_origins" yaml:"allowed_origins,omitempty"`
 }
 
 func (c *CorsConfig) setDefaults(v *viper.Viper) error {
