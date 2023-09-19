@@ -429,7 +429,6 @@ func Default() *Config {
 	dbPath := filepath.Join(dbRoot, "flipt", "flipt.db")
 
 	return &Config{
-		Version: Version,
 		Log: LogConfig{
 			Level:     "INFO",
 			Encoding:  LogEncodingConsole,

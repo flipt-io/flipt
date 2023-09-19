@@ -20,6 +20,7 @@ func newConfigCommand() *cobra.Command {
 		Short: "Initialize Flipt configuration",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := config.Default()
+			cfg.Version = config.Version // write version for backward compatibility
 			out, err := yaml.Marshal(cfg)
 			if err != nil {
 				return err
