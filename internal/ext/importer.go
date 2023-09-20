@@ -61,307 +61,324 @@ func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 	var (
 		dec = yaml.NewDecoder(r)
-		doc = new(Document)
 	)
 
-	if err := dec.Decode(doc); err != nil {
-		return fmt.Errorf("unmarshalling document: %w", err)
-	}
-
-	v := latestVersion
-	if doc.Version != "" {
-		v, err = semver.ParseTolerant(doc.Version)
-		if err != nil {
-			return fmt.Errorf("parsing document version: %w", err)
-		}
-
-		var found bool
-		for _, sv := range supportedVersions {
-			if found = sv.EQ(v); found {
+	docs := make([]*Document, 0)
+	for {
+		var doc = new(Document)
+		if err := dec.Decode(doc); err != nil {
+			if err == io.EOF {
 				break
 			}
+			return fmt.Errorf("unmarshalling document: %w", err)
 		}
 
-		if !found {
-			return fmt.Errorf("unsupported version: %s", doc.Version)
-		}
+		docs = append(docs, doc)
 	}
 
-	// check if document namespace matches cli namespace if both are set
-	if doc.Namespace != "" && i.namespace != "" && doc.Namespace != i.namespace {
-		return fmt.Errorf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", doc.Namespace, i.namespace)
+	// Return an error on the case that the user is trying to
+	// either provide or create a namespace when trying to import multiple
+	// documents.
+	if len(docs) > 1 && (i.createNS || i.namespace != "") {
+		return fmt.Errorf("cannot create namespace with multiple documents, please specify namespace in each document")
 	}
 
-	// prefer document namespace over cli namespace, but use cli namespace if
-	// document namespace is empty
-	var namespace = doc.Namespace
-	if namespace == "" {
-		namespace = i.namespace
-	}
-
-	if i.createNS && namespace != "" && namespace != flipt.DefaultNamespace {
-		_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
-			Key: namespace,
-		})
-
-		if err != nil {
-			if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
-				return err
-			}
-
-			_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-				Key:  namespace,
-				Name: namespace,
-			})
+	for _, doc := range docs {
+		v := latestVersion
+		if doc.Version != "" {
+			v, err = semver.ParseTolerant(doc.Version)
 			if err != nil {
-				return err
-			}
-		}
-	}
-
-	var (
-		// map flagKey => *flag
-		createdFlags = make(map[string]*flipt.Flag)
-		// map segmentKey => *segment
-		createdSegments = make(map[string]*flipt.Segment)
-		// map flagKey:variantKey => *variant
-		createdVariants = make(map[string]*flipt.Variant)
-	)
-
-	// create flags/variants
-	for _, f := range doc.Flags {
-		if f == nil {
-			continue
-		}
-
-		req := &flipt.CreateFlagRequest{
-			Key:          f.Key,
-			Name:         f.Name,
-			Description:  f.Description,
-			Enabled:      f.Enabled,
-			NamespaceKey: namespace,
-		}
-
-		// support explicitly setting flag type from 1.1
-		if f.Type != "" {
-			if err := ensureFieldSupported("flag.type", semver.Version{
-				Major: 1,
-				Minor: 1,
-			}, v); err != nil {
-				return err
+				return fmt.Errorf("parsing document version: %w", err)
 			}
 
-			req.Type = flipt.FlagType(flipt.FlagType_value[f.Type])
-		}
-
-		flag, err := i.creator.CreateFlag(ctx, req)
-		if err != nil {
-			return fmt.Errorf("creating flag: %w", err)
-		}
-
-		for _, v := range f.Variants {
-			if v == nil {
-				continue
-			}
-
-			var out []byte
-
-			if v.Attachment != nil {
-				converted := convert(v.Attachment)
-				out, err = json.Marshal(converted)
-				if err != nil {
-					return fmt.Errorf("marshalling attachment: %w", err)
+			var found bool
+			for _, sv := range supportedVersions {
+				if found = sv.EQ(v); found {
+					break
 				}
 			}
 
-			variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
-				FlagKey:      f.Key,
-				Key:          v.Key,
-				Name:         v.Name,
-				Description:  v.Description,
-				Attachment:   string(out),
-				NamespaceKey: namespace,
+			if !found {
+				return fmt.Errorf("unsupported version: %s", doc.Version)
+			}
+		}
+
+		// check if document namespace matches cli namespace if both are set
+		if doc.Namespace != "" && i.namespace != "" && doc.Namespace != i.namespace {
+			return fmt.Errorf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", doc.Namespace, i.namespace)
+		}
+
+		// prefer document namespace over cli namespace, but use cli namespace if
+		// document namespace is empty
+		var namespace = doc.Namespace
+		if namespace == "" {
+			namespace = i.namespace
+		}
+
+		if i.createNS && namespace != "" && namespace != flipt.DefaultNamespace {
+			_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
+				Key: namespace,
 			})
 
 			if err != nil {
-				return fmt.Errorf("creating variant: %w", err)
+				if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
+					return err
+				}
+
+				_, err = i.creator.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+					Key:  namespace,
+					Name: namespace,
+				})
+				if err != nil {
+					return err
+				}
 			}
-
-			createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
 		}
 
-		createdFlags[flag.Key] = flag
-	}
+		var (
+			// map flagKey => *flag
+			createdFlags = make(map[string]*flipt.Flag)
+			// map segmentKey => *segment
+			createdSegments = make(map[string]*flipt.Segment)
+			// map flagKey:variantKey => *variant
+			createdVariants = make(map[string]*flipt.Variant)
+		)
 
-	// create segments/constraints
-	for _, s := range doc.Segments {
-		if s == nil {
-			continue
-		}
-
-		segment, err := i.creator.CreateSegment(ctx, &flipt.CreateSegmentRequest{
-			Key:          s.Key,
-			Name:         s.Name,
-			Description:  s.Description,
-			MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
-			NamespaceKey: namespace,
-		})
-
-		if err != nil {
-			return fmt.Errorf("creating segment: %w", err)
-		}
-
-		for _, c := range s.Constraints {
-			if c == nil {
+		// create flags/variants
+		for _, f := range doc.Flags {
+			if f == nil {
 				continue
 			}
 
-			_, err := i.creator.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
-				SegmentKey:   s.Key,
-				Type:         flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
-				Property:     c.Property,
-				Operator:     c.Operator,
-				Value:        c.Value,
-				NamespaceKey: namespace,
-			})
-
-			if err != nil {
-				return fmt.Errorf("creating constraint: %w", err)
-			}
-		}
-
-		createdSegments[segment.Key] = segment
-	}
-
-	// create rules/distributions
-	for _, f := range doc.Flags {
-		if f == nil {
-			continue
-		}
-
-		// loop through rules
-		for idx, r := range f.Rules {
-			if r == nil {
-				continue
-			}
-
-			// support implicit rank from version >=1.1
-			rank := int32(r.Rank)
-			if rank == 0 && v.GE(semver.Version{Major: 1, Minor: 1}) {
-				rank = int32(idx) + 1
-			}
-
-			fcr := &flipt.CreateRuleRequest{
-				FlagKey:      f.Key,
-				Rank:         rank,
+			req := &flipt.CreateFlagRequest{
+				Key:          f.Key,
+				Name:         f.Name,
+				Description:  f.Description,
+				Enabled:      f.Enabled,
 				NamespaceKey: namespace,
 			}
 
-			switch s := r.Segment.IsSegment.(type) {
-			case SegmentKey:
-				fcr.SegmentKey = string(s)
-			case *Segments:
-				fcr.SegmentKeys = s.Keys
-				fcr.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[s.SegmentOperator])
+			// support explicitly setting flag type from 1.1
+			if f.Type != "" {
+				if err := ensureFieldSupported("flag.type", semver.Version{
+					Major: 1,
+					Minor: 1,
+				}, v); err != nil {
+					return err
+				}
+
+				req.Type = flipt.FlagType(flipt.FlagType_value[f.Type])
 			}
 
-			rule, err := i.creator.CreateRule(ctx, fcr)
-
+			flag, err := i.creator.CreateFlag(ctx, req)
 			if err != nil {
-				return fmt.Errorf("creating rule: %w", err)
+				return fmt.Errorf("creating flag: %w", err)
 			}
 
-			for _, d := range r.Distributions {
-				if d == nil {
+			for _, v := range f.Variants {
+				if v == nil {
 					continue
 				}
 
-				variant, found := createdVariants[fmt.Sprintf("%s:%s", f.Key, d.VariantKey)]
-				if !found {
-					return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
+				var out []byte
+
+				if v.Attachment != nil {
+					converted := convert(v.Attachment)
+					out, err = json.Marshal(converted)
+					if err != nil {
+						return fmt.Errorf("marshalling attachment: %w", err)
+					}
 				}
 
-				_, err := i.creator.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+				variant, err := i.creator.CreateVariant(ctx, &flipt.CreateVariantRequest{
 					FlagKey:      f.Key,
-					RuleId:       rule.Id,
-					VariantId:    variant.Id,
-					Rollout:      d.Rollout,
+					Key:          v.Key,
+					Name:         v.Name,
+					Description:  v.Description,
+					Attachment:   string(out),
 					NamespaceKey: namespace,
 				})
 
 				if err != nil {
-					return fmt.Errorf("creating distribution: %w", err)
+					return fmt.Errorf("creating variant: %w", err)
 				}
+
+				createdVariants[fmt.Sprintf("%s:%s", flag.Key, variant.Key)] = variant
 			}
+
+			createdFlags[flag.Key] = flag
 		}
 
-		// support explicitly setting flag type from 1.1
-		if len(f.Rollouts) > 0 {
-			if err := ensureFieldSupported("flag.rollouts", semver.Version{
-				Major: 1,
-				Minor: 1,
-			}, v); err != nil {
-				return err
+		// create segments/constraints
+		for _, s := range doc.Segments {
+			if s == nil {
+				continue
 			}
 
-			for idx, r := range f.Rollouts {
-				if r.Segment != nil && r.Threshold != nil {
-					return fmt.Errorf(`rollout "%s/%s/%d" cannot have both segment and percentage rule`,
-						namespace,
-						f.Key,
-						idx,
-					)
+			segment, err := i.creator.CreateSegment(ctx, &flipt.CreateSegmentRequest{
+				Key:          s.Key,
+				Name:         s.Name,
+				Description:  s.Description,
+				MatchType:    flipt.MatchType(flipt.MatchType_value[s.MatchType]),
+				NamespaceKey: namespace,
+			})
+
+			if err != nil {
+				return fmt.Errorf("creating segment: %w", err)
+			}
+
+			for _, c := range s.Constraints {
+				if c == nil {
+					continue
 				}
 
-				req := &flipt.CreateRolloutRequest{
+				_, err := i.creator.CreateConstraint(ctx, &flipt.CreateConstraintRequest{
+					SegmentKey:   s.Key,
+					Type:         flipt.ComparisonType(flipt.ComparisonType_value[c.Type]),
+					Property:     c.Property,
+					Operator:     c.Operator,
+					Value:        c.Value,
 					NamespaceKey: namespace,
-					FlagKey:      f.Key,
-					Description:  r.Description,
-					Rank:         int32(idx + 1),
+				})
+
+				if err != nil {
+					return fmt.Errorf("creating constraint: %w", err)
+				}
+			}
+
+			createdSegments[segment.Key] = segment
+		}
+
+		// create rules/distributions
+		for _, f := range doc.Flags {
+			if f == nil {
+				continue
+			}
+
+			// loop through rules
+			for idx, r := range f.Rules {
+				if r == nil {
+					continue
 				}
 
-				if r.Segment != nil {
-					frs := &flipt.RolloutSegment{
-						Value:      r.Segment.Value,
-						SegmentKey: r.Segment.Key,
+				// support implicit rank from version >=1.1
+				rank := int32(r.Rank)
+				if rank == 0 && v.GE(semver.Version{Major: 1, Minor: 1}) {
+					rank = int32(idx) + 1
+				}
+
+				fcr := &flipt.CreateRuleRequest{
+					FlagKey:      f.Key,
+					Rank:         rank,
+					NamespaceKey: namespace,
+				}
+
+				switch s := r.Segment.IsSegment.(type) {
+				case SegmentKey:
+					fcr.SegmentKey = string(s)
+				case *Segments:
+					fcr.SegmentKeys = s.Keys
+					fcr.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[s.SegmentOperator])
+				}
+
+				rule, err := i.creator.CreateRule(ctx, fcr)
+
+				if err != nil {
+					return fmt.Errorf("creating rule: %w", err)
+				}
+
+				for _, d := range r.Distributions {
+					if d == nil {
+						continue
 					}
 
-					if len(r.Segment.Keys) > 0 && r.Segment.Key != "" {
-						return fmt.Errorf("rollout %s/%s/%d cannot have both segment.keys and segment.key",
+					variant, found := createdVariants[fmt.Sprintf("%s:%s", f.Key, d.VariantKey)]
+					if !found {
+						return fmt.Errorf("finding variant: %s; flag: %s", d.VariantKey, f.Key)
+					}
+
+					_, err := i.creator.CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+						FlagKey:      f.Key,
+						RuleId:       rule.Id,
+						VariantId:    variant.Id,
+						Rollout:      d.Rollout,
+						NamespaceKey: namespace,
+					})
+
+					if err != nil {
+						return fmt.Errorf("creating distribution: %w", err)
+					}
+				}
+			}
+
+			// support explicitly setting flag type from 1.1
+			if len(f.Rollouts) > 0 {
+				if err := ensureFieldSupported("flag.rollouts", semver.Version{
+					Major: 1,
+					Minor: 1,
+				}, v); err != nil {
+					return err
+				}
+
+				for idx, r := range f.Rollouts {
+					if r.Segment != nil && r.Threshold != nil {
+						return fmt.Errorf(`rollout "%s/%s/%d" cannot have both segment and percentage rule`,
 							namespace,
 							f.Key,
 							idx,
 						)
 					}
 
-					// support explicitly setting only "keys" on rules from 1.2
-					if len(r.Segment.Keys) > 0 {
-						if err := ensureFieldSupported("flag.rollouts[*].segment.keys", semver.Version{
-							Major: 1,
-							Minor: 2,
-						}, v); err != nil {
-							return err
+					req := &flipt.CreateRolloutRequest{
+						NamespaceKey: namespace,
+						FlagKey:      f.Key,
+						Description:  r.Description,
+						Rank:         int32(idx + 1),
+					}
+
+					if r.Segment != nil {
+						frs := &flipt.RolloutSegment{
+							Value:      r.Segment.Value,
+							SegmentKey: r.Segment.Key,
 						}
 
-						frs.SegmentKeys = r.Segment.Keys
+						if len(r.Segment.Keys) > 0 && r.Segment.Key != "" {
+							return fmt.Errorf("rollout %s/%s/%d cannot have both segment.keys and segment.key",
+								namespace,
+								f.Key,
+								idx,
+							)
+						}
+
+						// support explicitly setting only "keys" on rules from 1.2
+						if len(r.Segment.Keys) > 0 {
+							if err := ensureFieldSupported("flag.rollouts[*].segment.keys", semver.Version{
+								Major: 1,
+								Minor: 2,
+							}, v); err != nil {
+								return err
+							}
+
+							frs.SegmentKeys = r.Segment.Keys
+						}
+
+						frs.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[r.Segment.Operator])
+
+						req.Rule = &flipt.CreateRolloutRequest_Segment{
+							Segment: frs,
+						}
+					} else if r.Threshold != nil {
+						req.Rule = &flipt.CreateRolloutRequest_Threshold{
+							Threshold: &flipt.RolloutThreshold{
+								Percentage: r.Threshold.Percentage,
+								Value:      r.Threshold.Value,
+							},
+						}
 					}
 
-					frs.SegmentOperator = flipt.SegmentOperator(flipt.SegmentOperator_value[r.Segment.Operator])
-
-					req.Rule = &flipt.CreateRolloutRequest_Segment{
-						Segment: frs,
+					if _, err := i.creator.CreateRollout(ctx, req); err != nil {
+						return fmt.Errorf("creating rollout: %w", err)
 					}
-				} else if r.Threshold != nil {
-					req.Rule = &flipt.CreateRolloutRequest_Threshold{
-						Threshold: &flipt.RolloutThreshold{
-							Percentage: r.Threshold.Percentage,
-							Value:      r.Threshold.Value,
-						},
-					}
-				}
-
-				if _, err := i.creator.CreateRollout(ctx, req); err != nil {
-					return fmt.Errorf("creating rollout: %w", err)
 				}
 			}
 		}

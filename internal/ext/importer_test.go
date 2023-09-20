@@ -847,6 +847,37 @@ func TestImport_CreateNamespace(t *testing.T) {
 	assert.Len(t, creator.flagReqs, 2)
 }
 
+func TestImport_YAML_Stream_Success(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator)
+	)
+
+	in, err := os.Open("testdata/import_yaml_stream.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	err = importer.Import(context.Background(), in)
+	require.NoError(t, err)
+
+	assert.Len(t, creator.flagReqs, 4)
+	assert.Len(t, creator.segmentReqs, 2)
+}
+
+func TestImport_YAML_Stream_Failure_Create_Namespace(t *testing.T) {
+	var (
+		creator  = &mockCreator{}
+		importer = NewImporter(creator, WithCreateNamespace())
+	)
+
+	in, err := os.Open("testdata/import_yaml_stream.yml")
+	assert.NoError(t, err)
+	defer in.Close()
+
+	err = importer.Import(context.Background(), in)
+	assert.EqualError(t, err, "cannot create namespace with multiple documents, please specify namespace in each document")
+}
+
 //nolint:unparam
 func compact(t *testing.T, v string) string {
 	t.Helper()
