@@ -106,5 +106,6 @@ type ZipkinTracingConfig struct {
 // OTLPTracingConfig contains fields, which configure
 // OTLP span and tracing output destination.
 type OTLPTracingConfig struct {
-	Endpoint string `json:"endpoint,omitempty" mapstructure:"endpoint"`
+	Endpoint string            `json:"endpoint,omitempty" mapstructure:"endpoint"`
+	Headers  map[string]string `json:"headers,omitempty" mapstructure:"headers"`
 }
