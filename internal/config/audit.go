@@ -51,11 +51,11 @@ func (c *AuditConfig) validate() error {
 
 	if c.Sinks.Webhook.Enabled {
 		if c.Sinks.Webhook.URL == "" && len(c.Sinks.Webhook.Templates) == 0 {
-			return errors.New("url or templates not provided")
+			return errors.New("url or template(s) not provided")
 		}
 
 		if c.Sinks.Webhook.URL != "" && len(c.Sinks.Webhook.Templates) > 0 {
-			return errors.New("url and templates both provided")
+			return errors.New("only one of url or template(s) allowed")
 		}
 	}
 
