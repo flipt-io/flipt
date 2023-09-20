@@ -16,16 +16,20 @@ type Info struct {
 	UpdateAvailable  bool
 }
 
-type releaseChecker interface {
+type githubReleaseChecker interface {
 	getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error)
 }
 
-type githubReleaseChecker struct {
-	client *github.Client
+type repositoryService interface {
+	GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error)
 }
 
-func (c *githubReleaseChecker) getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
-	release, _, err := c.client.Repositories.GetLatestRelease(ctx, "flipt-io", "flipt")
+type githubReleaseCheckerImpl struct {
+	client repositoryService
+}
+
+func (c *githubReleaseCheckerImpl) getLatestRelease(ctx context.Context) (*github.RepositoryRelease, error) {
+	release, _, err := c.client.GetLatestRelease(ctx, "flipt-io", "flipt")
 	if err != nil {
 		return nil, fmt.Errorf("checking for latest version: %w", err)
 	}
@@ -40,8 +44,8 @@ var (
 
 	// defaultReleaseChecker checks for the latest release
 	// can be overridden for testing
-	defaultReleaseChecker releaseChecker = &githubReleaseChecker{
-		client: github.NewClient(nil),
+	defaultReleaseChecker githubReleaseChecker = &githubReleaseCheckerImpl{
+		client: github.NewClient(nil).Repositories,
 	}
 )
 
@@ -53,7 +57,7 @@ func Check(ctx context.Context, version string) (Info, error) {
 }
 
 // visible for testing
-func check(ctx context.Context, rc releaseChecker, version string) (Info, error) {
+func check(ctx context.Context, rc githubReleaseChecker, version string) (Info, error) {
 	i := Info{
 		CurrentVersion: version,
 	}

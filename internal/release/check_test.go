@@ -2,11 +2,81 @@ package release
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/stretchr/testify/assert"
 )
+
+func strPtr(s string) *string {
+	return &s
+}
+
+type mockGithubReleaseService struct {
+	release  *github.RepositoryRelease
+	response *github.Response
+	err      error
+}
+
+func (m *mockGithubReleaseService) GetLatestRelease(ctx context.Context, owner, repo string) (*github.RepositoryRelease, *github.Response, error) {
+	return m.release, m.response, m.err
+}
+
+func TestGetLatestRelease(t *testing.T) {
+	var (
+		tests = []struct {
+			name    string
+			tagName string
+			htmlURL string
+			err     error
+			want    *github.RepositoryRelease
+		}{
+			{
+				name:    "success",
+				tagName: "0.17.1",
+				htmlURL: "https://github.com/flipt-io/flipt/releases/tag/0.17.2",
+				err:     nil,
+				want: &github.RepositoryRelease{
+					TagName: strPtr("0.17.1"),
+					HTMLURL: strPtr("https://github.com/flipt-io/flipt/releases/tag/0.17.2"),
+				},
+			},
+			{
+				name: "error",
+				err:  fmt.Errorf("error getting release"),
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+
+			srv := &mockGithubReleaseService{
+				release: &github.RepositoryRelease{
+					TagName: strPtr(tt.tagName),
+					HTMLURL: strPtr(tt.htmlURL),
+				},
+				err: tt.err,
+			}
+
+			rc := githubReleaseCheckerImpl{
+				client: srv,
+			}
+
+			got, err := rc.getLatestRelease(context.Background())
+			if tt.err != nil {
+				assert.Equal(t, fmt.Sprintf("checking for latest version: %s", tt.err.Error()), err.Error())
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+
+}
 
 type mockReleaseChecker struct {
 	tagName string
