@@ -10,12 +10,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
+	"go.uber.org/zap"
 )
 
 type dummyRetrier struct{}
 
 func (d *dummyRetrier) RequestRetry(_ context.Context, _ []byte, _ audit.RequestCreator) error {
 	return nil
+}
+
+func TestConstructorWebhookTemplate(t *testing.T) {
+	executer, err := NewWebhookTemplate(zap.NewNop(), "https://flipt-webhook.io/webhook", `{"type": "{{ .Type }}", "action": "{{ .Action }}"}`, nil, 15*time.Second)
+	require.NoError(t, err)
+	require.NotNil(t, executer)
+
+	whTemplate, ok := executer.(*webhookTemplate)
+	require.True(t, ok, "executer should be a webhookTemplate")
+
+	assert.Equal(t, "https://flipt-webhook.io/webhook", whTemplate.url)
+	assert.Nil(t, whTemplate.headers)
 }
 
 func TestExecuter_JSON_Failure(t *testing.T) {

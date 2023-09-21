@@ -18,6 +18,18 @@ func (d *dummyRetrier) RequestRetry(_ context.Context, _ []byte, _ audit.Request
 	return nil
 }
 
+func TestConstructorWebhookClient(t *testing.T) {
+	client := NewWebhookClient(zap.NewNop(), "https://flipt-webhook.io/webhook", "")
+
+	require.NotNil(t, client)
+
+	whClient, ok := client.(*webhookClient)
+	require.True(t, ok, "client should be a webhookClient")
+
+	assert.Equal(t, "https://flipt-webhook.io/webhook", whClient.url)
+	assert.Empty(t, whClient.signingSecret)
+}
+
 func TestWebhookClient(t *testing.T) {
 	whclient := &webhookClient{
 		logger:             zap.NewNop(),

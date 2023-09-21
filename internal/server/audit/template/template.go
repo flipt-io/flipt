@@ -3,7 +3,6 @@ package template
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -25,7 +24,7 @@ func NewSink(logger *zap.Logger, webhookTemplates []config.WebhookTemplate, maxB
 	executers := make([]Executer, 0, len(webhookTemplates))
 
 	for _, wht := range webhookTemplates {
-		executer, err := NewWebhookTemplate(logger, http.MethodPost, wht.URL, wht.Body, wht.Headers, maxBackoffDuration)
+		executer, err := NewWebhookTemplate(logger, wht.URL, wht.Body, wht.Headers, maxBackoffDuration)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create webhook template sink: %w", err)
 		}

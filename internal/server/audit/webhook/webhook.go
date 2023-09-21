@@ -10,11 +10,6 @@ import (
 
 const sinkType = "webhook"
 
-// Client is the client-side contract for sending an audit to a configured sink.
-type Client interface {
-	SendAudit(ctx context.Context, e audit.Event) error
-}
-
 // Sink is a structure in charge of sending Audits to a configured webhook at a URL.
 type Sink struct {
 	logger        *zap.Logger

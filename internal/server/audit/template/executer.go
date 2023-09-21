@@ -14,10 +14,11 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ Executer = (*webhookTemplate)(nil)
+
 // webhookTemplate contains fields that pertain to constructing an HTTP request.
 type webhookTemplate struct {
-	method string
-	url    string
+	url string
 
 	headers      map[string]string
 	bodyTemplate *template.Template
@@ -34,7 +35,7 @@ type Executer interface {
 }
 
 // NewWebhookTemplate is the constructor for a WebhookTemplate.
-func NewWebhookTemplate(logger *zap.Logger, method, url, body string, headers map[string]string, maxBackoffDuration time.Duration) (Executer, error) {
+func NewWebhookTemplate(logger *zap.Logger, url, body string, headers map[string]string, maxBackoffDuration time.Duration) (Executer, error) {
 	tmpl, err := template.New("").Parse(body)
 	if err != nil {
 		return nil, err
@@ -42,7 +43,6 @@ func NewWebhookTemplate(logger *zap.Logger, method, url, body string, headers ma
 
 	return &webhookTemplate{
 		url:                url,
-		method:             method,
 		bodyTemplate:       tmpl,
 		headers:            headers,
 		maxBackoffDuration: maxBackoffDuration,
@@ -51,7 +51,7 @@ func NewWebhookTemplate(logger *zap.Logger, method, url, body string, headers ma
 }
 
 func (w *webhookTemplate) createRequest(ctx context.Context, body []byte) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, w.method, w.url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, w.url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,8 @@ const (
 	fliptSignatureHeader = "x-flipt-webhook-signature"
 )
 
+var _ Client = (*webhookClient)(nil)
+
 // webhookClient allows for sending the event payload to a configured webhook service.
 type webhookClient struct {
 	logger        *zap.Logger
@@ -29,6 +31,11 @@ type webhookClient struct {
 	retryableClient audit.Retrier
 }
 
+// Client is the client-side contract for sending an audit to a configured sink.
+type Client interface {
+	SendAudit(ctx context.Context, e audit.Event) error
+}
+
 // signPayload takes in a marshalled payload and returns the sha256 hash of it.
 func (w *webhookClient) signPayload(payload []byte) []byte {
 	h := hmac.New(sha256.New, []byte(w.signingSecret))
@@ -37,7 +44,7 @@ func (w *webhookClient) signPayload(payload []byte) []byte {
 }
 
 // NewHTTPClient is the constructor for a HTTPClient.
-func NewWebhookClient(logger *zap.Logger, url, signingSecret string, opts ...ClientOption) *webhookClient {
+func NewWebhookClient(logger *zap.Logger, url, signingSecret string, opts ...ClientOption) Client {
 	h := &webhookClient{
 		logger:             logger,
 		url:                url,
