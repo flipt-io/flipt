@@ -26,7 +26,7 @@ func newValidateCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "validate",
-		Short: "Validate flipt flag state (.yaml, .yml) files",
+		Short: "Validate Flipt flag state (.yaml, .yml) files",
 		RunE:  v.run,
 	}
 

@@ -14,6 +14,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cmd"
@@ -85,8 +86,13 @@ func main() {
 func exec() error {
 	var (
 		rootCmd = &cobra.Command{
-			Use:     "flipt",
-			Short:   "Flipt is a modern, self-hosted, feature flag solution",
+			Use:   "flipt <command> <subcommand> [flags]",
+			Short: "Flipt is a modern, self-hosted, feature flag solution",
+			Example: heredoc.Doc(`
+				$ flipt 
+				$ flipt config init
+				$ flipt --config /path/to/config.yml migrate
+			`),
 			Version: version,
 			RunE: func(cmd *cobra.Command, _ []string) error {
 				logger, cfg, err := buildConfig()

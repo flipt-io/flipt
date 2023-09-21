@@ -5,6 +5,7 @@ go 1.20
 require (
 	cuelang.org/go v0.6.0
 	github.com/AlecAivazis/survey/v2 v2.3.7
+	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.25.0
 	github.com/aws/aws-sdk-go-v2 v1.21.0
