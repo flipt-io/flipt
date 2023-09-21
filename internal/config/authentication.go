@@ -377,8 +377,8 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
 	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
-	ClientID        string   `json:"clientID,omitempty" mapstructure:"client_id"`
-	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
+	ClientID        string   `json:"-" mapstructure:"client_id"`
+	ClientSecret    string   `json:"-" mapstructure:"client_secret"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
 	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce"`
@@ -423,8 +423,8 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
-	ClientSecret    string   `json:"clientSecret,omitempty" mapstructure:"client_secret"`
-	ClientId        string   `json:"clientId,omitempty" mapstructure:"client_id"`
+	ClientId        string   `json:"-" mapstructure:"client_id"`
+	ClientSecret    string   `json:"-" mapstructure:"client_secret"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
 }

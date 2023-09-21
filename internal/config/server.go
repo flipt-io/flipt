@@ -18,8 +18,8 @@ type ServerConfig struct {
 	HTTPPort  int    `json:"httpPort,omitempty" mapstructure:"http_port"`
 	HTTPSPort int    `json:"httpsPort,omitempty" mapstructure:"https_port"`
 	GRPCPort  int    `json:"grpcPort,omitempty" mapstructure:"grpc_port"`
-	CertFile  string `json:"certFile,omitempty" mapstructure:"cert_file"`
-	CertKey   string `json:"certKey,omitempty" mapstructure:"cert_key"`
+	CertFile  string `json:"-" mapstructure:"cert_file"`
+	CertKey   string `json:"-" mapstructure:"cert_key"`
 }
 
 func (c *ServerConfig) setDefaults(v *viper.Viper) error {
