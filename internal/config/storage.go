@@ -105,7 +105,7 @@ type Git struct {
 	Repository     string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
 	Ref            string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
 	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
-	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication,omitempty" yaml:"authentication,omitempty"`
+	Authentication Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
 }
 
 // Object contains configuration of readonly object storage.
@@ -143,8 +143,8 @@ type S3 struct {
 // not all inputs are given but only partially, we will return a validation error.
 // (e.g. if username for basic auth is given, and token is also given a validation error will be returned)
 type Authentication struct {
-	BasicAuth *BasicAuth `json:"basic,omitempty" mapstructure:"basic,omitempty" yaml:"basic,omitempty"`
-	TokenAuth *TokenAuth `json:"token,omitempty" mapstructure:"token,omitempty" yaml:"token,omitempty"`
+	BasicAuth *BasicAuth `json:"-" mapstructure:"basic,omitempty" yaml:"-"`
+	TokenAuth *TokenAuth `json:"-" mapstructure:"token,omitempty" yaml:"-"`
 }
 
 func (a *Authentication) validate() error {
@@ -165,7 +165,7 @@ func (a *Authentication) validate() error {
 // BasicAuth has configuration for authenticating with private git repositories
 // with basic auth.
 type BasicAuth struct {
-	Username string `json:"username,omitempty" mapstructure:"username" yaml:"username,omitempty"`
+	Username string `json:"-" mapstructure:"username" yaml:"-"`
 	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }
 

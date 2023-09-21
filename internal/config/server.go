@@ -18,7 +18,7 @@ type ServerConfig struct {
 	HTTPPort  int    `json:"httpPort,omitempty" mapstructure:"http_port" yaml:"http_port,omitempty"`
 	HTTPSPort int    `json:"httpsPort,omitempty" mapstructure:"https_port" yaml:"https_port,omitempty"`
 	GRPCPort  int    `json:"grpcPort,omitempty" mapstructure:"grpc_port" yaml:"grpc_port,omitempty"`
-	CertFile  string `json:"certFile,omitempty" mapstructure:"cert_file" yaml:"cert_file,omitempty"`
+	CertFile  string `json:"-" mapstructure:"cert_file" yaml:"-"`
 	CertKey   string `json:"-" mapstructure:"cert_key" yaml:"-"`
 }
 

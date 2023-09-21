@@ -377,7 +377,7 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
 	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
-	ClientID        string   `json:"clientID,omitempty" mapstructure:"client_id" yaml:"client_id,omitempty"`
+	ClientID        string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
 	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
@@ -423,7 +423,7 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
-	ClientId        string   `json:"clientId,omitempty" mapstructure:"client_id" yaml:"client_id,omitempty"`
+	ClientId        string   `json:"-" mapstructure:"client_id" yaml:"-"`
 	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
 	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
 	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
