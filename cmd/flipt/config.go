@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -18,13 +19,17 @@ func newConfigCommand() *cobra.Command {
 	var initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize Flipt configuration",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			cfg := config.Default()
 			cfg.Version = config.Version // write version for backward compatibility
 			out, err := yaml.Marshal(cfg)
 			if err != nil {
 				return err
 			}
+
+			var b bytes.Buffer
+			b.WriteString("# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json\n\n")
+			b.Write(out)
 
 			answer := struct {
 				File string
@@ -57,7 +62,7 @@ func newConfigCommand() *cobra.Command {
 				}
 			}
 
-			return os.WriteFile(answer.File, out, 0600)
+			return os.WriteFile(answer.File, b.Bytes(), 0600)
 		},
 	}
 
