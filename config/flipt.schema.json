@@ -568,9 +568,9 @@
                 }
               },
               "title": "S3"
-            },
-            "title": "Object"
-          }
+            }
+          },
+          "title": "Object"
         }
       },
       "required": [],
