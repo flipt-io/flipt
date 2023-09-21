@@ -4,15 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -758,95 +754,6 @@ func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
 	assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
 }
 
-func TestImport_Namespaces(t *testing.T) {
-	tests := []struct {
-		name         string
-		docNamespace string
-		cliNamespace string
-		wantError    bool
-	}{
-		{
-			name:         "import with namespace",
-			docNamespace: "namespace1",
-			cliNamespace: "namespace1",
-		}, {
-			name:         "import without doc namespace",
-			docNamespace: "",
-			cliNamespace: "namespace1",
-		}, {
-			name:         "import without cli namespace",
-			docNamespace: "namespace1",
-			cliNamespace: "",
-		}, {
-			name:         "import with different namespaces",
-			docNamespace: "namespace1",
-			cliNamespace: "namespace2",
-			wantError:    true,
-		},
-	}
-
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			var (
-				creator  = &mockCreator{}
-				importer = NewImporter(creator, WithNamespace(tc.cliNamespace))
-			)
-
-			doc := fmt.Sprintf("version: 1.0\nnamespace: %s", tc.docNamespace)
-			err := importer.Import(context.Background(), strings.NewReader(doc))
-			if tc.wantError {
-				msg := fmt.Sprintf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", tc.docNamespace, tc.cliNamespace)
-				assert.EqualError(t, err, msg)
-				return
-			}
-
-			assert.NoError(t, err)
-		})
-	}
-}
-
-func TestImport_CreateNamespace(t *testing.T) {
-	var (
-		creator  = &mockCreator{}
-		importer = NewImporter(creator, WithCreateNamespace())
-	)
-
-	in, err := os.Open("testdata/import_new_namespace.yml")
-	assert.NoError(t, err)
-	defer in.Close()
-
-	// first attempt to create namespace should be met with
-	// a namespace not found and still succeed, by attempting
-	// to create it
-	creator.getNSErr = ferrors.ErrNotFoundf("namespace not found")
-
-	err = importer.Import(context.Background(), in)
-	require.NoError(t, err)
-
-	// namespace was created
-	assert.Len(t, creator.createNSReqs, 1)
-	// flag was created
-	assert.Len(t, creator.flagReqs, 1)
-
-	// next call is assumed to return a nil error on get namespace
-	// now that is has been created
-	creator.getNSErr = nil
-
-	// rewind the file so it can be read again
-	_, _ = in.Seek(0, io.SeekStart)
-
-	// returns a nil error because namespace exists
-	err = importer.Import(context.Background(), in)
-	require.NoError(t, err)
-
-	// no new namespaces were requested because it already existed
-	assert.Len(t, creator.createNSReqs, 1)
-	// new flag creation was attempted even though it should
-	// fail in reality because the flag already exists
-	assert.Len(t, creator.flagReqs, 2)
-}
-
 func TestImport_YAML_Stream_Success(t *testing.T) {
 	var (
 		creator  = &mockCreator{}
@@ -862,20 +769,6 @@ func TestImport_YAML_Stream_Success(t *testing.T) {
 
 	assert.Len(t, creator.flagReqs, 4)
 	assert.Len(t, creator.segmentReqs, 2)
-}
-
-func TestImport_YAML_Stream_Failure_Create_Namespace(t *testing.T) {
-	var (
-		creator  = &mockCreator{}
-		importer = NewImporter(creator, WithCreateNamespace())
-	)
-
-	in, err := os.Open("testdata/import_yaml_stream.yml")
-	assert.NoError(t, err)
-	defer in.Close()
-
-	err = importer.Import(context.Background(), in)
-	assert.EqualError(t, err, "cannot create namespace with multiple documents, please specify namespace in each document")
 }
 
 //nolint:unparam

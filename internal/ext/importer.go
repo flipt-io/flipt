@@ -59,11 +59,8 @@ func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 }
 
 func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
-	var (
-		dec = yaml.NewDecoder(r)
-	)
+	var dec = yaml.NewDecoder(r)
 
-	docs := make([]*Document, 0)
 	for {
 		var doc = new(Document)
 		if err := dec.Decode(doc); err != nil {
@@ -73,17 +70,6 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			return fmt.Errorf("unmarshalling document: %w", err)
 		}
 
-		docs = append(docs, doc)
-	}
-
-	// Return an error on the case that the user is trying to
-	// either provide or create a namespace when trying to import multiple
-	// documents.
-	if len(docs) > 1 && (i.createNS || i.namespace != "") {
-		return fmt.Errorf("cannot create namespace with multiple documents, please specify namespace in each document")
-	}
-
-	for _, doc := range docs {
 		v := latestVersion
 		if doc.Version != "" {
 			v, err = semver.ParseTolerant(doc.Version)
@@ -103,19 +89,9 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			}
 		}
 
-		// check if document namespace matches cli namespace if both are set
-		if doc.Namespace != "" && i.namespace != "" && doc.Namespace != i.namespace {
-			return fmt.Errorf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", doc.Namespace, i.namespace)
-		}
-
-		// prefer document namespace over cli namespace, but use cli namespace if
-		// document namespace is empty
 		var namespace = doc.Namespace
-		if namespace == "" {
-			namespace = i.namespace
-		}
 
-		if i.createNS && namespace != "" && namespace != flipt.DefaultNamespace {
+		if namespace != "" && namespace != flipt.DefaultNamespace {
 			_, err := i.creator.GetNamespace(ctx, &flipt.GetNamespaceRequest{
 				Key: namespace,
 			})
