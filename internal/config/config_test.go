@@ -334,6 +334,18 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "tracing otlp",
+			path: "./testdata/tracing/otlp.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Tracing.Enabled = true
+				cfg.Tracing.Exporter = TracingOTLP
+				cfg.Tracing.OTLP.Endpoint = "http://localhost:9999"
+				cfg.Tracing.OTLP.Headers = map[string]string{"api-key": "test-key"}
+				return cfg
+			},
+		},
+		{
 			name: "database key/value",
 			path: "./testdata/database.yml",
 			expected: func() *Config {

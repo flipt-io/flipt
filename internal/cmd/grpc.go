@@ -219,6 +219,7 @@ func NewGRPCServer(
 			// TODO: support additional configuration options
 			client := otlptracegrpc.NewClient(
 				otlptracegrpc.WithEndpoint(cfg.Tracing.OTLP.Endpoint),
+				otlptracegrpc.WithHeaders(cfg.Tracing.OTLP.Headers),
 				// TODO: support TLS
 				otlptracegrpc.WithInsecure())
 			exp, err = otlptrace.New(ctx, client)
