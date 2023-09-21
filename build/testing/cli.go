@@ -216,8 +216,14 @@ const (
 	expectedFliptHelp = `Flipt is a modern, self-hosted, feature flag solution
 
 Usage:
-  flipt [flags]
+  flipt <command> <subcommand> [flags]
   flipt [command]
+
+Examples:
+$ flipt
+$ flipt config init
+$ flipt --config /path/to/config.yml migrate
+
 
 Available Commands:
   config      Manage Flipt configuration
@@ -225,7 +231,7 @@ Available Commands:
   help        Help about any command
   import      Import flags/segments/rules from file
   migrate     Run pending database migrations
-  validate    Validate flipt flag state (.yaml, .yml) files
+  validate    Validate Flipt flag state (.yaml, .yml) files
 
 Flags:
       --config string   path to config file
