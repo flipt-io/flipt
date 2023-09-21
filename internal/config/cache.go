@@ -108,7 +108,7 @@ type RedisCacheConfig struct {
 	Host            string        `json:"host,omitempty" mapstructure:"host"`
 	Port            int           `json:"port,omitempty" mapstructure:"port"`
 	RequireTLS      bool          `json:"requireTLS" mapstructure:"require_tls"`
-	Password        string        `json:"password,omitempty" mapstructure:"password"`
+	Password        string        `json:"-" mapstructure:"password"`
 	DB              int           `json:"db,omitempty" mapstructure:"db"`
 	PoolSize        int           `json:"poolSize" mapstructure:"pool_size"`
 	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn"`
