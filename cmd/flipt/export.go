@@ -85,7 +85,11 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 	// Use client when remote address is configured.
 	if c.address != "" {
-		return c.export(cmd.Context(), out, fliptClient(logger, c.address, c.token))
+		client, err := fliptClient(c.address, c.token)
+		if err != nil {
+			return err
+		}
+		return c.export(cmd.Context(), out, client)
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
