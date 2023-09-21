@@ -3,6 +3,8 @@ package template
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"text/template"
@@ -75,6 +77,12 @@ func (w *webhookTemplate) Execute(ctx context.Context, event audit.Event) error 
 	err := w.bodyTemplate.Execute(buf, event)
 	if err != nil {
 		return err
+	}
+
+	validJSON := json.Valid(buf.Bytes())
+
+	if !validJSON {
+		return fmt.Errorf("invalid JSON: %s", buf.String())
 	}
 
 	err = w.retryableClient.RequestRetry(ctx, buf.Bytes(), w.createRequest)
