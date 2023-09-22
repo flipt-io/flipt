@@ -614,9 +614,9 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("file not specified"),
 		},
 		{
-			name:    "url not specified",
-			path:    "./testdata/audit/invalid_webhook_url_not_provided.yml",
-			wantErr: errors.New("url not provided"),
+			name:    "url or template not specified",
+			path:    "./testdata/audit/invalid_webhook_url_or_template_not_provided.yml",
+			wantErr: errors.New("url or template(s) not provided"),
 		},
 		{
 			name: "local config provided",

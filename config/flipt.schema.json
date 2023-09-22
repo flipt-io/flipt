@@ -961,6 +961,24 @@
                 "signing_secret": {
                   "type": "string",
                   "default": ""
+                },
+                "templates": {
+                  "type": ["array", "null"],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string"
+                      },
+                      "body": {
+                        "type": "string"
+                      },
+                      "headers": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
                 }
               },
               "title": "Webhook"
