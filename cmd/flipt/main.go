@@ -89,7 +89,7 @@ func exec() error {
 			Use:   "flipt <command> <subcommand> [flags]",
 			Short: "Flipt is a modern, self-hosted, feature flag solution",
 			Example: heredoc.Doc(`
-				$ flipt 
+				$ flipt
 				$ flipt config init
 				$ flipt --config /path/to/config.yml migrate
 			`),

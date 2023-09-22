@@ -3,6 +3,7 @@ package testing
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"dagger.io/dagger"
@@ -11,9 +12,14 @@ import (
 func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container) error {
 	{
 		container := container.Pipeline("flipt --help")
+		expected, err := os.ReadFile("build/testing/testdata/cli.txt")
+		if err != nil {
+			return err
+		}
+
 		if _, err := assertExec(ctx, container, flipt("--help"),
 			fails,
-			stdout(equals(expectedFliptHelp))); err != nil {
+			stdout(equals(expected))); err != nil {
 			return err
 		}
 	}
@@ -213,33 +219,6 @@ exit $?`,
 }
 
 const (
-	expectedFliptHelp = `Flipt is a modern, self-hosted, feature flag solution
-
-Usage:
-  flipt <command> <subcommand> [flags]
-  flipt [command]
-
-Examples:
-$ flipt
-$ flipt config init
-$ flipt --config /path/to/config.yml migrate
-
-
-Available Commands:
-  config      Manage Flipt configuration
-  export      Export flags/segments/rules to file/stdout
-  help        Help about any command
-  import      Import flags/segments/rules from file
-  migrate     Run pending database migrations
-  validate    Validate Flipt flag state (.yaml, .yml) files
-
-Flags:
-      --config string   path to config file
-  -h, --help            help for flipt
-  -v, --version         version for flipt
-
-Use "flipt [command] --help" for more information about a command.
-`
 	expectedFliptYAML = `flags:
 - key: zUFtS7D0UyMeueYu
   name: UAoZRksg94r1iipa
