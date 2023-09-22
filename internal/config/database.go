@@ -35,7 +35,7 @@ type DatabaseConfig struct {
 	ConnMaxLifetime           time.Duration    `json:"connMaxLifetime,omitempty" mapstructure:"conn_max_lifetime"`
 	Name                      string           `json:"name,omitempty" mapstructure:"name,omitempty"`
 	User                      string           `json:"user,omitempty" mapstructure:"user,omitempty"`
-	Password                  string           `json:"password,omitempty" mapstructure:"password,omitempty"`
+	Password                  string           `json:"-" mapstructure:"password,omitempty"`
 	Host                      string           `json:"host,omitempty" mapstructure:"host,omitempty"`
 	Port                      int              `json:"port,omitempty" mapstructure:"port,omitempty"`
 	Protocol                  DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol,omitempty"`

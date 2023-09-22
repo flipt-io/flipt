@@ -43,26 +43,26 @@ func fliptServer(logger *zap.Logger, cfg *config.Config) (*server.Server, func()
 	return server.New(logger, store), func() { _ = db.Close() }, nil
 }
 
-func fliptClient(logger *zap.Logger, address, token string) *sdk.Flipt {
+func fliptClient(address, token string) (*sdk.Flipt, error) {
 	addr, err := url.Parse(address)
 	if err != nil {
-		logger.Fatal("export address is invalid", zap.Error(err))
+		return nil, fmt.Errorf("export address is invalid %w", err)
 	}
 
 	var transport sdk.Transport
 	switch addr.Scheme {
-	case "http":
+	case "http", "https":
 		transport = sdkhttp.NewTransport(address)
 	case "grpc":
 		conn, err := grpc.Dial(addr.Host,
 			grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			logger.Fatal("failed to dial Flipt", zap.Error(err))
+			return nil, fmt.Errorf("failed to dial Flipt %w", err)
 		}
 
 		transport = sdkgrpc.NewTransport(conn)
 	default:
-		logger.Fatal("unexpected protocol", zap.String("address", address))
+		return nil, fmt.Errorf("unexpected protocol %s", addr.Scheme)
 	}
 
 	var opts []sdk.Option
@@ -72,5 +72,5 @@ func fliptClient(logger *zap.Logger, address, token string) *sdk.Flipt {
 		))
 	}
 
-	return sdk.New(transport, opts...).Flipt()
+	return sdk.New(transport, opts...).Flipt(), nil
 }
