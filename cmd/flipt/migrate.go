@@ -11,7 +11,7 @@ func newMigrateCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "migrate",
 		Short: "Run pending database migrations",
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			logger, cfg, err := buildConfig()
 			if err != nil {
 				return err

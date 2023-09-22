@@ -33,16 +33,16 @@ import (
 )
 
 var (
-	cfgPath      string
-	forceMigrate bool
-	version      = "dev"
-	commit       string
-	date         string
-	goVersion    = runtime.Version()
-	goOS         = runtime.GOOS
-	goArch       = runtime.GOARCH
-	analyticsKey string
-	banner       string
+	providedConfigFile string
+	forceMigrate       bool
+	version            = "dev"
+	commit             string
+	date               string
+	goVersion          = runtime.Version()
+	goOS               = runtime.GOOS
+	goArch             = runtime.GOARCH
+	analyticsKey       string
+	banner             string
 )
 
 var (
@@ -63,7 +63,7 @@ var (
 	}
 	defaultLogger    = zap.Must(loggerConfig(defaultEncoding).Build())
 	userConfigDir, _ = os.UserConfigDir()
-	fliptConfigFile  = filepath.Join(userConfigDir, "flipt", "config.yml")
+	userConfigFile   = filepath.Join(userConfigDir, "flipt", "config.yml")
 )
 
 func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
@@ -129,7 +129,7 @@ func exec() error {
 	banner = buf.String()
 
 	rootCmd.SetVersionTemplate(banner)
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "path to config file")
+	rootCmd.PersistentFlags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
@@ -153,26 +153,26 @@ func exec() error {
 	return rootCmd.ExecuteContext(ctx)
 }
 
-// determinePath will figure out which (if any) path to use for Flipt configuration.
-func determinePath(cfgPath string) (string, bool) {
-	if cfgPath != "" {
-		return cfgPath, true
+// determineConfig will figure out which file to use for Flipt configuration.
+func determineConfig(configFile string) (string, bool) {
+	if configFile != "" {
+		return configFile, true
 	}
 
-	_, err := os.Stat(fliptConfigFile)
+	_, err := os.Stat(userConfigFile)
 	if err == nil {
-		return fliptConfigFile, true
+		return userConfigFile, true
 	}
 
 	if !errors.Is(err, fs.ErrNotExist) {
-		defaultLogger.Warn("unexpected error checking configuration path", zap.String("config_path", fliptConfigFile), zap.Error(err))
+		defaultLogger.Warn("unexpected error checking configuration file", zap.String("config_file", userConfigFile), zap.Error(err))
 	}
 
-	return defaultCfgPath, defaultCfgPath != ""
+	return defaultConfigFile, defaultConfigFile != ""
 }
 
 func buildConfig() (*zap.Logger, *config.Config, error) {
-	path, found := determinePath(cfgPath)
+	path, found := determineConfig(providedConfigFile)
 
 	// read in config if it exists
 	// otherwise, use defaults

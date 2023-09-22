@@ -3,4 +3,4 @@
 
 package main
 
-var defaultCfgPath = "/etc/flipt/config/default.yml"
+var defaultConfigFile = "/etc/flipt/config/default.yml"
