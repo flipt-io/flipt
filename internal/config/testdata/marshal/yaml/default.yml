@@ -1,0 +1,24 @@
+log:
+  level: INFO
+  encoding: console
+  grpc_level: ERROR
+ui:
+  default_theme: system
+cors:
+  enabled: false
+  allowed_origins:
+  - '*'
+server:
+  host: 0.0.0.0
+  http_port: 8080
+  https_port: 443
+  grpc_port: 9000
+storage:
+  type: database
+db:
+  url: file:/tmp/flipt/flipt.db
+  max_idle_conn: 2
+  prepared_statements_enabled: true
+meta:
+  check_for_updates: true
+  telemetry_enabled: true

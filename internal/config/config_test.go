@@ -860,6 +860,52 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 	return
 }
 
+func TestMarshalYAML(t *testing.T) {
+	tests := []struct {
+		name    string
+		path    string
+		wantErr error
+		cfg     func() *Config
+	}{
+		{
+			name: "defaults",
+			path: "./testdata/marshal/yaml/default.yml",
+			cfg: func() *Config {
+				cfg := Default()
+				// override the database URL to a file path for testing
+				cfg.Database.URL = "file:/tmp/flipt/flipt.db"
+				return cfg
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wantErr := tt.wantErr
+
+			expected, err := os.ReadFile(tt.path)
+			require.NoError(t, err)
+
+			out, err := yaml.Marshal(tt.cfg())
+			if wantErr != nil {
+				t.Log(err)
+				match := false
+				if errors.Is(err, wantErr) {
+					match = true
+				} else if err.Error() == wantErr.Error() {
+					match = true
+				}
+				require.True(t, match, "expected error %v to match: %v", err, wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+
+			assert.YAMLEq(t, string(expected), string(out))
+		})
+	}
+}
+
 type sliceEnvBinder []string
 
 func (s *sliceEnvBinder) MustBindEnv(v ...string) {
