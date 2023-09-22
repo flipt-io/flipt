@@ -19,8 +19,12 @@ type AuditConfig struct {
 }
 
 // Enabled returns true if any nested sink is enabled
-func (c *AuditConfig) Enabled() bool {
+func (c AuditConfig) Enabled() bool {
 	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
+}
+
+func (c AuditConfig) IsZero() bool {
+	return !c.Enabled()
 }
 
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {

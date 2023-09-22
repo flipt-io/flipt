@@ -42,6 +42,12 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 	return nil
 }
 
+// IsZero returns true if the cache config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c CacheConfig) IsZero() bool {
+	return !c.Enabled
+}
+
 // CacheBackend is either memory or redis
 // TODO: can we use a string here instead?
 type CacheBackend uint8

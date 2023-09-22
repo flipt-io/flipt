@@ -71,6 +71,12 @@ func (c AuthenticationConfig) Enabled() bool {
 	return false
 }
 
+// IsZero returns true if the authentication config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c AuthenticationConfig) IsZero() bool {
+	return !c.Enabled()
+}
+
 // ShouldRunCleanup returns true if the cleanup background process should be started.
 // It returns true given at-least 1 method is enabled and it's associated schedule
 // has been configured (non-nil).

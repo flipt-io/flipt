@@ -16,7 +16,7 @@ type LogConfig struct {
 	File      string      `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
 	Encoding  LogEncoding `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
 	GRPCLevel string      `json:"grpcLevel,omitempty" mapstructure:"grpc_level" yaml:"grpc_level,omitempty"`
-	Keys      LogKeys     `json:"keys,omitempty" mapstructure:"keys" yaml:"keys,omitempty"`
+	Keys      LogKeys     `json:"keys,omitempty" mapstructure:"keys" yaml:"-"`
 }
 
 type LogKeys struct {

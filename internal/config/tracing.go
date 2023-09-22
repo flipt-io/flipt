@@ -55,6 +55,12 @@ func (c *TracingConfig) deprecations(v *viper.Viper) []deprecated {
 	return deprecations
 }
 
+// IsZero returns true if the tracing config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c TracingConfig) IsZero() bool {
+	return !c.Enabled
+}
+
 // TracingExporter represents the supported tracing exporters.
 // TODO: can we use a string here instead?
 type TracingExporter uint8
