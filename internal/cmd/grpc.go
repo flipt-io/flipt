@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"strconv"
 	"sync"
 	"time"
@@ -39,6 +40,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -216,12 +218,30 @@ func NewGRPCServer(
 		case config.TracingZipkin:
 			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
 		case config.TracingOTLP:
-			// TODO: support additional configuration options
-			client := otlptracegrpc.NewClient(
-				otlptracegrpc.WithEndpoint(cfg.Tracing.OTLP.Endpoint),
-				otlptracegrpc.WithHeaders(cfg.Tracing.OTLP.Headers),
-				// TODO: support TLS
-				otlptracegrpc.WithInsecure())
+			u, err := url.Parse(cfg.Tracing.OTLP.Endpoint)
+			if err != nil {
+				return nil, fmt.Errorf("parsing otlp endpoint: %w", err)
+			}
+
+			var client otlptrace.Client
+			switch u.Scheme {
+			case "http", "https":
+				client = otlptracehttp.NewClient(
+					otlptracehttp.WithEndpoint(u.Host+u.Path),
+					otlptracehttp.WithHeaders(cfg.Tracing.OTLP.Headers),
+					// TODO: support TLS
+					otlptracehttp.WithInsecure())
+			case "", "grpc":
+				// TODO: support additional configuration options
+				client = otlptracegrpc.NewClient(
+					otlptracegrpc.WithEndpoint(u.Host+u.Path),
+					otlptracegrpc.WithHeaders(cfg.Tracing.OTLP.Headers),
+					// TODO: support TLS
+					otlptracegrpc.WithInsecure())
+			default:
+				return nil, fmt.Errorf("unsupported protocol: %s", u.Scheme)
+			}
+
 			exp, err = otlptrace.New(ctx, client)
 		}
 
