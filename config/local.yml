@@ -10,14 +10,6 @@ log:
 # ui:
 #   enabled: true
 
-tracing:
-  enabled: true
-  exporter: otlp
-  otlp:
-    endpoint: "http://localhost:4318"
-    headers:
-     authorization: "4a19cfe9-0aaf-4705-bd13-a377a712646c"
-      
 cors:
   enabled: true
   allowed_origins: ["*"]
@@ -31,9 +23,9 @@ cors:
 #   memory:
 #     eviction_interval: 5m # evict expired items every 5m
 
-server:
-  protocol: http
-  host: 0.0.0.0
-  https_port: 443
-  http_port: 8081
-  grpc_port: 9001
+# server:
+#   protocol: http
+#   host: 0.0.0.0
+#   https_port: 443
+#   http_port: 8080
+#   grpc_port: 9000

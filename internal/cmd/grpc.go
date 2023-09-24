@@ -497,7 +497,6 @@ func getTraceExporter(ctx context.Context, cfg *config.Config) (tracesdk.SpanExp
 		case config.TracingZipkin:
 			traceExp, traceExpErr = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
 		case config.TracingOTLP:
-
 			u, err := url.Parse(cfg.Tracing.OTLP.Endpoint)
 			if err != nil {
 				traceExpErr = fmt.Errorf("parsing otlp endpoint: %w", err)
@@ -511,7 +510,7 @@ func getTraceExporter(ctx context.Context, cfg *config.Config) (tracesdk.SpanExp
 					otlptracehttp.WithEndpoint(u.Host+u.Path),
 					otlptracehttp.WithHeaders(cfg.Tracing.OTLP.Headers),
 				)
-			case "", "grpc":
+			case "grpc":
 				// TODO: support additional configuration options
 				client = otlptracegrpc.NewClient(
 					otlptracegrpc.WithEndpoint(u.Host+u.Path),
@@ -520,8 +519,13 @@ func getTraceExporter(ctx context.Context, cfg *config.Config) (tracesdk.SpanExp
 					otlptracegrpc.WithInsecure(),
 				)
 			default:
-				traceExpErr = fmt.Errorf("unsupported protocol: %s", u.Scheme)
-				return
+				// because of url parsing ambiguity, we'll assume that the endpoint is a host:port with no scheme
+				client = otlptracegrpc.NewClient(
+					otlptracegrpc.WithEndpoint(cfg.Tracing.OTLP.Endpoint),
+					otlptracegrpc.WithHeaders(cfg.Tracing.OTLP.Headers),
+					// TODO: support TLS
+					otlptracegrpc.WithInsecure(),
+				)
 			}
 
 			traceExp, traceExpErr = otlptrace.New(ctx, client)
