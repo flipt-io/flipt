@@ -754,21 +754,71 @@ func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
 	assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
 }
 
-func TestImport_YAML_Stream_Success(t *testing.T) {
-	var (
-		creator  = &mockCreator{}
-		importer = NewImporter(creator)
-	)
+func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
+	tests := []struct {
+		name                      string
+		path                      string
+		expectedGetNSReqs         int
+		expectedCreateFlagReqs    int
+		expectedCreateSegmentReqs int
+	}{
+		{
+			name:                      "single namespace no YAML stream",
+			path:                      "testdata/import.yml",
+			expectedGetNSReqs:         0,
+			expectedCreateFlagReqs:    2,
+			expectedCreateSegmentReqs: 1,
+		},
+		{
+			name:                      "single namespace foo non-YAML stream",
+			path:                      "testdata/import_single_namespace_foo.yml",
+			expectedGetNSReqs:         1,
+			expectedCreateFlagReqs:    2,
+			expectedCreateSegmentReqs: 1,
+		},
+		{
+			name:                      "multiple namespaces default and foo",
+			path:                      "testdata/import_two_namespaces_default_and_foo.yml",
+			expectedGetNSReqs:         1,
+			expectedCreateFlagReqs:    4,
+			expectedCreateSegmentReqs: 2,
+		},
+		{
+			name:                      "yaml stream only default namespace",
+			path:                      "testdata/import_yaml_stream_default_namespace.yml",
+			expectedGetNSReqs:         0,
+			expectedCreateFlagReqs:    4,
+			expectedCreateSegmentReqs: 2,
+		},
+		{
+			name:                      "yaml stream all unqiue namespaces",
+			path:                      "testdata/import_yaml_stream_all_unique_namespaces.yml",
+			expectedGetNSReqs:         2,
+			expectedCreateFlagReqs:    6,
+			expectedCreateSegmentReqs: 3,
+		},
+	}
 
-	in, err := os.Open("testdata/import_yaml_stream.yml")
-	assert.NoError(t, err)
-	defer in.Close()
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				creator  = &mockCreator{}
+				importer = NewImporter(creator)
+			)
 
-	err = importer.Import(context.Background(), in)
-	require.NoError(t, err)
+			in, err := os.Open(tc.path)
+			assert.NoError(t, err)
+			defer in.Close()
 
-	assert.Len(t, creator.flagReqs, 4)
-	assert.Len(t, creator.segmentReqs, 2)
+			err = importer.Import(context.Background(), in)
+			assert.NoError(t, err)
+
+			assert.Len(t, creator.getNSReqs, tc.expectedGetNSReqs)
+			assert.Len(t, creator.flagReqs, tc.expectedCreateFlagReqs)
+			assert.Len(t, creator.segmentReqs, tc.expectedCreateSegmentReqs)
+		})
+	}
 }
 
 //nolint:unparam
