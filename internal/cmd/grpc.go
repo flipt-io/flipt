@@ -207,47 +207,12 @@ func NewGRPCServer(
 	)
 
 	if cfg.Tracing.Enabled {
-		var exp tracesdk.SpanExporter
-
-		switch cfg.Tracing.Exporter {
-		case config.TracingJaeger:
-			exp, err = jaeger.New(jaeger.WithAgentEndpoint(
-				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
-				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
-			))
-		case config.TracingZipkin:
-			exp, err = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
-		case config.TracingOTLP:
-			u, err := url.Parse(cfg.Tracing.OTLP.Endpoint)
-			if err != nil {
-				return nil, fmt.Errorf("parsing otlp endpoint: %w", err)
-			}
-
-			var client otlptrace.Client
-			switch u.Scheme {
-			case "http", "https":
-				client = otlptracehttp.NewClient(
-					otlptracehttp.WithEndpoint(u.Host+u.Path),
-					otlptracehttp.WithHeaders(cfg.Tracing.OTLP.Headers),
-					// TODO: support TLS
-					otlptracehttp.WithInsecure())
-			case "", "grpc":
-				// TODO: support additional configuration options
-				client = otlptracegrpc.NewClient(
-					otlptracegrpc.WithEndpoint(u.Host+u.Path),
-					otlptracegrpc.WithHeaders(cfg.Tracing.OTLP.Headers),
-					// TODO: support TLS
-					otlptracegrpc.WithInsecure())
-			default:
-				return nil, fmt.Errorf("unsupported protocol: %s", u.Scheme)
-			}
-
-			exp, err = otlptrace.New(ctx, client)
-		}
-
+		exp, traceExpShutdown, err := getTraceExporter(ctx, cfg)
 		if err != nil {
-			return nil, fmt.Errorf("creating exporter: %w", err)
+			return nil, fmt.Errorf("creating tracing exporter: %w", err)
 		}
+
+		server.onShutdown(traceExpShutdown)
 
 		tracingProvider.RegisterSpanProcessor(tracesdk.NewBatchSpanProcessor(exp, tracesdk.WithBatchTimeout(1*time.Second)))
 
@@ -512,6 +477,65 @@ type errFunc func(context.Context) error
 
 func (s *GRPCServer) onShutdown(fn errFunc) {
 	s.shutdownFuncs = append(s.shutdownFuncs, fn)
+}
+
+var (
+	traceExpOnce sync.Once
+	traceExp     tracesdk.SpanExporter
+	traceExpFunc errFunc = func(context.Context) error { return nil }
+	traceExpErr  error
+)
+
+func getTraceExporter(ctx context.Context, cfg *config.Config) (tracesdk.SpanExporter, errFunc, error) {
+	traceExpOnce.Do(func() {
+		switch cfg.Tracing.Exporter {
+		case config.TracingJaeger:
+			traceExp, traceExpErr = jaeger.New(jaeger.WithAgentEndpoint(
+				jaeger.WithAgentHost(cfg.Tracing.Jaeger.Host),
+				jaeger.WithAgentPort(strconv.FormatInt(int64(cfg.Tracing.Jaeger.Port), 10)),
+			))
+		case config.TracingZipkin:
+			traceExp, traceExpErr = zipkin.New(cfg.Tracing.Zipkin.Endpoint)
+		case config.TracingOTLP:
+
+			u, err := url.Parse(cfg.Tracing.OTLP.Endpoint)
+			if err != nil {
+				traceExpErr = fmt.Errorf("parsing otlp endpoint: %w", err)
+				return
+			}
+
+			var client otlptrace.Client
+			switch u.Scheme {
+			case "http", "https":
+				client = otlptracehttp.NewClient(
+					otlptracehttp.WithEndpoint(u.Host+u.Path),
+					otlptracehttp.WithHeaders(cfg.Tracing.OTLP.Headers),
+				)
+			case "", "grpc":
+				// TODO: support additional configuration options
+				client = otlptracegrpc.NewClient(
+					otlptracegrpc.WithEndpoint(u.Host+u.Path),
+					otlptracegrpc.WithHeaders(cfg.Tracing.OTLP.Headers),
+					// TODO: support TLS
+					otlptracegrpc.WithInsecure(),
+				)
+			default:
+				traceExpErr = fmt.Errorf("unsupported protocol: %s", u.Scheme)
+				return
+			}
+
+			traceExp, traceExpErr = otlptrace.New(ctx, client)
+			traceExpFunc = func(ctx context.Context) error {
+				return traceExp.Shutdown(ctx)
+			}
+
+		default:
+			traceExpErr = fmt.Errorf("unsupported tracing exporter: %s", cfg.Tracing.Exporter)
+			return
+		}
+	})
+
+	return traceExp, traceExpFunc, traceExpErr
 }
 
 var (
