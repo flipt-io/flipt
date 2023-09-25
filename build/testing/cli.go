@@ -173,26 +173,26 @@ exit $?`,
 			client.Host().Directory("build/testing/testdata").File("flipt-namespace-foo.yml"), opts)
 
 		// import via STDIN succeeds
-		_, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --create-namespace --stdin"))
+		_, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
 		if err != nil {
 			return err
 		}
 
 		// import valid yaml path and retrieve resulting container
-		container, err = assertExec(ctx, container, flipt("import", "--create-namespace", "/tmp/flipt.yml"))
+		container, err = assertExec(ctx, container, flipt("import", "/tmp/flipt.yml"))
 		if err != nil {
 			return err
 		}
 
 		if _, err = assertExec(ctx, container,
-			flipt("export", "--namespace", "foo"),
+			flipt("export", "--namespaces", "foo"),
 			stdout(contains(expectedFliptYAML)),
 		); err != nil {
 			return err
 		}
 
 		container, err = assertExec(ctx, container,
-			flipt("export", "--namespace", "foo", "-o", "/tmp/export.yml"),
+			flipt("export", "--namespaces", "foo", "-o", "/tmp/export.yml"),
 		)
 		if err != nil {
 			return err

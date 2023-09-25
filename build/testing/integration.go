@@ -249,7 +249,6 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 		ns := "default"
 		if conf.namespace != "" {
 			ns = conf.namespace
-			flags = append(flags, "--namespace", conf.namespace)
 		}
 
 		seed := base.File(fmt.Sprintf(testdataPathFmt, ns))
@@ -260,7 +259,7 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 					WithEnvVariable("UNIQUE", uuid.New().String()).
 					WithExec(nil)
 
-			importCmd = append([]string{"/flipt", "import"}, append(flags, "--create-namespace", "import.yaml")...)
+			importCmd = append([]string{"/flipt", "import"}, append(flags, "import.yaml")...)
 		)
 		// use target flipt binary to invoke import
 		_, err := flipt.
@@ -293,6 +292,10 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 			namespace = "default"
 			// replace namespace in expected yaml
 			expected = strings.ReplaceAll(expected, "version: \"1.2\"\n", fmt.Sprintf("version: \"1.2\"\nnamespace: %s\n", namespace))
+		}
+
+		if namespace != "default" {
+			flags = append(flags, "--namespaces", conf.namespace)
 		}
 
 		// use target flipt binary to invoke import
