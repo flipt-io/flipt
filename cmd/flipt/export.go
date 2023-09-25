@@ -57,6 +57,7 @@ func newExportCommand() *cobra.Command {
 		"source namespace for exported resources.",
 	)
 
+	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	return cmd
 }
 

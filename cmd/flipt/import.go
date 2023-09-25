@@ -74,6 +74,7 @@ func newImportCommand() *cobra.Command {
 		"create the namespace if it does not exist.",
 	)
 
+	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	return cmd
 }
 
