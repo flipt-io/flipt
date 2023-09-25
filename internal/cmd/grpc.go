@@ -21,6 +21,7 @@ import (
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
+	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
 	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/evaluation"
@@ -352,11 +353,27 @@ func NewGRPCServer(
 
 	if cfg.Audit.Sinks.Webhook.Enabled {
 		opts := []webhook.ClientOption{}
-		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration != 0 {
+		if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
 			opts = append(opts, webhook.WithMaxBackoffDuration(cfg.Audit.Sinks.Webhook.MaxBackoffDuration))
 		}
 
-		webhookSink := webhook.NewSink(logger, webhook.NewHTTPClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+		var webhookSink audit.Sink
+
+		// Enable basic webhook sink if URL is non-empty, otherwise enable template sink if the length of templates is greater
+		// than 0 for the webhook.
+		if cfg.Audit.Sinks.Webhook.URL != "" {
+			webhookSink = webhook.NewSink(logger, webhook.NewWebhookClient(logger, cfg.Audit.Sinks.Webhook.URL, cfg.Audit.Sinks.Webhook.SigningSecret, opts...))
+		} else if len(cfg.Audit.Sinks.Webhook.Templates) > 0 {
+			maxBackoffDuration := 15 * time.Second
+			if cfg.Audit.Sinks.Webhook.MaxBackoffDuration > 0 {
+				maxBackoffDuration = cfg.Audit.Sinks.Webhook.MaxBackoffDuration
+			}
+
+			webhookSink, err = template.NewSink(logger, cfg.Audit.Sinks.Webhook.Templates, maxBackoffDuration)
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		sinks = append(sinks, webhookSink)
 	}

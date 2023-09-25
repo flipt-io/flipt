@@ -62,7 +62,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 		batchSize = e.batchSize
 	)
 
-	var namespaces []string = e.namespaces
+	var namespaces = e.namespaces
 
 	// If allNamespaces is "true", then retrieve all the namespaces, and store them in a string slice.
 	if e.allNamespaces {

@@ -3,11 +3,12 @@ package ext
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 
 	"github.com/blang/semver/v4"
-	"go.flipt.io/flipt/errors"
+	errs "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,24 +28,10 @@ type Creator interface {
 }
 
 type Importer struct {
-	creator   Creator
-	namespace string
-	createNS  bool
+	creator Creator
 }
 
 type ImportOpt func(*Importer)
-
-func WithNamespace(ns string) ImportOpt {
-	return func(i *Importer) {
-		i.namespace = ns
-	}
-}
-
-func WithCreateNamespace() ImportOpt {
-	return func(i *Importer) {
-		i.createNS = true
-	}
-}
 
 func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 	i := &Importer{
@@ -64,7 +51,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 	for {
 		var doc = new(Document)
 		if err := dec.Decode(doc); err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return fmt.Errorf("unmarshalling document: %w", err)
@@ -97,7 +84,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			})
 
 			if err != nil {
-				if status.Code(err) != codes.NotFound && !errors.AsMatch[errors.ErrNotFound](err) {
+				if status.Code(err) != codes.NotFound && !errs.AsMatch[errs.ErrNotFound](err) {
 					return err
 				}
 

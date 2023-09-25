@@ -26,8 +26,8 @@ func newValidateCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "validate",
-		Short: "Validate flipt flag state (.yaml, .yml) files",
-		Run:   v.run,
+		Short: "Validate Flipt flag state (.yaml, .yml) files",
+		RunE:  v.run,
 	}
 
 	cmd.Flags().IntVar(&v.issueExitCode, "issue-exit-code", 1, "Exit code to use when issues are found")
@@ -42,7 +42,7 @@ func newValidateCommand() *cobra.Command {
 	return cmd
 }
 
-func (v *validateCommand) run(cmd *cobra.Command, args []string) {
+func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
 	var err error
 	if len(args) == 0 {
 		_, err = fs.SnapshotFromFS(zap.NewNop(), os.DirFS("."))
@@ -52,8 +52,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 
 	errs, ok := cue.Unwrap(err)
 	if !ok {
-		fmt.Println(err)
-		os.Exit(1)
+		return err
 	}
 
 	if len(errs) > 0 {
@@ -63,7 +62,7 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 				os.Exit(1)
 			}
 			os.Exit(v.issueExitCode)
-			return
+			return nil
 		}
 
 		fmt.Println("Validation failed!")
@@ -74,4 +73,6 @@ func (v *validateCommand) run(cmd *cobra.Command, args []string) {
 
 		os.Exit(v.issueExitCode)
 	}
+
+	return nil
 }

@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.27.2](https://github.com/flipt-io/flipt/releases/tag/v1.27.2) - 2023-09-21
+
+### Fixed
+
+- `security`: dont marshal secrets to JSON
+
 ## [v1.27.1](https://github.com/flipt-io/flipt/releases/tag/v1.27.1) - 2023-09-18
 
 ### Added

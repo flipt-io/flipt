@@ -2,66 +2,67 @@ package webhook
 
 import (
 	"context"
+	"io"
 	"testing"
 	"time"
 
-	"github.com/h2non/gock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.uber.org/zap"
 )
 
-func TestHTTPClient_Failure(t *testing.T) {
-	hclient := NewHTTPClient(zap.NewNop(), "https://respond.io/webhook", "", WithMaxBackoffDuration(5*time.Second))
+type dummyRetrier struct{}
 
-	gock.New("https://respond.io").
-		MatchHeader("Content-Type", "application/json").
-		Post("/webhook").
-		Reply(500)
-	defer gock.Off()
-
-	err := hclient.SendAudit(context.TODO(), audit.Event{
-		Version: "0.1",
-		Type:    audit.FlagType,
-		Action:  audit.Create,
-	})
-
-	assert.EqualError(t, err, "failed to send event to webhook url: https://respond.io/webhook after 5s")
+func (d *dummyRetrier) RequestRetry(_ context.Context, _ []byte, _ audit.RequestCreator) error {
+	return nil
 }
 
-func TestHTTPClient_Success(t *testing.T) {
-	hclient := NewHTTPClient(zap.NewNop(), "https://respond.io/webhook", "", WithMaxBackoffDuration(5*time.Second))
+func TestConstructorWebhookClient(t *testing.T) {
+	client := NewWebhookClient(zap.NewNop(), "https://flipt-webhook.io/webhook", "")
 
-	gock.New("https://respond.io").
-		MatchHeader("Content-Type", "application/json").
-		Post("/webhook").
-		Reply(200)
-	defer gock.Off()
+	require.NotNil(t, client)
 
-	err := hclient.SendAudit(context.TODO(), audit.Event{
-		Version: "0.1",
-		Type:    audit.FlagType,
-		Action:  audit.Create,
-	})
+	whClient, ok := client.(*webhookClient)
+	require.True(t, ok, "client should be a webhookClient")
 
-	assert.Nil(t, err)
+	assert.Equal(t, "https://flipt-webhook.io/webhook", whClient.url)
+	assert.Empty(t, whClient.signingSecret)
 }
 
-func TestHTTPClient_Success_WithSignedPayload(t *testing.T) {
-	hclient := NewHTTPClient(zap.NewNop(), "https://respond.io/webhook", "supersecret", WithMaxBackoffDuration(5*time.Second))
+func TestWebhookClient(t *testing.T) {
+	whclient := &webhookClient{
+		logger:             zap.NewNop(),
+		url:                "https://flipt-webhook.io/webhook",
+		maxBackoffDuration: 15 * time.Second,
+		retryableClient:    &dummyRetrier{},
+	}
 
-	gock.New("https://respond.io").
-		MatchHeader("Content-Type", "application/json").
-		MatchHeader(fliptSignatureHeader, "daae3795b8b2762be113870086d6d04ea3618b90ff14925fe4caaa1425638e4f").
-		Post("/webhook").
-		Reply(200)
-	defer gock.Off()
-
-	err := hclient.SendAudit(context.TODO(), audit.Event{
-		Version: "0.1",
-		Type:    audit.FlagType,
-		Action:  audit.Create,
+	err := whclient.SendAudit(context.TODO(), audit.Event{
+		Type:   audit.FlagType,
+		Action: audit.Create,
 	})
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
+}
+
+func TestWebhookClient_createRequest(t *testing.T) {
+	whclient := &webhookClient{
+		logger:             zap.NewNop(),
+		url:                "https://flipt-webhook.io/webhook",
+		maxBackoffDuration: 15 * time.Second,
+		retryableClient:    &dummyRetrier{},
+		signingSecret:      "s3crET",
+	}
+
+	req, err := whclient.createRequest(context.TODO(), []byte(`{"hello": "world"}`))
+	require.NoError(t, err)
+
+	assert.Equal(t, "https://flipt-webhook.io/webhook", req.URL.String())
+
+	b, err := io.ReadAll(req.Body)
+	require.NoError(t, err)
+
+	assert.Equal(t, `{"hello": "world"}`, string(b))
+	assert.Equal(t, "18140945e2c08976ed68adeb0bf80d2fa695d533957cb0e531812798de6b9fad", req.Header.Get(fliptSignatureHeader))
 }

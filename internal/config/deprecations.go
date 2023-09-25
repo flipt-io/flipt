@@ -11,8 +11,6 @@ var (
 	// fields that are deprecated along with their messages
 	deprecatedFields = map[deprecated]string{
 		"tracing.jaeger.enabled":          deprecatedMsgTracingJaegerEnabled,
-		"cache.memory.enabled":            deprecatedMsgCacheMemoryEnabled,
-		"cache.memory.expiration":         deprecatedMsgCacheMemoryExpiration,
 		"experimental.filesystem_storage": deprecatedMsgExperimentalFilesystemStorage,
 	}
 )
@@ -22,8 +20,6 @@ const (
 
 	// additional deprecation messages
 	deprecatedMsgTracingJaegerEnabled          = `Please use 'tracing.enabled' and 'tracing.exporter' instead.`
-	deprecatedMsgCacheMemoryEnabled            = `Please use 'cache.enabled' and 'cache.backend' instead.`
-	deprecatedMsgCacheMemoryExpiration         = `Please use 'cache.ttl' instead.`
 	deprecatedMsgExperimentalFilesystemStorage = `The experimental filesystem storage backend has graduated to a stable feature. Please use 'storage' instead.`
 )
 

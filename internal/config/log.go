@@ -12,17 +12,17 @@ var _ defaulter = (*LogConfig)(nil)
 // LogConfig contains fields which control, direct and filter
 // the logging telemetry produces by Flipt.
 type LogConfig struct {
-	Level     string      `json:"level,omitempty" mapstructure:"level"`
-	File      string      `json:"file,omitempty" mapstructure:"file"`
-	Encoding  LogEncoding `json:"encoding,omitempty" mapstructure:"encoding"`
-	GRPCLevel string      `json:"grpcLevel,omitempty" mapstructure:"grpc_level"`
-	Keys      LogKeys     `json:"keys" mapstructure:"keys"`
+	Level     string      `json:"level,omitempty" mapstructure:"level" yaml:"level,omitempty"`
+	File      string      `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
+	Encoding  LogEncoding `json:"encoding,omitempty" mapstructure:"encoding" yaml:"encoding,omitempty"`
+	GRPCLevel string      `json:"grpcLevel,omitempty" mapstructure:"grpc_level" yaml:"grpc_level,omitempty"`
+	Keys      LogKeys     `json:"keys,omitempty" mapstructure:"keys" yaml:"-"`
 }
 
 type LogKeys struct {
-	Time    string `json:"time" mapstructure:"time"`
-	Level   string `json:"level" mapstructure:"level"`
-	Message string `json:"message" mapstructure:"message"`
+	Time    string `json:"time,omitempty" mapstructure:"time" yaml:"time,omitempty"`
+	Level   string `json:"level,omitempty" mapstructure:"level" yaml:"level,omitempty"`
+	Message string `json:"message,omitempty" mapstructure:"message" yaml:"message,omitempty"`
 }
 
 func (c *LogConfig) setDefaults(v *viper.Viper) error {
@@ -52,7 +52,8 @@ var (
 	}
 )
 
-// LogEncoding is either console or JSON
+// LogEncoding is either console or JSON.
+// TODO: can we use a string instead?
 type LogEncoding uint8
 
 const (
@@ -67,4 +68,8 @@ func (e LogEncoding) String() string {
 
 func (e LogEncoding) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
+}
+
+func (e LogEncoding) MarshalYAML() (interface{}, error) {
+	return e.String(), nil
 }

@@ -28,11 +28,11 @@ const (
 // StorageConfig contains fields which will configure the type of backend in which Flipt will serve
 // flag state.
 type StorageConfig struct {
-	Type     StorageType `json:"type,omitempty" mapstructure:"type"`
-	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty"`
-	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty"`
-	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty"`
-	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"readOnly,omitempty"`
+	Type     StorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
+	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
+	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
+	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"readOnly,omitempty" yaml:"read_only,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
@@ -102,16 +102,16 @@ type Local struct {
 
 // Git contains configuration for referencing a git repository.
 type Git struct {
-	Repository     string         `json:"repository,omitempty" mapstructure:"repository"`
-	Ref            string         `json:"ref,omitempty" mapstructure:"ref"`
-	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
-	Authentication Authentication `json:"authentication,omitempty" mapstructure:"authentication,omitempty"`
+	Repository     string         `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
+	Ref            string         `json:"ref,omitempty" mapstructure:"ref" yaml:"ref,omitempty"`
+	PollInterval   time.Duration  `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+	Authentication Authentication `json:"-" mapstructure:"authentication,omitempty" yaml:"-"`
 }
 
 // Object contains configuration of readonly object storage.
 type Object struct {
-	Type ObjectSubStorageType `json:"type,omitempty" mapstructure:"type"`
-	S3   *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty"`
+	Type ObjectSubStorageType `json:"type,omitempty" mapstructure:"type" yaml:"type,omitempty"`
+	S3   *S3                  `json:"s3,omitempty" mapstructure:"s3,omitempty" yaml:"s3,omitempty"`
 }
 
 // validate is only called if storage.type == "object"
@@ -129,11 +129,11 @@ func (o *Object) validate() error {
 
 // S3 contains configuration for referencing a s3 bucket
 type S3 struct {
-	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint"`
-	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket"`
-	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix"`
-	Region       string        `json:"region,omitempty" mapstructure:"region"`
-	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval"`
+	Endpoint     string        `json:"endpoint,omitempty" mapstructure:"endpoint" yaml:"endpoint,omitempty"`
+	Bucket       string        `json:"bucket,omitempty" mapstructure:"bucket" yaml:"bucket,omitempty"`
+	Prefix       string        `json:"prefix,omitempty" mapstructure:"prefix" yaml:"prefix,omitempty"`
+	Region       string        `json:"region,omitempty" mapstructure:"region" yaml:"region,omitempty"`
+	PollInterval time.Duration `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
 // Authentication holds structures for various types of auth we support.
@@ -143,8 +143,8 @@ type S3 struct {
 // not all inputs are given but only partially, we will return a validation error.
 // (e.g. if username for basic auth is given, and token is also given a validation error will be returned)
 type Authentication struct {
-	BasicAuth *BasicAuth `json:"basic,omitempty" mapstructure:"basic,omitempty"`
-	TokenAuth *TokenAuth `json:"token,omitempty" mapstructure:"token,omitempty"`
+	BasicAuth *BasicAuth `json:"-" mapstructure:"basic,omitempty" yaml:"-"`
+	TokenAuth *TokenAuth `json:"-" mapstructure:"token,omitempty" yaml:"-"`
 }
 
 func (a *Authentication) validate() error {
@@ -165,8 +165,8 @@ func (a *Authentication) validate() error {
 // BasicAuth has configuration for authenticating with private git repositories
 // with basic auth.
 type BasicAuth struct {
-	Username string `json:"username,omitempty" mapstructure:"username"`
-	Password string `json:"password,omitempty" mapstructure:"password"`
+	Username string `json:"-" mapstructure:"username" yaml:"-"`
+	Password string `json:"-" mapstructure:"password" yaml:"-"`
 }
 
 func (b BasicAuth) validate() error {
@@ -180,7 +180,7 @@ func (b BasicAuth) validate() error {
 // TokenAuth has configuration for authenticating with private git repositories
 // with token auth.
 type TokenAuth struct {
-	AccessToken string `json:"accessToken,omitempty" mapstructure:"access_token"`
+	AccessToken string `json:"-" mapstructure:"access_token" yaml:"-"`
 }
 
 func (t TokenAuth) validate() error { return nil }
