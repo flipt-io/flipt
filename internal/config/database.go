@@ -29,17 +29,17 @@ const (
 //
 // Flipt currently supports SQLite, Postgres and MySQL backends.
 type DatabaseConfig struct {
-	URL                       string           `json:"url,omitempty" mapstructure:"url,omitempty"`
-	MaxIdleConn               int              `json:"maxIdleConn,omitempty" mapstructure:"max_idle_conn"`
-	MaxOpenConn               int              `json:"maxOpenConn,omitempty" mapstructure:"max_open_conn"`
-	ConnMaxLifetime           time.Duration    `json:"connMaxLifetime,omitempty" mapstructure:"conn_max_lifetime"`
-	Name                      string           `json:"name,omitempty" mapstructure:"name,omitempty"`
-	User                      string           `json:"user,omitempty" mapstructure:"user,omitempty"`
-	Password                  string           `json:"-" mapstructure:"password,omitempty"`
-	Host                      string           `json:"host,omitempty" mapstructure:"host,omitempty"`
-	Port                      int              `json:"port,omitempty" mapstructure:"port,omitempty"`
-	Protocol                  DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol,omitempty"`
-	PreparedStatementsEnabled bool             `json:"preparedStatementsEnabled,omitempty" mapstructure:"prepared_statements_enabled"`
+	URL                       string           `json:"url,omitempty" mapstructure:"url,omitempty" yaml:"url,omitempty"`
+	MaxIdleConn               int              `json:"maxIdleConn,omitempty" mapstructure:"max_idle_conn" yaml:"max_idle_conn,omitempty"`
+	MaxOpenConn               int              `json:"maxOpenConn,omitempty" mapstructure:"max_open_conn" yaml:"max_open_conn,omitempty"`
+	ConnMaxLifetime           time.Duration    `json:"connMaxLifetime,omitempty" mapstructure:"conn_max_lifetime" yaml:"conn_max_lifetime,omitempty"`
+	Name                      string           `json:"name,omitempty" mapstructure:"name,omitempty" yaml:"name,omitempty"`
+	User                      string           `json:"user,omitempty" mapstructure:"user,omitempty" yaml:"user,omitempty"`
+	Password                  string           `json:"-" mapstructure:"password,omitempty" yaml:"-"`
+	Host                      string           `json:"host,omitempty" mapstructure:"host,omitempty" yaml:"host,omitempty"`
+	Port                      int              `json:"port,omitempty" mapstructure:"port,omitempty" yaml:"port,omitempty"`
+	Protocol                  DatabaseProtocol `json:"protocol,omitempty" mapstructure:"protocol,omitempty" yaml:"protocol,omitempty"`
+	PreparedStatementsEnabled bool             `json:"preparedStatementsEnabled,omitempty" mapstructure:"prepared_statements_enabled" yaml:"prepared_statements_enabled,omitempty"`
 }
 
 func (c *DatabaseConfig) setDefaults(v *viper.Viper) error {

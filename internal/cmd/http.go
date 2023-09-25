@@ -163,15 +163,12 @@ func NewHTTPServer(
 		})
 	})
 
-	// TODO: remove (deprecated as of 1.17)
-	if cfg.UI.Enabled {
-		fs, err := ui.FS()
-		if err != nil {
-			return nil, fmt.Errorf("mounting ui: %w", err)
-		}
-
-		r.Mount("/", http.FileServer(http.FS(fs)))
+	fs, err := ui.FS()
+	if err != nil {
+		return nil, fmt.Errorf("mounting ui: %w", err)
 	}
+
+	r.Mount("/", http.FileServer(http.FS(fs)))
 
 	server.Server = &http.Server{
 		Addr:           fmt.Sprintf("%s:%d", cfg.Server.Host, httpPort),
@@ -190,18 +187,12 @@ func NewHTTPServer(
 
 	if isConsole {
 		color.Green("\nAPI: %s", apiAddr)
-
-		if cfg.UI.Enabled {
-			color.Green("UI: %s", uiAddr)
-		}
+		color.Green("UI: %s", uiAddr)
 
 		fmt.Println()
 	} else {
 		logger.Info("api available", zap.String("address", apiAddr))
-
-		if cfg.UI.Enabled {
-			logger.Info("ui available", zap.String("address", uiAddr))
-		}
+		logger.Info("ui available", zap.String("address", uiAddr))
 	}
 
 	if cfg.Server.Protocol != config.HTTPS {
