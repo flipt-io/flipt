@@ -96,7 +96,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		return ext.NewImporter(client, opts...).Import(cmd.Context(), in)
+		return ext.NewImporter(client).Import(cmd.Context(), in)
 	}
 
 	logger, cfg, err := buildConfig()

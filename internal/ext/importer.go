@@ -27,24 +27,10 @@ type Creator interface {
 }
 
 type Importer struct {
-	creator   Creator
-	namespace string
-	createNS  bool
+	creator Creator
 }
 
 type ImportOpt func(*Importer)
-
-func WithNamespace(ns string) ImportOpt {
-	return func(i *Importer) {
-		i.namespace = ns
-	}
-}
-
-func WithCreateNamespace() ImportOpt {
-	return func(i *Importer) {
-		i.createNS = true
-	}
-}
 
 func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 	i := &Importer{
