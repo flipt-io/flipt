@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
@@ -16,42 +17,52 @@ type initCommand struct {
 }
 
 func (c *initCommand) run(cmd *cobra.Command, args []string) error {
-	var (
-		file        string
-		defaultFile = providedConfigFile
-	)
+	defaultFile := providedConfigFile
 
 	if defaultFile == "" {
 		defaultFile = userConfigFile
 	}
 
-	q := []*survey.Question{
-		{
-			Name: "file",
-			Prompt: &survey.Input{
-				Message: "Configuration file path:",
-				Default: defaultFile,
+	file := defaultFile
+
+	ack := c.force
+	if !ack {
+		q := []*survey.Question{
+			{
+				Name: "file",
+				Prompt: &survey.Input{
+					Message: "Configuration file path:",
+					Default: defaultFile,
+				},
+				Validate: survey.Required,
 			},
-			Validate: survey.Required,
-		},
-	}
+		}
 
-	if err := survey.Ask(q, &file); err != nil {
-		return err
-	}
+		if err := survey.Ask(q, &file); err != nil {
+			return err
+		}
 
-	overwrite := c.force
-	if !overwrite {
 		// check if file exists
 		if _, err := os.Stat(file); err == nil {
 			// file exists
 			prompt := &survey.Confirm{
 				Message: "File exists. Overwrite?",
 			}
-			if err := survey.AskOne(prompt, &overwrite); err != nil {
+			if err := survey.AskOne(prompt, &ack); err != nil {
 				return err
 			}
+		} else if !os.IsNotExist(err) {
+			return err
 		}
+	}
+
+	if !ack {
+		return nil
+	}
+
+	// get path to file, create directory if not exists
+	if err := os.MkdirAll(filepath.Dir(file), 0700); err != nil {
+		return err
 	}
 
 	cfg := config.Default()
@@ -65,7 +76,12 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 	b.WriteString("# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json\n\n")
 	b.Write(out)
 
-	return os.WriteFile(file, b.Bytes(), 0600)
+	if err := os.WriteFile(file, b.Bytes(), 0600); err != nil {
+		return err
+	}
+
+	fmt.Printf("Configuration file written to %s\n", file)
+	return nil
 }
 
 type editCommand struct{}
