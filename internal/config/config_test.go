@@ -241,39 +241,6 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "deprecated cache memory enabled",
-			path: "./testdata/deprecated/cache_memory_enabled.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.Cache.Enabled = true
-				cfg.Cache.Backend = CacheMemory
-				cfg.Cache.TTL = -time.Second
-				return cfg
-			},
-			warnings: []string{
-				"\"cache.memory.enabled\" is deprecated. Please use 'cache.enabled' and 'cache.backend' instead.",
-				"\"cache.memory.expiration\" is deprecated. Please use 'cache.ttl' instead.",
-			},
-		},
-		{
-			name:     "deprecated cache memory items defaults",
-			path:     "./testdata/deprecated/cache_memory_items.yml",
-			expected: Default,
-			warnings: []string{
-				"\"cache.memory.enabled\" is deprecated. Please use 'cache.enabled' and 'cache.backend' instead.",
-			},
-		},
-		{
-			name: "deprecated ui disabled",
-			path: "./testdata/deprecated/ui_disabled.yml",
-			expected: func() *Config {
-				cfg := Default()
-				cfg.UI.Enabled = false
-				return cfg
-			},
-			warnings: []string{"\"ui.enabled\" is deprecated."},
-		},
-		{
 			name:     "deprecated experimental filesystem_storage",
 			path:     "./testdata/deprecated/experimental_filesystem_storage.yml",
 			expected: Default,
@@ -647,9 +614,9 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("file not specified"),
 		},
 		{
-			name:    "url not specified",
-			path:    "./testdata/audit/invalid_webhook_url_not_provided.yml",
-			wantErr: errors.New("url not provided"),
+			name:    "url or template not specified",
+			path:    "./testdata/audit/invalid_webhook_url_or_template_not_provided.yml",
+			wantErr: errors.New("url or template(s) not provided"),
 		},
 		{
 			name: "local config provided",
@@ -891,6 +858,52 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 	}
 
 	return
+}
+
+func TestMarshalYAML(t *testing.T) {
+	tests := []struct {
+		name    string
+		path    string
+		wantErr error
+		cfg     func() *Config
+	}{
+		{
+			name: "defaults",
+			path: "./testdata/marshal/yaml/default.yml",
+			cfg: func() *Config {
+				cfg := Default()
+				// override the database URL to a file path for testing
+				cfg.Database.URL = "file:/tmp/flipt/flipt.db"
+				return cfg
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wantErr := tt.wantErr
+
+			expected, err := os.ReadFile(tt.path)
+			require.NoError(t, err)
+
+			out, err := yaml.Marshal(tt.cfg())
+			if wantErr != nil {
+				t.Log(err)
+				match := false
+				if errors.Is(err, wantErr) {
+					match = true
+				} else if err.Error() == wantErr.Error() {
+					match = true
+				}
+				require.True(t, match, "expected error %v to match: %v", err, wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+
+			assert.YAMLEq(t, string(expected), string(out))
+		})
+	}
 }
 
 type sliceEnvBinder []string

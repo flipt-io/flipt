@@ -1233,9 +1233,14 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		for _, name := range []string{
 			"log",
 			"ui",
+			"authentication",
+			"audit",
 			"cache",
+			"cors",
 			"server",
+			"storage",
 			"db",
+			"tracing",
 		} {
 			field, ok := configMap[name]
 			assert.True(t, ok, "Missing %s.", name)

@@ -13,14 +13,18 @@ var _ defaulter = (*AuditConfig)(nil)
 // AuditConfig contains fields, which enable and configure
 // Flipt's various audit sink mechanisms.
 type AuditConfig struct {
-	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks"`
-	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer"`
-	Events []string     `json:"events,omitempty" mapstructure:"events"`
+	Sinks  SinksConfig  `json:"sinks,omitempty" mapstructure:"sinks" yaml:"sinks,omitempty"`
+	Buffer BufferConfig `json:"buffer,omitempty" mapstructure:"buffer" yaml:"buffer,omitempty"`
+	Events []string     `json:"events,omitempty" mapstructure:"events" yaml:"events,omitempty"`
 }
 
 // Enabled returns true if any nested sink is enabled
-func (c *AuditConfig) Enabled() bool {
+func (c AuditConfig) Enabled() bool {
 	return c.Sinks.LogFile.Enabled || c.Sinks.Webhook.Enabled
+}
+
+func (c AuditConfig) IsZero() bool {
+	return !c.Enabled()
 }
 
 func (c *AuditConfig) setDefaults(v *viper.Viper) error {
@@ -49,8 +53,14 @@ func (c *AuditConfig) validate() error {
 		return errors.New("file not specified")
 	}
 
-	if c.Sinks.Webhook.Enabled && c.Sinks.Webhook.URL == "" {
-		return errors.New("url not provided")
+	if c.Sinks.Webhook.Enabled {
+		if c.Sinks.Webhook.URL == "" && len(c.Sinks.Webhook.Templates) == 0 {
+			return errors.New("url or template(s) not provided")
+		}
+
+		if c.Sinks.Webhook.URL != "" && len(c.Sinks.Webhook.Templates) > 0 {
+			return errors.New("only one of url or template(s) allowed")
+		}
 	}
 
 	if c.Buffer.Capacity < 2 || c.Buffer.Capacity > 10 {
@@ -67,29 +77,37 @@ func (c *AuditConfig) validate() error {
 // SinksConfig contains configuration held in structures for the different sinks
 // that we will send audits to.
 type SinksConfig struct {
-	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log"`
-	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook"`
+	LogFile LogFileSinkConfig `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
+	Webhook WebhookSinkConfig `json:"webhook,omitempty" mapstructure:"webhook" yaml:"webhook,omitempty"`
 }
 
 // WebhookSinkConfig contains configuration for sending POST requests to specific
 // URL as its configured.
 type WebhookSinkConfig struct {
-	Enabled            bool          `json:"enabled,omitempty" mapstructure:"enabled"`
-	URL                string        `json:"url,omitempty" mapstructure:"url"`
-	MaxBackoffDuration time.Duration `json:"maxBackoffDuration,omitempty" mapstructure:"max_backoff_duration"`
-	SigningSecret      string        `json:"signingSecret,omitempty" mapstructure:"signing_secret"`
+	Enabled            bool              `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	URL                string            `json:"url,omitempty" mapstructure:"url" yaml:"url,omitempty"`
+	MaxBackoffDuration time.Duration     `json:"maxBackoffDuration,omitempty" mapstructure:"max_backoff_duration" yaml:"max_backoff_duration,omitempty"`
+	SigningSecret      string            `json:"-" mapstructure:"signing_secret" yaml:"-"`
+	Templates          []WebhookTemplate `json:"templates,omitempty" mapstructure:"templates" yaml:"templates,omitempty"`
 }
 
 // LogFileSinkConfig contains fields that hold configuration for sending audits
 // to a log file.
 type LogFileSinkConfig struct {
-	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled"`
-	File    string `json:"file,omitempty" mapstructure:"file"`
+	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	File    string `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
 }
 
 // BufferConfig holds configuration for the buffering of sending the audit
 // events to the sinks.
 type BufferConfig struct {
-	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity"`
-	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period"`
+	Capacity    int           `json:"capacity,omitempty" mapstructure:"capacity" yaml:"capacity,omitempty"`
+	FlushPeriod time.Duration `json:"flushPeriod,omitempty" mapstructure:"flush_period" yaml:"flush_period,omitempty"`
+}
+
+// WebhookTemplate specifies configuration for a user to send a payload a particular destination URL.
+type WebhookTemplate struct {
+	URL     string            `json:"url,omitempty" mapstructure:"url"`
+	Body    string            `json:"body,omitempty" mapstructure:"body"`
+	Headers map[string]string `json:"headers,omitempty" mapstructure:"headers"`
 }

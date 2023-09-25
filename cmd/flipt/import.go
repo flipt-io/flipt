@@ -92,12 +92,21 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	// Use client when remote address is configured.
 	if c.address != "" {
-		return ext.NewImporter(
-			fliptClient(logger, c.address, c.token),
-		).Import(cmd.Context(), in)
+		client, err := fliptClient(c.address, c.token)
+		if err != nil {
+			return err
+		}
+		return ext.NewImporter(client, opts...).Import(cmd.Context(), in)
 	}
 
-	logger, cfg := buildConfig()
+	logger, cfg, err := buildConfig()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	// drop tables if specified
 	if c.dropBeforeImport {
