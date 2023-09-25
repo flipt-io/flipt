@@ -87,6 +87,7 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 type editCommand struct{}
 
 func (c *editCommand) run(cmd *cobra.Command, args []string) error {
+	// TODO: check if no TTY
 	file := providedConfigFile
 
 	if file == "" {
@@ -105,6 +106,7 @@ func (c *editCommand) run(cmd *cobra.Command, args []string) error {
 		Default:       string(b),
 		HideDefault:   true,
 		AppendDefault: true,
+		FileName:      "flipt*.yml",
 	}, &content); err != nil {
 		return err
 	}
