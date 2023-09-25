@@ -68,7 +68,7 @@ func (c *initCommand) run(cmd *cobra.Command, args []string) error {
 }
 
 func newConfigCommand() *cobra.Command {
-	var configCmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage Flipt configuration",
 	}
@@ -83,6 +83,8 @@ func newConfigCommand() *cobra.Command {
 
 	init.Flags().BoolVarP(&initCmd.force, "force", "y", false, "Overwrite existing configuration file")
 
-	configCmd.AddCommand(init)
-	return configCmd
+	cmd.PersistentFlags().StringVar(&providedConfigFile, "config", "", "path to config file")
+	cmd.AddCommand(init)
+
+	return cmd
 }
