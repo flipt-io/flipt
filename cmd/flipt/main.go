@@ -129,7 +129,7 @@ func exec() error {
 	banner = buf.String()
 
 	rootCmd.SetVersionTemplate(banner)
-	rootCmd.PersistentFlags().StringVar(&providedConfigFile, "config", "", "path to config file")
+	rootCmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	rootCmd.Flags().BoolVar(&forceMigrate, "force-migrate", false, "force migrations before running")
 	_ = rootCmd.Flags().MarkHidden("force-migrate")
 
@@ -138,6 +138,7 @@ func exec() error {
 	rootCmd.AddCommand(newImportCommand())
 	rootCmd.AddCommand(newValidateCommand())
 	rootCmd.AddCommand(newConfigCommand())
+	rootCmd.AddCommand(newCompletionCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
