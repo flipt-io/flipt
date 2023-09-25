@@ -14,10 +14,11 @@ import (
 )
 
 type exportCommand struct {
-	filename  string
-	address   string
-	token     string
-	namespace string
+	filename      string
+	address       string
+	token         string
+	namespaces    string // comma delimited list of namespaces
+	allNamespaces bool
 }
 
 func newExportCommand() *cobra.Command {
@@ -51,10 +52,17 @@ func newExportCommand() *cobra.Command {
 	)
 
 	cmd.Flags().StringVarP(
-		&export.namespace,
-		"namespace", "n",
+		&export.namespaces,
+		"namespaces", "n",
 		flipt.DefaultNamespace,
-		"source namespace for exported resources.",
+		"comma delimited list of namespaces to export from.",
+	)
+
+	cmd.Flags().BoolVar(
+		&export.allNamespaces,
+		"all-namespaces",
+		false,
+		"boolean flag to specify if every namespace should be exported.",
 	)
 
 	return cmd
@@ -101,5 +109,5 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 }
 
 func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, c.namespace).Export(ctx, dst)
+	return ext.NewExporter(lister, c.namespaces, c.allNamespaces).Export(ctx, dst)
 }
