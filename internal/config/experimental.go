@@ -20,5 +20,5 @@ func (c *ExperimentalConfig) deprecations(v *viper.Viper) []deprecated {
 // ExperimentalFlag is a structure which has properties to configure
 // experimental feature enablement.
 type ExperimentalFlag struct {
-	Enabled bool `json:"enabled,omitempty" mapstructure:"enabled"`
+	Enabled bool `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
 }

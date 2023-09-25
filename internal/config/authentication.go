@@ -37,22 +37,22 @@ type AuthenticationConfig struct {
 	// Required designates whether authentication credentials are validated.
 	// If required == true, then authentication is required for all API endpoints.
 	// Else, authentication is not required and Flipt's APIs are not secured.
-	Required bool `json:"required,omitempty" mapstructure:"required"`
+	Required bool `json:"required" mapstructure:"required" yaml:"required"`
 
 	// Exclude allows you to skip enforcing authentication on the different
 	// top-level sections of the API.
 	// By default, given required == true, the API is fully protected.
 	Exclude struct {
 		// Management refers to the section of the API with the prefix /api/v1
-		Management bool `json:"management,omitempty" mapstructure:"management"`
+		Management bool `json:"management,omitempty" mapstructure:"management" yaml:"management,omitempty"`
 		// Metadata refers to the section of the API with the prefix /meta
-		Metadata bool `json:"metadata,omitempty" mapstructure:"metadata"`
+		Metadata bool `json:"metadata,omitempty" mapstructure:"metadata" yaml:"metadata,omitempty"`
 		// Evaluation refers to the section of the API with the prefix /evaluation/v1
-		Evaluation bool `json:"evaluation,omitempty" mapstructure:"evaluation"`
-	} `json:"exclude,omitempty" mapstructure:"exclude"`
+		Evaluation bool `json:"evaluation,omitempty" mapstructure:"evaluation" yaml:"evaluation,omitempty"`
+	} `json:"exclude,omitempty" mapstructure:"exclude" yaml:"exclude,omitempty"`
 
-	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session"`
-	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods"`
+	Session AuthenticationSession `json:"session,omitempty" mapstructure:"session" yaml:"session,omitempty"`
+	Methods AuthenticationMethods `json:"methods,omitempty" mapstructure:"methods" yaml:"methods,omitempty"`
 }
 
 // Enabled returns true if authentication is marked as required
@@ -69,6 +69,12 @@ func (c AuthenticationConfig) Enabled() bool {
 	}
 
 	return false
+}
+
+// IsZero returns true if the authentication config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c AuthenticationConfig) IsZero() bool {
+	return !c.Enabled()
 }
 
 // ShouldRunCleanup returns true if the cleanup background process should be started.
@@ -181,16 +187,16 @@ func getHostname(rawurl string) (string, error) {
 // establishing authentication via HTTP.
 type AuthenticationSession struct {
 	// Domain is the domain on which to register session cookies.
-	Domain string `json:"domain,omitempty" mapstructure:"domain"`
+	Domain string `json:"domain,omitempty" mapstructure:"domain" yaml:"domain,omitempty"`
 	// Secure sets the secure property (i.e. HTTPS only) on both the state and token cookies.
-	Secure bool `json:"secure" mapstructure:"secure"`
+	Secure bool `json:"secure,omitempty" mapstructure:"secure" yaml:"secure,omitempty"`
 	// TokenLifetime is the duration of the flipt client token generated once
 	// authentication has been established via a session compatible method.
-	TokenLifetime time.Duration `json:"tokenLifetime,omitempty" mapstructure:"token_lifetime"`
+	TokenLifetime time.Duration `json:"tokenLifetime,omitempty" mapstructure:"token_lifetime" yaml:"token_lifetime,omitempty"`
 	// StateLifetime is the lifetime duration of the state cookie.
-	StateLifetime time.Duration `json:"stateLifetime,omitempty" mapstructure:"state_lifetime"`
+	StateLifetime time.Duration `json:"stateLifetime,omitempty" mapstructure:"state_lifetime" yaml:"state_lifetime,omitempty"`
 	// CSRF configures CSRF provention mechanisms.
-	CSRF AuthenticationSessionCSRF `json:"csrf,omitempty" mapstructure:"csrf"`
+	CSRF AuthenticationSessionCSRF `json:"csrf,omitempty" mapstructure:"csrf" yaml:"csrf,omitempty"`
 }
 
 // AuthenticationSessionCSRF configures cross-site request forgery prevention.
@@ -202,10 +208,10 @@ type AuthenticationSessionCSRF struct {
 // AuthenticationMethods is a set of configuration for each authentication
 // method available for use within Flipt.
 type AuthenticationMethods struct {
-	Token      AuthenticationMethod[AuthenticationMethodTokenConfig]      `json:"token,omitempty" mapstructure:"token"`
-	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github"`
-	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc"`
-	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes"`
+	Token      AuthenticationMethod[AuthenticationMethodTokenConfig]      `json:"token,omitempty" mapstructure:"token" yaml:"token,omitempty"`
+	Github     AuthenticationMethod[AuthenticationMethodGithubConfig]     `json:"github,omitempty" mapstructure:"github" yaml:"github,omitempty"`
+	OIDC       AuthenticationMethod[AuthenticationMethodOIDCConfig]       `json:"oidc,omitempty" mapstructure:"oidc" yaml:"oidc,omitempty"`
+	Kubernetes AuthenticationMethod[AuthenticationMethodKubernetesConfig] `json:"kubernetes,omitempty" mapstructure:"kubernetes" yaml:"kubernetes,omitempty"`
 }
 
 // AllMethods returns all the AuthenticationMethod instances available.
@@ -288,8 +294,8 @@ type AuthenticationMethodInfoProvider interface {
 // nolint:musttag
 type AuthenticationMethod[C AuthenticationMethodInfoProvider] struct {
 	Method  C                              `mapstructure:",squash"`
-	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled"`
-	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup,omitempty"`
+	Enabled bool                           `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+	Cleanup *AuthenticationCleanupSchedule `json:"cleanup,omitempty" mapstructure:"cleanup,omitempty" yaml:"cleanup,omitempty"`
 }
 
 func (a *AuthenticationMethod[C]) setDefaults(defaults map[string]any) {
@@ -317,7 +323,7 @@ func (a *AuthenticationMethod[C]) info() StaticAuthenticationMethodInfo {
 // This authentication method supports the ability to create static tokens via the
 // /auth/v1/method/token prefix of endpoints.
 type AuthenticationMethodTokenConfig struct {
-	Bootstrap AuthenticationMethodTokenBootstrapConfig `json:"bootstrap" mapstructure:"bootstrap"`
+	Bootstrap AuthenticationMethodTokenBootstrapConfig `json:"bootstrap" mapstructure:"bootstrap" yaml:"bootstrap"`
 }
 
 func (a AuthenticationMethodTokenConfig) setDefaults(map[string]any) {}
@@ -333,15 +339,15 @@ func (a AuthenticationMethodTokenConfig) info() AuthenticationMethodInfo {
 // AuthenticationMethodTokenBootstrapConfig contains fields used to configure the
 // bootstrap process for the authentication method "token".
 type AuthenticationMethodTokenBootstrapConfig struct {
-	Token      string        `json:"-" mapstructure:"token"`
-	Expiration time.Duration `json:"expiration,omitempty" mapstructure:"expiration"`
+	Token      string        `json:"-" mapstructure:"token" yaml:"token"`
+	Expiration time.Duration `json:"expiration,omitempty" mapstructure:"expiration" yaml:"expiration,omitempty"`
 }
 
 // AuthenticationMethodOIDCConfig configures the OIDC authentication method.
 // This method can be used to establish browser based sessions.
 type AuthenticationMethodOIDCConfig struct {
-	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches"`
-	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers"`
+	EmailMatches []string                                    `json:"emailMatches,omitempty" mapstructure:"email_matches" yaml:"email_matches,omitempty"`
+	Providers    map[string]AuthenticationMethodOIDCProvider `json:"providers,omitempty" mapstructure:"providers" yaml:"providers,omitempty"`
 }
 
 func (a AuthenticationMethodOIDCConfig) setDefaults(map[string]any) {}
@@ -376,18 +382,18 @@ func (a AuthenticationMethodOIDCConfig) info() AuthenticationMethodInfo {
 
 // AuthenticationOIDCProvider configures provider credentials
 type AuthenticationMethodOIDCProvider struct {
-	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url"`
-	ClientID        string   `json:"-" mapstructure:"client_id"`
-	ClientSecret    string   `json:"-" mapstructure:"client_secret"`
-	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
-	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
-	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce"`
+	IssuerURL       string   `json:"issuerURL,omitempty" mapstructure:"issuer_url" yaml:"issuer_url,omitempty"`
+	ClientID        string   `json:"-,omitempty" mapstructure:"client_id" yaml:"-"`
+	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
+	UsePKCE         bool     `json:"usePKCE,omitempty" mapstructure:"use_pkce" yaml:"use_pkce,omitempty"`
 }
 
 // AuthenticationCleanupSchedule is used to configure a cleanup goroutine.
 type AuthenticationCleanupSchedule struct {
-	Interval    time.Duration `json:"interval,omitempty" mapstructure:"interval"`
-	GracePeriod time.Duration `json:"gracePeriod,omitempty" mapstructure:"grace_period"`
+	Interval    time.Duration `json:"interval,omitempty" mapstructure:"interval" yaml:"interval,omitempty"`
+	GracePeriod time.Duration `json:"gracePeriod,omitempty" mapstructure:"grace_period" yaml:"grace_period,omitempty"`
 }
 
 // AuthenticationMethodKubernetesConfig contains the fields necessary for the Kubernetes authentication
@@ -397,13 +403,13 @@ type AuthenticationMethodKubernetesConfig struct {
 	// DiscoveryURL is the URL to the local Kubernetes cluster serving the "well-known" OIDC discovery endpoint.
 	// https://openid.net/specs/openid-connect-discovery-1_0.html
 	// The URL is used to fetch the OIDC configuration and subsequently the JWKS certificates.
-	DiscoveryURL string `json:"discoveryURL,omitempty" mapstructure:"discovery_url"`
+	DiscoveryURL string `json:"discoveryURL,omitempty" mapstructure:"discovery_url" yaml:"discovery_url,omitempty"`
 	// CAPath is the path on disk to the trusted certificate authority certificate for validating
 	// HTTPS requests to the issuer.
-	CAPath string `json:"caPath,omitempty" mapstructure:"ca_path"`
+	CAPath string `json:"caPath,omitempty" mapstructure:"ca_path" yaml:"ca_path,omitempty"`
 	// ServiceAccountTokenPath is the location on disk to the Flipt instances service account token.
 	// This should be the token issued for the service account associated with Flipt in the environment.
-	ServiceAccountTokenPath string `json:"serviceAccountTokenPath,omitempty" mapstructure:"service_account_token_path"`
+	ServiceAccountTokenPath string `json:"serviceAccountTokenPath,omitempty" mapstructure:"service_account_token_path" yaml:"service_account_token_path,omitempty"`
 }
 
 func (a AuthenticationMethodKubernetesConfig) setDefaults(defaults map[string]any) {
@@ -423,10 +429,10 @@ func (a AuthenticationMethodKubernetesConfig) info() AuthenticationMethodInfo {
 // AuthenticationMethodGithubConfig contains configuration and information for completing an OAuth
 // 2.0 flow with GitHub as a provider.
 type AuthenticationMethodGithubConfig struct {
-	ClientId        string   `json:"-" mapstructure:"client_id"`
-	ClientSecret    string   `json:"-" mapstructure:"client_secret"`
-	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address"`
-	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes"`
+	ClientId        string   `json:"-" mapstructure:"client_id" yaml:"-"`
+	ClientSecret    string   `json:"-" mapstructure:"client_secret" yaml:"-"`
+	RedirectAddress string   `json:"redirectAddress,omitempty" mapstructure:"redirect_address" yaml:"redirect_address,omitempty"`
+	Scopes          []string `json:"scopes,omitempty" mapstructure:"scopes" yaml:"scopes,omitempty"`
 }
 
 func (a AuthenticationMethodGithubConfig) setDefaults(defaults map[string]any) {}

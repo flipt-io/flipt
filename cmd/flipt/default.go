@@ -3,4 +3,4 @@
 
 package main
 
-var defaultCfgPath string
+var defaultConfigFile string

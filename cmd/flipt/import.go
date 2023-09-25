@@ -127,7 +127,14 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		return ext.NewImporter(client, opts...).Import(cmd.Context(), in)
 	}
 
-	logger, cfg := buildConfig()
+	logger, cfg, err := buildConfig()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	// drop tables if specified
 	if c.dropBeforeImport {
