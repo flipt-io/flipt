@@ -3,6 +3,7 @@ package testing
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"dagger.io/dagger"
@@ -11,9 +12,14 @@ import (
 func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container) error {
 	{
 		container := container.Pipeline("flipt --help")
+		expected, err := os.ReadFile("build/testing/testdata/cli.txt")
+		if err != nil {
+			return err
+		}
+
 		if _, err := assertExec(ctx, container, flipt("--help"),
 			fails,
-			stdout(equals(expectedFliptHelp))); err != nil {
+			stdout(equals(expected))); err != nil {
 			return err
 		}
 	}
@@ -34,21 +40,21 @@ func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container
 		container := container.Pipeline("flipt --config")
 		if _, err := assertExec(ctx, container, flipt("foo"),
 			fails,
-			stderr(equals(`Error: unknown command "foo" for "flipt"
+			stderr(contains(`unknown command "foo" for "flipt"
 Run 'flipt --help' for usage.`))); err != nil {
 			return err
 		}
 
 		if _, err := assertExec(ctx, container, flipt("--config", "/foo/bar.yml"),
 			fails,
-			stdout(contains(`loading configuration	{"error": "loading configuration: open /foo/bar.yml: no such file or directory", "config_path": "/foo/bar.yml"}`)),
+			stderr(contains("loading configuration: open /foo/bar.yml: no such file or directory")),
 		); err != nil {
 			return err
 		}
 
 		if _, err := assertExec(ctx, container, flipt("--config", "/tmp"),
 			fails,
-			stdout(contains(`loading configuration: Unsupported Config Type`)),
+			stderr(contains(`loading configuration: Unsupported Config Type`)),
 		); err != nil {
 			return err
 		}
@@ -58,7 +64,7 @@ Run 'flipt --help' for usage.`))); err != nil {
 		container := container.Pipeline("flipt (no config)")
 		if _, err := assertExec(ctx, container.WithExec([]string{"rm", "/etc/flipt/config/default.yml"}), flipt(),
 			fails,
-			stdout(contains(`loading configuration	{"error": "loading configuration: open /etc/flipt/config/default.yml: no such file or directory", "config_path": "/etc/flipt/config/default.yml"}`)),
+			stderr(contains(`loading configuration: open /etc/flipt/config/default.yml: no such file or directory`)),
 		); err != nil {
 			return err
 		}
@@ -110,7 +116,7 @@ exit $?`,
 		if _, err = assertExec(ctx, container,
 			flipt("import", "foo"),
 			fails,
-			stdout(contains("opening import file: open foo: no such file or directory")),
+			stderr(contains("opening import file: open foo: no such file or directory")),
 		); err != nil {
 			return err
 		}
@@ -213,26 +219,6 @@ exit $?`,
 }
 
 const (
-	expectedFliptHelp = `Flipt is a modern, self-hosted, feature flag solution
-
-Usage:
-  flipt [flags]
-  flipt [command]
-
-Available Commands:
-  export      Export flags/segments/rules to file/stdout
-  help        Help about any command
-  import      Import flags/segments/rules from file
-  migrate     Run pending database migrations
-  validate    Validate flipt flag state (.yaml, .yml) files
-
-Flags:
-      --config string   path to config file
-  -h, --help            help for flipt
-  -v, --version         version for flipt
-
-Use "flipt [command] --help" for more information about a command.
-`
 	expectedFliptYAML = `flags:
 - key: zUFtS7D0UyMeueYu
   name: UAoZRksg94r1iipa

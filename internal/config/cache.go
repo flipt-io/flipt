@@ -15,11 +15,11 @@ var _ defaulter = (*CacheConfig)(nil)
 //
 // Currently, flipt support in-memory and redis backed caching.
 type CacheConfig struct {
-	Enabled bool              `json:"enabled" mapstructure:"enabled"`
-	TTL     time.Duration     `json:"ttl,omitempty" mapstructure:"ttl"`
-	Backend CacheBackend      `json:"backend,omitempty" mapstructure:"backend"`
-	Memory  MemoryCacheConfig `json:"memory,omitempty" mapstructure:"memory"`
-	Redis   RedisCacheConfig  `json:"redis,omitempty" mapstructure:"redis"`
+	Enabled bool              `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
+	TTL     time.Duration     `json:"ttl,omitempty" mapstructure:"ttl" yaml:"ttl,omitempty"`
+	Backend CacheBackend      `json:"backend,omitempty" mapstructure:"backend" yaml:"backend,omitempty"`
+	Memory  MemoryCacheConfig `json:"memory,omitempty" mapstructure:"memory" yaml:"memory,omitempty"`
+	Redis   RedisCacheConfig  `json:"redis,omitempty" mapstructure:"redis" yaml:"redis,omitempty"`
 }
 
 func (c *CacheConfig) setDefaults(v *viper.Viper) error {
@@ -39,34 +39,17 @@ func (c *CacheConfig) setDefaults(v *viper.Viper) error {
 		},
 	})
 
-	if v.GetBool("cache.memory.enabled") {
-		// forcibly set top-level `enabled` to true
-		v.Set("cache.enabled", true)
-		v.Set("cache.backend", CacheMemory)
-		// ensure ttl is mapped to the value at memory.expiration
-		v.RegisterAlias("cache.ttl", "cache.memory.expiration")
-		// ensure ttl default is set
-		v.SetDefault("cache.memory.expiration", 1*time.Minute)
-	}
-
 	return nil
 }
 
-func (c *CacheConfig) deprecations(v *viper.Viper) []deprecated {
-	var deprecations []deprecated
-
-	if v.InConfig("cache.memory.enabled") {
-		deprecations = append(deprecations, "cache.memory.enabled")
-	}
-
-	if v.InConfig("cache.memory.expiration") {
-		deprecations = append(deprecations, "cache.memory.expiration")
-	}
-
-	return deprecations
+// IsZero returns true if the cache config is not enabled.
+// This is used for marshalling to YAML for `config init`.
+func (c CacheConfig) IsZero() bool {
+	return !c.Enabled
 }
 
 // CacheBackend is either memory or redis
+// TODO: can we use a string here instead?
 type CacheBackend uint8
 
 func (c CacheBackend) String() string {
@@ -75,6 +58,10 @@ func (c CacheBackend) String() string {
 
 func (c CacheBackend) MarshalJSON() ([]byte, error) {
 	return json.Marshal(c.String())
+}
+
+func (c CacheBackend) MarshalYAML() (interface{}, error) {
+	return c.String(), nil
 }
 
 const (
@@ -99,19 +86,19 @@ var (
 
 // MemoryCacheConfig contains fields, which configure in-memory caching.
 type MemoryCacheConfig struct {
-	EvictionInterval time.Duration `json:"evictionInterval,omitempty" mapstructure:"eviction_interval"`
+	EvictionInterval time.Duration `json:"evictionInterval,omitempty" mapstructure:"eviction_interval" yaml:"eviction_interval,omitempty"`
 }
 
 // RedisCacheConfig contains fields, which configure the connection
 // credentials for redis backed caching.
 type RedisCacheConfig struct {
-	Host            string        `json:"host,omitempty" mapstructure:"host"`
-	Port            int           `json:"port,omitempty" mapstructure:"port"`
-	RequireTLS      bool          `json:"requireTLS" mapstructure:"require_tls"`
-	Password        string        `json:"-" mapstructure:"password"`
-	DB              int           `json:"db,omitempty" mapstructure:"db"`
-	PoolSize        int           `json:"poolSize" mapstructure:"pool_size"`
-	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn"`
-	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time"`
-	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout"`
+	Host            string        `json:"host,omitempty" mapstructure:"host" yaml:"host,omitempty"`
+	Port            int           `json:"port,omitempty" mapstructure:"port" yaml:"port,omitempty"`
+	RequireTLS      bool          `json:"requireTLS,omitempty" mapstructure:"require_tls" yaml:"require_tls,omitempty"`
+	Password        string        `json:"-" mapstructure:"password" yaml:"-"`
+	DB              int           `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	PoolSize        int           `json:"poolSize" mapstructure:"pool_size" yaml:"pool_size"`
+	MinIdleConn     int           `json:"minIdleConn" mapstructure:"min_idle_conn" yaml:"min_idle_conn"`
+	ConnMaxIdleTime time.Duration `json:"connMaxIdleTime" mapstructure:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	NetTimeout      time.Duration `json:"netTimeout" mapstructure:"net_timeout" yaml:"net_timeout"`
 }

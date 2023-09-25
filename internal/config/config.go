@@ -16,6 +16,8 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+const Version = "1.0"
+
 var DecodeHooks = []mapstructure.DecodeHookFunc{
 	mapstructure.StringToTimeDurationHookFunc(),
 	stringToSliceHookFunc(),
@@ -40,19 +42,19 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 // then this will be called after unmarshalling, such that the function can emit
 // any errors derived from the resulting state of the configuration.
 type Config struct {
-	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty"`
-	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental"`
-	Log            LogConfig            `json:"log,omitempty" mapstructure:"log"`
-	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui"`
-	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors"`
-	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache"`
-	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server"`
-	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage"`
-	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing"`
-	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db"`
-	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta"`
-	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication"`
-	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit"`
+	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty" yaml:"version,omitempty"`
+	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental" yaml:"experimental,omitempty"`
+	Log            LogConfig            `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
+	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
+	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
+	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
+	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server" yaml:"server,omitempty"`
+	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
+	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
+	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta" yaml:"meta,omitempty"`
+	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
 }
 
 type Result struct {
@@ -324,7 +326,7 @@ func getFliptEnvs() (envs []string) {
 
 func (c *Config) validate() (err error) {
 	if c.Version != "" {
-		if strings.TrimSpace(c.Version) != "1.0" {
+		if strings.TrimSpace(c.Version) != Version {
 			return fmt.Errorf("invalid version: %s", c.Version)
 		}
 	}
@@ -439,7 +441,6 @@ func Default() *Config {
 		},
 
 		UI: UIConfig{
-			Enabled:      true,
 			DefaultTheme: SystemUITheme,
 		},
 
