@@ -168,7 +168,7 @@ exit $?`,
 		_, err := assertExec(ctx, container,
 			flipt("export", "--all-namespaces", "--namespaces", "foo,bar"),
 			fails,
-			stderr(contains("if any flags in the group [all-namespaces namespaces]")),
+			stderr(contains("if any flags in the group [all-namespaces namespaces namespace]")),
 		)
 		if err != nil {
 			return err
@@ -205,7 +205,7 @@ exit $?`,
 		}
 
 		container, err = assertExec(ctx, container,
-			flipt("export", "--namespaces", "foo", "-o", "/tmp/export.yml"),
+			flipt("export", "--namespace", "foo", "-o", "/tmp/export.yml"),
 		)
 		if err != nil {
 			return err
@@ -218,6 +218,31 @@ exit $?`,
 
 		if !strings.Contains(contents, expectedFliptYAML) {
 			return fmt.Errorf("unexpected output: %q does not contain %q", contents, expectedFliptYAML)
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt import YAML stream")
+
+		opts := dagger.ContainerWithFileOpts{
+			Owner: "flipt",
+		}
+
+		container = container.WithFile("/tmp/flipt.yml",
+			client.Host().Directory("build/testing/testdata").File("flipt-yaml-stream.yml"),
+			opts,
+		)
+
+		container, err := assertExec(ctx, container, sh("cat /tmp/flipt.yml | /flipt import --stdin"))
+		if err != nil {
+			return err
+		}
+
+		if _, err := assertExec(ctx, container,
+			flipt("export", "--all-namespaces"),
+			stdout(contains(expectedYAMLStreamOutput)),
+		); err != nil {
+			return err
 		}
 	}
 
@@ -259,5 +284,74 @@ segments:
   - type: STRING_COMPARISON_TYPE
     property: fizz
     operator: neq
-    value: buzz`
+    value: buzz
+`
+
+	expectedYAMLStreamOutput = `version: "1.2"
+namespace: default
+---
+version: "1.2"
+namespace: foo
+flags:
+- key: zUFtS7D0UyMeueYu
+  name: UAoZRksg94r1iipa
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: NGxfcVffpMhBz9n8
+    name: fhDHQ7rcxvoaWbHw
+  - key: sDGD6NvfCRyaQUn3
+  rules:
+  - segment: 08UoVJ96LhZblPEx
+    distributions:
+    - variant: NGxfcVffpMhBz9n8
+      rollout: 100
+segments:
+- key: 08UoVJ96LhZblPEx
+  name: 2oS8SHbrxyFkRg1a
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  - type: STRING_COMPARISON_TYPE
+    property: fizz
+    operator: neq
+    value: buzz
+  match_type: ALL_MATCH_TYPE
+---
+version: "1.2"
+namespace: bar
+flags:
+- key: zUFtS7D0UyMeueYu
+  name: UAoZRksg94r1iipa
+  type: VARIANT_FLAG_TYPE
+  description: description
+  enabled: true
+  variants:
+  - key: NGxfcVffpMhBz9n8
+    name: fhDHQ7rcxvoaWbHw
+  - key: sDGD6NvfCRyaQUn3
+  rules:
+  - segment: 08UoVJ96LhZblPEx
+    distributions:
+    - variant: NGxfcVffpMhBz9n8
+      rollout: 100
+segments:
+- key: 08UoVJ96LhZblPEx
+  name: 2oS8SHbrxyFkRg1a
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: foo
+    operator: eq
+    value: baz
+  - type: STRING_COMPARISON_TYPE
+    property: fizz
+    operator: neq
+    value: buzz
+  match_type: ALL_MATCH_TYPE
+`
 )

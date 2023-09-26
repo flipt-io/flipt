@@ -53,7 +53,14 @@ func newExportCommand() *cobra.Command {
 
 	cmd.Flags().StringVarP(
 		&export.namespaces,
-		"namespaces", "n",
+		"namespace", "n",
+		flipt.DefaultNamespace,
+		"source namespace for exported resources.",
+	)
+
+	cmd.Flags().StringVar(
+		&export.namespaces,
+		"namespaces",
 		flipt.DefaultNamespace,
 		"comma-delimited list of namespaces to export from. (mutually exclusive with --all-namespaces)",
 	)
@@ -65,7 +72,9 @@ func newExportCommand() *cobra.Command {
 		"export all namespaces. (mutually exclusive with --namespaces)",
 	)
 
-	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces")
+	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces", "namespace")
+
+	cmd.Flags().MarkDeprecated("namespace", "please use namespaces instead")
 
 	return cmd
 }
