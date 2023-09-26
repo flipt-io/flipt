@@ -97,7 +97,11 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	for i := 0; i < len(namespaces); i++ {
 		doc := new(Document)
-		doc.Version = versionString(latestVersion)
+		// Only provide the version to the first document in the YAML
+		// file.
+		if i == 0 {
+			doc.Version = versionString(latestVersion)
+		}
 		doc.Namespace = namespaces[i]
 
 		var (

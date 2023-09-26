@@ -290,7 +290,6 @@ segments:
 	expectedYAMLStreamOutput = `version: "1.2"
 namespace: default
 ---
-version: "1.2"
 namespace: foo
 flags:
 - key: zUFtS7D0UyMeueYu
@@ -322,7 +321,6 @@ segments:
     value: buzz
   match_type: ALL_MATCH_TYPE
 ---
-version: "1.2"
 namespace: bar
 flags:
 - key: zUFtS7D0UyMeueYu

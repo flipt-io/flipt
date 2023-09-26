@@ -46,7 +46,12 @@ func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 }
 
 func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
-	var dec = yaml.NewDecoder(r)
+	var (
+		dec     = yaml.NewDecoder(r)
+		version semver.Version
+	)
+
+	idx := 0
 
 	for {
 		var doc = new(Document)
@@ -57,22 +62,25 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 			return fmt.Errorf("unmarshalling document: %w", err)
 		}
 
-		v := latestVersion
-		if doc.Version != "" {
-			v, err = semver.ParseTolerant(doc.Version)
-			if err != nil {
-				return fmt.Errorf("parsing document version: %w", err)
-			}
-
-			var found bool
-			for _, sv := range supportedVersions {
-				if found = sv.EQ(v); found {
-					break
+		// Only support parsing vesrion at the top of each import file.
+		if idx == 0 {
+			version = latestVersion
+			if doc.Version != "" {
+				version, err = semver.ParseTolerant(doc.Version)
+				if err != nil {
+					return fmt.Errorf("parsing document version: %w", err)
 				}
-			}
 
-			if !found {
-				return fmt.Errorf("unsupported version: %s", doc.Version)
+				var found bool
+				for _, sv := range supportedVersions {
+					if found = sv.EQ(version); found {
+						break
+					}
+				}
+
+				if !found {
+					return fmt.Errorf("unsupported version: %s", doc.Version)
+				}
 			}
 		}
 
@@ -126,7 +134,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				if err := ensureFieldSupported("flag.type", semver.Version{
 					Major: 1,
 					Minor: 1,
-				}, v); err != nil {
+				}, version); err != nil {
 					return err
 				}
 
@@ -226,7 +234,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 
 				// support implicit rank from version >=1.1
 				rank := int32(r.Rank)
-				if rank == 0 && v.GE(semver.Version{Major: 1, Minor: 1}) {
+				if rank == 0 && version.GE(semver.Version{Major: 1, Minor: 1}) {
 					rank = int32(idx) + 1
 				}
 
@@ -279,7 +287,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				if err := ensureFieldSupported("flag.rollouts", semver.Version{
 					Major: 1,
 					Minor: 1,
-				}, v); err != nil {
+				}, version); err != nil {
 					return err
 				}
 
@@ -318,7 +326,7 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 							if err := ensureFieldSupported("flag.rollouts[*].segment.keys", semver.Version{
 								Major: 1,
 								Minor: 2,
-							}, v); err != nil {
+							}, version); err != nil {
 								return err
 							}
 
@@ -345,6 +353,8 @@ func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
 				}
 			}
 		}
+
+		idx += 1
 	}
 
 	return nil
