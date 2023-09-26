@@ -57,6 +57,7 @@ func newImportCommand() *cobra.Command {
 		"client token used to authenticate access to remote Flipt instance when importing.",
 	)
 
+	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	return cmd
 }
 

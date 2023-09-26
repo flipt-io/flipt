@@ -8,7 +8,7 @@ import (
 )
 
 func newMigrateCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "migrate",
 		Short: "Run pending database migrations",
 		RunE: func(_ *cobra.Command, _ []string) error {
@@ -35,4 +35,7 @@ func newMigrateCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
+	return cmd
 }

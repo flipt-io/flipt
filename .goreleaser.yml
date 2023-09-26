@@ -48,6 +48,8 @@ release:
 
     ```bash
       brew install flipt-io/brew/flipt
+      # or upgrade existing
+      brew update && brew upgrade flipt
     ```
 
     ### Docker Images :whale:
@@ -140,6 +142,12 @@ brews:
     license: GPL-3.0-only
     folder: Formula
     skip_upload: auto
+    install: |
+      bin.install "flipt"
+      output = Utils.popen_read("SHELL=bash #{bin}/flipt completion bash")
+      (bash_completion/"flipt").write output
+      output = Utils.popen_read("SHELL=zsh #{bin}/flipt completion zsh")
+      (zsh_completion/"_flipt").write output
 
     post_install: |
       (var/"log/flipt").mkpath

@@ -72,6 +72,8 @@ func newExportCommand() *cobra.Command {
 		"export all namespaces. (mutually exclusive with --namespaces)",
 	)
 
+	cmd.Flags().StringVar(&,providedConfigFile "config", "", "path to config file")
+
 	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces", "namespace")
 
 	cmd.Flags().MarkDeprecated("namespace", "please use namespaces instead")
