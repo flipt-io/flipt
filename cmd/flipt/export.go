@@ -55,15 +55,17 @@ func newExportCommand() *cobra.Command {
 		&export.namespaces,
 		"namespaces", "n",
 		flipt.DefaultNamespace,
-		"comma-delimited list of namespaces to export from.",
+		"comma-delimited list of namespaces to export from. (mutually exclusive with --all-namespaces)",
 	)
 
 	cmd.Flags().BoolVar(
 		&export.allNamespaces,
 		"all-namespaces",
 		false,
-		"export all namespaces.",
+		"export all namespaces. (mutually exclusive with --namespaces)",
 	)
+
+	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces")
 
 	return cmd
 }

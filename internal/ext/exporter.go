@@ -62,25 +62,38 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 		batchSize = e.batchSize
 	)
 
+	defer enc.Close()
+
 	var namespaces = e.namespaces
 
 	// If allNamespaces is "true", then retrieve all the namespaces, and store them in a string slice.
 	if e.allNamespaces {
-		ns, err := e.store.ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
-		if err != nil {
-			return fmt.Errorf("failed to list all namespaces: %w", err)
-		}
+		var (
+			remaining = true
+			nextPage  string
+		)
 
-		intermediateNamespaces := make([]string, 0, len(ns.Namespaces))
+		intermediateNamespaces := make([]string, 0)
 
-		for _, namespace := range ns.Namespaces {
-			intermediateNamespaces = append(intermediateNamespaces, namespace.Key)
+		for batch := int32(0); remaining; batch++ {
+			resp, err := e.store.ListNamespaces(ctx, &flipt.ListNamespaceRequest{
+				PageToken: nextPage,
+				Limit:     batchSize,
+			})
+			if err != nil {
+				return fmt.Errorf("getting namespaces: %w", err)
+			}
+
+			nextPage := resp.NextPageToken
+			remaining = nextPage != ""
+
+			for _, ns := range resp.Namespaces {
+				intermediateNamespaces = append(intermediateNamespaces, ns.Key)
+			}
 		}
 
 		namespaces = intermediateNamespaces
 	}
-
-	defer enc.Close()
 
 	for i := 0; i < len(namespaces); i++ {
 		doc := new(Document)

@@ -163,7 +163,20 @@ exit $?`,
 	}
 
 	{
-		container := container.Pipeline("flipt import create namespace")
+		container := container.Pipeline("flipt export with mutually exclusive flags")
+
+		_, err := assertExec(ctx, container,
+			flipt("export", "--all-namespaces", "--namespaces", "foo,bar"),
+			fails,
+			stderr(contains("if any flags in the group [all-namespaces namespaces]")),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		container := container.Pipeline("flipt import")
 
 		opts := dagger.ContainerWithFileOpts{
 			Owner: "flipt",
