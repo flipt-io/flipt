@@ -65,6 +65,7 @@ func newExportCommand() *cobra.Command {
 		"export all namespaces.",
 	)
 
+	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	return cmd
 }
 
