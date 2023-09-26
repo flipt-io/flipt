@@ -253,6 +253,26 @@ exit $?`,
 		}
 	}
 
+	{
+		container := container.Pipeline("flipt config init")
+
+		container, err := assertExec(ctx, container, flipt("config", "init", "-y"))
+		if err != nil {
+			return err
+		}
+
+		contents, err := container.File("/home/flipt/.config/flipt/config.yml").Contents(ctx)
+		if err != nil {
+			return err
+		}
+
+		expected := `# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json`
+
+		if !strings.Contains(contents, expected) {
+			return fmt.Errorf("unexpected output: %q does not contain %q", contents, expected)
+		}
+	}
+
 	return nil
 }
 
