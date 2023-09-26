@@ -128,8 +128,9 @@ func (c *editCommand) run(cmd *cobra.Command, args []string) error {
 
 func newConfigCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config",
-		Short: "Manage Flipt configuration",
+		Use:     "config",
+		Short:   "Manage Flipt configuration",
+		Aliases: []string{"cfg"},
 	}
 
 	var (
