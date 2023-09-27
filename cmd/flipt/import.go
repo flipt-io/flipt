@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage/sql"
-	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap"
 )
 
@@ -19,8 +18,6 @@ type importCommand struct {
 	importStdin      bool
 	address          string
 	token            string
-	namespace        string
-	createNamespace  bool
 }
 
 func newImportCommand() *cobra.Command {
@@ -60,20 +57,6 @@ func newImportCommand() *cobra.Command {
 		"client token used to authenticate access to remote Flipt instance when importing.",
 	)
 
-	cmd.Flags().StringVarP(
-		&importCmd.namespace,
-		"namespace", "n",
-		flipt.DefaultNamespace,
-		"destination namespace for imported resources.",
-	)
-
-	cmd.Flags().BoolVar(
-		&importCmd.createNamespace,
-		"create-namespace",
-		false,
-		"create the namespace if it does not exist.",
-	)
-
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
 	return cmd
 }
@@ -108,24 +91,13 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		in = fi
 	}
 
-	var opts []ext.ImportOpt
-
-	// use namespace when explicitly set
-	if c.namespace != "" && cmd.Flags().Changed("namespace") {
-		opts = append(opts, ext.WithNamespace(c.namespace))
-	}
-
-	if c.createNamespace {
-		opts = append(opts, ext.WithCreateNamespace())
-	}
-
 	// Use client when remote address is configured.
 	if c.address != "" {
 		client, err := fliptClient(c.address, c.token)
 		if err != nil {
 			return err
 		}
-		return ext.NewImporter(client, opts...).Import(cmd.Context(), in)
+		return ext.NewImporter(client).Import(cmd.Context(), in)
 	}
 
 	logger, cfg, err := buildConfig()
@@ -178,6 +150,5 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	return ext.NewImporter(
 		server,
-		opts...,
 	).Import(cmd.Context(), in)
 }

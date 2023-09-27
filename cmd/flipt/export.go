@@ -14,10 +14,11 @@ import (
 )
 
 type exportCommand struct {
-	filename  string
-	address   string
-	token     string
-	namespace string
+	filename      string
+	address       string
+	token         string
+	namespaces    string // comma delimited list of namespaces
+	allNamespaces bool
 }
 
 func newExportCommand() *cobra.Command {
@@ -51,13 +52,33 @@ func newExportCommand() *cobra.Command {
 	)
 
 	cmd.Flags().StringVarP(
-		&export.namespace,
+		&export.namespaces,
 		"namespace", "n",
 		flipt.DefaultNamespace,
 		"source namespace for exported resources.",
 	)
 
+	cmd.Flags().StringVar(
+		&export.namespaces,
+		"namespaces",
+		flipt.DefaultNamespace,
+		"comma-delimited list of namespaces to export from. (mutually exclusive with --all-namespaces)",
+	)
+
+	cmd.Flags().BoolVar(
+		&export.allNamespaces,
+		"all-namespaces",
+		false,
+		"export all namespaces. (mutually exclusive with --namespaces)",
+	)
+
 	cmd.Flags().StringVar(&providedConfigFile, "config", "", "path to config file")
+
+	cmd.MarkFlagsMutuallyExclusive("all-namespaces", "namespaces", "namespace")
+
+	// We can ignore the error here since "namespace" will be a flag that exists.
+	_ = cmd.Flags().MarkDeprecated("namespace", "please use namespaces instead")
+
 	return cmd
 }
 
@@ -114,5 +135,5 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 }
 
 func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, c.namespace).Export(ctx, dst)
+	return ext.NewExporter(lister, c.namespaces, c.allNamespaces).Export(ctx, dst)
 }

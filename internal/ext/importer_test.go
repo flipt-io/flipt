@@ -4,15 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -758,30 +754,48 @@ func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
 	assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
 }
 
-func TestImport_Namespaces(t *testing.T) {
+func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
 	tests := []struct {
-		name         string
-		docNamespace string
-		cliNamespace string
-		wantError    bool
+		name                      string
+		path                      string
+		expectedGetNSReqs         int
+		expectedCreateFlagReqs    int
+		expectedCreateSegmentReqs int
 	}{
 		{
-			name:         "import with namespace",
-			docNamespace: "namespace1",
-			cliNamespace: "namespace1",
-		}, {
-			name:         "import without doc namespace",
-			docNamespace: "",
-			cliNamespace: "namespace1",
-		}, {
-			name:         "import without cli namespace",
-			docNamespace: "namespace1",
-			cliNamespace: "",
-		}, {
-			name:         "import with different namespaces",
-			docNamespace: "namespace1",
-			cliNamespace: "namespace2",
-			wantError:    true,
+			name:                      "single namespace no YAML stream",
+			path:                      "testdata/import.yml",
+			expectedGetNSReqs:         0,
+			expectedCreateFlagReqs:    2,
+			expectedCreateSegmentReqs: 1,
+		},
+		{
+			name:                      "single namespace foo non-YAML stream",
+			path:                      "testdata/import_single_namespace_foo.yml",
+			expectedGetNSReqs:         1,
+			expectedCreateFlagReqs:    2,
+			expectedCreateSegmentReqs: 1,
+		},
+		{
+			name:                      "multiple namespaces default and foo",
+			path:                      "testdata/import_two_namespaces_default_and_foo.yml",
+			expectedGetNSReqs:         1,
+			expectedCreateFlagReqs:    4,
+			expectedCreateSegmentReqs: 2,
+		},
+		{
+			name:                      "yaml stream only default namespace",
+			path:                      "testdata/import_yaml_stream_default_namespace.yml",
+			expectedGetNSReqs:         0,
+			expectedCreateFlagReqs:    4,
+			expectedCreateSegmentReqs: 2,
+		},
+		{
+			name:                      "yaml stream all unqiue namespaces",
+			path:                      "testdata/import_yaml_stream_all_unique_namespaces.yml",
+			expectedGetNSReqs:         2,
+			expectedCreateFlagReqs:    6,
+			expectedCreateSegmentReqs: 3,
 		},
 	}
 
@@ -790,61 +804,21 @@ func TestImport_Namespaces(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
 				creator  = &mockCreator{}
-				importer = NewImporter(creator, WithNamespace(tc.cliNamespace))
+				importer = NewImporter(creator)
 			)
 
-			doc := fmt.Sprintf("version: 1.0\nnamespace: %s", tc.docNamespace)
-			err := importer.Import(context.Background(), strings.NewReader(doc))
-			if tc.wantError {
-				msg := fmt.Sprintf("namespace mismatch: namespaces must match in file and args if both provided: %s != %s", tc.docNamespace, tc.cliNamespace)
-				assert.EqualError(t, err, msg)
-				return
-			}
-
+			in, err := os.Open(tc.path)
 			assert.NoError(t, err)
+			defer in.Close()
+
+			err = importer.Import(context.Background(), in)
+			assert.NoError(t, err)
+
+			assert.Len(t, creator.getNSReqs, tc.expectedGetNSReqs)
+			assert.Len(t, creator.flagReqs, tc.expectedCreateFlagReqs)
+			assert.Len(t, creator.segmentReqs, tc.expectedCreateSegmentReqs)
 		})
 	}
-}
-
-func TestImport_CreateNamespace(t *testing.T) {
-	var (
-		creator  = &mockCreator{}
-		importer = NewImporter(creator, WithCreateNamespace())
-	)
-
-	in, err := os.Open("testdata/import_new_namespace.yml")
-	assert.NoError(t, err)
-	defer in.Close()
-
-	// first attempt to create namespace should be met with
-	// a namespace not found and still succeed, by attempting
-	// to create it
-	creator.getNSErr = ferrors.ErrNotFoundf("namespace not found")
-
-	err = importer.Import(context.Background(), in)
-	require.NoError(t, err)
-
-	// namespace was created
-	assert.Len(t, creator.createNSReqs, 1)
-	// flag was created
-	assert.Len(t, creator.flagReqs, 1)
-
-	// next call is assumed to return a nil error on get namespace
-	// now that is has been created
-	creator.getNSErr = nil
-
-	// rewind the file so it can be read again
-	_, _ = in.Seek(0, io.SeekStart)
-
-	// returns a nil error because namespace exists
-	err = importer.Import(context.Background(), in)
-	require.NoError(t, err)
-
-	// no new namespaces were requested because it already existed
-	assert.Len(t, creator.createNSReqs, 1)
-	// new flag creation was attempted even though it should
-	// fail in reality because the flag already exists
-	assert.Len(t, creator.flagReqs, 2)
 }
 
 //nolint:unparam
