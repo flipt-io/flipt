@@ -4,11 +4,14 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/cuecontext"
 	cueerrors "cuelang.org/go/cue/errors"
 	"cuelang.org/go/encoding/yaml"
+	goyaml "gopkg.in/yaml.v3"
 )
 
 //go:embed flipt.cue
@@ -80,19 +83,13 @@ func NewFeaturesValidator() (*FeaturesValidator, error) {
 	}, nil
 }
 
-// Validate validates a YAML file against our cue definition of features.
-func (v FeaturesValidator) Validate(file string, b []byte) error {
-	f, err := yaml.Extract("", b)
-	if err != nil {
-		return err
-	}
-
+func (v FeaturesValidator) validateSingleDocument(file string, f *ast.File, offset int) error {
 	yv := v.cue.BuildFile(f)
 	if err := yv.Err(); err != nil {
 		return err
 	}
 
-	err = v.v.
+	err := v.v.
 		Unify(yv).
 		Validate(cue.All(), cue.Concrete(true))
 
@@ -107,7 +104,7 @@ func (v FeaturesValidator) Validate(file string, b []byte) error {
 
 		if pos := cueerrors.Positions(e); len(pos) > 0 {
 			p := pos[len(pos)-1]
-			rerr.Location.Line = p.Line()
+			rerr.Location.Line = p.Line() + offset
 			rerr.Location.Column = p.Column()
 		}
 
@@ -115,4 +112,46 @@ func (v FeaturesValidator) Validate(file string, b []byte) error {
 	}
 
 	return errors.Join(errs...)
+}
+
+// Validate validates a YAML file against our cue definition of features.
+func (v FeaturesValidator) Validate(file string, reader io.Reader) error {
+	decoder := goyaml.NewDecoder(reader)
+
+	i := 0
+
+	for {
+		var node goyaml.Node
+
+		if err := decoder.Decode(&node); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+
+			return err
+		}
+
+		b, err := goyaml.Marshal(&node)
+		if err != nil {
+			return err
+		}
+
+		f, err := yaml.Extract("", b)
+		if err != nil {
+			return err
+		}
+
+		var offset = node.Line - 1
+		if i > 0 {
+			offset = node.Line
+		}
+
+		if err := v.validateSingleDocument(file, f, offset); err != nil {
+			return err
+		}
+
+		i += 1
+	}
+
+	return nil
 }

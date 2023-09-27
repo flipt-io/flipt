@@ -107,12 +107,9 @@ func SnapshotFromPaths(fs fs.FS, paths ...string) (*StoreSnapshot, error) {
 		defer fi.Close()
 
 		buf := &bytes.Buffer{}
-		contents, err := io.ReadAll(io.TeeReader(fi, buf))
-		if err != nil {
-			return nil, err
-		}
+		reader := io.TeeReader(fi, buf)
 
-		if err := validator.Validate(file, contents); err != nil {
+		if err := validator.Validate(file, reader); err != nil {
 			return nil, err
 		}
 
@@ -135,21 +132,27 @@ func snapshotFromReaders(sources ...io.Reader) (*StoreSnapshot, error) {
 	}
 
 	for _, reader := range sources {
-		doc := new(ext.Document)
+		decoder := yaml.NewDecoder(reader)
+		// Support YAML stream by looping until we reach an EOF.
+		for {
+			doc := new(ext.Document)
 
-		if err := yaml.NewDecoder(reader).Decode(doc); err != nil {
-			return nil, err
+			if err := decoder.Decode(doc); err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				return nil, err
+			}
+
+			// set namespace to default if empty in document
+			if doc.Namespace == "" {
+				doc.Namespace = "default"
+			}
+
+			if err := s.addDoc(doc); err != nil {
+				return nil, err
+			}
 		}
-
-		// set namespace to default if empty in document
-		if doc.Namespace == "" {
-			doc.Namespace = "default"
-		}
-
-		if err := s.addDoc(doc); err != nil {
-			return nil, err
-		}
-
 	}
 	return &s, nil
 }

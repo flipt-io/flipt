@@ -10,46 +10,46 @@ import (
 )
 
 func TestValidate_V1_Success(t *testing.T) {
-	b, err := os.ReadFile("testdata/valid_v1.yaml")
+	f, err := os.Open("testdata/valid_v1.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid_v1.yaml", b)
+	err = v.Validate("testdata/valid_v1.yaml", f)
 	assert.NoError(t, err)
 }
 
 func TestValidate_Latest_Success(t *testing.T) {
-	b, err := os.ReadFile("testdata/valid.yaml")
+	f, err := os.Open("testdata/valid.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid.yaml", b)
+	err = v.Validate("testdata/valid.yaml", f)
 	assert.NoError(t, err)
 }
 
 func TestValidate_Latest_Segments_V2(t *testing.T) {
-	b, err := os.ReadFile("testdata/valid_segments_v2.yaml")
+	f, err := os.Open("testdata/valid_segments_v2.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/valid_segments_v2.yaml", b)
+	err = v.Validate("testdata/valid_segments_v2.yaml", f)
 	assert.NoError(t, err)
 }
 
 func TestValidate_Failure(t *testing.T) {
-	b, err := os.ReadFile("testdata/invalid.yaml")
+	f, err := os.Open("testdata/invalid.yaml")
 	require.NoError(t, err)
 
 	v, err := NewFeaturesValidator()
 	require.NoError(t, err)
 
-	err = v.Validate("testdata/invalid.yaml", b)
+	err = v.Validate("testdata/invalid.yaml", f)
 
 	errs, ok := Unwrap(err)
 	require.True(t, ok)
