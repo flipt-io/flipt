@@ -25,7 +25,7 @@ func newImportCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "import",
-		Short: "Import flags/segments/rules from file",
+		Short: "Import Flipt data from file/stdin",
 		RunE:  importCmd.run,
 	}
 
