@@ -11,11 +11,15 @@ import (
 // docCommand represents the documentation command
 func newDocCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:    "doc",
+		Use:    "doc [path]",
 		Short:  "Generate command documentation",
 		Hidden: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := os.MkdirAll("./tmp/docs", 0755); err != nil {
+			path := "./tmp/docs"
+			if len(args) > 0 {
+				path = args[0]
+			}
+			if err := os.MkdirAll(path, 0755); err != nil {
 				return fmt.Errorf("failed to create docs directory: %w", err)
 			}
 
