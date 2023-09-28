@@ -208,4 +208,3 @@ segments:
     operator: eq
     value: baz
   match_type: ANY_MATCH_TYPE
-

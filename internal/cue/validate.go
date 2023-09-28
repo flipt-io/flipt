@@ -20,9 +20,8 @@ var cueFile []byte
 // Location contains information about where an error has occurred during cue
 // validation.
 type Location struct {
-	File   string `json:"file,omitempty"`
-	Line   int    `json:"line"`
-	Column int    `json:"column"`
+	File string `json:"file,omitempty"`
+	Line int    `json:"line"`
 }
 
 type unwrapable interface {
@@ -57,12 +56,11 @@ func (e Error) Format(f fmt.State, verb rune) {
 - Message  : %s
   File     : %s
   Line     : %d
-  Column   : %d
-`, e.Message, e.Location.File, e.Location.Line, e.Location.Column)
+`, e.Message, e.Location.File, e.Location.Line)
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("%s (%s %d:%d)", e.Message, e.Location.File, e.Location.Line, e.Location.Column)
+	return fmt.Sprintf("%s (%s %d)", e.Message, e.Location.File, e.Location.Line)
 }
 
 type FeaturesValidator struct {
@@ -105,7 +103,6 @@ func (v FeaturesValidator) validateSingleDocument(file string, f *ast.File, offs
 		if pos := cueerrors.Positions(e); len(pos) > 0 {
 			p := pos[len(pos)-1]
 			rerr.Location.Line = p.Line() + offset
-			rerr.Location.Column = p.Column()
 		}
 
 		errs = append(errs, rerr)

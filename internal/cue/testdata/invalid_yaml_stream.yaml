@@ -1,0 +1,74 @@
+namespace: default
+flags:
+- key: flipt
+  name: flipt
+  description: flipt
+  enabled: false
+  variants:
+  - key: flipt
+    name: flipt
+  - key: flipt
+    name: flipt
+  rules:
+  - segment: internal-users
+    rank: 1
+    distributions:
+    - variant: fromFlipt
+      rollout: 100
+  - segment: all-users
+    rank: 2
+    distributions:
+    - variant: fromFlipt2
+      rollout: 100
+segments:
+- key: all-users
+  name: All Users
+  description: All Users
+  match_type: ALL_MATCH_TYPE
+- key: internal-users
+  name: Internal Users
+  description: All internal users at flipt.
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: organization
+    operator: eq
+    value: flipt
+  match_type: ALL_MATCH_TYPE
+---
+namespace: foo
+flags:
+- key: flipt
+  name: flipt
+  description: flipt
+  enabled: false
+  variants:
+  - key: flipt
+    name: flipt
+  - key: flipt
+    name: flipt
+  rules:
+  - segment: internal-users
+    rank: 1
+    distributions:
+    - variant: fromFlipt
+      rollout: 100
+  - segment: all-users
+    rank: 2
+    distributions:
+    - variant: fromFlipt2
+      rollout: 110
+segments:
+- key: all-users
+  name: All Users
+  description: All Users
+  match_type: ALL_MATCH_TYPE
+- key: internal-users
+  name: Internal Users
+  description: All internal users at flipt.
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: organization
+    operator: eq
+    value: flipt
+  match_type: ALL_MATCH_TYPE
+

@@ -1,0 +1,27 @@
+namespace: fruit
+flags:
+- key: apple
+  name: Apple
+  variants:
+  - key: royal-gala
+  - key: pink-lady
+  rules:
+    - segment: internal
+segments:
+- key: internal
+  name: Internal
+  match_type: ANY_MATCH_TYPE
+---
+namespace: football
+flags:
+- key: team
+  name: Team
+  variants:
+  - key: bears
+  - key: rams
+  rules:
+    - segment: internal
+segments:
+- key: internal
+  name: Internal
+  match_type: ANY_MATCH_TYPE

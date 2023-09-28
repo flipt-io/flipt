@@ -42,6 +42,17 @@ func TestValidate_Latest_Segments_V2(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestValidate_YAML_Stream(t *testing.T) {
+	f, err := os.Open("testdata/valid_yaml_stream.yaml")
+	require.NoError(t, err)
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate("testdata/valid_yaml_stream.yaml", f)
+	assert.NoError(t, err)
+}
+
 func TestValidate_Failure(t *testing.T) {
 	f, err := os.Open("testdata/invalid.yaml")
 	require.NoError(t, err)
@@ -60,5 +71,24 @@ func TestValidate_Failure(t *testing.T) {
 	assert.Equal(t, "flags.0.rules.1.distributions.0.rollout: invalid value 110 (out of bound <=100)", ferr.Message)
 	assert.Equal(t, "testdata/invalid.yaml", ferr.Location.File)
 	assert.Equal(t, 22, ferr.Location.Line)
-	assert.Equal(t, 17, ferr.Location.Column)
+}
+
+func TestValidate_Failure_YAML_Stream(t *testing.T) {
+	f, err := os.Open("testdata/invalid_yaml_stream.yaml")
+	require.NoError(t, err)
+
+	v, err := NewFeaturesValidator()
+	require.NoError(t, err)
+
+	err = v.Validate("testdata/invalid_yaml_stream.yaml", f)
+
+	errs, ok := Unwrap(err)
+	require.True(t, ok)
+
+	var ferr Error
+	require.True(t, errors.As(errs[0], &ferr))
+
+	assert.Equal(t, "flags.0.rules.1.distributions.0.rollout: invalid value 110 (out of bound <=100)", ferr.Message)
+	assert.Equal(t, "testdata/invalid_yaml_stream.yaml", ferr.Location.File)
+	assert.Equal(t, 59, ferr.Location.Line)
 }

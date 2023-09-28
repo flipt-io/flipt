@@ -1661,3 +1661,48 @@ func TestFS_Invalid_BooleanFlag_Segment(t *testing.T) {
 	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
 }
+
+func TestFS_YAML_Stream(t *testing.T) {
+	fs, _ := fs.Sub(testdata, "fixtures/yaml_stream")
+	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
+	require.NoError(t, err)
+
+	ns, err := ss.ListNamespaces(context.TODO())
+	require.NoError(t, err)
+
+	// 3 namespaces including default
+	assert.Len(t, ns.Results, 3)
+	var namespaces = make([]string, 0, len(ns.Results))
+
+	for _, n := range ns.Results {
+		namespaces = append(namespaces, n.Key)
+	}
+
+	for _, namespace := range []string{"default", "football", "fruit"} {
+		assert.Contains(t, namespaces, namespace)
+	}
+
+	fflags, err := ss.ListFlags(context.TODO(), "football")
+	require.NoError(t, err)
+
+	assert.Len(t, fflags.Results, 1)
+	assert.Equal(t, "team", fflags.Results[0].Key)
+
+	frflags, err := ss.ListFlags(context.TODO(), "fruit")
+	require.NoError(t, err)
+
+	assert.Len(t, frflags.Results, 1)
+	assert.Equal(t, "apple", frflags.Results[0].Key)
+
+	fsegments, err := ss.ListSegments(context.TODO(), "football")
+	require.NoError(t, err)
+
+	assert.Len(t, fsegments.Results, 1)
+	assert.Equal(t, "internal", fsegments.Results[0].Key)
+
+	frsegments, err := ss.ListSegments(context.TODO(), "fruit")
+	require.NoError(t, err)
+
+	assert.Len(t, frsegments.Results, 1)
+	assert.Equal(t, "internal", frsegments.Results[0].Key)
+}
