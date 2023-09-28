@@ -8,7 +8,7 @@
 #          /_/           
 #
 # Usage:
-#   curl -fsSL https://github.com/flipt-io/flipt/raw/latest/install.sh | sh
+#   curl -fsSL https://github.com/flipt-io/flipt/raw/latest/install.sh | bash
 set -e
 
 file_issue_prompt() {
