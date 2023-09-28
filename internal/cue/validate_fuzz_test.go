@@ -4,6 +4,7 @@
 package cue
 
 import (
+	"bytes"
 	"os"
 	"testing"
 )
@@ -12,8 +13,8 @@ func FuzzValidate(f *testing.F) {
 	testcases := []string{"testdata/valid.yml", "testdata/invalid.yml"}
 
 	for _, tc := range testcases {
-		b, _ := os.ReadFile(tc)
-		f.Add(b)
+		fi, _ := os.ReadFile(tc)
+		f.Add(fi)
 	}
 
 	f.Fuzz(func(t *testing.T, in []byte) {
@@ -23,7 +24,7 @@ func FuzzValidate(f *testing.F) {
 			t.Skip()
 		}
 
-		if err := validator.Validate("foo", in); err != nil {
+		if err := validator.Validate("foo", bytes.NewBuffer(in)); err != nil {
 			// we only care about panics
 			t.Skip()
 		}

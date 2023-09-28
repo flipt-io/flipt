@@ -1,0 +1,97 @@
+namespace: default
+flags:
+- key: flipt
+  name: flipt
+  description: flipt
+  enabled: false
+  variants:
+  - key: flipt
+    name: flipt
+  - key: flipt
+    name: flipt
+    description: I'm a description.
+  rules:
+  - segment: internal-users
+    distributions:
+    - variant: fromFlipt
+      rollout: 100
+  - segment: all-users
+    distributions:
+    - variant: fromFlipt2
+      rollout: 100
+- key: boolean
+  name: Boolean
+  description: Boolean flag
+  enabled: false
+  rollouts:
+  - description: enabled for internal users
+    segment:
+      key: internal-users
+      value: true
+  - description: enabled for 50%
+    threshold:
+      percentage: 50.0
+      value: true
+segments:
+- key: all-users
+  name: All Users
+  description: All Users
+  match_type: ALL_MATCH_TYPE
+- key: internal-users
+  name: Internal Users
+  description: All internal users at flipt.
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: organization
+    operator: eq
+    value: flipt
+  match_type: ALL_MATCH_TYPE
+---
+namespace: foo
+flags:
+- key: flipt
+  name: flipt
+  description: flipt
+  enabled: false
+  variants:
+  - key: flipt
+    name: flipt
+  - key: flipt
+    name: flipt
+    description: I'm a description.
+  rules:
+  - segment: internal-users
+    distributions:
+    - variant: fromFlipt
+      rollout: 100
+  - segment: all-users
+    distributions:
+    - variant: fromFlipt2
+      rollout: 100
+- key: boolean
+  name: Boolean
+  description: Boolean flag
+  enabled: false
+  rollouts:
+  - description: enabled for internal users
+    segment:
+      key: internal-users
+      value: true
+  - description: enabled for 50%
+    threshold:
+      percentage: 50.0
+      value: true
+segments:
+- key: all-users
+  name: All Users
+  description: All Users
+  match_type: ALL_MATCH_TYPE
+- key: internal-users
+  name: Internal Users
+  description: All internal users at flipt.
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: organization
+    operator: eq
+    value: flipt
+  match_type: ALL_MATCH_TYPE
