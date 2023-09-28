@@ -19,7 +19,7 @@ file_issue_prompt() {
 
 get_latest_version() {
   local res=$(curl -fsSL https://api.github.com/repos/flipt-io/flipt/releases/latest | grep tag_name | cut -d '"' -f 4)
-  echo $res
+  echo "$res"
 }
 
 copy() {
@@ -53,7 +53,7 @@ function get_version() {
   if [[ "$VERSION" != v* ]]; then
     VERSION="v$VERSION"
   fi
-  echo $VERSION
+  echo "$VERSION"
 }
 
 function install() {
@@ -84,7 +84,6 @@ function install() {
       exit 1
   fi
   curl -o /tmp/flipt.tar.gz -fsSL https://github.com/flipt-io/flipt/releases/download/$version/flipt_$OS\_$ARCH.tar.gz
-  # untar
   tar -xzf /tmp/flipt.tar.gz -C /tmp
   chmod +x /tmp/flipt
   copy
@@ -95,4 +94,4 @@ function install() {
   echo ""
   }
 
-install $1
+install "$1"
