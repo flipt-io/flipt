@@ -139,6 +139,7 @@ func exec() error {
 	rootCmd.AddCommand(newValidateCommand())
 	rootCmd.AddCommand(newConfigCommand())
 	rootCmd.AddCommand(newCompletionCommand())
+	rootCmd.AddCommand(newDocCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
