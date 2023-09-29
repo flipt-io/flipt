@@ -60,7 +60,10 @@ test.describe('Rules', () => {
     await page
       .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
       .click();
-    await page.getByRole('button', { name: 'Update' }).click();
+    await page
+      .getByRole('listitem')
+      .getByRole('button', { name: 'Update' })
+      .click();
     await expect(page.getByText('Successfully updated rule')).toBeVisible();
   });
 });
