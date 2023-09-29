@@ -1,5 +1,7 @@
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline';
+import { useOutletContext } from 'react-router-dom';
 import Well from '~/components/Well';
+import { FlagProps } from './FlagProps';
 
 const actions = [
   {
@@ -21,11 +23,14 @@ const actions = [
 ];
 
 export default function Integrations() {
+  const { flag } = useOutletContext<FlagProps>();
+
   return (
     <div className="flex-row justify-between pb-5 sm:flex sm:items-center">
       <div className="flex w-full flex-col">
         <p className="text-gray-500 mt-5 text-sm">
-          How to integrate Flipt into your applications.
+          How to integrate <span className="text-gray-700">{flag.key}</span>{' '}
+          into your applications.
         </p>
         <Well className="mt-10 w-full">
           <div className="divide-y divide-gray-200 overflow-hidden sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
