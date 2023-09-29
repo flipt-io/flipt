@@ -38,7 +38,7 @@ test.describe('Rules', () => {
       await page.reload();
       await page.getByRole('link', { name: 'Flags' }).click();
       await page.getByRole('link', { name: 'test-rule' }).click();
-      await page.getByRole('link', { name: 'Evaluation' }).click();
+      await page.getByRole('link', { name: 'Rules' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
       await page.locator('#segmentKey-0-select-button').click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
@@ -50,7 +50,7 @@ test.describe('Rules', () => {
 
   test('can update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Evaluation' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
     await page
       .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
       .click();
@@ -60,7 +60,10 @@ test.describe('Rules', () => {
     await page
       .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
       .click();
-    await page.getByRole('button', { name: 'Update' }).click();
+    await page
+      .getByRole('listitem')
+      .getByRole('button', { name: 'Update' })
+      .click();
     await expect(page.getByText('Successfully updated rule')).toBeVisible();
   });
 });
@@ -83,20 +86,20 @@ test.describe('Rules - Read Only', () => {
   test('can not create rule', async ({ page }) => {
     await page.getByRole('link', { name: 'Flags' }).click();
     await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Evaluation' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
     await expect(page.getByRole('button', { name: 'New Rule' })).toBeDisabled();
   });
 
   test('can not update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Evaluation' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
     await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Edit' })).toBeHidden();
   });
 
   test('can not delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Evaluation' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
     await page.getByTestId('rule-menu-button').click();
     await expect(page.getByRole('link', { name: 'Delete' })).toBeHidden();
   });

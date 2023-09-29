@@ -1,6 +1,7 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useOutletContext } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
@@ -15,11 +16,11 @@ import { IVariant } from '~/types/Variant';
 
 type VariantsProps = {
   flag: IFlag;
-  flagChanged: () => void;
+  onFlagChange: () => void;
 };
 
-export default function Variants(props: VariantsProps) {
-  const { flag, flagChanged } = props;
+export default function Variants() {
+  const { flag, onFlagChange } = useOutletContext<VariantsProps>();
 
   const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
   const [editingVariant, setEditingVariant] = useState<IVariant | null>(null);
@@ -47,7 +48,7 @@ export default function Variants(props: VariantsProps) {
           setOpen={setShowVariantForm}
           onSuccess={() => {
             setShowVariantForm(false);
-            flagChanged();
+            onFlagChange();
           }}
         />
       </Slideover>
@@ -71,18 +72,15 @@ export default function Variants(props: VariantsProps) {
               deleteVariant(namespace.key, flag.key, deletingVariant?.id ?? '') // TODO: Determine impact of blank ID param
           }
           onSuccess={() => {
-            flagChanged();
+            onFlagChange();
           }}
         />
       </Modal>
 
       {/* variants */}
-      <div className="mt-10">
+      <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-gray-900 text-lg font-medium leading-6">
-              Variants
-            </h1>
             <p className="text-gray-500 mt-1 text-sm">
               Return different values based on rules you define
             </p>
@@ -108,7 +106,7 @@ export default function Variants(props: VariantsProps) {
             </div>
           )}
         </div>
-        <div className="my-10">
+        <div className="mt-10">
           {flag.variants && flag.variants.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-300">
               <thead>

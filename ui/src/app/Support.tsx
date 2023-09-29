@@ -22,7 +22,7 @@ export default function Support() {
             className="text-white bg-violet-500 mb-1 inline-flex items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm hover:bg-violet-600 hover:cursor-pointer focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1"
             target="_blank"
             rel="noreferrer"
-            href="https://www.flipt.io/docs/"
+            href="https://www.flipt.io/docs?utm_source=app"
           >
             <span>Documentation</span>
             <ArrowUpRightIcon
@@ -50,7 +50,7 @@ export default function Support() {
                 </div>
                 <div className="mt-4 flex grow items-end sm:mt-0">
                   <a
-                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-gray-400 sm:px-3 sm:py-2"
+                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
                     href="https://github.com/flipt-io/flipt/issues/new/choose"
                   >
                     <span className="text-gray-700 text-sm">
@@ -73,7 +73,7 @@ export default function Support() {
                 </div>
                 <div className="mt-4 flex grow items-end sm:mt-0">
                   <a
-                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-gray-400 sm:px-3 sm:py-2"
+                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
                     href="mailto:info@flipt.io?subject=Slack Connect Request&body=Hi there! I'd like to request a Slack Connect channel for our team."
                   >
                     <span className="text-gray-700 text-sm">
@@ -96,7 +96,7 @@ export default function Support() {
                 </div>
                 <div className="mt-4 flex grow items-end sm:mt-0">
                   <a
-                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-gray-400 sm:px-3 sm:py-2"
+                    className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
                     href="mailto:info@flipt.io?subject=Support Inquiry"
                   >
                     <span className="text-gray-700 text-sm">Send Email</span>
