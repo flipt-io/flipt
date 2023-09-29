@@ -1,0 +1,73 @@
+name: Bug report
+description: Create a report to help us improve
+title: "[Bug]: "
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug here...
+    validations:
+      required: true
+
+  - type: textarea
+    id: version-info
+    attributes:
+      label: Version Info
+      description: Run `flipt --version` and paste the output here.
+      placeholder: Paste the output of `flipt --version` here...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Search
+      options:
+        - label: I searched for other open and closed issues before opening this
+          required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: Steps to reproduce the behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: Describe what you expected to happen here...
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+      placeholder: |
+        Examples:
+
+        - OS
+        - Config file used
+        - Database used (SQLite, MySQL, Postgres, etc.)
+        - Screenshots
+        - Exported data from the database (see below)
+
+  - type: markdown
+    attributes:
+      value: |
+        **Attach an Export**
+
+        If the bug could be best shown with a specific set of data, please export your data by running `flipt export > export.yml` and then attach the YAML file to this issue. ❤️
