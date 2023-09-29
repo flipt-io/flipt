@@ -66,6 +66,10 @@ export default function Flag() {
     {
       name: 'Details',
       to: ''
+    },
+    {
+      name: 'Integrate',
+      to: 'integrations'
     }
   ];
 

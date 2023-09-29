@@ -18,6 +18,7 @@ import SessionProvider from './components/SessionProvider';
 import { request } from './data/api';
 import { Theme } from './types/Preferences';
 const Flags = loadable(() => import('./app/flags/Flags'));
+const Integrations = loadable(() => import('./app/flags/Integrations'));
 const Variants = loadable(() => import('./app/flags/variants/Variants'));
 const Rules = loadable(() => import('./app/flags/rules/Rules'));
 const Segments = loadable(() => import('./app/segments/Segments'));
@@ -65,6 +66,10 @@ const namespacesRoutes = [
             element: <Rules />
           }
         ]
+      },
+      {
+        path: 'integrations',
+        element: <Integrations />
       }
     ]
   },
