@@ -768,6 +768,7 @@ func TestBatch_Success(t *testing.T) {
 	res, err := s.Batch(context.TODO(), &rpcevaluation.BatchEvaluationRequest{
 		Requests: []*rpcevaluation.EvaluationRequest{
 			{
+				RequestId:    "1",
 				FlagKey:      flagKey,
 				EntityId:     "test-entity",
 				NamespaceKey: namespaceKey,
@@ -776,6 +777,7 @@ func TestBatch_Success(t *testing.T) {
 				},
 			},
 			{
+				RequestId:    "2",
 				FlagKey:      anotherFlagKey,
 				EntityId:     "test-entity",
 				NamespaceKey: namespaceKey,
@@ -784,6 +786,7 @@ func TestBatch_Success(t *testing.T) {
 				},
 			},
 			{
+				RequestId:    "3",
 				FlagKey:      variantFlagKey,
 				EntityId:     "test-entity",
 				NamespaceKey: namespaceKey,
@@ -803,6 +806,7 @@ func TestBatch_Success(t *testing.T) {
 	assert.True(t, b.BooleanResponse.Enabled, "value should be true from match")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, b.BooleanResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_BOOLEAN_EVALUATION_RESPONSE_TYPE, res.Responses[0].Type)
+	assert.Equal(t, "1", b.BooleanResponse.RequestId)
 
 	e, ok := res.Responses[1].Response.(*rpcevaluation.EvaluationResponse_ErrorResponse)
 	assert.True(t, ok, "response should be a error evaluation response")
@@ -817,4 +821,5 @@ func TestBatch_Success(t *testing.T) {
 	assert.Contains(t, v.VariantResponse.SegmentKeys, "bar")
 	assert.Equal(t, rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON, v.VariantResponse.Reason)
 	assert.Equal(t, rpcevaluation.EvaluationResponseType_VARIANT_EVALUATION_RESPONSE_TYPE, res.Responses[2].Type)
+	assert.Equal(t, "3", v.VariantResponse.RequestId)
 }
