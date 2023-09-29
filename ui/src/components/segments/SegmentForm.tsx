@@ -169,7 +169,7 @@ export default function SegmentForm(props: SegmentFormProps) {
                       />
                       <ClipboardDocumentIcon
                         className={classNames(
-                          'text-gray-400 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-500',
+                          'text-gray-300 m-auto h-5 w-5 justify-center align-middle transition-opacity duration-300 ease-in-out hover:text-gray-400',
                           keyCopied
                             ? 'invisible opacity-0'
                             : 'visible opacity-100'

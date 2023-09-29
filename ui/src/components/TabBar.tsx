@@ -22,7 +22,7 @@ export default function TabBar(props: TabBarProps) {
             tab.disabled ? (
               <a
                 key={tab.name}
-                className="text-gray-500 cursor-not-allowed whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium"
+                className="text-gray-400 cursor-not-allowed whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium"
               >
                 {tab.name}
               </a>
@@ -35,7 +35,7 @@ export default function TabBar(props: TabBarProps) {
                   classNames(
                     isActive
                       ? 'text-violet-600 border-violet-500'
-                      : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300',
+                      : 'text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300',
                     'whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium'
                   )
                 }
