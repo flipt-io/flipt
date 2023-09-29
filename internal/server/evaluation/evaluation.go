@@ -76,6 +76,7 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	}
 
 	ver := &rpcevaluation.VariantEvaluationResponse{
+		RequestId:         r.RequestId,
 		Match:             resp.Match,
 		Reason:            reason,
 		VariantKey:        resp.Value,
@@ -131,7 +132,9 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 	}
 
 	var (
-		resp     = &rpcevaluation.BooleanEvaluationResponse{}
+		resp = &rpcevaluation.BooleanEvaluationResponse{
+			RequestId: r.RequestId,
+		}
 		lastRank int32
 	)
 
