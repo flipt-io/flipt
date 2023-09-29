@@ -13,11 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import {
-  InformationCircleIcon,
-  PlusIcon,
-  StarIcon
-} from '@heroicons/react/24/outline';
+import { PlusIcon, StarIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -249,9 +245,7 @@ export default function Rollouts(props: RolloutsProps) {
       <div className="mt-10">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-gray-900 text-lg font-medium leading-6">
-              Rollouts
-            </h1>
+            <h3 className="text-gray-900 font-medium leading-6">Rollouts</h3>
             <p className="text-gray-500 mt-1 text-sm">
               Return boolean values based on rules you define
             </p>
@@ -284,8 +278,7 @@ export default function Rollouts(props: RolloutsProps) {
                 rule that matches will be applied.
               </p>
               <p className="text-gray-700 text-sm font-light">
-                <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
-                You can re-arrange rollouts by clicking on a rollout header and{' '}
+                Rollouts can be rearranged by clicking on a rollout header and{' '}
                 <span className="font-semibold">dragging and dropping</span> it
                 into place.
               </p>

@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 import { SWRConfig } from 'swr';
 import ErrorLayout from './app/ErrorLayout';
-import EditFlag from './app/flags/EditFlag';
 import Flag from './app/flags/Flag';
 import NewFlag from './app/flags/NewFlag';
 import Layout from './app/Layout';
@@ -18,7 +17,6 @@ import SessionProvider from './components/SessionProvider';
 import { request } from './data/api';
 import { Theme } from './types/Preferences';
 const Flags = loadable(() => import('./app/flags/Flags'));
-const Integrations = loadable(() => import('./app/flags/Integrations'));
 const Variants = loadable(() => import('./app/flags/variants/Variants'));
 const Rules = loadable(() => import('./app/flags/rules/Rules'));
 const Segments = loadable(() => import('./app/segments/Segments'));
@@ -55,21 +53,11 @@ const namespacesRoutes = [
     children: [
       {
         path: '',
-        element: <EditFlag />,
-        children: [
-          {
-            path: '',
-            element: <Variants />
-          },
-          {
-            path: 'rules',
-            element: <Rules />
-          }
-        ]
+        element: <Variants />
       },
       {
-        path: 'integrations',
-        element: <Integrations />
+        path: 'rules',
+        element: <Rules />
       }
     ]
   },

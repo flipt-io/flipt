@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useOutletContext } from 'react-router-dom';
@@ -277,8 +277,7 @@ export default function Rules() {
                   first rule that matches will be applied.
                 </p>
                 <p className="text-gray-700 text-sm font-light">
-                  <InformationCircleIcon className="text-gray-300 mr-1 inline-block h-4 w-4" />
-                  You can re-arrange rules by clicking on a rule header and{' '}
+                  Rules can be rearranged by clicking on a rule header and{' '}
                   <span className="font-semibold">dragging and dropping</span>{' '}
                   it into place.
                 </p>
