@@ -12,9 +12,9 @@ $ flipt --config /path/to/config.yml migrate
 
 Available Commands:
   config      Manage Flipt configuration
-  export      Export flags/segments/rules to file/stdout
+  export      Export Flipt data to file/stdout
   help        Help about any command
-  import      Import flags/segments/rules from file
+  import      Import Flipt data from file/stdin
   migrate     Run pending database migrations
   validate    Validate Flipt flag state (.yaml, .yml) files
 
