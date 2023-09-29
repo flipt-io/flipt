@@ -26,7 +26,7 @@ func newExportCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "export",
-		Short: "Export flags/segments/rules to file/stdout",
+		Short: "Export Flipt data to file/stdout",
 		RunE:  export.run,
 	}
 
