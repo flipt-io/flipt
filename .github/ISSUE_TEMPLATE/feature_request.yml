@@ -31,7 +31,7 @@ body:
     attributes:
       label: Search
       options:
-        - label: I did search for other open and closed issues before opening this
+        - label: I searched for other open and closed issues before opening this
           required: true
 
   - type: textarea
