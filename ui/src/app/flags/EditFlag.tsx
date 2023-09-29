@@ -1,19 +1,24 @@
-import { useOutletContext } from 'react-router-dom';
+import { Outlet, useOutletContext } from 'react-router-dom';
 import FlagForm from '~/components/flags/FlagForm';
 import MoreInfo from '~/components/MoreInfo';
+import TabBar from '~/components/TabBar';
 import { FlagType } from '~/types/Flag';
 import { FlagProps } from './FlagProps';
 import Rollouts from './rollouts/Rollouts';
-import Variants from './variants/Variants';
 
 export default function EditFlag() {
   const { flag, onFlagChange } = useOutletContext<FlagProps>();
+
+  const tabs = [
+    { name: 'Variants', to: '' },
+    { name: 'Rules', to: 'rules' }
+  ];
 
   return (
     <>
       <div className="flex flex-col">
         {/* flag details */}
-        <div className="my-10">
+        <div className="my-5">
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
               <p className="text-gray-500 mt-1 text-sm">
@@ -33,7 +38,10 @@ export default function EditFlag() {
         </div>
 
         {flag.type === FlagType.VARIANT && (
-          <Variants flag={flag} flagChanged={onFlagChange} />
+          <>
+            <TabBar tabs={tabs} />
+            <Outlet context={{ flag, onFlagChange }} />
+          </>
         )}
         {flag.type === FlagType.BOOLEAN && <Rollouts flag={flag} />}
       </div>

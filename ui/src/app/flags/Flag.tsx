@@ -22,7 +22,7 @@ import { copyFlag, deleteFlag, getFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
-import { FlagType, IFlag } from '~/types/Flag';
+import { IFlag } from '~/types/Flag';
 
 export default function Flag() {
   let { flagKey } = useParams();
@@ -66,11 +66,6 @@ export default function Flag() {
     {
       name: 'Details',
       to: ''
-    },
-    {
-      name: 'Evaluation',
-      to: 'evaluation',
-      disabled: flag.type === FlagType.BOOLEAN
     }
   ];
 

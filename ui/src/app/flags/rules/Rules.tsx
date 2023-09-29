@@ -17,6 +17,7 @@ import { InformationCircleIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { FlagProps } from '~/app/flags/FlagProps';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
@@ -36,9 +37,8 @@ import { FlagType } from '~/types/Flag';
 import { IRule, IRuleList } from '~/types/Rule';
 import { ISegment, ISegmentList, SegmentOperatorType } from '~/types/Segment';
 import { IVariant } from '~/types/Variant';
-import { FlagProps } from './FlagProps';
 
-export default function Evaluation() {
+export default function Rules() {
   const { flag } = useOutletContext<FlagProps>();
 
   const [segments, setSegments] = useState<ISegment[]>([]);
@@ -242,13 +242,10 @@ export default function Evaluation() {
       </Slideover>
 
       {/* rules */}
-      <div className="my-10">
+      <div className="mt-2">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-gray-900 text-lg font-medium leading-6">
-              Rules
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm">
+            <p className="text-gray-500 mt-1 text-sm">
               Enable rich targeting and segmentation for evaluating your flags
             </p>
           </div>

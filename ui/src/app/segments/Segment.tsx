@@ -234,7 +234,7 @@ export default function Segment() {
 
       <div className="flex flex-col">
         {/* segment details */}
-        <div className="my-10">
+        <div className="mb-5 mt-10">
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
               <h3 className="text-gray-900 text-lg font-medium leading-6">
