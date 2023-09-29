@@ -1,0 +1,56 @@
+name: Feature request
+description: Suggest an idea for this project
+labels: ["enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are you trying to solve?
+      placeholder: Describe the problem you are trying to solve here...
+    validations:
+      required: true
+
+  - type: textarea
+    id: ideal-solution
+    attributes:
+      label: Ideal Solution
+      description: What would you like to happen?
+      placeholder: Describe the solution you'd like...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Search
+      options:
+        - label: I searched for other open and closed issues before opening this
+          required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the feature request here.
+      placeholder: |
+        Examples:
+
+        - OS
+        - Config file used
+        - Database used (SQLite, MySQL, Postgres, etc.)
+        - Screenshots
+        - Exported data from the database (see below)
+
+  - type: markdown
+    attributes:
+      value: |
+        **Attach an Export**
+
+        If your feature request could be best shown with a specific set of data, please export your data by running `flipt export > export.yml` and then attach the YAML file to this issue. ❤️
