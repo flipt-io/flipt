@@ -42,7 +42,7 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 	var dr database.Driver
 
 	switch driver {
-	case SQLite:
+	case SQLite, LibSQL:
 		dr, err = sqlite3.WithInstance(sql, &sqlite3.Config{})
 	case Postgres:
 		dr, err = postgres.WithInstance(sql, &postgres.Config{})
@@ -52,20 +52,20 @@ func NewMigrator(cfg config.Config, logger *zap.Logger) (*Migrator, error) {
 		dr, err = mysql.WithInstance(sql, &mysql.Config{})
 	}
 
-	logger.Debug("using driver", zap.String("driver", driver.String()))
-
 	if err != nil {
 		return nil, fmt.Errorf("getting db driver for: %s: %w", driver, err)
 	}
 
+	logger.Debug("using driver", zap.String("driver", driver.String()))
+
 	// source migrations from embedded config/migrations package
 	// relative to the specific driver
-	sourceDriver, err := iofs.New(migrations.FS, driver.String())
+	sourceDriver, err := iofs.New(migrations.FS, driver.Migrations())
 	if err != nil {
 		return nil, err
 	}
 
-	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
+	mm, err := migrate.NewWithInstance("iofs", sourceDriver, driver.Migrations(), dr)
 	if err != nil {
 		return nil, fmt.Errorf("creating migrate instance: %w", err)
 	}

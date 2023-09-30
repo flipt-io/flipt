@@ -1,6 +1,8 @@
 module go.flipt.io/flipt
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	cuelang.org/go v0.6.0
@@ -35,6 +37,7 @@ require (
 	github.com/hashicorp/cap v0.3.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/lib/pq v1.10.9
+	github.com/libsql/libsql-client-go v0.0.0-20230917132930-48c310b27e7b
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/mitchellh/mapstructure v1.5.0
@@ -84,6 +87,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
+	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.13 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.37 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.11 // indirect
@@ -141,6 +145,7 @@ require (
 	github.com/klauspost/compress v1.16.6 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
+	github.com/libsql/sqlite-antlr4-parser v0.0.0-20230802215326-5cb5bb604475 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
@@ -197,6 +202,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
 )
 
 replace (

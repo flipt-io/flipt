@@ -135,7 +135,7 @@ func NewGRPCServer(
 		server.onShutdown(dbShutdown)
 
 		switch driver {
-		case fliptsql.SQLite:
+		case fliptsql.SQLite, fliptsql.LibSQL:
 			store = sqlite.NewStore(db, builder, logger)
 		case fliptsql.Postgres, fliptsql.CockroachDB:
 			store = postgres.NewStore(db, builder, logger)
@@ -193,7 +193,7 @@ func NewGRPCServer(
 		return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
 	}
 
-	logger.Debug("store enabled", zap.Stringer("type", store))
+	logger.Debug("store enabled", zap.Stringer("store", store))
 
 	// Initialize tracingProvider regardless of configuration. No extraordinary resources
 	// are consumed, or goroutines initialized until a SpanProcessor is registered.

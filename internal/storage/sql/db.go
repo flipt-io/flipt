@@ -10,12 +10,22 @@ import (
 	"github.com/XSAM/otelsql"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
+	"github.com/libsql/libsql-client-go/libsql"
 	"github.com/mattn/go-sqlite3"
 	"github.com/xo/dburl"
 	"go.flipt.io/flipt/internal/config"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
+
+func init() {
+	dburl.Register(dburl.Scheme{
+		"libsql",
+		dburl.GenOpaque, 0, true,
+		[]string{"libsql"},
+		"file",
+	})
+}
 
 // Open opens a connection to the db
 func Open(cfg config.Config, opts ...Option) (*sql.DB, Driver, error) {
@@ -85,6 +95,9 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 	case SQLite:
 		dr = &sqlite3.SQLiteDriver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
+	case LibSQL:
+		dr = &libsql.Driver{}
+		attrs = []attribute.KeyValue{semconv.DBSystemSqlite}
 	case Postgres:
 		dr = &pq.Driver{}
 		attrs = []attribute.KeyValue{semconv.DBSystemPostgreSQL}
@@ -139,6 +152,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 var (
 	driverToString = map[Driver]string{
 		SQLite:      "sqlite3",
+		LibSQL:      "libsql",
 		Postgres:    "postgres",
 		MySQL:       "mysql",
 		CockroachDB: "cockroachdb",
@@ -146,6 +160,7 @@ var (
 
 	stringToDriver = map[string]Driver{
 		"sqlite3":     SQLite,
+		"libsql":      LibSQL,
 		"postgres":    Postgres,
 		"mysql":       MySQL,
 		"cockroachdb": CockroachDB,
@@ -159,6 +174,13 @@ func (d Driver) String() string {
 	return driverToString[d]
 }
 
+func (d Driver) Migrations() string {
+	if d == LibSQL {
+		return "sqlite3"
+	}
+	return d.String()
+}
+
 const (
 	_ Driver = iota
 	// SQLite ...
@@ -169,6 +191,8 @@ const (
 	MySQL
 	// CockroachDB ...
 	CockroachDB
+	// LibSQL...
+	LibSQL
 )
 
 func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
@@ -200,7 +224,7 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 
 	url, err := dburl.Parse(u)
 	if err != nil {
-		return 0, nil, fmt.Errorf("error parsing url: %q, %w", url, err)
+		return 0, nil, fmt.Errorf("error parsing url: %w", err)
 	}
 
 	driver := stringToDriver[url.UnaliasedDriver]
@@ -225,7 +249,7 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 		if !opts.migrate {
 			v.Set("sql_mode", "ANSI")
 		}
-	case SQLite:
+	case SQLite, LibSQL:
 		v.Set("cache", "shared")
 		v.Set("mode", "rwc")
 		v.Set("_fk", "true")

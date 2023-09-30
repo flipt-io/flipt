@@ -23,6 +23,8 @@ const (
 	DatabaseMySQL
 	// DatabaseCockroachDB ...
 	DatabaseCockroachDB
+	// DatabaseLibSQL ...
+	DatabaseLibSQL
 )
 
 // DatabaseConfig contains fields, which configure the various relational database backends.
@@ -99,7 +101,9 @@ func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
 
 var (
 	databaseProtocolToString = map[DatabaseProtocol]string{
-		DatabaseSQLite:      "file",
+		DatabaseSQLite: "sqlite",
+		DatabaseLibSQL: "libsql",
+
 		DatabasePostgres:    "postgres",
 		DatabaseMySQL:       "mysql",
 		DatabaseCockroachDB: "cockroachdb",
@@ -108,6 +112,7 @@ var (
 	stringToDatabaseProtocol = map[string]DatabaseProtocol{
 		"file":        DatabaseSQLite,
 		"sqlite":      DatabaseSQLite,
+		"libsql":      DatabaseLibSQL,
 		"postgres":    DatabasePostgres,
 		"mysql":       DatabaseMySQL,
 		"cockroachdb": DatabaseCockroachDB,
