@@ -66,6 +66,7 @@ func Unit(ctx context.Context, client *dagger.Client, flipt *dagger.Container) e
 
 var All = map[string]Wrapper{
 	"sqlite":      WithSQLite,
+	"libsql":      WithLibSQL,
 	"postgres":    WithPostgres,
 	"mysql":       WithMySQL,
 	"cockroachdb": WithCockroach,
@@ -75,6 +76,10 @@ type Wrapper func(context.Context, *dagger.Client, *dagger.Container) (context.C
 
 func WithSQLite(ctx context.Context, client *dagger.Client, container *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
 	return ctx, client, container
+}
+
+func WithLibSQL(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {
+	return ctx, client, flipt.WithEnvVariable("FLIPT_TEST_DATABASE_PROTOCOL", "libsql")
 }
 
 func WithPostgres(ctx context.Context, client *dagger.Client, flipt *dagger.Container) (context.Context, *dagger.Client, *dagger.Container) {

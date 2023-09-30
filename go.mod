@@ -2,8 +2,6 @@ module go.flipt.io/flipt
 
 go 1.21
 
-toolchain go1.21.0
-
 require (
 	cuelang.org/go v0.6.0
 	github.com/AlecAivazis/survey/v2 v2.3.7

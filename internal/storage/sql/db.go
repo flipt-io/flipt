@@ -19,11 +19,14 @@ import (
 )
 
 func init() {
+	// register libsql driver with dburl
 	dburl.Register(dburl.Scheme{
-		"libsql",
-		dburl.GenOpaque, 0, true,
-		[]string{"libsql"},
-		"file",
+		Driver:    "libsql",
+		Generator: dburl.GenOpaque,
+		Transport: 0,
+		Opaque:    true,
+		Aliases:   []string{"libsql"},
+		Override:  "file",
 	})
 }
 
@@ -136,7 +139,7 @@ func open(cfg config.Config, opts Options) (*sql.DB, Driver, error) {
 
 	// if we're using sqlite, we need to set always set the max open connections to 1
 	// see: https://github.com/mattn/go-sqlite3/issues/274
-	if d == SQLite {
+	if d == SQLite || d == LibSQL {
 		maxOpenConn = 1
 	}
 

@@ -95,7 +95,7 @@ func (t Test) Unit(ctx context.Context) error {
 	})
 }
 
-// Database runs the unit test suite against the desired database (one of ["sqlite" "postgres" "mysql" "cockroach"]).
+// Database runs the unit test suite against the desired database (one of ["sqlite" "libsql" "postgres" "mysql" "cockroach"]).
 func (t Test) Database(ctx context.Context, db string) error {
 	return daggerRun(ctx, func(client *dagger.Client, req internal.FliptRequest) error {
 		base, err := internal.Base(ctx, client, req)
