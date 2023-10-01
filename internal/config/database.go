@@ -101,9 +101,8 @@ func (d DatabaseProtocol) MarshalJSON() ([]byte, error) {
 
 var (
 	databaseProtocolToString = map[DatabaseProtocol]string{
-		DatabaseSQLite: "sqlite",
-		DatabaseLibSQL: "libsql",
-
+		DatabaseSQLite:      "sqlite",
+		DatabaseLibSQL:      "libsql",
 		DatabasePostgres:    "postgres",
 		DatabaseMySQL:       "mysql",
 		DatabaseCockroachDB: "cockroachdb",
