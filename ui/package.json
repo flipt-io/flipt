@@ -53,7 +53,7 @@
     "@types/lodash": "^4.14.197",
     "@types/node": "^18.18.1",
     "@types/react": "^18.2.24",
-    "@types/react-dom": "^18.2.7",
+    "@types/react-dom": "^18.2.8",
     "@types/react-helmet": "^6.1.6",
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^9.0.4",
