@@ -12,8 +12,6 @@ audit:
       templates:
         - url: http://webhook:8081/
           method: POST
-          headers:
-            Content-Type: application/json
           body: |
             {
               "event": "{{ .Type }} {{ .Action }}",
