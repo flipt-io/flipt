@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/flipt-io/flipt/main/config/flipt.schema.json
+log:
+  level: debug
+
+audit:
+  events:
+    - flag:created
+    - flag:updated
+  sinks:
+    webhook:
+      enabled: true
+      templates:
+        - url: http://webhook:8081/
+          method: POST
+          headers:
+            Content-Type: application/json
+          body: |
+            {
+              "event": "{{ .Type }} {{ .Action }}",
+              "timestamp": "{{ .Timestamp }}"
+            }
