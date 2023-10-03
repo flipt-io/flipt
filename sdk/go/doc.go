@@ -43,7 +43,7 @@ Currently, there only exists a single implementation [StaticClientTokenProvider]
 
 # SDK Services
 
-The Flipt [SDK] is split into four sections [Flipt], [Auth], [Meta], and [Evaluation]
+The Flipt [SDK] is split into four sections [Flipt], [Auth], [Meta], and [Evaluation].
 Each of which provides access to different parts of the Flipt system.
 
 # Flipt Service
