@@ -7,7 +7,7 @@ ui:
 cors:
   enabled: false
   allowed_origins:
-  - '*'
+    - "*"
 server:
   host: 0.0.0.0
   http_port: 8080
@@ -15,6 +15,9 @@ server:
   grpc_port: 9000
 storage:
   type: database
+diagnostics:
+  profiling:
+    enabled: true
 db:
   url: file:/tmp/flipt/flipt.db
   max_idle_conn: 2

@@ -471,7 +471,7 @@ func Default() *Config {
 		},
 
 		Diagnostics: DiagnosticConfig{
-			Profiling: DiagnosticProfilingConfig{
+			Profiling: ProfilingDiagnosticConfig{
 				Enabled: true,
 			},
 		},

@@ -26,6 +26,9 @@
     "db": {
       "$ref": "#/definitions/db"
     },
+    "diagnostics": {
+      "$ref": "#/definitions/diagnostics"
+    },
     "storage": {
       "$ref": "#/definitions/storage"
     },
@@ -396,6 +399,24 @@
       },
       "required": [],
       "title": "Cors"
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "profiling": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        }
+      },
+      "required": [],
+      "title": "Diagnostics"
     },
     "db": {
       "type": "object",
