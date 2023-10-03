@@ -47,6 +47,7 @@ export const ContextEditor: React.FC<ContextEditorProps> = (
 
       return () => editor.current && editor.current.dispose();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <div id={id} className={styles.ContextEditor} ref={monacoEl}></div>;
