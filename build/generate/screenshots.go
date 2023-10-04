@@ -14,6 +14,9 @@ import (
 )
 
 func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
+	if err := os.RemoveAll("./screenshots"); err != nil {
+		return err
+	}
 	src := client.Host().Directory("./ui/", dagger.HostDirectoryOpts{
 		Include: []string{
 			"./package.json",
@@ -78,28 +81,31 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 			close(containers)
 		}()
 
-		for _, entry := range entries {
-			entry := entry
-			g.Go(func() error {
-				test, err := buildUI(ctx, ui, flipt)
-				if err != nil {
+		for _, theme := range []string{"", "dark"} {
+			theme := theme
+			for _, entry := range entries {
+				entry := entry
+				g.Go(func() error {
+					test, err := buildUI(ctx, ui, flipt, theme)
+					if err != nil {
+						return err
+					}
+
+					if ext := path.Ext(entry); ext != ".js" {
+						return nil
+					}
+
+					c, err := test.WithExec([]string{"node", path.Join("screenshot", dir, entry)}).Sync(ctx)
+					if err != nil {
+						return err
+					}
+
+					containers <- c
+					log.Printf("Generating screenshot for %s %s/%s\n", theme, dir, entry)
+
 					return err
-				}
-
-				if ext := path.Ext(entry); ext != ".js" {
-					return nil
-				}
-
-				c, err := test.WithExec([]string{"node", path.Join("screenshot", dir, entry)}).Sync(ctx)
-				if err != nil {
-					return err
-				}
-
-				containers <- c
-				log.Printf("Generating screenshot for %s/%s\n", dir, entry)
-
-				return err
-			})
+				})
+			}
 		}
 
 		for c := range containers {
@@ -113,7 +119,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 	return err
 }
 
-func buildUI(ctx context.Context, ui, flipt *dagger.Container) (_ *dagger.Container, err error) {
+func buildUI(ctx context.Context, ui, flipt *dagger.Container, theme string) (_ *dagger.Container, err error) {
 	flipt, err = flipt.Sync(ctx)
 	if err != nil {
 		return nil, err
@@ -124,13 +130,17 @@ func buildUI(ctx context.Context, ui, flipt *dagger.Container) (_ *dagger.Contai
 		return nil, err
 	}
 
+	flipt = flipt.
+		WithEnvVariable("CI", os.Getenv("CI")).
+		WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
+		WithEnvVariable("UNIQUE", time.Now().String()).
+		WithExposedPort(8080)
+
+	if theme != "" {
+		flipt = flipt.WithEnvVariable("FLIPT_UI_DEFAULT_THEME", theme)
+	}
+
 	return ui.
-		WithServiceBinding("flipt", flipt.
-			WithEnvVariable("CI", os.Getenv("CI")).
-			WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-			WithEnvVariable("UNIQUE", time.Now().String()).
-			WithExposedPort(8080).
-			WithExec(nil)).
-		WithFile("/usr/bin/flipt", flipt.File("/flipt")).
+		WithServiceBinding("flipt", flipt.WithExec(nil)).WithFile("/usr/bin/flipt", flipt.File("/flipt")).
 		WithEnvVariable("FLIPT_ADDRESS", "http://flipt:8080"), nil
 }
