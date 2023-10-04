@@ -90,7 +90,7 @@ func NewHTTPServer(
 	// TODO: replace with more robust 'mode' detection
 	if !info.IsDevelopment() {
 		r.Use(middleware.SetHeader("X-Content-Type-Options", "nosniff"))
-		r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; img-src * data:; frame-ancestors 'none';"))
+		r.Use(middleware.SetHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src * data:; frame-ancestors 'none';"))
 	}
 
 	r.Use(middleware.RequestID)
@@ -200,7 +200,7 @@ func NewHTTPServer(
 		return server, nil
 	}
 
-	server.Server.TLSConfig = &tls.Config{
+	server.TLSConfig = &tls.Config{
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
 		CipherSuites: []uint16{
@@ -211,7 +211,7 @@ func NewHTTPServer(
 		},
 	}
 
-	server.Server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
+	server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 
 	server.listenAndServe = func() error {
 		return server.ListenAndServeTLS(cfg.Server.CertFile, cfg.Server.CertKey)
