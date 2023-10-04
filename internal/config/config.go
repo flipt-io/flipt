@@ -43,18 +43,19 @@ var DecodeHooks = []mapstructure.DecodeHookFunc{
 // any errors derived from the resulting state of the configuration.
 type Config struct {
 	Version        string               `json:"version,omitempty" mapstructure:"version,omitempty" yaml:"version,omitempty"`
+	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
+	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
+	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
+	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
+	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
+	Diagnostics    DiagnosticConfig     `json:"diagnostics,omitempty" mapstructure:"diagnostics" yaml:"diagnostics,omitempty"`
 	Experimental   ExperimentalConfig   `json:"experimental,omitempty" mapstructure:"experimental" yaml:"experimental,omitempty"`
 	Log            LogConfig            `json:"log,omitempty" mapstructure:"log" yaml:"log,omitempty"`
-	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
-	Cors           CorsConfig           `json:"cors,omitempty" mapstructure:"cors" yaml:"cors,omitempty"`
-	Cache          CacheConfig          `json:"cache,omitempty" mapstructure:"cache" yaml:"cache,omitempty"`
+	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta" yaml:"meta,omitempty"`
 	Server         ServerConfig         `json:"server,omitempty" mapstructure:"server" yaml:"server,omitempty"`
 	Storage        StorageConfig        `json:"storage,omitempty" mapstructure:"storage" yaml:"storage,omitempty"`
 	Tracing        TracingConfig        `json:"tracing,omitempty" mapstructure:"tracing" yaml:"tracing,omitempty"`
-	Database       DatabaseConfig       `json:"db,omitempty" mapstructure:"db" yaml:"db,omitempty"`
-	Meta           MetaConfig           `json:"meta,omitempty" mapstructure:"meta" yaml:"meta,omitempty"`
-	Authentication AuthenticationConfig `json:"authentication,omitempty" mapstructure:"authentication" yaml:"authentication,omitempty"`
-	Audit          AuditConfig          `json:"audit,omitempty" mapstructure:"audit" yaml:"audit,omitempty"`
+	UI             UIConfig             `json:"ui,omitempty" mapstructure:"ui" yaml:"ui,omitempty"`
 }
 
 type Result struct {
@@ -466,6 +467,12 @@ func Default() *Config {
 				MinIdleConn:     0,
 				ConnMaxIdleTime: 0,
 				NetTimeout:      0,
+			},
+		},
+
+		Diagnostics: DiagnosticConfig{
+			Profiling: ProfilingDiagnosticConfig{
+				Enabled: true,
 			},
 		},
 

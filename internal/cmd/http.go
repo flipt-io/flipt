@@ -108,7 +108,11 @@ func NewHTTPServer(
 	})
 	r.Use(middleware.Compress(gzip.DefaultCompression))
 	r.Use(middleware.Recoverer)
-	r.Mount("/debug", middleware.Profiler())
+
+	if cfg.Diagnostics.Profiling.Enabled {
+		r.Mount("/debug", middleware.Profiler())
+	}
+
 	r.Mount("/metrics", promhttp.Handler())
 
 	r.Group(func(r chi.Router) {

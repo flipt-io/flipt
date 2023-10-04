@@ -14,6 +14,7 @@ import "strings"
 	authentication?: #authentication
 	cache?:          #cache
 	cors?:           #cors
+	diagnostics?:    #diagnostics
 	storage?:        #storage
 	db?:             #db
 	log?:            #log
@@ -119,6 +120,12 @@ import "strings"
 	#cors: {
 		enabled?:         bool | *false
 		allowed_origins?: [...] | string | *["*"]
+	}
+
+	#diagnostics: {
+		profiling?: {
+			enabled?: bool | *true
+		}
 	}
 
 	#storage: {
