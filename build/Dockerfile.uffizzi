@@ -20,9 +20,9 @@ RUN go mod download -x
 RUN mkdir -p /etc/flipt && \
     mkdir -p /var/opt/flipt
 
+RUN ["mage"]
+
 EXPOSE 8080
 EXPOSE 9000
 
-RUN ["mage"]
-
-CMD ["./bin/flipt"]
+CMD ["./bin/flipt", "--config", "config/local.yaml"]
