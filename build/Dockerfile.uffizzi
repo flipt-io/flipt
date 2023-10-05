@@ -32,4 +32,4 @@ RUN ["mage"]
 EXPOSE 8080
 EXPOSE 9000
 
-CMD ["./bin/flipt", "--config", "./config/local.yaml"]
+CMD ["./bin/flipt", "--config", "./config/local.yml"]
