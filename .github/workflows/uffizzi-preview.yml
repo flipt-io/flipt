@@ -50,7 +50,7 @@ jobs:
 
       - name: Render Compose File
         run: |
-          FLIPT_IMAGE=$(echo ${{ needs.builde.outputs.tags }})
+          FLIPT_IMAGE=$(echo ${{ needs.build.outputs.tags }})
           export FLIPT_IMAGE
           # Render simple template from environment variables.
           envsubst < ./build/docker-compose.uffizzi.yml > docker-compose.rendered.yml
