@@ -28,13 +28,15 @@ jobs:
           tags: type=raw,value=24h
 
       - name: Build and Push Image to Uffizzi Ephemeral Registry
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           context: .
           file: ./build/Dockerfile.uffizzi
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   render-compose-file:
     name: Render Docker Compose File
