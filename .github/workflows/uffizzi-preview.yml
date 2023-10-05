@@ -17,14 +17,14 @@ jobs:
 
       - name: Generate UUID image name
         id: uuid
-        run: echo "UUID_VOTE=$(uuidgen)" >> $GITHUB_ENV
+        run: echo "UUID_FLIPT=$(uuidgen)" >> $GITHUB_ENV
 
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v4
         with:
           # An anonymous, emphemeral registry built on ttl.sh
-          images: registry.uffizzi.com/${{ env.UUID_VOTE }}
+          images: registry.uffizzi.com/${{ env.UUID_FLIPT }}
           tags: type=raw,value=24h
 
       - name: Build and Push Image to Uffizzi Ephemeral Registry
@@ -33,7 +33,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          context: ./build
+          context: .
+          file: ./build/Dockerfile
 
   render-compose-file:
     name: Render Docker Compose File
