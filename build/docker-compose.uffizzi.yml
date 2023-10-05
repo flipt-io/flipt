@@ -9,3 +9,7 @@ x-uffizzi:
 services:
   flipt:
     image: "${FLIPT_IMAGE}"
+    deploy:
+      resources:
+        limits:
+          memory: 500M
