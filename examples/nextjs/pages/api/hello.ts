@@ -17,17 +17,14 @@ export default async function handler(
 ) {
   let language = "english";
   try {
-    const evaluation = await client.evaluate.evaluate({
+    const evaluation = await client.evaluation.variant({
+      namespaceKey: "default",
       flagKey: "language",
       entityId: uuidv4(),
       context: {},
     });
 
-    if (!evaluation.ok) {
-      console.log(evaluation.error);
-    } else {
-      language = evaluation.body.value;
-    }
+    language = evaluation.variantKey;
   } catch (err) {
     console.log(err);
   }
