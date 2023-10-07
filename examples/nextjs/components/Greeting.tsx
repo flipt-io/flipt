@@ -9,21 +9,17 @@ export default function Greeting() {
 
   useEffect(() => {
     async function fetchData() {
-      let language = "fr";
       try {
-        const evaluation = await flipt.evaluate.evaluate({
+        const evaluation = await flipt.evaluation.variant({
+          namespaceKey: "default",
           flagKey: "language",
           entityId: uuidv4(),
           context: {},
         });
 
-        if (!evaluation.ok) {
-          console.log(evaluation.error);
-        } else {
-          language = evaluation.body.value;
-        }
+        let language = evaluation.variantKey;
 
-        let greeting =
+        const greeting =
           language == "es"
             ? "Hola, from Next.js client-side"
             : "Bonjour, from Next.js client-side";
@@ -35,7 +31,7 @@ export default function Greeting() {
     }
 
     fetchData();
-  }, [flipt.evaluate]);
+  }, [flipt.evaluation]);
 
   if (!data)
     return <p className="text-xl font-bold align-middle"> Loading... </p>;
