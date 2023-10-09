@@ -86,14 +86,13 @@ Flipt supports use cases such as:
 - Ability to create advanced distribution rules to target segments of users
 - Native [GRPC](https://grpc.io/) client [SDKs](#grpc-client-libraries) to integrate with your existing GRPC architecture
 - Powerful REST API with native [SDKs](#rest-client-libraries) for easy integration
-- Modern, mobile-friendly 📱 UI and debug console
-- Dark mode 🌙
+- Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
 - Supports multiple databases: Postgres, MySQL, SQLite, CockroachDB
 - Import and export to allow storing your data as code
-- Cloud-ready :cloud:. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
-- Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box
-- [Filesystem, S3, and Git storage backends](https://www.flipt.io/docs/experimental/filesystem-backends) 
-- Audit logging to track changes to your data
+- Cloud-ready. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
+- Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
+- [Filesystem, S3, and Git storage backends](https://www.flipt.io/docs/configuration/storage#filesystem) to support GitOps workflows
+- Audit logging with webhooks support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
 
@@ -101,7 +100,7 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 
 <div align="center">
 <img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
-<img align="right" src=".github/images/darkmode.png" alt="Dark Theme" width=45% />
+<img align="right" src=".github/images/console-dark.png" alt="Flipt Console - Dark" width=45% />
 </div>
 
 <br clear="both"/>
@@ -180,6 +179,15 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
 
 <br clear="both"/>
 
+## Release Cadence
+
+Flipt follows [semantic versioning](https://semver.org/) for versioning.
+
+We aim to release a new minor version of Flipt every 2-3 weeks. This allows us to quickly iterate on new features.
+Bug fixes and security patches (patch versions) will be released as needed.
+
+<br clear="both"/>
+
 ## Integration
 
 Check out the [integration documentation](https://flipt.io/docs/integration/) for more info on how to integrate Flipt into your existing applications.
@@ -253,7 +261,7 @@ There are currently two types of licenses in place for Flipt:
 
 ### Client License
 
-All of the code required to generate GRPC clients in other languages as well as the existing GRPC Go client are licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
+All of the code required to generate GRPC clients in other languages as well as the [Go SDK](/sdk/go) are licensed under the [MIT License](https://spdx.org/licenses/MIT.html).
 
 This code exists in the [rpc/](rpc/) directory.
 
