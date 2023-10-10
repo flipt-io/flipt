@@ -20,7 +20,7 @@
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@loadable/component": "^5.15.3",
-    "@reduxjs/toolkit": "^1.9.5",
+    "@reduxjs/toolkit": "^1.9.7",
     "@tanstack/react-table": "^8.10.3",
     "@types/react-redux": "^7.1.26",
     "buffer": "^6.0.3",
