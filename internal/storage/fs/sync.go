@@ -22,12 +22,20 @@ func (s *syncedStore) GetFlag(ctx context.Context, namespaceKey string, key stri
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.GetFlag(ctx, namespaceKey, key)
 }
 
 func (s *syncedStore) ListFlags(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Flag], error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
 
 	return s.StoreSnapshot.ListFlags(ctx, namespaceKey, opts...)
 }
@@ -36,12 +44,20 @@ func (s *syncedStore) CountFlags(ctx context.Context, namespaceKey string) (uint
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.CountFlags(ctx, namespaceKey)
 }
 
 func (s *syncedStore) GetRule(ctx context.Context, namespaceKey string, id string) (*flipt.Rule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
 
 	return s.StoreSnapshot.GetRule(ctx, namespaceKey, id)
 }
@@ -50,12 +66,20 @@ func (s *syncedStore) ListRules(ctx context.Context, namespaceKey string, flagKe
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.ListRules(ctx, namespaceKey, flagKey, opts...)
 }
 
 func (s *syncedStore) CountRules(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
 
 	return s.StoreSnapshot.CountRules(ctx, namespaceKey, flagKey)
 }
@@ -64,12 +88,20 @@ func (s *syncedStore) GetSegment(ctx context.Context, namespaceKey string, key s
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.GetSegment(ctx, namespaceKey, key)
 }
 
 func (s *syncedStore) ListSegments(ctx context.Context, namespaceKey string, opts ...storage.QueryOption) (storage.ResultSet[*flipt.Segment], error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
 
 	return s.StoreSnapshot.ListSegments(ctx, namespaceKey, opts...)
 }
@@ -78,12 +110,20 @@ func (s *syncedStore) CountSegments(ctx context.Context, namespaceKey string) (u
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.CountSegments(ctx, namespaceKey)
 }
 
 func (s *syncedStore) GetEvaluationRules(ctx context.Context, namespaceKey string, flagKey string) ([]*storage.EvaluationRule, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
 
 	return s.StoreSnapshot.GetEvaluationRules(ctx, namespaceKey, flagKey)
 }
@@ -120,6 +160,10 @@ func (s *syncedStore) GetRollout(ctx context.Context, namespaceKey, id string) (
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.GetRollout(ctx, namespaceKey, id)
 }
 
@@ -127,12 +171,20 @@ func (s *syncedStore) ListRollouts(ctx context.Context, namespaceKey, flagKey st
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
+
 	return s.StoreSnapshot.ListRollouts(ctx, namespaceKey, flagKey, opts...)
 }
 
 func (s *syncedStore) CountRollouts(ctx context.Context, namespaceKey, flagKey string) (uint64, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if namespaceKey == "" {
+		namespaceKey = flipt.DefaultNamespace
+	}
 
 	return s.StoreSnapshot.CountRollouts(ctx, namespaceKey, flagKey)
 }
