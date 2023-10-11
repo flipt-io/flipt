@@ -150,6 +150,10 @@ func (s *syncedStore) GetNamespace(ctx context.Context, key string) (*flipt.Name
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	if key == "" {
+		key = flipt.DefaultNamespace
+	}
+
 	return s.Store.GetNamespace(ctx, key)
 }
 

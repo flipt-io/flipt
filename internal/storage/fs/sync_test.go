@@ -161,7 +161,7 @@ func TestGetNamespace(t *testing.T) {
 		Store: storeMock,
 	}
 
-	storeMock.On("GetNamespace", mock.Anything, "").Return(&flipt.Namespace{}, nil)
+	storeMock.On("GetNamespace", mock.Anything, flipt.DefaultNamespace).Return(&flipt.Namespace{}, nil)
 
 	_, err := ss.GetNamespace(context.TODO(), "")
 	require.NoError(t, err)
