@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	"go.uber.org/zap/zaptest"
 )
 
 func TestSetHandleMarshalError(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		cacher      = &cacheSpy{}
 		logger      = zaptest.NewLogger(t)
 		cachedStore = NewStore(store, cacher, logger)
@@ -24,7 +25,7 @@ func TestSetHandleMarshalError(t *testing.T) {
 
 func TestGetHandleGetError(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		cacher      = &cacheSpy{getErr: errors.New("get error")}
 		logger      = zaptest.NewLogger(t)
 		cachedStore = NewStore(store, cacher, logger)
@@ -37,7 +38,7 @@ func TestGetHandleGetError(t *testing.T) {
 
 func TestGetHandleUnmarshalError(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		cacher = &cacheSpy{
 			cached:      true,
 			cachedValue: []byte(`{"invalid":"123"`),
@@ -54,7 +55,7 @@ func TestGetHandleUnmarshalError(t *testing.T) {
 func TestGetEvaluationRules(t *testing.T) {
 	var (
 		expectedRules = []*storage.EvaluationRule{{ID: "123"}}
-		store         = &storeMock{}
+		store         = &common.StoreMock{}
 	)
 
 	store.On("GetEvaluationRules", context.TODO(), "ns", "flag-1").Return(
@@ -78,7 +79,7 @@ func TestGetEvaluationRules(t *testing.T) {
 func TestGetEvaluationRulesCached(t *testing.T) {
 	var (
 		expectedRules = []*storage.EvaluationRule{{ID: "123"}}
-		store         = &storeMock{}
+		store         = &common.StoreMock{}
 	)
 
 	store.AssertNotCalled(t, "GetEvaluationRules", context.TODO(), "ns", "flag-1")

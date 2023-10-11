@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/common"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/protobuf/proto"
@@ -15,7 +16,9 @@ import (
 func TestGetAuthenticationByClientToken(t *testing.T) {
 	var (
 		auth  = &rpcauth.Authentication{Id: "123"}
-		store = &storeMock{}
+		store = &storeMock{
+			StoreMock: &common.StoreMock{},
+		}
 	)
 
 	store.On("GetAuthenticationByClientToken", context.TODO(), "foo").Return(
@@ -42,7 +45,9 @@ func TestGetAuthenticationByClientToken(t *testing.T) {
 func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 	var (
 		auth  = &rpcauth.Authentication{Id: "123"}
-		store = &storeMock{}
+		store = &storeMock{
+			StoreMock: &common.StoreMock{},
+		}
 	)
 
 	store.AssertNotCalled(t, "GetAuthenticationByClientToken", mock.Anything, mock.Anything)
@@ -69,7 +74,9 @@ func TestGetAuthenticationByClientTokenCached(t *testing.T) {
 }
 
 func TestExpireAuthenticationByID(t *testing.T) {
-	store := &storeMock{}
+	store := &storeMock{
+		StoreMock: &common.StoreMock{},
+	}
 
 	store.On("ExpireAuthenticationByID", context.TODO(), "123", mock.Anything).Return(
 		nil,
