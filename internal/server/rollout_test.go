@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
@@ -14,7 +15,7 @@ import (
 
 func TestGetRollout(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -35,7 +36,7 @@ func TestGetRollout(t *testing.T) {
 
 func TestListRollouts_PaginationPageToken(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -78,7 +79,7 @@ func TestListRollouts_PaginationPageToken(t *testing.T) {
 
 func TestCreateRollout(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -179,7 +180,7 @@ func TestCreateRollout(t *testing.T) {
 
 func TestUpdateRollout(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -216,7 +217,7 @@ func TestUpdateRollout(t *testing.T) {
 
 func TestDeleteRollout(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -237,7 +238,7 @@ func TestDeleteRollout(t *testing.T) {
 
 func TestOrderRollouts(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,

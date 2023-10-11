@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
@@ -15,7 +16,7 @@ import (
 
 func TestGetRule(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -36,7 +37,7 @@ func TestGetRule(t *testing.T) {
 
 func TestListRules_PaginationOffset(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -79,7 +80,7 @@ func TestListRules_PaginationOffset(t *testing.T) {
 
 func TestListRules_PaginationPageToken(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -123,7 +124,7 @@ func TestListRules_PaginationPageToken(t *testing.T) {
 
 func TestCreateRule(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -151,7 +152,7 @@ func TestCreateRule(t *testing.T) {
 
 func TestCreateRule_MultipleSegments(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -181,7 +182,7 @@ func TestCreateRule_MultipleSegments(t *testing.T) {
 
 func TestUpdateRule(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -208,7 +209,7 @@ func TestUpdateRule(t *testing.T) {
 
 func TestDeleteRule(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -229,7 +230,7 @@ func TestDeleteRule(t *testing.T) {
 
 func TestOrderRules(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -248,7 +249,7 @@ func TestOrderRules(t *testing.T) {
 
 func TestCreateDistribution(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -271,7 +272,7 @@ func TestCreateDistribution(t *testing.T) {
 
 func TestUpdateDistribution(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -294,7 +295,7 @@ func TestUpdateDistribution(t *testing.T) {
 
 func TestDeleteDistribution(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
