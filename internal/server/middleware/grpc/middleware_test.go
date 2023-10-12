@@ -8,6 +8,7 @@ import (
 
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/cache/memory"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/auth"
@@ -365,7 +366,7 @@ func TestEvaluationUnaryInterceptor_BatchEvaluation(t *testing.T) {
 
 func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -413,7 +414,7 @@ func TestCacheUnaryInterceptor_GetFlag(t *testing.T) {
 
 func TestCacheUnaryInterceptor_UpdateFlag(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -457,7 +458,7 @@ func TestCacheUnaryInterceptor_UpdateFlag(t *testing.T) {
 
 func TestCacheUnaryInterceptor_DeleteFlag(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -493,7 +494,7 @@ func TestCacheUnaryInterceptor_DeleteFlag(t *testing.T) {
 
 func TestCacheUnaryInterceptor_CreateVariant(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -539,7 +540,7 @@ func TestCacheUnaryInterceptor_CreateVariant(t *testing.T) {
 
 func TestCacheUnaryInterceptor_UpdateVariant(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -586,7 +587,7 @@ func TestCacheUnaryInterceptor_UpdateVariant(t *testing.T) {
 
 func TestCacheUnaryInterceptor_DeleteVariant(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -622,7 +623,7 @@ func TestCacheUnaryInterceptor_DeleteVariant(t *testing.T) {
 
 func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -778,7 +779,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 
 func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -931,7 +932,7 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 
 func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 	var (
-		store = &storeMock{}
+		store = &common.StoreMock{}
 		cache = memory.NewCache(config.CacheConfig{
 			TTL:     time.Second,
 			Enabled: true,
@@ -1080,7 +1081,7 @@ func (c *checkerDummy) Check(e string) bool {
 
 func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1124,7 +1125,7 @@ func TestAuditUnaryInterceptor_CreateFlag(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1170,7 +1171,7 @@ func TestAuditUnaryInterceptor_UpdateFlag(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1207,7 +1208,7 @@ func TestAuditUnaryInterceptor_DeleteFlag(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1254,7 +1255,7 @@ func TestAuditUnaryInterceptor_CreateVariant(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1302,7 +1303,7 @@ func TestAuditUnaryInterceptor_UpdateVariant(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1339,7 +1340,7 @@ func TestAuditUnaryInterceptor_DeleteVariant(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1384,7 +1385,7 @@ func TestAuditUnaryInterceptor_CreateDistribution(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1430,7 +1431,7 @@ func TestAuditUnaryInterceptor_UpdateDistribution(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1470,7 +1471,7 @@ func TestAuditUnaryInterceptor_DeleteDistribution(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1515,7 +1516,7 @@ func TestAuditUnaryInterceptor_CreateSegment(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1560,7 +1561,7 @@ func TestAuditUnaryInterceptor_UpdateSegment(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1597,7 +1598,7 @@ func TestAuditUnaryInterceptor_DeleteSegment(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1645,7 +1646,7 @@ func TestAuditUnaryInterceptor_CreateConstraint(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1694,7 +1695,7 @@ func TestAuditUnaryInterceptor_UpdateConstraint(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1732,7 +1733,7 @@ func TestAuditUnaryInterceptor_DeleteConstraint(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateRollout(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1781,7 +1782,7 @@ func TestAuditUnaryInterceptor_CreateRollout(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1823,7 +1824,7 @@ func TestAuditUnaryInterceptor_UpdateRollout(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1861,7 +1862,7 @@ func TestAuditUnaryInterceptor_DeleteRollout(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1904,7 +1905,7 @@ func TestAuditUnaryInterceptor_CreateRule(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1947,7 +1948,7 @@ func TestAuditUnaryInterceptor_UpdateRule(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -1985,7 +1986,7 @@ func TestAuditUnaryInterceptor_DeleteRule(t *testing.T) {
 
 func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -2026,7 +2027,7 @@ func TestAuditUnaryInterceptor_CreateNamespace(t *testing.T) {
 
 func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -2069,7 +2070,7 @@ func TestAuditUnaryInterceptor_UpdateNamespace(t *testing.T) {
 
 func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)
@@ -2112,7 +2113,7 @@ func TestAuditUnaryInterceptor_DeleteNamespace(t *testing.T) {
 
 func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	var (
-		store       = &storeMock{}
+		store       = &common.StoreMock{}
 		logger      = zaptest.NewLogger(t)
 		exporterSpy = newAuditExporterSpy(logger)
 		s           = server.New(logger, store)

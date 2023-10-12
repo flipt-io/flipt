@@ -50,7 +50,7 @@ func (l *Store) updateSnapshot(fs fs.FS) error {
 	}
 
 	l.mu.Lock()
-	l.StoreSnapshot = storeSnapshot
+	l.Store = storeSnapshot
 	l.mu.Unlock()
 
 	// NOTE: this is really just a trick for unit tests

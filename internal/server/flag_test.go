@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
@@ -15,7 +16,7 @@ import (
 
 func TestGetFlag(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -39,7 +40,7 @@ func TestGetFlag(t *testing.T) {
 
 func TestListFlags_PaginationOffset(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -82,7 +83,7 @@ func TestListFlags_PaginationOffset(t *testing.T) {
 
 func TestListFlags_PaginationPageToken(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -126,7 +127,7 @@ func TestListFlags_PaginationPageToken(t *testing.T) {
 
 func TestCreateFlag(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -155,7 +156,7 @@ func TestCreateFlag(t *testing.T) {
 
 func TestUpdateFlag(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -184,7 +185,7 @@ func TestUpdateFlag(t *testing.T) {
 
 func TestDeleteFlag(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -205,7 +206,7 @@ func TestDeleteFlag(t *testing.T) {
 
 func TestCreateVariant(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -236,7 +237,7 @@ func TestCreateVariant(t *testing.T) {
 
 func TestUpdateVariant(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,
@@ -268,7 +269,7 @@ func TestUpdateVariant(t *testing.T) {
 
 func TestDeleteVariant(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = &Server{
 			logger: logger,

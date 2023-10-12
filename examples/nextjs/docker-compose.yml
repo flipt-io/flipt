@@ -36,7 +36,7 @@ services:
 
   flipt:
     image: flipt/flipt:latest
-    command: ["./flipt"]
+    command: ["./flipt", "--force-migrate"]
     depends_on:
       - init
     ports:
