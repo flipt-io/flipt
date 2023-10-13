@@ -974,7 +974,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.True(t, result.Match, "Evaluation should have matched.")
 				assert.Contains(t, result.SegmentKeys, "segment")
 				assert.Contains(t, result.SegmentKeys, "another-segment")
-				assert.Equal(t, "one", result.VariantKey)
+				assert.Equal(t, "two", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 			})
 
