@@ -48,10 +48,6 @@ test.describe('Rules', () => {
     });
 
     await test.step('create single-variant rule', async () => {
-      await page.reload();
-      await page.getByRole('link', { name: 'Flags' }).click();
-      await page.getByRole('link', { name: 'test-rule' }).click();
-      await page.getByRole('link', { name: 'Rules' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
       await page
         .getByLabel('New Rule')
@@ -64,40 +60,40 @@ test.describe('Rules', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(page.getByText('Successfully created rule')).toBeVisible();
     });
-  });
 
-  test('can update multi-variate rule', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Rules' }).click();
-    await page
-      .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
-      .click();
-    await page
-      .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
-      .fill('40');
-    await page
-      .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
-      .click();
-    await page
-      .getByRole('listitem')
-      .getByRole('button', { name: 'Update' })
-      .nth(1)
-      .click();
-    await expect(page.getByText('Successfully updated rule')).toBeVisible();
-  });
+    await test.step('can update multi-variate rule', async () => {
+      await page
+        .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
+        .click();
+      await page
+        .locator('input[name="rollouts\\.\\[0\\]\\.distribution\\.rollout"]')
+        .fill('40');
+      await page
+        .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
+        .click();
+      await page
+        .getByRole('listitem')
+        .filter({ hasText: 'Multi-Variate' })
+        .getByRole('button', { name: 'Update' })
+        .click();
+      await expect(page.getByText('Successfully updated rule')).toBeVisible();
+    });
 
-  test('can update single-variant rule', async ({ page }) => {
-    await page.getByRole('link', { name: 'test-rule' }).click();
-    await page.getByRole('link', { name: 'Rules' }).click();
-    await page.locator('#variantKey').click();
-    await page.locator('#variantKey').fill('456');
-    await page.locator('#variantKey').click();
-    await page
-      .getByRole('listitem')
-      .getByRole('button', { name: 'Update' })
-      .nth(2)
-      .click();
-    await expect(page.getByText('Successfully updated rule')).toBeVisible();
+    await test.step('can update single-variant rule', async () => {
+      await page.locator('#variantKey-select-button').click();
+      await page
+        .locator('li')
+        .filter({ hasText: 'Single Variant' })
+        .locator('li')
+        .filter({ hasText: '456' })
+        .click();
+      await page
+        .getByRole('listitem')
+        .filter({ hasText: 'Single Variant' })
+        .getByRole('button', { name: 'Update' })
+        .click();
+      await expect(page.getByText('Successfully updated rule')).toBeVisible();
+    });
   });
 });
 
@@ -126,14 +122,14 @@ test.describe('Rules - Read Only', () => {
   test('can not update rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('rule-menu-button').click();
+    await page.getByTestId('rule-menu-button').nth(0).click();
     await expect(page.getByRole('link', { name: 'Edit' })).toBeHidden();
   });
 
   test('can not delete rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
-    await page.getByTestId('rule-menu-button').click();
+    await page.getByTestId('rule-menu-button').nth(0).click();
     await expect(page.getByRole('link', { name: 'Delete' })).toBeHidden();
   });
 });
