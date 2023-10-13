@@ -81,6 +81,7 @@ test.describe('Rules', () => {
     await page
       .getByRole('listitem')
       .getByRole('button', { name: 'Update' })
+      .nth(1)
       .click();
     await expect(page.getByText('Successfully updated rule')).toBeVisible();
   });
@@ -94,6 +95,7 @@ test.describe('Rules', () => {
     await page
       .getByRole('listitem')
       .getByRole('button', { name: 'Update' })
+      .nth(2)
       .click();
     await expect(page.getByText('Successfully updated rule')).toBeVisible();
   });
