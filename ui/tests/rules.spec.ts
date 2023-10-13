@@ -53,7 +53,10 @@ test.describe('Rules', () => {
       await page.getByRole('link', { name: 'test-rule' }).click();
       await page.getByRole('link', { name: 'Rules' }).click();
       await page.getByRole('button', { name: 'New Rule' }).click();
-      await page.locator('#segmentKey-0-select-button').click();
+      await page
+        .getByLabel('New Rule')
+        .locator('#segmentKey-0-select-button')
+        .click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
       await page.getByLabel('Single-Variant').check();
       await page.locator('#variant-select-button').click();
