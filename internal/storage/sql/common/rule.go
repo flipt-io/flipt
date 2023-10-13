@@ -698,8 +698,9 @@ func (s *Store) UpdateDistribution(ctx context.Context, r *flipt.UpdateDistribut
 
 	query := s.builder.Update("distributions").
 		Set("rollout", r.Rollout).
+		Set("variant_id", r.VariantId).
 		Set("updated_at", &fliptsql.Timestamp{Timestamp: timestamppb.Now()}).
-		Where(sq.And{sq.Eq{"id": r.Id}, sq.Eq{"rule_id": r.RuleId}, sq.Eq{"variant_id": r.VariantId}})
+		Where(sq.Eq{"id": r.Id, "rule_id": r.RuleId})
 
 	res, err := query.ExecContext(ctx)
 	if err != nil {
