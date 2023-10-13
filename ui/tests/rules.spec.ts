@@ -34,7 +34,7 @@ test.describe('Rules', () => {
       await page.getByRole('button', { name: 'Create' }).click();
     });
 
-    await test.step('create rule', async () => {
+    await test.step('create multi-variate rule', async () => {
       await page.reload();
       await page.getByRole('link', { name: 'Flags' }).click();
       await page.getByRole('link', { name: 'test-rule' }).click();
@@ -46,9 +46,24 @@ test.describe('Rules', () => {
       await page.getByRole('button', { name: 'Create' }).click();
       await expect(page.getByText('Successfully created rule')).toBeVisible();
     });
+
+    await test.step('create single-variant rule', async () => {
+      await page.reload();
+      await page.getByRole('link', { name: 'Flags' }).click();
+      await page.getByRole('link', { name: 'test-rule' }).click();
+      await page.getByRole('link', { name: 'Rules' }).click();
+      await page.getByRole('button', { name: 'New Rule' }).click();
+      await page.locator('#segmentKey-0-select-button').click();
+      await page.getByLabel('New Rule').getByText('Test Rule').click();
+      await page.getByLabel('Single-Variant').check();
+      await page.locator('#variant-select-button').click();
+      await page.getByLabel('New Rule').getByText('123').click();
+      await page.getByRole('button', { name: 'Create' }).click();
+      await expect(page.getByText('Successfully created rule')).toBeVisible();
+    });
   });
 
-  test('can update rule', async ({ page }) => {
+  test('can update multi-variate rule', async ({ page }) => {
     await page.getByRole('link', { name: 'test-rule' }).click();
     await page.getByRole('link', { name: 'Rules' }).click();
     await page
@@ -60,6 +75,19 @@ test.describe('Rules', () => {
     await page
       .locator('input[name="rollouts\\.\\[1\\]\\.distribution\\.rollout"]')
       .click();
+    await page
+      .getByRole('listitem')
+      .getByRole('button', { name: 'Update' })
+      .click();
+    await expect(page.getByText('Successfully updated rule')).toBeVisible();
+  });
+
+  test('can update single-variant rule', async ({ page }) => {
+    await page.getByRole('link', { name: 'test-rule' }).click();
+    await page.getByRole('link', { name: 'Rules' }).click();
+    await page.locator('#variantKey').click();
+    await page.locator('#variantKey').fill('456');
+    await page.locator('#variantKey').click();
     await page
       .getByRole('listitem')
       .getByRole('button', { name: 'Update' })
