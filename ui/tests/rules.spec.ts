@@ -58,7 +58,7 @@ test.describe('Rules', () => {
         .locator('#segmentKey-0-select-button')
         .click();
       await page.getByLabel('New Rule').getByText('Test Rule').click();
-      await page.getByLabel('Single-Variant').check();
+      await page.getByLabel('Single Variant').check();
       await page.locator('#variant-select-button').click();
       await page.getByLabel('New Rule').getByText('123').click();
       await page.getByRole('button', { name: 'Create' }).click();
