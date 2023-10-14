@@ -118,7 +118,7 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 }
 
 var (
-	legacyEvalCache    evaluationCacheKey[*flipt.EvaluationRequest]      = "e"
+	legacyEvalCache    evaluationCacheKey[*flipt.EvaluationRequest]      = "ev1"
 	newEvaluationCache evaluationCacheKey[*evaluation.EvaluationRequest] = "ev2"
 )
 
