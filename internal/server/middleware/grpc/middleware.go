@@ -118,8 +118,8 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 }
 
 var (
-	legacyEvalCache    evaluationCacheKey[*flipt.EvaluationRequest]      = "ev1"
-	newEvaluationCache evaluationCacheKey[*evaluation.EvaluationRequest] = "ev2"
+	legacyEvalCachePrefix evaluationCacheKey[*flipt.EvaluationRequest]      = "ev1"
+	newEvalCachePrefix    evaluationCacheKey[*evaluation.EvaluationRequest] = "ev2"
 )
 
 // CacheUnaryInterceptor caches the response of a request if the request is cacheable.
@@ -132,7 +132,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 
 		switch r := req.(type) {
 		case *flipt.EvaluationRequest:
-			key, err := legacyEvalCache.Key(r)
+			key, err := legacyEvalCachePrefix.Key(r)
 			if err != nil {
 				logger.Error("getting cache key", zap.Error(err))
 				return handler(ctx, req)
@@ -233,7 +233,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 				logger.Error("deleting from cache", zap.Error(err))
 			}
 		case *evaluation.EvaluationRequest:
-			key, err := newEvaluationCache.Key(r)
+			key, err := newEvalCachePrefix.Key(r)
 			if err != nil {
 				logger.Error("getting cache key", zap.Error(err))
 				return handler(ctx, req)
