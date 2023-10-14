@@ -117,6 +117,11 @@ func EvaluationUnaryInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 	return handler(ctx, req)
 }
 
+var (
+	legacyEvalCache    evaluationCacheKey[*flipt.EvaluationRequest]      = "e"
+	newEvaluationCache evaluationCacheKey[*evaluation.EvaluationRequest] = "ev2"
+)
+
 // CacheUnaryInterceptor caches the response of a request if the request is cacheable.
 // TODO: we could clean this up by using generics in 1.18+ to avoid the type switch/duplicate code.
 func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnaryServerInterceptor {
@@ -127,7 +132,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 
 		switch r := req.(type) {
 		case *flipt.EvaluationRequest:
-			key, err := evaluationCacheKey(r)
+			key, err := legacyEvalCache.Key(r)
 			if err != nil {
 				logger.Error("getting cache key", zap.Error(err))
 				return handler(ctx, req)
@@ -228,7 +233,7 @@ func CacheUnaryInterceptor(cache cache.Cacher, logger *zap.Logger) grpc.UnarySer
 				logger.Error("deleting from cache", zap.Error(err))
 			}
 		case *evaluation.EvaluationRequest:
-			key, err := evaluationCacheKey(r)
+			key, err := newEvaluationCache.Key(r)
 			if err != nil {
 				logger.Error("getting cache key", zap.Error(err))
 				return handler(ctx, req)
@@ -430,7 +435,9 @@ type evaluationRequest interface {
 	GetContext() map[string]string
 }
 
-func evaluationCacheKey(r evaluationRequest) (string, error) {
+type evaluationCacheKey[T evaluationRequest] string
+
+func (e evaluationCacheKey[T]) Key(r T) (string, error) {
 	out, err := json.Marshal(r.GetContext())
 	if err != nil {
 		return "", fmt.Errorf("marshalling req to json: %w", err)
@@ -438,8 +445,8 @@ func evaluationCacheKey(r evaluationRequest) (string, error) {
 
 	// for backward compatibility
 	if r.GetNamespaceKey() != "" {
-		return fmt.Sprintf("e:%s:%s:%s:%s", r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out), nil
+		return fmt.Sprintf("%s:%s:%s:%s:%s", string(e), r.GetNamespaceKey(), r.GetFlagKey(), r.GetEntityId(), out), nil
 	}
 
-	return fmt.Sprintf("e:%s:%s:%s", r.GetFlagKey(), r.GetEntityId(), out), nil
+	return fmt.Sprintf("%s:%s:%s:%s", string(e), r.GetFlagKey(), r.GetEntityId(), out), nil
 }
