@@ -1000,6 +1000,89 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			})
 		})
 
+		t.Run("Compatability", func(t *testing.T) {
+			// ensure we can leverage new and old evaluation paths and produce consistent results
+			t.Run("new API to legacy API", func(t *testing.T) {
+				entity := uuid.Must(uuid.NewV4()).String()
+
+				t.Run("successful with new evaluation API", func(t *testing.T) {
+					result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Contains(t, result.SegmentKeys, "everyone")
+					assert.Equal(t, "one", result.VariantKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+
+				t.Run("successful with legacy evaluation API", func(t *testing.T) {
+					result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Equal(t, "everyone", result.SegmentKey)
+					assert.Equal(t, "one", result.Value)
+					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+			})
+
+			t.Run("legacy API to new API", func(t *testing.T) {
+				entity := uuid.Must(uuid.NewV4()).String()
+
+				t.Run("successful with legacy evaluation API", func(t *testing.T) {
+					result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Equal(t, "everyone", result.SegmentKey)
+					assert.Equal(t, "one", result.Value)
+					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+
+				t.Run("successful with new evaluation API", func(t *testing.T) {
+					result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Contains(t, result.SegmentKeys, "everyone")
+					assert.Equal(t, "one", result.VariantKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+			})
+		})
+
 		t.Run("Boolean", func(t *testing.T) {
 			// Have to use a fixed entity ID instead of UUID, because of percentage matching
 			t.Run("default match", func(t *testing.T) {
