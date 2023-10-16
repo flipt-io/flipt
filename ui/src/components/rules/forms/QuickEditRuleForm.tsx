@@ -130,29 +130,26 @@ export default function QuickEditRuleForm(props: QuickEditRuleFormProps) {
           return Promise.resolve();
         })
       );
+    } else if (ruleType === DistributionType.Single && selectedVariant) {
+      // update variant if changed
+      if (rule.rollouts[0].distribution.variantId !== selectedVariant.id) {
+        try {
+          await updateDistribution(
+            namespace.key,
+            flag.key,
+            rule.id,
+            rule.rollouts[0].distribution.id,
+            {
+              variantId: selectedVariant.id,
+              rollout: 100
+            }
+          );
+        } catch (err) {
+          setError(err as Error);
+          return;
+        }
+      }
     }
-    // TODO: enable once we allow user to change variant of existing single dist rule
-
-    // } else if (ruleType === DistributionType.Single && selectedVariant) {
-    //   // update variant if changed
-    //   if (rule.rollouts[0].distribution.variantId !== selectedVariant.id) {
-    //     try {
-    //       await updateDistribution(
-    //         namespace.key,
-    //         flag.key,
-    //         rule.id,
-    //         rule.rollouts[0].distribution.id,
-    //         {
-    //           variantId: selectedVariant.id,
-    //           rollout: 100
-    //         }
-    //       );
-    //     } catch (err) {
-    //       setError(err as Error);
-    //       return;
-    //     }
-    //   }
-    // }
   };
 
   return (
