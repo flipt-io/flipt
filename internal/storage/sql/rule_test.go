@@ -913,15 +913,25 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variantOne, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		FlagKey:     flag.Key,
-		Key:         t.Name(),
+		Key:         t.Name() + "foo",
 		Name:        "foo",
 		Description: "bar",
 	})
 
 	require.NoError(t, err)
-	assert.NotNil(t, variant)
+	assert.NotNil(t, variantOne)
+
+	variantTwo, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		FlagKey:     flag.Key,
+		Key:         t.Name() + "bar",
+		Name:        "bar",
+		Description: "baz",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variantOne)
 
 	segmentOne, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		Key:         fmt.Sprintf("%s_one", t.Name()),
@@ -951,14 +961,14 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	distribution, err := s.store.CreateDistribution(context.TODO(), &flipt.CreateDistributionRequest{
 		FlagKey:   flag.Key,
 		RuleId:    rule.Id,
-		VariantId: variant.Id,
+		VariantId: variantOne.Id,
 		Rollout:   100,
 	})
 
 	require.NoError(t, err)
 	assert.NotZero(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
-	assert.Equal(t, variant.Id, distribution.VariantId)
+	assert.Equal(t, variantOne.Id, distribution.VariantId)
 	assert.Equal(t, float32(100), distribution.Rollout)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
@@ -1010,26 +1020,42 @@ func (s *DBTestSuite) TestUpdateRuleAndDistribution() {
 	assert.Equal(t, int32(1), updatedRule.Rank)
 	assert.NotZero(t, rule.UpdatedAt)
 
+	// update distribution rollout
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		FlagKey:   flag.Key,
 		Id:        distribution.Id,
 		RuleId:    rule.Id,
-		VariantId: variant.Id,
+		VariantId: variantOne.Id,
 		Rollout:   10,
 	})
 
 	require.NoError(t, err)
 	assert.Equal(t, distribution.Id, updatedDistribution.Id)
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
-	assert.Equal(t, variant.Id, updatedDistribution.VariantId)
+	assert.Equal(t, variantOne.Id, updatedDistribution.VariantId)
 	assert.Equal(t, float32(10), updatedDistribution.Rollout)
-	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
+	assert.NotZero(t, rule.UpdatedAt)
+
+	// update distribution variant
+	updatedDistribution, err = s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+		FlagKey:   flag.Key,
+		Id:        distribution.Id,
+		RuleId:    rule.Id,
+		VariantId: variantTwo.Id,
+		Rollout:   10,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, distribution.Id, updatedDistribution.Id)
+	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
+	assert.Equal(t, variantTwo.Id, updatedDistribution.VariantId)
+	assert.Equal(t, float32(10), updatedDistribution.Rollout)
 	assert.NotZero(t, rule.UpdatedAt)
 
 	err = s.store.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
 		Id:        distribution.Id,
 		RuleId:    rule.Id,
-		VariantId: variant.Id,
+		VariantId: variantOne.Id,
 	})
 	require.NoError(t, err)
 }
@@ -1048,16 +1074,27 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	require.NoError(t, err)
 	assert.NotNil(t, flag)
 
-	variant, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+	variantOne, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
-		Key:          t.Name(),
+		Key:          t.Name() + "foo",
 		Name:         "foo",
 		Description:  "bar",
 	})
 
 	require.NoError(t, err)
-	assert.NotNil(t, variant)
+	assert.NotNil(t, variantOne)
+
+	variantTwo, err := s.store.CreateVariant(context.TODO(), &flipt.CreateVariantRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Key:          t.Name() + "bar",
+		Name:         "bar",
+		Description:  "baz",
+	})
+
+	require.NoError(t, err)
+	assert.NotNil(t, variantOne)
 
 	segmentOne, err := s.store.CreateSegment(context.TODO(), &flipt.CreateSegmentRequest{
 		NamespaceKey: s.namespace,
@@ -1091,14 +1128,14 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
 		RuleId:       rule.Id,
-		VariantId:    variant.Id,
+		VariantId:    variantOne.Id,
 		Rollout:      100,
 	})
 
 	require.NoError(t, err)
 	assert.NotZero(t, distribution.Id)
 	assert.Equal(t, rule.Id, distribution.RuleId)
-	assert.Equal(t, variant.Id, distribution.VariantId)
+	assert.Equal(t, variantOne.Id, distribution.VariantId)
 	assert.Equal(t, float32(100), distribution.Rollout)
 	assert.NotZero(t, distribution.CreatedAt)
 	assert.Equal(t, distribution.CreatedAt.Seconds, distribution.UpdatedAt.Seconds)
@@ -1131,19 +1168,38 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	// assert.Equal(t, rule.CreatedAt.Seconds, updatedRule.CreatedAt.Seconds)
 	assert.NotZero(t, rule.UpdatedAt)
 
+	// update distribution rollout
 	updatedDistribution, err := s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
 		NamespaceKey: s.namespace,
 		FlagKey:      flag.Key,
 		Id:           distribution.Id,
 		RuleId:       rule.Id,
-		VariantId:    variant.Id,
+		VariantId:    variantOne.Id,
 		Rollout:      10,
 	})
 
 	require.NoError(t, err)
 	assert.Equal(t, distribution.Id, updatedDistribution.Id)
 	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
-	assert.Equal(t, variant.Id, updatedDistribution.VariantId)
+	assert.Equal(t, variantOne.Id, updatedDistribution.VariantId)
+	assert.Equal(t, float32(10), updatedDistribution.Rollout)
+	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
+	assert.NotZero(t, rule.UpdatedAt)
+
+	// update distribution variant
+	updatedDistribution, err = s.store.UpdateDistribution(context.TODO(), &flipt.UpdateDistributionRequest{
+		NamespaceKey: s.namespace,
+		FlagKey:      flag.Key,
+		Id:           distribution.Id,
+		RuleId:       rule.Id,
+		VariantId:    variantTwo.Id,
+		Rollout:      10,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, distribution.Id, updatedDistribution.Id)
+	assert.Equal(t, rule.Id, updatedDistribution.RuleId)
+	assert.Equal(t, variantTwo.Id, updatedDistribution.VariantId)
 	assert.Equal(t, float32(10), updatedDistribution.Rollout)
 	// assert.Equal(t, distribution.CreatedAt.Seconds, updatedDistribution.CreatedAt.Seconds)
 	assert.NotZero(t, rule.UpdatedAt)
@@ -1151,7 +1207,7 @@ func (s *DBTestSuite) TestUpdateRuleAndDistributionNamespace() {
 	err = s.store.DeleteDistribution(context.TODO(), &flipt.DeleteDistributionRequest{
 		Id:        distribution.Id,
 		RuleId:    rule.Id,
-		VariantId: variant.Id,
+		VariantId: variantOne.Id,
 	})
 	require.NoError(t, err)
 }
