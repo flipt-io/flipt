@@ -3,6 +3,12 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.28.2](https://github.com/flipt-io/flipt/releases/tag/v1.28.2) - 2023-10-13
+
+### Fixed
+
+- `service/middleware`: use separate cache keys for old and new evaluations (#2237)
+
 ## [v1.28.1](https://github.com/flipt-io/flipt/releases/tag/v1.28.1) - 2023-10-04
 
 ### Fixed
