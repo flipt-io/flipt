@@ -18,15 +18,11 @@ const scrollToBottom = async (page) => {
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 const capture = async function (folder, name, fn, opts = {}) {
-  if (!opts.namespace) {
-    opts.namespace = 'default';
-  }
-
   try {
     const path = `${__dirname}/screenshot/${folder}/fixtures/${name}.yml`;
     if (fs.existsSync(path)) {
       exec(
-        `flipt import --create-namespace --namespace=${opts.namespace} --address=${fliptAddr} ${path}`,
+        `flipt import --address=${fliptAddr} ${path}`,
         (error, stdout, stderr) => {
           if (error) {
             console.error(`error: ${error.message}`);
@@ -56,8 +52,9 @@ const capture = async function (folder, name, fn, opts = {}) {
 
   await page.goto(fliptAddr);
   await fn(page);
-  await sleep(4000);
-  await screenshot(page, `${folder}/${name}.png`);
+  await sleep(5000);
+  let random = Math.floor(Math.random() * 100000);
+  await screenshot(page, `${folder}/${name}${random}.png`);
 
   await context.close();
   await browser.close();

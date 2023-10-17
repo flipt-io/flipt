@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  flipt:
+    image: flipt/flipt:latest
+    command:
+      ["./flipt", "--force-migrate", "--config", "/etc/flipt/flipt.config.yml"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./flipt.config.yml:/etc/flipt/flipt.config.yml
+
+    networks:
+      - flipt_network
+
+  webhook:
+    build: .
+    networks:
+      - flipt_network
+
+networks:
+  flipt_network:

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	errs "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
@@ -22,7 +23,7 @@ var (
 
 func TestBatchEvaluate(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -61,7 +62,7 @@ func TestBatchEvaluate(t *testing.T) {
 
 func TestBatchEvaluate_NamespaceMismatch(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -87,7 +88,7 @@ func TestBatchEvaluate_NamespaceMismatch(t *testing.T) {
 
 func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)
@@ -132,7 +133,7 @@ func TestBatchEvaluate_FlagNotFoundExcluded(t *testing.T) {
 
 func TestBatchEvaluate_FlagNotFound(t *testing.T) {
 	var (
-		store  = &storeMock{}
+		store  = &common.StoreMock{}
 		logger = zaptest.NewLogger(t)
 		s      = New(logger, store)
 	)

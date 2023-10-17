@@ -25,7 +25,7 @@ In this example, we are leveraging Flipt to prototype some personalization for o
 
 For the client-side example, we are using the `useFlipt` hook to evaluate the flag in the browser/client side (using the `useEffect` hook). The `useFlipt` hook returns an instance of our `FliptApiClient` object which is used to evalute the `language` flag, we can then use this value to render the greeting message.
 
-Because we don't want to potentially expose any sensitive information, such as a Flipt API key, we are actually proxying the `/api/v1/evaluate` request through a reverse proxy via Caddy. This allows us to use the `FliptApiClient` directly in the NextJS application without exposing the API key. This has the additional benefit of not requiring us to publicly expose the Flipt server, and also allows us to only allow the `evaluate` request to be routed to Flipt. The Caddy configuration is defined in the `Caddyfile` file.
+Because we don't want to potentially expose any sensitive information, such as a Flipt API key, we are actually proxying the request to [`/evaluate/v1/variant`](https://www.flipt.io/docs/reference/evaluation/variant-evaluation) through a reverse proxy via Caddy. This allows us to use the `FliptApiClient` directly in the NextJS application without exposing the API key. This has the additional benefit of not requiring us to publicly expose the Flipt server, and also allows us to only allow the `evaluate` API requests to be routed to Flipt. The Caddy configuration is defined in the `Caddyfile` file.
 
 ### Server Side
 
@@ -35,7 +35,7 @@ Because we don't want to potentially expose any sensitive information, such as a
 
 For the server-side example, we are using the [`getServerSideProps`](https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props) function to evaluate the flags on the server side before rendering the page. This uses the `FliptApiClient` directly to evalute the `language` flag to then render the greeting message.
 
-Since we are using server side rendering, we don't need to proxy the `/api/v1/evaluate` request through Caddy, we can just use the `FliptApiClient` directly in the NextJS application.
+Since we are using server side rendering, we don't need to proxy the `evaluate` API request through Caddy, we can just use the `FliptApiClient` directly in the NextJS application.
 
 ## Requirements
 

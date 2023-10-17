@@ -3,6 +3,44 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.28.2](https://github.com/flipt-io/flipt/releases/tag/v1.28.2) - 2023-10-13
+
+### Fixed
+
+- `service/middleware`: use separate cache keys for old and new evaluations (#2237)
+
+## [v1.28.1](https://github.com/flipt-io/flipt/releases/tag/v1.28.1) - 2023-10-04
+
+### Fixed
+
+- csp header for monaco editor (#2200)
+- specify region to fix s3 feature (#2193)
+
+## [v1.28.0](https://github.com/flipt-io/flipt/releases/tag/v1.28.0) - 2023-10-02
+
+### Added
+
+- `ui`: Rules tab (#2176)
+- Add requestID to batch response (#2177)
+- `cli`: Gen docs (#2173)
+- `storage/fs`: Allow FS backends to understand multi-document YAML files
+- `cli`: config edit command (#2169)
+- support export otel telemetry directly over http(s) (#2155)
+- `cli`: cmd shell completions (#2168)
+- `import/export`: add support for exporting multiple namespaces and all namespaces
+- `cli`: config init (#2147)
+- `import/export`: add functionality for importing YAML stream
+- `tracing`: add OTLP headers config (#2148)
+- `audit`: Add webhook templating for generic request to webhooks
+
+### Changed
+
+- Dependency Updates
+
+### Fixed
+
+- export over https (#2152)
+
 ## [v1.27.2](https://github.com/flipt-io/flipt/releases/tag/v1.27.2) - 2023-09-21
 
 ### Fixed

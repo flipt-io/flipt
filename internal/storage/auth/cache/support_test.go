@@ -3,8 +3,8 @@ package cache
 import (
 	"context"
 
-	"github.com/stretchr/testify/mock"
 	"go.flipt.io/flipt/internal/cache"
+	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/internal/storage/auth"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -69,7 +69,7 @@ func (c *cacheSpy) Delete(ctx context.Context, key string) error {
 var _ auth.Store = &storeMock{}
 
 type storeMock struct {
-	mock.Mock
+	*common.StoreMock
 }
 
 func (m *storeMock) String() string {
