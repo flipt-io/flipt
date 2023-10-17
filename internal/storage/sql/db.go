@@ -25,7 +25,7 @@ func init() {
 		Generator: dburl.GenOpaque,
 		Transport: 0,
 		Opaque:    true,
-		Aliases:   []string{"libsql"},
+		Aliases:   []string{"libsql", "http", "https"},
 		Override:  "file",
 	})
 }
@@ -253,14 +253,22 @@ func parse(cfg config.Config, opts Options) (Driver, *dburl.URL, error) {
 			v.Set("sql_mode", "ANSI")
 		}
 	case SQLite, LibSQL:
-		v.Set("cache", "shared")
-		v.Set("mode", "rwc")
-		v.Set("_fk", "true")
+		if url.Scheme != "http" && url.Scheme != "https" {
+			v.Set("cache", "shared")
+			v.Set("mode", "rwc")
+			v.Set("_fk", "true")
+		}
 	}
 
 	url.RawQuery = v.Encode()
 	// we need to re-parse since we modified the query params
 	url, err = dburl.Parse(url.URL.String())
+
+	if url.Scheme == "http" {
+		url.DSN = "http://" + url.DSN
+	} else if url.Scheme == "https" {
+		url.DSN = "https://" + url.DSN
+	}
 
 	return driver, url, err
 }
