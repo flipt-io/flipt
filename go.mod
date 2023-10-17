@@ -206,6 +206,7 @@ require (
 replace (
 	github.com/codahale/hdrhistogram => github.com/HdrHistogram/hdrhistogram-go v0.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt/v4 v4.2.0
+	github.com/libsql/libsql-client-go v0.0.0-20230917132930-48c310b27e7b => github.com/yquansah/libsql-client-go v0.0.0-20231017144447-34b2f2f84292
 )
 
 replace (
