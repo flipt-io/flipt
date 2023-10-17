@@ -52,6 +52,24 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.LibSQL,
 		},
 		{
+			name: "libsql with http",
+			cfg: config.DatabaseConfig{
+				URL:             "http://127.0.0.1:8000",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.LibSQL,
+		},
+		{
+			name: "libsql with https",
+			cfg: config.DatabaseConfig{
+				URL:             "https://turso.remote",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.LibSQL,
+		},
+		{
 			name: "postgres url",
 			cfg: config.DatabaseConfig{
 				URL: "postgres://postgres@localhost:5432/flipt?sslmode=disable",
@@ -75,7 +93,7 @@ func TestOpen(t *testing.T) {
 		{
 			name: "invalid url",
 			cfg: config.DatabaseConfig{
-				URL: "http://a b",
+				URL: "tcp://a b",
 			},
 			wantErr: true,
 		},
