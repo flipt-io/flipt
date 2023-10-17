@@ -1,5 +1,5 @@
 #!/bin/bash
-# flipt installer
+#
 #     _________       __ 
 #    / ____/ (_)___  / /_
 #   / /_  / / / __ \/ __/
@@ -7,8 +7,10 @@
 # /_/   /_/_/ .___/\__/  
 #          /_/           
 #
+# Flipt installer
+#
 # Usage:
-#   curl -fsSL https://github.com/flipt-io/flipt/raw/latest/install.sh | bash
+#   curl -fsSL https://github.com/flipt-io/flipt/raw/main/install.sh | sh
 set -e
 
 file_issue_prompt() {
@@ -39,8 +41,7 @@ copy() {
 
 # This function decides what version will be installed based on the following priority:
 # 1. Environment variable `VERSION` is set.
-# 2. Command line argument is passed.
-# 3. Latest available on GitHub
+# 2. Latest available on GitHub
 function get_version() {
   if [[ -z "$VERSION" ]]; then
       if [[ -n "$1" ]]; then
@@ -63,7 +64,7 @@ function install() {
       ARCH=$(uname -m);
       OS="linux";
       if [[ "$ARCH" != "x86_64" && "$ARCH" != "aarch64" ]]; then
-          echo "flipt is only available for linux x86_64/aarch64 architecture"
+          echo "flipt is only available for linux x86_64/arm64 architecture"
           file_issue_prompt
           exit 1
       fi
@@ -90,8 +91,10 @@ function install() {
   echo ""
   echo "Flipt installed!"
   echo ""
-  echo "For feedback and support, join our Discord server: https://flipt.io/discord, open an issue or discussion on our GitHub: https://github.com/flipt-io/flipt/ or send us an email at dev@flipt.io"
+  echo "For feedback and support, join our Discord server: https://flipt.io/discord,"
+  echo "open an issue or discussion on GitHub: https://github.com/flipt-io/flipt/"
+  echo "or send us an email at dev@flipt.io"
   echo ""
-  }
+}
 
 install "$1"

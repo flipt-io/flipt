@@ -49,7 +49,7 @@ func NewSource(logger *zap.Logger, bucket string, opts ...containers.Option[Sour
 					PartitionID:       "aws",
 					URL:               s.endpoint,
 					HostnameImmutable: true,
-					SigningRegion:     "",
+					SigningRegion:     s.region,
 				}, nil
 			}
 			return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")

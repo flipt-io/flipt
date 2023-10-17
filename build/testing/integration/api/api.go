@@ -624,7 +624,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, ruleTwo.Id, distribution.RuleId)
 		assert.Equal(t, float32(100), distribution.Rollout)
 
-		_, err = client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
+		distribution, err = client.Flipt().CreateDistribution(ctx, &flipt.CreateDistributionRequest{
 			NamespaceKey: namespace,
 			FlagKey:      "test",
 			RuleId:       ruleThree.Id,
@@ -632,6 +632,28 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			Rollout:      100,
 		})
 		require.NoError(t, err)
+
+		// update distribution variant
+		_, err = client.Flipt().UpdateDistribution(ctx, &flipt.UpdateDistributionRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "test",
+			Id:           distribution.Id,
+			RuleId:       ruleThree.Id,
+			VariantId:    flag.Variants[1].Id,
+			Rollout:      100,
+		})
+		require.NoError(t, err)
+
+		// ensure rules distribution is for expected variant
+		ruleThree, err = client.Flipt().GetRule(ctx, &flipt.GetRuleRequest{
+			NamespaceKey: namespace,
+			FlagKey:      "test",
+			Id:           ruleThree.Id,
+		})
+		require.NoError(t, err)
+
+		assert.Len(t, ruleThree.Distributions, 1)
+		assert.Equal(t, flag.Variants[1].Id, ruleThree.Distributions[0].VariantId)
 	})
 
 	t.Run("Boolean Rollouts", func(t *testing.T) {
@@ -952,7 +974,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.True(t, result.Match, "Evaluation should have matched.")
 				assert.Contains(t, result.SegmentKeys, "segment")
 				assert.Contains(t, result.SegmentKeys, "another-segment")
-				assert.Equal(t, "one", result.VariantKey)
+				assert.Equal(t, "two", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 			})
 
@@ -997,6 +1019,89 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				msg := fmt.Sprintf("rpc error: code = NotFound desc = flag \"%s/unknown_flag\" not found", namespace)
 				require.EqualError(t, err, msg)
 				require.Nil(t, result)
+			})
+		})
+
+		t.Run("Compatability", func(t *testing.T) {
+			// ensure we can leverage new and old evaluation paths and produce consistent results
+			t.Run("new API to legacy API", func(t *testing.T) {
+				entity := uuid.Must(uuid.NewV4()).String()
+
+				t.Run("successful with new evaluation API", func(t *testing.T) {
+					result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Contains(t, result.SegmentKeys, "everyone")
+					assert.Equal(t, "one", result.VariantKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+
+				t.Run("successful with legacy evaluation API", func(t *testing.T) {
+					result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Equal(t, "everyone", result.SegmentKey)
+					assert.Equal(t, "one", result.Value)
+					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+			})
+
+			t.Run("legacy API to new API", func(t *testing.T) {
+				entity := uuid.Must(uuid.NewV4()).String()
+
+				t.Run("successful with legacy evaluation API", func(t *testing.T) {
+					result, err := client.Flipt().Evaluate(ctx, &flipt.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Equal(t, "everyone", result.SegmentKey)
+					assert.Equal(t, "one", result.Value)
+					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
+
+				t.Run("successful with new evaluation API", func(t *testing.T) {
+					result, err := client.Evaluation().Variant(ctx, &evaluation.EvaluationRequest{
+						NamespaceKey: namespace,
+						FlagKey:      "test",
+						EntityId:     entity,
+						Context: map[string]string{
+							"foo":  "baz",
+							"fizz": "bozz",
+						},
+					})
+					require.NoError(t, err)
+
+					require.True(t, result.Match, "Evaluation should have matched.")
+					assert.Contains(t, result.SegmentKeys, "everyone")
+					assert.Equal(t, "one", result.VariantKey)
+					assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				})
 			})
 		})
 
