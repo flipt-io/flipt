@@ -2,7 +2,7 @@ FROM golang:1.21-alpine3.18 AS build
 
 WORKDIR /home/flipt
 
-RUN apk add npm git bash gcc build-base binutils-gold
+RUN apk add --update --no-cache npm git bash gcc build-base binutils-gold
 
 RUN git clone https://github.com/magefile/mage && \
     cd mage && \
@@ -29,7 +29,7 @@ LABEL maintainer="dev@flipt.io"
 LABEL org.opencontainers.image.name="flipt"
 LABEL org.opencontainers.image.source="https://github.com/flipt-io/flipt"
 
-RUN apk add --no-cache postgresql-client \
+RUN apk add --update --no-cache postgresql-client \
     openssl \
     ca-certificates
 
