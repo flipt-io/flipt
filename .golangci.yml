@@ -79,5 +79,6 @@ linters-settings:
       - "G501"
       - "G401"
       - "G404"
+      - "G602" # False positive for this rule in v1.54.2 https://github.com/securego/gosec/issues/1005
   goconst:
     ignore-tests: true
