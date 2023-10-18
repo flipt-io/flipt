@@ -17,15 +17,18 @@ services:
     volumes:
       - "/tmp/replica.db:/var/lib/sqld/iku.db"
   flipt-one:
-    image: flipt:dev-cb18b18
+    build:
+      context: ../../..
     depends_on:
       - sqld-primary
     environment:
       - FLIPT_DB_URL=http://sqld-primary:8000
+    restart: on-failure
     ports:
       - "8080:8080"
   flipt-two:
-    image: flipt:dev-cb18b18
+    build:
+      context: ../../..
     depends_on:
       - sqld-replica
     restart: on-failure
