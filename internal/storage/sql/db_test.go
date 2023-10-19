@@ -43,6 +43,15 @@ func TestOpen(t *testing.T) {
 			driver: fliptsql.SQLite,
 		},
 		{
+			name: "sqlite url (without slash)",
+			cfg: config.DatabaseConfig{
+				URL:             "file:flipt.db",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.SQLite,
+		},
+		{
 			name: "libsql url",
 			cfg: config.DatabaseConfig{
 				URL:             "libsql://file:/flipt.db",
