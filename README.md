@@ -162,7 +162,7 @@ Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080
 ### Docker :whale:
 
 ```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:latest
+docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:latest
 ```
 
 Flipt UI will now be reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080).
@@ -174,7 +174,7 @@ For more permanent methods of running Flipt, see the [Installation](https://flip
 Like to live on the edge? Can't wait for the next release? Our nightly builds include the latest changes on `main` and are built.. well.. nightly.
 
 ```bash
-docker run --rm -p 8080:8080 -p 9000:9000 -t flipt/flipt:nightly
+docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 ```
 
 <br clear="both"/>
