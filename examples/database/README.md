@@ -9,3 +9,4 @@ For more information on the different database configurations, see the [Storage]
 * [CockroachDB Example](cockroachdb/README.md)
 * [MySQL Example](mysql/README.md)
 * [PostgreSQL Example](postgres/README.md)
+* [LibSQL Example](libsql/README.md)

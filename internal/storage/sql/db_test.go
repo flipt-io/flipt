@@ -36,11 +36,47 @@ func TestOpen(t *testing.T) {
 		{
 			name: "sqlite url",
 			cfg: config.DatabaseConfig{
+				URL:             "file:/flipt.db",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.SQLite,
+		},
+		{
+			name: "sqlite url (without slash)",
+			cfg: config.DatabaseConfig{
 				URL:             "file:flipt.db",
 				MaxOpenConn:     5,
 				ConnMaxLifetime: 30 * time.Minute,
 			},
 			driver: fliptsql.SQLite,
+		},
+		{
+			name: "libsql url",
+			cfg: config.DatabaseConfig{
+				URL:             "libsql://file:/flipt.db",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.LibSQL,
+		},
+		{
+			name: "libsql with http",
+			cfg: config.DatabaseConfig{
+				URL:             "http://127.0.0.1:8000",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.LibSQL,
+		},
+		{
+			name: "libsql with https",
+			cfg: config.DatabaseConfig{
+				URL:             "https://turso.remote",
+				MaxOpenConn:     5,
+				ConnMaxLifetime: 30 * time.Minute,
+			},
+			driver: fliptsql.LibSQL,
 		},
 		{
 			name: "postgres url",
@@ -66,7 +102,7 @@ func TestOpen(t *testing.T) {
 		{
 			name: "invalid url",
 			cfg: config.DatabaseConfig{
-				URL: "http://a b",
+				URL: "tcp://a b",
 			},
 			wantErr: true,
 		},
@@ -140,7 +176,7 @@ func (s *DBTestSuite) SetupSuite() {
 		var store storage.Store
 
 		switch db.Driver {
-		case fliptsql.SQLite:
+		case fliptsql.SQLite, fliptsql.LibSQL:
 			store = sqlite.NewStore(db.DB, builder, logger)
 		case fliptsql.Postgres, fliptsql.CockroachDB:
 			store = postgres.NewStore(db.DB, builder, logger)

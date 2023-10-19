@@ -63,6 +63,8 @@ func Open() (*Database, error) {
 		proto = config.DatabasePostgres
 	case "mysql":
 		proto = config.DatabaseMySQL
+	case "libsql":
+		proto = config.DatabaseLibSQL
 	default:
 		proto = config.DatabaseSQLite
 	}
@@ -91,6 +93,12 @@ func Open() (*Database, error) {
 		case config.DatabaseSQLite:
 			dbPath := createTempDBPath()
 			cfg.Database.URL = "file:" + dbPath
+			cleanup = func() {
+				_ = os.Remove(dbPath)
+			}
+		case config.DatabaseLibSQL:
+			dbPath := createTempDBPath()
+			cfg.Database.URL = "libsql://file:" + dbPath
 			cleanup = func() {
 				_ = os.Remove(dbPath)
 			}
@@ -196,7 +204,7 @@ func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
 	)
 
 	switch driver {
-	case fliptsql.SQLite:
+	case fliptsql.SQLite, fliptsql.LibSQL:
 		dr, err = sqlite3.WithInstance(db, &sqlite3.Config{})
 	case fliptsql.Postgres:
 		dr, err = pg.WithInstance(db, &pg.Config{})
@@ -215,12 +223,12 @@ func newMigrator(db *sql.DB, driver fliptsql.Driver) (*migrate.Migrate, error) {
 
 	// source migrations from embedded config/migrations package
 	// relative to the specific driver
-	sourceDriver, err := iofs.New(migrations.FS, driver.String())
+	sourceDriver, err := iofs.New(migrations.FS, driver.Migrations())
 	if err != nil {
 		return nil, fmt.Errorf("constructing migration source driver (db driver %q): %w", driver.String(), err)
 	}
 
-	return migrate.NewWithInstance("iofs", sourceDriver, driver.String(), dr)
+	return migrate.NewWithInstance("iofs", sourceDriver, driver.Migrations(), dr)
 }
 
 type DBContainer struct {

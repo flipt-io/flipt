@@ -32,7 +32,7 @@ func fliptServer(logger *zap.Logger, cfg *config.Config) (*server.Server, func()
 	var store storage.Store
 
 	switch driver {
-	case sql.SQLite:
+	case sql.SQLite, sql.LibSQL:
 		store = sqlite.NewStore(db, builder, logger)
 	case sql.Postgres, sql.CockroachDB:
 		store = postgres.NewStore(db, builder, logger)

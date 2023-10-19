@@ -67,7 +67,7 @@ func Base(ctx context.Context, client *dagger.Client, req FliptRequest) (*dagger
 	golang := client.Container(dagger.ContainerOpts{
 		Platform: dagger.Platform(platforms.Format(req.BuildTarget)),
 	}).
-		From("golang:1.20-alpine3.18").
+		From("golang:1.21-alpine3.18").
 		WithEnvVariable("GOCACHE", goBuildCachePath).
 		WithEnvVariable("GOMODCACHE", goModCachePath).
 		WithExec([]string{"apk", "add", "bash", "gcc", "binutils-gold", "build-base", "git"})

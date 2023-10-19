@@ -2,7 +2,9 @@ version: "3"
 
 services:
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev
     working_dir: /server
     ports:
       - "8080:8080"

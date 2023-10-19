@@ -147,7 +147,17 @@ func TestDatabaseProtocol(t *testing.T) {
 		{
 			name:     "sqlite",
 			protocol: DatabaseSQLite,
-			want:     "file",
+			want:     "sqlite",
+		},
+		{
+			name:     "cockroachdb",
+			protocol: DatabaseCockroachDB,
+			want:     "cockroachdb",
+		},
+		{
+			name:     "libsql",
+			protocol: DatabaseLibSQL,
+			want:     "libsql",
 		},
 	}
 

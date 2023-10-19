@@ -104,7 +104,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"experimental": map[string]any{},
 			},
@@ -159,7 +159,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"experimental": map[string]any{},
 			},
@@ -180,7 +180,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 					"cache":    "redis",
 				},
 				"experimental": map[string]any{},
@@ -206,7 +206,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"experimental": map[string]any{},
 			},
@@ -231,7 +231,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"authentication": map[string]any{
 					"methods": []any{
@@ -260,7 +260,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"experimental": map[string]any{},
 			},
@@ -284,7 +284,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"audit": map[string]any{
 					"sinks": []any{
@@ -313,7 +313,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"experimental": map[string]any{},
 			},
@@ -337,7 +337,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"audit": map[string]any{
 					"sinks": []any{
@@ -369,7 +369,7 @@ func TestPing(t *testing.T) {
 				"os":      "linux",
 				"arch":    "amd64",
 				"storage": map[string]any{
-					"database": "file",
+					"database": "sqlite",
 				},
 				"audit": map[string]any{
 					"sinks": []any{
