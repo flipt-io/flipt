@@ -2,13 +2,16 @@ version: "3"
 services:
   sqld-primary:
     image: ghcr.io/libsql/sqld:main
+    platform: linux/amd64
     environment:
       - SQLD_NODE=primary
       - SQLD_HTTP_LISTEN_ADDR=0.0.0.0:8000
     volumes:
       - "/tmp/data.db:/var/lib/sqld/iku.db"
+
   sqld-replica:
     image: ghcr.io/libsql/sqld:main
+    platform: linux/amd64
     depends_on:
       - sqld-primary
     environment:
@@ -16,6 +19,7 @@ services:
       - SQLD_PRIMARY_URL=http://sqld-primary:5001
     volumes:
       - "/tmp/replica.db:/var/lib/sqld/iku.db"
+
   flipt-one:
     build:
       context: ../../..
@@ -26,6 +30,7 @@ services:
     restart: on-failure
     ports:
       - "8080:8080"
+
   flipt-two:
     build:
       context: ../../..
