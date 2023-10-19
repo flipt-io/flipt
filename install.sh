@@ -66,7 +66,6 @@ function install() {
       if [[ "$ARCH" != "x86_64" && "$ARCH" != "aarch64" ]]; then
           echo "flipt is only available for linux x86_64/arm64 architecture"
           file_issue_prompt
-          exit 1
       fi
       if [[ "$ARCH" == "aarch64" ]]; then
           ARCH="arm64"
@@ -77,14 +76,12 @@ function install() {
       if [[ "$ARCH" != "arm64" ]]; then
           echo "flipt is only available for mac arm64 architecture"
           file_issue_prompt
-          exit 1
       fi
   else
       echo "flipt isn't supported for your platform - $OSTYPE"
       file_issue_prompt
-      exit 1
   fi
-  curl -o /tmp/flipt.tar.gz -fsSL https://github.com/flipt-io/flipt/releases/download/$version/flipt_$OS\_$ARCH.tar.gz
+  curl -o /tmp/flipt.tar.gz -fsSL https://download.flipt.io/flipt/$version/$OS\_$ARCH.tar.gz
   tar -xzf /tmp/flipt.tar.gz -C /tmp
   chmod +x /tmp/flipt
   copy

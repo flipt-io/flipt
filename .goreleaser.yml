@@ -50,14 +50,12 @@ release:
 
     ```bash
       brew install flipt-io/brew/flipt
-      # or upgrade existing
-      brew update && brew upgrade flipt
     ```
 
     ### Docker Images :whale:
 
     ```bash
-      docker pull docker.io/flipt/flipt:v{{ .Tag }}
+      docker pull docker.flipt.io/flipt/flipt:v{{ .Tag }}
     ```
 
     ```bash
