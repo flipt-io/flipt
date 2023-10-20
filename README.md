@@ -87,7 +87,7 @@ Flipt supports use cases such as:
 - Native [GRPC](https://grpc.io/) client [SDKs](#grpc-client-libraries) to integrate with your existing GRPC architecture
 - Powerful REST API with native [SDKs](#rest-client-libraries) for easy integration
 - Modern, mobile-friendly 📱 UI and debug console with dark mode 🌙
-- Supports multiple databases: Postgres, MySQL, SQLite, CockroachDB
+- Supports multiple databases: Postgres, MySQL, SQLite, [libSQL](https://turso.tech/libsql), and [CockroachDB](https://github.com/cockroachdb/cockroach)
 - Import and export to allow storing your data as code
 - Cloud-ready. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
@@ -110,7 +110,7 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 - :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. [Auditing](https://www.flipt.io/docs/configuration/observability#audit-events). No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
-- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, Redis... Flipt supports it all.
+- :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
 - :eyes: **Observability** - Flipt integrates with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) to provide metrics and tracing. We support sending trace data to [Jaeger](https://www.jaegertracing.io/), [Zipkin](https://zipkin.io/), and [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/docs/reference/specification/protocol/) backends.
 
 <br clear="both"/>
@@ -122,14 +122,13 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
     <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
     <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
+    <img src="./logos/turso.svg" alt="Git" width=150 height=150 />
 </p>
 <p align="center">
     <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
     <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
     <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
     <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
-</p>
-<p align="center">
     <img src="./logos/git.svg" alt="Git" width=150 height=150 />
 </p>
 
