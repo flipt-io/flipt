@@ -32,7 +32,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | sh
+          curl -L https://dl.dagger.io/dagger/install.sh | "DAGGER_VERSION=${{ vars.DAGGER_VERSION }}" sh
 
       - name: Install Mage
         uses: magefile/mage-action@v3
@@ -63,7 +63,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
+          curl -L https://dl.dagger.io/dagger/install.sh | "DAGGER_VERSION=${{ vars.DAGGER_VERSION }}" sh
 
       - name: Install Mage
         uses: magefile/mage-action@v3
@@ -98,7 +98,7 @@ jobs:
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${DAGGER_VERSION} sh
+          curl -L https://dl.dagger.io/dagger/install.sh | "DAGGER_VERSION=${{ vars.DAGGER_VERSION }}" sh
 
       - name: Install Mage
         uses: magefile/mage-action@v3
