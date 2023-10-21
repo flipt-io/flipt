@@ -122,7 +122,7 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
     <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
     <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
     <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
-    <img src="./logos/turso.svg" alt="Git" width=150 height=150 />
+    <img src="./logos/turso.svg" alt="Turso" width=150 height=150 />
 </p>
 <p align="center">
     <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
