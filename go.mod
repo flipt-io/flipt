@@ -66,10 +66,10 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.19.0
 	go.opentelemetry.io/otel/trace v1.19.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/net v0.17.0
 	golang.org/x/oauth2 v0.12.0
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231009173412-8bfb1ae86b6c
 	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
@@ -131,6 +131,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -174,7 +175,7 @@ require (
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/segmentio/backo-go v1.0.0 // indirect
-	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.8 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.2 // indirect
@@ -200,11 +201,11 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20231009173412-8bfb1ae86b6c // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231009173412-8bfb1ae86b6c // indirect
