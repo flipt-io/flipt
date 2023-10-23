@@ -3,6 +3,19 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.29.0](https://github.com/flipt-io/flipt/releases/tag/v1.29.0) - 2023-10-23
+
+### Added
+
+- impl grpc health check (#2257)
+- `distributions`: support updating distribution variant (#2235)
+- allow disabling profiling endpoints (#2195)
+- LibSQL/Turso support
+
+### Changed
+
+- Add default namespace in the sync store layer for FS implementations
+
 ## [v1.28.2](https://github.com/flipt-io/flipt/releases/tag/v1.28.2) - 2023-10-13
 
 ### Fixed

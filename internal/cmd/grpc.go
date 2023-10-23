@@ -51,6 +51,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
@@ -63,6 +64,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
 
 	goredis_cache "github.com/go-redis/cache/v9"
 	goredis "github.com/redis/go-redis/v9"
@@ -252,7 +254,7 @@ func NewGRPCServer(
 
 	var (
 		fliptsrv           = fliptserver.New(logger, store)
-		metasrv            = metadata.NewServer(cfg, info)
+		metasrv            = metadata.New(cfg, info)
 		evalsrv            = evaluation.New(logger, store)
 		authOpts           = []containers.Option[auth.InterceptorOptions]{}
 		skipAuthIfExcluded = func(server any, excluded bool) {
@@ -297,7 +299,7 @@ func NewGRPCServer(
 
 	server.onShutdown(authShutdown)
 
-	// initialize server
+	// initialize servers
 	register.Add(fliptsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
@@ -403,8 +405,12 @@ func NewGRPCServer(
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)
 
+	healthserver := health.NewServer()
+	grpc_health.RegisterHealthServer(server.Server, healthserver)
+
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
+		healthserver.Shutdown()
 		server.GracefulStop()
 		return nil
 	})
