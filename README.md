@@ -47,17 +47,15 @@
 
 <div align="center">
     <h4>
-        <a href="https://www.flipt.io/docs/introduction">Documentation</a> •
-        <a href="#usecases">Usecases</a> •
-        <a href="#features">Features</a> •
-        <a href="#values">Values</a> •
-        <a href="#examples">Examples</a> •
-        <a href="#integration">Integration</a> •
-        <a href="#community">Community</a>
+        <a href="https://www.flipt.io/docs/introduction">Docs</a> •
+        <a hre="http://www.flipt.io">Website</a> •
+        <a hre="http://www.flipt.io/blog">Blog</a> •
+        <a href="https://features.flipt.io/">Feedback</a> •
+        <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
 </div>
 
-Flipt is an open-source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
+[Flipt](https://www.flipt.io) is an open-source, self-hosted feature flag application that allows you to run experiments across services in **your** environment.
 
 Flipt can be deployed within your existing infrastructure so that you don't have to worry about your information being sent to a third party or the latency required to communicate across the internet.
 
@@ -304,12 +302,6 @@ Using Flipt at your company? Open a [PR](https://github.com/flipt-io/flipt/pulls
 ## Community
 
 For help and discussion around Flipt, feature flag best practices, and more, join us on [Discord](https://www.flipt.io/discord).
-
-<br clear="both"/>
-
-## Feedback
-
-If you are a user of Flipt we'd really :heart: it if you could leave a [testimonial](https://testimonial.to/flipt) on how Flipt is working for you.
 
 <br clear="both"/>
 
