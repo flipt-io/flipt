@@ -26,6 +26,7 @@ import (
 	"go.flipt.io/flipt/ui"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 // HTTPServer is a wrapper around the construction and registration of Flipt's HTTP server.
@@ -95,7 +96,6 @@ func NewHTTPServer(
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Heartbeat("/health"))
 	r.Use(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// checking Values as map[string][]string also catches ?pretty and ?pretty=
@@ -166,6 +166,9 @@ func NewHTTPServer(
 			))
 		})
 	})
+
+	// mount health endpoint to use the grpc health check service
+	r.Mount("/health", runtime.NewServeMux(runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(conn), "/health")))
 
 	fs, err := ui.FS()
 	if err != nil {

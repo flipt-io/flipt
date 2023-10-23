@@ -20,7 +20,7 @@ type Server struct {
 	meta.UnimplementedMetadataServiceServer
 }
 
-func NewServer(cfg *config.Config, info info.Flipt) *Server {
+func New(cfg *config.Config, info info.Flipt) *Server {
 	return &Server{
 		cfg:  cfg,
 		info: info,
