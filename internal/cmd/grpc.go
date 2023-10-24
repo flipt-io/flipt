@@ -48,6 +48,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -55,9 +56,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 	"go.flipt.io/flipt/internal/storage/fs/s3"
@@ -168,15 +168,15 @@ func NewGRPCServer(
 				Token: auth.TokenAuth.AccessToken,
 			}))
 		case auth.SSHAuth != nil:
-			var method transport.AuthMethod
+			var method *gitssh.PublicKeys
 			if auth.SSHAuth.PrivateKeyBytes != "" {
-				method, err = ssh.NewPublicKeys(
+				method, err = gitssh.NewPublicKeys(
 					auth.SSHAuth.User,
 					[]byte(auth.SSHAuth.PrivateKeyBytes),
 					auth.SSHAuth.Password,
 				)
 			} else {
-				method, err = ssh.NewPublicKeysFromFile(
+				method, err = gitssh.NewPublicKeysFromFile(
 					auth.SSHAuth.User,
 					auth.SSHAuth.PrivateKeyPath,
 					auth.SSHAuth.Password,
@@ -185,6 +185,12 @@ func NewGRPCServer(
 			if err != nil {
 				return nil, err
 			}
+
+			// TODO(georgemac): In the future we may want to support a static set
+			// of trusted known hosts. Or perhaps a process similar to local ssh
+			// whereby the first interaction with the server writes down the host
+			// and key pair for future reference.
+			method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 
 			opts = append(opts, git.WithAuth(method))
 		}

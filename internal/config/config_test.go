@@ -669,11 +669,6 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("both username and password need to be provided for basic auth"),
 		},
 		{
-			name:    "git ssh auth missing user",
-			path:    "./testdata/storage/git_ssh_auth_invalid_missing_user.yml",
-			wantErr: errors.New("ssh authentication: user required"),
-		},
-		{
 			name:    "git ssh auth missing password",
 			path:    "./testdata/storage/git_ssh_auth_invalid_missing_password.yml",
 			wantErr: errors.New("ssh authentication: password required"),
@@ -701,7 +696,7 @@ func TestLoad(t *testing.T) {
 						PollInterval: 30 * time.Second,
 						Authentication: Authentication{
 							SSHAuth: &SSHAuth{
-								User:           "foo",
+								User:           "git",
 								Password:       "bar",
 								PrivateKeyPath: "/path/to/pem.key",
 							},
@@ -798,14 +793,15 @@ func TestLoad(t *testing.T) {
 
 			if wantErr != nil {
 				t.Log(err)
-				match := false
-				if errors.Is(err, wantErr) {
-					match = true
-				} else if err.Error() == wantErr.Error() {
-					match = true
+				if err == nil {
+					require.Failf(t, "expected error", "expected %q, found <nil>", wantErr)
 				}
-				require.True(t, match, "expected error %v to match: %v", err, wantErr)
-				return
+				if errors.Is(err, wantErr) {
+					return
+				} else if err.Error() == wantErr.Error() {
+					return
+				}
+				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
 			}
 
 			require.NoError(t, err)
@@ -845,14 +841,15 @@ func TestLoad(t *testing.T) {
 
 			if wantErr != nil {
 				t.Log(err)
-				match := false
-				if errors.Is(err, wantErr) {
-					match = true
-				} else if err.Error() == wantErr.Error() {
-					match = true
+				if err == nil {
+					require.Failf(t, "expected error", "expected %q, found <nil>", wantErr)
 				}
-				require.True(t, match, "expected error %v to match: %v", err, wantErr)
-				return
+				if errors.Is(err, wantErr) {
+					return
+				} else if err.Error() == wantErr.Error() {
+					return
+				}
+				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
 			}
 
 			require.NoError(t, err)

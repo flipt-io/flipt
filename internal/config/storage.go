@@ -43,6 +43,11 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
+		if v.GetString("storage.git.authentication.ssh.password") != "" ||
+			v.GetString("storage.git.authentication.ssh.private_key_path") != "" ||
+			v.GetString("storage.git.authentication.ssh.private_key_bytes") != "" {
+			v.SetDefault("storage.git.authentication.ssh.user", "git")
+		}
 	case string(ObjectStorageType):
 		// keep this as a case statement in anticipation of
 		// more object types in the future
@@ -207,10 +212,6 @@ func (a SSHAuth) validate() (err error) {
 			err = fmt.Errorf("ssh authentication: %w", err)
 		}
 	}()
-
-	if a.User == "" {
-		return errors.New("user required")
-	}
 
 	if a.Password == "" {
 		return errors.New("password required")

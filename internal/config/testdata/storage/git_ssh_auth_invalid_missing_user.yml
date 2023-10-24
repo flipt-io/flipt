@@ -1,8 +1,0 @@
-storage:
-  type: git
-  git:
-    repository: "git@github.com:foo/bar.git"
-    authentication:
-      ssh:
-        password: foo
-        private_key_path: "/path/to/pem.key"

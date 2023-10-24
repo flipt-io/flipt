@@ -144,13 +144,13 @@ import "strings"
 				token: access_token: string
 			} | {
 				ssh: {
-					user:             string
+					user?:            string | *"git"
 					password:         string
 					private_key_path: string
 				}
 			} | {
 				ssh: {
-					user:              string
+					user?:             string | *"git"
 					password:          string
 					private_key_bytes: string
 				}
