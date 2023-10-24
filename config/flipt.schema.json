@@ -544,6 +544,34 @@
                       }
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "user": {"type": "string"},
+                        "password": {"type": "string"},
+                        "private_key_path": {"type": "string"}
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "user": {"type": "string"},
+                        "password": {"type": "string"},
+                        "private_key_bytes": {"type": "string"}
+                      }
+                    }
+                  }
                 }
               ]
             }

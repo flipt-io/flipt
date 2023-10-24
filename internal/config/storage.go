@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -145,6 +146,7 @@ type S3 struct {
 type Authentication struct {
 	BasicAuth *BasicAuth `json:"-" mapstructure:"basic,omitempty" yaml:"-"`
 	TokenAuth *TokenAuth `json:"-" mapstructure:"token,omitempty" yaml:"-"`
+	SSHAuth   *SSHAuth   `json:"-" mapstructure:"ssh,omitempty" yaml:"-"`
 }
 
 func (a *Authentication) validate() error {
@@ -155,6 +157,11 @@ func (a *Authentication) validate() error {
 	}
 	if a.TokenAuth != nil {
 		if err := a.TokenAuth.validate(); err != nil {
+			return err
+		}
+	}
+	if a.SSHAuth != nil {
+		if err := a.SSHAuth.validate(); err != nil {
 			return err
 		}
 	}
@@ -184,3 +191,34 @@ type TokenAuth struct {
 }
 
 func (t TokenAuth) validate() error { return nil }
+
+// SSHAuth provides configuration support for SSH private key credentials when
+// authenticating with private git repositories
+type SSHAuth struct {
+	User            string `json:"-" mapstructure:"user" yaml:"-" `
+	Password        string `json:"-" mapstructure:"password" yaml:"-" `
+	PrivateKeyBytes string `json:"-" mapstructure:"private_key_bytes" yaml:"-" `
+	PrivateKeyPath  string `json:"-" mapstructure:"private_key_path" yaml:"-" `
+}
+
+func (a SSHAuth) validate() (err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("ssh authentication: %w", err)
+		}
+	}()
+
+	if a.User == "" {
+		return errors.New("user required")
+	}
+
+	if a.Password == "" {
+		return errors.New("password required")
+	}
+
+	if (a.PrivateKeyBytes == "" && a.PrivateKeyPath == "") || (a.PrivateKeyBytes != "" && a.PrivateKeyPath != "") {
+		return errors.New("please provide exclusively one of private_key_bytes or private_key_path")
+	}
+
+	return nil
+}
