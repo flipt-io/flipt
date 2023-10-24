@@ -55,7 +55,9 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 	"go.flipt.io/flipt/internal/storage/fs/s3"
@@ -165,6 +167,26 @@ func NewGRPCServer(
 			opts = append(opts, git.WithAuth(&http.TokenAuth{
 				Token: auth.TokenAuth.AccessToken,
 			}))
+		case auth.SSHAuth != nil:
+			var method transport.AuthMethod
+			if auth.SSHAuth.PrivateKeyBytes != "" {
+				method, err = ssh.NewPublicKeys(
+					auth.SSHAuth.User,
+					[]byte(auth.SSHAuth.PrivateKeyBytes),
+					auth.SSHAuth.Password,
+				)
+			} else {
+				method, err = ssh.NewPublicKeysFromFile(
+					auth.SSHAuth.User,
+					auth.SSHAuth.PrivateKeyPath,
+					auth.SSHAuth.Password,
+				)
+			}
+			if err != nil {
+				return nil, err
+			}
+
+			opts = append(opts, git.WithAuth(method))
 		}
 
 		source, err := git.NewSource(logger, cfg.Storage.Git.Repository, opts...)
