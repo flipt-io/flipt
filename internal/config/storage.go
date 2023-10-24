@@ -200,10 +200,11 @@ func (t TokenAuth) validate() error { return nil }
 // SSHAuth provides configuration support for SSH private key credentials when
 // authenticating with private git repositories
 type SSHAuth struct {
-	User            string `json:"-" mapstructure:"user" yaml:"-" `
-	Password        string `json:"-" mapstructure:"password" yaml:"-" `
-	PrivateKeyBytes string `json:"-" mapstructure:"private_key_bytes" yaml:"-" `
-	PrivateKeyPath  string `json:"-" mapstructure:"private_key_path" yaml:"-" `
+	User                  string `json:"-" mapstructure:"user" yaml:"-" `
+	Password              string `json:"-" mapstructure:"password" yaml:"-" `
+	PrivateKeyBytes       string `json:"-" mapstructure:"private_key_bytes" yaml:"-" `
+	PrivateKeyPath        string `json:"-" mapstructure:"private_key_path" yaml:"-" `
+	InsecureIgnoreHostKey bool   `json:"-" mapstructure:"insecure_ignore_host_key" yaml:"-"`
 }
 
 func (a SSHAuth) validate() (err error) {

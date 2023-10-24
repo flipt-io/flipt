@@ -186,11 +186,9 @@ func NewGRPCServer(
 				return nil, err
 			}
 
-			// TODO(georgemac): In the future we may want to support a static set
-			// of trusted known hosts. Or perhaps a process similar to local ssh
-			// whereby the first interaction with the server writes down the host
-			// and key pair for future reference.
-			method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+			if auth.SSHAuth.InsecureIgnoreHostKey {
+				method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+			}
 
 			opts = append(opts, git.WithAuth(method))
 		}
