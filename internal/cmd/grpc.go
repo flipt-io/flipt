@@ -48,6 +48,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -56,6 +57,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 	"go.flipt.io/flipt/internal/storage/fs/s3"
@@ -165,6 +167,33 @@ func NewGRPCServer(
 			opts = append(opts, git.WithAuth(&http.TokenAuth{
 				Token: auth.TokenAuth.AccessToken,
 			}))
+		case auth.SSHAuth != nil:
+			var method *gitssh.PublicKeys
+			if auth.SSHAuth.PrivateKeyBytes != "" {
+				method, err = gitssh.NewPublicKeys(
+					auth.SSHAuth.User,
+					[]byte(auth.SSHAuth.PrivateKeyBytes),
+					auth.SSHAuth.Password,
+				)
+			} else {
+				method, err = gitssh.NewPublicKeysFromFile(
+					auth.SSHAuth.User,
+					auth.SSHAuth.PrivateKeyPath,
+					auth.SSHAuth.Password,
+				)
+			}
+			if err != nil {
+				return nil, err
+			}
+
+			// we're protecting against this explicitly so we can disable
+			// the gosec linting rule
+			if auth.SSHAuth.InsecureIgnoreHostKey {
+				// nolint:gosec
+				method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+			}
+
+			opts = append(opts, git.WithAuth(method))
 		}
 
 		source, err := git.NewSource(logger, cfg.Storage.Git.Repository, opts...)
