@@ -186,7 +186,10 @@ func NewGRPCServer(
 				return nil, err
 			}
 
+			// we're protecting against this explicitly so we can disable
+			// the gosec linting rule
 			if auth.SSHAuth.InsecureIgnoreHostKey {
+				// nolint:gosec
 				method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
 			}
 
