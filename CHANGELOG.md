@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- security: GRPC depedency updates
+- security: GRPC dependency updates
 
 ## [v1.29.0](https://github.com/flipt-io/flipt/releases/tag/v1.29.0) - 2023-10-23
 
