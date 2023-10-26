@@ -53,18 +53,40 @@ func TestNewSink_ExistingFile(t *testing.T) {
 }
 
 func TestNewSink_DirNotExists(t *testing.T) {
-	var (
-		logger = zap.NewNop()
-		path   = os.TempDir() + "/not-exists/audit.log"
-	)
+	tests := []struct {
+		name string
+		path string
+	}{
+		{
+			name: "one level",
+			path: "/not-exists/audit.log",
+		},
+		{
+			name: "two levels",
+			path: "/not-exists/audit/audit.log",
+		},
+	}
 
-	sink, err := newSink(logger, path, osFS{})
-	require.NoError(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				logger = zap.NewNop()
+				path   = os.TempDir() + tt.path
+			)
 
-	require.NotNil(t, sink)
-	assert.Equal(t, "logfile", sink.String())
+			defer func() {
+				os.RemoveAll(path)
+			}()
 
-	require.NoError(t, sink.Close())
+			sink, err := newSink(logger, path, osFS{})
+			require.NoError(t, err)
+
+			require.NotNil(t, sink)
+			assert.Equal(t, "logfile", sink.String())
+
+			require.NoError(t, sink.Close())
+		})
+	}
 }
 
 type mockFS struct {
