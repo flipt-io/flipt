@@ -1,0 +1,17 @@
+version: '3'
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"
+  primary:
+    build: .
+    privileged: true
+    environment:
+      IS_PRIMARY: "true"
+  replica:
+    build: .
+    restart: on-failure
+    privileged: true
+    environment:
+      IS_PRIMARY: "false"
