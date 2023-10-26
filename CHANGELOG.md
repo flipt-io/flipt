@@ -3,6 +3,16 @@
 This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.29.1](https://github.com/flipt-io/flipt/releases/tag/v1.29.1) - 2023-10-26
+
+### Fixed
+
+- error about invalid offset with FS backend (#2286)
+
+### Changed
+
+- security: GRPC depedency updates
+
 ## [v1.29.0](https://github.com/flipt-io/flipt/releases/tag/v1.29.0) - 2023-10-23
 
 ### Added
