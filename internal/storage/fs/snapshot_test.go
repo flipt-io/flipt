@@ -607,12 +607,14 @@ func (fis *FSIndexSuite) TestListAndGetRollouts() {
 		{
 			name:      "Page Token Invalid",
 			namespace: "production",
+			flagKey:   "flag_boolean",
 			pageToken: "foo",
 			listError: errors.New("pageToken is not valid: \"foo\""),
 		},
 		{
 			name:      "Invalid Offset",
 			namespace: "production",
+			flagKey:   "flag_boolean",
 			pageToken: "60000",
 			listError: errors.New("invalid offset: 60000"),
 		},
@@ -661,12 +663,14 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 		{
 			name:      "Page Token Invalid",
 			namespace: "production",
+			flagKey:   "prod-flag",
 			pageToken: "foo",
 			listError: errors.New("pageToken is not valid: \"foo\""),
 		},
 		{
 			name:      "Invalid Offset",
 			namespace: "production",
+			flagKey:   "prod-flag",
 			pageToken: "60000",
 			listError: errors.New("invalid offset: 60000"),
 		},
@@ -1554,12 +1558,14 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRollouts() {
 		{
 			name:      "Page Token Invalid",
 			namespace: "production",
+			flagKey:   "flag_boolean",
 			pageToken: "foo",
 			listError: errors.New("pageToken is not valid: \"foo\""),
 		},
 		{
 			name:      "Invalid Offset",
 			namespace: "production",
+			flagKey:   "flag_boolean",
 			pageToken: "60000",
 			listError: errors.New("invalid offset: 60000"),
 		},
@@ -1613,12 +1619,14 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 		{
 			name:      "Page Token Invalid",
 			namespace: "production",
+			flagKey:   "prod-flag",
 			pageToken: "foo",
 			listError: errors.New("pageToken is not valid: \"foo\""),
 		},
 		{
 			name:      "Invalid Offset",
 			namespace: "production",
+			flagKey:   "prod-flag",
 			pageToken: "60000",
 			listError: errors.New("invalid offset: 60000"),
 		},
