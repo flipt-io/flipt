@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
@@ -42,6 +43,11 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	case string(GitStorageType):
 		v.SetDefault("storage.git.ref", "main")
 		v.SetDefault("storage.git.poll_interval", "30s")
+		if v.GetString("storage.git.authentication.ssh.password") != "" ||
+			v.GetString("storage.git.authentication.ssh.private_key_path") != "" ||
+			v.GetString("storage.git.authentication.ssh.private_key_bytes") != "" {
+			v.SetDefault("storage.git.authentication.ssh.user", "git")
+		}
 	case string(ObjectStorageType):
 		// keep this as a case statement in anticipation of
 		// more object types in the future
@@ -145,6 +151,7 @@ type S3 struct {
 type Authentication struct {
 	BasicAuth *BasicAuth `json:"-" mapstructure:"basic,omitempty" yaml:"-"`
 	TokenAuth *TokenAuth `json:"-" mapstructure:"token,omitempty" yaml:"-"`
+	SSHAuth   *SSHAuth   `json:"-" mapstructure:"ssh,omitempty" yaml:"-"`
 }
 
 func (a *Authentication) validate() error {
@@ -155,6 +162,11 @@ func (a *Authentication) validate() error {
 	}
 	if a.TokenAuth != nil {
 		if err := a.TokenAuth.validate(); err != nil {
+			return err
+		}
+	}
+	if a.SSHAuth != nil {
+		if err := a.SSHAuth.validate(); err != nil {
 			return err
 		}
 	}
@@ -184,3 +196,31 @@ type TokenAuth struct {
 }
 
 func (t TokenAuth) validate() error { return nil }
+
+// SSHAuth provides configuration support for SSH private key credentials when
+// authenticating with private git repositories
+type SSHAuth struct {
+	User                  string `json:"-" mapstructure:"user" yaml:"-" `
+	Password              string `json:"-" mapstructure:"password" yaml:"-" `
+	PrivateKeyBytes       string `json:"-" mapstructure:"private_key_bytes" yaml:"-" `
+	PrivateKeyPath        string `json:"-" mapstructure:"private_key_path" yaml:"-" `
+	InsecureIgnoreHostKey bool   `json:"-" mapstructure:"insecure_ignore_host_key" yaml:"-"`
+}
+
+func (a SSHAuth) validate() (err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("ssh authentication: %w", err)
+		}
+	}()
+
+	if a.Password == "" {
+		return errors.New("password required")
+	}
+
+	if (a.PrivateKeyBytes == "" && a.PrivateKeyPath == "") || (a.PrivateKeyBytes != "" && a.PrivateKeyPath != "") {
+		return errors.New("please provide exclusively one of private_key_bytes or private_key_path")
+	}
+
+	return nil
+}

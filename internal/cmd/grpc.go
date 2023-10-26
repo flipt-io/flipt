@@ -48,13 +48,16 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/crypto/ssh"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"go.flipt.io/flipt/internal/storage/fs/git"
 	"go.flipt.io/flipt/internal/storage/fs/local"
 	"go.flipt.io/flipt/internal/storage/fs/s3"
@@ -63,6 +66,7 @@ import (
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	grpc_health "google.golang.org/grpc/health/grpc_health_v1"
 
 	goredis_cache "github.com/go-redis/cache/v9"
 	goredis "github.com/redis/go-redis/v9"
@@ -163,6 +167,33 @@ func NewGRPCServer(
 			opts = append(opts, git.WithAuth(&http.TokenAuth{
 				Token: auth.TokenAuth.AccessToken,
 			}))
+		case auth.SSHAuth != nil:
+			var method *gitssh.PublicKeys
+			if auth.SSHAuth.PrivateKeyBytes != "" {
+				method, err = gitssh.NewPublicKeys(
+					auth.SSHAuth.User,
+					[]byte(auth.SSHAuth.PrivateKeyBytes),
+					auth.SSHAuth.Password,
+				)
+			} else {
+				method, err = gitssh.NewPublicKeysFromFile(
+					auth.SSHAuth.User,
+					auth.SSHAuth.PrivateKeyPath,
+					auth.SSHAuth.Password,
+				)
+			}
+			if err != nil {
+				return nil, err
+			}
+
+			// we're protecting against this explicitly so we can disable
+			// the gosec linting rule
+			if auth.SSHAuth.InsecureIgnoreHostKey {
+				// nolint:gosec
+				method.HostKeyCallback = ssh.InsecureIgnoreHostKey()
+			}
+
+			opts = append(opts, git.WithAuth(method))
 		}
 
 		source, err := git.NewSource(logger, cfg.Storage.Git.Repository, opts...)
@@ -252,7 +283,7 @@ func NewGRPCServer(
 
 	var (
 		fliptsrv           = fliptserver.New(logger, store)
-		metasrv            = metadata.NewServer(cfg, info)
+		metasrv            = metadata.New(cfg, info)
 		evalsrv            = evaluation.New(logger, store)
 		authOpts           = []containers.Option[auth.InterceptorOptions]{}
 		skipAuthIfExcluded = func(server any, excluded bool) {
@@ -297,7 +328,7 @@ func NewGRPCServer(
 
 	server.onShutdown(authShutdown)
 
-	// initialize server
+	// initialize servers
 	register.Add(fliptsrv)
 	register.Add(metasrv)
 	register.Add(evalsrv)
@@ -403,8 +434,12 @@ func NewGRPCServer(
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)
 
+	healthserver := health.NewServer()
+	grpc_health.RegisterHealthServer(server.Server, healthserver)
+
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
+		healthserver.Shutdown()
 		server.GracefulStop()
 		return nil
 	})

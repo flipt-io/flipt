@@ -48,8 +48,8 @@
 <div align="center">
     <h4>
         <a href="https://www.flipt.io/docs/introduction">Docs</a> •
-        <a hre="http://www.flipt.io">Website</a> •
-        <a hre="http://www.flipt.io/blog">Blog</a> •
+        <a href="http://www.flipt.io">Website</a> •
+        <a href="http://www.flipt.io/blog">Blog</a> •
         <a href="https://features.flipt.io/">Feedback</a> •
         <a href="https://www.flipt.io/discord">Discord</a>
     </h4>
