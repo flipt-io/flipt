@@ -669,6 +669,44 @@ func TestLoad(t *testing.T) {
 			wantErr: errors.New("both username and password need to be provided for basic auth"),
 		},
 		{
+			name:    "git ssh auth missing password",
+			path:    "./testdata/storage/git_ssh_auth_invalid_missing_password.yml",
+			wantErr: errors.New("ssh authentication: password required"),
+		},
+		{
+			name:    "git ssh auth missing private key parts",
+			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_missing.yml",
+			wantErr: errors.New("ssh authentication: please provide exclusively one of private_key_bytes or private_key_path"),
+		},
+		{
+			name:    "git ssh auth provided both private key forms",
+			path:    "./testdata/storage/git_ssh_auth_invalid_private_key_both.yml",
+			wantErr: errors.New("ssh authentication: please provide exclusively one of private_key_bytes or private_key_path"),
+		},
+		{
+			name: "git valid with ssh auth",
+			path: "./testdata/storage/git_ssh_auth_valid_with_path.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: GitStorageType,
+					Git: &Git{
+						Ref:          "main",
+						Repository:   "git@github.com:foo/bar.git",
+						PollInterval: 30 * time.Second,
+						Authentication: Authentication{
+							SSHAuth: &SSHAuth{
+								User:           "git",
+								Password:       "bar",
+								PrivateKeyPath: "/path/to/pem.key",
+							},
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
 			name: "s3 config provided",
 			path: "./testdata/storage/s3_provided.yml",
 			expected: func() *Config {
@@ -755,14 +793,15 @@ func TestLoad(t *testing.T) {
 
 			if wantErr != nil {
 				t.Log(err)
-				match := false
-				if errors.Is(err, wantErr) {
-					match = true
-				} else if err.Error() == wantErr.Error() {
-					match = true
+				if err == nil {
+					require.Failf(t, "expected error", "expected %q, found <nil>", wantErr)
 				}
-				require.True(t, match, "expected error %v to match: %v", err, wantErr)
-				return
+				if errors.Is(err, wantErr) {
+					return
+				} else if err.Error() == wantErr.Error() {
+					return
+				}
+				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
 			}
 
 			require.NoError(t, err)
@@ -802,14 +841,15 @@ func TestLoad(t *testing.T) {
 
 			if wantErr != nil {
 				t.Log(err)
-				match := false
-				if errors.Is(err, wantErr) {
-					match = true
-				} else if err.Error() == wantErr.Error() {
-					match = true
+				if err == nil {
+					require.Failf(t, "expected error", "expected %q, found <nil>", wantErr)
 				}
-				require.True(t, match, "expected error %v to match: %v", err, wantErr)
-				return
+				if errors.Is(err, wantErr) {
+					return
+				} else if err.Error() == wantErr.Error() {
+					return
+				}
+				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
 			}
 
 			require.NoError(t, err)

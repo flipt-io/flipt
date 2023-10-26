@@ -2,7 +2,7 @@
 *.o
 *.a
 *.so
-*.db
+*.db*
 
 _obj
 _test

@@ -2,7 +2,7 @@
 
 [LibSQL](https://github.com/tursodatabase/libsql) was created as a fork of SQLite by [Turso](https://turso.tech/) to fit some use cases that SQLite was not originally designed for. 
 
-It's fully compatible with the SQLite API, and has the added benefit of being run behind an HTTP interface in a service called [sqld](https://github.com/tursodatabase/libsql/tree/main/libsql-server/sqld).
+It's fully compatible with the SQLite API, and has the added benefit of being run behind an HTTP interface in a service called [sqld](https://github.com/tursodatabase/libsql/tree/main/libsql-server).
 
 ## Requirements
 
@@ -21,7 +21,7 @@ It's fully compatible with the SQLite API, and has the added benefit of being ru
 
 `docker compose` will spin up two instances of Flipt (named both `flipt-one` and `flipt-two`). We also spin up two instances of `sqld` called `sqld-primary` and `sqld-replica`. All writes will be directed to the `sqld-primary` and data will be replicated to the `sqld-replica` per semantics of `sqld`.
 
-<img src="./images/sqld-overview.png" alt="SQLD Overivew" width="500px" />
+<img src="./images/sqld-overview.png" alt="sqld Overview" width="500px" />
 
 > The diagram above was taken from the [libsql](https://github.com/tursodatabase/libsql) repository itself, but gives a nice overview on how all the concepts mesh together.
 
