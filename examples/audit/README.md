@@ -2,7 +2,7 @@
 
 This directory contains examples of how to configure your Flipt instance with auditing enabled.
 
-For more information on how to setup auditing, see the [Observability](https://www.flipt.io/docs/configuration/observability#audit-events) documentation.
+For more information on how to setup auditing, see the [Auditing](https://www.flipt.io/docs/configuration/auditing) documentation.
 
 ## Contents
 
