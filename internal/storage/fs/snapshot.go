@@ -883,6 +883,10 @@ func find[T any](match func(T) bool, ts ...T) (t T, _ bool) {
 }
 
 func paginate[T any](params storage.QueryParams, less func(i, j int) bool, items ...T) (storage.ResultSet[T], error) {
+	if len(items) == 0 {
+		return storage.ResultSet[T]{}, nil
+	}
+
 	set := storage.ResultSet[T]{
 		Results: items,
 	}
