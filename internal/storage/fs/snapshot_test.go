@@ -1662,6 +1662,24 @@ func TestFS_Invalid_BooleanFlag_Segment(t *testing.T) {
 	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
 }
 
+func TestFS_Empty_Features_File(t *testing.T) {
+	fs, _ := fs.Sub(testdata, "fixtures/empty_features")
+	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
+	require.NoError(t, err)
+
+	_, err = ss.ListFlags(context.TODO(), flipt.DefaultNamespace)
+	require.NoError(t, err)
+
+	_, err = ss.ListSegments(context.TODO(), flipt.DefaultNamespace)
+	require.NoError(t, err)
+
+	_, err = ss.ListRollouts(context.TODO(), flipt.DefaultNamespace, "no-flag")
+	require.NoError(t, err)
+
+	_, err = ss.ListRules(context.TODO(), flipt.DefaultNamespace, "no-flag")
+	require.NoError(t, err)
+}
+
 func TestFS_YAML_Stream(t *testing.T) {
 	fs, _ := fs.Sub(testdata, "fixtures/yaml_stream")
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
