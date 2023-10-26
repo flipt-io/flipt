@@ -80,7 +80,7 @@ func newNamespace(key, name string, created *timestamppb.Timestamp) *namespace {
 // directly from an implementation of fs.FS using the list state files
 // function to source the relevant Flipt configuration files.
 func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*StoreSnapshot, error) {
-	files, err := listStateFiles(logger, fs)
+	files, err := ListStateFiles(logger, fs)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,9 @@ func snapshotFromReaders(sources ...io.Reader) (*StoreSnapshot, error) {
 	return &s, nil
 }
 
-func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
+// ListStateFiles takes a fs.FS implementation and returns a list of filenames
+// which are expected to contain flipt state namespace contents
+func ListStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// This is the default variable + value for the FliptIndex. It will preserve its value if
 	// a .flipt.yml can not be read for whatever reason.
 	idx := FliptIndex{

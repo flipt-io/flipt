@@ -23,7 +23,7 @@ var testdata embed.FS
 func TestFSWithIndex(t *testing.T) {
 	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
 
-	filenames, err := listStateFiles(zap.NewNop(), fwi)
+	filenames, err := ListStateFiles(zap.NewNop(), fwi)
 	require.NoError(t, err)
 
 	expected := []string{
@@ -699,7 +699,7 @@ type FSWithoutIndexSuite struct {
 
 func TestFSWithoutIndex(t *testing.T) {
 	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
-	filenames, err := listStateFiles(zap.NewNop(), fwoi)
+	filenames, err := ListStateFiles(zap.NewNop(), fwoi)
 	require.NoError(t, err)
 
 	expected := []string{

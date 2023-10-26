@@ -5,73 +5,73 @@ import (
 )
 
 type Document struct {
-	Version   string     `yaml:"version,omitempty"`
-	Namespace string     `yaml:"namespace,omitempty"`
-	Flags     []*Flag    `yaml:"flags,omitempty"`
-	Segments  []*Segment `yaml:"segments,omitempty"`
+	Version   string     `yaml:"version,omitempty" json:"version,omitempty"`
+	Namespace string     `yaml:"namespace,omitempty" json:"namespace,omitempty"`
+	Flags     []*Flag    `yaml:"flags,omitempty" json:"flags,omitempty"`
+	Segments  []*Segment `yaml:"segments,omitempty" json:"segments,omitempty"`
 }
 
 type Flag struct {
-	Key         string     `yaml:"key,omitempty"`
-	Name        string     `yaml:"name,omitempty"`
-	Type        string     `yaml:"type,omitempty"`
-	Description string     `yaml:"description,omitempty"`
-	Enabled     bool       `yaml:"enabled"`
-	Variants    []*Variant `yaml:"variants,omitempty"`
-	Rules       []*Rule    `yaml:"rules,omitempty"`
-	Rollouts    []*Rollout `yaml:"rollouts,omitempty"`
+	Key         string     `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string     `yaml:"name,omitempty" json:"name,omitempty"`
+	Type        string     `yaml:"type,omitempty" json:"type,omitempty"`
+	Description string     `yaml:"description,omitempty" json:"description,omitempty"`
+	Enabled     bool       `yaml:"enabled" json:"enabled,omitempty"`
+	Variants    []*Variant `yaml:"variants,omitempty" json:"variants,omitempty"`
+	Rules       []*Rule    `yaml:"rules,omitempty" json:"rules,omitempty"`
+	Rollouts    []*Rollout `yaml:"rollouts,omitempty" json:"rollouts,omitempty"`
 }
 
 type Variant struct {
-	Key         string      `yaml:"key,omitempty"`
-	Name        string      `yaml:"name,omitempty"`
-	Description string      `yaml:"description,omitempty"`
-	Attachment  interface{} `yaml:"attachment,omitempty"`
+	Key         string      `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string      `yaml:"name,omitempty" json:"name,omitempty"`
+	Description string      `yaml:"description,omitempty" json:"description,omitempty"`
+	Attachment  interface{} `yaml:"attachment,omitempty" json:"attachment,omitempty"`
 }
 
 type Rule struct {
-	Segment       *SegmentEmbed   `yaml:"segment,omitempty"`
-	Rank          uint            `yaml:"rank,omitempty"`
-	Distributions []*Distribution `yaml:"distributions,omitempty"`
+	Segment       *SegmentEmbed   `yaml:"segment,omitempty" json:"segment,omitempty"`
+	Rank          uint            `yaml:"rank,omitempty" json:"rank,omitempty"`
+	Distributions []*Distribution `yaml:"distributions,omitempty" json:"distributions,omitempty"`
 }
 
 type Distribution struct {
-	VariantKey string  `yaml:"variant,omitempty"`
-	Rollout    float32 `yaml:"rollout,omitempty"`
+	VariantKey string  `yaml:"variant,omitempty" json:"variant,omitempty"`
+	Rollout    float32 `yaml:"rollout,omitempty" json:"rollout,omitempty"`
 }
 
 type Rollout struct {
-	Description string         `yaml:"description,omitempty"`
-	Segment     *SegmentRule   `yaml:"segment,omitempty"`
-	Threshold   *ThresholdRule `yaml:"threshold,omitempty"`
+	Description string         `yaml:"description,omitempty" json:"description,omitempty"`
+	Segment     *SegmentRule   `yaml:"segment,omitempty" json:"segment,omitempty"`
+	Threshold   *ThresholdRule `yaml:"threshold,omitempty" json:"threshold,omitempty"`
 }
 
 type SegmentRule struct {
-	Key      string   `yaml:"key,omitempty"`
-	Keys     []string `yaml:"keys,omitempty"`
-	Operator string   `yaml:"operator,omitempty"`
-	Value    bool     `yaml:"value,omitempty"`
+	Key      string   `yaml:"key,omitempty" json:"key,omitempty"`
+	Keys     []string `yaml:"keys,omitempty" json:"keys,omitempty"`
+	Operator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
+	Value    bool     `yaml:"value,omitempty" json:"value,omitempty"`
 }
 
 type ThresholdRule struct {
-	Percentage float32 `yaml:"percentage,omitempty"`
-	Value      bool    `yaml:"value,omitempty"`
+	Percentage float32 `yaml:"percentage,omitempty" json:"percentage,omitempty"`
+	Value      bool    `yaml:"value,omitempty" json:"value,omitempty"`
 }
 
 type Segment struct {
-	Key         string        `yaml:"key,omitempty"`
-	Name        string        `yaml:"name,omitempty"`
-	Description string        `yaml:"description,omitempty"`
-	Constraints []*Constraint `yaml:"constraints,omitempty"`
-	MatchType   string        `yaml:"match_type,omitempty"`
+	Key         string        `yaml:"key,omitempty" json:"key,omitempty"`
+	Name        string        `yaml:"name,omitempty" json:"name,omitempty"`
+	Description string        `yaml:"description,omitempty" json:"description,omitempty"`
+	Constraints []*Constraint `yaml:"constraints,omitempty" json:"constraints,omitempty"`
+	MatchType   string        `yaml:"match_type,omitempty" json:"match_type,omitempty"`
 }
 
 type Constraint struct {
-	Type        string `yaml:"type,omitempty"`
-	Property    string `yaml:"property,omitempty"`
-	Operator    string `yaml:"operator,omitempty"`
-	Value       string `yaml:"value,omitempty"`
-	Description string `yaml:"description,omitempty"`
+	Type        string `yaml:"type,omitempty" json:"type,omitempty"`
+	Property    string `yaml:"property,omitempty" json:"property,omitempty"`
+	Operator    string `yaml:"operator,omitempty" json:"operator,omitempty"`
+	Value       string `yaml:"value,omitempty" json:"value,omitempty"`
+	Description string `yaml:"description,omitempty" json:"description,omitempty"`
 }
 
 type SegmentEmbed struct {
@@ -125,8 +125,8 @@ type SegmentKey string
 func (s SegmentKey) IsSegment() {}
 
 type Segments struct {
-	Keys            []string `yaml:"keys,omitempty"`
-	SegmentOperator string   `yaml:"operator,omitempty"`
+	Keys            []string `yaml:"keys,omitempty" json:"keys,omitempty"`
+	SegmentOperator string   `yaml:"operator,omitempty" json:"operator,omitempty"`
 }
 
 func (s *Segments) IsSegment() {}
