@@ -105,7 +105,7 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 
 ## Values
 
-- :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. [Auditing](https://www.flipt.io/docs/configuration/observability#audit-events). No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
+- :lock: **Security** - HTTPS support. [OIDC](https://www.flipt.io/docs/authentication/methods#openid-connect) and [Static Token](https://www.flipt.io/docs/authentication/methods#static-token) authentication. [Auditing](https://www.flipt.io/docs/configuration/auditing). No data leaves your servers and you don't have to open your systems to the outside world to communicate with Flipt. It all runs within your existing infrastructure.
 - :rocket: **Speed** - Since Flipt is co-located with your existing services, you do not have to communicate across the internet which can add excessive latency and slow down your applications.
 - :white_check_mark: **Simplicity** - Flipt is a single binary with no external dependencies by default.
 - :thumbsup: **Compatibility** - REST, GRPC, MySQL, Postgres, CockroachDB, SQLite, LibSQL, Redis... Flipt supports it all.
