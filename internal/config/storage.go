@@ -33,7 +33,7 @@ type StorageConfig struct {
 	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
 	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
 	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
-	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"readOnly,omitempty" yaml:"read_only,omitempty"`
+	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
