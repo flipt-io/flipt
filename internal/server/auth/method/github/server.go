@@ -136,7 +136,7 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
 		AvatarURL string `json:"avatar_url,omitempty"`
-		ID        int64  `json:"id,omitempty"`
+		ID        uint64 `json:"id,omitempty"`
 	}
 
 	if err := json.NewDecoder(userResp.Body).Decode(&githubUserResponse); err != nil {
