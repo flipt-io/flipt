@@ -344,6 +344,7 @@ func testOIDCFlow(t *testing.T, ctx context.Context, tpAddr, clientAddress strin
 			"io.flipt.auth.oidc.provider": "google",
 			"io.flipt.auth.oidc.email":    "mark@flipt.io",
 			"io.flipt.auth.oidc.name":     "Mark Phelps",
+			"io.flipt.auth.oidc.sub":      "mark",
 		}, response.Authentication.Metadata)
 
 		// ensure expiry is set

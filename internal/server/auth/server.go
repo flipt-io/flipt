@@ -16,7 +16,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const ipKey = "x-forwarded-for"
+const (
+	ipKey  = "x-forwarded-for"
+	subKey = "sub"
+)
 
 var _ auth.AuthenticationServiceServer = &Server{}
 
