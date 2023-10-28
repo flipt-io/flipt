@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path/filepath"
 	"sort"
 	"strconv"
 
@@ -93,35 +94,89 @@ func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*StoreSnapshot, error) {
 // SnapshotFromPaths constructs a storeSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
 func SnapshotFromPaths(fs fs.FS, paths ...string) (*StoreSnapshot, error) {
+	return snapshotFromFile(fs, paths...)
+}
+
+// snapshotFromFile constructs a storeSnapshot from the provided
+// slice of paths
+func snapshotFromFile(fs fs.FS, paths ...string) (*StoreSnapshot, error) {
 	validator, err := cue.NewFeaturesValidator()
 	if err != nil {
 		return nil, err
 	}
 
-	var rds []io.Reader
-	for _, file := range paths {
-		fi, err := fs.Open(file)
+	now := timestamppb.Now()
+	s := StoreSnapshot{
+		ns: map[string]*namespace{
+			defaultNs: newNamespace("default", "Default", now),
+		},
+		evalDists: map[string][]*storage.EvaluationDistribution{},
+		now:       now,
+	}
+
+	for _, path := range paths {
+		fi, err := fs.Open(path)
 		if err != nil {
 			return nil, err
 		}
+
 		defer fi.Close()
 
 		buf := &bytes.Buffer{}
 		reader := io.TeeReader(fi, buf)
 
-		if err := validator.Validate(file, reader); err != nil {
+		if err := validator.Validate(path, reader); err != nil {
 			return nil, err
 		}
 
-		rds = append(rds, buf)
-	}
+		extn := filepath.Ext(path)
+		switch extn {
+		case ".yaml", ".yml":
+			decoder := yaml.NewDecoder(buf)
+			// Support YAML stream by looping until we reach an EOF.
+			for {
+				doc := &ext.Document{}
+				if err := decoder.Decode(doc); err != nil {
+					if errors.Is(err, io.EOF) {
+						break
+					}
+					return nil, err
+				}
 
-	return snapshotFromReaders(rds...)
+				// set namespace to default if empty in document
+				if doc.Namespace == "" {
+					doc.Namespace = "default"
+				}
+
+				if err := s.addDoc(doc); err != nil {
+					return nil, err
+				}
+			}
+		case ".json":
+			doc := &ext.Document{}
+			if err := json.NewDecoder(buf).Decode(&doc); err != nil {
+				return nil, err
+			}
+
+			// set namespace to default if empty in document
+			if doc.Namespace == "" {
+				doc.Namespace = "default"
+			}
+
+			if err := s.addDoc(doc); err != nil {
+				return nil, err
+			}
+		default:
+			return nil, fmt.Errorf("unexpected extension: %q", extn)
+		}
+
+	}
+	return &s, nil
 }
 
-// snapshotFromReaders constructs a storeSnapshot from the provided
+// snapshotFromYAML constructs a storeSnapshot from the provided
 // slice of io.Reader.
-func snapshotFromReaders(sources ...io.Reader) (*StoreSnapshot, error) {
+func snapshotFromYAML(sources ...io.Reader) (*StoreSnapshot, error) {
 	now := timestamppb.Now()
 	s := StoreSnapshot{
 		ns: map[string]*namespace{

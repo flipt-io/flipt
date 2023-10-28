@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/errdef"
 )
 
 const (
@@ -37,15 +38,15 @@ func NewPackager(logger *zap.Logger) *Packager {
 	return &Packager{logger}
 }
 
-func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) (v1.Descriptor, error) {
+func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) ([]v1.Descriptor, error) {
 	validator, err := cue.NewFeaturesValidator()
 	if err != nil {
-		return v1.Descriptor{}, err
+		return nil, err
 	}
 
 	paths, err := storefs.ListStateFiles(p.logger, src)
 	if err != nil {
-		return v1.Descriptor{}, err
+		return nil, err
 	}
 
 	var layers []v1.Descriptor
@@ -55,7 +56,7 @@ func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) (v
 
 		fi, err := src.Open(file)
 		if err != nil {
-			return v1.Descriptor{}, err
+			return nil, err
 		}
 		defer fi.Close()
 
@@ -63,7 +64,7 @@ func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) (v
 		reader := io.TeeReader(fi, buf)
 
 		if err := validator.Validate(file, reader); err != nil {
-			return v1.Descriptor{}, err
+			return nil, err
 		}
 
 		decoder := yaml.NewDecoder(buf)
@@ -74,7 +75,7 @@ func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) (v
 				if errors.Is(err, io.EOF) {
 					break
 				}
-				return v1.Descriptor{}, err
+				return nil, err
 			}
 
 			// set namespace to default if empty in document
@@ -84,12 +85,13 @@ func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) (v
 
 			payload, err := json.Marshal(&doc)
 			if err != nil {
-				return v1.Descriptor{}, nil
+				return nil, err
 			}
 
 			desc := v1.Descriptor{
-				Digest: digest.FromBytes(payload),
-				Size:   int64(len(payload)),
+				Digest:    digest.FromBytes(payload),
+				Size:      int64(len(payload)),
+				MediaType: MediaTypeFliptNamespace,
 				Annotations: map[string]string{
 					AnnotationFliptNamespace: doc.Namespace,
 				},
@@ -97,16 +99,13 @@ func (p *Packager) Package(ctx context.Context, store oras.Target, src fs.FS) (v
 
 			p.logger.Debug("adding layer", zap.String("digest", desc.Digest.Hex()), zap.String("namespace", doc.Namespace))
 
-			if err := store.Push(ctx, desc, bytes.NewReader(payload)); err != nil {
-				return v1.Descriptor{}, err
+			if err := store.Push(ctx, desc, bytes.NewReader(payload)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+				return nil, err
 			}
 
 			layers = append(layers, desc)
 		}
 	}
 
-	return oras.PackManifest(ctx, store, oras.PackManifestVersion1_1_RC4, MediaTypeFliptState, oras.PackManifestOptions{
-		ManifestAnnotations: map[string]string{},
-		Layers:              layers,
-	})
+	return layers, nil
 }
