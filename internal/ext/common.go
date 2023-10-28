@@ -1,6 +1,7 @@
 package ext
 
 import (
+	"encoding/json"
 	"errors"
 )
 
@@ -107,6 +108,42 @@ func (s *SegmentEmbed) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	var sks *Segments
 	if err := unmarshal(&sks); err == nil {
+		s.IsSegment = sks
+		return nil
+	}
+
+	return errors.New("failed to unmarshal to string or segmentKeys")
+}
+
+// MarshalJSON tries to type assert to either of the following types that implement
+// IsSegment, and returns the marshaled value.
+func (s *SegmentEmbed) MarshalJSON() ([]byte, error) {
+	switch t := s.IsSegment.(type) {
+	case SegmentKey:
+		return json.Marshal(string(t))
+	case *Segments:
+		sk := &Segments{
+			Keys:            t.Keys,
+			SegmentOperator: t.SegmentOperator,
+		}
+		return json.Marshal(sk)
+	}
+
+	return nil, errors.New("failed to marshal to string or segmentKeys")
+}
+
+// UnmarshalJSON attempts to unmarshal a string or `SegmentKeys`, and fails if it can not
+// do so.
+func (s *SegmentEmbed) UnmarshalJSON(v []byte) error {
+	var sk SegmentKey
+
+	if err := json.Unmarshal(v, &sk); err == nil {
+		s.IsSegment = sk
+		return nil
+	}
+
+	var sks *Segments
+	if err := json.Unmarshal(v, &sks); err == nil {
 		s.IsSegment = sks
 		return nil
 	}

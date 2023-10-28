@@ -18,6 +18,7 @@ const (
 	LocalStorageType    = StorageType("local")
 	GitStorageType      = StorageType("git")
 	ObjectStorageType   = StorageType("object")
+	OCIStorageType      = StorageType("oci")
 )
 
 type ObjectSubStorageType string
@@ -33,6 +34,7 @@ type StorageConfig struct {
 	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
 	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
 	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
+	OCI      *OCI        `json:"oci,omitempty" mapstructure:"oci,empty" yaml:"oci,omitempty"`
 	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"readOnly,omitempty" yaml:"read_only,omitempty"`
 }
 
@@ -78,13 +80,11 @@ func (c *StorageConfig) validate() error {
 		}
 
 	case LocalStorageType:
-
 		if c.Local.Path == "" {
 			return errors.New("local path must be specified")
 		}
 
 	case ObjectStorageType:
-
 		if c.Object == nil {
 			return errors.New("object storage type must be specified")
 		}
@@ -223,4 +223,8 @@ func (a SSHAuth) validate() (err error) {
 	}
 
 	return nil
+}
+
+type OCI struct {
+	Repository string `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
 }

@@ -140,6 +140,7 @@ func exec() error {
 	rootCmd.AddCommand(newConfigCommand())
 	rootCmd.AddCommand(newCompletionCommand())
 	rootCmd.AddCommand(newDocCommand())
+	rootCmd.AddCommand(newBunchCommand())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
