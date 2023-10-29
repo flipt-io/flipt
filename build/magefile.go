@@ -14,7 +14,6 @@ import (
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"go.flipt.io/flipt/build/generate"
-	"go.flipt.io/flipt/build/hack"
 	"go.flipt.io/flipt/build/internal"
 	"go.flipt.io/flipt/build/internal/publish"
 	"go.flipt.io/flipt/build/release"
@@ -157,6 +156,13 @@ func (t Test) Migration(ctx context.Context) error {
 	})
 }
 
+// LoadTest runs a load test against a running instance of Flipt using Pyroscope and vegeta.
+func (t Test) LoadTest(ctx context.Context) error {
+	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
+		return testing.LoadTest(ctx, client, base, flipt)
+	})
+}
+
 type Generate mg.Namespace
 
 func (g Generate) Screenshots(ctx context.Context) error {
@@ -189,13 +195,6 @@ func (r Release) Tag(ctx context.Context, module, version string) error {
 
 // Hack contains all the targets we're still experimenting with
 type Hack mg.Namespace
-
-// LoadTest runs a load test against a running instance of Flipt using Pyroscope and vegeta.
-func (h Hack) LoadTest(ctx context.Context) error {
-	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
-		return hack.LoadTest(ctx, client, base, flipt)
-	})
-}
 
 func daggerBuild(ctx context.Context, fn func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error) error {
 	return daggerRun(ctx, func(client *dagger.Client, req internal.FliptRequest) error {
