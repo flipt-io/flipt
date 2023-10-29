@@ -26,7 +26,7 @@ import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType } from '~/types/Flag';
 import { classNames } from '~/utils/helpers';
-import { fetchFlagAsync, selectCurrentFlag } from './flagsSlice';
+import { deleteFlagAsync, fetchFlagAsync, selectCurrentFlag } from './flagsSlice';
 import Rollouts from './rollouts/Rollouts';
 
 export default function Flag() {
@@ -79,7 +79,7 @@ export default function Flag() {
           }
           panelType="Flag"
           setOpen={setShowDeleteFlagModal}
-          handleDelete={() => deleteFlag(namespace.key, flag.key)}
+          handleDelete={() => dispatch(deleteFlagAsync({ namespace: namespace.key, key: flag.key }))}
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/flags`);
           }}
