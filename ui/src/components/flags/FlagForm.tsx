@@ -29,7 +29,7 @@ const flagTypes = [
   }
 ];
 
-export default function FlagForm(props: { flag: IFlag }) {
+export default function FlagForm(props: { flag?: IFlag }) {
   const { flag } = props;
 
   const isNew = flag === undefined;
