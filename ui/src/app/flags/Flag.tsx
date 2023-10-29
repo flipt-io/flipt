@@ -57,14 +57,17 @@ export default function Flag() {
     { name: 'Rules', to: 'rules' }
   ];
 
-  const fetchFlag = () => {
+  useEffect(() => {
     if (!namespace.key || !flagKey) return;
 
-    dispatch(fetchFlagAsync({ namespaceKey: namespace.key, key: flagKey }));
-  };
-
-  useEffect(() => {
-    fetchFlag();
+    dispatch(fetchFlagAsync({ namespaceKey: namespace.key, key: flagKey }))
+      .unwrap()
+      .then(() => {
+        clearError();
+      })
+      .catch((err) => {
+        setError(err);
+      });
   }, [flagKey, namespace.key, clearError, setError]);
 
   if (!flag || flag.key != flagKey) return <Loading />;
