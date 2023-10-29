@@ -4,9 +4,18 @@ import {
   createSelector,
   createSlice
 } from '@reduxjs/toolkit';
-import { copyFlag, deleteFlag, getFlag } from '~/data/api';
+import { useNavigate } from 'react-router-dom';
+import {
+  copyFlag,
+  createFlag,
+  deleteFlag,
+  getFlag,
+  updateFlag
+} from '~/data/api';
+import { useError } from '~/data/hooks/error';
+import { useSuccess } from '~/data/hooks/success';
 import { RootState } from '~/store';
-import { IFlag } from '~/types/Flag';
+import { IFlag, IFlagBase } from '~/types/Flag';
 import { LoadingStatus } from '~/types/Meta';
 
 const namespaceKey = 'namespace';
@@ -37,6 +46,26 @@ export const flagsSlice = createSlice({
         state.currentFlag = action.payload;
       })
       .addCase(fetchFlagAsync.rejected, (state, action) => {
+        state.status = LoadingStatus.FAILED;
+        state.error = action.error.message;
+      })
+      .addCase(createFlagAsync.pending, (state, _action) => {
+        state.status = LoadingStatus.LOADING;
+      })
+      .addCase(createFlagAsync.fulfilled, (state, action) => {
+        state.currentFlag = action.payload;
+      })
+      .addCase(createFlagAsync.rejected, (state, action) => {
+        state.status = LoadingStatus.FAILED;
+        state.error = action.error.message;
+      })
+      .addCase(updateFlagAsync.pending, (state, _action) => {
+        state.status = LoadingStatus.LOADING;
+      })
+      .addCase(updateFlagAsync.fulfilled, (state, action) => {
+        state.currentFlag = action.payload;
+      })
+      .addCase(updateFlagAsync.rejected, (state, action) => {
         state.status = LoadingStatus.FAILED;
         state.error = action.error.message;
       })
@@ -76,11 +105,29 @@ export const fetchFlagAsync = createAsyncThunk(
 );
 
 export const copyFlagAsync = createAsyncThunk(
-  'flags/asyncFlag',
-  async (payload: { from: FlagIdentifier, to: FlagIdentifier }) => {
+  'flags/copyFlag',
+  async (payload: { from: FlagIdentifier; to: FlagIdentifier }) => {
     const { from, to } = payload;
-    await copyFlag(from, to);
-    return to.key;
+    const response = await copyFlag(from, to);
+    return response;
+  }
+);
+
+export const createFlagAsync = createAsyncThunk(
+  'flags/createFlag',
+  async (payload: { namespaceKey: string; values: IFlagBase }) => {
+    const { namespaceKey, values } = payload;
+    const response = await createFlag(namespaceKey, values);
+    return response;
+  }
+);
+
+export const updateFlagAsync = createAsyncThunk(
+  'flags/updateFlag',
+  async (payload: { namespaceKey: string; key: string; values: IFlagBase }) => {
+    const { namespaceKey, key, values } = payload;
+    const response = await updateFlag(namespaceKey, key, values);
+    return response;
   }
 );
 
@@ -88,8 +135,8 @@ export const deleteFlagAsync = createAsyncThunk(
   'flags/deleteFlag',
   async (payload: FlagIdentifier) => {
     const { namespaceKey, key } = payload;
-    await deleteFlag(namespaceKey, key);
-    return key;
+    const response = await deleteFlag(namespaceKey, key);
+    return response;
   }
 );
 

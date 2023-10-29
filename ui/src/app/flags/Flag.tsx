@@ -19,7 +19,6 @@ import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
-import { copyFlag, deleteFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
@@ -188,7 +187,7 @@ export default function Flag() {
               </MoreInfo>
             </div>
             <div className="mt-5 md:col-span-2 md:mt-0">
-              <FlagForm flag={flag} flagChanged={fetchFlag} />
+              <FlagForm flag={flag} />
             </div>
           </div>
         </div>
