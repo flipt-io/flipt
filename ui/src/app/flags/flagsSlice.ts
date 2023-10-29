@@ -20,14 +20,12 @@ const namespaceKey = 'namespace';
 
 interface IFlagState {
   status: LoadingStatus;
-  currentFlag: string | null;
   flags: { [key: string]: { [key: string]: IFlag } };
   error: string | undefined;
 }
 
 const initialState: IFlagState = {
   status: LoadingStatus.IDLE,
-  currentFlag: null,
   flags: {},
   error: undefined
 };
@@ -47,7 +45,6 @@ export const flagsSlice = createSlice({
           action.payload,
           action.meta.arg.namespaceKey
         ];
-        state.currentFlag = flag.key;
         if (state.flags[namespaceKey] === undefined) {
           state.flags[namespaceKey] = {};
         }
@@ -66,7 +63,6 @@ export const flagsSlice = createSlice({
           action.payload,
           action.meta.arg.namespaceKey
         ];
-        state.currentFlag = flag.key;
         if (state.flags[namespaceKey] === undefined) {
           state.flags[namespaceKey] = {};
         }
@@ -85,7 +81,6 @@ export const flagsSlice = createSlice({
           action.payload,
           action.meta.arg.namespaceKey
         ];
-        state.currentFlag = flag.key;
         if (state.flags[namespaceKey] === undefined) {
           state.flags[namespaceKey] = {};
         }
@@ -101,7 +96,6 @@ export const flagsSlice = createSlice({
         if (flags) {
           delete flags[action.meta.arg.key];
         }
-        state.currentFlag = null;
       })
       .addCase(deleteFlagAsync.rejected, (state, action) => {
         state.status = LoadingStatus.FAILED;
@@ -124,18 +118,18 @@ export const flagsSlice = createSlice({
   }
 });
 
-export const selectCurrentFlag = createSelector(
+export const selectFlag = createSelector(
   [
-    (state: RootState) => {
-      const flags = state.flags.flags[state.namespaces.currentNamespace];
-      if (flags && state.flags.currentFlag) {
-        return flags[state.flags.currentFlag] || ({} as IFlag);
+    (state: RootState, namespaceKey: string, key: string) => {
+      const flags = state.flags.flags[namespaceKey];
+      if (flags) {
+        return flags[key] || ({} as IFlag);
       }
 
       return {} as IFlag;
     }
   ],
-  (currentFlag) => currentFlag
+  (flag) => flag
 );
 
 interface FlagIdentifier {

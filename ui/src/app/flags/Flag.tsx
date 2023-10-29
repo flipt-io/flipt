@@ -29,9 +29,10 @@ import {
   copyFlagAsync,
   deleteFlagAsync,
   fetchFlagAsync,
-  selectCurrentFlag
+  selectFlag
 } from './flagsSlice';
 import Rollouts from './rollouts/Rollouts';
+import { RootState } from '~/store';
 
 export default function Flag() {
   let { flagKey } = useParams();
@@ -47,7 +48,9 @@ export default function Flag() {
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
-  const flag = useSelector(selectCurrentFlag);
+  const flag = useSelector((state: RootState) =>
+    selectFlag(state, namespace.key, flagKey || '')
+  );
 
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);

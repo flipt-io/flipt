@@ -60,7 +60,6 @@ export const store = configureStore({
     },
     flags: {
       status: LoadingStatus.IDLE,
-      currentFlag: null,
       flags: {},
       error: undefined
     }
