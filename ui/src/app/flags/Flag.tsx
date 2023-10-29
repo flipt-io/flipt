@@ -19,56 +19,51 @@ import Modal from '~/components/Modal';
 import MoreInfo from '~/components/MoreInfo';
 import CopyToNamespacePanel from '~/components/panels/CopyToNamespacePanel';
 import DeletePanel from '~/components/panels/DeletePanel';
-import { copyFlag, deleteFlag, getFlag } from '~/data/api';
+import { copyFlag, deleteFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
-import { FlagType, IFlag } from '~/types/Flag';
+import { FlagType } from '~/types/Flag';
 import { classNames } from '~/utils/helpers';
+import { fetchFlagAsync, selectCurrentFlag } from './flagsSlice';
 import Rollouts from './rollouts/Rollouts';
 
 export default function Flag() {
   let { flagKey } = useParams();
   const { inTimezone } = useTimezone();
 
-  const [flag, setFlag] = useState<IFlag | null>(null);
-  const [flagVersion, setFlagVersion] = useState(0);
-
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const namespaces = useSelector(selectNamespaces);
   const namespace = useSelector(selectCurrentNamespace);
   const readOnly = useSelector(selectReadonly);
 
+  const flag = useSelector(selectCurrentFlag);
+
   const [showDeleteFlagModal, setShowDeleteFlagModal] = useState(false);
   const [showCopyFlagModal, setShowCopyFlagModal] = useState(false);
-
-  const incrementFlagVersion = () => {
-    setFlagVersion(flagVersion + 1);
-  };
 
   const tabs = [
     { name: 'Variants', to: '' },
     { name: 'Rules', to: 'rules' }
   ];
 
-  useEffect(() => {
+  const fetchFlag = () => {
     if (!flagKey) return;
 
-    getFlag(namespace.key, flagKey)
-      .then((flag: IFlag) => {
-        setFlag(flag);
-        clearError();
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, [flagVersion, flagKey, namespace.key, clearError, setError]);
+    dispatch(fetchFlagAsync({ namespace: namespace.key, key: flagKey }));
+  };
 
-  if (!flag) return <Loading />;
+  useEffect(() => {
+    fetchFlag();
+  }, [flagKey, namespace.key, clearError, setError]);
+
+  if (!flag || flag.key != flagKey) return <Loading />;
 
   return (
     <>
@@ -182,7 +177,7 @@ export default function Flag() {
               </MoreInfo>
             </div>
             <div className="mt-5 md:col-span-2 md:mt-0">
-              <FlagForm flag={flag} flagChanged={incrementFlagVersion} />
+              <FlagForm flag={flag} flagChanged={fetchFlag} />
             </div>
           </div>
         </div>
@@ -212,7 +207,7 @@ export default function Flag() {
                 </nav>
               </div>
             </div>
-            <Outlet context={{ flag, incrementFlagVersion }} />
+            <Outlet context={{ flag, fetchFlag }} />
           </>
         )}
         {flag.type === FlagType.BOOLEAN && <Rollouts flag={flag} />}

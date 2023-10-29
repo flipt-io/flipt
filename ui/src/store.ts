@@ -4,12 +4,14 @@ import {
   isAnyOf
 } from '@reduxjs/toolkit';
 
+import { flagsSlice } from './app/flags/flagsSlice';
 import { metaSlice } from './app/meta/metaSlice';
 import { namespacesSlice } from './app/namespaces/namespacesSlice';
 import {
   preferencesKey,
   preferencesSlice
 } from './app/preferences/preferencesSlice';
+import { IFlag } from './types/Flag';
 import { LoadingStatus } from './types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
@@ -55,11 +57,17 @@ export const store = configureStore({
       status: LoadingStatus.IDLE,
       currentNamespace,
       error: undefined
+    },
+    flags: {
+      status: LoadingStatus.IDLE,
+      currentFlag: {} as IFlag,
+      error: undefined
     }
   },
   reducer: {
     namespaces: namespacesSlice.reducer,
     preferences: preferencesSlice.reducer,
+    flags: flagsSlice.reducer,
     meta: metaSlice.reducer
   },
   middleware: (getDefaultMiddleware) =>
