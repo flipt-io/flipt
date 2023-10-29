@@ -10,23 +10,25 @@ import Button from '~/components/forms/buttons/Button';
 import Modal from '~/components/Modal';
 import DeletePanel from '~/components/panels/DeletePanel';
 import Slideover from '~/components/Slideover';
-import { deleteVariant } from '~/data/api';
+import { useAppDispatch } from '~/data/hooks/store';
 import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
+import { deleteVariantAsync } from '../flagsSlice';
 
 type VariantsProps = {
   flag: IFlag;
-  onFlagChange: () => void;
 };
 
 export default function Variants() {
-  const { flag, onFlagChange } = useOutletContext<VariantsProps>();
+  const { flag } = useOutletContext<VariantsProps>();
 
   const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
   const [editingVariant, setEditingVariant] = useState<IVariant | null>(null);
   const [showDeleteVariantModal, setShowDeleteVariantModal] =
     useState<boolean>(false);
   const [deletingVariant, setDeletingVariant] = useState<IVariant | null>(null);
+
+  const dispatch = useAppDispatch();
 
   const variantFormRef = useRef(null);
 
@@ -48,7 +50,6 @@ export default function Variants() {
           setOpen={setShowVariantForm}
           onSuccess={() => {
             setShowVariantForm(false);
-            onFlagChange();
           }}
         />
       </Slideover>
@@ -67,13 +68,15 @@ export default function Variants() {
           }
           panelType="Variant"
           setOpen={setShowDeleteVariantModal}
-          handleDelete={
-            () =>
-              deleteVariant(namespace.key, flag.key, deletingVariant?.id ?? '') // TODO: Determine impact of blank ID param
+          handleDelete={() =>
+            dispatch(
+              deleteVariantAsync({
+                namespaceKey: namespace.key,
+                flagKey: flag.key,
+                variantId: deletingVariant?.id ?? ''
+              })
+            ).unwrap()
           }
-          onSuccess={() => {
-            onFlagChange();
-          }}
         />
       </Modal>
 

@@ -60,7 +60,8 @@ export const store = configureStore({
     },
     flags: {
       status: LoadingStatus.IDLE,
-      currentFlag: {} as IFlag,
+      currentFlag: null,
+      flags: {},
       error: undefined
     }
   },

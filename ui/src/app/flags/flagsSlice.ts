@@ -4,16 +4,14 @@ import {
   createSelector,
   createSlice
 } from '@reduxjs/toolkit';
-import { useNavigate } from 'react-router-dom';
 import {
   copyFlag,
   createFlag,
   deleteFlag,
+  deleteVariant,
   getFlag,
   updateFlag
 } from '~/data/api';
-import { useError } from '~/data/hooks/error';
-import { useSuccess } from '~/data/hooks/success';
 import { RootState } from '~/store';
 import { IFlag, IFlagBase } from '~/types/Flag';
 import { LoadingStatus } from '~/types/Meta';
@@ -22,13 +20,15 @@ const namespaceKey = 'namespace';
 
 interface IFlagState {
   status: LoadingStatus;
-  currentFlag: IFlag | null;
+  currentFlag: string | null;
+  flags: { [key: string]: { [key: string]: IFlag } };
   error: string | undefined;
 }
 
 const initialState: IFlagState = {
   status: LoadingStatus.IDLE,
   currentFlag: null,
+  flags: {},
   error: undefined
 };
 
@@ -43,7 +43,15 @@ export const flagsSlice = createSlice({
       })
       .addCase(fetchFlagAsync.fulfilled, (state, action) => {
         state.status = LoadingStatus.SUCCEEDED;
-        state.currentFlag = action.payload;
+        const [flag, namespaceKey] = [
+          action.payload,
+          action.meta.arg.namespaceKey
+        ];
+        state.currentFlag = flag.key;
+        if (state.flags[namespaceKey] === undefined) {
+          state.flags[namespaceKey] = {};
+        }
+        state.flags[namespaceKey][flag.key] = flag;
       })
       .addCase(fetchFlagAsync.rejected, (state, action) => {
         state.status = LoadingStatus.FAILED;
@@ -53,7 +61,16 @@ export const flagsSlice = createSlice({
         state.status = LoadingStatus.LOADING;
       })
       .addCase(createFlagAsync.fulfilled, (state, action) => {
-        state.currentFlag = action.payload;
+        state.status = LoadingStatus.SUCCEEDED;
+        const [flag, namespaceKey] = [
+          action.payload,
+          action.meta.arg.namespaceKey
+        ];
+        state.currentFlag = flag.key;
+        if (state.flags[namespaceKey] === undefined) {
+          state.flags[namespaceKey] = {};
+        }
+        state.flags[namespaceKey][flag.key] = flag;
       })
       .addCase(createFlagAsync.rejected, (state, action) => {
         state.status = LoadingStatus.FAILED;
@@ -63,16 +80,44 @@ export const flagsSlice = createSlice({
         state.status = LoadingStatus.LOADING;
       })
       .addCase(updateFlagAsync.fulfilled, (state, action) => {
-        state.currentFlag = action.payload;
+        state.status = LoadingStatus.SUCCEEDED;
+        const [flag, namespaceKey] = [
+          action.payload,
+          action.meta.arg.namespaceKey
+        ];
+        state.currentFlag = flag.key;
+        if (state.flags[namespaceKey] === undefined) {
+          state.flags[namespaceKey] = {};
+        }
+        state.flags[namespaceKey][flag.key] = flag;
       })
       .addCase(updateFlagAsync.rejected, (state, action) => {
         state.status = LoadingStatus.FAILED;
         state.error = action.error.message;
       })
-      .addCase(deleteFlagAsync.fulfilled, (state, _action) => {
+      .addCase(deleteFlagAsync.fulfilled, (state, action) => {
+        state.status = LoadingStatus.SUCCEEDED;
+        const flags = state.flags[action.meta.arg.namespaceKey];
+        if (flags) {
+          delete flags[action.meta.arg.key];
+        }
         state.currentFlag = null;
       })
       .addCase(deleteFlagAsync.rejected, (state, action) => {
+        state.status = LoadingStatus.FAILED;
+        state.error = action.error.message;
+      })
+      .addCase(deleteVariantAsync.fulfilled, (state, action) => {
+        state.status = LoadingStatus.SUCCEEDED;
+        const flags = state.flags[action.meta.arg.namespaceKey];
+        if (flags) {
+          const variants = flags[action.meta.arg.flagKey].variants || [];
+          flags[action.meta.arg.flagKey].variants = variants.filter(
+            (variant) => variant.id !== action.meta.arg.variantId
+          );
+        }
+      })
+      .addCase(deleteVariantAsync.rejected, (state, action) => {
         state.status = LoadingStatus.FAILED;
         state.error = action.error.message;
       });
@@ -82,19 +127,21 @@ export const flagsSlice = createSlice({
 export const selectCurrentFlag = createSelector(
   [
     (state: RootState) => {
-      if (state.flags.currentFlag) {
-        return state.flags.currentFlag;
+      const flags = state.flags.flags[state.namespaces.currentNamespace];
+      if (flags && state.flags.currentFlag) {
+        return flags[state.flags.currentFlag] || ({} as IFlag);
       }
-      return { key: 'default', name: 'Default', description: '' } as IFlag;
+
+      return {} as IFlag;
     }
   ],
   (currentFlag) => currentFlag
 );
 
-type FlagIdentifier = {
+interface FlagIdentifier {
   namespaceKey: string;
   key: string;
-};
+}
 
 export const fetchFlagAsync = createAsyncThunk(
   'flags/fetchFlag',
@@ -136,6 +183,21 @@ export const deleteFlagAsync = createAsyncThunk(
   async (payload: FlagIdentifier) => {
     const { namespaceKey, key } = payload;
     const response = await deleteFlag(namespaceKey, key);
+    return response;
+  }
+);
+
+interface VariantIdentifier {
+  namespaceKey: string;
+  flagKey: string;
+  variantId: string;
+}
+
+export const deleteVariantAsync = createAsyncThunk(
+  'flags/deleteVariant',
+  async (payload: VariantIdentifier) => {
+    const { namespaceKey, flagKey, variantId } = payload;
+    const response = await deleteVariant(namespaceKey, flagKey, variantId);
     return response;
   }
 );

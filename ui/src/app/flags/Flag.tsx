@@ -58,7 +58,7 @@ export default function Flag() {
   ];
 
   const fetchFlag = () => {
-    if (!flagKey) return;
+    if (!namespace.key || !flagKey) return;
 
     dispatch(fetchFlagAsync({ namespaceKey: namespace.key, key: flagKey }));
   };
@@ -217,7 +217,7 @@ export default function Flag() {
                 </nav>
               </div>
             </div>
-            <Outlet context={{ flag, fetchFlag }} />
+            <Outlet context={{ flag }} />
           </>
         )}
         {flag.type === FlagType.BOOLEAN && <Rollouts flag={flag} />}
