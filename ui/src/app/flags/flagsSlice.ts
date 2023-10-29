@@ -4,7 +4,7 @@ import {
   createSelector,
   createSlice
 } from '@reduxjs/toolkit';
-import { deleteFlag, getFlag } from '~/data/api';
+import { copyFlag, deleteFlag, getFlag } from '~/data/api';
 import { RootState } from '~/store';
 import { IFlag } from '~/types/Flag';
 import { LoadingStatus } from '~/types/Meta';
@@ -62,19 +62,33 @@ export const selectCurrentFlag = createSelector(
   (currentFlag) => currentFlag
 );
 
+type FlagIdentifier = {
+  namespaceKey: string;
+  key: string;
+};
+
 export const fetchFlagAsync = createAsyncThunk(
   'flags/fetchFlag',
-  async (payload: { namespace: string; key: string }) => {
-    const { namespace, key } = payload;
-    return await getFlag(namespace, key);
+  async (payload: FlagIdentifier) => {
+    const { namespaceKey, key } = payload;
+    return await getFlag(namespaceKey, key);
+  }
+);
+
+export const copyFlagAsync = createAsyncThunk(
+  'flags/asyncFlag',
+  async (payload: { from: FlagIdentifier, to: FlagIdentifier }) => {
+    const { from, to } = payload;
+    await copyFlag(from, to);
+    return to.key;
   }
 );
 
 export const deleteFlagAsync = createAsyncThunk(
   'flags/deleteFlag',
-  async (payload: { namespace: string, key: string }) => {
-    const { namespace, key } = payload;
-    await deleteFlag(namespace, key);
+  async (payload: FlagIdentifier) => {
+    const { namespaceKey, key } = payload;
+    await deleteFlag(namespaceKey, key);
     return key;
   }
 );

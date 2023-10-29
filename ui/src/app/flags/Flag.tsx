@@ -26,7 +26,12 @@ import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
 import { FlagType } from '~/types/Flag';
 import { classNames } from '~/utils/helpers';
-import { deleteFlagAsync, fetchFlagAsync, selectCurrentFlag } from './flagsSlice';
+import {
+  copyFlagAsync,
+  deleteFlagAsync,
+  fetchFlagAsync,
+  selectCurrentFlag
+} from './flagsSlice';
 import Rollouts from './rollouts/Rollouts';
 
 export default function Flag() {
@@ -56,7 +61,7 @@ export default function Flag() {
   const fetchFlag = () => {
     if (!flagKey) return;
 
-    dispatch(fetchFlagAsync({ namespace: namespace.key, key: flagKey }));
+    dispatch(fetchFlagAsync({ namespaceKey: namespace.key, key: flagKey }));
   };
 
   useEffect(() => {
@@ -79,7 +84,11 @@ export default function Flag() {
           }
           panelType="Flag"
           setOpen={setShowDeleteFlagModal}
-          handleDelete={() => dispatch(deleteFlagAsync({ namespace: namespace.key, key: flag.key }))}
+          handleDelete={() =>
+            dispatch(
+              deleteFlagAsync({ namespaceKey: namespace.key, key: flag.key })
+            )
+          }
           onSuccess={() => {
             navigate(`/namespaces/${namespace.key}/flags`);
           }}
@@ -99,9 +108,11 @@ export default function Flag() {
           panelType="Flag"
           setOpen={setShowCopyFlagModal}
           handleCopy={(namespaceKey: string) =>
-            copyFlag(
-              { namespaceKey: namespace.key, key: flag.key },
-              { namespaceKey: namespaceKey, key: flag.key }
+            dispatch(
+              copyFlagAsync({
+                from: { namespaceKey: namespace.key, key: flag.key },
+                to: { namespaceKey: namespaceKey, key: flag.key }
+              })
             )
           }
           onSuccess={() => {
