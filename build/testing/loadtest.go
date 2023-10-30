@@ -1,4 +1,4 @@
-package hack
+package testing
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container) error {
 	seed := base.File("build/testing/integration/readonly/testdata/default.yaml")
-	importCmd := []string{"/flipt", "import", "--create-namespace", "import.yaml"}
+	importCmd := []string{"/flipt", "import", "import.yaml"}
 
 	flipt = flipt.
 		WithEnvVariable("FLIPT_DB_URL", "postgres://postgres:password@postgres:5432?sslmode=disable").
@@ -60,7 +60,7 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 
 	// build the loadtest binary
 	loadtest := base.
-		WithWorkdir("build/hack").
+		WithWorkdir("build/internal").
 		WithExec([]string{"go", "build", "-o", "./out/loadtest", "./cmd/loadtest/..."}).
 		File("out/loadtest")
 
@@ -80,7 +80,7 @@ func LoadTest(ctx context.Context, client *dagger.Client, base, flipt *dagger.Co
 		WithServiceBinding("flipt", flipt).
 		WithExec(append([]string{"adhoc", "--log-level", "info", "--url", "flipt:8080"}, cmd...)).
 		Directory("/home/pyroscope/.local/share/pyroscope").
-		Export(ctx, "build/hack/out/profiles")
+		Export(ctx, "build/internal/out/profiles")
 
 	return err
 }
