@@ -13,7 +13,7 @@ import Slideover from '~/components/Slideover';
 import { useAppDispatch } from '~/data/hooks/store';
 import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
-import { deleteVariantAsync } from '../flagsSlice';
+import { deleteVariantAsync } from '~/app/flags/flagsSlice';
 
 type VariantsProps = {
   flag: IFlag;
