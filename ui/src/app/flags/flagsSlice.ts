@@ -21,8 +21,6 @@ import { IFlag, IFlagBase } from '~/types/Flag';
 import { LoadingStatus } from '~/types/Meta';
 import { IVariant, IVariantBase } from '~/types/Variant';
 
-const namespaceKey = 'namespace';
-
 interface IFlagState {
   status: LoadingStatus;
   flags: { [key: string]: { [key: string]: IFlag } };
@@ -164,7 +162,8 @@ export const fetchFlagAsync = createAsyncThunk(
   'flags/fetchFlag',
   async (payload: FlagIdentifier) => {
     const { namespaceKey, key } = payload;
-    return await getFlag(namespaceKey, key);
+    const response = await getFlag(namespaceKey, key);
+    return response;
   }
 );
 

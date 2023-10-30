@@ -11,7 +11,6 @@ import {
   preferencesKey,
   preferencesSlice
 } from './app/preferences/preferencesSlice';
-import { IFlag } from './types/Flag';
 import { LoadingStatus } from './types/Meta';
 
 const listenerMiddleware = createListenerMiddleware();
