@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import {
+  ActionReducerMapBuilder,
+  SerializedError,
   createAsyncThunk,
   createSelector,
   createSlice
@@ -7,14 +9,17 @@ import {
 import {
   copyFlag,
   createFlag,
+  createVariant,
   deleteFlag,
   deleteVariant,
   getFlag,
-  updateFlag
+  updateFlag,
+  updateVariant
 } from '~/data/api';
 import { RootState } from '~/store';
 import { IFlag, IFlagBase } from '~/types/Flag';
 import { LoadingStatus } from '~/types/Meta';
+import { IVariant, IVariantBase } from '~/types/Variant';
 
 const namespaceKey = 'namespace';
 
@@ -35,88 +40,106 @@ export const flagsSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers(builder) {
-    builder
-      .addCase(fetchFlagAsync.pending, (state, _action) => {
-        state.status = LoadingStatus.LOADING;
-      })
-      .addCase(fetchFlagAsync.fulfilled, (state, action) => {
-        state.status = LoadingStatus.SUCCEEDED;
-        const [flag, namespaceKey] = [
-          action.payload,
-          action.meta.arg.namespaceKey
-        ];
-        if (state.flags[namespaceKey] === undefined) {
-          state.flags[namespaceKey] = {};
-        }
-        state.flags[namespaceKey][flag.key] = flag;
-      })
-      .addCase(fetchFlagAsync.rejected, (state, action) => {
-        state.status = LoadingStatus.FAILED;
-        state.error = action.error.message;
-      })
-      .addCase(createFlagAsync.pending, (state, _action) => {
-        state.status = LoadingStatus.LOADING;
-      })
-      .addCase(createFlagAsync.fulfilled, (state, action) => {
-        state.status = LoadingStatus.SUCCEEDED;
-        const [flag, namespaceKey] = [
-          action.payload,
-          action.meta.arg.namespaceKey
-        ];
-        if (state.flags[namespaceKey] === undefined) {
-          state.flags[namespaceKey] = {};
-        }
-        state.flags[namespaceKey][flag.key] = flag;
-      })
-      .addCase(createFlagAsync.rejected, (state, action) => {
-        state.status = LoadingStatus.FAILED;
-        state.error = action.error.message;
-      })
-      .addCase(updateFlagAsync.pending, (state, _action) => {
-        state.status = LoadingStatus.LOADING;
-      })
-      .addCase(updateFlagAsync.fulfilled, (state, action) => {
-        state.status = LoadingStatus.SUCCEEDED;
-        const [flag, namespaceKey] = [
-          action.payload,
-          action.meta.arg.namespaceKey
-        ];
-        if (state.flags[namespaceKey] === undefined) {
-          state.flags[namespaceKey] = {};
-        }
-        state.flags[namespaceKey][flag.key] = flag;
-      })
-      .addCase(updateFlagAsync.rejected, (state, action) => {
-        state.status = LoadingStatus.FAILED;
-        state.error = action.error.message;
-      })
-      .addCase(deleteFlagAsync.fulfilled, (state, action) => {
+    [flagReducers, variantReducers].map((reducer) => reducer(builder));
+  }
+});
+
+const flagReducers = (builder: ActionReducerMapBuilder<IFlagState>) => {
+  builder
+    .addCase(fetchFlagAsync.pending, setLoading)
+    .addCase(fetchFlagAsync.fulfilled, setFlag)
+    .addCase(fetchFlagAsync.rejected, setError)
+    .addCase(createFlagAsync.pending, setLoading)
+    .addCase(createFlagAsync.fulfilled, setFlag)
+    .addCase(createFlagAsync.rejected, setError)
+    .addCase(updateFlagAsync.pending, setLoading)
+    .addCase(updateFlagAsync.fulfilled, setFlag)
+    .addCase(updateFlagAsync.rejected, setError)
+    .addCase(deleteFlagAsync.fulfilled, (state, action) => {
+      state.status = LoadingStatus.SUCCEEDED;
+      const flags = state.flags[action.meta.arg.namespaceKey];
+      if (flags) {
+        delete flags[action.meta.arg.key];
+      }
+    })
+    .addCase(deleteFlagAsync.rejected, setError);
+};
+
+const variantReducers = (builder: ActionReducerMapBuilder<IFlagState>) => {
+  builder
+    .addCase(createVariantAsync.pending, setLoading)
+    .addCase(
+      createVariantAsync.fulfilled,
+      (
+        state: IFlagState,
+        action: { payload: IVariant; meta: { arg: VariantValues } }
+      ) => {
         state.status = LoadingStatus.SUCCEEDED;
         const flags = state.flags[action.meta.arg.namespaceKey];
         if (flags) {
-          delete flags[action.meta.arg.key];
+          flags[action.meta.arg.flagKey].variants?.push(action.payload);
         }
-      })
-      .addCase(deleteFlagAsync.rejected, (state, action) => {
-        state.status = LoadingStatus.FAILED;
-        state.error = action.error.message;
-      })
-      .addCase(deleteVariantAsync.fulfilled, (state, action) => {
+      }
+    )
+    .addCase(createVariantAsync.rejected, setError)
+    .addCase(updateVariantAsync.pending, setLoading)
+    .addCase(
+      updateVariantAsync.fulfilled,
+      (
+        state: IFlagState,
+        action: { payload: IVariant; meta: { arg: VariantValues } }
+      ) => {
         state.status = LoadingStatus.SUCCEEDED;
         const flags = state.flags[action.meta.arg.namespaceKey];
         if (flags) {
           const variants = flags[action.meta.arg.flagKey].variants || [];
-          flags[action.meta.arg.flagKey].variants = variants.filter(
-            (variant) => variant.id !== action.meta.arg.variantId
+          const idx = variants.findIndex(
+            (v) => v.key == action.meta.arg.values.key
           );
+          if (idx >= 0) {
+            variants[idx] = action.payload;
+          }
+          flags[action.meta.arg.flagKey].variants = variants;
         }
-      })
-      .addCase(deleteVariantAsync.rejected, (state, action) => {
-        state.status = LoadingStatus.FAILED;
-        state.error = action.error.message;
-      });
+      }
+    )
+    .addCase(updateVariantAsync.rejected, setError)
+    .addCase(deleteVariantAsync.fulfilled, (state, action) => {
+      state.status = LoadingStatus.SUCCEEDED;
+      const flags = state.flags[action.meta.arg.namespaceKey];
+      if (flags) {
+        const variants = flags[action.meta.arg.flagKey].variants || [];
+        flags[action.meta.arg.flagKey].variants = variants.filter(
+          (variant) => variant.id !== action.meta.arg.variantId
+        );
+      }
+    })
+    .addCase(deleteVariantAsync.rejected, setError);
+};
+
+const setLoading = (state: IFlagState, _action: any) => {
+  state.status = LoadingStatus.LOADING;
+};
+
+const setError = (
+  state: IFlagState,
+  action: { payload: any; error: SerializedError }
+) => {
+  state.status = LoadingStatus.FAILED;
+  state.error = action.error.message;
+};
+
+const setFlag = (
+  state: IFlagState,
+  action: { payload: IFlag; meta: { arg: { namespaceKey: string } } }
+) => {
+  state.status = LoadingStatus.SUCCEEDED;
+  const [flag, namespaceKey] = [action.payload, action.meta.arg.namespaceKey];
+  if (state.flags[namespaceKey] === undefined) {
+    state.flags[namespaceKey] = {};
   }
-});
+  state.flags[namespaceKey][flag.key] = flag;
+};
 
 export const selectFlag = createSelector(
   [
@@ -192,6 +215,35 @@ export const deleteVariantAsync = createAsyncThunk(
   async (payload: VariantIdentifier) => {
     const { namespaceKey, flagKey, variantId } = payload;
     const response = await deleteVariant(namespaceKey, flagKey, variantId);
+    return response;
+  }
+);
+
+interface VariantValues {
+  namespaceKey: string;
+  flagKey: string;
+  values: IVariantBase;
+}
+
+export const createVariantAsync = createAsyncThunk(
+  'flags/createVariant',
+  async (payload: VariantValues) => {
+    const { namespaceKey, flagKey, values } = payload;
+    const response = await createVariant(namespaceKey, flagKey, values);
+    return response;
+  }
+);
+
+export const updateVariantAsync = createAsyncThunk(
+  'flags/updateVariant',
+  async (payload: VariantIdentifier & VariantValues) => {
+    const { namespaceKey, flagKey, variantId, values } = payload;
+    const response = await updateVariant(
+      namespaceKey,
+      flagKey,
+      variantId,
+      values
+    );
     return response;
   }
 );
