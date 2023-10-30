@@ -25,6 +25,7 @@ const (
 	storageMetadataIDNameKey          = "io.flipt.auth.oidc.name"
 	storageMetadataIDProfileKey       = "io.flipt.auth.oidc.profile"
 	storageMetadataIDPictureKey       = "io.flipt.auth.oidc.picture"
+	storageMetadataIDSubKey           = "io.flipt.auth.oidc.sub"
 )
 
 // errProviderNotFound is returned when a provider is requested which
@@ -215,6 +216,7 @@ type claims struct {
 	Name     *string `json:"name"`
 	Profile  *string `json:"profile"`
 	Picture  *string `json:"picture"`
+	Sub      *string `json:"sub"`
 }
 
 func (c claims) addToMetadata(m map[string]string) {
@@ -228,6 +230,7 @@ func (c claims) addToMetadata(m map[string]string) {
 	set(storageMetadataIDNameKey, c.Name)
 	set(storageMetadataIDProfileKey, c.Profile)
 	set(storageMetadataIDPictureKey, c.Picture)
+	set(storageMetadataIDSubKey, c.Sub)
 
 	if c.Verified != nil {
 		m[storageMetadataIDEmailVerifiedKey] = fmt.Sprintf("%v", *c.Verified)
