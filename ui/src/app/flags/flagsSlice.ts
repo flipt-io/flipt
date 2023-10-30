@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import {
   ActionReducerMapBuilder,
-  SerializedError,
   createAsyncThunk,
   createSelector,
-  createSlice
+  createSlice,
+  SerializedError
 } from '@reduxjs/toolkit';
 import {
   copyFlag,
