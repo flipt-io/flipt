@@ -23,6 +23,7 @@ import { useError } from '~/data/hooks/error';
 import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { useTimezone } from '~/data/hooks/timezone';
+import { RootState } from '~/store';
 import { FlagType } from '~/types/Flag';
 import { classNames } from '~/utils/helpers';
 import {
@@ -32,7 +33,6 @@ import {
   selectFlag
 } from './flagsSlice';
 import Rollouts from './rollouts/Rollouts';
-import { RootState } from '~/store';
 
 export default function Flag() {
   let { flagKey } = useParams();
