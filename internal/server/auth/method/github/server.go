@@ -35,6 +35,7 @@ const (
 	storageMetadataGithubEmail   = "io.flipt.auth.github.email"
 	storageMetadataGithubName    = "io.flipt.auth.github.name"
 	storageMetadataGithubPicture = "io.flipt.auth.github.picture"
+	storageMetadataGithubSub     = "io.flipt.auth.github.sub"
 )
 
 // Server is an Github server side handler.
@@ -135,17 +136,14 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 		Name      string `json:"name,omitempty"`
 		Email     string `json:"email,omitempty"`
 		AvatarURL string `json:"avatar_url,omitempty"`
+		ID        uint64 `json:"id,omitempty"`
 	}
 
 	if err := json.NewDecoder(userResp.Body).Decode(&githubUserResponse); err != nil {
 		return nil, err
 	}
 
-	metadata := map[string]string{
-		storageMetadataGithubEmail:   githubUserResponse.Email,
-		storageMetadataGithubName:    githubUserResponse.Name,
-		storageMetadataGithubPicture: githubUserResponse.AvatarURL,
-	}
+	metadata := map[string]string{}
 
 	if githubUserResponse.Name != "" {
 		metadata[storageMetadataGithubName] = githubUserResponse.Name
@@ -157,6 +155,10 @@ func (s *Server) Callback(ctx context.Context, r *auth.CallbackRequest) (*auth.C
 
 	if githubUserResponse.AvatarURL != "" {
 		metadata[storageMetadataGithubPicture] = githubUserResponse.AvatarURL
+	}
+
+	if githubUserResponse.ID != 0 {
+		metadata[storageMetadataGithubSub] = fmt.Sprintf("%d", githubUserResponse.ID)
 	}
 
 	clientToken, a, err := s.store.CreateAuthentication(ctx, &storageauth.CreateAuthenticationRequest{
