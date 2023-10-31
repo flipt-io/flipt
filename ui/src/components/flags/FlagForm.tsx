@@ -4,23 +4,19 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
+import { createFlagAsync, updateFlagAsync } from '~/app/flags/flagsSlice';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import Toggle from '~/components/forms/Toggle';
 import Loading from '~/components/Loading';
-import { createFlag, updateFlag } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { keyValidation, requiredValidation } from '~/data/validations';
 import { FlagType, IFlag, IFlagBase } from '~/types/Flag';
 import { classNames, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
-
-type FlagFormProps = {
-  flag?: IFlag;
-  flagChanged?: () => void;
-};
 
 const flagTypes = [
   {
@@ -33,13 +29,15 @@ const flagTypes = [
   }
 ];
 
-export default function FlagForm(props: FlagFormProps) {
-  const { flag, flagChanged } = props;
+export default function FlagForm(props: { flag?: IFlag }) {
+  const { flag } = props;
 
   const isNew = flag === undefined;
   const submitPhrase = isNew ? 'Create' : 'Update';
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
@@ -48,9 +46,17 @@ export default function FlagForm(props: FlagFormProps) {
 
   const handleSubmit = (values: IFlagBase) => {
     if (isNew) {
-      return createFlag(namespace.key, values);
+      return dispatch(
+        createFlagAsync({ namespaceKey: namespace.key, values: values })
+      ).unwrap();
     }
-    return updateFlag(namespace.key, flag?.key, values);
+    return dispatch(
+      updateFlagAsync({
+        namespaceKey: namespace.key,
+        key: flag?.key,
+        values: values
+      })
+    ).unwrap();
   };
 
   const initialValues: IFlagBase = {
@@ -76,10 +82,7 @@ export default function FlagForm(props: FlagFormProps) {
             );
             if (isNew) {
               navigate(`/namespaces/${namespace.key}/flags/${values.key}`);
-              return;
             }
-
-            flagChanged && flagChanged();
           })
           .catch((err) => {
             setError(err);
