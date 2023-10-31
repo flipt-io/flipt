@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.28
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.37.0
 	github.com/containerd/containerd v1.6.19
-	github.com/docker/docker v23.0.5+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/go-git/go-billy/v5 v5.4.1
 	github.com/go-git/go-git/v5 v5.7.0
 	github.com/gofrs/uuid v4.4.0+incompatible
