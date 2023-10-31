@@ -955,6 +955,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				require.True(t, result.Match, "Evaluation should have matched.")
 				assert.Contains(t, result.SegmentKeys, "everyone")
+				assert.Equal(t, "test", result.FlagKey)
 				assert.Equal(t, "one", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 			})
@@ -974,6 +975,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.True(t, result.Match, "Evaluation should have matched.")
 				assert.Contains(t, result.SegmentKeys, "segment")
 				assert.Contains(t, result.SegmentKeys, "another-segment")
+				assert.Equal(t, "test", result.FlagKey)
 				assert.Equal(t, "two", result.VariantKey)
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 			})
@@ -991,6 +993,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.False(t, result.Match, "Evaluation should not have matched.")
 				assert.Equal(t, evaluation.EvaluationReason_UNKNOWN_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, "test", result.FlagKey)
 				assert.Empty(t, result.VariantKey)
 			})
 
@@ -1005,6 +1008,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 
 				assert.False(t, result.Match, "Evaluation should not have matched.")
 				assert.Equal(t, evaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, "disabled", result.FlagKey)
 				assert.Empty(t, result.VariantKey)
 			})
 
@@ -1120,6 +1124,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_DEFAULT_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 				assert.False(t, result.Enabled, "value should be the flag state")
 			})
 
@@ -1136,6 +1141,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 				assert.False(t, result.Enabled, "value should be threshold match value")
 			})
 
@@ -1153,6 +1159,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 				assert.True(t, result.Enabled, "value should be segment match value")
 			})
 
@@ -1170,6 +1177,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 				require.NoError(t, err)
 
 				assert.Equal(t, evaluation.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
+				assert.Equal(t, "boolean_disabled", result.FlagKey)
 				assert.False(t, result.Enabled, "value should be segment match value")
 			})
 		})
