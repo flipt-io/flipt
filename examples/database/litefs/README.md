@@ -18,4 +18,8 @@ This example will demonstrate how to run Flipt over LiteFS.
 
 `docker compose` will spin up two instances of Flipt with embedded SQLite databases. On top of these instances is an nginx proxy that will forward "write" requests, anything but `GET`, to the primary. `GET` requests will be served from the instance's embedded SQLite database.
 
-LiteFS talks about following this [caveat](https://fly.io/docs/litefs/proxy/#how-it-works) in order for it to work properly.
+LiteFS describes a few [caveats](https://fly.io/docs/litefs/proxy/#how-it-works) that must be kept in mind.
+
+## Data
+
+You can view the data on any one of the instances located at [primary](http://localhost:8081) or the [replica](http://localhost:8082), but remember that writes will only happen on the primary or the nginx proxy, the replica instance will not be able to accpet writes.
