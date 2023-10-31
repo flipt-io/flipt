@@ -2,6 +2,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 import { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useOutletContext } from 'react-router-dom';
+import { deleteVariantAsync } from '~/app/flags/flagsSlice';
 import { selectReadonly } from '~/app/meta/metaSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import EmptyState from '~/components/EmptyState';
@@ -13,7 +14,6 @@ import Slideover from '~/components/Slideover';
 import { useAppDispatch } from '~/data/hooks/store';
 import { IFlag } from '~/types/Flag';
 import { IVariant } from '~/types/Variant';
-import { deleteVariantAsync } from '~/app/flags/flagsSlice';
 
 type VariantsProps = {
   flag: IFlag;
