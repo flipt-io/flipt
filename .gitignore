@@ -12,8 +12,7 @@ _test
 .ruby-version
 .vagrant
 .vscode/*
-!.vscode/launch.json
-!.vscode/tasks.json
+!.vscode/launch.json !.vscode/tasks.json
 !.vscode/extensions.json
 !.vscode/*.code-workspace
 *.cov
@@ -43,3 +42,6 @@ build/hack/out/
 examples/cockroachdb/data
 playwright-report/
 screenshots/
+
+# Rust
+**/target

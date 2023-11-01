@@ -1,0 +1,594 @@
+use chrono::{DateTime, Utc};
+use snafu::{prelude::*, Whatever};
+use std::collections::HashMap;
+use std::time::{Duration, SystemTime, SystemTimeError};
+
+use crate::common;
+use crate::flipt::models;
+use crate::store::parsers;
+use crate::store::snapshot;
+
+pub struct Evaluator {
+    snapshot: snapshot::Snapshot,
+    percent_multiplier: f32,
+    total_bucket_number: i32,
+}
+
+pub struct EvaluationRequest {
+    pub namespace_key: String,
+    pub flag_key: String,
+    pub entity_id: String,
+    pub context: HashMap<String, String>,
+}
+
+pub struct VariantEvaluationResponse {
+    pub r#match: bool,
+    pub segment_keys: Vec<String>,
+    pub reason: common::EvaluationReason,
+    pub flag_key: String,
+    pub variant_key: String,
+    pub request_duration_millis: f64,
+    pub timestamp: DateTime<Utc>,
+}
+
+pub struct BooleanEvaluationResponse {
+    pub enabled: bool,
+    pub flag_key: String,
+    pub reason: common::EvaluationReason,
+    pub request_duration_millis: f64,
+    pub timestamp: DateTime<Utc>,
+}
+
+pub struct ErrorEvaluationResponse {
+    pub flag_key: String,
+    pub reason: common::ErrorEvaluationReason,
+}
+
+pub trait EvaluationResponse {}
+
+impl EvaluationResponse for VariantEvaluationResponse {}
+impl EvaluationResponse for BooleanEvaluationResponse {}
+impl EvaluationResponse for ErrorEvaluationResponse {}
+
+type VariantEvaluationResult<T> = std::result::Result<T, Whatever>;
+
+type BooleanEvaluationResult<T> = std::result::Result<T, Whatever>;
+
+impl Evaluator {
+    pub fn new(namespaces: Vec<String>) -> Result<Self, Whatever> {
+        let flipt_parser = <parsers::FliptParser as snapshot::Parser>::new(namespaces);
+        let snap = snapshot::Snapshot::build(flipt_parser)?;
+
+        Ok(Self {
+            snapshot: snap,
+            percent_multiplier: 10.0,
+            total_bucket_number: 1000,
+        })
+    }
+
+    pub fn variant(
+        &self,
+        evaluation_request: &EvaluationRequest,
+    ) -> VariantEvaluationResult<VariantEvaluationResponse> {
+        let flag = match self.snapshot.get_flag(
+            &evaluation_request.namespace_key,
+            &evaluation_request.flag_key,
+        ) {
+            Some(f) => {
+                if f.r#type != common::FlagType::Variant {
+                    whatever!("{} is not a variant flag", &evaluation_request.flag_key);
+                }
+                f
+            }
+            None => whatever!(
+                "failed to get flag information {}/{}",
+                &evaluation_request.namespace_key,
+                &evaluation_request.flag_key
+            ),
+        };
+
+        self.variant_evaluation(&flag, evaluation_request)
+    }
+
+    pub fn boolean(
+        &self,
+        evaluation_request: &EvaluationRequest,
+    ) -> BooleanEvaluationResult<BooleanEvaluationResponse> {
+        let flag = match self.snapshot.get_flag(
+            &evaluation_request.namespace_key,
+            &evaluation_request.flag_key,
+        ) {
+            Some(f) => {
+                if f.r#type != common::FlagType::Boolean {
+                    whatever!("{} is not a boolean flag", &evaluation_request.flag_key);
+                }
+                f
+            }
+            None => whatever!(
+                "failed to get flag information {}/{}",
+                &evaluation_request.namespace_key,
+                &evaluation_request.flag_key
+            ),
+        };
+
+        self.boolean_evaluation(&flag, evaluation_request)
+    }
+
+    pub fn batch(
+        &self,
+        requests: Vec<EvaluationRequest>,
+    ) -> Result<Vec<Box<dyn EvaluationResponse>>, Whatever> {
+        let mut evaluation_responses: Vec<Box<dyn EvaluationResponse>> = Vec::new();
+
+        for request in requests {
+            let flag = match self
+                .snapshot
+                .get_flag(&request.namespace_key, &request.flag_key)
+            {
+                Some(f) => f,
+                None => {
+                    evaluation_responses.push(Box::new(ErrorEvaluationResponse {
+                        flag_key: request.flag_key.clone(),
+                        reason: common::ErrorEvaluationReason::NotFound,
+                    }));
+                    continue;
+                }
+            };
+
+            match flag.r#type {
+                common::FlagType::Boolean => {
+                    match self.boolean_evaluation(&flag, &request) {
+                        Ok(b) => {
+                            evaluation_responses.push(Box::new(b));
+                        }
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    };
+                }
+                common::FlagType::Variant => {
+                    match self.variant_evaluation(&flag, &request) {
+                        Ok(v) => {
+                            evaluation_responses.push(Box::new(v));
+                        }
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    };
+                }
+            }
+        }
+
+        Ok(evaluation_responses)
+    }
+
+    fn variant_evaluation(
+        &self,
+        flag: &models::Flag,
+        evaluation_request: &EvaluationRequest,
+    ) -> VariantEvaluationResult<VariantEvaluationResponse> {
+        let now = SystemTime::now();
+        let mut last_rank = 0;
+
+        let mut variant_evaluation_response = VariantEvaluationResponse {
+            r#match: false,
+            segment_keys: Vec::new(),
+            reason: common::EvaluationReason::Unknown,
+            flag_key: flag.key.clone(),
+            variant_key: String::from(""),
+            request_duration_millis: 0.0,
+            timestamp: chrono::offset::Utc::now(),
+        };
+
+        if !flag.enabled {
+            variant_evaluation_response.reason = common::EvaluationReason::FlagDisabled;
+            variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+            return Ok(variant_evaluation_response);
+        }
+
+        let evaluation_rules = match self.snapshot.get_evaluation_rules(
+            &evaluation_request.namespace_key,
+            &evaluation_request.flag_key,
+        ) {
+            Some(evaluation_rules) => evaluation_rules,
+            None => whatever!(
+                "error getting evaluation rules for namespace {} and flag {}",
+                evaluation_request.namespace_key.clone(),
+                evaluation_request.flag_key.clone()
+            ),
+        };
+
+        for rule in evaluation_rules {
+            if rule.rank < last_rank {
+                whatever!("rule rank: {} detected out of order", rule.rank);
+            }
+
+            last_rank = rule.rank;
+
+            let mut segment_keys: Vec<String> = Vec::new();
+            let mut segment_matches = 0;
+
+            for kv in &rule.segments {
+                let matched = match self.matches_constraints(
+                    &evaluation_request.context.clone(),
+                    &kv.1.constraints,
+                    &kv.1.match_type,
+                ) {
+                    Ok(b) => b,
+                    Err(err) => return Err(err),
+                };
+
+                if matched {
+                    segment_keys.push(kv.0.into());
+                    segment_matches += 1;
+                }
+            }
+
+            if rule.segment_operator == common::SegmentOperator::Or {
+                if segment_matches < 1 {
+                    continue;
+                }
+            } else if rule.segment_operator == common::SegmentOperator::And {
+                if rule.segments.len() != segment_matches {
+                    continue;
+                }
+            }
+
+            variant_evaluation_response.segment_keys = segment_keys;
+
+            let distributions = match self
+                .snapshot
+                .get_evaluation_distributions(&evaluation_request.namespace_key, &rule.id)
+            {
+                Some(evaluation_distributions) => evaluation_distributions,
+                None => whatever!(
+                    "error getting evaluation distributions for namespace {} and rule {}",
+                    evaluation_request.namespace_key.clone(),
+                    rule.id.clone()
+                ),
+            };
+
+            let mut valid_distributions: Vec<models::EvaluationDistribution> = Vec::new();
+            let mut buckets: Vec<i32> = Vec::new();
+
+            for distribution in distributions {
+                if distribution.rollout > 0.0 {
+                    valid_distributions.push(distribution.clone());
+                }
+
+                if buckets.len() == 0 {
+                    let bucket = (distribution.rollout * self.percent_multiplier) as i32;
+                    buckets.push(bucket);
+                } else {
+                    let bucket = buckets[buckets.len() - 1]
+                        + (distribution.rollout * self.percent_multiplier) as i32;
+                    buckets.push(bucket);
+                }
+            }
+
+            // no distributions for the rule
+            if valid_distributions.len() == 0 {
+                variant_evaluation_response.r#match = true;
+                variant_evaluation_response.reason = common::EvaluationReason::Match;
+                variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+                return Ok(variant_evaluation_response);
+            }
+
+            let bucket = crc32fast::hash(
+                format!(
+                    "{}{}",
+                    evaluation_request.entity_id, evaluation_request.flag_key
+                )
+                .as_bytes(),
+            ) as i32
+                % self.total_bucket_number;
+
+            buckets.sort();
+
+            let index = match buckets.binary_search(&bucket) {
+                Ok(idx) => idx,
+                Err(idx) => idx,
+            };
+
+            if index == valid_distributions.len() {
+                variant_evaluation_response.r#match = false;
+                variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+                return Ok(variant_evaluation_response);
+            }
+
+            let d = &valid_distributions[index];
+
+            variant_evaluation_response.r#match = true;
+            variant_evaluation_response.variant_key = d.variant_key.clone();
+            variant_evaluation_response.reason = common::EvaluationReason::Match;
+            variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+            return Ok(variant_evaluation_response);
+        }
+
+        Ok(variant_evaluation_response)
+    }
+
+    fn boolean_evaluation(
+        &self,
+        flag: &models::Flag,
+        evaluation_request: &EvaluationRequest,
+    ) -> BooleanEvaluationResult<BooleanEvaluationResponse> {
+        let now = SystemTime::now();
+        let mut last_rank = 0;
+
+        let evaluation_rollouts = match self.snapshot.get_evaluation_rollouts(
+            &evaluation_request.namespace_key,
+            &evaluation_request.flag_key,
+        ) {
+            Some(rollouts) => rollouts,
+            None => whatever!(
+                "error getting evaluation rollouts for namespace {} and flag {}",
+                evaluation_request.namespace_key.clone(),
+                evaluation_request.flag_key.clone()
+            ),
+        };
+
+        for rollout in evaluation_rollouts {
+            if rollout.rank < last_rank {
+                whatever!("rollout rank: {} detected out of order", rollout.rank);
+            }
+
+            last_rank = rollout.rank;
+
+            if rollout.threshold.is_some() {
+                let threshold = rollout.threshold.unwrap();
+
+                let normalized_value = (crc32fast::hash(
+                    format!(
+                        "{}{}",
+                        evaluation_request.entity_id, evaluation_request.flag_key
+                    )
+                    .as_bytes(),
+                ) as i32
+                    % 100) as f32;
+
+                if normalized_value < threshold.percentage {
+                    return Ok(BooleanEvaluationResponse {
+                        enabled: threshold.value,
+                        flag_key: flag.key.clone(),
+                        reason: common::EvaluationReason::Match,
+                        request_duration_millis: get_duration(now.elapsed())?,
+                        timestamp: chrono::offset::Utc::now(),
+                    });
+                }
+            } else if rollout.segment.is_some() {
+                let segment = rollout.segment.unwrap();
+                let mut segment_matches = 0;
+
+                for s in &segment.segments {
+                    let matched = match self.matches_constraints(
+                        &evaluation_request.context,
+                        &s.1.constraints,
+                        &s.1.match_type,
+                    ) {
+                        Ok(v) => v,
+                        Err(err) => return Err(err),
+                    };
+
+                    if matched {
+                        segment_matches += 1;
+                    }
+                }
+
+                if segment.segment_operator == common::SegmentOperator::Or {
+                    if segment_matches < 1 {
+                        continue;
+                    }
+                } else if segment.segment_operator == common::SegmentOperator::And {
+                    if segment.segments.len() != segment_matches {
+                        continue;
+                    }
+                }
+
+                return Ok(BooleanEvaluationResponse {
+                    enabled: segment.value,
+                    flag_key: flag.key.clone(),
+                    reason: common::EvaluationReason::Match,
+                    request_duration_millis: get_duration(now.elapsed())?,
+                    timestamp: chrono::offset::Utc::now(),
+                });
+            }
+        }
+
+        return Ok(BooleanEvaluationResponse {
+            enabled: flag.enabled,
+            flag_key: flag.key.clone(),
+            reason: common::EvaluationReason::Default,
+            request_duration_millis: get_duration(now.elapsed())?,
+            timestamp: chrono::offset::Utc::now(),
+        });
+    }
+
+    fn matches_constraints(
+        &self,
+        eval_context: &HashMap<String, String>,
+        constraints: &Vec<models::EvaluationConstraint>,
+        segment_match_type: &common::SegmentMatchType,
+    ) -> Result<bool, Whatever> {
+        let mut constraint_matches: usize = 0;
+
+        for constraint in constraints {
+            let value = eval_context.get(&constraint.property).unwrap();
+
+            let matched = match constraint.r#type {
+                common::ConstraintComparisonType::String => matches_string(&constraint, &value),
+                common::ConstraintComparisonType::Number => matches_number(&constraint, &value)?,
+                common::ConstraintComparisonType::Boolean => matches_boolean(&constraint, &value)?,
+                _ => {
+                    return Ok(false);
+                }
+            };
+
+            if matched {
+                constraint_matches += 1;
+
+                if segment_match_type == &common::SegmentMatchType::Any {
+                    break;
+                } else {
+                    continue;
+                }
+            } else {
+                if segment_match_type == &common::SegmentMatchType::All {
+                    break;
+                } else {
+                    continue;
+                }
+            }
+        }
+
+        let is_match = match segment_match_type {
+            common::SegmentMatchType::All => !(constraints.len() != constraint_matches),
+            common::SegmentMatchType::Any => !(constraints.len() > 0 && constraint_matches == 0),
+        };
+
+        return Ok(is_match);
+    }
+}
+
+fn matches_string(evaluation_constraint: &models::EvaluationConstraint, v: &str) -> bool {
+    let operator = evaluation_constraint.operator.as_str();
+
+    match operator {
+        "empty" => {
+            return v.len() == 0;
+        }
+        "notempty" => {
+            return v.len() != 0;
+        }
+        _ => {}
+    }
+
+    if v.is_empty() {
+        return false;
+    }
+
+    let value = evaluation_constraint.value.as_str();
+    match operator {
+        "eq" => {
+            return v == value;
+        }
+        "neq" => {
+            return v != value;
+        }
+        "prefix" => {
+            return v.starts_with(value);
+        }
+        "suffix" => {
+            return v.ends_with(value);
+        }
+        _ => {
+            return false;
+        }
+    }
+}
+
+fn matches_number(
+    evaluation_constraint: &models::EvaluationConstraint,
+    v: &str,
+) -> Result<bool, Whatever> {
+    let operator = evaluation_constraint.operator.as_str();
+
+    match operator {
+        "notpresent" => {
+            return Ok(v.len() == 0);
+        }
+        "present" => {
+            return Ok(v.len() != 0);
+        }
+        _ => {}
+    }
+
+    if v.is_empty() {
+        return Ok(false);
+    }
+
+    // handle error here!
+    let v_number = match v.parse::<i32>() {
+        Ok(v) => v,
+        Err(err) => whatever!("error parsing number {}, err: {}", v, err),
+    };
+
+    let value_number = match evaluation_constraint.value.parse::<i32>() {
+        Ok(v) => v,
+        Err(err) => whatever!(
+            "error parsing number: {}, err: {}",
+            evaluation_constraint.value,
+            err
+        ),
+    };
+
+    match operator {
+        "eq" => {
+            return Ok(v_number == value_number);
+        }
+        "neq" => {
+            return Ok(v_number != value_number);
+        }
+        "lt" => {
+            return Ok(v_number < value_number);
+        }
+        "lte" => {
+            return Ok(v_number <= value_number);
+        }
+        "gt" => {
+            return Ok(v_number > value_number);
+        }
+        "gte" => {
+            return Ok(v_number >= value_number);
+        }
+        _ => {
+            return Ok(false);
+        }
+    }
+}
+
+fn matches_boolean(
+    evaluation_constraint: &models::EvaluationConstraint,
+    v: &str,
+) -> Result<bool, Whatever> {
+    let operator = evaluation_constraint.operator.as_str();
+
+    match operator {
+        "notpresent" => {
+            return Ok(v.len() == 0);
+        }
+        "present" => {
+            return Ok(v.len() != 0);
+        }
+        _ => {}
+    }
+
+    if v.is_empty() {
+        return Ok(false);
+    }
+
+    let v_bool = match v.parse::<bool>() {
+        Ok(v) => v,
+        Err(err) => whatever!("error parsing boolean {}: err {}", v, err),
+    };
+
+    match operator {
+        "true" => return Ok(v_bool),
+        "false" => return Ok(!v_bool),
+        _ => return Ok(false),
+    }
+}
+
+// TODO(yquansah): Implement datetime parsing support
+fn matches_datetime() {}
+
+fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whatever> {
+    match elapsed {
+        Ok(elapsed) => Ok(elapsed.as_secs_f64()),
+        Err(e) => {
+            whatever!("error getting duration {}", e)
+        }
+    }
+}
+
+mod tests {}
