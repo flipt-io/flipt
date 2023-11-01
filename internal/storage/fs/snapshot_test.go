@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"errors"
-	"io"
 	"io/fs"
 	"testing"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -23,26 +21,7 @@ var testdata embed.FS
 func TestFSWithIndex(t *testing.T) {
 	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
 
-	filenames, err := listStateFiles(zap.NewNop(), fwi)
-	require.NoError(t, err)
-
-	expected := []string{
-		"prod/prod.features.yml",
-		"sandbox/sandbox.features.yaml",
-	}
-	assert.Len(t, filenames, 2)
-	assert.ElementsMatch(t, filenames, expected)
-
-	readers := make([]io.Reader, 0, 2)
-
-	for _, f := range filenames {
-		fr, err := fwi.Open(f)
-		require.NoError(t, err)
-
-		readers = append(readers, fr)
-	}
-
-	ss, err := snapshotFromReaders(readers...)
+	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fwi)
 	require.NoError(t, err)
 
 	tfs := &FSIndexSuite{
@@ -703,30 +682,8 @@ type FSWithoutIndexSuite struct {
 
 func TestFSWithoutIndex(t *testing.T) {
 	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
-	filenames, err := listStateFiles(zap.NewNop(), fwoi)
-	require.NoError(t, err)
 
-	expected := []string{
-		"prod/prod.features.yaml",
-		"prod/features.yml",
-		"staging/staging.features.yaml",
-		"staging/features.yml",
-		"staging/sandbox/sandbox.features.yml",
-		"staging/sandbox/features.yaml",
-	}
-	assert.Len(t, filenames, 6)
-	assert.ElementsMatch(t, filenames, expected)
-
-	readers := make([]io.Reader, 0, 6)
-
-	for _, f := range filenames {
-		fr, err := fwoi.Open(f)
-		require.NoError(t, err)
-
-		readers = append(readers, fr)
-	}
-
-	ss, err := snapshotFromReaders(readers...)
+	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fwoi)
 	require.NoError(t, err)
 
 	tfs := &FSWithoutIndexSuite{
