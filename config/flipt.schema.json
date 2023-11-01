@@ -620,6 +620,28 @@
             }
           },
           "title": "Object"
+        },
+        "oci": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "insecure": {
+              "type": "boolean",
+              "default": false
+            },
+            "authentication": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "username": { "type": "string" },
+                "password": { "type": "string" }
+              }
+            }
+          },
+          "title": "OCI"
         }
       },
       "required": [],

@@ -1,0 +1,7 @@
+storage:
+  type: oci
+  oci:
+    repository: some.target/repository/abundle:latest
+    authentication:
+      username: foo
+      password: bar
