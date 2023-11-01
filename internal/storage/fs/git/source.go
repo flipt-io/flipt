@@ -14,6 +14,7 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/gitfs"
+	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
 )
 
@@ -92,19 +93,25 @@ func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]
 	return source, nil
 }
 
-// Get builds a new fs.FS based on the configure Git remote and reference.
-func (s *Source) Get() (fs.FS, error) {
+// Get builds a new store snapshot based on the configure Git remote and reference.
+func (s *Source) Get() (_ *storagefs.StoreSnapshot, err error) {
+	var fs fs.FS
 	if s.hash != plumbing.ZeroHash {
-		return gitfs.NewFromRepoHash(s.logger, s.repo, s.hash)
+		fs, err = gitfs.NewFromRepoHash(s.logger, s.repo, s.hash)
+	} else {
+		fs, err = gitfs.NewFromRepo(s.logger, s.repo, gitfs.WithReference(plumbing.NewRemoteReferenceName("origin", s.ref)))
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	return gitfs.NewFromRepo(s.logger, s.repo, gitfs.WithReference(plumbing.NewRemoteReferenceName("origin", s.ref)))
+	return storagefs.SnapshotFromFS(s.logger, fs)
 }
 
 // Subscribe feeds gitfs implementations of fs.FS onto the provided channel.
 // It blocks until the provided context is cancelled (it will be called in a goroutine).
 // It closes the provided channel before it returns.
-func (s *Source) Subscribe(ctx context.Context, ch chan<- fs.FS) {
+func (s *Source) Subscribe(ctx context.Context, ch chan<- *storagefs.StoreSnapshot) {
 	defer close(ch)
 
 	// NOTE: theres is no point subscribing to updates for a git Hash
@@ -140,13 +147,13 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- fs.FS) {
 				continue
 			}
 
-			fs, err := s.Get()
+			snap, err := s.Get()
 			if err != nil {
-				s.logger.Error("failed creating gitfs", zap.Error(err))
+				s.logger.Error("failed creating snapshot from fs", zap.Error(err))
 				continue
 			}
 
-			ch <- fs
+			ch <- snap
 
 			s.logger.Debug("finished fetching from remote")
 		}

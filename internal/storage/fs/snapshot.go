@@ -90,38 +90,30 @@ func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*StoreSnapshot, error) {
 	return SnapshotFromPaths(fs, files...)
 }
 
-// SnapshotFromPaths constructs a storeSnapshot from the provided
+// SnapshotFromPaths constructs a StoreSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
-func SnapshotFromPaths(fs fs.FS, paths ...string) (*StoreSnapshot, error) {
+func SnapshotFromPaths(ffs fs.FS, paths ...string) (*StoreSnapshot, error) {
+	var files []fs.File
+	for _, file := range paths {
+		fi, err := ffs.Open(file)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, fi)
+	}
+
+	return SnapshotFromFiles(files...)
+}
+
+// SnapshotFromFiles constructs a StoreSnapshot from the provided slice
+// of fs.File implementations.
+func SnapshotFromFiles(files ...fs.File) (*StoreSnapshot, error) {
 	validator, err := cue.NewFeaturesValidator()
 	if err != nil {
 		return nil, err
 	}
 
-	var rds []io.Reader
-	for _, file := range paths {
-		fi, err := fs.Open(file)
-		if err != nil {
-			return nil, err
-		}
-		defer fi.Close()
-
-		buf := &bytes.Buffer{}
-		reader := io.TeeReader(fi, buf)
-
-		if err := validator.Validate(file, reader); err != nil {
-			return nil, err
-		}
-
-		rds = append(rds, buf)
-	}
-
-	return snapshotFromReaders(rds...)
-}
-
-// snapshotFromReaders constructs a storeSnapshot from the provided
-// slice of io.Reader.
-func snapshotFromReaders(sources ...io.Reader) (*StoreSnapshot, error) {
 	now := timestamppb.Now()
 	s := StoreSnapshot{
 		ns: map[string]*namespace{
@@ -131,29 +123,50 @@ func snapshotFromReaders(sources ...io.Reader) (*StoreSnapshot, error) {
 		now:       now,
 	}
 
-	for _, reader := range sources {
-		decoder := yaml.NewDecoder(reader)
-		// Support YAML stream by looping until we reach an EOF.
-		for {
-			doc := new(ext.Document)
+	for _, fi := range files {
+		if err := func() error {
+			defer fi.Close()
 
-			if err := decoder.Decode(doc); err != nil {
-				if errors.Is(err, io.EOF) {
-					break
+			stat, err := fi.Stat()
+			if err != nil {
+				return err
+			}
+
+			buf := &bytes.Buffer{}
+			reader := io.TeeReader(fi, buf)
+
+			if err := validator.Validate(stat.Name(), reader); err != nil {
+				return err
+			}
+
+			decoder := yaml.NewDecoder(buf)
+			// Support YAML stream by looping until we reach an EOF.
+			for {
+				doc := new(ext.Document)
+
+				if err := decoder.Decode(doc); err != nil {
+					if errors.Is(err, io.EOF) {
+						break
+					}
+					return err
 				}
-				return nil, err
+
+				// set namespace to default if empty in document
+				if doc.Namespace == "" {
+					doc.Namespace = "default"
+				}
+
+				if err := s.addDoc(doc); err != nil {
+					return err
+				}
 			}
 
-			// set namespace to default if empty in document
-			if doc.Namespace == "" {
-				doc.Namespace = "default"
-			}
-
-			if err := s.addDoc(doc); err != nil {
-				return nil, err
-			}
+			return nil
+		}(); err != nil {
+			return nil, err
 		}
 	}
+
 	return &s, nil
 }
 
