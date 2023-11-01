@@ -2,8 +2,6 @@ package git
 
 import (
 	"context"
-	"io"
-	"io/fs"
 	"os"
 	"testing"
 	"time"
@@ -17,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
+	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -32,16 +31,11 @@ func Test_SourceGet(t *testing.T) {
 		return
 	}
 
-	fs, err := source.Get()
+	snap, err := source.Get()
 	require.NoError(t, err)
 
-	fi, err := fs.Open("features.yml")
+	_, err = snap.GetNamespace(context.TODO(), "production")
 	require.NoError(t, err)
-
-	data, err := io.ReadAll(fi)
-	require.NoError(t, err)
-
-	assert.Equal(t, []byte("namespace: production\n"), data)
 }
 
 func Test_SourceSubscribe_Hash(t *testing.T) {
@@ -56,7 +50,7 @@ func Test_SourceSubscribe_Hash(t *testing.T) {
 		return
 	}
 
-	ch := make(chan fs.FS)
+	ch := make(chan *storagefs.StoreSnapshot)
 	source.Subscribe(context.Background(), ch)
 
 	_, closed := <-ch
@@ -76,7 +70,7 @@ func Test_SourceSubscribe(t *testing.T) {
 	require.NoError(t, err)
 
 	// start subscription
-	ch := make(chan fs.FS)
+	ch := make(chan *storagefs.StoreSnapshot)
 	go source.Subscribe(ctx, ch)
 
 	// pull repo
@@ -102,7 +96,8 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	updated := []byte(`namespace: production
 flags:
-    - key: foo`)
+    - key: foo
+      name: Foo`)
 
 	_, err = fi.Write(updated)
 	require.NoError(t, err)
@@ -122,18 +117,19 @@ flags:
 	}))
 
 	// assert matching state
-	fs := <-ch
+	var snap *storagefs.StoreSnapshot
+	select {
+	case snap = <-ch:
+	case <-time.After(time.Minute):
+		t.Fatal("timed out waiting for snapshot")
+	}
+
 	require.NoError(t, err)
 
-	t.Log("received new FS")
+	t.Log("received new snapshot")
 
-	found, err := fs.Open("features.yml")
+	_, err = snap.GetFlag(ctx, "production", "foo")
 	require.NoError(t, err)
-
-	data, err := io.ReadAll(found)
-	require.NoError(t, err)
-
-	assert.Equal(t, string(updated), string(data))
 
 	// ensure closed
 	cancel()

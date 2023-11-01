@@ -2,13 +2,14 @@ package local
 
 import (
 	"context"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap"
 )
 
@@ -20,13 +21,11 @@ func Test_SourceGet(t *testing.T) {
 	s, err := NewSource(zap.NewNop(), "testdata", WithPollInterval(5*time.Second))
 	assert.NoError(t, err)
 
-	tfs, err := s.Get()
+	snap, err := s.Get()
 	assert.NoError(t, err)
 
-	file, err := tfs.Open("features.yml")
-	assert.NoError(t, err)
-
-	assert.NotNil(t, file)
+	_, err = snap.GetNamespace(context.TODO(), "production")
+	require.NoError(t, err)
 }
 
 func Test_SourceSubscribe(t *testing.T) {
@@ -48,21 +47,19 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	fsCh := make(chan fs.FS)
-	go s.Subscribe(ctx, fsCh)
+	ch := make(chan *storagefs.StoreSnapshot)
+	go s.Subscribe(ctx, ch)
 
-	// Create event
-	_, err = os.Create(ftc)
-	assert.NoError(t, err)
+	// change the filesystem contents
+	assert.NoError(t, os.WriteFile(ftc, []byte(`{"namespace":"staging"}`), os.ModePerm))
 
 	select {
-	case f := <-fsCh:
-		file, err := f.Open("a.features.yml")
+	case snap := <-ch:
+		_, err := snap.GetNamespace(ctx, "staging")
 		assert.NoError(t, err)
-		assert.NotNil(t, file)
 		cancel()
 
-		_, open := <-fsCh
+		_, open := <-ch
 		assert.False(t, open, "expected channel to be closed after cancel")
 	case <-time.After(10 * time.Second):
 		t.Fatal("event not caught")
