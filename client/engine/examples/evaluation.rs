@@ -1,6 +1,6 @@
 // cargo run --example evaluation
 
-use evaluatord::evaluator;
+use engine::evaluator;
 use std::collections::HashMap;
 
 #[tokio::main]
