@@ -5,6 +5,7 @@ package grpc
 import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
+	data "go.flipt.io/flipt/rpc/flipt/data"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	_go "go.flipt.io/flipt/sdk/go"
@@ -51,6 +52,10 @@ func (t authClient) AuthenticationMethodGithubServiceClient() auth.Authenticatio
 
 func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{cc: t.cc}
+}
+
+func (t Transport) DataClient() data.DataClient {
+	return data.NewDataClient(t.cc)
 }
 
 func (t Transport) EvaluationClient() evaluation.EvaluationServiceClient {
