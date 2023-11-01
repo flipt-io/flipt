@@ -4,14 +4,15 @@ import { Form, Formik } from 'formik';
 import { forwardRef } from 'react';
 import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
+import { createVariantAsync, updateVariantAsync } from '~/app/flags/flagsSlice';
 import { selectCurrentNamespace } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
 import TextArea from '~/components/forms/TextArea';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
-import { createVariant, updateVariant } from '~/data/api';
 import { useError } from '~/data/hooks/error';
+import { useAppDispatch } from '~/data/hooks/store';
 import { useSuccess } from '~/data/hooks/success';
 import { jsonValidation, keyValidation } from '~/data/validations';
 import { IVariant, IVariantBase } from '~/types/Variant';
@@ -30,6 +31,8 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
   const title = isNew ? 'New Variant' : 'Edit Variant';
   const submitPhrase = isNew ? 'Create' : 'Update';
 
+  const dispatch = useAppDispatch();
+
   const { setError, clearError } = useError();
   const { setSuccess } = useSuccess();
 
@@ -37,10 +40,23 @@ const VariantForm = forwardRef((props: VariantFormProps, ref: any) => {
 
   const handleSubmit = async (values: IVariantBase) => {
     if (isNew) {
-      return createVariant(namespace.key, flagKey, values);
+      return dispatch(
+        createVariantAsync({
+          namespaceKey: namespace.key,
+          flagKey: flagKey,
+          values: values
+        })
+      ).unwrap();
     }
 
-    return updateVariant(namespace.key, flagKey, variant?.id, values);
+    return dispatch(
+      updateVariantAsync({
+        namespaceKey: namespace.key,
+        flagKey: flagKey,
+        variantId: variant?.id,
+        values: values
+      })
+    ).unwrap();
   };
 
   return (

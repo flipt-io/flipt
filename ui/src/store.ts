@@ -4,6 +4,7 @@ import {
   isAnyOf
 } from '@reduxjs/toolkit';
 
+import { flagsSlice } from './app/flags/flagsSlice';
 import { metaSlice } from './app/meta/metaSlice';
 import { namespacesSlice } from './app/namespaces/namespacesSlice';
 import {
@@ -55,11 +56,17 @@ export const store = configureStore({
       status: LoadingStatus.IDLE,
       currentNamespace,
       error: undefined
+    },
+    flags: {
+      status: LoadingStatus.IDLE,
+      flags: {},
+      error: undefined
     }
   },
   reducer: {
     namespaces: namespacesSlice.reducer,
     preferences: preferencesSlice.reducer,
+    flags: flagsSlice.reducer,
     meta: metaSlice.reducer
   },
   middleware: (getDefaultMiddleware) =>

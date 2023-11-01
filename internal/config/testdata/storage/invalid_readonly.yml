@@ -1,6 +1,6 @@
 storage:
   type: object
-  readOnly: false
+  read_only: false
   object:
     type: s3
     s3:
