@@ -129,7 +129,7 @@ import "strings"
 	}
 
 	#storage: {
-		type: "database" | "git" | "local" | "object" | *""
+		type: "database" | "git" | "local" | "object" | "oci" | *""
 		local?: path: string | *"."
 		git?: {
 			repository:      string
@@ -164,6 +164,14 @@ import "strings"
 				prefix?:        string
 				endpoint?:      string
 				poll_interval?: =~#duration | *"1m"
+			}
+		}
+		oci?: {
+			repository: string
+			insecure?:  bool | *false
+			authentication?: {
+				username: string
+				password: string
 			}
 		}
 	}

@@ -1,0 +1,7 @@
+storage:
+  type: oci
+  oci:
+    repository: just.a.registry
+    authentication:
+      username: foo
+      password: bar

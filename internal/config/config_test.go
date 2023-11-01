@@ -745,6 +745,34 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "OCI config provided",
+			path: "./testdata/storage/oci_provided.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: OCIStorageType,
+					OCI: &OCI{
+						Repository: "some.target/repository/abundle:latest",
+						Authentication: &OCIAuthentication{
+							Username: "foo",
+							Password: "bar",
+						},
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "OCI invalid no repository",
+			path:    "./testdata/storage/oci_invalid_no_repo.yml",
+			wantErr: errors.New("oci storage repository must be specified"),
+		},
+		{
+			name:    "OCI invalid unexpected repository",
+			path:    "./testdata/storage/oci_invalid_unexpected_repo.yml",
+			wantErr: errors.New("validating OCI configuration: invalid reference: missing repository"),
+		},
+		{
 			name:    "storage readonly config invalid",
 			path:    "./testdata/storage/invalid_readonly.yml",
 			wantErr: errors.New("setting read only mode is only supported with database storage"),
@@ -801,7 +829,7 @@ func TestLoad(t *testing.T) {
 				} else if err.Error() == wantErr.Error() {
 					return
 				}
-				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
+				require.Fail(t, "expected error", "expected %q, found %q", wantErr, err)
 			}
 
 			require.NoError(t, err)
