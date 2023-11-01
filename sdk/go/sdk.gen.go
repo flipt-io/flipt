@@ -5,6 +5,7 @@ package sdk
 import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	data "go.flipt.io/flipt/rpc/flipt/data"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	metadata "google.golang.org/grpc/metadata"
@@ -12,6 +13,7 @@ import (
 
 type Transport interface {
 	AuthClient() AuthClient
+	DataClient() data.DataClient
 	EvaluationClient() evaluation.EvaluationServiceClient
 	FliptClient() flipt.FliptClient
 	MetaClient() meta.MetadataServiceClient
@@ -69,6 +71,13 @@ func New(t Transport, opts ...Option) SDK {
 func (s SDK) Auth() *Auth {
 	return &Auth{
 		transport:     s.transport.AuthClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+
+func (s SDK) Data() *Data {
+	return &Data{
+		transport:     s.transport.DataClient(),
 		tokenProvider: s.tokenProvider,
 	}
 }

@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package flipt.data;
+
+option go_package = "go.flipt.io/flipt/rpc/flipt/data";
+
+message Flag {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  string type = 5;
+  repeated Variant variants = 8;
+  repeated Rule rules = 9;
+}
+
+message Rule {
+  message SegmentsRule {
+    repeated string keys = 1;
+    string segment_operator = 2;
+  }
+  SegmentsRule segments = 1;
+  int32 rank = 2;
+  repeated Distribution distributions = 3;
+}
+
+message Rollout {
+  message SegmentsRollout {
+    repeated string keys = 1;
+    string segment_operator = 2;
+    bool value = 3;
+  }
+  message ThresholdRollout {
+    float percentage = 1;
+    bool value = 2;
+  }
+  SegmentsRollout segment = 1;
+  ThresholdRollout threshold = 2;
+  string description = 3;
+}
+
+message Distribution {
+  string variant_key = 1;
+  float rollout = 2;
+}
+
+message Variant {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  string attachment = 4;
+}
+
+message Segment {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  string match_type = 4;
+  repeated Constraint constraints = 5;
+}
+
+message Constraint {
+  string type = 1;
+  string property = 2;
+  string operator = 3;
+  string value = 4;
+  string description = 5;
+}
+
+message NamespaceRequest {
+  string key = 1;
+  //int32 limit = 2;
+  //string page_token = 3;
+}
+
+message NamespaceResponse {
+  string key = 1;
+  repeated Flag flags = 2;
+  repeated Segment segments = 3;
+}
+
+service Data {
+  rpc Snapshot(NamespaceRequest) returns (NamespaceResponse);
+}
