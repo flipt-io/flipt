@@ -96,7 +96,8 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	updated := []byte(`namespace: production
 flags:
-    - key: foo`)
+    - key: foo
+      name: Foo`)
 
 	_, err = fi.Write(updated)
 	require.NoError(t, err)
@@ -116,7 +117,13 @@ flags:
 	}))
 
 	// assert matching state
-	snap := <-ch
+	var snap *storagefs.StoreSnapshot
+	select {
+	case snap = <-ch:
+	case <-time.After(time.Minute):
+		t.Fatal("timed out waiting for snapshot")
+	}
+
 	require.NoError(t, err)
 
 	t.Log("received new snapshot")

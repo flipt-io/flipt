@@ -74,7 +74,8 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	updated := []byte(`namespace: production
 flags:
-    - key: foo`)
+    - key: foo
+      name: Foo`)
 
 	buf := bytes.NewReader(updated)
 
