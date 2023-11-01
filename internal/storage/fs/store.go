@@ -42,7 +42,7 @@ type Store struct {
 	done   chan struct{}
 }
 
-func (l *Store) updateSnapshot(storeSnapshot *StoreSnapshot) error {
+func (l *Store) updateSnapshot(storeSnapshot *StoreSnapshot) {
 	l.mu.Lock()
 	l.Store = storeSnapshot
 	l.mu.Unlock()
@@ -54,8 +54,6 @@ func (l *Store) updateSnapshot(storeSnapshot *StoreSnapshot) error {
 	if l.notify != nil {
 		l.notify()
 	}
-
-	return nil
 }
 
 // NewStore constructs and configure a Store.
@@ -74,9 +72,7 @@ func NewStore(logger *zap.Logger, source SnapshotSource) (*Store, error) {
 		return nil, err
 	}
 
-	if err := store.updateSnapshot(f); err != nil {
-		return nil, err
-	}
+	store.updateSnapshot(f)
 
 	var ctx context.Context
 	ctx, store.cancel = context.WithCancel(context.Background())
@@ -88,12 +84,7 @@ func NewStore(logger *zap.Logger, source SnapshotSource) (*Store, error) {
 		defer close(store.done)
 		for snap := range ch {
 			logger.Debug("received new snapshot")
-
-			if err = store.updateSnapshot(snap); err != nil {
-				logger.Error("failed updating snapshot", zap.Error(err))
-				continue
-			}
-
+			store.updateSnapshot(snap)
 			logger.Debug("updated latest snapshot")
 		}
 
