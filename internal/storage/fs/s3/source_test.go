@@ -3,16 +3,14 @@ package s3
 import (
 	"bytes"
 	"context"
-	"io"
-	"io/fs"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/containers"
+	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -30,26 +28,14 @@ func Test_SourceGet(t *testing.T) {
 		return
 	}
 
-	s3fs, err := source.Get()
+	snap, err := source.Get()
 	require.NoError(t, err)
 
-	fi, err := s3fs.Open("features.yml")
+	_, err = snap.GetNamespace(context.TODO(), "production")
 	require.NoError(t, err)
 
-	data, err := io.ReadAll(fi)
+	_, err = snap.GetNamespace(context.TODO(), "prefix")
 	require.NoError(t, err)
-	require.NoError(t, fi.Close())
-
-	assert.Equal(t, []byte("namespace: production\n"), data)
-
-	fi, err = s3fs.Open("prefix/prefix_features.yml")
-	require.NoError(t, err)
-
-	data, err = io.ReadAll(fi)
-	require.NoError(t, err)
-	require.NoError(t, fi.Close())
-
-	assert.Equal(t, []byte("namespace: prefix\n"), data)
 }
 
 func Test_SourceGetPrefix(t *testing.T) {
@@ -58,25 +44,14 @@ func Test_SourceGetPrefix(t *testing.T) {
 		return
 	}
 
-	s3fs, err := source.Get()
+	snap, err := source.Get()
 	require.NoError(t, err)
 
-	_, err = s3fs.Open("features.yml")
-	require.Error(t, err)
+	_, err = snap.GetNamespace(context.TODO(), "production")
+	require.Error(t, err, "production namespace should have been skipped")
 
-	// Open without a prefix path prepends the prefix
-	fi, err := s3fs.Open("prefix_features.yml")
-	require.NoError(t, err)
-	require.NoError(t, fi.Close())
-
-	fi, err = s3fs.Open("prefix/prefix_features.yml")
-	require.NoError(t, err)
-
-	data, err := io.ReadAll(fi)
-	require.NoError(t, err)
-	require.NoError(t, fi.Close())
-
-	assert.Equal(t, []byte("namespace: prefix\n"), data)
+	_, err = snap.GetNamespace(context.TODO(), "prefix")
+	require.NoError(t, err, "prefix namespace should be present in snapshot")
 }
 
 func Test_SourceSubscribe(t *testing.T) {
@@ -84,17 +59,17 @@ func Test_SourceSubscribe(t *testing.T) {
 	if skip {
 		return
 	}
-	sourceFs, err := source.Get()
+
+	snap, err := source.Get()
 	require.NoError(t, err)
 
-	filename := "features.yml"
-	_, err = sourceFs.Open(filename)
+	_, err = snap.GetNamespace(context.TODO(), "production")
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// start subscription
-	ch := make(chan fs.FS)
+	ch := make(chan *storagefs.StoreSnapshot)
 	go source.Subscribe(ctx, ch)
 
 	updated := []byte(`namespace: production
@@ -105,27 +80,24 @@ flags:
 
 	s3Client := source.s3
 	// update features.yml
+	path := "features.yml"
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &source.bucket,
-		Key:    &filename,
+		Key:    &path,
 		Body:   buf,
 	})
 	require.NoError(t, err)
 
 	// assert matching state
-	fs := <-ch
+	snap = <-ch
 
-	t.Log("received new FS")
+	t.Log("received new snapshot")
 
-	found, err := fs.Open("features.yml")
+	_, err = snap.GetFlag(context.TODO(), "production", "foo")
 	require.NoError(t, err)
-
-	data, err := io.ReadAll(found)
-	require.NoError(t, err)
-
-	assert.Equal(t, string(updated), string(data))
 
 	cancel()
+
 	_, open := <-ch
 	require.False(t, open, "expected channel to be closed after cancel")
 }

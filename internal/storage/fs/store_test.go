@@ -16,8 +16,8 @@ func Test_Store(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 		notify = make(chan struct{})
 		source = source{
-			getFS: mustSub(t, testdata, "fixtures/fswithindex"),
-			ch:    make(chan fs.FS),
+			get: mustSub(t, testdata, "fixtures/fswithindex"),
+			ch:  make(chan *StoreSnapshot),
 		}
 	)
 
@@ -49,39 +49,42 @@ func Test_Store(t *testing.T) {
 }
 
 type source struct {
-	getFS fs.FS
-	ch    chan fs.FS
+	get *StoreSnapshot
+	ch  chan *StoreSnapshot
 }
 
 func (s source) String() string {
 	return "test"
 }
 
-// Get builds a single instance of an fs.FS
-func (s source) Get() (fs.FS, error) {
-	return s.getFS, nil
+// Get builds a single instance of an *StoreSnapshot
+func (s source) Get() (*StoreSnapshot, error) {
+	return s.get, nil
 }
 
-// Subscribe feeds implementations of fs.FS onto the provided channel.
+// Subscribe feeds implementations of *StoreSnapshot onto the provided channel.
 // It should block until the provided context is cancelled (it will be called in a goroutine).
 // It should close the provided channel before it returns.
-func (s source) Subscribe(ctx context.Context, ch chan<- fs.FS) {
+func (s source) Subscribe(ctx context.Context, ch chan<- *StoreSnapshot) {
 	defer close(ch)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case fs := <-s.ch:
-			ch <- fs
+		case snap := <-s.ch:
+			ch <- snap
 		}
 	}
 }
 
-func mustSub(t *testing.T, f fs.FS, dir string) fs.FS {
+func mustSub(t *testing.T, f fs.FS, dir string) *StoreSnapshot {
 	t.Helper()
 	var err error
 	f, err = fs.Sub(f, dir)
 	require.NoError(t, err)
-	return f
+
+	snap, err := SnapshotFromFS(zaptest.NewLogger(t), f)
+	require.NoError(t, err)
+	return snap
 }
