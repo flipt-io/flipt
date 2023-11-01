@@ -1,0 +1,18 @@
+log:
+  debug: true
+
+fuse:
+  dir: "/var/opt/flipt"
+
+data:
+  dir: "/var/lib/litefs"
+
+lease:
+  type: "static"
+
+  advertise-url: "http://primary:20202"
+
+  candidate: $IS_PRIMARY
+
+exec:
+  - cmd: "flipt"
