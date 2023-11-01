@@ -23,7 +23,10 @@ struct Namespace {
 }
 
 impl Snapshot {
-    pub fn build(parser: impl Parser) -> Result<Snapshot, Whatever> {
+    pub fn build<T>(parser: T) -> Result<Snapshot, Whatever>
+    where
+        T: Parser,
+    {
         let mut ns: HashMap<String, Namespace> = HashMap::new();
 
         for n in parser.get_namespaces() {
