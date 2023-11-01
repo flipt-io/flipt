@@ -419,7 +419,9 @@ impl Evaluator {
                 common::ConstraintComparisonType::String => matches_string(&constraint, &value),
                 common::ConstraintComparisonType::Number => matches_number(&constraint, &value)?,
                 common::ConstraintComparisonType::Boolean => matches_boolean(&constraint, &value)?,
-                common::ConstraintComparisonType::DateTime => matches_datetime(&constraint, &value)?,
+                common::ConstraintComparisonType::DateTime => {
+                    matches_datetime(&constraint, &value)?
+                }
                 _ => {
                     return Ok(false);
                 }
@@ -579,8 +581,10 @@ fn matches_boolean(
     }
 }
 
-// TODO(yquansah): Implement datetime parsing support
-fn matches_datetime(evaluation_constraint: &models::EvaluationConstraint, v: &str) -> Result<bool, Whatever> {
+fn matches_datetime(
+    evaluation_constraint: &models::EvaluationConstraint,
+    v: &str,
+) -> Result<bool, Whatever> {
     let operator = evaluation_constraint.operator.as_str();
 
     match operator {
@@ -604,28 +608,32 @@ fn matches_datetime(evaluation_constraint: &models::EvaluationConstraint, v: &st
 
     let value = match DateTime::parse_from_rfc3339(&evaluation_constraint.value) {
         Ok(t) => t.timestamp(),
-        Err(e) => whatever!("error parsing time {}, err: {}", &evaluation_constraint.value, e),
+        Err(e) => whatever!(
+            "error parsing time {}, err: {}",
+            &evaluation_constraint.value,
+            e
+        ),
     };
 
     match operator {
         "eq" => {
             return Ok(d == value);
-        },
+        }
         "neq" => {
             return Ok(d != value);
-        },
+        }
         "lt" => {
             return Ok(d < value);
-        },
+        }
         "lte" => {
             return Ok(d <= value);
-        },
+        }
         "gt" => {
             return Ok(d > value);
-        },
+        }
         "gte" => {
             return Ok(d >= value);
-        },
+        }
         _ => {
             return Ok(false);
         }
@@ -643,8 +651,8 @@ fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whate
 
 mod tests {
     use super::{matches_boolean, matches_datetime, matches_number, matches_string};
-    use crate::flipt::models as flipt_models;
     use crate::common;
+    use crate::flipt::models as flipt_models;
 
     macro_rules! matches_string_tests {
         ($($name:ident: $value:expr,)*) => {
@@ -791,81 +799,119 @@ mod tests {
 
     #[test]
     fn test_matches_boolean_success() {
-        let value_one = matches_boolean(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::Boolean,
-            property: String::from("fizz"),
-            operator: String::from("true"),
-            value: "".into(),
-        }, "true").expect("boolean should be parsed correctly");
+        let value_one = matches_boolean(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::Boolean,
+                property: String::from("fizz"),
+                operator: String::from("true"),
+                value: "".into(),
+            },
+            "true",
+        )
+        .expect("boolean should be parsed correctly");
 
         assert!(value_one);
 
-        let value_two = matches_boolean(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::Boolean,
-            property: String::from("fizz"),
-            operator: String::from("false"),
-            value: "".into(),
-        }, "false").expect("boolean should be parsed correctly");
+        let value_two = matches_boolean(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::Boolean,
+                property: String::from("fizz"),
+                operator: String::from("false"),
+                value: "".into(),
+            },
+            "false",
+        )
+        .expect("boolean should be parsed correctly");
 
         assert!(value_two);
     }
 
     #[test]
     fn test_matches_boolean_failure() {
-        let result = matches_boolean(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::Boolean,
-            property: String::from("fizz"),
-            operator: String::from("true"),
-            value: "".into(),
-        }, "blah");
+        let result = matches_boolean(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::Boolean,
+                property: String::from("fizz"),
+                operator: String::from("true"),
+                value: "".into(),
+            },
+            "blah",
+        );
 
         assert!(!result.is_ok());
-        assert_eq!(result.err().unwrap().to_string(), "error parsing boolean blah: err provided string was not `true` or `false`");
+        assert_eq!(
+            result.err().unwrap().to_string(),
+            "error parsing boolean blah: err provided string was not `true` or `false`"
+        );
     }
 
     #[test]
     fn test_matches_number_failure() {
-        let result_one = matches_number(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::Number,
-            property: String::from("number"),
-            operator: String::from("eq"),
-            value: String::from("9"),
-        }, "notanumber");
+        let result_one = matches_number(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::Number,
+                property: String::from("number"),
+                operator: String::from("eq"),
+                value: String::from("9"),
+            },
+            "notanumber",
+        );
 
         assert!(!result_one.is_ok());
-        assert_eq!(result_one.err().unwrap().to_string(), "error parsing number notanumber, err: invalid digit found in string");
+        assert_eq!(
+            result_one.err().unwrap().to_string(),
+            "error parsing number notanumber, err: invalid digit found in string"
+        );
 
-        let result_two = matches_number(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::Number,
-            property: String::from("number"),
-            operator: String::from("eq"),
-            value: String::from("notanumber"),
-        }, "9");
+        let result_two = matches_number(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::Number,
+                property: String::from("number"),
+                operator: String::from("eq"),
+                value: String::from("notanumber"),
+            },
+            "9",
+        );
 
         assert!(!result_two.is_ok());
-        assert_eq!(result_two.err().unwrap().to_string(), "error parsing number notanumber, err: invalid digit found in string");
+        assert_eq!(
+            result_two.err().unwrap().to_string(),
+            "error parsing number notanumber, err: invalid digit found in string"
+        );
     }
 
     #[test]
     fn test_matches_datetime_failure() {
-        let result_one = matches_datetime(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::String,
-            property: String::from("date"),
-            operator: String::from("eq"),
-            value: String::from("blah"),
-        }, "2006-01-02T15:04:05Z");
+        let result_one = matches_datetime(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::String,
+                property: String::from("date"),
+                operator: String::from("eq"),
+                value: String::from("blah"),
+            },
+            "2006-01-02T15:04:05Z",
+        );
 
         assert!(!result_one.is_ok());
-        assert_eq!(result_one.err().unwrap().to_string(), "error parsing time blah, err: input contains invalid characters");
+        assert_eq!(
+            result_one.err().unwrap().to_string(),
+            "error parsing time blah, err: input contains invalid characters"
+        );
 
-        let result_two = matches_datetime(&flipt_models::EvaluationConstraint{
-            r#type: common::ConstraintComparisonType::String,
-            property: String::from("date"),
-            operator: String::from("eq"),
-            value: String::from("2006-01-02T15:04:05Z"),
-        }, "blah");
+        let result_two = matches_datetime(
+            &flipt_models::EvaluationConstraint {
+                r#type: common::ConstraintComparisonType::String,
+                property: String::from("date"),
+                operator: String::from("eq"),
+                value: String::from("2006-01-02T15:04:05Z"),
+            },
+            "blah",
+        );
 
         assert!(!result_two.is_ok());
-        assert_eq!(result_two.err().unwrap().to_string(), "error parsing time blah, err: input contains invalid characters");
+        assert_eq!(
+            result_two.err().unwrap().to_string(),
+            "error parsing time blah, err: input contains invalid characters"
+        );
     }
 }
