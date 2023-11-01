@@ -46,8 +46,6 @@ impl Parser for TestParser {
         let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         d.push("src/testdata/state.json");
 
-        println!("{}", d.display().to_string());
-
         let state =
             fs::read_to_string(d.display().to_string()).expect("file should have read correctly");
 
