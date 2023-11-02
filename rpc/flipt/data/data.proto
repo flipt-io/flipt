@@ -9,10 +9,10 @@ option go_package = "go.flipt.io/flipt/rpc/flipt/data";
 
 message EvaluationDistribution {
   string id = 1;
-  string ruleId = 2;
-  string variantId = 3;
-  string variantKey = 4;
-  string variantAttachment = 5;
+  string rule_id = 2;
+  string variant_id = 3;
+  string variant_key = 4;
+  string variant_attachment = 5;
   float rollout = 6;
 }
 
@@ -32,7 +32,7 @@ message EvaluationRolloutThreshold {
 
 message EvaluationRolloutSegment {
   bool value = 1;
-  flipt.SegmentOperator segmentOperator = 2;
+  flipt.SegmentOperator segment_operator = 2;
   repeated EvaluationSegment segments = 3;
 }
 
