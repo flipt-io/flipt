@@ -13,9 +13,9 @@ import (
 
 type Transport interface {
 	AuthClient() AuthClient
-	DataClient() data.DataClient
-	EvaluationClient() evaluation.EvaluationServiceClient
 	FliptClient() flipt.FliptClient
+	DataClient() data.DataServiceClient
+	EvaluationClient() evaluation.EvaluationServiceClient
 	MetaClient() meta.MetadataServiceClient
 }
 
@@ -75,6 +75,13 @@ func (s SDK) Auth() *Auth {
 	}
 }
 
+func (s SDK) Flipt() *Flipt {
+	return &Flipt{
+		transport:     s.transport.FliptClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+
 func (s SDK) Data() *Data {
 	return &Data{
 		transport:     s.transport.DataClient(),
@@ -85,13 +92,6 @@ func (s SDK) Data() *Data {
 func (s SDK) Evaluation() *Evaluation {
 	return &Evaluation{
 		transport:     s.transport.EvaluationClient(),
-		tokenProvider: s.tokenProvider,
-	}
-}
-
-func (s SDK) Flipt() *Flipt {
-	return &Flipt{
-		transport:     s.transport.FliptClient(),
 		tokenProvider: s.tokenProvider,
 	}
 }

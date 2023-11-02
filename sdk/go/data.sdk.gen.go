@@ -8,14 +8,14 @@ import (
 )
 
 type Data struct {
-	transport     data.DataClient
+	transport     data.DataServiceClient
 	tokenProvider ClientTokenProvider
 }
 
-func (x *Data) Snapshot(ctx context.Context, v *data.NamespaceRequest) (*data.NamespaceResponse, error) {
+func (x *Data) SnapshotNamespace(ctx context.Context, v *data.SnapshotNamespaceRequest) (*data.SnapshotNamespaceResponse, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.Snapshot(ctx, v)
+	return x.transport.SnapshotNamespace(ctx, v)
 }
