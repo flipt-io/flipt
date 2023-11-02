@@ -12,10 +12,10 @@ type Data struct {
 	tokenProvider ClientTokenProvider
 }
 
-func (x *Data) SnapshotNamespace(ctx context.Context, v *data.SnapshotNamespaceRequest) (*data.SnapshotNamespaceResponse, error) {
+func (x *Data) EvaluationSnapshotNamespace(ctx context.Context, v *data.EvaluationNamespaceSnapshotRequest) (*data.EvaluationNamespaceSnapshot, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
-	return x.transport.SnapshotNamespace(ctx, v)
+	return x.transport.EvaluationSnapshotNamespace(ctx, v)
 }

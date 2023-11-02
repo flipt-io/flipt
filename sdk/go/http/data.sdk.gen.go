@@ -18,10 +18,10 @@ type DataServiceClient struct {
 	addr   string
 }
 
-func (x *DataServiceClient) SnapshotNamespace(ctx context.Context, v *data.SnapshotNamespaceRequest, _ ...grpc.CallOption) (*data.SnapshotNamespaceResponse, error) {
+func (x *DataServiceClient) EvaluationSnapshotNamespace(ctx context.Context, v *data.EvaluationNamespaceSnapshotRequest, _ ...grpc.CallOption) (*data.EvaluationNamespaceSnapshot, error) {
 	var body io.Reader
 	var values url.Values
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/snapshot", v.Key), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/internal/v1/evaluation/snapshot/namespace/%v", v.Key), body)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (x *DataServiceClient) SnapshotNamespace(ctx context.Context, v *data.Snaps
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var output data.SnapshotNamespaceResponse
+	var output data.EvaluationNamespaceSnapshot
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err

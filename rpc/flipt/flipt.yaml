@@ -23,9 +23,6 @@ http:
   - selector: flipt.Flipt.DeleteNamespace
     delete: /api/v1/namespaces/{key}
 
-  - selector: flipt.data.DataService.SnapshotNamespace
-    get: /api/v1/namespaces/{key}/snapshot
-
   # evaluation
   #
   - selector: flipt.Flipt.Evaluate
@@ -314,3 +311,7 @@ http:
     get: /auth/v1/method/github/authorize
   - selector: flipt.auth.AuthenticationMethodGithubService.Callback
     get: /auth/v1/method/github/callback
+
+  # internal routes
+  - selector: flipt.data.DataService.EvaluationSnapshotNamespace
+    get: /internal/v1/evaluation/snapshot/namespace/{key}
