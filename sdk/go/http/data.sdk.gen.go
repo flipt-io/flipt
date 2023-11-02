@@ -3,15 +3,48 @@
 package http
 
 import (
+	context "context"
+	fmt "fmt"
 	data "go.flipt.io/flipt/rpc/flipt/data"
+	grpc "google.golang.org/grpc"
+	protojson "google.golang.org/protobuf/encoding/protojson"
+	io "io"
 	http "net/http"
+	url "net/url"
 )
 
-type DataClient struct {
+type DataServiceClient struct {
 	client *http.Client
 	addr   string
 }
 
-func (t Transport) DataClient() data.DataClient {
-	return &DataClient{client: t.client, addr: t.addr}
+func (x *DataServiceClient) SnapshotNamespace(ctx context.Context, v *data.SnapshotNamespaceRequest, _ ...grpc.CallOption) (*data.SnapshotNamespaceResponse, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/api/v1/namespaces/%v/snapshot", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output data.SnapshotNamespaceResponse
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (t Transport) DataClient() data.DataServiceClient {
+	return &DataServiceClient{client: t.client, addr: t.addr}
 }

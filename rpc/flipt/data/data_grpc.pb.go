@@ -19,89 +19,89 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Data_Snapshot_FullMethodName = "/flipt.data.Data/Snapshot"
+	DataService_SnapshotNamespace_FullMethodName = "/flipt.data.DataService/SnapshotNamespace"
 )
 
-// DataClient is the client API for Data service.
+// DataServiceClient is the client API for DataService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type DataClient interface {
-	Snapshot(ctx context.Context, in *NamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
+type DataServiceClient interface {
+	SnapshotNamespace(ctx context.Context, in *SnapshotNamespaceRequest, opts ...grpc.CallOption) (*SnapshotNamespaceResponse, error)
 }
 
-type dataClient struct {
+type dataServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewDataClient(cc grpc.ClientConnInterface) DataClient {
-	return &dataClient{cc}
+func NewDataServiceClient(cc grpc.ClientConnInterface) DataServiceClient {
+	return &dataServiceClient{cc}
 }
 
-func (c *dataClient) Snapshot(ctx context.Context, in *NamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error) {
-	out := new(NamespaceResponse)
-	err := c.cc.Invoke(ctx, Data_Snapshot_FullMethodName, in, out, opts...)
+func (c *dataServiceClient) SnapshotNamespace(ctx context.Context, in *SnapshotNamespaceRequest, opts ...grpc.CallOption) (*SnapshotNamespaceResponse, error) {
+	out := new(SnapshotNamespaceResponse)
+	err := c.cc.Invoke(ctx, DataService_SnapshotNamespace_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// DataServer is the server API for Data service.
-// All implementations must embed UnimplementedDataServer
+// DataServiceServer is the server API for DataService service.
+// All implementations must embed UnimplementedDataServiceServer
 // for forward compatibility
-type DataServer interface {
-	Snapshot(context.Context, *NamespaceRequest) (*NamespaceResponse, error)
-	mustEmbedUnimplementedDataServer()
+type DataServiceServer interface {
+	SnapshotNamespace(context.Context, *SnapshotNamespaceRequest) (*SnapshotNamespaceResponse, error)
+	mustEmbedUnimplementedDataServiceServer()
 }
 
-// UnimplementedDataServer must be embedded to have forward compatible implementations.
-type UnimplementedDataServer struct {
+// UnimplementedDataServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedDataServiceServer struct {
 }
 
-func (UnimplementedDataServer) Snapshot(context.Context, *NamespaceRequest) (*NamespaceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Snapshot not implemented")
+func (UnimplementedDataServiceServer) SnapshotNamespace(context.Context, *SnapshotNamespaceRequest) (*SnapshotNamespaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SnapshotNamespace not implemented")
 }
-func (UnimplementedDataServer) mustEmbedUnimplementedDataServer() {}
+func (UnimplementedDataServiceServer) mustEmbedUnimplementedDataServiceServer() {}
 
-// UnsafeDataServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to DataServer will
+// UnsafeDataServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DataServiceServer will
 // result in compilation errors.
-type UnsafeDataServer interface {
-	mustEmbedUnimplementedDataServer()
+type UnsafeDataServiceServer interface {
+	mustEmbedUnimplementedDataServiceServer()
 }
 
-func RegisterDataServer(s grpc.ServiceRegistrar, srv DataServer) {
-	s.RegisterService(&Data_ServiceDesc, srv)
+func RegisterDataServiceServer(s grpc.ServiceRegistrar, srv DataServiceServer) {
+	s.RegisterService(&DataService_ServiceDesc, srv)
 }
 
-func _Data_Snapshot_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NamespaceRequest)
+func _DataService_SnapshotNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SnapshotNamespaceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DataServer).Snapshot(ctx, in)
+		return srv.(DataServiceServer).SnapshotNamespace(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Data_Snapshot_FullMethodName,
+		FullMethod: DataService_SnapshotNamespace_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServer).Snapshot(ctx, req.(*NamespaceRequest))
+		return srv.(DataServiceServer).SnapshotNamespace(ctx, req.(*SnapshotNamespaceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Data_ServiceDesc is the grpc.ServiceDesc for Data service.
+// DataService_ServiceDesc is the grpc.ServiceDesc for DataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Data_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "flipt.data.Data",
-	HandlerType: (*DataServer)(nil),
+var DataService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "flipt.data.DataService",
+	HandlerType: (*DataServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Snapshot",
-			Handler:    _Data_Snapshot_Handler,
+			MethodName: "SnapshotNamespace",
+			Handler:    _DataService_SnapshotNamespace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

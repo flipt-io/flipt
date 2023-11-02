@@ -54,16 +54,16 @@ func (t Transport) AuthClient() _go.AuthClient {
 	return authClient{cc: t.cc}
 }
 
-func (t Transport) DataClient() data.DataClient {
-	return data.NewDataClient(t.cc)
+func (t Transport) FliptClient() flipt.FliptClient {
+	return flipt.NewFliptClient(t.cc)
+}
+
+func (t Transport) DataClient() data.DataServiceClient {
+	return data.NewDataServiceClient(t.cc)
 }
 
 func (t Transport) EvaluationClient() evaluation.EvaluationServiceClient {
 	return evaluation.NewEvaluationServiceClient(t.cc)
-}
-
-func (t Transport) FliptClient() flipt.FliptClient {
-	return flipt.NewFliptClient(t.cc)
 }
 
 func (t Transport) MetaClient() meta.MetadataServiceClient {
