@@ -13,6 +13,7 @@ pub struct Flag {
 #[derive(Clone, Deserialize)]
 pub struct Variant {
     pub key: String,
+    pub attachment: String,
 }
 
 pub struct Segment {
@@ -44,6 +45,7 @@ pub struct EvaluationDistribution {
     pub rule_id: String,
     pub rollout: f32,
     pub variant_key: String,
+    pub variant_attachment: String,
 }
 
 #[derive(Clone, Debug)]

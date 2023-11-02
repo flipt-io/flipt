@@ -73,9 +73,9 @@ impl Snapshot {
                 let variants = flag.variants.unwrap_or(Vec::new());
 
                 for variant in &variants {
-                    // TODO(yquansah): Implement variant attachment support
                     f.variants.push(flipt_models::Variant {
                         key: variant.key.clone(),
+                        attachment: variant.attachment.clone().unwrap_or(String::from("")),
                     })
                 }
 
@@ -112,7 +112,9 @@ impl Snapshot {
                             segment_keys.push(segment_key);
                         }
 
-                        segment_operator = rule_segments.segment_operator;
+                        segment_operator = rule_segments
+                            .segment_operator
+                            .unwrap_or(common::SegmentOperator::Or);
                     }
 
                     for s in segment_keys {
@@ -148,8 +150,8 @@ impl Snapshot {
                         Vec::new();
 
                     for distribution in rule.distributions {
-                        let variant_key = match find_by_key(&distribution.variant, &variants) {
-                            Some(key) => key,
+                        let variant_pair = match find_by_key(&distribution.variant, &variants) {
+                            Some(tup) => tup,
                             None => whatever!(
                                 "unknown variant reference: {}",
                                 distribution.variant.clone()
@@ -158,7 +160,8 @@ impl Snapshot {
 
                         evaluation_distributions.push(flipt_models::EvaluationDistribution {
                             rule_id: rule_id.clone(),
-                            variant_key: variant_key,
+                            variant_key: variant_pair.0,
+                            variant_attachment: variant_pair.1,
                             rollout: distribution.rollout,
                         })
                     }
@@ -326,9 +329,9 @@ impl Snapshot {
     }
 }
 
-fn find_by_key(key: &str, variants: &Vec<models::Variant>) -> Option<String> {
+fn find_by_key(key: &str, variants: &Vec<models::Variant>) -> Option<(String, String)> {
     match variants.iter().find(|&element| element.key == key) {
-        Some(v) => Some(v.key.clone()),
+        Some(v) => Some((v.key.clone(), v.attachment.clone().unwrap_or_default())),
         None => None,
     }
 }

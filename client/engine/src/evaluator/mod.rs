@@ -27,6 +27,7 @@ pub struct VariantEvaluationResponse {
     pub reason: common::EvaluationReason,
     pub flag_key: String,
     pub variant_key: String,
+    pub variant_attachment: String,
     pub request_duration_millis: f64,
     pub timestamp: DateTime<Utc>,
 }
@@ -176,6 +177,7 @@ impl Evaluator {
             reason: common::EvaluationReason::Unknown,
             flag_key: flag.key.clone(),
             variant_key: String::from(""),
+            variant_attachment: String::from(""),
             request_duration_millis: 0.0,
             timestamp: chrono::offset::Utc::now(),
         };
@@ -300,6 +302,7 @@ impl Evaluator {
 
             variant_evaluation_response.r#match = true;
             variant_evaluation_response.variant_key = d.variant_key.clone();
+            variant_evaluation_response.variant_attachment = d.variant_attachment.clone();
             variant_evaluation_response.reason = common::EvaluationReason::Match;
             variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
             return Ok(variant_evaluation_response);

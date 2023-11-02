@@ -24,8 +24,9 @@ pub struct Flag {
 #[derive(Deserialize)]
 pub struct Variant {
     pub key: String,
-    pub name: String,
-    pub description: String,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub attachment: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -65,8 +66,8 @@ pub struct ThresholdRule {
 #[derive(Deserialize)]
 pub struct Segment {
     pub key: String,
-    pub name: String,
-    pub description: String,
+    pub name: Option<String>,
+    pub description: Option<String>,
     pub match_type: common::SegmentMatchType,
     pub constraints: Vec<Constraint>,
 }
@@ -83,5 +84,5 @@ pub struct Constraint {
 #[derive(Deserialize)]
 pub struct Segments {
     pub keys: Vec<String>,
-    pub segment_operator: common::SegmentOperator,
+    pub segment_operator: Option<common::SegmentOperator>,
 }
