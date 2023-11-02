@@ -31,8 +31,8 @@ var _ = runtime.String
 var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
-func request_DataService_SnapshotNamespace_0(ctx context.Context, marshaler runtime.Marshaler, client DataServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SnapshotNamespaceRequest
+func request_DataService_EvaluationSnapshotNamespace_0(ctx context.Context, marshaler runtime.Marshaler, client DataServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq EvaluationNamespaceSnapshotRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -52,13 +52,13 @@ func request_DataService_SnapshotNamespace_0(ctx context.Context, marshaler runt
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := client.SnapshotNamespace(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.EvaluationSnapshotNamespace(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_DataService_SnapshotNamespace_0(ctx context.Context, marshaler runtime.Marshaler, server DataServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SnapshotNamespaceRequest
+func local_request_DataService_EvaluationSnapshotNamespace_0(ctx context.Context, marshaler runtime.Marshaler, server DataServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq EvaluationNamespaceSnapshotRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -78,7 +78,7 @@ func local_request_DataService_SnapshotNamespace_0(ctx context.Context, marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "key", err)
 	}
 
-	msg, err := server.SnapshotNamespace(ctx, &protoReq)
+	msg, err := server.EvaluationSnapshotNamespace(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -89,7 +89,7 @@ func local_request_DataService_SnapshotNamespace_0(ctx context.Context, marshale
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterDataServiceHandlerFromEndpoint instead.
 func RegisterDataServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server DataServiceServer) error {
 
-	mux.Handle("GET", pattern_DataService_SnapshotNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DataService_EvaluationSnapshotNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -97,12 +97,12 @@ func RegisterDataServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.data.DataService/SnapshotNamespace", runtime.WithHTTPPathPattern("/api/v1/namespaces/{key}/snapshot"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/flipt.data.DataService/EvaluationSnapshotNamespace", runtime.WithHTTPPathPattern("/internal/v1/evaluation/snapshot/namespace/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_DataService_SnapshotNamespace_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_DataService_EvaluationSnapshotNamespace_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -110,7 +110,7 @@ func RegisterDataServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 			return
 		}
 
-		forward_DataService_SnapshotNamespace_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DataService_EvaluationSnapshotNamespace_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -155,25 +155,25 @@ func RegisterDataServiceHandler(ctx context.Context, mux *runtime.ServeMux, conn
 // "DataServiceClient" to call the correct interceptors.
 func RegisterDataServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client DataServiceClient) error {
 
-	mux.Handle("GET", pattern_DataService_SnapshotNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_DataService_EvaluationSnapshotNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.data.DataService/SnapshotNamespace", runtime.WithHTTPPathPattern("/api/v1/namespaces/{key}/snapshot"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/flipt.data.DataService/EvaluationSnapshotNamespace", runtime.WithHTTPPathPattern("/internal/v1/evaluation/snapshot/namespace/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_DataService_SnapshotNamespace_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_DataService_EvaluationSnapshotNamespace_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_DataService_SnapshotNamespace_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_DataService_EvaluationSnapshotNamespace_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -181,9 +181,9 @@ func RegisterDataServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_DataService_SnapshotNamespace_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"api", "v1", "namespaces", "key", "snapshot"}, ""))
+	pattern_DataService_EvaluationSnapshotNamespace_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"internal", "v1", "evaluation", "snapshot", "namespace", "key"}, ""))
 )
 
 var (
-	forward_DataService_SnapshotNamespace_0 = runtime.ForwardResponseMessage
+	forward_DataService_EvaluationSnapshotNamespace_0 = runtime.ForwardResponseMessage
 )

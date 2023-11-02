@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	DataService_SnapshotNamespace_FullMethodName = "/flipt.data.DataService/SnapshotNamespace"
+	DataService_EvaluationSnapshotNamespace_FullMethodName = "/flipt.data.DataService/EvaluationSnapshotNamespace"
 )
 
 // DataServiceClient is the client API for DataService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DataServiceClient interface {
-	SnapshotNamespace(ctx context.Context, in *SnapshotNamespaceRequest, opts ...grpc.CallOption) (*SnapshotNamespaceResponse, error)
+	EvaluationSnapshotNamespace(ctx context.Context, in *EvaluationNamespaceSnapshotRequest, opts ...grpc.CallOption) (*EvaluationNamespaceSnapshot, error)
 }
 
 type dataServiceClient struct {
@@ -37,9 +37,9 @@ func NewDataServiceClient(cc grpc.ClientConnInterface) DataServiceClient {
 	return &dataServiceClient{cc}
 }
 
-func (c *dataServiceClient) SnapshotNamespace(ctx context.Context, in *SnapshotNamespaceRequest, opts ...grpc.CallOption) (*SnapshotNamespaceResponse, error) {
-	out := new(SnapshotNamespaceResponse)
-	err := c.cc.Invoke(ctx, DataService_SnapshotNamespace_FullMethodName, in, out, opts...)
+func (c *dataServiceClient) EvaluationSnapshotNamespace(ctx context.Context, in *EvaluationNamespaceSnapshotRequest, opts ...grpc.CallOption) (*EvaluationNamespaceSnapshot, error) {
+	out := new(EvaluationNamespaceSnapshot)
+	err := c.cc.Invoke(ctx, DataService_EvaluationSnapshotNamespace_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *dataServiceClient) SnapshotNamespace(ctx context.Context, in *SnapshotN
 // All implementations must embed UnimplementedDataServiceServer
 // for forward compatibility
 type DataServiceServer interface {
-	SnapshotNamespace(context.Context, *SnapshotNamespaceRequest) (*SnapshotNamespaceResponse, error)
+	EvaluationSnapshotNamespace(context.Context, *EvaluationNamespaceSnapshotRequest) (*EvaluationNamespaceSnapshot, error)
 	mustEmbedUnimplementedDataServiceServer()
 }
 
@@ -58,8 +58,8 @@ type DataServiceServer interface {
 type UnimplementedDataServiceServer struct {
 }
 
-func (UnimplementedDataServiceServer) SnapshotNamespace(context.Context, *SnapshotNamespaceRequest) (*SnapshotNamespaceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SnapshotNamespace not implemented")
+func (UnimplementedDataServiceServer) EvaluationSnapshotNamespace(context.Context, *EvaluationNamespaceSnapshotRequest) (*EvaluationNamespaceSnapshot, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EvaluationSnapshotNamespace not implemented")
 }
 func (UnimplementedDataServiceServer) mustEmbedUnimplementedDataServiceServer() {}
 
@@ -74,20 +74,20 @@ func RegisterDataServiceServer(s grpc.ServiceRegistrar, srv DataServiceServer) {
 	s.RegisterService(&DataService_ServiceDesc, srv)
 }
 
-func _DataService_SnapshotNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SnapshotNamespaceRequest)
+func _DataService_EvaluationSnapshotNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EvaluationNamespaceSnapshotRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DataServiceServer).SnapshotNamespace(ctx, in)
+		return srv.(DataServiceServer).EvaluationSnapshotNamespace(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DataService_SnapshotNamespace_FullMethodName,
+		FullMethod: DataService_EvaluationSnapshotNamespace_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServiceServer).SnapshotNamespace(ctx, req.(*SnapshotNamespaceRequest))
+		return srv.(DataServiceServer).EvaluationSnapshotNamespace(ctx, req.(*EvaluationNamespaceSnapshotRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -100,8 +100,8 @@ var DataService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DataServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SnapshotNamespace",
-			Handler:    _DataService_SnapshotNamespace_Handler,
+			MethodName: "EvaluationSnapshotNamespace",
+			Handler:    _DataService_EvaluationSnapshotNamespace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
