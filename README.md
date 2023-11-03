@@ -16,9 +16,6 @@
     <a href="https://github.com/flipt-io/flipt/releases">
         <img src="https://img.shields.io/github/release/flipt-io/flipt.svg?style=flat" alt="Releases" />
     </a>
-    <a href="https://github.com/flipt-io/flipt/actions">
-        <img src="https://github.com/flipt-io/flipt/actions/workflows/test.yml/badge.svg" alt="Build Status" />
-    </a>
     <a href="https://github.com/flipt-io/flipt/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/flipt-io/flipt.svg" alt="GPL 3.0" />
     </a>
@@ -28,20 +25,17 @@
     <a href="https://goreportcard.com/report/github.com/flipt-io/flipt">
         <img src="https://goreportcard.com/badge/github.com/flipt-io/flipt" alt="Go Report Card" />
     </a>
-    <a href="https://bestpractices.coreinfrastructure.org/projects/3498">
-        <img src="https://bestpractices.coreinfrastructure.org/projects/3498/badge">
-    </a>
     <a href="https://github.com/avelino/awesome-go">
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
-    <a href="https://magefile.org">
-        <img src="https://magefile.org/badge.svg" alt="Built with Mage" />
-    </a>
-    <a href="https://discord.gg/kRhEqG2TEZ">
+    <a href="https://flipt.io/discord">
         <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
     </a>
     <a href="https://features.flipt.io/roadmap">
         <img alt="Public Roadmap" src="https://img.shields.io/badge/roadmap-public-violet">
+    </a>
+    <a href="https://twitter.com/flipt_io">
+        <img src="https://img.shields.io/twitter/follow/flipt_io?label=Follow" alt="Flipt Twitter" />
     </a>
 </div>
 
@@ -318,6 +312,11 @@ We would love your help! Before submitting a PR, please read over the [Contribut
 No contribution is too small, whether it be bug reports/fixes, feature requests, documentation updates, or anything else that can help drive the project forward.
 
 Check out our [public roadmap](https://volta.net/embed/eyJzdGF0dXNlcyI6WyJ0cmlhZ2UiLCJiYWNrbG9nIiwidG9kbyIsImluX3Byb2dyZXNzIiwiaW5fcmV2aWV3IiwiZG9uZSIsInJlbGVhc2VkIiwiY2FuY2VsbGVkIl0sImZpbHRlcnMiOnt9LCJvd25lciI6ImZsaXB0LWlvIiwibmFtZSI6ImZsaXB0In0=) to see what we're working on and where you can help.
+
+Not sure how to get started? You can:
+
+- [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
+- Join our [Discord](https://www.flipt.io/discord), and ask any questions there
 
 <br clear="both"/>
 
