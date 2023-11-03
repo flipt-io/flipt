@@ -12,7 +12,6 @@ import (
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/config"
 	fliptoci "go.flipt.io/flipt/internal/oci"
 	storagefs "go.flipt.io/flipt/internal/storage/fs"
 	"go.uber.org/zap/zaptest"
@@ -92,10 +91,7 @@ func testSource(t *testing.T) (*Source, oras.Target) {
 		layer("production", `{"namespace":"production"}`, fliptoci.MediaTypeFliptNamespace),
 	)
 
-	store, err := fliptoci.NewStore(&config.OCI{
-		BundleDirectory: dir,
-		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
-	})
+	store, err := fliptoci.NewStore(fmt.Sprintf("flipt://local/%s:latest", repo), fliptoci.WithBundleDir(dir))
 	require.NoError(t, err)
 
 	source, err := NewSource(zaptest.NewLogger(t),

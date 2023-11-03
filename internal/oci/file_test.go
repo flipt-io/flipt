@@ -12,31 +12,24 @@ import (
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/config"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/oci"
 )
 
 func TestNewStore(t *testing.T) {
 	t.Run("unexpected scheme", func(t *testing.T) {
-		_, err := NewStore(&config.OCI{
-			Repository: "fake://local/something:latest",
-		})
+		_, err := NewStore("fake://local/something:latest")
 		require.EqualError(t, err, `unexpected repository scheme: "fake" should be one of [http|https|flipt]`)
 	})
 
 	t.Run("invalid reference", func(t *testing.T) {
-		_, err := NewStore(&config.OCI{
-			Repository: "something:latest",
-		})
+		_, err := NewStore("something:latest")
 		require.EqualError(t, err, `invalid reference: missing repository`)
 	})
 
 	t.Run("invalid local reference", func(t *testing.T) {
-		_, err := NewStore(&config.OCI{
-			Repository: "flipt://invalid/something:latest",
-		})
-		require.EqualError(t, err, `unexpected local reference: "flipt://invalid/something:latest"`)
+		_, err := NewStore("flipt://invalid/something:latest")
+		require.EqualError(t, err, `unexpected local reference: "invalid/something:latest"`)
 	})
 
 	t.Run("valid", func(t *testing.T) {
@@ -47,10 +40,7 @@ func TestNewStore(t *testing.T) {
 			"https://remote/something:latest",
 		} {
 			t.Run(repository, func(t *testing.T) {
-				_, err := NewStore(&config.OCI{
-					BundleDirectory: t.TempDir(),
-					Repository:      repository,
-				})
+				_, err := NewStore(repository, WithBundleDir(t.TempDir()))
 				require.NoError(t, err)
 			})
 		}
@@ -62,10 +52,8 @@ func TestStore_Fetch_InvalidMediaType(t *testing.T) {
 		layer("default", `{"namespace":"default"}`, "unexpected.media.type"),
 	)
 
-	store, err := NewStore(&config.OCI{
-		BundleDirectory: dir,
-		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
-	})
+	repository := fmt.Sprintf("flipt://local/%s:latest", repo)
+	store, err := NewStore(repository, WithBundleDir(dir))
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -76,10 +64,7 @@ func TestStore_Fetch_InvalidMediaType(t *testing.T) {
 		layer("default", `{"namespace":"default"}`, MediaTypeFliptNamespace+"+unknown"),
 	)
 
-	store, err = NewStore(&config.OCI{
-		BundleDirectory: dir,
-		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
-	})
+	store, err = NewStore(repository, WithBundleDir(dir))
 	require.NoError(t, err)
 
 	_, err = store.Fetch(ctx)
@@ -92,10 +77,7 @@ func TestStore_Fetch(t *testing.T) {
 		layer("other", `namespace: other`, MediaTypeFliptNamespace+"+yaml"),
 	)
 
-	store, err := NewStore(&config.OCI{
-		BundleDirectory: dir,
-		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
-	})
+	store, err := NewStore(fmt.Sprintf("flipt://local/%s:latest", repo), WithBundleDir(dir))
 	require.NoError(t, err)
 
 	ctx := context.Background()

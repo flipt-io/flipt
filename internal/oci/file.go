@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -31,10 +32,43 @@ type Store struct {
 	local     oras.Target
 }
 
-// NewStore constructs and configures an instance of *Store for the provided config
-func NewStore(conf *config.OCI) (*Store, error) {
-	scheme, repository, match := strings.Cut(conf.Repository, "://")
+type StoreOptions struct {
+	bunchesDir string
+	auth       *struct {
+		username string
+		password string
+	}
+}
 
+func WithBundleDir(dir string) containers.Option[StoreOptions] {
+	return func(so *StoreOptions) {
+		so.bunchesDir = dir
+	}
+}
+
+func WithCredentials(user, pass string) containers.Option[StoreOptions] {
+	return func(so *StoreOptions) {
+		so.auth = &struct {
+			username string
+			password string
+		}{
+			username: user,
+			password: pass,
+		}
+	}
+}
+
+// NewStore constructs and configures an instance of *Store for the provided config
+func NewStore(repository string, opts ...containers.Option[StoreOptions]) (*Store, error) {
+	dir, err := defaultBundleDirectory()
+	if err != nil {
+		return nil, err
+	}
+
+	options := StoreOptions{bunchesDir: dir}
+	containers.ApplyAll(&options, opts...)
+
+	scheme, repository, match := strings.Cut(repository, "://")
 	// support empty scheme as remote and https
 	if !match {
 		repository = scheme
@@ -64,11 +98,12 @@ func NewStore(conf *config.OCI) (*Store, error) {
 		}
 	case "flipt":
 		if ref.Registry != "local" {
-			return nil, fmt.Errorf("unexpected local reference: %q", conf.Repository)
+			return nil, fmt.Errorf("unexpected local reference: %q", ref)
 		}
 
 		// build the store once to ensure it is valid
-		_, err := oci.New(path.Join(conf.BundleDirectory, ref.Repository))
+		bundleDir := path.Join(options.bunchesDir, ref.Repository)
+		_, err := oci.New(bundleDir)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +115,7 @@ func NewStore(conf *config.OCI) (*Store, error) {
 			// contents changes underneath it
 			// this allows us to change the state with another process and
 			// have the store pickup the changes
-			return oci.New(path.Join(conf.BundleDirectory, ref.Repository))
+			return oci.New(bundleDir)
 		}
 	default:
 		return nil, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", scheme)
@@ -279,4 +314,13 @@ func (f FileInfo) IsDir() bool {
 
 func (f FileInfo) Sys() any {
 	return nil
+}
+
+func defaultBundleDirectory() (string, error) {
+	dir, err := config.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, "bundle"), nil
 }
