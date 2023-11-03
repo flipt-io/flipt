@@ -64,17 +64,17 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 	case string(OCIStorageType):
 		v.SetDefault("store.oci.insecure", false)
 
-		configDir, err := os.UserConfigDir()
+		configDir, err := Dir()
 		if err != nil {
-			return fmt.Errorf("getting user state dir: %w", err)
+			return fmt.Errorf("setting oci default: %w", err)
 		}
 
-		imageDir := filepath.Join(configDir, "flipt", "bundles")
-		if err := os.MkdirAll(imageDir, 0755); err != nil {
+		bundlesDir := filepath.Join(configDir, "bundles")
+		if err := os.MkdirAll(bundlesDir, 0755); err != nil {
 			return fmt.Errorf("creating image directory: %w", err)
 		}
 
-		v.SetDefault("store.oci.image_directory", imageDir)
+		v.SetDefault("store.oci.image_directory", bundlesDir)
 	default:
 		v.SetDefault("storage.type", "database")
 	}
