@@ -62,8 +62,8 @@ var (
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 	defaultLogger    = zap.Must(loggerConfig(defaultEncoding).Build())
-	userConfigDir, _ = os.UserConfigDir()
-	userConfigFile   = filepath.Join(userConfigDir, "flipt", "config.yml")
+	userConfigDir, _ = config.Dir()
+	userConfigFile   = filepath.Join(userConfigDir, "config.yml")
 )
 
 func loggerConfig(encoding zapcore.EncoderConfig) zap.Config {
@@ -364,15 +364,6 @@ func run(ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
 	return g.Wait()
 }
 
-func defaultUserStateDir() (string, error) {
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return "", fmt.Errorf("getting user state dir: %w", err)
-	}
-
-	return filepath.Join(configDir, "flipt"), nil
-}
-
 func ensureDir(path string) error {
 	fp, err := os.Stat(path)
 	if err != nil {
@@ -394,7 +385,7 @@ func ensureDir(path string) error {
 func initMetaStateDir(cfg *config.Config) error {
 	if cfg.Meta.StateDirectory == "" {
 		var err error
-		cfg.Meta.StateDirectory, err = defaultUserStateDir()
+		cfg.Meta.StateDirectory, err = config.Dir()
 		if err != nil {
 			return err
 		}
