@@ -82,6 +82,8 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- *storagefs.StoreSnapsh
 			return
 		case <-ticker.C:
 			current := s.curDigest
+			s.logger.Debug("fetching new snapshot", zap.String("current", current.Hex()))
+
 			snap, err := s.Get(ctx)
 			if err != nil {
 				s.logger.Error("failed resolving upstream", zap.Error(err))
@@ -89,7 +91,7 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- *storagefs.StoreSnapsh
 			}
 
 			if current == s.curDigest {
-				s.logger.Debug("store already up to date")
+				s.logger.Debug("snapshot already up to date")
 				continue
 			}
 
