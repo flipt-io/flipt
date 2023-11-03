@@ -18,12 +18,12 @@ func newBundleCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "bundle",
-		Short: "Manage flipt bundlees",
+		Short: "Manage Flipt bundles",
 	}
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "build",
-		Short: "build a bundle",
+		Short: "Build a bundle",
 		RunE:  bundle.build,
 		Args:  cobra.ExactArgs(1),
 	})
