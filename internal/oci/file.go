@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -322,5 +323,10 @@ func defaultBundleDirectory() (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(dir, "bundle"), nil
+	bundlesDir := filepath.Join(dir, "bundles")
+	if err := os.MkdirAll(bundlesDir, 0755); err != nil {
+		return "", fmt.Errorf("creating image directory: %w", err)
+	}
+
+	return bundlesDir, nil
 }
