@@ -5,6 +5,7 @@ package sdk
 import (
 	context "context"
 	flipt "go.flipt.io/flipt/rpc/flipt"
+	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	metadata "google.golang.org/grpc/metadata"
 )
@@ -12,7 +13,7 @@ import (
 type Transport interface {
 	AuthClient() AuthClient
 	FliptClient() flipt.FliptClient
-	EvaluationClient() EvaluationClient
+	EvaluationClient() evaluation.EvaluationServiceClient
 	MetaClient() meta.MetadataServiceClient
 }
 

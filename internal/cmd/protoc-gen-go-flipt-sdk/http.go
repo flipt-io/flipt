@@ -141,10 +141,6 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 
 		if len(file.Services) < 2 {
 			srv := file.Services[0]
-			if shouldIgnoreService(srv) {
-				continue
-			}
-
 			returnType := srv.GoName + "Client"
 
 			g.P("type ", returnType, " struct {")
@@ -172,10 +168,6 @@ func generateHTTP(gen *protogen.Plugin, grpcAPIConfig string) {
 		g.P("}\n")
 
 		for _, srv := range file.Services {
-			if shouldIgnoreService(srv) {
-				continue
-			}
-
 			var (
 				returnType           = srv.GoName + "Client"
 				unexportedReturnType = unexport(returnType)

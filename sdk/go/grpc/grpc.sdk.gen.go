@@ -57,16 +57,8 @@ func (t Transport) FliptClient() flipt.FliptClient {
 	return flipt.NewFliptClient(t.cc)
 }
 
-type evaluationClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func (t evaluationClient) EvaluationServiceClient() evaluation.EvaluationServiceClient {
+func (t Transport) EvaluationClient() evaluation.EvaluationServiceClient {
 	return evaluation.NewEvaluationServiceClient(t.cc)
-}
-
-func (t Transport) EvaluationClient() _go.EvaluationClient {
-	return evaluationClient{cc: t.cc}
 }
 
 func (t Transport) MetaClient() meta.MetadataServiceClient {

@@ -36,11 +36,6 @@ func generateGRPC(gen *protogen.Plugin) {
 		)
 
 		if len(file.Services) < 2 {
-			srv := file.Services[0]
-			if shouldIgnoreService(srv) {
-				continue
-			}
-
 			returnType := file.Services[0].GoName + "Client"
 			g.P("func (t Transport) ", method, "() ", relativeImport(g, file, returnType), "{")
 			g.P("return ", relativeImport(g, file, "New"+returnType), "(t.cc)")
@@ -57,10 +52,6 @@ func generateGRPC(gen *protogen.Plugin) {
 		g.P("}\n")
 
 		for _, srv := range file.Services {
-			if shouldIgnoreService(srv) {
-				continue
-			}
-
 			returnType := srv.GoName + "Client"
 			g.P("func (t ", groupType, ") ", returnType, "() ", relativeImport(g, file, returnType), " {")
 			g.P("return ", relativeImport(g, file, "New"+returnType), "(t.cc)")

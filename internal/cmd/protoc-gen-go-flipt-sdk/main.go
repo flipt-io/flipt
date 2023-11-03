@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
@@ -32,10 +33,11 @@ func main() {
 		// warning.
 		gen.SupportedFeatures |= uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		for _, f := range gen.Files {
-
 			if !f.Generate {
 				continue
 			}
+
+			f.Services = slices.DeleteFunc(f.Services, shouldIgnoreService)
 
 			generateSubSDK(gen, f)
 		}
@@ -121,10 +123,6 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 		g.P("type ", typ, "Client interface {")
 		for _, srv := range file.Services {
-			if shouldIgnoreService(srv) {
-				continue
-			}
-
 			g.P(srv.GoName+"Client", "()", relativeImport(g, file, srv.GoName+"Client"))
 		}
 		g.P("}\n")
@@ -136,10 +134,6 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 	}
 
 	for _, srv := range file.Services {
-		if shouldIgnoreService(srv) {
-			continue
-		}
-
 		serviceName := srv.GoName
 		if oneServicePackage {
 			serviceName = typ
