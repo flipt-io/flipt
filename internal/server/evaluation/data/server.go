@@ -6,8 +6,9 @@ import (
 
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
-	"go.flipt.io/flipt/rpc/flipt/data"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 type EvaluationStore interface {
@@ -19,23 +20,28 @@ type Server struct {
 	logger *zap.Logger
 	store  EvaluationStore
 
-	data.UnimplementedDataServiceServer
+	evaluation.UnimplementedDataServiceServer
 }
 
-func NewServer(logger *zap.Logger, store EvaluationStore) *Server {
+func New(logger *zap.Logger, store EvaluationStore) *Server {
 	return &Server{
 		logger: logger,
 		store:  store,
 	}
 }
 
-func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.EvaluationNamespaceSnapshotRequest) (*data.EvaluationNamespaceSnapshot, error) {
+// RegisterGRPC registers the *Server onto the provided grpc Server.
+func (srv *Server) RegisterGRPC(server *grpc.Server) {
+	evaluation.RegisterDataServiceServer(server, srv)
+}
+
+func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
 		namespaceKey = r.Key
-		resp         = &data.EvaluationNamespaceSnapshot{}
+		resp         = &evaluation.EvaluationNamespaceSnapshot{}
 		remaining    = true
 		nextPage     string
-		segments     = make(map[string]*data.EvaluationSegment)
+		segments     = make(map[string]*evaluation.EvaluationSegment)
 	)
 
 	//  flags/variants in batches
@@ -54,7 +60,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 		remaining = nextPage != ""
 
 		for _, f := range flags {
-			flag := &data.EvaluationFlag{
+			flag := &evaluation.EvaluationFlag{
 				Key:         f.Key,
 				Name:        f.Name,
 				Description: f.Description,
@@ -71,7 +77,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 				}
 
 				for _, r := range rules {
-					rule := &data.EvaluationRule{
+					rule := &evaluation.EvaluationRule{
 						Id:              r.ID,
 						Rank:            r.Rank,
 						SegmentOperator: r.SegmentOperator,
@@ -83,13 +89,13 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 							rule.Segments = append(rule.Segments, ss)
 						} else {
 
-							ss := &data.EvaluationSegment{
+							ss := &evaluation.EvaluationSegment{
 								Key:       s.SegmentKey,
 								MatchType: s.MatchType,
 							}
 
 							for _, c := range s.Constraints {
-								ss.Constraints = append(ss.Constraints, &data.EvaluationConstraint{
+								ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
 									Id:       c.ID,
 									Type:     c.Type,
 									Property: c.Property,
@@ -109,7 +115,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 
 						// distributions for rule
 						for _, d := range distributions {
-							dist := &data.EvaluationDistribution{
+							dist := &evaluation.EvaluationDistribution{
 								VariantId:         d.VariantID,
 								VariantKey:        d.VariantKey,
 								VariantAttachment: d.VariantAttachment,
@@ -130,22 +136,22 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 					}
 
 					for _, r := range rollouts {
-						rollout := &data.EvaluationRollout{
+						rollout := &evaluation.EvaluationRollout{
 							Type: r.RolloutType,
 							Rank: r.Rank,
 						}
 
 						switch r.RolloutType {
 						case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
-							rollout.Rule = &data.EvaluationRollout_Threshold{
-								Threshold: &data.EvaluationRolloutThreshold{
+							rollout.Rule = &evaluation.EvaluationRollout_Threshold{
+								Threshold: &evaluation.EvaluationRolloutThreshold{
 									Percentage: r.Threshold.Percentage,
 									Value:      r.Threshold.Value,
 								},
 							}
 
 						case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
-							segment := &data.EvaluationRolloutSegment{
+							segment := &evaluation.EvaluationRolloutSegment{
 								Value:           r.Segment.Value,
 								SegmentOperator: r.Segment.SegmentOperator,
 							}
@@ -154,13 +160,13 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 								// optimization: reuse segment if already seen
 								ss, ok := segments[s.SegmentKey]
 								if !ok {
-									ss := &data.EvaluationSegment{
+									ss := &evaluation.EvaluationSegment{
 										Key:       s.SegmentKey,
 										MatchType: s.MatchType,
 									}
 
 									for _, c := range s.Constraints {
-										ss.Constraints = append(ss.Constraints, &data.EvaluationConstraint{
+										ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
 											Id:       c.ID,
 											Type:     c.Type,
 											Property: c.Property,
@@ -175,7 +181,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *data.Eval
 								segment.Segments = append(segment.Segments, ss)
 							}
 
-							rollout.Rule = &data.EvaluationRollout_Segment{
+							rollout.Rule = &evaluation.EvaluationRollout_Segment{
 								Segment: segment,
 							}
 						}

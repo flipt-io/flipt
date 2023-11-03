@@ -5,7 +5,9 @@ package http
 import (
 	bytes "bytes"
 	context "context"
+	fmt "fmt"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
+	_go "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	io "io"
@@ -13,12 +15,21 @@ import (
 	url "net/url"
 )
 
-type EvaluationServiceClient struct {
+type evaluationClient struct {
 	client *http.Client
 	addr   string
 }
 
-func (x *EvaluationServiceClient) Boolean(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.BooleanEvaluationResponse, error) {
+func (t evaluationClient) EvaluationServiceClient() evaluation.EvaluationServiceClient {
+	return &evaluationServiceClient{client: t.client, addr: t.addr}
+}
+
+type evaluationServiceClient struct {
+	client *http.Client
+	addr   string
+}
+
+func (x *evaluationServiceClient) Boolean(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.BooleanEvaluationResponse, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -50,7 +61,7 @@ func (x *EvaluationServiceClient) Boolean(ctx context.Context, v *evaluation.Eva
 	return &output, nil
 }
 
-func (x *EvaluationServiceClient) Variant(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.VariantEvaluationResponse, error) {
+func (x *evaluationServiceClient) Variant(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.VariantEvaluationResponse, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -82,7 +93,7 @@ func (x *EvaluationServiceClient) Variant(ctx context.Context, v *evaluation.Eva
 	return &output, nil
 }
 
-func (x *EvaluationServiceClient) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest, _ ...grpc.CallOption) (*evaluation.BatchEvaluationResponse, error) {
+func (x *evaluationServiceClient) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest, _ ...grpc.CallOption) (*evaluation.BatchEvaluationResponse, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -114,6 +125,42 @@ func (x *EvaluationServiceClient) Batch(ctx context.Context, v *evaluation.Batch
 	return &output, nil
 }
 
-func (t Transport) EvaluationClient() evaluation.EvaluationServiceClient {
-	return &EvaluationServiceClient{client: t.client, addr: t.addr}
+func (t evaluationClient) DataServiceClient() evaluation.DataServiceClient {
+	return &dataServiceClient{client: t.client, addr: t.addr}
+}
+
+type dataServiceClient struct {
+	client *http.Client
+	addr   string
+}
+
+func (x *dataServiceClient) EvaluationSnapshotNamespace(ctx context.Context, v *evaluation.EvaluationNamespaceSnapshotRequest, _ ...grpc.CallOption) (*evaluation.EvaluationNamespaceSnapshot, error) {
+	var body io.Reader
+	var values url.Values
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, x.addr+fmt.Sprintf("/internal/v1/evaluation/snapshot/namespace/%v", v.Key), body)
+	if err != nil {
+		return nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+	resp, err := x.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var output evaluation.EvaluationNamespaceSnapshot
+	respData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkResponse(resp, respData); err != nil {
+		return nil, err
+	}
+	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(respData, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (t Transport) EvaluationClient() _go.EvaluationClient {
+	return evaluationClient{client: t.client, addr: t.addr}
 }

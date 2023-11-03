@@ -3,6 +3,7 @@ syntax = "proto3";
 package flipt.evaluation;
 
 import "google/protobuf/timestamp.proto";
+import "flipt.proto";
 
 option go_package = "go.flipt.io/flipt/rpc/flipt/evaluation";
 
@@ -83,4 +84,84 @@ service EvaluationService {
   rpc Boolean(EvaluationRequest) returns (BooleanEvaluationResponse) {}
   rpc Variant(EvaluationRequest) returns (VariantEvaluationResponse) {}
   rpc Batch(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
+}
+
+message EvaluationDistribution {
+  string id = 1;
+  string rule_id = 2;
+  string variant_id = 3;
+  string variant_key = 4;
+  string variant_attachment = 5;
+  float rollout = 6;
+}
+
+message EvaluationRollout {
+  flipt.RolloutType type = 1;
+  int32 rank = 2;
+  oneof rule {
+    EvaluationRolloutSegment segment = 3;
+    EvaluationRolloutThreshold threshold = 4;
+  }
+}
+
+message EvaluationRolloutThreshold {
+  float percentage = 1;
+  bool value = 2;
+}
+
+message EvaluationRolloutSegment {
+  bool value = 1;
+  flipt.SegmentOperator segment_operator = 2;
+  repeated EvaluationSegment segments = 3;
+}
+
+message EvaluationSegment {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  flipt.MatchType match_type = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  repeated EvaluationConstraint constraints = 7;
+}
+
+message EvaluationFlag {
+  string key = 1;
+  string name = 2;
+  string description = 3;
+  bool enabled = 4;
+  flipt.FlagType type = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  repeated EvaluationRule rules = 8;
+  repeated EvaluationRollout rollouts = 9;
+}
+
+message EvaluationConstraint {
+  string id = 1;
+  flipt.ComparisonType type = 2;
+  string property = 3;
+  string operator = 4;
+  string value = 5;
+}
+
+message EvaluationRule {
+  string id = 1;
+  repeated EvaluationSegment segments = 2;
+  int32 rank = 3;
+  flipt.SegmentOperator segment_operator = 4;
+  repeated EvaluationDistribution distributions = 5;
+}
+
+message EvaluationNamespaceSnapshot {
+  flipt.Namespace namespace = 1;
+  repeated EvaluationFlag flags = 2;
+}
+
+message EvaluationNamespaceSnapshotRequest {
+  string key = 1;
+}
+
+service DataService {
+  rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
 }
