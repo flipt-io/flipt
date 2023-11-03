@@ -48,8 +48,8 @@ func TestNewStore(t *testing.T) {
 		} {
 			t.Run(repository, func(t *testing.T) {
 				_, err := NewStore(&config.OCI{
-					ImageDirectory: t.TempDir(),
-					Repository:     repository,
+					BundleDirectory: t.TempDir(),
+					Repository:      repository,
 				})
 				require.NoError(t, err)
 			})
@@ -63,8 +63,8 @@ func TestStore_Fetch_InvalidMediaType(t *testing.T) {
 	)
 
 	store, err := NewStore(&config.OCI{
-		ImageDirectory: dir,
-		Repository:     fmt.Sprintf("flipt://local/%s:latest", repo),
+		BundleDirectory: dir,
+		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
 	})
 	require.NoError(t, err)
 
@@ -77,8 +77,8 @@ func TestStore_Fetch_InvalidMediaType(t *testing.T) {
 	)
 
 	store, err = NewStore(&config.OCI{
-		ImageDirectory: dir,
-		Repository:     fmt.Sprintf("flipt://local/%s:latest", repo),
+		BundleDirectory: dir,
+		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
 	})
 	require.NoError(t, err)
 
@@ -93,8 +93,8 @@ func TestStore_Fetch(t *testing.T) {
 	)
 
 	store, err := NewStore(&config.OCI{
-		ImageDirectory: dir,
-		Repository:     fmt.Sprintf("flipt://local/%s:latest", repo),
+		BundleDirectory: dir,
+		Repository:      fmt.Sprintf("flipt://local/%s:latest", repo),
 	})
 	require.NoError(t, err)
 

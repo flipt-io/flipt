@@ -65,7 +65,7 @@ func NewStore(conf *config.OCI) (*Store, error) {
 			return nil, fmt.Errorf("unexpected local reference: %q", conf.Repository)
 		}
 
-		store.store, err = oci.New(path.Join(conf.ImageDirectory, ref.Repository))
+		store.store, err = oci.New(path.Join(conf.BundleDirectory, ref.Repository))
 		if err != nil {
 			return nil, err
 		}
