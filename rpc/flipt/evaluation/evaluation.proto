@@ -162,6 +162,7 @@ message EvaluationNamespaceSnapshotRequest {
   string key = 1;
 }
 
+// flipt:sdk:ignore
 service DataService {
   rpc EvaluationSnapshotNamespace(EvaluationNamespaceSnapshotRequest) returns (EvaluationNamespaceSnapshot);
 }
