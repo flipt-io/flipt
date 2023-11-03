@@ -13,6 +13,8 @@ import (
 const (
 	importPath  = "go.flipt.io/flipt/sdk/go"
 	emptyImport = "google.golang.org/protobuf/types/known/emptypb"
+
+	ignoreDecl = "flipt:sdk:ignore"
 )
 
 func main() {
@@ -30,6 +32,7 @@ func main() {
 		// warning.
 		gen.SupportedFeatures |= uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		for _, f := range gen.Files {
+
 			if !f.Generate {
 				continue
 			}
@@ -129,6 +132,13 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 	}
 
 	for _, srv := range file.Services {
+		if srv.Comments.Leading != "" {
+			leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
+			if strings.TrimSpace(leading) == ignoreDecl {
+				continue
+			}
+		}
+
 		serviceName := srv.GoName
 		if oneServicePackage {
 			serviceName = typ

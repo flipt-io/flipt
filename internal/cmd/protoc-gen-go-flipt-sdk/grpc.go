@@ -36,6 +36,14 @@ func generateGRPC(gen *protogen.Plugin) {
 		)
 
 		if len(file.Services) < 2 {
+			srv := file.Services[0]
+			if srv.Comments.Leading != "" {
+				leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
+				if strings.TrimSpace(leading) == ignoreDecl {
+					continue
+				}
+			}
+
 			returnType := file.Services[0].GoName + "Client"
 			g.P("func (t Transport) ", method, "() ", relativeImport(g, file, returnType), "{")
 			g.P("return ", relativeImport(g, file, "New"+returnType), "(t.cc)")
@@ -52,6 +60,13 @@ func generateGRPC(gen *protogen.Plugin) {
 		g.P("}\n")
 
 		for _, srv := range file.Services {
+			if srv.Comments.Leading != "" {
+				leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
+				if strings.TrimSpace(leading) == ignoreDecl {
+					continue
+				}
+			}
+
 			returnType := srv.GoName + "Client"
 			g.P("func (t ", groupType, ") ", returnType, "() ", relativeImport(g, file, returnType), " {")
 			g.P("return ", relativeImport(g, file, "New"+returnType), "(t.cc)")

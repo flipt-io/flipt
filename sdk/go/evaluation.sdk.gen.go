@@ -51,22 +51,3 @@ func (x *EvaluationService) Batch(ctx context.Context, v *evaluation.BatchEvalua
 	}
 	return x.transport.Batch(ctx, v)
 }
-
-type DataService struct {
-	transport     evaluation.DataServiceClient
-	tokenProvider ClientTokenProvider
-}
-
-func (s Evaluation) DataService() *DataService {
-	return &DataService{
-		transport:     s.transport.DataServiceClient(),
-		tokenProvider: s.tokenProvider,
-	}
-}
-func (x *DataService) EvaluationSnapshotNamespace(ctx context.Context, v *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
-	ctx, err := authenticate(ctx, x.tokenProvider)
-	if err != nil {
-		return nil, err
-	}
-	return x.transport.EvaluationSnapshotNamespace(ctx, v)
-}

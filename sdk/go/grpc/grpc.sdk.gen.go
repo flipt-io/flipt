@@ -65,10 +65,6 @@ func (t evaluationClient) EvaluationServiceClient() evaluation.EvaluationService
 	return evaluation.NewEvaluationServiceClient(t.cc)
 }
 
-func (t evaluationClient) DataServiceClient() evaluation.DataServiceClient {
-	return evaluation.NewDataServiceClient(t.cc)
-}
-
 func (t Transport) EvaluationClient() _go.EvaluationClient {
 	return evaluationClient{cc: t.cc}
 }
