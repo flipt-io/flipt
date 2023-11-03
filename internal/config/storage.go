@@ -3,6 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
@@ -61,6 +63,18 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		}
 	case string(OCIStorageType):
 		v.SetDefault("store.oci.insecure", false)
+
+		configDir, err := os.UserConfigDir()
+		if err != nil {
+			return fmt.Errorf("getting user state dir: %w", err)
+		}
+
+		imageDir := filepath.Join(configDir, "flipt", "images")
+		if err := os.MkdirAll(imageDir, 0755); err != nil {
+			return fmt.Errorf("creating image directory: %w", err)
+		}
+
+		v.SetDefault("store.oci.image_directory", imageDir)
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -243,6 +257,8 @@ type OCI struct {
 	// When the registry is omitted, the bundle is referenced via the local bundle store.
 	// Tag defaults to 'latest' when not supplied.
 	Repository string `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
+	// ImageDirectory is the root directory in which Flipt will store and access local feature images.
+	ImageDirectory string `json:"image_directory,omitempty" mapstructure:"image_directory" yaml:"image_directory,omitempty"`
 	// Insecure configures whether or not to use HTTP instead of HTTPS
 	Insecure bool `json:"insecure,omitempty" mapstructure:"insecure" yaml:"insecure,omitempty"`
 	// Authentication configures authentication credentials for accessing the target registry
