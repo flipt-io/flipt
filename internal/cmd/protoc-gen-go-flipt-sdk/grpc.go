@@ -37,11 +37,8 @@ func generateGRPC(gen *protogen.Plugin) {
 
 		if len(file.Services) < 2 {
 			srv := file.Services[0]
-			if srv.Comments.Leading != "" {
-				leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
-				if strings.TrimSpace(leading) == ignoreDecl {
-					continue
-				}
+			if shouldIgnoreService(srv) {
+				continue
 			}
 
 			returnType := file.Services[0].GoName + "Client"
@@ -60,11 +57,8 @@ func generateGRPC(gen *protogen.Plugin) {
 		g.P("}\n")
 
 		for _, srv := range file.Services {
-			if srv.Comments.Leading != "" {
-				leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
-				if strings.TrimSpace(leading) == ignoreDecl {
-					continue
-				}
+			if shouldIgnoreService(srv) {
+				continue
 			}
 
 			returnType := srv.GoName + "Client"

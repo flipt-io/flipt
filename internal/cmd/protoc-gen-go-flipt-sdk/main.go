@@ -121,6 +121,10 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 
 		g.P("type ", typ, "Client interface {")
 		for _, srv := range file.Services {
+			if shouldIgnoreService(srv) {
+				continue
+			}
+
 			g.P(srv.GoName+"Client", "()", relativeImport(g, file, srv.GoName+"Client"))
 		}
 		g.P("}\n")
@@ -132,11 +136,8 @@ func generateSubSDK(gen *protogen.Plugin, file *protogen.File) (typ, client stri
 	}
 
 	for _, srv := range file.Services {
-		if srv.Comments.Leading != "" {
-			leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
-			if strings.TrimSpace(leading) == ignoreDecl {
-				continue
-			}
+		if shouldIgnoreService(srv) {
+			continue
 		}
 
 		serviceName := srv.GoName
@@ -271,3 +272,11 @@ func New(t Transport, opts ...Option) SDK {
 
     return sdk
 }`
+
+func shouldIgnoreService(srv *protogen.Service) bool {
+	if srv.Comments.Leading != "" {
+		leading := strings.TrimPrefix(string(srv.Comments.Leading), "//")
+		return strings.TrimSpace(leading) == ignoreDecl
+	}
+	return false
+}
