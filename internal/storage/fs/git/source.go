@@ -94,7 +94,7 @@ func NewSource(logger *zap.Logger, url string, opts ...containers.Option[Source]
 }
 
 // Get builds a new store snapshot based on the configure Git remote and reference.
-func (s *Source) Get() (_ *storagefs.StoreSnapshot, err error) {
+func (s *Source) Get(context.Context) (_ *storagefs.StoreSnapshot, err error) {
 	var fs fs.FS
 	if s.hash != plumbing.ZeroHash {
 		fs, err = gitfs.NewFromRepoHash(s.logger, s.repo, s.hash)
@@ -147,7 +147,7 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- *storagefs.StoreSnapsh
 				continue
 			}
 
-			snap, err := s.Get()
+			snap, err := s.Get(ctx)
 			if err != nil {
 				s.logger.Error("failed creating snapshot from fs", zap.Error(err))
 				continue
