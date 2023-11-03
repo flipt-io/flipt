@@ -18,6 +18,7 @@ import (
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v3"
@@ -341,10 +342,8 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 			}
 
 			evalRule := &storage.EvaluationRule{
-				NamespaceKey: doc.Namespace,
-				FlagKey:      f.Key,
-				ID:           rule.Id,
-				Rank:         rank,
+				Id:   rule.Id,
+				Rank: rank,
 			}
 
 			switch s := r.Segment.IsSegment.(type) {
@@ -359,7 +358,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 
 			var (
 				segmentKeys = []string{}
-				segments    = make(map[string]*storage.EvaluationSegment)
+				segments    = []*storage.EvaluationSegment{}
 			)
 
 			if rule.SegmentKey != "" {
@@ -374,9 +373,9 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					return errs.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", doc.Namespace, flag.Key, rank, segmentKey)
 				}
 
-				evc := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
+				evc := make([]*storage.EvaluationConstraint, 0, len(segment.Constraints))
 				for _, constraint := range segment.Constraints {
-					evc = append(evc, storage.EvaluationConstraint{
+					evc = append(evc, &storage.EvaluationConstraint{
 						Operator: constraint.Operator,
 						Property: constraint.Property,
 						Type:     constraint.Type,
@@ -384,11 +383,11 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					})
 				}
 
-				segments[segmentKey] = &storage.EvaluationSegment{
-					SegmentKey:  segmentKey,
+				segments = append(segments, &storage.EvaluationSegment{
+					Key:         segmentKey,
 					MatchType:   segment.MatchType,
 					Constraints: evc,
-				}
+				})
 			}
 
 			if rule.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
@@ -415,10 +414,10 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					UpdatedAt: ss.now,
 				})
 
-				evalDists[evalRule.ID] = append(evalDists[evalRule.ID], &storage.EvaluationDistribution{
-					ID:                id,
+				evalDists[evalRule.Id] = append(evalDists[evalRule.Id], &storage.EvaluationDistribution{
+					Id:                id,
 					Rollout:           d.Rollout,
-					VariantID:         variant.Id,
+					VariantId:         variant.Id,
 					VariantKey:        variant.Key,
 					VariantAttachment: variant.Attachment,
 				})
@@ -433,8 +432,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 		for i, rollout := range f.Rollouts {
 			rank := int32(i + 1)
 			s := &storage.EvaluationRollout{
-				NamespaceKey: doc.Namespace,
-				Rank:         rank,
+				Rank: rank,
 			}
 
 			flagRollout := &flipt.Rollout{
@@ -447,13 +445,15 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 			}
 
 			if rollout.Threshold != nil {
-				s.Threshold = &storage.RolloutThreshold{
-					Percentage: rollout.Threshold.Percentage,
-					Value:      rollout.Threshold.Value,
+				s.Rule = &evaluation.EvaluationRollout_Threshold{
+					Threshold: &storage.RolloutThreshold{
+						Percentage: rollout.Threshold.Percentage,
+						Value:      rollout.Threshold.Value,
+					},
 				}
-				s.RolloutType = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
+				s.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
 
-				flagRollout.Type = s.RolloutType
+				flagRollout.Type = s.Type
 				flagRollout.Rule = &flipt.Rollout_Threshold{
 					Threshold: &flipt.RolloutThreshold{
 						Percentage: rollout.Threshold.Percentage,
@@ -463,7 +463,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 			} else if rollout.Segment != nil {
 				var (
 					segmentKeys = []string{}
-					segments    = make(map[string]*storage.EvaluationSegment)
+					segments    = []*storage.EvaluationSegment{}
 				)
 
 				if rollout.Segment.Key != "" {
@@ -478,9 +478,9 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 						return errs.ErrInvalidf("flag %s/%s rule %d references unknown segment %q", doc.Namespace, flag.Key, rank, segmentKey)
 					}
 
-					constraints := make([]storage.EvaluationConstraint, 0, len(segment.Constraints))
+					constraints := make([]*storage.EvaluationConstraint, 0, len(segment.Constraints))
 					for _, c := range segment.Constraints {
-						constraints = append(constraints, storage.EvaluationConstraint{
+						constraints = append(constraints, &storage.EvaluationConstraint{
 							Operator: c.Operator,
 							Property: c.Property,
 							Type:     c.Type,
@@ -488,22 +488,24 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 						})
 					}
 
-					segments[segmentKey] = &storage.EvaluationSegment{
-						SegmentKey:  segmentKey,
+					segments = append(segments, &storage.EvaluationSegment{
+						Key:         segmentKey,
 						MatchType:   segment.MatchType,
 						Constraints: constraints,
-					}
+					})
 				}
 
 				segmentOperator := flipt.SegmentOperator_value[rollout.Segment.Operator]
 
-				s.Segment = &storage.RolloutSegment{
-					Segments:        segments,
-					SegmentOperator: flipt.SegmentOperator(segmentOperator),
-					Value:           rollout.Segment.Value,
+				s.Rule = &evaluation.EvaluationRollout_Segment{
+					Segment: &storage.RolloutSegment{
+						Segments:        segments,
+						SegmentOperator: flipt.SegmentOperator(segmentOperator),
+						Value:           rollout.Segment.Value,
+					},
 				}
 
-				s.RolloutType = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+				s.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
 
 				frs := &flipt.RolloutSegment{
 					Value:           rollout.Segment.Value,
@@ -516,7 +518,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					frs.SegmentKeys = segmentKeys
 				}
 
-				flagRollout.Type = s.RolloutType
+				flagRollout.Type = s.Type
 				flagRollout.Rule = &flipt.Rollout_Segment{
 					Segment: frs,
 				}

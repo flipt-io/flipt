@@ -642,17 +642,16 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -660,7 +659,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 							},
 							// constraint: admin (bool) == true
 							{
-								ID:       "3",
+								Id:       "3",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
@@ -674,9 +673,9 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:                "4",
-				RuleID:            "1",
-				VariantID:         "5",
+				Id:                "4",
+				RuleId:            "1",
+				VariantId:         "5",
 				Rollout:           100,
 				VariantKey:        "boz",
 				VariantAttachment: `{"key":"value"}`,
@@ -798,17 +797,16 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -816,7 +814,7 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 							},
 							// constraint: admin (bool) == true
 							{
-								ID:       "3",
+								Id:       "3",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
@@ -830,9 +828,9 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:                "4",
-				RuleID:            "1",
-				VariantID:         "5",
+				Id:                "4",
+				RuleId:            "1",
+				VariantId:         "5",
 				Rollout:           100,
 				VariantKey:        "boz",
 				VariantAttachment: `{"key":"value"}`,
@@ -952,32 +950,34 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 	store.On("GetEvaluationRollouts", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRollout{
 			{
-				RolloutType: flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
-				Segment: &storage.RolloutSegment{
-					Segments: map[string]*storage.EvaluationSegment{
-						"bar": {
-							SegmentKey: "bar",
-							MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-							Constraints: []storage.EvaluationConstraint{
-								// constraint: bar (string) == baz
-								{
-									ID:       "2",
-									Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
-									Property: "bar",
-									Operator: flipt.OpEQ,
-									Value:    "baz",
-								},
-								// constraint: admin (bool) == true
-								{
-									ID:       "3",
-									Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
-									Property: "admin",
-									Operator: flipt.OpTrue,
+				Type: flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+				Rule: &evaluation.EvaluationRollout_Segment{
+					Segment: &storage.RolloutSegment{
+						Segments: []*storage.EvaluationSegment{
+							{
+								Key:       "bar",
+								MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+								Constraints: []*storage.EvaluationConstraint{
+									// constraint: bar (string) == baz
+									{
+										Id:       "2",
+										Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+										Property: "bar",
+										Operator: flipt.OpEQ,
+										Value:    "baz",
+									},
+									// constraint: admin (bool) == true
+									{
+										Id:       "3",
+										Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+										Property: "admin",
+										Operator: flipt.OpTrue,
+									},
 								},
 							},
 						},
+						Value: true,
 					},
-					Value: true,
 				},
 				Rank: 1,
 			},

@@ -78,25 +78,25 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 				for _, r := range rules {
 					rule := &evaluation.EvaluationRule{
-						Id:              r.ID,
+						Id:              r.Id,
 						Rank:            r.Rank,
 						SegmentOperator: r.SegmentOperator,
 					}
 
 					for _, s := range r.Segments {
 						// optimization: reuse segment if already seen
-						if ss, ok := segments[s.SegmentKey]; ok {
+						if ss, ok := segments[s.Key]; ok {
 							rule.Segments = append(rule.Segments, ss)
 						} else {
 
 							ss := &evaluation.EvaluationSegment{
-								Key:       s.SegmentKey,
+								Key:       s.Key,
 								MatchType: s.MatchType,
 							}
 
 							for _, c := range s.Constraints {
 								ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
-									Id:       c.ID,
+									Id:       c.Id,
 									Type:     c.Type,
 									Property: c.Property,
 									Operator: c.Operator,
@@ -104,19 +104,19 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 								})
 							}
 
-							segments[s.SegmentKey] = ss
+							segments[s.Key] = ss
 							rule.Segments = append(rule.Segments, ss)
 						}
 
-						distributions, err := srv.store.GetEvaluationDistributions(ctx, r.ID)
+						distributions, err := srv.store.GetEvaluationDistributions(ctx, r.Id)
 						if err != nil {
-							return nil, fmt.Errorf("getting distributions for rule %q: %w", r.ID, err)
+							return nil, fmt.Errorf("getting distributions for rule %q: %w", r.Id, err)
 						}
 
 						// distributions for rule
 						for _, d := range distributions {
 							dist := &evaluation.EvaluationDistribution{
-								VariantId:         d.VariantID,
+								VariantId:         d.VariantId,
 								VariantKey:        d.VariantKey,
 								VariantAttachment: d.VariantAttachment,
 								Rollout:           d.Rollout,
@@ -137,37 +137,37 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 					for _, r := range rollouts {
 						rollout := &evaluation.EvaluationRollout{
-							Type: r.RolloutType,
+							Type: r.Type,
 							Rank: r.Rank,
 						}
 
-						switch r.RolloutType {
+						switch r.Type {
 						case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
 							rollout.Rule = &evaluation.EvaluationRollout_Threshold{
 								Threshold: &evaluation.EvaluationRolloutThreshold{
-									Percentage: r.Threshold.Percentage,
-									Value:      r.Threshold.Value,
+									Percentage: r.GetThreshold().Percentage,
+									Value:      r.GetThreshold().Value,
 								},
 							}
 
 						case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
 							segment := &evaluation.EvaluationRolloutSegment{
-								Value:           r.Segment.Value,
-								SegmentOperator: r.Segment.SegmentOperator,
+								Value:           r.GetSegment().Value,
+								SegmentOperator: r.GetSegment().SegmentOperator,
 							}
 
-							for _, s := range r.Segment.Segments {
+							for _, s := range r.GetSegment().Segments {
 								// optimization: reuse segment if already seen
-								ss, ok := segments[s.SegmentKey]
+								ss, ok := segments[s.Key]
 								if !ok {
 									ss := &evaluation.EvaluationSegment{
-										Key:       s.SegmentKey,
+										Key:       s.Key,
 										MatchType: s.MatchType,
 									}
 
 									for _, c := range s.Constraints {
 										ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
-											Id:       c.ID,
+											Id:       c.Id,
 											Type:     c.Type,
 											Property: c.Property,
 											Operator: c.Operator,
@@ -175,7 +175,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 										})
 									}
 
-									segments[s.SegmentKey] = ss
+									segments[s.Key] = ss
 								}
 
 								segment.Segments = append(segment.Segments, ss)

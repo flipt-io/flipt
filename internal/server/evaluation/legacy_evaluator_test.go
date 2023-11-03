@@ -17,13 +17,13 @@ import (
 func Test_matchesString(t *testing.T) {
 	tests := []struct {
 		name       string
-		constraint storage.EvaluationConstraint
+		constraint *storage.EvaluationConstraint
 		value      string
 		wantMatch  bool
 	}{
 		{
 			name: "eq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "bar",
@@ -33,7 +33,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "negative eq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "bar",
@@ -42,7 +42,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "neq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "bar",
@@ -52,7 +52,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "negative neq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "bar",
@@ -61,7 +61,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "empty",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "empty",
 			},
@@ -70,7 +70,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "negative empty",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "empty",
 			},
@@ -78,7 +78,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "not empty",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notempty",
 			},
@@ -87,7 +87,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "negative not empty",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notempty",
 			},
@@ -95,7 +95,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "unknown operator",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "foo",
 				Value:    "bar",
@@ -104,7 +104,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "prefix",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "prefix",
 				Value:    "ba",
@@ -114,7 +114,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "negative prefix",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "prefix",
 				Value:    "bar",
@@ -123,7 +123,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "suffix",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "suffix",
 				Value:    "ar",
@@ -133,7 +133,7 @@ func Test_matchesString(t *testing.T) {
 		},
 		{
 			name: "negative suffix",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "suffix",
 				Value:    "bar",
@@ -158,14 +158,14 @@ func Test_matchesString(t *testing.T) {
 func Test_matchesNumber(t *testing.T) {
 	tests := []struct {
 		name       string
-		constraint storage.EvaluationConstraint
+		constraint *storage.EvaluationConstraint
 		value      string
 		wantMatch  bool
 		wantErr    bool
 	}{
 		{
 			name: "present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "present",
 			},
@@ -174,14 +174,14 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "present",
 			},
 		},
 		{
 			name: "not present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notpresent",
 			},
@@ -189,7 +189,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative notpresent",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notpresent",
 			},
@@ -197,7 +197,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "NAN constraint value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "bar",
@@ -207,7 +207,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "NAN context value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "5",
@@ -217,7 +217,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "eq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "42.0",
@@ -227,7 +227,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative eq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "42.0",
@@ -236,7 +236,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "neq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "42.0",
@@ -246,7 +246,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative neq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "42.0",
@@ -255,7 +255,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "lt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lt",
 				Value:    "42.0",
@@ -265,7 +265,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative lt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lt",
 				Value:    "42.0",
@@ -274,7 +274,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "lte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lte",
 				Value:    "42.0",
@@ -284,7 +284,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative lte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lte",
 				Value:    "42.0",
@@ -293,7 +293,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "gt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gt",
 				Value:    "10.11",
@@ -303,7 +303,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative gt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gt",
 				Value:    "10.11",
@@ -312,7 +312,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "gte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gte",
 				Value:    "10.11",
@@ -322,7 +322,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative gte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gte",
 				Value:    "10.11",
@@ -331,7 +331,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "empty value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "0.11",
@@ -339,7 +339,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "unknown operator",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "foo",
 				Value:    "0.11",
@@ -348,7 +348,7 @@ func Test_matchesNumber(t *testing.T) {
 		},
 		{
 			name: "negative suffix empty value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "suffix",
 				Value:    "bar",
@@ -383,14 +383,14 @@ func Test_matchesNumber(t *testing.T) {
 func Test_matchesBool(t *testing.T) {
 	tests := []struct {
 		name       string
-		constraint storage.EvaluationConstraint
+		constraint *storage.EvaluationConstraint
 		value      string
 		wantMatch  bool
 		wantErr    bool
 	}{
 		{
 			name: "present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "present",
 			},
@@ -399,14 +399,14 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "negative present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "present",
 			},
 		},
 		{
 			name: "not present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notpresent",
 			},
@@ -414,7 +414,7 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "negative notpresent",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notpresent",
 			},
@@ -422,7 +422,7 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "not a bool",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "true",
 			},
@@ -431,7 +431,7 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "is true",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "true",
 			},
@@ -440,7 +440,7 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "negative is true",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "true",
 			},
@@ -448,7 +448,7 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "is false",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "false",
 			},
@@ -457,7 +457,7 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "negative is false",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "false",
 			},
@@ -465,14 +465,14 @@ func Test_matchesBool(t *testing.T) {
 		},
 		{
 			name: "empty value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "false",
 			},
 		},
 		{
 			name: "unknown operator",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "foo",
 			},
@@ -507,14 +507,14 @@ func Test_matchesBool(t *testing.T) {
 func Test_matchesDateTime(t *testing.T) {
 	tests := []struct {
 		name       string
-		constraint storage.EvaluationConstraint
+		constraint *storage.EvaluationConstraint
 		value      string
 		wantMatch  bool
 		wantErr    bool
 	}{
 		{
 			name: "present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "present",
 			},
@@ -523,14 +523,14 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "present",
 			},
 		},
 		{
 			name: "not present",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notpresent",
 			},
@@ -538,7 +538,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative notpresent",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "notpresent",
 			},
@@ -546,7 +546,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "not a datetime constraint value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "bar",
@@ -556,7 +556,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "not a datetime context value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "2006-01-02T15:04:05Z",
@@ -566,7 +566,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "eq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "2006-01-02T15:04:05Z",
@@ -576,7 +576,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "eq date only",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "2006-01-02",
@@ -586,7 +586,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative eq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "2006-01-02T15:04:05Z",
@@ -595,7 +595,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "neq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "2006-01-02T15:04:05Z",
@@ -605,7 +605,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative neq",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "2006-01-02T15:04:05Z",
@@ -614,7 +614,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative neq date only",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "neq",
 				Value:    "2006-01-02",
@@ -623,7 +623,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "lt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lt",
 				Value:    "2006-01-02T15:04:05Z",
@@ -633,7 +633,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative lt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lt",
 				Value:    "2005-01-02T15:04:05Z",
@@ -642,7 +642,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "lte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lte",
 				Value:    "2006-01-02T15:04:05Z",
@@ -652,7 +652,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative lte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "lte",
 				Value:    "2006-01-02T15:04:05Z",
@@ -661,7 +661,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "gt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gt",
 				Value:    "2006-01-02T15:04:05Z",
@@ -671,7 +671,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative gt",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gt",
 				Value:    "2007-01-02T15:04:05Z",
@@ -680,7 +680,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "gte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gte",
 				Value:    "2006-01-02T15:04:05Z",
@@ -690,7 +690,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "negative gte",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "gte",
 				Value:    "2006-01-02T15:04:05Z",
@@ -699,7 +699,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "empty value",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "eq",
 				Value:    "2006-01-02T15:04:05Z",
@@ -707,7 +707,7 @@ func Test_matchesDateTime(t *testing.T) {
 		},
 		{
 			name: "unknown operator",
-			constraint: storage.EvaluationConstraint{
+			constraint: &storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "foo",
 				Value:    "2006-01-02T15:04:05Z",
@@ -849,16 +849,15 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    1,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 1,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -869,16 +868,15 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 				},
 			},
 			{
-				ID:      "2",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "2",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -914,16 +912,15 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    1,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 1,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -958,16 +955,15 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    1,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 1,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_DATETIME_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1003,16 +999,15 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1050,16 +1045,15 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1138,17 +1132,16 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:              "1",
-				FlagKey:         "foo",
+				Id:              "1",
 				Rank:            0,
 				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1156,12 +1149,12 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 							},
 						},
 					},
-					"foo": {
-						SegmentKey: "foo",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+					{
+						Key:       "foo",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "company",
 								Operator: flipt.OpEQ,
@@ -1244,17 +1237,16 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1262,7 +1254,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 							},
 							// constraint: admin (bool) == true
 							{
-								ID:       "3",
+								Id:       "3",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
@@ -1276,9 +1268,9 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:                "4",
-				RuleID:            "1",
-				VariantID:         "5",
+				Id:                "4",
+				RuleId:            "1",
+				VariantId:         "5",
 				Rollout:           10,
 				VariantKey:        "boz",
 				VariantAttachment: `{"key":"value"}`,
@@ -1311,17 +1303,16 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1329,7 +1320,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 							},
 							// constraint: admin (bool) == true
 							{
-								ID:       "3",
+								Id:       "3",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
@@ -1343,9 +1334,9 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:                "4",
-				RuleID:            "1",
-				VariantID:         "5",
+				Id:                "4",
+				RuleId:            "1",
+				VariantId:         "5",
 				Rollout:           100,
 				VariantKey:        "boz",
 				VariantAttachment: `{"key":"value"}`,
@@ -1440,17 +1431,16 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1465,16 +1455,16 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    50,
 				VariantKey: "boz",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    50,
 				VariantKey: "booz",
 			},
@@ -1560,17 +1550,16 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"subscribers": {
-						SegmentKey: "subscribers",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "subscribers",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: premium_user (bool) == true
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "premium_user",
 								Operator: flipt.OpTrue,
@@ -1580,13 +1569,12 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 				},
 			},
 			{
-				ID:      "2",
-				FlagKey: "foo",
-				Rank:    1,
-				Segments: map[string]*storage.EvaluationSegment{
-					"all_users": {
-						SegmentKey: "all_users",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+				Id:   "2",
+				Rank: 1,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "all_users",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
 					},
 				},
 			},
@@ -1595,16 +1583,16 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    50,
 				VariantKey: "released",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    50,
 				VariantKey: "unreleased",
 			},
@@ -1638,13 +1626,12 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
 					},
 				},
 			},
@@ -1653,16 +1640,16 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    50,
 				VariantKey: "boz",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    50,
 				VariantKey: "moz",
 			},
@@ -1748,16 +1735,15 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1836,17 +1822,16 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -1854,7 +1839,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 							},
 							// constraint: admin (bool) == true
 							{
-								ID:       "3",
+								Id:       "3",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
@@ -1868,9 +1853,9 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    100,
 				VariantKey: "boz",
 			},
@@ -1997,17 +1982,16 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -2022,16 +2006,16 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    50,
 				VariantKey: "boz",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    50,
 				VariantKey: "booz",
 			},
@@ -2117,17 +2101,16 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"subscribers": {
-						SegmentKey: "subscribers",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "subscribers",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: premium_user (bool) == true
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "premium_user",
 								Operator: flipt.OpTrue,
@@ -2137,17 +2120,16 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 				},
 			},
 			{
-				ID:      "2",
-				FlagKey: "foo",
-				Rank:    1,
-				Segments: map[string]*storage.EvaluationSegment{
-					"all_users": {
-						SegmentKey: "all_users",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "2",
+				Rank: 1,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "all_users",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: premium_user (bool) == true
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
 								Property: "premium_user",
 								Operator: flipt.OpTrue,
@@ -2161,16 +2143,16 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    50,
 				VariantKey: "released",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    50,
 				VariantKey: "unreleased",
 			},
@@ -2204,13 +2186,12 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
 					},
 				},
 			},
@@ -2219,16 +2200,16 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    50,
 				VariantKey: "boz",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    50,
 				VariantKey: "moz",
 			},
@@ -2314,17 +2295,16 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ANY_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -2339,16 +2319,16 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "4",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "4",
+				RuleId:     "1",
+				VariantId:  "5",
 				Rollout:    0,
 				VariantKey: "boz",
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "7",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "7",
 				Rollout:    100,
 				VariantKey: "booz",
 			},
@@ -2413,17 +2393,16 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 	store.On("GetEvaluationRules", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRule{
 			{
-				ID:      "1",
-				FlagKey: "foo",
-				Rank:    0,
-				Segments: map[string]*storage.EvaluationSegment{
-					"bar": {
-						SegmentKey: "bar",
-						MatchType:  flipt.MatchType_ALL_MATCH_TYPE,
-						Constraints: []storage.EvaluationConstraint{
+				Id:   "1",
+				Rank: 0,
+				Segments: []*storage.EvaluationSegment{
+					{
+						Key:       "bar",
+						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
-								ID:       "2",
+								Id:       "2",
 								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
@@ -2438,44 +2417,44 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 	store.On("GetEvaluationDistributions", mock.Anything, "1").Return(
 		[]*storage.EvaluationDistribution{
 			{
-				ID:         "1",
-				RuleID:     "1",
-				VariantID:  "1",
+				Id:         "1",
+				RuleId:     "1",
+				VariantId:  "1",
 				VariantKey: "1",
 				Rollout:    0,
 			},
 			{
-				ID:         "2",
-				RuleID:     "1",
-				VariantID:  "2",
+				Id:         "2",
+				RuleId:     "1",
+				VariantId:  "2",
 				VariantKey: "2",
 				Rollout:    0,
 			},
 			{
-				ID:         "3",
-				RuleID:     "1",
-				VariantID:  "3",
+				Id:         "3",
+				RuleId:     "1",
+				VariantId:  "3",
 				VariantKey: "3",
 				Rollout:    50,
 			},
 			{
-				ID:         "4",
-				RuleID:     "4",
-				VariantID:  "4",
+				Id:         "4",
+				RuleId:     "4",
+				VariantId:  "4",
 				VariantKey: "4",
 				Rollout:    0,
 			},
 			{
-				ID:         "5",
-				RuleID:     "1",
-				VariantID:  "5",
+				Id:         "5",
+				RuleId:     "1",
+				VariantId:  "5",
 				VariantKey: "5",
 				Rollout:    0,
 			},
 			{
-				ID:         "6",
-				RuleID:     "1",
-				VariantID:  "6",
+				Id:         "6",
+				RuleId:     "1",
+				VariantId:  "6",
 				VariantKey: "6",
 				Rollout:    50,
 			},

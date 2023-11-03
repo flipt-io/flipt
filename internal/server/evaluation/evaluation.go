@@ -183,29 +183,32 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 
 		lastRank = rollout.Rank
 
-		if rollout.Threshold != nil {
+		if rollout.GetThreshold() != nil {
 			// consistent hashing based on the entity id and flag key.
 			hash := crc32.ChecksumIEEE([]byte(r.EntityId + r.FlagKey))
 
 			normalizedValue := float32(int(hash) % 100)
 
 			// if this case does not hold, fall through to the next rollout.
-			if normalizedValue < rollout.Threshold.Percentage {
-				resp.Enabled = rollout.Threshold.Value
+			if normalizedValue < rollout.GetThreshold().Percentage {
+				resp.Enabled = rollout.GetThreshold().Value
 				resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 				resp.FlagKey = flag.Key
 				s.logger.Debug("threshold based matched", zap.Int("rank", int(rollout.Rank)), zap.String("rollout_type", "threshold"))
 				return resp, nil
 			}
-		} else if rollout.Segment != nil {
+			continue
+		}
+
+		if rollout.GetSegment() != nil {
 
 			var (
 				segmentMatches = 0
 				segmentKeys    = []string{}
 			)
 
-			for k, v := range rollout.Segment.Segments {
-				segmentKeys = append(segmentKeys, k)
+			for _, v := range rollout.GetSegment().Segments {
+				segmentKeys = append(segmentKeys, v.Key)
 				matched, reason, err := matchConstraints(r.Context, v.Constraints, v.MatchType)
 				if err != nil {
 					return nil, err
@@ -218,20 +221,20 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 				}
 			}
 
-			switch rollout.Segment.SegmentOperator {
+			switch rollout.GetSegment().SegmentOperator {
 			case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
 				if segmentMatches < 1 {
 					s.logger.Debug("did not match ANY segments")
 					continue
 				}
 			case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
-				if len(rollout.Segment.Segments) != segmentMatches {
+				if len(rollout.GetSegment().Segments) != segmentMatches {
 					s.logger.Debug("did not match ALL segments")
 					continue
 				}
 			}
 
-			resp.Enabled = rollout.Segment.Value
+			resp.Enabled = rollout.GetSegment().Value
 			resp.Reason = rpcevaluation.EvaluationReason_MATCH_EVALUATION_REASON
 			resp.FlagKey = flag.Key
 

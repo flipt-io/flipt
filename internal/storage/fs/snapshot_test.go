@@ -413,19 +413,17 @@ func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
 
 			assert.Len(t, rollouts, 2)
 
-			assert.Equal(t, tc.namespace, rollouts[0].NamespaceKey)
 			assert.Equal(t, int32(1), rollouts[0].Rank)
 
-			require.NotNil(t, rollouts[0].Segment)
-			assert.Contains(t, rollouts[0].Segment.Segments, "segment1")
-			assert.True(t, rollouts[0].Segment.Value, "segment value should be true")
+			require.NotNil(t, rollouts[0].GetSegment())
+			assert.Contains(t, rollouts[0].GetSegment().Segments, "segment1")
+			assert.True(t, rollouts[0].GetSegment().Value, "segment value should be true")
 
-			assert.Equal(t, tc.namespace, rollouts[1].NamespaceKey)
 			assert.Equal(t, int32(2), rollouts[1].Rank)
 
-			require.NotNil(t, rollouts[1].Threshold)
-			assert.Equal(t, float32(50), rollouts[1].Threshold.Percentage)
-			assert.True(t, rollouts[1].Threshold.Value, "threshold value should be true")
+			require.NotNil(t, rollouts[1].GetThreshold())
+			assert.Equal(t, float32(50), rollouts[1].GetThreshold().Percentage)
+			assert.True(t, rollouts[1].GetThreshold().Value, "threshold value should be true")
 		})
 	}
 }
@@ -494,14 +492,12 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 
 			assert.Len(t, rules, 1)
 
-			assert.Equal(t, tc.namespace, rules[0].NamespaceKey)
-			assert.Equal(t, tc.flagKey, rules[0].FlagKey)
 			assert.Equal(t, int32(1), rules[0].Rank)
 			assert.Contains(t, rules[0].Segments, "segment1")
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
-				c := rules[0].Segments[fc.SegmentKey].Constraints[i]
+				c := rules[0].Segments[0].Constraints[i]
 
 				assert.Equal(t, fc.Type, c.Type)
 				assert.Equal(t, fc.Property, c.Property)
@@ -1301,19 +1297,17 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
 
 			assert.Len(t, rollouts, 2)
 
-			assert.Equal(t, tc.namespace, rollouts[0].NamespaceKey)
 			assert.Equal(t, int32(1), rollouts[0].Rank)
 
-			require.NotNil(t, rollouts[0].Segment)
-			assert.Contains(t, rollouts[0].Segment.Segments, "segment1")
-			assert.True(t, rollouts[0].Segment.Value, "segment value should be true")
+			require.NotNil(t, rollouts[0].GetSegment())
+			assert.Contains(t, rollouts[0].GetSegment().Segments, "segment1")
+			assert.True(t, rollouts[0].GetSegment().Value, "segment value should be true")
 
-			assert.Equal(t, tc.namespace, rollouts[1].NamespaceKey)
 			assert.Equal(t, int32(2), rollouts[1].Rank)
 
-			require.NotNil(t, rollouts[1].Threshold)
-			assert.Equal(t, float32(50), rollouts[1].Threshold.Percentage)
-			assert.True(t, rollouts[1].Threshold.Value, "threshold value should be true")
+			require.NotNil(t, rollouts[1].GetThreshold())
+			assert.Equal(t, float32(50), rollouts[1].GetThreshold().Percentage)
+			assert.True(t, rollouts[1].GetThreshold().Value, "threshold value should be true")
 		})
 	}
 }
@@ -1405,14 +1399,12 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 
 			assert.Len(t, rules, 1)
 
-			assert.Equal(t, tc.namespace, rules[0].NamespaceKey)
-			assert.Equal(t, tc.flagKey, rules[0].FlagKey)
 			assert.Equal(t, int32(1), rules[0].Rank)
 			assert.Contains(t, rules[0].Segments, "segment1")
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
-				c := rules[0].Segments[fc.SegmentKey].Constraints[i]
+				c := rules[0].Segments[0].Constraints[i]
 
 				assert.Equal(t, fc.Type, c.Type)
 				assert.Equal(t, fc.Property, c.Property)

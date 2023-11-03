@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
 const (
@@ -16,62 +17,27 @@ const (
 )
 
 // EvaluationRule represents a rule and constraints required for evaluating if a
-// given flagKey matches a segment
-type EvaluationRule struct {
-	ID              string                        `json:"id"`
-	NamespaceKey    string                        `json:"namespace_key,omitempty"`
-	FlagKey         string                        `json:"flag_key,omitempty"`
-	Segments        map[string]*EvaluationSegment `json:"segments,omitempty"`
-	Rank            int32                         `json:"rank,omitempty"`
-	SegmentOperator flipt.SegmentOperator         `json:"segmentOperator,omitempty"`
-}
+// given flagKey matches a segment.
+type EvaluationRule = evaluation.EvaluationRule
 
-type EvaluationSegment struct {
-	SegmentKey  string                 `json:"segment_key,omitempty"`
-	MatchType   flipt.MatchType        `json:"match_type,omitempty"`
-	Constraints []EvaluationConstraint `json:"constraints,omitempty"`
-}
+// EvaluationSegment represents a segment and constraints required for evaluating if a
+// given flagKey matches the segment.
+type EvaluationSegment = evaluation.EvaluationSegment
 
 // EvaluationRollout represents a rollout in the form that helps with evaluation.
-type EvaluationRollout struct {
-	NamespaceKey string
-	RolloutType  flipt.RolloutType
-	Rank         int32
-	Threshold    *RolloutThreshold
-	Segment      *RolloutSegment
-}
+type EvaluationRollout = evaluation.EvaluationRollout
 
 // RolloutThreshold represents Percentage(s) for use in evaluation.
-type RolloutThreshold struct {
-	Percentage float32
-	Value      bool
-}
+type RolloutThreshold = evaluation.EvaluationRolloutThreshold
 
 // RolloutSegment represents Segment(s) for use in evaluation.
-type RolloutSegment struct {
-	Value           bool
-	SegmentOperator flipt.SegmentOperator
-	Segments        map[string]*EvaluationSegment
-}
+type RolloutSegment = evaluation.EvaluationRolloutSegment
 
 // EvaluationConstraint represents a segment constraint that is used for evaluation
-type EvaluationConstraint struct {
-	ID       string               `json:"id,omitempty"`
-	Type     flipt.ComparisonType `json:"comparison_type,omitempty"`
-	Property string               `json:"property,omitempty"`
-	Operator string               `json:"operator,omitempty"`
-	Value    string               `json:"value,omitempty"`
-}
+type EvaluationConstraint = evaluation.EvaluationConstraint
 
 // EvaluationDistribution represents a rule distribution along with its variant for evaluation
-type EvaluationDistribution struct {
-	ID                string
-	RuleID            string
-	VariantID         string
-	Rollout           float32
-	VariantKey        string
-	VariantAttachment string
-}
+type EvaluationDistribution = evaluation.EvaluationDistribution
 
 type QueryParams struct {
 	Limit     uint64

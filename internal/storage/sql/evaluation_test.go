@@ -87,23 +87,19 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 	assert.NotEmpty(t, evaluationRules)
 	assert.Equal(t, 2, len(evaluationRules))
 
-	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
-	assert.Equal(t, storage.DefaultNamespace, evaluationRules[0].NamespaceKey)
-	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
+	assert.Equal(t, rule1.Id, evaluationRules[0].Id)
 
-	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[segment.Key].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[segment.Key].MatchType)
+	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[0].Key)
+	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[0].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Len(t, evaluationRules[0].Segments[segment.Key].Constraints, 2)
+	assert.Len(t, evaluationRules[0].Segments[0].Constraints, 2)
 
-	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
-	assert.Equal(t, storage.DefaultNamespace, evaluationRules[1].NamespaceKey)
-	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
+	assert.Equal(t, rule2.Id, evaluationRules[1].Id)
 
-	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[segment.Key].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[segment.Key].MatchType)
+	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[0].Key)
+	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[0].MatchType)
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
-	assert.Len(t, evaluationRules[1].Segments[segment.Key].Constraints, 2)
+	assert.Len(t, evaluationRules[1].Segments[0].Constraints, 2)
 }
 
 func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
@@ -173,23 +169,19 @@ func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
 	assert.NotEmpty(t, evaluationRules)
 	assert.Equal(t, 2, len(evaluationRules))
 
-	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
-	assert.Equal(t, storage.DefaultNamespace, evaluationRules[0].NamespaceKey)
-	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
+	assert.Equal(t, rule1.Id, evaluationRules[0].Id)
 
-	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[segment.Key].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[segment.Key].MatchType)
+	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[0].Key)
+	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[0].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Len(t, evaluationRules[0].Segments[segment.Key].Constraints, 2)
+	assert.Len(t, evaluationRules[0].Segments[0].Constraints, 2)
 
-	assert.Equal(t, rule2.Id, evaluationRules[1].ID)
-	assert.Equal(t, storage.DefaultNamespace, evaluationRules[1].NamespaceKey)
-	assert.Equal(t, rule2.FlagKey, evaluationRules[1].FlagKey)
+	assert.Equal(t, rule2.Id, evaluationRules[1].Id)
 
-	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[segment.Key].SegmentKey)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[segment.Key].MatchType)
+	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[0].Key)
+	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[0].MatchType)
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
-	assert.Len(t, evaluationRules[1].Segments[segment.Key].Constraints, 2)
+	assert.Len(t, evaluationRules[1].Segments[0].Constraints, 2)
 }
 
 func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
@@ -266,19 +258,17 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 	assert.NotEmpty(t, evaluationRules)
 	assert.Equal(t, 1, len(evaluationRules))
 
-	assert.Equal(t, rule1.Id, evaluationRules[0].ID)
-	assert.Equal(t, s.namespace, evaluationRules[0].NamespaceKey)
-	assert.Equal(t, rule1.FlagKey, evaluationRules[0].FlagKey)
+	assert.Equal(t, rule1.Id, evaluationRules[0].Id)
 
-	assert.Equal(t, firstSegment.Key, evaluationRules[0].Segments[firstSegment.Key].SegmentKey)
-	assert.Equal(t, firstSegment.MatchType, evaluationRules[0].Segments[firstSegment.Key].MatchType)
+	assert.Equal(t, firstSegment.Key, evaluationRules[0].Segments[0].Key)
+	assert.Equal(t, firstSegment.MatchType, evaluationRules[0].Segments[0].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Len(t, evaluationRules[0].Segments[firstSegment.Key].Constraints, 2)
+	assert.Len(t, evaluationRules[0].Segments[0].Constraints, 2)
 
-	assert.Equal(t, secondSegment.Key, evaluationRules[0].Segments[secondSegment.Key].SegmentKey)
-	assert.Equal(t, secondSegment.MatchType, evaluationRules[0].Segments[secondSegment.Key].MatchType)
+	assert.Equal(t, secondSegment.Key, evaluationRules[0].Segments[1].Key)
+	assert.Equal(t, secondSegment.MatchType, evaluationRules[0].Segments[1].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Len(t, evaluationRules[0].Segments[secondSegment.Key].Constraints, 0)
+	assert.Len(t, evaluationRules[0].Segments[1].Constraints, 0)
 }
 
 func (s *DBTestSuite) TestGetEvaluationDistributions() {
@@ -364,15 +354,15 @@ func (s *DBTestSuite) TestGetEvaluationDistributions() {
 
 	assert.Equal(t, 2, len(evaluationDistributions))
 
-	assert.NotEmpty(t, evaluationDistributions[0].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleID)
-	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[0].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleId)
+	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantId)
 	assert.Equal(t, variant1.Key, evaluationDistributions[0].VariantKey)
 	assert.Equal(t, float32(50.00), evaluationDistributions[0].Rollout)
 
-	assert.NotEmpty(t, evaluationDistributions[1].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
-	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[1].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleId)
+	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantId)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
 	assert.Equal(t, float32(50.00), evaluationDistributions[1].Rollout)
@@ -469,15 +459,15 @@ func (s *DBTestSuite) TestGetEvaluationDistributionsNamespace() {
 
 	assert.Equal(t, 2, len(evaluationDistributions))
 
-	assert.NotEmpty(t, evaluationDistributions[0].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleID)
-	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[0].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleId)
+	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantId)
 	assert.Equal(t, variant1.Key, evaluationDistributions[0].VariantKey)
 	assert.Equal(t, float32(50.00), evaluationDistributions[0].Rollout)
 
-	assert.NotEmpty(t, evaluationDistributions[1].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
-	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[1].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleId)
+	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantId)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, `{"key2":"value2"}`, evaluationDistributions[1].VariantAttachment)
 	assert.Equal(t, float32(50.00), evaluationDistributions[1].Rollout)
@@ -566,15 +556,15 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 
 	assert.Equal(t, 2, len(evaluationDistributions))
 
-	assert.NotEmpty(t, evaluationDistributions[0].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleID)
-	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[0].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleId)
+	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantId)
 	assert.Equal(t, variant1.Key, evaluationDistributions[0].VariantKey)
 	assert.Equal(t, float32(80.00), evaluationDistributions[0].Rollout)
 
-	assert.NotEmpty(t, evaluationDistributions[1].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
-	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[1].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleId)
+	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantId)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 
@@ -608,15 +598,15 @@ func (s *DBTestSuite) TestGetEvaluationDistributions_MaintainOrder() {
 
 	assert.Equal(t, 2, len(evaluationDistributions))
 
-	assert.NotEmpty(t, evaluationDistributions[0].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleID)
-	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[0].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[0].RuleId)
+	assert.Equal(t, variant1.Id, evaluationDistributions[0].VariantId)
 	assert.Equal(t, variant1.Key, evaluationDistributions[0].VariantKey)
 	assert.Equal(t, float32(80.00), evaluationDistributions[0].Rollout)
 
-	assert.NotEmpty(t, evaluationDistributions[1].ID)
-	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleID)
-	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantID)
+	assert.NotEmpty(t, evaluationDistributions[1].Id)
+	assert.Equal(t, rule.Id, evaluationDistributions[1].RuleId)
+	assert.Equal(t, variant2.Id, evaluationDistributions[1].VariantId)
 	assert.Equal(t, variant2.Key, evaluationDistributions[1].VariantKey)
 	assert.Equal(t, float32(20.00), evaluationDistributions[1].Rollout)
 }
@@ -674,20 +664,18 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 
 	assert.Equal(t, 2, len(evaluationRollouts))
 
-	assert.Equal(t, "default", evaluationRollouts[0].NamespaceKey)
 	assert.Equal(t, int32(1), evaluationRollouts[0].Rank)
-	assert.NotNil(t, evaluationRollouts[0].Threshold)
-	assert.Equal(t, float32(50.0), evaluationRollouts[0].Threshold.Percentage)
-	assert.False(t, evaluationRollouts[0].Threshold.Value, "percentage value is false")
+	assert.NotNil(t, evaluationRollouts[0].GetThreshold())
+	assert.Equal(t, float32(50.0), evaluationRollouts[0].GetThreshold().Percentage)
+	assert.False(t, evaluationRollouts[0].GetThreshold().Value, "percentage value is false")
 
-	assert.Equal(t, "default", evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
-	assert.NotNil(t, evaluationRollouts[1].Segment)
+	assert.NotNil(t, evaluationRollouts[1].GetSegment())
 
-	assert.Contains(t, evaluationRollouts[1].Segment.Segments, segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.Segments[segment.Key].MatchType)
+	assert.Contains(t, evaluationRollouts[1].GetSegment().Segments, segment.Key)
+	assert.Equal(t, segment.MatchType, evaluationRollouts[1].GetSegment().Segments[0].MatchType)
 
-	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
+	assert.True(t, evaluationRollouts[1].GetSegment().Value, "segment value is true")
 }
 
 func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
@@ -763,22 +751,20 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 
 	assert.Equal(t, 2, len(evaluationRollouts))
 
-	assert.Equal(t, "default", evaluationRollouts[0].NamespaceKey)
 	assert.Equal(t, int32(1), evaluationRollouts[0].Rank)
-	assert.NotNil(t, evaluationRollouts[0].Threshold)
-	assert.Equal(t, float32(50.0), evaluationRollouts[0].Threshold.Percentage)
-	assert.False(t, evaluationRollouts[0].Threshold.Value, "percentage value is false")
+	assert.NotNil(t, evaluationRollouts[0].GetThreshold())
+	assert.Equal(t, float32(50.0), evaluationRollouts[0].GetThreshold().Percentage)
+	assert.False(t, evaluationRollouts[0].GetThreshold().Value, "percentage value is false")
 
-	assert.Equal(t, "default", evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
-	assert.NotNil(t, evaluationRollouts[1].Segment)
+	assert.NotNil(t, evaluationRollouts[1].GetSegment())
 
-	assert.Equal(t, firstSegment.Key, evaluationRollouts[1].Segment.Segments[firstSegment.Key].SegmentKey)
-	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, evaluationRollouts[1].Segment.SegmentOperator)
-	assert.Len(t, evaluationRollouts[1].Segment.Segments[firstSegment.Key].Constraints, 1)
+	assert.Equal(t, firstSegment.Key, evaluationRollouts[1].GetSegment().Segments[0].Key)
+	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, evaluationRollouts[1].GetSegment().SegmentOperator)
+	assert.Len(t, evaluationRollouts[1].GetSegment().Segments[0].Constraints, 1)
 
-	assert.Equal(t, secondSegment.Key, evaluationRollouts[1].Segment.Segments[secondSegment.Key].SegmentKey)
-	assert.Len(t, evaluationRollouts[1].Segment.Segments[secondSegment.Key].Constraints, 0)
+	assert.Equal(t, secondSegment.Key, evaluationRollouts[1].GetSegment().Segments[1].Key)
+	assert.Len(t, evaluationRollouts[1].GetSegment().Segments[1].Constraints, 0)
 }
 
 func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
@@ -849,20 +835,18 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 
 	assert.Equal(t, 2, len(evaluationRollouts))
 
-	assert.Equal(t, s.namespace, evaluationRollouts[0].NamespaceKey)
 	assert.Equal(t, int32(1), evaluationRollouts[0].Rank)
-	assert.NotNil(t, evaluationRollouts[0].Threshold)
-	assert.Equal(t, float32(50.0), evaluationRollouts[0].Threshold.Percentage)
-	assert.False(t, evaluationRollouts[0].Threshold.Value, "percentage value is false")
+	assert.NotNil(t, evaluationRollouts[0].GetThreshold())
+	assert.Equal(t, float32(50.0), evaluationRollouts[0].GetThreshold().Percentage)
+	assert.False(t, evaluationRollouts[0].GetThreshold().Value, "percentage value is false")
 
-	assert.Equal(t, s.namespace, evaluationRollouts[1].NamespaceKey)
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
-	assert.NotNil(t, evaluationRollouts[1].Segment)
+	assert.NotNil(t, evaluationRollouts[1].GetSegment())
 
-	assert.Contains(t, evaluationRollouts[1].Segment.Segments, segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].Segment.Segments[segment.Key].MatchType)
+	assert.Contains(t, evaluationRollouts[1].GetSegment().Segments, segment.Key)
+	assert.Equal(t, segment.MatchType, evaluationRollouts[1].GetSegment().Segments[0].MatchType)
 
-	assert.True(t, evaluationRollouts[1].Segment.Value, "segment value is true")
+	assert.True(t, evaluationRollouts[1].GetSegment().Value, "segment value is true")
 }
 
 func Benchmark_EvaluationV1AndV2(b *testing.B) {

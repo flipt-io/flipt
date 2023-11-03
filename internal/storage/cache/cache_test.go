@@ -54,7 +54,7 @@ func TestGetHandleUnmarshalError(t *testing.T) {
 
 func TestGetEvaluationRules(t *testing.T) {
 	var (
-		expectedRules = []*storage.EvaluationRule{{ID: "123"}}
+		expectedRules = []*storage.EvaluationRule{{Id: "123"}}
 		store         = &common.StoreMock{}
 	)
 
@@ -78,7 +78,7 @@ func TestGetEvaluationRules(t *testing.T) {
 
 func TestGetEvaluationRulesCached(t *testing.T) {
 	var (
-		expectedRules = []*storage.EvaluationRule{{ID: "123"}}
+		expectedRules = []*storage.EvaluationRule{{Id: "123"}}
 		store         = &common.StoreMock{}
 	)
 
