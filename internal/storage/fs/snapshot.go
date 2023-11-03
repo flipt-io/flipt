@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"path/filepath"
 	"sort"
 	"strconv"
 
@@ -87,12 +88,12 @@ func SnapshotFromFS(logger *zap.Logger, fs fs.FS) (*StoreSnapshot, error) {
 
 	logger.Debug("opening state files", zap.Strings("paths", files))
 
-	return SnapshotFromPaths(fs, files...)
+	return SnapshotFromPaths(logger, fs, files...)
 }
 
 // SnapshotFromPaths constructs a StoreSnapshot from the provided
 // slice of paths resolved against the provided fs.FS.
-func SnapshotFromPaths(ffs fs.FS, paths ...string) (*StoreSnapshot, error) {
+func SnapshotFromPaths(logger *zap.Logger, ffs fs.FS, paths ...string) (*StoreSnapshot, error) {
 	var files []fs.File
 	for _, file := range paths {
 		fi, err := ffs.Open(file)
@@ -103,17 +104,12 @@ func SnapshotFromPaths(ffs fs.FS, paths ...string) (*StoreSnapshot, error) {
 		files = append(files, fi)
 	}
 
-	return SnapshotFromFiles(files...)
+	return SnapshotFromFiles(logger, files...)
 }
 
 // SnapshotFromFiles constructs a StoreSnapshot from the provided slice
 // of fs.File implementations.
-func SnapshotFromFiles(files ...fs.File) (*StoreSnapshot, error) {
-	validator, err := cue.NewFeaturesValidator()
-	if err != nil {
-		return nil, err
-	}
-
+func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*StoreSnapshot, error) {
 	now := timestamppb.Now()
 	s := StoreSnapshot{
 		ns: map[string]*namespace{
@@ -124,45 +120,14 @@ func SnapshotFromFiles(files ...fs.File) (*StoreSnapshot, error) {
 	}
 
 	for _, fi := range files {
-		if err := func() error {
-			defer fi.Close()
+		defer fi.Close()
 
-			stat, err := fi.Stat()
-			if err != nil {
-				return err
-			}
+		doc, err := documentFromFile(logger, fi)
+		if err != nil {
+			return nil, err
+		}
 
-			buf := &bytes.Buffer{}
-			reader := io.TeeReader(fi, buf)
-
-			if err := validator.Validate(stat.Name(), reader); err != nil {
-				return err
-			}
-
-			decoder := yaml.NewDecoder(buf)
-			// Support YAML stream by looping until we reach an EOF.
-			for {
-				doc := new(ext.Document)
-
-				if err := decoder.Decode(doc); err != nil {
-					if errors.Is(err, io.EOF) {
-						break
-					}
-					return err
-				}
-
-				// set namespace to default if empty in document
-				if doc.Namespace == "" {
-					doc.Namespace = "default"
-				}
-
-				if err := s.addDoc(doc); err != nil {
-					return err
-				}
-			}
-
-			return nil
-		}(); err != nil {
+		if err := s.addDoc(doc); err != nil {
 			return nil, err
 		}
 	}
@@ -170,6 +135,94 @@ func SnapshotFromFiles(files ...fs.File) (*StoreSnapshot, error) {
 	return &s, nil
 }
 
+// WalkDocuments walks all the Flipt feature documents found in the target fs.FS
+// based on either the default index file or an index file located in the root
+func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) error {
+	paths, err := listStateFiles(logger, src)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range paths {
+		logger.Debug("opening state file", zap.String("path", file))
+
+		fi, err := src.Open(file)
+		if err != nil {
+			return err
+		}
+		defer fi.Close()
+
+		doc, err := documentFromFile(logger, fi)
+		if err != nil {
+			return err
+		}
+
+		if err := fn(doc); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// documentFromFile parses and validates a document from a single fs.File instance
+func documentFromFile(logger *zap.Logger, fi fs.File) (*ext.Document, error) {
+	validator, err := cue.NewFeaturesValidator()
+	if err != nil {
+		return nil, err
+	}
+
+	stat, err := fi.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	reader := io.TeeReader(fi, buf)
+
+	if err := validator.Validate(stat.Name(), reader); err != nil {
+		return nil, err
+	}
+
+	extn := filepath.Ext(stat.Name())
+	switch extn {
+	case ".yaml", ".yml":
+		decoder := yaml.NewDecoder(buf)
+		// Support YAML stream by looping until we reach an EOF.
+		for {
+			doc := &ext.Document{}
+			if err := decoder.Decode(doc); err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				return nil, err
+			}
+
+			// set namespace to default if empty in document
+			if doc.Namespace == "" {
+				doc.Namespace = "default"
+			}
+
+			return doc, nil
+		}
+	case "", ".json":
+		doc := &ext.Document{}
+		if err := json.NewDecoder(buf).Decode(&doc); err != nil {
+			return nil, err
+		}
+
+		// set namespace to default if empty in document
+		if doc.Namespace == "" {
+			doc.Namespace = "default"
+		}
+
+		return doc, nil
+	}
+
+	return nil, fmt.Errorf("unexpected extension: %q", extn)
+}
+
+// listStateFiles lists all the file paths in a provided fs.FS containing Flipt feature state
 func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 	// This is the default variable + value for the FliptIndex. It will preserve its value if
 	// a .flipt.yml can not be read for whatever reason.

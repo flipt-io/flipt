@@ -91,7 +91,7 @@ func testSource(t *testing.T) (*Source, oras.Target) {
 		layer("production", `{"namespace":"production"}`, fliptoci.MediaTypeFliptNamespace),
 	)
 
-	store, err := fliptoci.NewStore(fmt.Sprintf("flipt://local/%s:latest", repo), fliptoci.WithBundleDir(dir))
+	store, err := fliptoci.NewStore(zaptest.NewLogger(t), fmt.Sprintf("flipt://local/%s:latest", repo), fliptoci.WithBundleDir(dir))
 	require.NoError(t, err)
 
 	source, err := NewSource(zaptest.NewLogger(t),

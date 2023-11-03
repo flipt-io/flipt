@@ -59,7 +59,7 @@ func (s *Source) Get(context.Context) (*storagefs.StoreSnapshot, error) {
 		return s.curSnap, nil
 	}
 
-	if s.curSnap, err = storagefs.SnapshotFromFiles(resp.Files...); err != nil {
+	if s.curSnap, err = storagefs.SnapshotFromFiles(s.logger, resp.Files...); err != nil {
 		return nil, err
 	}
 
