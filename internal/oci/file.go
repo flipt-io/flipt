@@ -27,7 +27,7 @@ import (
 // Repositories can be local (OCI layout directories on the filesystem) or a remote registry
 type Store struct {
 	reference registry.Reference
-	store     oras.ReadOnlyTarget
+	store     func() (oras.ReadOnlyTarget, error)
 	local     oras.Target
 }
 
@@ -59,15 +59,28 @@ func NewStore(conf *config.OCI) (*Store, error) {
 
 		remote.PlainHTTP = scheme == "http"
 
-		store.store = remote
+		store.store = func() (oras.ReadOnlyTarget, error) {
+			return remote, nil
+		}
 	case "flipt":
 		if ref.Registry != "local" {
 			return nil, fmt.Errorf("unexpected local reference: %q", conf.Repository)
 		}
 
-		store.store, err = oci.New(path.Join(conf.BundleDirectory, ref.Repository))
+		// build the store once to ensure it is valid
+		_, err := oci.New(path.Join(conf.BundleDirectory, ref.Repository))
 		if err != nil {
 			return nil, err
+		}
+
+		store.store = func() (oras.ReadOnlyTarget, error) {
+			// we recreate the OCI store on every operation for local
+			// because the oci library we use maintains a reference cache
+			// in memory that doesn't get purged when the target directory
+			// contents changes underneath it
+			// this allows us to change the state with another process and
+			// have the store pickup the changes
+			return oci.New(path.Join(conf.BundleDirectory, ref.Repository))
 		}
 	default:
 		return nil, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", scheme)
@@ -106,8 +119,13 @@ func (s *Store) Fetch(ctx context.Context, opts ...containers.Option[FetchOption
 	var options FetchOptions
 	containers.ApplyAll(&options, opts...)
 
+	store, err := s.store()
+	if err != nil {
+		return nil, err
+	}
+
 	desc, err := oras.Copy(ctx,
-		s.store,
+		store,
 		s.reference.Reference,
 		s.local,
 		s.reference.Reference,
@@ -144,7 +162,7 @@ func (s *Store) Fetch(ctx context.Context, opts ...containers.Option[FetchOption
 		}
 	}
 
-	files, err := s.fetchFiles(ctx, manifest)
+	files, err := s.fetchFiles(ctx, store, manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +173,7 @@ func (s *Store) Fetch(ctx context.Context, opts ...containers.Option[FetchOption
 // fetchFiles retrieves the associated flipt feature content files from the content fetcher.
 // It traverses the provided manifests and returns a slice of file instances with appropriate
 // content type extensions.
-func (s *Store) fetchFiles(ctx context.Context, manifest v1.Manifest) ([]fs.File, error) {
+func (s *Store) fetchFiles(ctx context.Context, store oras.ReadOnlyTarget, manifest v1.Manifest) ([]fs.File, error) {
 	var files []fs.File
 
 	created, err := time.Parse(time.RFC3339, manifest.Annotations[v1.AnnotationCreated])
@@ -179,7 +197,7 @@ func (s *Store) fetchFiles(ctx context.Context, manifest v1.Manifest) ([]fs.File
 			return nil, fmt.Errorf("layer %q: unexpected layer encoding: %q", layer.Digest, encoding)
 		}
 
-		rc, err := s.store.Fetch(ctx, layer)
+		rc, err := store.Fetch(ctx, layer)
 		if err != nil {
 			return nil, err
 		}
