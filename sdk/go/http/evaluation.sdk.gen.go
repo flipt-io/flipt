@@ -6,7 +6,6 @@ import (
 	bytes "bytes"
 	context "context"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
-	_go "go.flipt.io/flipt/sdk/go"
 	grpc "google.golang.org/grpc"
 	protojson "google.golang.org/protobuf/encoding/protojson"
 	io "io"
@@ -14,21 +13,12 @@ import (
 	url "net/url"
 )
 
-type evaluationClient struct {
+type EvaluationServiceClient struct {
 	client *http.Client
 	addr   string
 }
 
-func (t evaluationClient) EvaluationServiceClient() evaluation.EvaluationServiceClient {
-	return &evaluationServiceClient{client: t.client, addr: t.addr}
-}
-
-type evaluationServiceClient struct {
-	client *http.Client
-	addr   string
-}
-
-func (x *evaluationServiceClient) Boolean(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.BooleanEvaluationResponse, error) {
+func (x *EvaluationServiceClient) Boolean(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.BooleanEvaluationResponse, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -60,7 +50,7 @@ func (x *evaluationServiceClient) Boolean(ctx context.Context, v *evaluation.Eva
 	return &output, nil
 }
 
-func (x *evaluationServiceClient) Variant(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.VariantEvaluationResponse, error) {
+func (x *EvaluationServiceClient) Variant(ctx context.Context, v *evaluation.EvaluationRequest, _ ...grpc.CallOption) (*evaluation.VariantEvaluationResponse, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -92,7 +82,7 @@ func (x *evaluationServiceClient) Variant(ctx context.Context, v *evaluation.Eva
 	return &output, nil
 }
 
-func (x *evaluationServiceClient) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest, _ ...grpc.CallOption) (*evaluation.BatchEvaluationResponse, error) {
+func (x *EvaluationServiceClient) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest, _ ...grpc.CallOption) (*evaluation.BatchEvaluationResponse, error) {
 	var body io.Reader
 	var values url.Values
 	reqData, err := protojson.Marshal(v)
@@ -124,6 +114,6 @@ func (x *evaluationServiceClient) Batch(ctx context.Context, v *evaluation.Batch
 	return &output, nil
 }
 
-func (t Transport) EvaluationClient() _go.EvaluationClient {
-	return evaluationClient{client: t.client, addr: t.addr}
+func (t Transport) EvaluationClient() evaluation.EvaluationServiceClient {
+	return &EvaluationServiceClient{client: t.client, addr: t.addr}
 }
