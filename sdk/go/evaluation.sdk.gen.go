@@ -9,7 +9,6 @@ import (
 
 type EvaluationClient interface {
 	EvaluationServiceClient() evaluation.EvaluationServiceClient
-	DataServiceClient() evaluation.DataServiceClient
 }
 
 type Evaluation struct {
