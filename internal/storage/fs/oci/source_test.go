@@ -80,6 +80,7 @@ func Test_SourceSubscribe(t *testing.T) {
 
 	// fetch again and expected to get the same snapshot
 	found, err := source.Get(context.Background())
+	require.NoError(t, err)
 
 	assert.Equal(t, snap, found)
 }
