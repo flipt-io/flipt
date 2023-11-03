@@ -5,7 +5,6 @@ package grpc
 import (
 	flipt "go.flipt.io/flipt/rpc/flipt"
 	auth "go.flipt.io/flipt/rpc/flipt/auth"
-	data "go.flipt.io/flipt/rpc/flipt/data"
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 	meta "go.flipt.io/flipt/rpc/flipt/meta"
 	_go "go.flipt.io/flipt/sdk/go"
@@ -58,12 +57,20 @@ func (t Transport) FliptClient() flipt.FliptClient {
 	return flipt.NewFliptClient(t.cc)
 }
 
-func (t Transport) DataClient() data.DataServiceClient {
-	return data.NewDataServiceClient(t.cc)
+type evaluationClient struct {
+	cc grpc.ClientConnInterface
 }
 
-func (t Transport) EvaluationClient() evaluation.EvaluationServiceClient {
+func (t evaluationClient) EvaluationServiceClient() evaluation.EvaluationServiceClient {
 	return evaluation.NewEvaluationServiceClient(t.cc)
+}
+
+func (t evaluationClient) DataServiceClient() evaluation.DataServiceClient {
+	return evaluation.NewDataServiceClient(t.cc)
+}
+
+func (t Transport) EvaluationClient() _go.EvaluationClient {
+	return evaluationClient{cc: t.cc}
 }
 
 func (t Transport) MetaClient() meta.MetadataServiceClient {

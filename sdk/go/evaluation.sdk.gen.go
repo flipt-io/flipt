@@ -7,12 +7,28 @@ import (
 	evaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
+type EvaluationClient interface {
+	EvaluationServiceClient() evaluation.EvaluationServiceClient
+	DataServiceClient() evaluation.DataServiceClient
+}
+
 type Evaluation struct {
+	transport     EvaluationClient
+	tokenProvider ClientTokenProvider
+}
+
+type EvaluationService struct {
 	transport     evaluation.EvaluationServiceClient
 	tokenProvider ClientTokenProvider
 }
 
-func (x *Evaluation) Boolean(ctx context.Context, v *evaluation.EvaluationRequest) (*evaluation.BooleanEvaluationResponse, error) {
+func (s Evaluation) EvaluationService() *EvaluationService {
+	return &EvaluationService{
+		transport:     s.transport.EvaluationServiceClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+func (x *EvaluationService) Boolean(ctx context.Context, v *evaluation.EvaluationRequest) (*evaluation.BooleanEvaluationResponse, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
@@ -20,7 +36,7 @@ func (x *Evaluation) Boolean(ctx context.Context, v *evaluation.EvaluationReques
 	return x.transport.Boolean(ctx, v)
 }
 
-func (x *Evaluation) Variant(ctx context.Context, v *evaluation.EvaluationRequest) (*evaluation.VariantEvaluationResponse, error) {
+func (x *EvaluationService) Variant(ctx context.Context, v *evaluation.EvaluationRequest) (*evaluation.VariantEvaluationResponse, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
@@ -28,10 +44,29 @@ func (x *Evaluation) Variant(ctx context.Context, v *evaluation.EvaluationReques
 	return x.transport.Variant(ctx, v)
 }
 
-func (x *Evaluation) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest) (*evaluation.BatchEvaluationResponse, error) {
+func (x *EvaluationService) Batch(ctx context.Context, v *evaluation.BatchEvaluationRequest) (*evaluation.BatchEvaluationResponse, error) {
 	ctx, err := authenticate(ctx, x.tokenProvider)
 	if err != nil {
 		return nil, err
 	}
 	return x.transport.Batch(ctx, v)
+}
+
+type DataService struct {
+	transport     evaluation.DataServiceClient
+	tokenProvider ClientTokenProvider
+}
+
+func (s Evaluation) DataService() *DataService {
+	return &DataService{
+		transport:     s.transport.DataServiceClient(),
+		tokenProvider: s.tokenProvider,
+	}
+}
+func (x *DataService) EvaluationSnapshotNamespace(ctx context.Context, v *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
+	ctx, err := authenticate(ctx, x.tokenProvider)
+	if err != nil {
+		return nil, err
+	}
+	return x.transport.EvaluationSnapshotNamespace(ctx, v)
 }
