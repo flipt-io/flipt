@@ -122,13 +122,15 @@ func SnapshotFromFiles(logger *zap.Logger, files ...fs.File) (*StoreSnapshot, er
 	for _, fi := range files {
 		defer fi.Close()
 
-		doc, err := documentFromFile(logger, fi)
+		docs, err := documentsFromFile(fi)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := s.addDoc(doc); err != nil {
-			return nil, err
+		for _, doc := range docs {
+			if err := s.addDoc(doc); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -152,21 +154,23 @@ func WalkDocuments(logger *zap.Logger, src fs.FS, fn func(*ext.Document) error) 
 		}
 		defer fi.Close()
 
-		doc, err := documentFromFile(logger, fi)
+		docs, err := documentsFromFile(fi)
 		if err != nil {
 			return err
 		}
 
-		if err := fn(doc); err != nil {
-			return err
+		for _, doc := range docs {
+			if err := fn(doc); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-// documentFromFile parses and validates a document from a single fs.File instance
-func documentFromFile(logger *zap.Logger, fi fs.File) (*ext.Document, error) {
+// documentsFromFile parses and validates a document from a single fs.File instance
+func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
 	validator, err := cue.NewFeaturesValidator()
 	if err != nil {
 		return nil, err
@@ -184,30 +188,26 @@ func documentFromFile(logger *zap.Logger, fi fs.File) (*ext.Document, error) {
 		return nil, err
 	}
 
+	var docs []*ext.Document
 	extn := filepath.Ext(stat.Name())
+
+	var decode func(any) error
 	switch extn {
 	case ".yaml", ".yml":
-		decoder := yaml.NewDecoder(buf)
 		// Support YAML stream by looping until we reach an EOF.
-		for {
-			doc := &ext.Document{}
-			if err := decoder.Decode(doc); err != nil {
-				if errors.Is(err, io.EOF) {
-					break
-				}
-				return nil, err
-			}
-
-			// set namespace to default if empty in document
-			if doc.Namespace == "" {
-				doc.Namespace = "default"
-			}
-
-			return doc, nil
-		}
+		decode = yaml.NewDecoder(buf).Decode
 	case "", ".json":
+		decode = json.NewDecoder(buf).Decode
+	default:
+		return nil, fmt.Errorf("unexpected extension: %q", extn)
+	}
+
+	for {
 		doc := &ext.Document{}
-		if err := json.NewDecoder(buf).Decode(&doc); err != nil {
+		if err := decode(doc); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			return nil, err
 		}
 
@@ -215,11 +215,10 @@ func documentFromFile(logger *zap.Logger, fi fs.File) (*ext.Document, error) {
 		if doc.Namespace == "" {
 			doc.Namespace = "default"
 		}
-
-		return doc, nil
+		docs = append(docs, doc)
 	}
 
-	return nil, fmt.Errorf("unexpected extension: %q", extn)
+	return docs, nil
 }
 
 // listStateFiles lists all the file paths in a provided fs.FS containing Flipt feature state

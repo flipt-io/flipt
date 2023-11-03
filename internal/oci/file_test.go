@@ -19,6 +19,8 @@ import (
 	"oras.land/oras-go/v2/content/oci"
 )
 
+const repo = "testrepo"
+
 func TestNewStore(t *testing.T) {
 	t.Run("unexpected scheme", func(t *testing.T) {
 		_, err := NewStore(zaptest.NewLogger(t), "fake://local/something:latest")
@@ -51,7 +53,7 @@ func TestNewStore(t *testing.T) {
 }
 
 func TestStore_Fetch_InvalidMediaType(t *testing.T) {
-	dir, repo := testRepository(t,
+	dir := testRepository(t,
 		layer("default", `{"namespace":"default"}`, "unexpected.media.type"),
 	)
 
@@ -63,7 +65,7 @@ func TestStore_Fetch_InvalidMediaType(t *testing.T) {
 	_, err = store.Fetch(ctx)
 	require.EqualError(t, err, "layer \"sha256:85ee577ad99c62f314abca9f43ad87c2ee8818513e6383a77690df56d0352748\": type \"unexpected.media.type\": unexpected media type")
 
-	dir, repo = testRepository(t,
+	dir = testRepository(t,
 		layer("default", `{"namespace":"default"}`, MediaTypeFliptNamespace+"+unknown"),
 	)
 
@@ -75,7 +77,7 @@ func TestStore_Fetch_InvalidMediaType(t *testing.T) {
 }
 
 func TestStore_Fetch(t *testing.T) {
-	dir, repo := testRepository(t,
+	dir := testRepository(t,
 		layer("default", `{"namespace":"default"}`, MediaTypeFliptNamespace),
 		layer("other", `namespace: other`, MediaTypeFliptNamespace+"+yaml"),
 	)
@@ -129,7 +131,7 @@ var testdata embed.FS
 
 func TestStore_Build(t *testing.T) {
 	ctx := context.TODO()
-	dir, repo := testRepository(t)
+	dir := testRepository(t)
 
 	store, err := NewStore(zaptest.NewLogger(t), fmt.Sprintf("flipt://local/%s:latest", repo), WithBundleDir(dir))
 	require.NoError(t, err)
@@ -171,15 +173,14 @@ func layer(ns, payload, mediaType string) func(*testing.T, oras.Target) v1.Descr
 	}
 }
 
-func testRepository(t *testing.T, layerFuncs ...func(*testing.T, oras.Target) v1.Descriptor) (dir, repository string) {
+func testRepository(t *testing.T, layerFuncs ...func(*testing.T, oras.Target) v1.Descriptor) (dir string) {
 	t.Helper()
 
-	repository = "testrepo"
 	dir = t.TempDir()
 
-	t.Log("test OCI directory", dir, repository)
+	t.Log("test OCI directory", dir, repo)
 
-	store, err := oci.New(path.Join(dir, repository))
+	store, err := oci.New(path.Join(dir, repo))
 	require.NoError(t, err)
 
 	store.AutoSaveIndex = true

@@ -285,12 +285,12 @@ type Bundle struct {
 func (s *Store) Build(ctx context.Context, src fs.FS) (Bundle, error) {
 	store, err := s.store()
 	if err != nil {
-		return Bundle{}, nil
+		return Bundle{}, err
 	}
 
 	layers, err := s.buildLayers(ctx, store, src)
 	if err != nil {
-		return Bundle{}, nil
+		return Bundle{}, err
 	}
 
 	desc, err := oras.PackManifest(ctx, store, oras.PackManifestVersion1_1_RC4, MediaTypeFliptFeatures, oras.PackManifestOptions{
@@ -298,12 +298,12 @@ func (s *Store) Build(ctx context.Context, src fs.FS) (Bundle, error) {
 		Layers:              layers,
 	})
 	if err != nil {
-		return Bundle{}, nil
+		return Bundle{}, err
 	}
 
 	if s.reference.Reference != "" {
 		if err := store.Tag(ctx, desc, s.reference.Reference); err != nil {
-			return Bundle{}, nil
+			return Bundle{}, err
 		}
 	}
 
@@ -315,7 +315,7 @@ func (s *Store) Build(ctx context.Context, src fs.FS) (Bundle, error) {
 
 	bundle.CreatedAt, err = parseCreated(desc.Annotations)
 	if err != nil {
-		return Bundle{}, nil
+		return Bundle{}, err
 	}
 
 	return bundle, nil

@@ -9,9 +9,7 @@ import (
 	"go.flipt.io/flipt/internal/oci"
 )
 
-type bundleCommand struct {
-	rootDir string
-}
+type bundleCommand struct{}
 
 func newBundleCommand() *cobra.Command {
 	bundle := &bundleCommand{}
