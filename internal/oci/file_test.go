@@ -103,7 +103,7 @@ func TestStore_Fetch(t *testing.T) {
 	require.NoError(t, err)
 
 	require.False(t, resp.Matched, "matched an empty digest unexpectedly")
-	// should remain consistant with contents
+	// should remain consistent with contents
 	const manifestDigest = digest.Digest("sha256:7cd89519a7f44605a0964cb96e72fef972ebdc0fa4153adac2e8cd2ed5b0e90a")
 	assert.Equal(t, manifestDigest, resp.Digest)
 
