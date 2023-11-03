@@ -2,7 +2,6 @@ package oci
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/opencontainers/go-digest"
@@ -12,8 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var ErrDigestSeen = errors.New("digest already seen")
-
+// Source is an implementation fs.SnapshotSource backed by OCI repositories
+// It fetches instances of OCI manifests and uses them to build snapshots from their contents
 type Source struct {
 	logger   *zap.Logger
 	interval time.Duration
@@ -25,7 +24,7 @@ type Source struct {
 
 // NewSource constructs and configures a Source.
 // The source uses the connection and credential details provided to build
-// fs.FS implementations around a target git repository.
+// *storagefs.StoreSnapshot implementations around a target git repository.
 func NewSource(logger *zap.Logger, store *oci.Store, opts ...containers.Option[Source]) (_ *Source, err error) {
 	src := &Source{
 		logger:   logger,
@@ -69,7 +68,7 @@ func (s *Source) Get(context.Context) (*storagefs.StoreSnapshot, error) {
 	return s.curSnap, nil
 }
 
-// Subscribe feeds implementations of fs.FS onto the provided channel.
+// Subscribe feeds implementations of *storagefs.StoreSnapshot onto the provided channel.
 // It should block until the provided context is cancelled (it will be called in a goroutine).
 // It should close the provided channel before it returns.
 func (s *Source) Subscribe(ctx context.Context, ch chan<- *storagefs.StoreSnapshot) {
