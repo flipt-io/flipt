@@ -11,12 +11,28 @@ import (
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
+type rule struct {
+	ID              string
+	Rank            int32
+	SegmentOperator flipt.SegmentOperator
+}
+
+type intermediateRule struct {
+	ID               string
+	NamespaceKey     string
+	FlagKey          string
+	SegmentKey       string
+	SegmentMatchType flipt.MatchType
+	SegmentOperator  flipt.SegmentOperator
+	Rank             int32
+}
+
 func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) (_ []*storage.EvaluationRule, err error) {
 	if namespaceKey == "" {
 		namespaceKey = storage.DefaultNamespace
 	}
 
-	ruleMetaRows, err := s.builder.
+	ruleRows, err := s.builder.
 		Select("id, \"rank\", segment_operator").
 		From("rules").
 		Where(sq.And{sq.Eq{"flag_key": flagKey}, sq.Eq{"namespace_key": namespaceKey}}).
@@ -26,36 +42,32 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 	}
 
 	defer func() {
-		if cerr := ruleMetaRows.Close(); cerr != nil && err == nil {
+		if cerr := ruleRows.Close(); cerr != nil && err == nil {
 			err = cerr
 		}
 	}()
 
-	type RuleMeta struct {
-		ID              string
-		Rank            int32
-		SegmentOperator flipt.SegmentOperator
-	}
+	var (
+		uniqueRules = make(map[string]*rule)
+		ruleIDs     = make([]string, 0)
+	)
 
-	var rmMap = make(map[string]*RuleMeta)
+	for ruleRows.Next() {
+		var r rule
 
-	ruleIDs := make([]string, 0)
-	for ruleMetaRows.Next() {
-		var rm RuleMeta
-
-		if err := ruleMetaRows.Scan(&rm.ID, &rm.Rank, &rm.SegmentOperator); err != nil {
+		if err := ruleRows.Scan(&r.ID, &r.Rank, &r.SegmentOperator); err != nil {
 			return nil, err
 		}
 
-		rmMap[rm.ID] = &rm
-		ruleIDs = append(ruleIDs, rm.ID)
+		uniqueRules[r.ID] = &r
+		ruleIDs = append(ruleIDs, r.ID)
 	}
 
-	if err := ruleMetaRows.Err(); err != nil {
+	if err := ruleRows.Err(); err != nil {
 		return nil, err
 	}
 
-	if err := ruleMetaRows.Close(); err != nil {
+	if err := ruleRows.Close(); err != nil {
 		return nil, err
 	}
 
@@ -86,47 +98,39 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 
 	var (
 		// ruleID -> rule
-		uniqueRules = make(map[string]*storage.EvaluationRule)
+		uniqueEvaluationRules = make(map[string]*storage.EvaluationRule)
 		// ruleID -> segmentKey -> segment
-		uniqueRuleSegments = make(map[string]map[string]*storage.EvaluationSegment)
-		rules              = []*storage.EvaluationRule{}
+		uniqueEvaluationRulesSegments = make(map[string]map[string]*storage.EvaluationSegment)
+		evaluationRules               = []*storage.EvaluationRule{}
 	)
 
 	for rows.Next() {
 		var (
-			intermediateStorageRule struct {
-				ID               string
-				NamespaceKey     string
-				FlagKey          string
-				SegmentKey       string
-				SegmentMatchType flipt.MatchType
-				SegmentOperator  flipt.SegmentOperator
-				Rank             int32
-			}
 			optionalConstraint optionalConstraint
+			intermediateRule   intermediateRule
 		)
 
 		if err := rows.Scan(
-			&intermediateStorageRule.ID,
-			&intermediateStorageRule.SegmentKey,
-			&intermediateStorageRule.SegmentMatchType,
+			&intermediateRule.ID,
+			&intermediateRule.SegmentKey,
+			&intermediateRule.SegmentMatchType,
 			&optionalConstraint.Id,
 			&optionalConstraint.Type,
 			&optionalConstraint.Property,
 			&optionalConstraint.Operator,
 			&optionalConstraint.Value); err != nil {
-			return rules, err
+			return evaluationRules, err
 		}
 
-		rm := rmMap[intermediateStorageRule.ID]
+		r := uniqueRules[intermediateRule.ID]
 
-		intermediateStorageRule.FlagKey = flagKey
-		intermediateStorageRule.NamespaceKey = namespaceKey
-		intermediateStorageRule.Rank = rm.Rank
-		intermediateStorageRule.SegmentOperator = rm.SegmentOperator
+		intermediateRule.FlagKey = flagKey
+		intermediateRule.NamespaceKey = namespaceKey
+		intermediateRule.Rank = r.Rank
+		intermediateRule.SegmentOperator = r.SegmentOperator
 
 		// check if we've seen this rule before
-		if rule, ok := uniqueRules[intermediateStorageRule.ID]; ok {
+		if rule, ok := uniqueEvaluationRules[intermediateRule.ID]; ok {
 			var constraint *storage.EvaluationConstraint
 			if optionalConstraint.Id.Valid {
 				constraint = &storage.EvaluationConstraint{
@@ -139,32 +143,32 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			}
 
 			// check if we've seen this segment before for this rule
-			segment, ok := uniqueRuleSegments[intermediateStorageRule.ID][intermediateStorageRule.SegmentKey]
+			segment, ok := uniqueEvaluationRulesSegments[intermediateRule.ID][intermediateRule.SegmentKey]
 			if !ok {
-				ses := &storage.EvaluationSegment{
-					Key:       intermediateStorageRule.SegmentKey,
-					MatchType: intermediateStorageRule.SegmentMatchType,
+				segment := &storage.EvaluationSegment{
+					Key:       intermediateRule.SegmentKey,
+					MatchType: intermediateRule.SegmentMatchType,
 				}
 
 				if constraint != nil {
-					ses.Constraints = []*storage.EvaluationConstraint{constraint}
+					segment.Constraints = []*storage.EvaluationConstraint{constraint}
 				}
 
-				if _, ok := uniqueRuleSegments[intermediateStorageRule.ID]; !ok {
-					uniqueRuleSegments[intermediateStorageRule.ID] = make(map[string]*storage.EvaluationSegment)
+				if _, ok := uniqueEvaluationRulesSegments[intermediateRule.ID]; !ok {
+					uniqueEvaluationRulesSegments[intermediateRule.ID] = make(map[string]*storage.EvaluationSegment)
 				}
 
-				uniqueRuleSegments[intermediateStorageRule.ID][intermediateStorageRule.SegmentKey] = ses
-				rule.Segments = append(rule.Segments, ses)
+				uniqueEvaluationRulesSegments[intermediateRule.ID][intermediateRule.SegmentKey] = segment
+				rule.Segments = append(rule.Segments, segment)
 			} else if constraint != nil {
 				segment.Constraints = append(segment.Constraints, constraint)
 			}
 		} else {
 			// haven't seen this rule before
-			newRule := &storage.EvaluationRule{
-				Id:              intermediateStorageRule.ID,
-				Rank:            intermediateStorageRule.Rank,
-				SegmentOperator: intermediateStorageRule.SegmentOperator,
+			rule := &storage.EvaluationRule{
+				Id:              intermediateRule.ID,
+				Rank:            intermediateRule.Rank,
+				SegmentOperator: intermediateRule.SegmentOperator,
 				Segments:        []*storage.EvaluationSegment{},
 			}
 
@@ -179,41 +183,40 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 				}
 			}
 
-			ses := &storage.EvaluationSegment{
-				Key:       intermediateStorageRule.SegmentKey,
-				MatchType: intermediateStorageRule.SegmentMatchType,
+			segment := &storage.EvaluationSegment{
+				Key:       intermediateRule.SegmentKey,
+				MatchType: intermediateRule.SegmentMatchType,
 			}
 
 			if constraint != nil {
-				ses.Constraints = []*storage.EvaluationConstraint{constraint}
+				segment.Constraints = []*storage.EvaluationConstraint{constraint}
 			}
 
-			if _, ok := uniqueRuleSegments[intermediateStorageRule.ID]; !ok {
-				uniqueRuleSegments[intermediateStorageRule.ID] = make(map[string]*storage.EvaluationSegment)
+			if _, ok := uniqueEvaluationRulesSegments[intermediateRule.ID]; !ok {
+				uniqueEvaluationRulesSegments[intermediateRule.ID] = make(map[string]*storage.EvaluationSegment)
 			}
 
-			uniqueRuleSegments[intermediateStorageRule.ID][intermediateStorageRule.SegmentKey] = ses
+			uniqueEvaluationRulesSegments[intermediateRule.ID][intermediateRule.SegmentKey] = segment
+			rule.Segments = append(rule.Segments, segment)
 
-			newRule.Segments = append(newRule.Segments, ses)
-
-			uniqueRules[newRule.Id] = newRule
-			rules = append(rules, newRule)
+			uniqueEvaluationRules[rule.Id] = rule
+			evaluationRules = append(evaluationRules, rule)
 		}
 	}
 
-	sort.Slice(rules, func(i, j int) bool {
-		return rules[i].Rank < rules[j].Rank
+	sort.Slice(evaluationRules, func(i, j int) bool {
+		return evaluationRules[i].Rank < evaluationRules[j].Rank
 	})
 
 	if err := rows.Err(); err != nil {
-		return rules, err
+		return evaluationRules, err
 	}
 
 	if err := rows.Close(); err != nil {
-		return rules, err
+		return evaluationRules, err
 	}
 
-	return rules, nil
+	return evaluationRules, nil
 }
 
 func (s *Store) GetEvaluationDistributions(ctx context.Context, ruleID string) (_ []*storage.EvaluationDistribution, err error) {
