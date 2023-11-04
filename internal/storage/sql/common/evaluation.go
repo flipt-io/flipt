@@ -126,7 +126,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		intermediateStorageRule.SegmentOperator = rm.SegmentOperator
 
 		// check if we've seen this rule before
-		if _, ok := uniqueRules[intermediateStorageRule.ID]; ok {
+		if rule, ok := uniqueRules[intermediateStorageRule.ID]; ok {
 			var constraint *storage.EvaluationConstraint
 			if optionalConstraint.Id.Valid {
 				constraint = &storage.EvaluationConstraint{
@@ -150,7 +150,12 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 					ses.Constraints = []*storage.EvaluationConstraint{constraint}
 				}
 
+				if _, ok := uniqueRuleSegments[intermediateStorageRule.ID]; !ok {
+					uniqueRuleSegments[intermediateStorageRule.ID] = make(map[string]*storage.EvaluationSegment)
+				}
+
 				uniqueRuleSegments[intermediateStorageRule.ID][intermediateStorageRule.SegmentKey] = ses
+				rule.Segments = append(rule.Segments, ses)
 			} else if constraint != nil {
 				segment.Constraints = append(segment.Constraints, constraint)
 			}
@@ -182,6 +187,12 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			if constraint != nil {
 				ses.Constraints = []*storage.EvaluationConstraint{constraint}
 			}
+
+			if _, ok := uniqueRuleSegments[intermediateStorageRule.ID]; !ok {
+				uniqueRuleSegments[intermediateStorageRule.ID] = make(map[string]*storage.EvaluationSegment)
+			}
+
+			uniqueRuleSegments[intermediateStorageRule.ID][intermediateStorageRule.SegmentKey] = ses
 
 			newRule.Segments = append(newRule.Segments, ses)
 
@@ -372,7 +383,8 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 				}
 			}
 
-			if _, ok := uniqueSegmentedRollouts[rolloutId]; ok {
+			// check if we've seen this rollout before
+			if rollout, ok := uniqueSegmentedRollouts[rolloutId]; ok {
 				// check if segment exists and either append constraints to an already existing segment,
 				// or add another segment to the map.
 				es, innerOk := uniqueRolloutSegments[rolloutId][rsSegmentKey.String]
@@ -388,6 +400,22 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 					if constraint != nil {
 						ses.Constraints = []*storage.EvaluationConstraint{constraint}
+					}
+
+					if _, ok := uniqueRolloutSegments[rolloutId]; !ok {
+						uniqueRolloutSegments[rolloutId] = make(map[string]*storage.EvaluationSegment)
+					}
+
+					if rollout.GetSegment() != nil {
+						rollout.GetSegment().Segments = append(rollout.GetSegment().Segments, ses)
+					} else {
+						rollout.Rule = &evaluation.EvaluationRollout_Segment{
+							Segment: &storage.RolloutSegment{
+								Value:           rsSegmentValue.Bool,
+								SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
+								Segments:        []*storage.EvaluationSegment{ses},
+							},
+						}
 					}
 
 					uniqueRolloutSegments[rolloutId][rsSegmentKey.String] = ses
@@ -416,6 +444,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			evaluationRollout.Rule = &evaluation.EvaluationRollout_Segment{
 				Segment: storageSegment,
 			}
+
 			uniqueSegmentedRollouts[rolloutId] = &evaluationRollout
 		}
 
