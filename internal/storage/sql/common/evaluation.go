@@ -326,10 +326,10 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 	var (
 		// rolloutId -> rollout
-		uniqueSegmentedRollouts = make(map[string]*storage.EvaluationRollout)
+		uniqueEvaluationRollouts = make(map[string]*storage.EvaluationRollout)
 		// rolloutId -> segmentKey -> segment
-		uniqueRolloutSegments = make(map[string]map[string]*storage.EvaluationSegment)
-		rollouts              = []*storage.EvaluationRollout{}
+		uniqueEvaluationRolloutsSegments = make(map[string]map[string]*storage.EvaluationSegment)
+		evaluationRollouts               = []*storage.EvaluationRollout{}
 	)
 
 	for rows.Next() {
@@ -360,7 +360,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			&optionalConstraint.Operator,
 			&optionalConstraint.Value,
 		); err != nil {
-			return rollouts, err
+			return evaluationRollouts, err
 		}
 
 		if rtPercentageNumber.Valid && rtPercentageValue.Valid {
@@ -387,76 +387,77 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			}
 
 			// check if we've seen this rollout before
-			if rollout, ok := uniqueSegmentedRollouts[rolloutId]; ok {
+			if rollout, ok := uniqueEvaluationRollouts[rolloutId]; ok {
 				// check if segment exists and either append constraints to an already existing segment,
 				// or add another segment to the map.
-				es, innerOk := uniqueRolloutSegments[rolloutId][rsSegmentKey.String]
-				if innerOk {
+				if segment, ok := uniqueEvaluationRolloutsSegments[rolloutId][rsSegmentKey.String]; ok {
 					if constraint != nil {
-						es.Constraints = append(es.Constraints, constraint)
+						segment.Constraints = append(segment.Constraints, constraint)
 					}
 				} else {
-					ses := &storage.EvaluationSegment{
+					segment := &storage.EvaluationSegment{
 						Key:       rsSegmentKey.String,
 						MatchType: flipt.MatchType(rsMatchType.Int32),
 					}
 
 					if constraint != nil {
-						ses.Constraints = []*storage.EvaluationConstraint{constraint}
+						segment.Constraints = []*storage.EvaluationConstraint{constraint}
 					}
 
-					if _, ok := uniqueRolloutSegments[rolloutId]; !ok {
-						uniqueRolloutSegments[rolloutId] = make(map[string]*storage.EvaluationSegment)
+					if _, ok := uniqueEvaluationRolloutsSegments[rolloutId]; !ok {
+						uniqueEvaluationRolloutsSegments[rolloutId] = make(map[string]*storage.EvaluationSegment)
 					}
 
 					if rollout.GetSegment() != nil {
-						rollout.GetSegment().Segments = append(rollout.GetSegment().Segments, ses)
+						rollout.GetSegment().Segments = append(rollout.GetSegment().Segments, segment)
 					} else {
 						rollout.Rule = &evaluation.EvaluationRollout_Segment{
 							Segment: &storage.RolloutSegment{
 								Value:           rsSegmentValue.Bool,
 								SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
-								Segments:        []*storage.EvaluationSegment{ses},
+								Segments:        []*storage.EvaluationSegment{segment},
 							},
 						}
 					}
 
-					uniqueRolloutSegments[rolloutId][rsSegmentKey.String] = ses
+					uniqueEvaluationRolloutsSegments[rolloutId][rsSegmentKey.String] = segment
 				}
 
+				// this rollout has already been seen, so we can continue and dont need to add it to the slice
 				continue
 			}
 
-			storageSegment := &storage.RolloutSegment{
-				Value:           rsSegmentValue.Bool,
-				SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
-				Segments:        []*storage.EvaluationSegment{},
-			}
-
-			ses := &storage.EvaluationSegment{
+			// haven't seen this rollout before, so we need to create it and the segment
+			segment := &storage.EvaluationSegment{
 				Key:       rsSegmentKey.String,
 				MatchType: flipt.MatchType(rsMatchType.Int32),
 			}
 
 			if constraint != nil {
-				ses.Constraints = []*storage.EvaluationConstraint{constraint}
+				segment.Constraints = []*storage.EvaluationConstraint{constraint}
 			}
-
-			storageSegment.Segments = append(storageSegment.Segments, ses)
 
 			evaluationRollout.Rule = &evaluation.EvaluationRollout_Segment{
-				Segment: storageSegment,
+				Segment: &storage.RolloutSegment{
+					Value:           rsSegmentValue.Bool,
+					SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
+					Segments:        []*storage.EvaluationSegment{segment},
+				},
 			}
 
-			uniqueSegmentedRollouts[rolloutId] = &evaluationRollout
+			uniqueEvaluationRollouts[rolloutId] = &evaluationRollout
 		}
 
-		rollouts = append(rollouts, &evaluationRollout)
+		evaluationRollouts = append(evaluationRollouts, &evaluationRollout)
 	}
 
 	if err := rows.Err(); err != nil {
-		return rollouts, err
+		return evaluationRollouts, err
 	}
 
-	return rollouts, nil
+	if err := rows.Close(); err != nil {
+		return evaluationRollouts, err
+	}
+
+	return evaluationRollouts, nil
 }
