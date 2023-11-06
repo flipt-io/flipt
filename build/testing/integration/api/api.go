@@ -4,19 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, authenticated bool) {
+func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.TestOpts) {
+	var (
+		namespace     = opts.Namespace
+		authenticated = opts.Authenticated
+		addr          = opts.Addr
+	)
+
 	t.Run("Namespaces", func(t *testing.T) {
 		if !namespaceIsDefault(namespace) {
 			t.Log(`Create namespace.`)
@@ -690,7 +698,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, namespace, rolloutSegment.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", rolloutSegment.FlagKey)
 		assert.Equal(t, int32(1), rolloutSegment.Rank)
-		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
+		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys[0])
 		assert.Equal(t, true, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 		anotherRolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
@@ -710,7 +718,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		assert.Equal(t, namespace, anotherRolloutSegment.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", anotherRolloutSegment.FlagKey)
 		assert.Equal(t, int32(2), anotherRolloutSegment.Rank)
-		assert.Equal(t, "another-segment", anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
+		assert.Equal(t, "another-segment", anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys[0])
 		assert.Equal(t, false, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 		updatedAnotherRolloutSegment, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
@@ -869,7 +877,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			require.NoError(t, err)
 
 			require.True(t, result.Match, "Evaluation should have matched.")
-			assert.Equal(t, "everyone", result.SegmentKey)
+			assert.Equal(t, "everyone", result.SegmentKeys[0])
 			assert.Equal(t, "one", result.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 
@@ -911,7 +919,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 			result := results.Responses[0]
 
 			require.True(t, result.Match, "Evaluation should have matched.")
-			assert.Equal(t, "everyone", result.SegmentKey)
+			assert.Equal(t, "everyone", result.SegmentKeys[0])
 			assert.Equal(t, "one", result.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 
@@ -1062,7 +1070,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 					require.NoError(t, err)
 
 					require.True(t, result.Match, "Evaluation should have matched.")
-					assert.Equal(t, "everyone", result.SegmentKey)
+					assert.Equal(t, "everyone", result.SegmentKeys[0])
 					assert.Equal(t, "one", result.Value)
 					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				})
@@ -1084,7 +1092,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 					require.NoError(t, err)
 
 					require.True(t, result.Match, "Evaluation should have matched.")
-					assert.Equal(t, "everyone", result.SegmentKey)
+					assert.Equal(t, "everyone", result.SegmentKeys[0])
 					assert.Equal(t, "one", result.Value)
 					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				})
@@ -1373,6 +1381,16 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		t.Run("Public", func(t *testing.T) {
 			_, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
 			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Healthcheck", func(t *testing.T) {
+		t.Run("HTTP", func(t *testing.T) {
+			resp, err := http.Get(fmt.Sprintf("http://%s/health", addr))
+			require.NoError(t, err)
+
+			assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
 		})
 	})
 }
