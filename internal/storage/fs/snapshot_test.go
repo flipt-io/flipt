@@ -416,7 +416,16 @@ func (fis *FSIndexSuite) TestGetEvaluationRollouts() {
 			assert.Equal(t, int32(1), rollouts[0].Rank)
 
 			require.NotNil(t, rollouts[0].GetSegment())
-			assert.Contains(t, rollouts[0].GetSegment().Segments, "segment1")
+
+			found := false
+			for _, s := range rollouts[0].GetSegment().Segments {
+				if s.Key == "segment1" {
+					found = true
+					break
+				}
+			}
+
+			assert.True(t, found, "segment1 should be found in the rollout")
 			assert.True(t, rollouts[0].GetSegment().Value, "segment value should be true")
 
 			assert.Equal(t, int32(2), rollouts[1].Rank)
@@ -1308,7 +1317,16 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRollouts() {
 			assert.Equal(t, int32(1), rollouts[0].Rank)
 
 			require.NotNil(t, rollouts[0].GetSegment())
-			assert.Contains(t, rollouts[0].GetSegment().Segments, "segment1")
+
+			found := false
+			for _, s := range rollouts[0].GetSegment().Segments {
+				if s.Key == "segment1" {
+					found = true
+					break
+				}
+			}
+
+			assert.True(t, found, "segment1 should be found in the rollout")
 			assert.True(t, rollouts[0].GetSegment().Value, "segment value should be true")
 
 			assert.Equal(t, int32(2), rollouts[1].Rank)
