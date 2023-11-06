@@ -6,11 +6,6 @@ db:
 
 authentication:
   required: true
-  session:
-    domain: "localhost:8080"
-    secure: false
-    csrf:
-      key: "abcdef1234567890"
   methods:
     token:
       enabled: true
