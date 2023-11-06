@@ -4,19 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/gofrs/uuid"
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/build/testing/integration"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	sdk "go.flipt.io/flipt/sdk/go"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, authenticated bool) {
+func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.TestOpts) {
+	var (
+		namespace     = opts.Namespace
+		authenticated = opts.Authenticated
+		addr          = opts.Addr
+		protocol      = opts.Protocol
+	)
+
 	t.Run("Namespaces", func(t *testing.T) {
 		if !namespaceIsDefault(namespace) {
 			t.Log(`Create namespace.`)
@@ -1373,6 +1382,19 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, namespace string, au
 		t.Run("Public", func(t *testing.T) {
 			_, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
 			require.NoError(t, err)
+		})
+	})
+
+	t.Run("Healthcheck", func(t *testing.T) {
+		if protocol == "grpc" {
+			t.Skip("TODO: we do not support healthcheck test for grpc yet")
+		}
+		t.Run("HTTP", func(t *testing.T) {
+			resp, err := http.Get(fmt.Sprintf("%s/health", addr))
+			require.NoError(t, err)
+
+			assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
 		})
 	})
 }

@@ -10,13 +10,13 @@ import (
 )
 
 func TestAPI(t *testing.T) {
-	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, namespace string, authentication bool) {
+	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, opts integration.TestOpts) {
 		ctx := context.Background()
 
-		api.API(t, ctx, sdk, namespace, authentication)
+		api.API(t, ctx, sdk, opts)
 
 		// run extra tests in authenticated context
-		if authentication {
+		if opts.Authenticated {
 			api.Authenticated(t, sdk)
 		}
 	})
