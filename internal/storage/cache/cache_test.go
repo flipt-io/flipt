@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -37,8 +38,14 @@ func TestGetEvaluationRules(t *testing.T) {
 
 func TestGetEvaluationRulesCached(t *testing.T) {
 	var (
-		expectedRules = []*storage.EvaluationRule{{Id: "123"}}
-		store         = &common.StoreMock{}
+		expectedRules = []*storage.EvaluationRule{{
+			Id:              "123",
+			SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+			Segments: []*storage.EvaluationSegment{{
+				Key: "seg-1",
+			}},
+		}}
+		store = &common.StoreMock{}
 	)
 
 	store.AssertNotCalled(t, "GetEvaluationRules", context.TODO(), "ns", "flag-1")
@@ -46,7 +53,7 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 	var (
 		cacher = &cacheSpy{
 			cached:      true,
-			cachedValue: []byte(`[{"id":"123"}]`),
+			cachedValue: []byte(`[{"id":"123", "segmentOperator": 1, "segments": [{"key": "seg-1"}]}]`),
 		}
 
 		logger      = zaptest.NewLogger(t)

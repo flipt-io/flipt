@@ -28,7 +28,10 @@ func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Sto
 }
 
 func (s *Store) setEvaluationRules(ctx context.Context, key string, values []*storage.EvaluationRule) {
-	marshaller := jsonpb.Marshaler{EmitDefaults: false}
+	marshaller := jsonpb.Marshaler{
+		EmitDefaults: false,
+		EnumsAsInts:  true,
+	}
 
 	var bytes bytes.Buffer
 
