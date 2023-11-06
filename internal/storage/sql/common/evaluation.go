@@ -279,6 +279,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 	rows, err := s.builder.Select(`
 		r.id,
+		r.namespace_key,
 		r."type",
 		r."rank",
 		rt.percentage,
@@ -335,6 +336,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 	for rows.Next() {
 		var (
 			rolloutId          string
+			ns                 string
 			evaluationRollout  storage.EvaluationRollout
 			rtPercentageNumber sql.NullFloat64
 			rtPercentageValue  sql.NullBool
@@ -347,6 +349,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 		if err := rows.Scan(
 			&rolloutId,
+			&ns,
 			&evaluationRollout.Type,
 			&evaluationRollout.Rank,
 			&rtPercentageNumber,
