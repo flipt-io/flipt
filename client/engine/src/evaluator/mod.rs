@@ -433,7 +433,10 @@ impl Evaluator<parsers::FliptParser> {
         let mut constraint_matches: usize = 0;
 
         for constraint in constraints {
-            let value = eval_context.get(&constraint.property).unwrap();
+            let value = match eval_context.get(&constraint.property) {
+                Some(v) => v,
+                None => continue,
+            };
 
             let matched = match constraint.r#type {
                 common::ConstraintComparisonType::String => matches_string(&constraint, &value),
