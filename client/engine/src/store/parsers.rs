@@ -12,7 +12,6 @@ pub struct FliptParser {
     http_url: String,
 }
 
-// TODO(yquansah): Implement network request here for fetching flag state from upstream
 impl Parser for FliptParser {
     fn new(namespaces: Vec<String>) -> Self {
         // We will allow the following line to panic when an error is encountered.
