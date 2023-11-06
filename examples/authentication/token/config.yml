@@ -1,0 +1,22 @@
+log:
+  level: DEBUG
+
+db:
+  url: file:/var/opt/flipt/flipt.db
+
+authentication:
+  required: true
+  session:
+    domain: "localhost:8080"
+    secure: false
+    csrf:
+      key: "abcdef1234567890"
+  methods:
+    token:
+      enabled: true
+      bootstrap:
+        token: "secret"
+        expiration: 24h
+      cleanup:
+        interval: 2h
+        grace_period: 48h

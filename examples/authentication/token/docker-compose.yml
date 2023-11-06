@@ -1,16 +1,6 @@
 version: "3"
 
 services:
-  dex:
-    image: dexidp/dex:latest
-    command: dex serve /etc/dex/config.yml
-    ports:
-      - "5556:5556"
-    volumes:
-      - ./dex-config.yml:/etc/dex/config.yml
-    networks:
-      - flipt_network
-
   flipt:
     image: flipt/flipt:latest
     command: ["./flipt", "--force-migrate"]
