@@ -42,6 +42,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 			Namespace: &flipt.Namespace{ // TODO: should we get from store?
 				Key: namespaceKey,
 			},
+			Flags: make([]*evaluation.EvaluationFlag, 0),
 		}
 		remaining = true
 		nextPage  string
@@ -132,68 +133,70 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 					}
 
 				}
+			}
 
-				if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
-					rollouts, err := srv.store.GetEvaluationRollouts(ctx, namespaceKey, f.Key)
-					if err != nil {
-						return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
+			if f.Type == flipt.FlagType_BOOLEAN_FLAG_TYPE {
+				rollouts, err := srv.store.GetEvaluationRollouts(ctx, namespaceKey, f.Key)
+				if err != nil {
+					return nil, fmt.Errorf("getting rollout rules for flag %q: %w", f.Key, err)
+				}
+
+				for _, r := range rollouts {
+					rollout := &evaluation.EvaluationRollout{
+						Type: r.Type,
+						Rank: r.Rank,
 					}
 
-					for _, r := range rollouts {
-						rollout := &evaluation.EvaluationRollout{
-							Type: r.Type,
-							Rank: r.Rank,
+					switch r.Type {
+					case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
+						rollout.Rule = &evaluation.EvaluationRollout_Threshold{
+							Threshold: &evaluation.EvaluationRolloutThreshold{
+								Percentage: r.GetThreshold().Percentage,
+								Value:      r.GetThreshold().Value,
+							},
 						}
 
-						switch r.Type {
-						case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
-							rollout.Rule = &evaluation.EvaluationRollout_Threshold{
-								Threshold: &evaluation.EvaluationRolloutThreshold{
-									Percentage: r.GetThreshold().Percentage,
-									Value:      r.GetThreshold().Value,
-								},
-							}
+					case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
+						segment := &evaluation.EvaluationRolloutSegment{
+							Value:           r.GetSegment().Value,
+							SegmentOperator: r.GetSegment().SegmentOperator,
+						}
 
-						case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
-							segment := &evaluation.EvaluationRolloutSegment{
-								Value:           r.GetSegment().Value,
-								SegmentOperator: r.GetSegment().SegmentOperator,
-							}
-
-							for _, s := range r.GetSegment().Segments {
-								// optimization: reuse segment if already seen
-								ss, ok := segments[s.Key]
-								if !ok {
-									ss := &evaluation.EvaluationSegment{
-										Key:       s.Key,
-										MatchType: s.MatchType,
-									}
-
-									for _, c := range s.Constraints {
-										ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
-											Id:       c.Id,
-											Type:     c.Type,
-											Property: c.Property,
-											Operator: c.Operator,
-											Value:    c.Value,
-										})
-									}
-
-									segments[s.Key] = ss
+						for _, s := range r.GetSegment().Segments {
+							// optimization: reuse segment if already seen
+							ss, ok := segments[s.Key]
+							if !ok {
+								ss := &evaluation.EvaluationSegment{
+									Key:       s.Key,
+									MatchType: s.MatchType,
 								}
 
-								segment.Segments = append(segment.Segments, ss)
+								for _, c := range s.Constraints {
+									ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
+										Id:       c.Id,
+										Type:     c.Type,
+										Property: c.Property,
+										Operator: c.Operator,
+										Value:    c.Value,
+									})
+								}
+
+								segments[s.Key] = ss
 							}
 
-							rollout.Rule = &evaluation.EvaluationRollout_Segment{
-								Segment: segment,
-							}
+							segment.Segments = append(segment.Segments, ss)
 						}
 
-						flag.Rollouts = append(flag.Rollouts, rollout)
+						rollout.Rule = &evaluation.EvaluationRollout_Segment{
+							Segment: segment,
+						}
 					}
+
+					flag.Rollouts = append(flag.Rollouts, rollout)
 				}
 			}
+
+			resp.Flags = append(resp.Flags, flag)
 		}
 	}
 
