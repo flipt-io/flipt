@@ -133,8 +133,10 @@ func SnapshotFromFiles(files ...fs.File) (*StoreSnapshot, error) {
 				return err
 			}
 
-			buf := &bytes.Buffer{}
-			reader := io.TeeReader(fi, buf)
+			var (
+				buf    = &bytes.Buffer{}
+				reader = io.TeeReader(fi, buf)
+			)
 
 			if err := validator.Validate(stat.Name(), reader); err != nil {
 				return err
@@ -358,7 +360,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 
 			var (
 				segmentKeys = []string{}
-				segments    = []*storage.EvaluationSegment{}
+				segments    = map[string]*storage.EvaluationSegment{}
 			)
 
 			if rule.SegmentKey != "" {
@@ -383,18 +385,20 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					})
 				}
 
-				segments = append(segments, &storage.EvaluationSegment{
+				segments[segmentKey] = &storage.EvaluationSegment{
 					Key:         segmentKey,
 					MatchType:   segment.MatchType,
 					Constraints: evc,
-				})
+				}
 			}
 
 			if rule.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
 				evalRule.SegmentOperator = flipt.SegmentOperator_AND_SEGMENT_OPERATOR
 			}
 
-			evalRule.Segments = segments
+			for _, s := range segments {
+				evalRule.Segments = append(evalRule.Segments, s)
+			}
 
 			evalRules = append(evalRules, evalRule)
 

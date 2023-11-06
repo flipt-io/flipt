@@ -493,7 +493,15 @@ func (fis *FSIndexSuite) TestGetEvaluationRules() {
 			assert.Len(t, rules, 1)
 
 			assert.Equal(t, int32(1), rules[0].Rank)
-			assert.Contains(t, rules[0].Segments, "segment1")
+
+			found := false
+			for _, segment := range rules[0].Segments {
+				if segment.Key == "segment1" {
+					found = true
+					break
+				}
+			}
+			assert.True(t, found, "segment1 should be found in the rule")
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
@@ -1400,7 +1408,16 @@ func (fis *FSWithoutIndexSuite) TestGetEvaluationRules() {
 			assert.Len(t, rules, 1)
 
 			assert.Equal(t, int32(1), rules[0].Rank)
-			assert.Contains(t, rules[0].Segments, "segment1")
+
+			found := false
+			for _, segment := range rules[0].Segments {
+				if segment.Key == "segment1" {
+					found = true
+					break
+				}
+			}
+
+			assert.True(t, found, "segment1 should be found in the rule")
 
 			for i := 0; i < len(tc.constraints); i++ {
 				fc := tc.constraints[i]
