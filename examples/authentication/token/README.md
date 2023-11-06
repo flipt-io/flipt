@@ -2,6 +2,9 @@
 
 This example shows how you can secure your Flipt instance with a static bootstrap token: <https://www.flipt.io/docs/configuration/authentication#method-static-token>
 
+**Note:** You will not be able to use the Flipt UI with this example as it does not support static token authentication. 
+See the [Dex example](../dex/README.md) to see how to configure Flipt to use OIDC for authentication and enable the UI.
+
 ## Requirements
 
 To run this example application you'll need:
