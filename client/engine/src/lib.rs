@@ -36,10 +36,22 @@ impl Engine {
         evaluation_request: &evaluator::EvaluationRequest,
     ) -> evaluator::VariantEvaluationResponse {
         let binding = self.evaluator.clone();
-        let mut lock = binding.lock().unwrap();
+        let lock = binding.lock().unwrap();
 
         let variant_eval_response = lock.variant(evaluation_request);
 
         variant_eval_response.unwrap()
+    }
+
+    pub fn boolean(
+        &self,
+        evaluation_request: &evaluator::EvaluationRequest,
+    ) -> evaluator::BooleanEvaluationResponse {
+        let binding = self.evaluator.clone();
+        let lock = binding.lock().unwrap();
+
+        let boolean_eval_response = lock.boolean(evaluation_request);
+
+        boolean_eval_response.unwrap()
     }
 }
