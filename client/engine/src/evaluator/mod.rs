@@ -77,7 +77,7 @@ impl Evaluator<parsers::FliptParser> {
     }
 
     pub fn replace_snapshot(&mut self) {
-        self.mtx.write().unwrap();
+        let _w_lock = self.mtx.write().unwrap();
         let snap = snapshot::Snapshot::build(&self.flipt_parser);
         self.snapshot = snap.unwrap();
     }
@@ -86,7 +86,7 @@ impl Evaluator<parsers::FliptParser> {
         &self,
         evaluation_request: &EvaluationRequest,
     ) -> VariantEvaluationResult<VariantEvaluationResponse> {
-        self.mtx.read().unwrap();
+        let _r_lock = self.mtx.read().unwrap();
         let flag = match self.snapshot.get_flag(
             &evaluation_request.namespace_key,
             &evaluation_request.flag_key,
@@ -111,7 +111,7 @@ impl Evaluator<parsers::FliptParser> {
         &self,
         evaluation_request: &EvaluationRequest,
     ) -> BooleanEvaluationResult<BooleanEvaluationResponse> {
-        self.mtx.read().unwrap();
+        let _r_lock = self.mtx.read().unwrap();
         let flag = match self.snapshot.get_flag(
             &evaluation_request.namespace_key,
             &evaluation_request.flag_key,
@@ -247,10 +247,10 @@ impl Evaluator<parsers::FliptParser> {
                 if segment_matches < 1 {
                     continue;
                 }
-            } else if rule.segment_operator == common::SegmentOperator::And {
-                if rule.segments.len() != segment_matches {
-                    continue;
-                }
+            } else if rule.segment_operator == common::SegmentOperator::And
+                && rule.segments.len() != segment_matches
+            {
+                continue;
             }
 
             variant_evaluation_response.segment_keys = segment_keys;
@@ -275,7 +275,7 @@ impl Evaluator<parsers::FliptParser> {
                     valid_distributions.push(distribution.clone());
                 }
 
-                if buckets.len() == 0 {
+                if buckets.is_empty() {
                     let bucket = (distribution.rollout * self.percent_multiplier) as i32;
                     buckets.push(bucket);
                 } else {
@@ -286,7 +286,7 @@ impl Evaluator<parsers::FliptParser> {
             }
 
             // no distributions for the rule
-            if valid_distributions.len() == 0 {
+            if valid_distributions.is_empty() {
                 variant_evaluation_response.r#match = true;
                 variant_evaluation_response.reason = common::EvaluationReason::Match;
                 variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
@@ -399,10 +399,10 @@ impl Evaluator<parsers::FliptParser> {
                     if segment_matches < 1 {
                         continue;
                     }
-                } else if segment.segment_operator == common::SegmentOperator::And {
-                    if segment.segments.len() != segment_matches {
-                        continue;
-                    }
+                } else if segment.segment_operator == common::SegmentOperator::And
+                    && segment.segments.len() != segment_matches
+                {
+                    continue;
                 }
 
                 return Ok(BooleanEvaluationResponse {
@@ -415,13 +415,13 @@ impl Evaluator<parsers::FliptParser> {
             }
         }
 
-        return Ok(BooleanEvaluationResponse {
+        Ok(BooleanEvaluationResponse {
             enabled: flag.enabled,
             flag_key: flag.key.clone(),
             reason: common::EvaluationReason::Default,
             request_duration_millis: get_duration(now.elapsed())?,
             timestamp: chrono::offset::Utc::now(),
-        });
+        })
     }
 
     fn matches_constraints(
@@ -439,12 +439,10 @@ impl Evaluator<parsers::FliptParser> {
             };
 
             let matched = match constraint.r#type {
-                common::ConstraintComparisonType::String => matches_string(&constraint, &value),
-                common::ConstraintComparisonType::Number => matches_number(&constraint, &value)?,
-                common::ConstraintComparisonType::Boolean => matches_boolean(&constraint, &value)?,
-                common::ConstraintComparisonType::DateTime => {
-                    matches_datetime(&constraint, &value)?
-                }
+                common::ConstraintComparisonType::String => matches_string(constraint, value),
+                common::ConstraintComparisonType::Number => matches_number(constraint, value)?,
+                common::ConstraintComparisonType::Boolean => matches_boolean(constraint, value)?,
+                common::ConstraintComparisonType::DateTime => matches_datetime(constraint, value)?,
                 _ => {
                     return Ok(false);
                 }
@@ -458,21 +456,19 @@ impl Evaluator<parsers::FliptParser> {
                 } else {
                     continue;
                 }
+            } else if segment_match_type == &common::SegmentMatchType::All {
+                break;
             } else {
-                if segment_match_type == &common::SegmentMatchType::All {
-                    break;
-                } else {
-                    continue;
-                }
+                continue;
             }
         }
 
         let is_match = match segment_match_type {
-            common::SegmentMatchType::All => !(constraints.len() != constraint_matches),
-            common::SegmentMatchType::Any => !(constraints.len() > 0 && constraint_matches == 0),
+            common::SegmentMatchType::All => constraints.len() == constraint_matches,
+            common::SegmentMatchType::Any => constraints.is_empty() || constraint_matches != 0,
         };
 
-        return Ok(is_match);
+        Ok(is_match)
     }
 }
 
@@ -481,10 +477,10 @@ fn matches_string(evaluation_constraint: &models::EvaluationConstraint, v: &str)
 
     match operator {
         "empty" => {
-            return v.len() == 0;
+            return v.is_empty();
         }
         "notempty" => {
-            return v.len() != 0;
+            return !v.is_empty();
         }
         _ => {}
     }
@@ -495,21 +491,11 @@ fn matches_string(evaluation_constraint: &models::EvaluationConstraint, v: &str)
 
     let value = evaluation_constraint.value.as_str();
     match operator {
-        "eq" => {
-            return v == value;
-        }
-        "neq" => {
-            return v != value;
-        }
-        "prefix" => {
-            return v.starts_with(value);
-        }
-        "suffix" => {
-            return v.ends_with(value);
-        }
-        _ => {
-            return false;
-        }
+        "eq" => v == value,
+        "neq" => v != value,
+        "prefix" => v.starts_with(value),
+        "suffix" => v.ends_with(value),
+        _ => false,
     }
 }
 
@@ -521,10 +507,10 @@ fn matches_number(
 
     match operator {
         "notpresent" => {
-            return Ok(v.len() == 0);
+            return Ok(v.is_empty());
         }
         "present" => {
-            return Ok(v.len() != 0);
+            return Ok(!v.is_empty());
         }
         _ => {}
     }
@@ -548,27 +534,13 @@ fn matches_number(
     };
 
     match operator {
-        "eq" => {
-            return Ok(v_number == value_number);
-        }
-        "neq" => {
-            return Ok(v_number != value_number);
-        }
-        "lt" => {
-            return Ok(v_number < value_number);
-        }
-        "lte" => {
-            return Ok(v_number <= value_number);
-        }
-        "gt" => {
-            return Ok(v_number > value_number);
-        }
-        "gte" => {
-            return Ok(v_number >= value_number);
-        }
-        _ => {
-            return Ok(false);
-        }
+        "eq" => Ok(v_number == value_number),
+        "neq" => Ok(v_number != value_number),
+        "lt" => Ok(v_number < value_number),
+        "lte" => Ok(v_number <= value_number),
+        "gt" => Ok(v_number > value_number),
+        "gte" => Ok(v_number >= value_number),
+        _ => Ok(false),
     }
 }
 
@@ -580,10 +552,10 @@ fn matches_boolean(
 
     match operator {
         "notpresent" => {
-            return Ok(v.len() == 0);
+            return Ok(v.is_empty());
         }
         "present" => {
-            return Ok(v.len() != 0);
+            return Ok(!v.is_empty());
         }
         _ => {}
     }
@@ -598,9 +570,9 @@ fn matches_boolean(
     };
 
     match operator {
-        "true" => return Ok(v_bool),
-        "false" => return Ok(!v_bool),
-        _ => return Ok(false),
+        "true" => Ok(v_bool),
+        "false" => Ok(!v_bool),
+        _ => Ok(false),
     }
 }
 
@@ -612,10 +584,10 @@ fn matches_datetime(
 
     match operator {
         "notpresent" => {
-            return Ok(v.len() == 0);
+            return Ok(v.is_empty());
         }
         "present" => {
-            return Ok(v.len() != 0);
+            return Ok(!v.is_empty());
         }
         _ => {}
     }
@@ -624,7 +596,7 @@ fn matches_datetime(
         return Ok(false);
     }
 
-    let d = match DateTime::parse_from_rfc3339(&v) {
+    let d = match DateTime::parse_from_rfc3339(v) {
         Ok(t) => t.timestamp(),
         Err(e) => whatever!("error parsing time {}, err: {}", v, e),
     };
@@ -639,27 +611,13 @@ fn matches_datetime(
     };
 
     match operator {
-        "eq" => {
-            return Ok(d == value);
-        }
-        "neq" => {
-            return Ok(d != value);
-        }
-        "lt" => {
-            return Ok(d < value);
-        }
-        "lte" => {
-            return Ok(d <= value);
-        }
-        "gt" => {
-            return Ok(d > value);
-        }
-        "gte" => {
-            return Ok(d >= value);
-        }
-        _ => {
-            return Ok(false);
-        }
+        "eq" => Ok(d == value),
+        "neq" => Ok(d != value),
+        "lt" => Ok(d < value),
+        "lte" => Ok(d <= value),
+        "gt" => Ok(d > value),
+        "gte" => Ok(d >= value),
+        _ => Ok(false),
     }
 }
 
@@ -672,6 +630,7 @@ fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whate
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::{matches_boolean, matches_datetime, matches_number, matches_string};
     use crate::common;

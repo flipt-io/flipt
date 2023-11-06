@@ -15,7 +15,7 @@ pub struct Snapshot {
 }
 
 struct Namespace {
-    key: String,
+    _key: String,
     flags: HashMap<String, flipt_models::Flag>,
     eval_rules: HashMap<String, Vec<flipt_models::EvaluationRule>>,
     eval_rollouts: HashMap<String, Vec<flipt_models::EvaluationRollout>>,
@@ -83,17 +83,14 @@ impl Snapshot {
 
                 // Flag Rules
                 let mut eval_rules_collection: Vec<flipt_models::EvaluationRule> = Vec::new();
-                let mut idx: usize = 0;
 
                 let flag_rules = flag.rules.unwrap_or(vec![]);
 
-                for rule in flag_rules {
-                    idx += 1;
-
+                for (idx, rule) in flag_rules.into_iter().enumerate() {
                     let rule_id = uuid::Uuid::new_v4().to_string();
                     let mut eval_rule = flipt_models::EvaluationRule {
                         id: rule_id.clone(),
-                        rank: idx.clone(),
+                        rank: idx + 1,
                         flag_key: flag.key.clone(),
                         segments: HashMap::new(),
                         segment_operator: common::SegmentOperator::Or,
@@ -190,7 +187,7 @@ impl Snapshot {
                             threshold: None,
                         };
 
-                    evaluation_rollout.rank = rollout_idx.clone();
+                    evaluation_rollout.rank = rollout_idx;
 
                     if rollout.threshold.is_some() {
                         let threshold = rollout.threshold.unwrap();
@@ -247,7 +244,7 @@ impl Snapshot {
                                 flipt_models::EvaluationSegment {
                                     segment_key: segment.key.clone(),
                                     match_type: segment.match_type.clone(),
-                                    constraints: constraints,
+                                    constraints,
                                 },
                             );
                         }
@@ -258,7 +255,7 @@ impl Snapshot {
                         evaluation_rollout.rollout_type = common::RolloutType::Segment;
                         evaluation_rollout.segment = Some(flipt_models::RolloutSegment {
                             value: segment_rule.value,
-                            segment_operator: segment_operator,
+                            segment_operator,
                             segments: evaluation_rollout_segments,
                         });
                     }
@@ -272,10 +269,10 @@ impl Snapshot {
             ns.insert(
                 n.clone(),
                 Namespace {
-                    key: n.clone(),
-                    flags: flags,
-                    eval_rules: eval_rules,
-                    eval_rollouts: eval_rollouts,
+                    _key: n.clone(),
+                    flags,
+                    eval_rules,
+                    eval_rollouts,
                     eval_distributions: eval_dists,
                 },
             );
@@ -289,7 +286,7 @@ impl Snapshot {
 
         let flag = namespace.flags.get(flag_key)?;
 
-        return Some(flag.clone());
+        Some(flag.clone())
     }
 
     pub fn get_evaluation_rules(
@@ -301,7 +298,7 @@ impl Snapshot {
 
         let eval_rules = namespace.eval_rules.get(flag_key)?;
 
-        return Some(eval_rules.to_vec());
+        Some(eval_rules.to_vec())
     }
 
     pub fn get_evaluation_distributions(
@@ -313,7 +310,7 @@ impl Snapshot {
 
         let evaluation_distributions = namespace.eval_distributions.get(rule_id)?;
 
-        return Some(evaluation_distributions.to_vec());
+        Some(evaluation_distributions.to_vec())
     }
 
     pub fn get_evaluation_rollouts(
@@ -325,15 +322,15 @@ impl Snapshot {
 
         let eval_rollouts = namespace.eval_rollouts.get(flag_key)?;
 
-        return Some(eval_rollouts.to_vec());
+        Some(eval_rollouts.to_vec())
     }
 }
 
-fn find_by_key(key: &str, variants: &Vec<models::Variant>) -> Option<(String, String)> {
-    match variants.iter().find(|&element| element.key == key) {
-        Some(v) => Some((v.key.clone(), v.attachment.clone().unwrap_or_default())),
-        None => None,
-    }
+fn find_by_key(key: &str, variants: &[models::Variant]) -> Option<(String, String)> {
+    variants
+        .iter()
+        .find(|&element| element.key == key)
+        .map(|v| (v.key.clone(), v.attachment.clone().unwrap_or_default()))
 }
 
 #[cfg(test)]

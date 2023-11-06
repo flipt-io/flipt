@@ -16,7 +16,7 @@ pub struct FliptParser {
 impl Parser for FliptParser {
     fn new(namespaces: Vec<String>) -> Self {
         // We will allow the following line to panic when an error is encountered.
-        let client = reqwest::blocking::Client::builder()
+        let http_client = reqwest::blocking::Client::builder()
             .timeout(std::time::Duration::from_secs(10))
             .build()
             .unwrap();
@@ -25,9 +25,9 @@ impl Parser for FliptParser {
             env::var("FLIPT_REMOTE_URL").unwrap_or(String::from("http://localhost:8080"));
 
         Self {
-            namespaces: namespaces,
-            http_client: client,
-            http_url: http_url,
+            namespaces,
+            http_client,
+            http_url,
         }
     }
 
@@ -68,9 +68,7 @@ pub struct TestParser {
 
 impl Parser for TestParser {
     fn new(namespaces: Vec<String>) -> Self {
-        Self {
-            namespaces: namespaces,
-        }
+        Self { namespaces }
     }
 
     fn parse(&self, _: String) -> Result<models::Document, Whatever> {
