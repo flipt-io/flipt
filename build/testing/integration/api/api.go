@@ -698,7 +698,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		assert.Equal(t, namespace, rolloutSegment.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", rolloutSegment.FlagKey)
 		assert.Equal(t, int32(1), rolloutSegment.Rank)
-		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys[0])
+		assert.Equal(t, "everyone", rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
 		assert.Equal(t, true, rolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 		anotherRolloutSegment, err := client.Flipt().CreateRollout(ctx, &flipt.CreateRolloutRequest{
@@ -718,7 +718,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		assert.Equal(t, namespace, anotherRolloutSegment.NamespaceKey)
 		assert.Equal(t, "boolean_disabled", anotherRolloutSegment.FlagKey)
 		assert.Equal(t, int32(2), anotherRolloutSegment.Rank)
-		assert.Equal(t, "another-segment", anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKeys[0])
+		assert.Equal(t, "another-segment", anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.SegmentKey)
 		assert.Equal(t, false, anotherRolloutSegment.Rule.(*flipt.Rollout_Segment).Segment.Value)
 
 		updatedAnotherRolloutSegment, err := client.Flipt().UpdateRollout(ctx, &flipt.UpdateRolloutRequest{
@@ -877,7 +877,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 			require.NoError(t, err)
 
 			require.True(t, result.Match, "Evaluation should have matched.")
-			assert.Equal(t, "everyone", result.SegmentKeys[0])
+			assert.Equal(t, "everyone", result.SegmentKey)
 			assert.Equal(t, "one", result.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 
@@ -919,7 +919,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 			result := results.Responses[0]
 
 			require.True(t, result.Match, "Evaluation should have matched.")
-			assert.Equal(t, "everyone", result.SegmentKeys[0])
+			assert.Equal(t, "everyone", result.SegmentKey)
 			assert.Equal(t, "one", result.Value)
 			assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 
@@ -1070,7 +1070,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 					require.NoError(t, err)
 
 					require.True(t, result.Match, "Evaluation should have matched.")
-					assert.Equal(t, "everyone", result.SegmentKeys[0])
+					assert.Equal(t, "everyone", result.SegmentKey)
 					assert.Equal(t, "one", result.Value)
 					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				})
@@ -1092,7 +1092,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 					require.NoError(t, err)
 
 					require.True(t, result.Match, "Evaluation should have matched.")
-					assert.Equal(t, "everyone", result.SegmentKeys[0])
+					assert.Equal(t, "everyone", result.SegmentKey)
 					assert.Equal(t, "one", result.Value)
 					assert.Equal(t, flipt.EvaluationReason_MATCH_EVALUATION_REASON, result.Reason)
 				})
