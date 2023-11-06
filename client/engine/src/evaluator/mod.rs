@@ -1,17 +1,24 @@
 use chrono::{DateTime, Utc};
 use snafu::{prelude::*, Whatever};
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime, SystemTimeError};
 
 use crate::common;
 use crate::flipt::models;
 use crate::store::parsers;
 use crate::store::snapshot;
+use crate::store::snapshot::Parser;
 
-pub struct Evaluator {
+pub struct Evaluator<T>
+where
+    T: snapshot::Parser,
+{
+    flipt_parser: T,
     snapshot: snapshot::Snapshot,
     percent_multiplier: f32,
     total_bucket_number: i32,
+    mtx: Arc<RwLock<i32>>,
 }
 
 pub struct EvaluationRequest {
@@ -55,22 +62,31 @@ type VariantEvaluationResult<T> = std::result::Result<T, Whatever>;
 
 type BooleanEvaluationResult<T> = std::result::Result<T, Whatever>;
 
-impl Evaluator {
+impl Evaluator<parsers::FliptParser> {
     pub fn new(namespaces: Vec<String>) -> Result<Self, Whatever> {
-        let flipt_parser = <parsers::FliptParser as snapshot::Parser>::new(namespaces);
-        let snap = snapshot::Snapshot::build(flipt_parser)?;
+        let flipt_parser = parsers::FliptParser::new(namespaces.clone());
+        let snap = snapshot::Snapshot::build(&flipt_parser)?;
 
         Ok(Self {
+            flipt_parser,
             snapshot: snap,
             percent_multiplier: 10.0,
             total_bucket_number: 1000,
+            mtx: Arc::new(RwLock::new(0)),
         })
+    }
+
+    pub fn replace_snapshot(&mut self) {
+        self.mtx.write().unwrap();
+        let snap = snapshot::Snapshot::build(&self.flipt_parser);
+        self.snapshot = snap.unwrap();
     }
 
     pub fn variant(
         &self,
         evaluation_request: &EvaluationRequest,
     ) -> VariantEvaluationResult<VariantEvaluationResponse> {
+        self.mtx.read().unwrap();
         let flag = match self.snapshot.get_flag(
             &evaluation_request.namespace_key,
             &evaluation_request.flag_key,
@@ -95,6 +111,7 @@ impl Evaluator {
         &self,
         evaluation_request: &EvaluationRequest,
     ) -> BooleanEvaluationResult<BooleanEvaluationResponse> {
+        self.mtx.read().unwrap();
         let flag = match self.snapshot.get_flag(
             &evaluation_request.namespace_key,
             &evaluation_request.flag_key,

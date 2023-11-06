@@ -1,33 +1,24 @@
 // cargo run --example evaluation
 
-use engine::evaluator;
+use engine::{self, evaluator};
 use std::collections::HashMap;
 
-#[tokio::main]
-async fn main() {
-    let evaluation_engine = evaluator::Evaluator::new(vec!["default".into()]).unwrap();
-
+fn main() {
+    let eng = engine::Engine::new(vec!["default".into()]);
     let mut context: HashMap<String, String> = HashMap::new();
     context.insert("fizz".into(), "buzz".into());
 
-    let variant_result = evaluation_engine
-        .variant(&evaluator::EvaluationRequest {
+    let thread = std::thread::spawn(move || loop {
+        std::thread::sleep(std::time::Duration::from_millis(5000));
+        let variant = eng.variant(&evaluator::EvaluationRequest {
             namespace_key: "default".into(),
             flag_key: "flag1".into(),
-            entity_id: "newentityid".into(),
+            entity_id: "entity".into(),
             context: context.clone(),
-        })
-        .unwrap();
+        });
 
-    let boolean_result = evaluation_engine
-        .boolean(&evaluator::EvaluationRequest {
-            namespace_key: "default".into(),
-            flag_key: "flag1".into(),
-            entity_id: "newentityid".into(),
-            context: context,
-        })
-        .unwrap();
+        println!("variant key {}", variant.variant_key);
+    });
 
-    println!("{}", variant_result.variant_key);
-    println!("{}", boolean_result.enabled);
+    thread.join().expect("current thread panicked");
 }

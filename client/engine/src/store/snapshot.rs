@@ -23,7 +23,7 @@ struct Namespace {
 }
 
 impl Snapshot {
-    pub fn build<T>(parser: T) -> Result<Snapshot, Whatever>
+    pub fn build<T>(parser: &T) -> Result<Snapshot, Whatever>
     where
         T: Parser,
     {
@@ -349,7 +349,7 @@ mod tests {
     fn snapshot_tests() {
         let tp = TestParser::new(vec!["default".into()]);
 
-        let snapshot = match Snapshot::build(tp) {
+        let snapshot = match Snapshot::build(&tp) {
             Ok(s) => s,
             Err(e) => panic!("{}", e),
         };
