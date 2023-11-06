@@ -260,15 +260,22 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 
 	assert.Equal(t, rule1.Id, evaluationRules[0].Id)
 
-	assert.Equal(t, firstSegment.Key, evaluationRules[0].Segments[0].Key)
-	assert.Equal(t, firstSegment.MatchType, evaluationRules[0].Segments[0].MatchType)
-	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Len(t, evaluationRules[0].Segments[0].Constraints, 2)
+	found := 0
 
-	assert.Equal(t, secondSegment.Key, evaluationRules[0].Segments[1].Key)
-	assert.Equal(t, secondSegment.MatchType, evaluationRules[0].Segments[1].MatchType)
+	for _, segment := range evaluationRules[0].Segments {
+		if segment.Key == firstSegment.Key {
+			assert.Equal(t, firstSegment.MatchType, segment.MatchType)
+			assert.Equal(t, 2, len(segment.Constraints))
+			found++
+		} else if segment.Key == secondSegment.Key {
+			assert.Equal(t, secondSegment.MatchType, segment.MatchType)
+			assert.Equal(t, 0, len(segment.Constraints))
+			found++
+		}
+	}
+
+	assert.Equal(t, 2, found)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
-	assert.Len(t, evaluationRules[0].Segments[1].Constraints, 0)
 }
 
 func (s *DBTestSuite) TestGetEvaluationDistributions() {
@@ -758,13 +765,23 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
 	assert.NotNil(t, evaluationRollouts[1].GetSegment())
-
-	assert.Equal(t, firstSegment.Key, evaluationRollouts[1].GetSegment().Segments[0].Key)
 	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, evaluationRollouts[1].GetSegment().SegmentOperator)
-	assert.Len(t, evaluationRollouts[1].GetSegment().Segments[0].Constraints, 1)
 
-	assert.Equal(t, secondSegment.Key, evaluationRollouts[1].GetSegment().Segments[1].Key)
-	assert.Len(t, evaluationRollouts[1].GetSegment().Segments[1].Constraints, 0)
+	found := 0
+
+	for _, segment := range evaluationRollouts[1].GetSegment().Segments {
+		if segment.Key == firstSegment.Key {
+			assert.Equal(t, firstSegment.MatchType, segment.MatchType)
+			assert.Equal(t, 1, len(segment.Constraints))
+			found++
+		} else if segment.Key == secondSegment.Key {
+			assert.Equal(t, secondSegment.MatchType, segment.MatchType)
+			assert.Equal(t, 0, len(segment.Constraints))
+			found++
+		}
+	}
+
+	assert.Equal(t, 2, found)
 }
 
 func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
