@@ -22,6 +22,7 @@ var (
 
 type TestOpts struct {
 	Addr          string
+	Protocol      string
 	Namespace     string
 	Authenticated bool
 }
@@ -60,6 +61,11 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 
 	name := fmt.Sprintf("[Protocol %q; Namespace %q; Authentication %v]", protocol, namespace, authentication)
 	t.Run(name, func(t *testing.T) {
-		fn(t, sdk.New(transport, opts...), TestOpts{*fliptAddr, namespace, authentication})
+		fn(t, sdk.New(transport, opts...), TestOpts{
+			Protocol:      protocol,
+			Addr:          *fliptAddr,
+			Namespace:     namespace,
+			Authenticated: authentication},
+		)
 	})
 }

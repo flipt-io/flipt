@@ -23,6 +23,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		namespace     = opts.Namespace
 		authenticated = opts.Authenticated
 		addr          = opts.Addr
+		protocol      = opts.Protocol
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
@@ -1385,8 +1386,11 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	})
 
 	t.Run("Healthcheck", func(t *testing.T) {
+		if protocol == "grpc" {
+			t.Skip("TODO: we do not support healthcheck test for grpc yet")
+		}
 		t.Run("HTTP", func(t *testing.T) {
-			resp, err := http.Get(fmt.Sprintf("http://%s/health", addr))
+			resp, err := http.Get(fmt.Sprintf("%s/health", addr))
 			require.NoError(t, err)
 
 			assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
