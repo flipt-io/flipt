@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-reqwest = { version = "0.11.22", features = ["json"] }
+reqwest = { version = "0.11.22", features = ["json", "blocking"] }
 tokio = { version = "1.33.0", features = ["full"] }
 serde = { version = "1.0.147", features = ["derive"] }
 serde_json = { version = "1.0.89", features = ["raw_value"] }
