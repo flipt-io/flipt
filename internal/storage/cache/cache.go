@@ -27,7 +27,7 @@ func NewStore(store storage.Store, cacher cache.Cacher, logger *zap.Logger) *Sto
 	return &Store{Store: store, cacher: cacher, logger: logger}
 }
 
-func (s *Store) set(ctx context.Context, key string, values []*storage.EvaluationRule) {
+func (s *Store) setEvaluationRules(ctx context.Context, key string, values []*storage.EvaluationRule) {
 	marshaller := jsonpb.Marshaler{EmitDefaults: false}
 
 	var bytes bytes.Buffer
@@ -49,7 +49,7 @@ func (s *Store) set(ctx context.Context, key string, values []*storage.Evaluatio
 	}
 }
 
-func (s *Store) get(ctx context.Context, key string) (bool, []*storage.EvaluationRule) {
+func (s *Store) getEvaluationRules(ctx context.Context, key string) (bool, []*storage.EvaluationRule) {
 	cachePayload, cacheHit, err := s.cacher.Get(ctx, key)
 	if err != nil {
 		s.logger.Error("getting from storage cache", zap.Error(err))
@@ -82,7 +82,7 @@ func (s *Store) get(ctx context.Context, key string) (bool, []*storage.Evaluatio
 func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey string) ([]*storage.EvaluationRule, error) {
 	cacheKey := fmt.Sprintf(evaluationRulesCacheKeyFmt, namespaceKey, flagKey)
 
-	cacheHit, rules := s.get(ctx, cacheKey)
+	cacheHit, rules := s.getEvaluationRules(ctx, cacheKey)
 	if cacheHit {
 		return rules, nil
 	}
@@ -92,6 +92,6 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 		return nil, err
 	}
 
-	s.set(ctx, cacheKey, rules)
+	s.setEvaluationRules(ctx, cacheKey, rules)
 	return rules, nil
 }
