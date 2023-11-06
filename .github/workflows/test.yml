@@ -19,6 +19,7 @@ jobs:
     name: "Tests (Go)"
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         database: ["mysql", "postgres", "cockroachdb", "sqlite", "libsql"]
     steps:
