@@ -38,10 +38,14 @@ func (srv *Server) RegisterGRPC(server *grpc.Server) {
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
 		namespaceKey = r.Key
-		resp         = &evaluation.EvaluationNamespaceSnapshot{}
-		remaining    = true
-		nextPage     string
-		segments     = make(map[string]*evaluation.EvaluationSegment)
+		resp         = &evaluation.EvaluationNamespaceSnapshot{
+			Namespace: &flipt.Namespace{ // TODO: should we get from store?
+				Key: namespaceKey,
+			},
+		}
+		remaining = true
+		nextPage  string
+		segments  = make(map[string]*evaluation.EvaluationSegment)
 	)
 
 	//  flags/variants in batches
