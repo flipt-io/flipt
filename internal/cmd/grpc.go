@@ -282,10 +282,18 @@ func NewGRPCServer(
 	}
 
 	var (
-		fliptsrv           = fliptserver.New(logger, store)
-		metasrv            = metadata.New(cfg, info)
-		evalsrv            = evaluation.New(logger, store)
-		authOpts           = []containers.Option[auth.InterceptorOptions]{}
+		fliptsrv  = fliptserver.New(logger, store)
+		metasrv   = metadata.New(cfg, info)
+		evalsrv   = evaluation.New(logger, store)
+		healthsrv = health.NewServer()
+	)
+
+	var (
+		// authOpts is a slice of options that will be passed to the authentication service.
+		// it's initialized with the default option of skipping authentication for the health service which should never require authentication.
+		authOpts = []containers.Option[auth.InterceptorOptions]{
+			auth.WithServerSkipsAuthentication(healthsrv),
+		}
 		skipAuthIfExcluded = func(server any, excluded bool) {
 			if excluded {
 				authOpts = append(authOpts, auth.WithServerSkipsAuthentication(server))
@@ -433,13 +441,11 @@ func NewGRPCServer(
 
 	// initialize grpc server
 	server.Server = grpc.NewServer(grpcOpts...)
-
-	healthserver := health.NewServer()
-	grpc_health.RegisterHealthServer(server.Server, healthserver)
+	grpc_health.RegisterHealthServer(server.Server, healthsrv)
 
 	// register grpcServer graceful stop on shutdown
 	server.onShutdown(func(context.Context) error {
-		healthserver.Shutdown()
+		healthsrv.Shutdown()
 		server.GracefulStop()
 		return nil
 	})

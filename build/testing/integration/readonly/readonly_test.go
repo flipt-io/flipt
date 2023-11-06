@@ -17,8 +17,13 @@ import (
 // folder has been loaded into the target instance being tested.
 // It then exercises a bunch of read operations via the provided SDK in the target namespace.
 func TestReadOnly(t *testing.T) {
-	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, namespace string, authenticated bool) {
-		ctx := context.Background()
+	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, opts integration.TestOpts) {
+		var (
+			ctx           = context.Background()
+			namespace     = opts.Namespace
+			authenticated = opts.Authenticated
+		)
+
 		ns, err := sdk.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
 			Key: namespace,
 		})

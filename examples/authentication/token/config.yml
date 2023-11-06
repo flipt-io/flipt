@@ -1,0 +1,17 @@
+log:
+  level: DEBUG
+
+db:
+  url: file:/var/opt/flipt/flipt.db
+
+authentication:
+  required: true
+  methods:
+    token:
+      enabled: true
+      bootstrap:
+        token: "secret"
+        expiration: 24h
+      cleanup:
+        interval: 2h
+        grace_period: 48h
