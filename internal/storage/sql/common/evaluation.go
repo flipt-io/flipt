@@ -326,7 +326,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 
 	var (
 		// rolloutId -> rollout
-		uniqueEvaluationRollouts = make(map[string]*storage.EvaluationRollout)
+		uniqueSegmentedEvaluationRollouts = make(map[string]*storage.EvaluationRollout)
 		// rolloutId -> segmentKey -> segment
 		uniqueEvaluationRolloutsSegments = make(map[string]map[string]*storage.EvaluationSegment)
 		evaluationRollouts               = []*storage.EvaluationRollout{}
@@ -387,7 +387,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			}
 
 			// check if we've seen this rollout before
-			if rollout, ok := uniqueEvaluationRollouts[rolloutId]; ok {
+			if rollout, ok := uniqueSegmentedEvaluationRollouts[rolloutId]; ok {
 				// check if segment exists and either append constraints to an already existing segment,
 				// or add another segment to the map.
 				if segment, ok := uniqueEvaluationRolloutsSegments[rolloutId][rsSegmentKey.String]; ok {
@@ -445,7 +445,13 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 				},
 			}
 
-			uniqueEvaluationRollouts[rolloutId] = &evaluationRollout
+			uniqueSegmentedEvaluationRollouts[rolloutId] = &evaluationRollout
+
+			if _, ok := uniqueEvaluationRolloutsSegments[rolloutId]; !ok {
+				uniqueEvaluationRolloutsSegments[rolloutId] = make(map[string]*storage.EvaluationSegment)
+			}
+
+			uniqueEvaluationRolloutsSegments[rolloutId][rsSegmentKey.String] = segment
 		}
 
 		evaluationRollouts = append(evaluationRollouts, &evaluationRollout)
