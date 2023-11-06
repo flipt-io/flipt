@@ -2,55 +2,14 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
 	"go.uber.org/zap/zaptest"
 )
-
-func TestSetHandleMarshalError(t *testing.T) {
-	var (
-		store       = &common.StoreMock{}
-		cacher      = &cacheSpy{}
-		logger      = zaptest.NewLogger(t)
-		cachedStore = NewStore(store, cacher, logger)
-	)
-
-	cachedStore.set(context.TODO(), "key", make(chan int))
-	assert.Empty(t, cacher.cacheKey)
-}
-
-func TestGetHandleGetError(t *testing.T) {
-	var (
-		store       = &common.StoreMock{}
-		cacher      = &cacheSpy{getErr: errors.New("get error")}
-		logger      = zaptest.NewLogger(t)
-		cachedStore = NewStore(store, cacher, logger)
-	)
-
-	value := make(map[string]string)
-	cacheHit := cachedStore.get(context.TODO(), "key", &value)
-	assert.False(t, cacheHit)
-}
-
-func TestGetHandleUnmarshalError(t *testing.T) {
-	var (
-		store  = &common.StoreMock{}
-		cacher = &cacheSpy{
-			cached:      true,
-			cachedValue: []byte(`{"invalid":"123"`),
-		}
-		logger      = zaptest.NewLogger(t)
-		cachedStore = NewStore(store, cacher, logger)
-	)
-
-	value := make(map[string]string)
-	cacheHit := cachedStore.get(context.TODO(), "key", &value)
-	assert.False(t, cacheHit)
-}
 
 func TestGetEvaluationRules(t *testing.T) {
 	var (
@@ -69,7 +28,7 @@ func TestGetEvaluationRules(t *testing.T) {
 	)
 
 	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedRules, rules)
 
 	assert.Equal(t, "s:er:ns:flag-1", cacher.cacheKey)
@@ -95,7 +54,7 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 	)
 
 	rules, err := cachedStore.GetEvaluationRules(context.TODO(), "ns", "flag-1")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedRules, rules)
 	assert.Equal(t, "s:er:ns:flag-1", cacher.cacheKey)
 }

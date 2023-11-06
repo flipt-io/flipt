@@ -18,5 +18,5 @@ type Cacher interface {
 }
 
 func Key(k string) string {
-	return fmt.Sprintf("flipt:%x", md5.Sum([]byte(k)))
+	return fmt.Sprintf("flipt:v1:%x", md5.Sum([]byte(k)))
 }
