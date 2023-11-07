@@ -30,6 +30,12 @@ import (
 	"oras.land/oras-go/v2/registry/remote"
 )
 
+const (
+	SchemeHTTP  = "http"
+	SchemeHTTPS = "https"
+	SchemeFlipt = "flipt"
+)
+
 // Store is a type which can retrieve Flipt feature files from a target repository and reference
 // Repositories can be local (OCI layout directories on the filesystem) or a remote registry
 type Store struct {
@@ -101,12 +107,12 @@ func ParseReference(repository string) (Reference, error) {
 	// support empty scheme as remote and https
 	if !match {
 		repository = scheme
-		scheme = "https"
+		scheme = SchemeHTTPS
 	}
 
 	if !strings.Contains(repository, "/") {
 		repository = "local/" + repository
-		scheme = "flipt"
+		scheme = SchemeFlipt
 	}
 
 	ref, err := registry.ParseReference(repository)
@@ -115,8 +121,8 @@ func ParseReference(repository string) (Reference, error) {
 	}
 
 	switch scheme {
-	case "http", "https":
-	case "flipt":
+	case SchemeHTTP, SchemeHTTPS:
+	case SchemeFlipt:
 		if ref.Registry != "local" {
 			return Reference{}, fmt.Errorf("unexpected local reference: %q", ref)
 		}
@@ -132,7 +138,7 @@ func ParseReference(repository string) (Reference, error) {
 
 func (s *Store) getTarget(ctx context.Context, ref Reference) (oras.Target, error) {
 	switch ref.Scheme {
-	case "http", "https":
+	case SchemeHTTP, SchemeHTTPS:
 		remote, err := remote.NewRepository(fmt.Sprintf("%s/%s", ref.Registry, ref.Repository))
 		if err != nil {
 			return nil, err
@@ -141,7 +147,7 @@ func (s *Store) getTarget(ctx context.Context, ref Reference) (oras.Target, erro
 		remote.PlainHTTP = ref.Scheme == "http"
 
 		return remote, nil
-	case "flipt":
+	case SchemeFlipt:
 		// build the store once to ensure it is valid
 		bundleDir := path.Join(s.opts.bundleDir, ref.Repository)
 		_, err := oci.New(bundleDir)
