@@ -28,8 +28,13 @@ impl Engine {
 
     fn update(&mut self) {
         let evaluator = self.evaluator.clone();
+        let update_interval = std::env::var("FLIPT_UPDATE_INTERVAL")
+            .unwrap_or("120".into())
+            .parse::<u64>()
+            .unwrap_or(120);
+
         std::thread::spawn(move || loop {
-            std::thread::sleep(std::time::Duration::from_millis(2000));
+            std::thread::sleep(std::time::Duration::from_secs(update_interval));
             let mut lock = evaluator.lock().unwrap();
             lock.replace_snapshot();
         });
