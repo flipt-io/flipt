@@ -1,7 +1,7 @@
 use super::models;
 use crate::common;
 use crate::flipt::models as flipt_models;
-use snafu::{prelude::*, Whatever};
+use snafu::Whatever;
 use std::collections::HashMap;
 
 pub trait Parser {
@@ -33,51 +33,18 @@ impl Snapshot {
             let doc = parser.parse(n.clone())?;
 
             let mut flags: HashMap<String, flipt_models::Flag> = HashMap::new();
-            let mut segments: HashMap<String, flipt_models::Segment> = HashMap::new();
             let mut eval_rules: HashMap<String, Vec<flipt_models::EvaluationRule>> = HashMap::new();
             let mut eval_rollouts: HashMap<String, Vec<flipt_models::EvaluationRollout>> =
                 HashMap::new();
             let mut eval_dists: HashMap<String, Vec<flipt_models::EvaluationDistribution>> =
                 HashMap::new();
 
-            for segment in doc.segments {
-                let mut s = flipt_models::Segment {
-                    key: segment.key,
-                    match_type: segment.match_type,
-                    constraints: Vec::new(),
-                };
-
-                for constraint in segment.constraints {
-                    let c = flipt_models::Constraint {
-                        segment_key: s.key.clone(),
-                        r#type: constraint.r#type,
-                        property: constraint.property,
-                        operator: constraint.operator,
-                        value: constraint.value,
-                    };
-
-                    s.constraints.push(c);
-                }
-
-                segments.insert(s.key.clone(), s);
-            }
-
             for flag in doc.flags {
-                let mut f = flipt_models::Flag {
+                let f = flipt_models::Flag {
                     key: flag.key.clone(),
                     enabled: flag.enabled,
-                    variants: Vec::new(),
                     r#type: flag.r#type.unwrap_or(common::FlagType::Variant),
                 };
-
-                let variants = flag.variants.unwrap_or(Vec::new());
-
-                for variant in &variants {
-                    f.variants.push(flipt_models::Variant {
-                        key: variant.key.clone(),
-                        attachment: variant.attachment.clone().unwrap_or(String::from("")),
-                    })
-                }
 
                 flags.insert(f.key.clone(), f);
 
@@ -93,72 +60,43 @@ impl Snapshot {
                         rank: idx + 1,
                         flag_key: flag.key.clone(),
                         segments: HashMap::new(),
-                        segment_operator: common::SegmentOperator::Or,
+                        segment_operator: rule.segment_operator,
                     };
 
-                    let mut segment_keys: Vec<String> = Vec::new();
-                    let mut segment_operator = common::SegmentOperator::Or;
-
-                    if rule.segment.is_some() {
-                        let segment_key = rule.segment.unwrap();
-                        segment_keys.push(segment_key);
-                    } else if rule.segments.is_some() {
+                    if rule.segments.is_some() {
                         let rule_segments = rule.segments.unwrap();
 
-                        for segment_key in rule_segments.keys {
-                            segment_keys.push(segment_key);
+                        for rule_segment in rule_segments {
+                            let mut eval_constraints: Vec<flipt_models::EvaluationConstraint> =
+                                Vec::new();
+                            for constraint in rule_segment.constraints {
+                                eval_constraints.push(flipt_models::EvaluationConstraint {
+                                    r#type: constraint.r#type,
+                                    property: constraint.property,
+                                    operator: constraint.operator,
+                                    value: constraint.value,
+                                });
+                            }
+
+                            eval_rule.segments.insert(
+                                rule_segment.key.clone(),
+                                flipt_models::EvaluationSegment {
+                                    segment_key: rule_segment.key,
+                                    match_type: rule_segment.match_type,
+                                    constraints: eval_constraints,
+                                },
+                            );
                         }
-
-                        segment_operator = rule_segments
-                            .segment_operator
-                            .unwrap_or(common::SegmentOperator::Or);
-                    }
-
-                    for s in segment_keys {
-                        let segment = match segments.get(&s) {
-                            Some(s) => s,
-                            None => whatever!("unknown segment reference: {}", s.clone()),
-                        };
-
-                        let mut eval_constraints: Vec<flipt_models::EvaluationConstraint> =
-                            Vec::new();
-                        for constraint in segment.constraints.iter() {
-                            eval_constraints.push(flipt_models::EvaluationConstraint {
-                                r#type: constraint.r#type.clone(),
-                                property: constraint.property.clone(),
-                                operator: constraint.operator.clone(),
-                                value: constraint.value.clone(),
-                            })
-                        }
-
-                        eval_rule.segment_operator = segment_operator.clone();
-
-                        eval_rule.segments.insert(
-                            s.clone(),
-                            flipt_models::EvaluationSegment {
-                                segment_key: s.clone(),
-                                match_type: segment.match_type.clone(),
-                                constraints: eval_constraints,
-                            },
-                        );
                     }
 
                     let mut evaluation_distributions: Vec<flipt_models::EvaluationDistribution> =
                         Vec::new();
 
                     for distribution in rule.distributions {
-                        let variant_pair = match find_by_key(&distribution.variant, &variants) {
-                            Some(tup) => tup,
-                            None => whatever!(
-                                "unknown variant reference: {}",
-                                distribution.variant.clone()
-                            ),
-                        };
-
                         evaluation_distributions.push(flipt_models::EvaluationDistribution {
                             rule_id: rule_id.clone(),
-                            variant_key: variant_pair.0,
-                            variant_attachment: variant_pair.1,
+                            variant_key: distribution.variant_key,
+                            variant_attachment: distribution.variant_attachment,
                             rollout: distribution.rollout,
                         })
                     }
@@ -205,57 +143,34 @@ impl Snapshot {
 
                         let segment_rule = rollout.segment.unwrap();
 
-                        let mut segment_keys: Vec<String> = Vec::new();
-
-                        if segment_rule.key.is_some() {
-                            let s_key = segment_rule.key.unwrap();
-                            if !s_key.is_empty() {
-                                segment_keys.push(s_key);
-                            }
-                        } else if segment_rule.keys.is_some() {
-                            let s_keys = segment_rule.keys.unwrap();
-
-                            for key in s_keys {
-                                segment_keys.push(key);
-                            }
-                        }
-
-                        for segment_key in segment_keys {
-                            let segment = match segments.get(&segment_key) {
-                                Some(s) => s,
-                                None => {
-                                    whatever!("unknown segment reference: {}", segment_key.clone())
-                                }
-                            };
-
+                        for segment in segment_rule.segments {
                             let mut constraints: Vec<flipt_models::EvaluationConstraint> =
                                 Vec::new();
-                            for constraint in &segment.constraints {
+                            for constraint in segment.constraints {
                                 constraints.push(flipt_models::EvaluationConstraint {
-                                    r#type: constraint.r#type.clone(),
-                                    property: constraint.property.clone(),
-                                    value: constraint.value.clone(),
-                                    operator: constraint.operator.clone(),
-                                })
+                                    r#type: constraint.r#type,
+                                    property: constraint.property,
+                                    value: constraint.value,
+                                    operator: constraint.operator,
+                                });
                             }
 
                             evaluation_rollout_segments.insert(
                                 segment.key.clone(),
                                 flipt_models::EvaluationSegment {
-                                    segment_key: segment.key.clone(),
+                                    segment_key: segment.key,
                                     match_type: segment.match_type.clone(),
                                     constraints,
                                 },
                             );
                         }
 
-                        let segment_operator =
-                            segment_rule.operator.unwrap_or(common::SegmentOperator::Or);
-
                         evaluation_rollout.rollout_type = common::RolloutType::Segment;
                         evaluation_rollout.segment = Some(flipt_models::RolloutSegment {
                             value: segment_rule.value,
-                            segment_operator,
+                            segment_operator: segment_rule
+                                .segment_operator
+                                .unwrap_or(common::SegmentOperator::Or),
                             segments: evaluation_rollout_segments,
                         });
                     }
@@ -326,13 +241,6 @@ impl Snapshot {
     }
 }
 
-fn find_by_key(key: &str, variants: &[models::Variant]) -> Option<(String, String)> {
-    variants
-        .iter()
-        .find(|&element| element.key == key)
-        .map(|v| (v.key.clone(), v.attachment.clone().unwrap_or_default()))
-}
-
 #[cfg(test)]
 mod tests {
     use super::Parser;
@@ -356,7 +264,6 @@ mod tests {
             .expect("flag1 should exist");
 
         assert_eq!(flag_variant.key, "flag1");
-        assert_eq!(flag_variant.variants.len(), 1);
         assert_eq!(flag_variant.enabled, true);
         assert_eq!(flag_variant.r#type, common::FlagType::Variant);
 

@@ -6,7 +6,6 @@ use std::collections::HashMap;
 pub struct Flag {
     pub key: String,
     pub enabled: bool,
-    pub variants: Vec<Variant>,
     pub r#type: common::FlagType,
 }
 
@@ -14,12 +13,6 @@ pub struct Flag {
 pub struct Variant {
     pub key: String,
     pub attachment: String,
-}
-
-pub struct Segment {
-    pub key: String,
-    pub constraints: Vec<Constraint>,
-    pub match_type: common::SegmentMatchType,
 }
 
 #[derive(Clone)]
