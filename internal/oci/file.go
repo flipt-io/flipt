@@ -323,7 +323,6 @@ func (s *Store) Build(ctx context.Context, src fs.FS) (Bundle, error) {
 
 func (s *Store) buildLayers(ctx context.Context, store oras.Target, src fs.FS) (layers []v1.Descriptor, _ error) {
 	if err := storagefs.WalkDocuments(s.logger, src, func(doc *ext.Document) error {
-		fmt.Println(doc)
 		payload, err := json.Marshal(&doc)
 		if err != nil {
 			return err
