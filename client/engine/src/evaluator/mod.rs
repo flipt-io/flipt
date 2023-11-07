@@ -58,6 +58,33 @@ impl EvaluationResponse for VariantEvaluationResponse {}
 impl EvaluationResponse for BooleanEvaluationResponse {}
 impl EvaluationResponse for ErrorEvaluationResponse {}
 
+impl Default for VariantEvaluationResponse {
+    fn default() -> Self {
+        Self {
+            r#match: false,
+            segment_keys: Vec::new(),
+            reason: common::EvaluationReason::Unknown,
+            flag_key: String::from(""),
+            variant_key: String::from(""),
+            variant_attachment: String::from(""),
+            request_duration_millis: 0.0,
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+}
+
+impl Default for BooleanEvaluationResponse {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            flag_key: String::from(""),
+            reason: common::EvaluationReason::Unknown,
+            request_duration_millis: 0.0,
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+}
+
 type VariantEvaluationResult<T> = std::result::Result<T, Whatever>;
 
 type BooleanEvaluationResult<T> = std::result::Result<T, Whatever>;
@@ -189,14 +216,8 @@ impl Evaluator<parsers::FliptParser> {
         let mut last_rank = 0;
 
         let mut variant_evaluation_response = VariantEvaluationResponse {
-            r#match: false,
-            segment_keys: Vec::new(),
-            reason: common::EvaluationReason::Unknown,
             flag_key: flag.key.clone(),
-            variant_key: String::from(""),
-            variant_attachment: String::from(""),
-            request_duration_millis: 0.0,
-            timestamp: chrono::offset::Utc::now(),
+            ..Default::default()
         };
 
         if !flag.enabled {
