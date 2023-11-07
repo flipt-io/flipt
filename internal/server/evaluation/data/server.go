@@ -35,11 +35,65 @@ func (srv *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterDataServiceServer(server, srv)
 }
 
+func toEvaluationFlagType(f flipt.FlagType) evaluation.EvaluationFlagType {
+	switch f {
+	case flipt.FlagType_BOOLEAN_FLAG_TYPE:
+		return evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE
+	case flipt.FlagType_VARIANT_FLAG_TYPE:
+		return evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE
+	}
+	return evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE
+}
+
+func toEvaluationSegmentMatchType(s flipt.MatchType) evaluation.EvaluationSegmentMatchType {
+	switch s {
+	case flipt.MatchType_ANY_MATCH_TYPE:
+		return evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE
+	case flipt.MatchType_ALL_MATCH_TYPE:
+		return evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE
+	}
+	return evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE
+}
+
+func toEvaluationSegmentOperator(s flipt.SegmentOperator) evaluation.EvaluationSegmentOperator {
+	switch s {
+	case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+		return evaluation.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
+	case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+		return evaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR
+	}
+	return evaluation.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR
+}
+
+func toEvaluationConstraintComparisonType(c flipt.ComparisonType) evaluation.EvaluationConstraintComparisonType {
+	switch c {
+	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
+		return evaluation.EvaluationConstraintComparisonType_STRING_COMPARISON_TYPE
+	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
+		return evaluation.EvaluationConstraintComparisonType_NUMBER_COMPARISON_TYPE
+	case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+		return evaluation.EvaluationConstraintComparisonType_DATETIME_COMPARISON_TYPE
+	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
+		return evaluation.EvaluationConstraintComparisonType_BOOLEAN_COMPARISON_TYPE
+	}
+	return evaluation.EvaluationConstraintComparisonType_UNKNOWN_COMPARISON_TYPE
+}
+
+func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutType {
+	switch r {
+	case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
+		return evaluation.EvaluationRolloutType_THRESHOLD_ROLLOUT_TYPE
+	case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
+		return evaluation.EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE
+	}
+	return evaluation.EvaluationRolloutType_UNKNOWN_ROLLOUT_TYPE
+}
+
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
 		namespaceKey = r.Key
 		resp         = &evaluation.EvaluationNamespaceSnapshot{
-			Namespace: &flipt.Namespace{ // TODO: should we get from store?
+			Namespace: &evaluation.EvaluationNamespace{ // TODO: should we get from store?
 				Key: namespaceKey,
 			},
 			Flags: make([]*evaluation.EvaluationFlag, 0),
@@ -70,7 +124,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 				Name:        f.Name,
 				Description: f.Description,
 				Enabled:     f.Enabled,
-				Type:        f.Type,
+				Type:        toEvaluationFlagType(f.Type),
 				CreatedAt:   f.CreatedAt,
 				UpdatedAt:   f.UpdatedAt,
 			}
@@ -85,7 +139,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 					rule := &evaluation.EvaluationRule{
 						Id:              r.ID,
 						Rank:            r.Rank,
-						SegmentOperator: r.SegmentOperator,
+						SegmentOperator: toEvaluationSegmentOperator(r.SegmentOperator),
 					}
 
 					for _, s := range r.Segments {
@@ -96,13 +150,13 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 							ss := &evaluation.EvaluationSegment{
 								Key:       s.SegmentKey,
-								MatchType: s.MatchType,
+								MatchType: toEvaluationSegmentMatchType(s.MatchType),
 							}
 
 							for _, c := range s.Constraints {
 								ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
 									Id:       c.ID,
-									Type:     c.Type,
+									Type:     toEvaluationConstraintComparisonType(c.Type),
 									Property: c.Property,
 									Operator: c.Operator,
 									Value:    c.Value,
@@ -143,7 +197,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 
 				for _, r := range rollouts {
 					rollout := &evaluation.EvaluationRollout{
-						Type: r.RolloutType,
+						Type: toEvaluationRolloutType(r.RolloutType),
 						Rank: r.Rank,
 					}
 
@@ -159,7 +213,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 					case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
 						segment := &evaluation.EvaluationRolloutSegment{
 							Value:           r.Segment.Value,
-							SegmentOperator: r.Segment.SegmentOperator,
+							SegmentOperator: toEvaluationSegmentOperator(r.Segment.SegmentOperator),
 						}
 
 						for _, s := range r.Segment.Segments {
@@ -168,13 +222,13 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 							if !ok {
 								ss := &evaluation.EvaluationSegment{
 									Key:       s.SegmentKey,
-									MatchType: s.MatchType,
+									MatchType: toEvaluationSegmentMatchType(s.MatchType),
 								}
 
 								for _, c := range s.Constraints {
 									ss.Constraints = append(ss.Constraints, &evaluation.EvaluationConstraint{
 										Id:       c.ID,
-										Type:     c.Type,
+										Type:     toEvaluationConstraintComparisonType(c.Type),
 										Property: c.Property,
 										Operator: c.Operator,
 										Value:    c.Value,

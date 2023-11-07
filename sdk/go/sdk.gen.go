@@ -12,8 +12,8 @@ import (
 
 type Transport interface {
 	AuthClient() AuthClient
-	FliptClient() flipt.FliptClient
 	EvaluationClient() evaluation.EvaluationServiceClient
+	FliptClient() flipt.FliptClient
 	MetaClient() meta.MetadataServiceClient
 }
 
@@ -73,16 +73,16 @@ func (s SDK) Auth() *Auth {
 	}
 }
 
-func (s SDK) Flipt() *Flipt {
-	return &Flipt{
-		transport:     s.transport.FliptClient(),
+func (s SDK) Evaluation() *Evaluation {
+	return &Evaluation{
+		transport:     s.transport.EvaluationClient(),
 		tokenProvider: s.tokenProvider,
 	}
 }
 
-func (s SDK) Evaluation() *Evaluation {
-	return &Evaluation{
-		transport:     s.transport.EvaluationClient(),
+func (s SDK) Flipt() *Flipt {
+	return &Flipt{
+		transport:     s.transport.FliptClient(),
 		tokenProvider: s.tokenProvider,
 	}
 }
