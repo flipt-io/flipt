@@ -13,6 +13,7 @@ import (
 	"go.flipt.io/flipt/internal/server/metrics"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
@@ -134,12 +135,12 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 		}
 
 		switch rule.SegmentOperator {
-		case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+		case evaluation.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR:
 			if segmentMatches < 1 {
 				e.logger.Debug("did not match ANY segments")
 				continue
 			}
-		case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+		case evaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR:
 			if len(rule.Segments) != segmentMatches {
 				e.logger.Debug("did not match ALL segments")
 				continue
@@ -219,7 +220,7 @@ func (e *Evaluator) Evaluate(ctx context.Context, flag *flipt.Flag, r *flipt.Eva
 
 // matchConstraints is a utility function that will return if all or any constraints have matched for a segment depending
 // on the match type.
-func matchConstraints(evalCtx map[string]string, constraints []*storage.EvaluationConstraint, segmentMatchType flipt.MatchType) (bool, string, error) {
+func matchConstraints(evalCtx map[string]string, constraints []*storage.EvaluationConstraint, segmentMatchType evaluation.EvaluationSegmentMatchType) (bool, string, error) {
 	constraintMatches := 0
 
 	var reason string
@@ -233,13 +234,13 @@ func matchConstraints(evalCtx map[string]string, constraints []*storage.Evaluati
 		)
 
 		switch c.Type {
-		case flipt.ComparisonType_STRING_COMPARISON_TYPE:
+		case evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE:
 			match = matchesString(c, v)
-		case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
+		case evaluation.EvaluationConstraintComparisonType_NUMBER_CONSTRAINT_COMPARISON_TYPE:
 			match, err = matchesNumber(c, v)
-		case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
+		case evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE:
 			match, err = matchesBool(c, v)
-		case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
+		case evaluation.EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE:
 			match, err = matchesDateTime(c, v)
 		default:
 			return false, reason, errs.ErrInvalid("unknown constraint type")
@@ -254,7 +255,7 @@ func matchConstraints(evalCtx map[string]string, constraints []*storage.Evaluati
 			constraintMatches++
 
 			switch segmentMatchType {
-			case flipt.MatchType_ANY_MATCH_TYPE:
+			case evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE:
 				// can short circuit here since we had at least one match
 				break
 			default:
@@ -264,7 +265,7 @@ func matchConstraints(evalCtx map[string]string, constraints []*storage.Evaluati
 		} else {
 			// no match
 			switch segmentMatchType {
-			case flipt.MatchType_ALL_MATCH_TYPE:
+			case evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE:
 				// we can short circuit because we must match all constraints
 				break
 			default:
@@ -277,13 +278,13 @@ func matchConstraints(evalCtx map[string]string, constraints []*storage.Evaluati
 	var matched = true
 
 	switch segmentMatchType {
-	case flipt.MatchType_ALL_MATCH_TYPE:
+	case evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE:
 		if len(constraints) != constraintMatches {
 			reason = "did not match ALL constraints"
 			matched = false
 		}
 
-	case flipt.MatchType_ANY_MATCH_TYPE:
+	case evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE:
 		if len(constraints) > 0 && constraintMatches == 0 {
 			reason = "did not match ANY constraints"
 			matched = false

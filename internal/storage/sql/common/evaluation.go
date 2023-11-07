@@ -7,14 +7,13 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"go.flipt.io/flipt/internal/storage"
-	flipt "go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/evaluation"
 )
 
 type rule struct {
 	ID              string
 	Rank            int32
-	SegmentOperator flipt.SegmentOperator
+	SegmentOperator evaluation.EvaluationSegmentOperator
 }
 
 type intermediateRule struct {
@@ -22,8 +21,8 @@ type intermediateRule struct {
 	NamespaceKey     string
 	FlagKey          string
 	SegmentKey       string
-	SegmentMatchType flipt.MatchType
-	SegmentOperator  flipt.SegmentOperator
+	SegmentMatchType evaluation.EvaluationSegmentMatchType
+	SegmentOperator  evaluation.EvaluationSegmentOperator
 	Rank             int32
 }
 
@@ -135,7 +134,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			if optionalConstraint.Id.Valid {
 				constraint = &storage.EvaluationConstraint{
 					Id:       optionalConstraint.Id.String,
-					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
+					Type:     evaluation.EvaluationConstraintComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
@@ -176,7 +175,7 @@ func (s *Store) GetEvaluationRules(ctx context.Context, namespaceKey, flagKey st
 			if optionalConstraint.Id.Valid {
 				constraint = &storage.EvaluationConstraint{
 					Id:       optionalConstraint.Id.String,
-					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
+					Type:     evaluation.EvaluationConstraintComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
@@ -379,7 +378,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			var constraint *storage.EvaluationConstraint
 			if optionalConstraint.Type.Valid {
 				constraint = &storage.EvaluationConstraint{
-					Type:     flipt.ComparisonType(optionalConstraint.Type.Int32),
+					Type:     evaluation.EvaluationConstraintComparisonType(optionalConstraint.Type.Int32),
 					Property: optionalConstraint.Property.String,
 					Operator: optionalConstraint.Operator.String,
 					Value:    optionalConstraint.Value.String,
@@ -397,7 +396,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 				} else {
 					segment := &storage.EvaluationSegment{
 						Key:       rsSegmentKey.String,
-						MatchType: flipt.MatchType(rsMatchType.Int32),
+						MatchType: evaluation.EvaluationSegmentMatchType(rsMatchType.Int32),
 					}
 
 					if constraint != nil {
@@ -414,7 +413,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 						rollout.Rule = &evaluation.EvaluationRollout_Segment{
 							Segment: &storage.RolloutSegment{
 								Value:           rsSegmentValue.Bool,
-								SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
+								SegmentOperator: evaluation.EvaluationSegmentOperator(rsSegmentOperator.Int32),
 								Segments:        []*storage.EvaluationSegment{segment},
 							},
 						}
@@ -430,7 +429,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			// haven't seen this rollout before, so we need to create it and the segment
 			segment := &storage.EvaluationSegment{
 				Key:       rsSegmentKey.String,
-				MatchType: flipt.MatchType(rsMatchType.Int32),
+				MatchType: evaluation.EvaluationSegmentMatchType(rsMatchType.Int32),
 			}
 
 			if constraint != nil {
@@ -440,7 +439,7 @@ func (s *Store) GetEvaluationRollouts(ctx context.Context, namespaceKey, flagKey
 			evaluationRollout.Rule = &evaluation.EvaluationRollout_Segment{
 				Segment: &storage.RolloutSegment{
 					Value:           rsSegmentValue.Bool,
-					SegmentOperator: flipt.SegmentOperator(rsSegmentOperator.Int32),
+					SegmentOperator: evaluation.EvaluationSegmentOperator(rsSegmentOperator.Int32),
 					Segments:        []*storage.EvaluationSegment{segment},
 				},
 			}

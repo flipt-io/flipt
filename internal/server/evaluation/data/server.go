@@ -35,11 +35,21 @@ func (srv *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterDataServiceServer(server, srv)
 }
 
+func toEvaluationFlagType(f flipt.FlagType) evaluation.EvaluationFlagType {
+	switch f {
+	case flipt.FlagType_BOOLEAN_FLAG_TYPE:
+		return evaluation.EvaluationFlagType_BOOLEAN_FLAG_TYPE
+	case flipt.FlagType_VARIANT_FLAG_TYPE:
+		return evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE
+	}
+	return evaluation.EvaluationFlagType_VARIANT_FLAG_TYPE
+}
+
 func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluation.EvaluationNamespaceSnapshotRequest) (*evaluation.EvaluationNamespaceSnapshot, error) {
 	var (
 		namespaceKey = r.Key
 		resp         = &evaluation.EvaluationNamespaceSnapshot{
-			Namespace: &flipt.Namespace{ // TODO: should we get from store?
+			Namespace: &evaluation.EvaluationNamespace{ // TODO: should we get from store?
 				Key: namespaceKey,
 			},
 			Flags: make([]*evaluation.EvaluationFlag, 0),
@@ -70,7 +80,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 				Name:        f.Name,
 				Description: f.Description,
 				Enabled:     f.Enabled,
-				Type:        f.Type,
+				Type:        toEvaluationFlagType(f.Type),
 				CreatedAt:   f.CreatedAt,
 				UpdatedAt:   f.UpdatedAt,
 			}
@@ -148,7 +158,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 					}
 
 					switch r.Type {
-					case flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE:
+					case evaluation.EvaluationRolloutType_THRESHOLD_ROLLOUT_TYPE:
 						rollout.Rule = &evaluation.EvaluationRollout_Threshold{
 							Threshold: &evaluation.EvaluationRolloutThreshold{
 								Percentage: r.GetThreshold().Percentage,
@@ -156,7 +166,7 @@ func (srv *Server) EvaluationSnapshotNamespace(ctx context.Context, r *evaluatio
 							},
 						}
 
-					case flipt.RolloutType_SEGMENT_ROLLOUT_TYPE:
+					case evaluation.EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE:
 						segment := &evaluation.EvaluationRolloutSegment{
 							Value:           r.GetSegment().Value,
 							SegmentOperator: r.GetSegment().SegmentOperator,

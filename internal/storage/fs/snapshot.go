@@ -380,20 +380,20 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					evc = append(evc, &storage.EvaluationConstraint{
 						Operator: constraint.Operator,
 						Property: constraint.Property,
-						Type:     constraint.Type,
+						Type:     evaluation.EvaluationConstraintComparisonType(constraint.Type),
 						Value:    constraint.Value,
 					})
 				}
 
 				segments[segmentKey] = &storage.EvaluationSegment{
 					Key:         segmentKey,
-					MatchType:   segment.MatchType,
+					MatchType:   evaluation.EvaluationSegmentMatchType(segment.MatchType),
 					Constraints: evc,
 				}
 			}
 
 			if rule.SegmentOperator == flipt.SegmentOperator_AND_SEGMENT_OPERATOR {
-				evalRule.SegmentOperator = flipt.SegmentOperator_AND_SEGMENT_OPERATOR
+				evalRule.SegmentOperator = evaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR
 			}
 
 			for _, s := range segments {
@@ -455,9 +455,8 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 						Value:      rollout.Threshold.Value,
 					},
 				}
-				s.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
-
-				flagRollout.Type = s.Type
+				s.Type = evaluation.EvaluationRolloutType_THRESHOLD_ROLLOUT_TYPE
+				flagRollout.Type = flipt.RolloutType_THRESHOLD_ROLLOUT_TYPE
 				flagRollout.Rule = &flipt.Rollout_Threshold{
 					Threshold: &flipt.RolloutThreshold{
 						Percentage: rollout.Threshold.Percentage,
@@ -487,14 +486,14 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 						constraints = append(constraints, &storage.EvaluationConstraint{
 							Operator: c.Operator,
 							Property: c.Property,
-							Type:     c.Type,
+							Type:     evaluation.EvaluationConstraintComparisonType(c.Type),
 							Value:    c.Value,
 						})
 					}
 
 					segments = append(segments, &storage.EvaluationSegment{
 						Key:         segmentKey,
-						MatchType:   segment.MatchType,
+						MatchType:   evaluation.EvaluationSegmentMatchType(segment.MatchType),
 						Constraints: constraints,
 					})
 				}
@@ -504,12 +503,12 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 				s.Rule = &evaluation.EvaluationRollout_Segment{
 					Segment: &storage.RolloutSegment{
 						Segments:        segments,
-						SegmentOperator: flipt.SegmentOperator(segmentOperator),
+						SegmentOperator: evaluation.EvaluationSegmentOperator(segmentOperator),
 						Value:           rollout.Segment.Value,
 					},
 				}
 
-				s.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
+				s.Type = evaluation.EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE
 
 				frs := &flipt.RolloutSegment{
 					Value:           rollout.Segment.Value,
@@ -522,7 +521,7 @@ func (ss *StoreSnapshot) addDoc(doc *ext.Document) error {
 					frs.SegmentKeys = segmentKeys
 				}
 
-				flagRollout.Type = s.Type
+				flagRollout.Type = flipt.RolloutType_SEGMENT_ROLLOUT_TYPE
 				flagRollout.Rule = &flipt.Rollout_Segment{
 					Segment: frs,
 				}

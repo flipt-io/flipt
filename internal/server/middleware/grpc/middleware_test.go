@@ -647,12 +647,12 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -660,7 +660,7 @@ func TestCacheUnaryInterceptor_Evaluate(t *testing.T) {
 							// constraint: admin (bool) == true
 							{
 								Id:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
 							},
@@ -802,12 +802,12 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -815,7 +815,7 @@ func TestCacheUnaryInterceptor_Evaluation_Variant(t *testing.T) {
 							// constraint: admin (bool) == true
 							{
 								Id:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
 							},
@@ -950,18 +950,18 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 	store.On("GetEvaluationRollouts", mock.Anything, mock.Anything, "foo").Return(
 		[]*storage.EvaluationRollout{
 			{
-				Type: flipt.RolloutType_SEGMENT_ROLLOUT_TYPE,
+				Type: evaluation.EvaluationRolloutType_SEGMENT_ROLLOUT_TYPE,
 				Rule: &evaluation.EvaluationRollout_Segment{
 					Segment: &storage.RolloutSegment{
 						Segments: []*storage.EvaluationSegment{
 							{
 								Key:       "bar",
-								MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+								MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 								Constraints: []*storage.EvaluationConstraint{
 									// constraint: bar (string) == baz
 									{
 										Id:       "2",
-										Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+										Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 										Property: "bar",
 										Operator: flipt.OpEQ,
 										Value:    "baz",
@@ -969,7 +969,7 @@ func TestCacheUnaryInterceptor_Evaluation_Boolean(t *testing.T) {
 									// constraint: admin (bool) == true
 									{
 										Id:       "3",
-										Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+										Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 										Property: "admin",
 										Operator: flipt.OpTrue,
 									},

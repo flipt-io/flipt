@@ -222,12 +222,12 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
 			}
 
 			switch rollout.GetSegment().SegmentOperator {
-			case flipt.SegmentOperator_OR_SEGMENT_OPERATOR:
+			case rpcevaluation.EvaluationSegmentOperator_OR_SEGMENT_OPERATOR:
 				if segmentMatches < 1 {
 					s.logger.Debug("did not match ANY segments")
 					continue
 				}
-			case flipt.SegmentOperator_AND_SEGMENT_OPERATOR:
+			case rpcevaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR:
 				if len(rollout.GetSegment().Segments) != segmentMatches {
 					s.logger.Debug("did not match ALL segments")
 					continue

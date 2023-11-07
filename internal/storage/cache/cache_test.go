@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/storage"
-	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -40,7 +40,7 @@ func TestGetEvaluationRulesCached(t *testing.T) {
 	var (
 		expectedRules = []*storage.EvaluationRule{{
 			Id:              "123",
-			SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+			SegmentOperator: evaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR,
 			Segments: []*storage.EvaluationSegment{{
 				Key: "seg-1",
 			}},

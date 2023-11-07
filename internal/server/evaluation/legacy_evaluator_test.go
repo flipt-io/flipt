@@ -11,6 +11,7 @@ import (
 	ferrors "go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 )
 
@@ -854,11 +855,11 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -873,11 +874,11 @@ func TestEvaluator_RulesOutOfOrder(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -917,11 +918,11 @@ func TestEvaluator_ErrorParsingNumber(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_NUMBER_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_NUMBER_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "boz",
@@ -960,11 +961,11 @@ func TestEvaluator_ErrorParsingDateTime(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_DATETIME_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "boz",
@@ -1004,11 +1005,11 @@ func TestEvaluator_ErrorGettingDistributions(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1050,11 +1051,11 @@ func TestEvaluator_MatchAll_NoVariants_NoDistributions(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1134,15 +1135,15 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 			{
 				Id:              "1",
 				Rank:            0,
-				SegmentOperator: flipt.SegmentOperator_AND_SEGMENT_OPERATOR,
+				SegmentOperator: evaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR,
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1151,11 +1152,11 @@ func TestEvaluator_MatchAll_MultipleSegments(t *testing.T) {
 					},
 					{
 						Key:       "foo",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "company",
 								Operator: flipt.OpEQ,
 								Value:    "flipt",
@@ -1242,12 +1243,12 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1255,7 +1256,7 @@ func TestEvaluator_DistributionNotMatched(t *testing.T) {
 							// constraint: admin (bool) == true
 							{
 								Id:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
 							},
@@ -1308,12 +1309,12 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1321,7 +1322,7 @@ func TestEvaluator_MatchAll_SingleVariantDistribution(t *testing.T) {
 							// constraint: admin (bool) == true
 							{
 								Id:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
 							},
@@ -1436,12 +1437,12 @@ func TestEvaluator_MatchAll_RolloutDistribution(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1555,12 +1556,12 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "subscribers",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: premium_user (bool) == true
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "premium_user",
 								Operator: flipt.OpTrue,
 							},
@@ -1574,7 +1575,7 @@ func TestEvaluator_MatchAll_RolloutDistribution_MultiRule(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "all_users",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 					},
 				},
 			},
@@ -1631,7 +1632,7 @@ func TestEvaluator_MatchAll_NoConstraints(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 					},
 				},
 			},
@@ -1740,11 +1741,11 @@ func TestEvaluator_MatchAny_NoVariants_NoDistributions(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1827,12 +1828,12 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -1840,7 +1841,7 @@ func TestEvaluator_MatchAny_SingleVariantDistribution(t *testing.T) {
 							// constraint: admin (bool) == true
 							{
 								Id:       "3",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "admin",
 								Operator: flipt.OpTrue,
 							},
@@ -1987,12 +1988,12 @@ func TestEvaluator_MatchAny_RolloutDistribution(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -2106,12 +2107,12 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "subscribers",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: premium_user (bool) == true
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "premium_user",
 								Operator: flipt.OpTrue,
 							},
@@ -2125,12 +2126,12 @@ func TestEvaluator_MatchAny_RolloutDistribution_MultiRule(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "all_users",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: premium_user (bool) == true
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE,
 								Property: "premium_user",
 								Operator: flipt.OpTrue,
 							},
@@ -2191,7 +2192,7 @@ func TestEvaluator_MatchAny_NoConstraints(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 					},
 				},
 			},
@@ -2300,12 +2301,12 @@ func TestEvaluator_FirstRolloutRuleIsZero(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ANY_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ANY_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
@@ -2398,12 +2399,12 @@ func TestEvaluator_MultipleZeroRolloutDistributions(t *testing.T) {
 				Segments: []*storage.EvaluationSegment{
 					{
 						Key:       "bar",
-						MatchType: flipt.MatchType_ALL_MATCH_TYPE,
+						MatchType: evaluation.EvaluationSegmentMatchType_ALL_SEGMENT_MATCH_TYPE,
 						Constraints: []*storage.EvaluationConstraint{
 							// constraint: bar (string) == baz
 							{
 								Id:       "2",
-								Type:     flipt.ComparisonType_STRING_COMPARISON_TYPE,
+								Type:     evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE,
 								Property: "bar",
 								Operator: flipt.OpEQ,
 								Value:    "baz",
