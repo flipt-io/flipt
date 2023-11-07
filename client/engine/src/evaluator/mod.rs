@@ -229,7 +229,7 @@ impl Evaluator<parsers::FliptParser> {
 
             for kv in &rule.segments {
                 let matched = match self.matches_constraints(
-                    &evaluation_request.context.clone(),
+                    &evaluation_request.context,
                     &kv.1.constraints,
                     &kv.1.match_type,
                 ) {
