@@ -151,7 +151,7 @@ func TestStore_Build(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, resp.Matched)
 
-	assert.Len(t, resp.Files, 1)
+	assert.Len(t, resp.Files, 2)
 }
 
 func layer(ns, payload, mediaType string) func(*testing.T, oras.Target) v1.Descriptor {
