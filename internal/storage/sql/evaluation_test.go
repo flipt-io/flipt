@@ -90,14 +90,14 @@ func (s *DBTestSuite) TestGetEvaluationRules() {
 	assert.Equal(t, rule1.Id, evaluationRules[0].Id)
 
 	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[0].Key)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[0].MatchType)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(segment.MatchType), evaluationRules[0].Segments[0].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
 	assert.Len(t, evaluationRules[0].Segments[0].Constraints, 2)
 
 	assert.Equal(t, rule2.Id, evaluationRules[1].Id)
 
 	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[0].Key)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[0].MatchType)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(segment.MatchType), evaluationRules[1].Segments[0].MatchType)
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
 	assert.Len(t, evaluationRules[1].Segments[0].Constraints, 2)
 }
@@ -172,14 +172,14 @@ func (s *DBTestSuite) TestGetEvaluationRules_NoNamespace() {
 	assert.Equal(t, rule1.Id, evaluationRules[0].Id)
 
 	assert.Equal(t, rule1.SegmentKey, evaluationRules[0].Segments[0].Key)
-	assert.Equal(t, segment.MatchType, evaluationRules[0].Segments[0].MatchType)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(segment.MatchType), evaluationRules[0].Segments[0].MatchType)
 	assert.Equal(t, rule1.Rank, evaluationRules[0].Rank)
 	assert.Len(t, evaluationRules[0].Segments[0].Constraints, 2)
 
 	assert.Equal(t, rule2.Id, evaluationRules[1].Id)
 
 	assert.Equal(t, rule2.SegmentKey, evaluationRules[1].Segments[0].Key)
-	assert.Equal(t, segment.MatchType, evaluationRules[1].Segments[0].MatchType)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(segment.MatchType), evaluationRules[1].Segments[0].MatchType)
 	assert.Equal(t, rule2.Rank, evaluationRules[1].Rank)
 	assert.Len(t, evaluationRules[1].Segments[0].Constraints, 2)
 }
@@ -264,11 +264,11 @@ func (s *DBTestSuite) TestGetEvaluationRulesNamespace() {
 
 	for _, segment := range evaluationRules[0].Segments {
 		if segment.Key == firstSegment.Key {
-			assert.Equal(t, firstSegment.MatchType, segment.MatchType)
+			assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(firstSegment.MatchType), segment.MatchType)
 			assert.Equal(t, 2, len(segment.Constraints))
 			found++
 		} else if segment.Key == secondSegment.Key {
-			assert.Equal(t, secondSegment.MatchType, segment.MatchType)
+			assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(secondSegment.MatchType), segment.MatchType)
 			assert.Equal(t, 0, len(segment.Constraints))
 			found++
 		}
@@ -680,7 +680,7 @@ func (s *DBTestSuite) TestGetEvaluationRollouts() {
 	assert.NotNil(t, evaluationRollouts[1].GetSegment())
 
 	assert.Equal(t, evaluationRollouts[1].GetSegment().Segments[0].Key, segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].GetSegment().Segments[0].MatchType)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(segment.MatchType), evaluationRollouts[1].GetSegment().Segments[0].MatchType)
 
 	assert.True(t, evaluationRollouts[1].GetSegment().Value, "segment value is true")
 }
@@ -765,17 +765,17 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NoNamespace() {
 
 	assert.Equal(t, int32(2), evaluationRollouts[1].Rank)
 	assert.NotNil(t, evaluationRollouts[1].GetSegment())
-	assert.Equal(t, flipt.SegmentOperator_AND_SEGMENT_OPERATOR, evaluationRollouts[1].GetSegment().SegmentOperator)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentOperator_AND_SEGMENT_OPERATOR, evaluationRollouts[1].GetSegment().SegmentOperator)
 
 	found := 0
 
 	for _, segment := range evaluationRollouts[1].GetSegment().Segments {
 		if segment.Key == firstSegment.Key {
-			assert.Equal(t, firstSegment.MatchType, segment.MatchType)
+			assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(firstSegment.MatchType), segment.MatchType)
 			assert.Equal(t, 1, len(segment.Constraints))
 			found++
 		} else if segment.Key == secondSegment.Key {
-			assert.Equal(t, secondSegment.MatchType, segment.MatchType)
+			assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(secondSegment.MatchType), segment.MatchType)
 			assert.Equal(t, 0, len(segment.Constraints))
 			found++
 		}
@@ -861,7 +861,7 @@ func (s *DBTestSuite) TestGetEvaluationRollouts_NonDefaultNamespace() {
 	assert.NotNil(t, evaluationRollouts[1].GetSegment())
 
 	assert.Equal(t, evaluationRollouts[1].GetSegment().Segments[0].Key, segment.Key)
-	assert.Equal(t, segment.MatchType, evaluationRollouts[1].GetSegment().Segments[0].MatchType)
+	assert.Equal(t, rpcevaluation.EvaluationSegmentMatchType(segment.MatchType), evaluationRollouts[1].GetSegment().Segments[0].MatchType)
 
 	assert.True(t, evaluationRollouts[1].GetSegment().Value, "segment value is true")
 }
