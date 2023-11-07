@@ -17,7 +17,7 @@ type Flag struct {
 	Name        string     `yaml:"name,omitempty" json:"name,omitempty"`
 	Type        string     `yaml:"type,omitempty" json:"type,omitempty"`
 	Description string     `yaml:"description,omitempty" json:"description,omitempty"`
-	Enabled     bool       `yaml:"enabled" json:"enabled,omitempty"`
+	Enabled     bool       `yaml:"enabled" json:"enabled"`
 	Variants    []*Variant `yaml:"variants,omitempty" json:"variants,omitempty"`
 	Rules       []*Rule    `yaml:"rules,omitempty" json:"rules,omitempty"`
 	Rollouts    []*Rollout `yaml:"rollouts,omitempty" json:"rollouts,omitempty"`

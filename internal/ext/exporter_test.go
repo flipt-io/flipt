@@ -3,10 +3,13 @@ package ext
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
 )
 
@@ -208,7 +211,7 @@ func TestExport(t *testing.T) {
 					},
 				},
 			},
-			path:          "testdata/export.yml",
+			path:          "testdata/export",
 			namespaces:    "default",
 			allNamespaces: false,
 		},
@@ -469,7 +472,7 @@ func TestExport(t *testing.T) {
 					},
 				},
 			},
-			path:          "testdata/export_default_and_foo.yml",
+			path:          "testdata/export_default_and_foo",
 			namespaces:    "default,foo",
 			allNamespaces: false,
 		},
@@ -741,24 +744,47 @@ func TestExport(t *testing.T) {
 					},
 				},
 			},
-			path:          "testdata/export_all_namespaces.yml",
+			path:          "testdata/export_all_namespaces",
 			namespaces:    "",
 			allNamespaces: true,
 		},
 	}
 
 	for _, tc := range tests {
-		var (
-			exporter = NewExporter(tc.lister, tc.namespaces, tc.allNamespaces)
-			b        = new(bytes.Buffer)
-		)
+		tc := tc
+		for _, ext := range extensions {
+			t.Run(fmt.Sprintf("%s (%s)", tc.name, ext), func(t *testing.T) {
+				var (
+					exporter = NewExporter(tc.lister, tc.namespaces, tc.allNamespaces)
+					b        = new(bytes.Buffer)
+				)
 
-		err := exporter.Export(context.Background(), b)
-		assert.NoError(t, err)
+				err := exporter.Export(context.Background(), ext, b)
+				assert.NoError(t, err)
 
-		in, err := os.ReadFile(tc.path)
-		assert.NoError(t, err)
+				in, err := os.ReadFile(tc.path + "." + string(ext))
+				assert.NoError(t, err)
 
-		assert.YAMLEq(t, string(in), b.String())
+				var (
+					expected = ext.NewDecoder(bytes.NewReader(in))
+					found    = ext.NewDecoder(b)
+				)
+
+				// handle newline delimeted JSON
+				for {
+					var exp, fnd any
+					eerr := expected.Decode(&exp)
+					ferr := found.Decode(&fnd)
+					require.Equal(t, eerr, ferr)
+
+					if ferr == io.EOF {
+						break
+					}
+					require.NoError(t, ferr)
+
+					assert.Equal(t, exp, fnd)
+				}
+			})
+		}
 	}
 }

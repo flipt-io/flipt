@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -87,6 +88,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		// default to stdout
 		out    io.Writer = os.Stdout
 		logger           = zap.Must(zap.NewDevelopment())
+		enc              = ext.EncodingYML
 	)
 
 	// export to file
@@ -103,6 +105,11 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		fmt.Fprintf(fi, "# exported by Flipt (%s) on %s\n\n", version, time.Now().UTC().Format(time.RFC3339))
 
 		out = fi
+
+		if extn := filepath.Ext(c.filename); len(extn) > 0 {
+			// strip off the leading .
+			enc = ext.Encoding(extn[1:])
+		}
 	}
 
 	// Use client when remote address is configured.
@@ -111,7 +118,7 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		return c.export(cmd.Context(), out, client)
+		return c.export(cmd.Context(), enc, out, client)
 	}
 
 	// Otherwise, go direct to the DB using Flipt configuration file.
@@ -131,9 +138,9 @@ func (c *exportCommand) run(cmd *cobra.Command, _ []string) error {
 
 	defer cleanup()
 
-	return c.export(cmd.Context(), out, server)
+	return c.export(cmd.Context(), enc, out, server)
 }
 
-func (c *exportCommand) export(ctx context.Context, dst io.Writer, lister ext.Lister) error {
-	return ext.NewExporter(lister, c.namespaces, c.allNamespaces).Export(ctx, dst)
+func (c *exportCommand) export(ctx context.Context, enc ext.Encoding, dst io.Writer, lister ext.Lister) error {
+	return ext.NewExporter(lister, c.namespaces, c.allNamespaces).Export(ctx, enc, dst)
 }
