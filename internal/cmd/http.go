@@ -56,10 +56,11 @@ func NewHTTPServer(
 		}
 		isConsole = cfg.Log.Encoding == config.LogEncodingConsole
 
-		r           = chi.NewRouter()
-		api         = gateway.NewGatewayServeMux(logger)
-		evaluateAPI = gateway.NewGatewayServeMux(logger)
-		httpPort    = cfg.Server.HTTPPort
+		r               = chi.NewRouter()
+		api             = gateway.NewGatewayServeMux(logger)
+		evaluateAPI     = gateway.NewGatewayServeMux(logger)
+		evaluateDataAPI = gateway.NewGatewayServeMux(logger)
+		httpPort        = cfg.Server.HTTPPort
 	)
 
 	if cfg.Server.Protocol == config.HTTPS {
@@ -71,6 +72,10 @@ func NewHTTPServer(
 	}
 
 	if err := evaluation.RegisterEvaluationServiceHandler(ctx, evaluateAPI, conn); err != nil {
+		return nil, fmt.Errorf("registering grpc gateway: %w", err)
+	}
+
+	if err := evaluation.RegisterDataServiceHandler(ctx, evaluateDataAPI, conn); err != nil {
 		return nil, fmt.Errorf("registering grpc gateway: %w", err)
 	}
 
@@ -140,6 +145,7 @@ func NewHTTPServer(
 
 		r.Mount("/api/v1", api)
 		r.Mount("/evaluate/v1", evaluateAPI)
+		r.Mount("/internal/v1", evaluateDataAPI)
 
 		// mount all authentication related HTTP components
 		// to the chi router.
