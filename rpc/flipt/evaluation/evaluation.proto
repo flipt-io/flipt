@@ -140,7 +140,6 @@ message EvaluationSegment {
   repeated EvaluationConstraint constraints = 7;
 }
 
-
 enum EvaluationFlagType {
   VARIANT_FLAG_TYPE = 0;
   BOOLEAN_FLAG_TYPE = 1;
@@ -157,7 +156,6 @@ message EvaluationFlag {
   repeated EvaluationRule rules = 8;
   repeated EvaluationRollout rollouts = 9;
 }
-
 
 enum EvaluationConstraintComparisonType {
   UNKNOWN_COMPARISON_TYPE = 0;
