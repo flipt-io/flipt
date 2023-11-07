@@ -10,14 +10,16 @@ use crate::store::parsers;
 use crate::store::snapshot;
 use crate::store::snapshot::Parser;
 
+const DEFAULT_PERCENT: f32 = 100.0;
+const DEFAULT_TOTAL_BUCKET_NUMBER: i32 = 1000;
+const DEFAULT_PERCENT_MULTIPIER: f32 = DEFAULT_TOTAL_BUCKET_NUMBER as f32 / DEFAULT_PERCENT;
+
 pub struct Evaluator<T>
 where
     T: snapshot::Parser,
 {
     flipt_parser: T,
     snapshot: snapshot::Snapshot,
-    percent_multiplier: f32,
-    total_bucket_number: i32,
     mtx: Arc<RwLock<i32>>,
 }
 
@@ -85,6 +87,15 @@ impl Default for BooleanEvaluationResponse {
     }
 }
 
+impl Default for ErrorEvaluationResponse {
+    fn default() -> Self {
+        Self {
+            flag_key: String::from(""),
+            reason: common::ErrorEvaluationReason::Unknown,
+        }
+    }
+}
+
 type VariantEvaluationResult<T> = std::result::Result<T, Whatever>;
 
 type BooleanEvaluationResult<T> = std::result::Result<T, Whatever>;
@@ -97,8 +108,6 @@ impl Evaluator<parsers::FliptParser> {
         Ok(Self {
             flipt_parser,
             snapshot: snap,
-            percent_multiplier: 10.0,
-            total_bucket_number: 1000,
             mtx: Arc::new(RwLock::new(0)),
         })
     }
@@ -297,11 +306,11 @@ impl Evaluator<parsers::FliptParser> {
                 }
 
                 if buckets.is_empty() {
-                    let bucket = (distribution.rollout * self.percent_multiplier) as i32;
+                    let bucket = (distribution.rollout * DEFAULT_PERCENT_MULTIPIER) as i32;
                     buckets.push(bucket);
                 } else {
                     let bucket = buckets[buckets.len() - 1]
-                        + (distribution.rollout * self.percent_multiplier) as i32;
+                        + (distribution.rollout * DEFAULT_PERCENT_MULTIPIER) as i32;
                     buckets.push(bucket);
                 }
             }
@@ -321,7 +330,7 @@ impl Evaluator<parsers::FliptParser> {
                 )
                 .as_bytes(),
             ) as i32
-                % self.total_bucket_number;
+                % DEFAULT_TOTAL_BUCKET_NUMBER;
 
             buckets.sort();
 
