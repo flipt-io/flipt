@@ -12,6 +12,7 @@ import (
 	"go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
+	"go.flipt.io/flipt/rpc/flipt/evaluation"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -279,6 +280,114 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				handler,
 			)
 			require.Equal(t, test.expectedErr, err)
+		})
+	}
+}
+
+func TestNamespaceMatchingInterceptor(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		authReq     *auth.CreateAuthenticationRequest
+		req         any
+		wantCalled  bool
+		expectedErr error
+	}{
+		{
+			name: "successful namespace match",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo",
+			},
+			wantCalled: true,
+		},
+		{
+			name: "not a token authentication",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_OIDC,
+				Metadata: map[string]string{
+					"io.flipt.auth.github.sub": "foo",
+				},
+			},
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo",
+			},
+			wantCalled: true,
+		},
+		{
+			name: "namespace does not match",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "bar",
+				},
+			},
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo",
+			},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "namespace not provided by token authentication",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+			},
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo",
+			},
+			wantCalled: true,
+		},
+		{
+			name: "namespace not provided by request",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req:         &evaluation.EvaluationRequest{},
+			expectedErr: errUnauthenticated,
+		},
+	} {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			var (
+				logger        = zaptest.NewLogger(t)
+				authenticator = memory.NewStore()
+			)
+
+			clientToken, storedAuth, err := authenticator.CreateAuthentication(
+				context.TODO(),
+				tt.authReq,
+			)
+
+			require.NoError(t, err)
+
+			var (
+				ctx     = ContextWithAuthentication(context.Background(), storedAuth)
+				handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+					assert.True(t, tt.wantCalled)
+					return nil, nil
+				}
+
+				info = &grpc.UnaryServerInfo{
+					FullMethod: "FooMethod",
+				}
+
+				unaryInterceptor = NamespaceMatchingInterceptor(logger)
+			)
+
+			ctx = metadata.NewIncomingContext(ctx, metadata.MD{
+				"Authorization": []string{"Bearer " + clientToken},
+			})
+
+			_, err = unaryInterceptor(ctx, tt.req, info, handler)
+			require.Equal(t, tt.expectedErr, err)
 		})
 	}
 }

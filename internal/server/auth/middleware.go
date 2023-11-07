@@ -176,6 +176,49 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 	}
 }
 
+type namespaceKeyer interface {
+	GetNamespaceKey() string
+}
+
+func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		auth := GetAuthenticationFrom(ctx)
+
+		if auth == nil {
+			return handler(ctx, req)
+		}
+
+		// this mechanism only applies to static toke authentications
+		if auth.Method != authrpc.Method_METHOD_TOKEN {
+			return handler(ctx, req)
+		}
+
+		namespace, ok := auth.Metadata["io.flipt.auth.token.namespace"]
+		if !ok {
+			return handler(ctx, req)
+		}
+
+		namespace = strings.TrimSpace(namespace)
+
+		if namespace == "" {
+			return handler(ctx, req)
+		}
+
+		if nsReq, ok := req.(namespaceKeyer); ok {
+			reqNamespace := nsReq.GetNamespaceKey()
+			if reqNamespace == "" {
+				reqNamespace = "default"
+			}
+			if reqNamespace != namespace {
+				logger.Error("unauthenticated", zap.String("reason", "namespace is not allowed"))
+				return ctx, errUnauthenticated
+			}
+		}
+
+		return handler(ctx, req)
+	}
+}
+
 func clientTokenFromMetadata(md metadata.MD) (string, error) {
 	if authenticationHeader := md.Get(authenticationHeaderKey); len(authenticationHeader) > 0 {
 		return clientTokenFromAuthorization(authenticationHeader[0])
