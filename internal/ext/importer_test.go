@@ -693,7 +693,7 @@ func TestImport(t *testing.T) {
 				assert.NoError(t, err)
 				defer in.Close()
 
-				err = importer.Import(context.Background(), Encoding(ext), in)
+				err = importer.Import(context.Background(), ext, in)
 				assert.NoError(t, err)
 
 				assert.Equal(t, tc.expected, creator)
@@ -728,7 +728,7 @@ func TestImport_InvalidVersion(t *testing.T) {
 		assert.NoError(t, err)
 		defer in.Close()
 
-		err = importer.Import(context.Background(), Encoding(ext), in)
+		err = importer.Import(context.Background(), ext, in)
 		assert.EqualError(t, err, "unsupported version: 5.0")
 	}
 }
@@ -744,7 +744,7 @@ func TestImport_FlagType_LTVersion1_1(t *testing.T) {
 		assert.NoError(t, err)
 		defer in.Close()
 
-		err = importer.Import(context.Background(), Encoding(ext), in)
+		err = importer.Import(context.Background(), ext, in)
 		assert.EqualError(t, err, "flag.type is supported in version >=1.1, found 1.0")
 	}
 }
@@ -760,7 +760,7 @@ func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
 		assert.NoError(t, err)
 		defer in.Close()
 
-		err = importer.Import(context.Background(), Encoding(ext), in)
+		err = importer.Import(context.Background(), ext, in)
 		assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
 	}
 }
@@ -823,7 +823,7 @@ func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
 				assert.NoError(t, err)
 				defer in.Close()
 
-				err = importer.Import(context.Background(), Encoding(ext), in)
+				err = importer.Import(context.Background(), ext, in)
 				assert.NoError(t, err)
 
 				assert.Len(t, creator.getNSReqs, tc.expectedGetNSReqs)

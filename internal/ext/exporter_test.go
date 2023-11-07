@@ -3,6 +3,7 @@ package ext
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -777,7 +778,7 @@ func TestExport(t *testing.T) {
 					ferr := found.Decode(&fnd)
 					require.Equal(t, eerr, ferr)
 
-					if ferr == io.EOF {
+					if errors.Is(ferr, io.EOF) {
 						break
 					}
 					require.NoError(t, ferr)
