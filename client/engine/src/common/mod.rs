@@ -21,24 +21,24 @@ pub enum SegmentOperator {
 #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
 pub enum SegmentMatchType {
     #[default]
-    #[serde(rename = "ANY_MATCH_TYPE")]
+    #[serde(rename = "ANY_SEGMENT_MATCH_TYPE")]
     Any,
-    #[serde(rename = "ALL_MATCH_TYPE")]
+    #[serde(rename = "ALL_SEGMENT_MATCH_TYPE")]
     All,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
 pub enum ConstraintComparisonType {
     #[default]
-    #[serde(rename = "UNKNOWN_COMPARISON_TYPE")]
+    #[serde(rename = "UNKNOWN_CONSTRAINT_COMPARISON_TYPE")]
     Unknown,
-    #[serde(rename = "STRING_COMPARISON_TYPE")]
+    #[serde(rename = "STRING_CONSTRAINT_COMPARISON_TYPE")]
     String,
-    #[serde(rename = "NUMBER_COMPARISON_TYPE")]
+    #[serde(rename = "NUMBER_CONSTRAINT_COMPARISON_TYPE")]
     Number,
-    #[serde(rename = "BOOLEAN_COMPARISON_TYPE")]
+    #[serde(rename = "BOOLEAN_CONSTRAINT_COMPARISON_TYPE")]
     Boolean,
-    #[serde(rename = "DATETIME_COMPARISON_TYPE")]
+    #[serde(rename = "DATETIME_CONSTRAINT_COMPARISON_TYPE")]
     DateTime,
 }
 
