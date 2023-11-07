@@ -91,11 +91,15 @@ func testSource(t *testing.T) (*Source, oras.Target) {
 		layer("production", `{"namespace":"production"}`, fliptoci.MediaTypeFliptNamespace),
 	)
 
-	store, err := fliptoci.NewStore(zaptest.NewLogger(t), fmt.Sprintf("flipt://local/%s:latest", repo), fliptoci.WithBundleDir(dir))
+	store, err := fliptoci.NewStore(zaptest.NewLogger(t), fliptoci.WithBundleDir(dir))
+	require.NoError(t, err)
+
+	ref, err := fliptoci.ParseReference(fmt.Sprintf("flipt://local/%s:latest", repo))
 	require.NoError(t, err)
 
 	source, err := NewSource(zaptest.NewLogger(t),
 		store,
+		ref,
 		WithPollInterval(time.Second))
 	require.NoError(t, err)
 

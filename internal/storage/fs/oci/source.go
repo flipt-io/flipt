@@ -17,19 +17,22 @@ type Source struct {
 	logger   *zap.Logger
 	interval time.Duration
 
+	store *oci.Store
+	ref   oci.Reference
+
 	curSnap   *storagefs.StoreSnapshot
 	curDigest digest.Digest
-	store     *oci.Store
 }
 
 // NewSource constructs and configures a Source.
 // The source uses the connection and credential details provided to build
 // *storagefs.StoreSnapshot implementations around a target git repository.
-func NewSource(logger *zap.Logger, store *oci.Store, opts ...containers.Option[Source]) (_ *Source, err error) {
+func NewSource(logger *zap.Logger, store *oci.Store, ref oci.Reference, opts ...containers.Option[Source]) (_ *Source, err error) {
 	src := &Source{
 		logger:   logger,
 		interval: 30 * time.Second,
 		store:    store,
+		ref:      ref,
 	}
 	containers.ApplyAll(src, opts...)
 
@@ -50,7 +53,7 @@ func (s *Source) String() string {
 
 // Get builds a single instance of an *storagefs.StoreSnapshot
 func (s *Source) Get(context.Context) (*storagefs.StoreSnapshot, error) {
-	resp, err := s.store.Fetch(context.Background(), oci.IfNoMatch(s.curDigest))
+	resp, err := s.store.Fetch(context.Background(), s.ref, oci.IfNoMatch(s.curDigest))
 	if err != nil {
 		return nil, err
 	}
