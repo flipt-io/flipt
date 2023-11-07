@@ -117,7 +117,7 @@ func ParseReference(repository string) (Reference, error) {
 
 	ref, err := registry.ParseReference(repository)
 	if err != nil {
-		return Reference{}, nil
+		return Reference{}, err
 	}
 
 	switch scheme {
@@ -136,7 +136,7 @@ func ParseReference(repository string) (Reference, error) {
 	}, nil
 }
 
-func (s *Store) getTarget(ctx context.Context, ref Reference) (oras.Target, error) {
+func (s *Store) getTarget(ref Reference) (oras.Target, error) {
 	switch ref.Scheme {
 	case SchemeHTTP, SchemeHTTPS:
 		remote, err := remote.NewRepository(fmt.Sprintf("%s/%s", ref.Registry, ref.Repository))
@@ -198,7 +198,7 @@ func (s *Store) Fetch(ctx context.Context, ref Reference, opts ...containers.Opt
 	var options FetchOptions
 	containers.ApplyAll(&options, opts...)
 
-	store, err := s.getTarget(ctx, ref)
+	store, err := s.getTarget(ref)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +365,7 @@ func (s *Store) List(ctx context.Context) (bundles []Bundle, _ error) {
 // Build bundles the target directory Flipt feature state into the target configured on the Store
 // It returns a Bundle which contains metadata regarding the resulting bundle details
 func (s *Store) Build(ctx context.Context, src fs.FS, ref Reference) (Bundle, error) {
-	store, err := s.getTarget(ctx, ref)
+	store, err := s.getTarget(ref)
 	if err != nil {
 		return Bundle{}, err
 	}
