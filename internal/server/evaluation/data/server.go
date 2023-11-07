@@ -68,15 +68,15 @@ func toEvaluationSegmentOperator(s flipt.SegmentOperator) evaluation.EvaluationS
 func toEvaluationConstraintComparisonType(c flipt.ComparisonType) evaluation.EvaluationConstraintComparisonType {
 	switch c {
 	case flipt.ComparisonType_STRING_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_STRING_COMPARISON_TYPE
+		return evaluation.EvaluationConstraintComparisonType_STRING_CONSTRAINT_COMPARISON_TYPE
 	case flipt.ComparisonType_NUMBER_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_NUMBER_COMPARISON_TYPE
+		return evaluation.EvaluationConstraintComparisonType_NUMBER_CONSTRAINT_COMPARISON_TYPE
 	case flipt.ComparisonType_DATETIME_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_DATETIME_COMPARISON_TYPE
+		return evaluation.EvaluationConstraintComparisonType_DATETIME_CONSTRAINT_COMPARISON_TYPE
 	case flipt.ComparisonType_BOOLEAN_COMPARISON_TYPE:
-		return evaluation.EvaluationConstraintComparisonType_BOOLEAN_COMPARISON_TYPE
+		return evaluation.EvaluationConstraintComparisonType_BOOLEAN_CONSTRAINT_COMPARISON_TYPE
 	}
-	return evaluation.EvaluationConstraintComparisonType_UNKNOWN_COMPARISON_TYPE
+	return evaluation.EvaluationConstraintComparisonType_UNKNOWN_CONSTRAINT_COMPARISON_TYPE
 }
 
 func toEvaluationRolloutType(r flipt.RolloutType) evaluation.EvaluationRolloutType {
