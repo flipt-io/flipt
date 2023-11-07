@@ -33,10 +33,9 @@ import (
 // Store is a type which can retrieve Flipt feature files from a target repository and reference
 // Repositories can be local (OCI layout directories on the filesystem) or a remote registry
 type Store struct {
-	logger    *zap.Logger
-	reference registry.Reference
-	store     func() (oras.Target, error)
-	local     oras.Target
+	opts   StoreOptions
+	logger *zap.Logger
+	local  oras.Target
 }
 
 // StoreOptions are used to configure call to NewStore
@@ -73,15 +72,31 @@ func WithCredentials(user, pass string) containers.Option[StoreOptions] {
 }
 
 // NewStore constructs and configures an instance of *Store for the provided config
-func NewStore(logger *zap.Logger, repository string, opts ...containers.Option[StoreOptions]) (*Store, error) {
+func NewStore(logger *zap.Logger, opts ...containers.Option[StoreOptions]) (*Store, error) {
+	store := &Store{
+		opts:   StoreOptions{},
+		logger: logger,
+		local:  memory.New(),
+	}
+
 	dir, err := defaultBundleDirectory()
 	if err != nil {
 		return nil, err
 	}
 
-	options := StoreOptions{bundleDir: dir}
-	containers.ApplyAll(&options, opts...)
+	store.opts.bundleDir = dir
 
+	containers.ApplyAll(&store.opts, opts...)
+
+	return store, nil
+}
+
+type Reference struct {
+	registry.Reference
+	Scheme string
+}
+
+func ParseReference(repository string) (Reference, error) {
 	scheme, repository, match := strings.Cut(repository, "://")
 	// support empty scheme as remote and https
 	if !match {
@@ -89,61 +104,62 @@ func NewStore(logger *zap.Logger, repository string, opts ...containers.Option[S
 		scheme = "https"
 	}
 
-	ref, err := registry.ParseReference(repository)
-	if err != nil {
-		return nil, err
+	if !strings.Contains(repository, "/") {
+		repository = "local/" + repository
+		scheme = "flipt"
 	}
 
-	store := &Store{
-		logger:    logger,
-		reference: ref,
-		local:     memory.New(),
+	ref, err := registry.ParseReference(repository)
+	if err != nil {
+		return Reference{}, nil
 	}
+
 	switch scheme {
+	case "http", "https":
+	case "flipt":
+		if ref.Registry != "local" {
+			return Reference{}, fmt.Errorf("unexpected local reference: %q", ref)
+		}
+	default:
+		return Reference{}, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", scheme)
+	}
+
+	return Reference{
+		Reference: ref,
+		Scheme:    scheme,
+	}, nil
+}
+
+func (s *Store) getTarget(ctx context.Context, ref Reference) (oras.Target, error) {
+	switch ref.Scheme {
 	case "http", "https":
 		remote, err := remote.NewRepository(fmt.Sprintf("%s/%s", ref.Registry, ref.Repository))
 		if err != nil {
 			return nil, err
 		}
 
-		remote.PlainHTTP = scheme == "http"
+		remote.PlainHTTP = ref.Scheme == "http"
 
-		store.store = func() (oras.Target, error) {
-			return remote, nil
-		}
+		return remote, nil
 	case "flipt":
-		if ref.Registry != "local" {
-			return nil, fmt.Errorf("unexpected local reference: %q", ref)
-		}
-
 		// build the store once to ensure it is valid
-		bundleDir := path.Join(options.bundleDir, ref.Repository)
+		bundleDir := path.Join(s.opts.bundleDir, ref.Repository)
 		_, err := oci.New(bundleDir)
 		if err != nil {
 			return nil, err
 		}
 
-		store.store = func() (oras.Target, error) {
-			// we recreate the OCI store on every operation for local
-			// because the oci library we use maintains a reference cache
-			// in memory that doesn't get purged when the target directory
-			// contents changes underneath it
-			// this allows us to change the state with another process and
-			// have the store pickup the changes
-			store, err := oci.New(bundleDir)
-			if err != nil {
-				return nil, err
-			}
-
-			store.AutoSaveIndex = true
-
-			return store, nil
+		store, err := oci.New(bundleDir)
+		if err != nil {
+			return nil, err
 		}
-	default:
-		return nil, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", scheme)
+
+		store.AutoSaveIndex = true
+
+		return store, nil
 	}
 
-	return store, nil
+	return nil, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", ref.Scheme)
 }
 
 // FetchOptions configures a call to Fetch
@@ -172,20 +188,20 @@ func IfNoMatch(digest digest.Digest) containers.Option[FetchOptions] {
 // Fetch retrieves the associated files for the tracked repository and reference
 // It can optionally be configured to skip fetching given the caller has a digest
 // that matches the current reference target
-func (s *Store) Fetch(ctx context.Context, opts ...containers.Option[FetchOptions]) (*FetchResponse, error) {
+func (s *Store) Fetch(ctx context.Context, ref Reference, opts ...containers.Option[FetchOptions]) (*FetchResponse, error) {
 	var options FetchOptions
 	containers.ApplyAll(&options, opts...)
 
-	store, err := s.store()
+	store, err := s.getTarget(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
 
 	desc, err := oras.Copy(ctx,
 		store,
-		s.reference.Reference,
+		ref.Reference.Reference,
 		s.local,
-		s.reference.Reference,
+		ref.Reference.Reference,
 		oras.DefaultCopyOptions)
 	if err != nil {
 		return nil, err
@@ -280,10 +296,70 @@ type Bundle struct {
 	CreatedAt  time.Time
 }
 
+// List returns a slice of bundles available on the host
+func (s *Store) List(ctx context.Context) (bundles []Bundle, _ error) {
+	fi, err := os.Open(s.opts.bundleDir)
+	if err != nil {
+		return nil, err
+	}
+
+	defer fi.Close()
+
+	entries, err := fi.ReadDir(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		bytes, err := os.ReadFile(filepath.Join(s.opts.bundleDir, entry.Name(), v1.ImageIndexFile))
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return nil, nil
+			}
+
+			return nil, err
+		}
+
+		var index v1.Index
+		if err := json.Unmarshal(bytes, &index); err != nil {
+			return nil, err
+		}
+
+		for _, manifest := range index.Manifests {
+			digest := manifest.Digest
+			path := filepath.Join(s.opts.bundleDir, entry.Name(), "blobs", digest.Algorithm().String(), digest.Hex())
+			bytes, err := os.ReadFile(path)
+			if err != nil {
+				return nil, err
+			}
+
+			var man v1.Manifest
+			if err := json.Unmarshal(bytes, &man); err != nil {
+				return nil, err
+			}
+
+			bundle := Bundle{
+				Digest:     manifest.Digest,
+				Repository: entry.Name(),
+				Tag:        manifest.Annotations[v1.AnnotationRefName],
+			}
+
+			bundle.CreatedAt, err = parseCreated(man.Annotations)
+			if err != nil {
+				return nil, err
+			}
+
+			bundles = append(bundles, bundle)
+		}
+	}
+
+	return
+}
+
 // Build bundles the target directory Flipt feature state into the target configured on the Store
 // It returns a Bundle which contains metadata regarding the resulting bundle details
-func (s *Store) Build(ctx context.Context, src fs.FS) (Bundle, error) {
-	store, err := s.store()
+func (s *Store) Build(ctx context.Context, src fs.FS, ref Reference) (Bundle, error) {
+	store, err := s.getTarget(ctx, ref)
 	if err != nil {
 		return Bundle{}, err
 	}
@@ -301,16 +377,16 @@ func (s *Store) Build(ctx context.Context, src fs.FS) (Bundle, error) {
 		return Bundle{}, err
 	}
 
-	if s.reference.Reference != "" {
-		if err := store.Tag(ctx, desc, s.reference.Reference); err != nil {
+	if ref.Reference.Reference != "" {
+		if err := store.Tag(ctx, desc, ref.Reference.Reference); err != nil {
 			return Bundle{}, err
 		}
 	}
 
 	bundle := Bundle{
 		Digest:     desc.Digest,
-		Repository: s.reference.Repository,
-		Tag:        s.reference.Reference,
+		Repository: ref.Repository,
+		Tag:        ref.Reference.Reference,
 	}
 
 	bundle.CreatedAt, err = parseCreated(desc.Annotations)

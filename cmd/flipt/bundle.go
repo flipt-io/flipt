@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/containers"
@@ -26,13 +27,61 @@ func newBundleCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 	})
 
+	cmd.AddCommand(&cobra.Command{
+		Use:   "list",
+		Short: "List all bundles",
+		RunE:  bundle.list,
+	})
+
 	return cmd
 }
 
 func (c *bundleCommand) build(cmd *cobra.Command, args []string) error {
-	logger, cfg, err := buildConfig()
+	store, err := c.getStore()
 	if err != nil {
 		return err
+	}
+
+	ref, err := oci.ParseReference(args[0])
+	if err != nil {
+		return err
+	}
+
+	bundle, err := store.Build(cmd.Context(), os.DirFS("."), ref)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(bundle.Digest)
+
+	return nil
+}
+
+func (c *bundleCommand) list(cmd *cobra.Command, args []string) error {
+	store, err := c.getStore()
+	if err != nil {
+		return err
+	}
+
+	bundles, err := store.List(cmd.Context())
+	if err != nil {
+		return err
+	}
+
+	wr := writer()
+
+	fmt.Fprintf(wr, "DIGEST\tREPO\tTAG\tCREATED\t\n")
+	for _, bundle := range bundles {
+		fmt.Fprintf(wr, "%s\t%s\t%s\t%s\t\n", bundle.Digest.Hex()[:7], bundle.Repository, bundle.Tag, bundle.CreatedAt)
+	}
+
+	return wr.Flush()
+}
+
+func (c *bundleCommand) getStore() (*oci.Store, error) {
+	logger, cfg, err := buildConfig()
+	if err != nil {
+		return nil, err
 	}
 
 	var opts []containers.Option[oci.StoreOptions]
@@ -49,17 +98,9 @@ func (c *bundleCommand) build(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	store, err := oci.NewStore(logger, fmt.Sprintf("flipt://local/%s", args[0]), opts...)
-	if err != nil {
-		return err
-	}
+	return oci.NewStore(logger, opts...)
+}
 
-	bundle, err := store.Build(cmd.Context(), os.DirFS("."))
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(bundle.Digest)
-
-	return nil
+func writer() *tabwriter.Writer {
+	return tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 }
