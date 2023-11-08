@@ -17,7 +17,7 @@ fn main() {
             context: context.clone(),
         });
 
-        println!("variant key {}", variant.variant_key);
+        println!("variant key {}", variant.unwrap().variant_key);
     });
 
     thread.join().expect("current thread panicked");

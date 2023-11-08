@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::Serialize;
 use snafu::{prelude::*, Whatever};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -21,6 +22,7 @@ where
     mtx: Arc<RwLock<i32>>,
 }
 
+#[repr(C)]
 pub struct EvaluationRequest {
     pub namespace_key: String,
     pub flag_key: String,
@@ -28,6 +30,7 @@ pub struct EvaluationRequest {
     pub context: HashMap<String, String>,
 }
 
+#[derive(Serialize)]
 pub struct VariantEvaluationResponse {
     pub r#match: bool,
     pub segment_keys: Vec<String>,

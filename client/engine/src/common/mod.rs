@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
 pub enum FlagType {
@@ -53,7 +53,7 @@ pub enum RolloutType {
     Threshold,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub enum EvaluationReason {
     #[default]
     #[serde(rename = "UNKNOWN_EVALUATION_REASON")]
