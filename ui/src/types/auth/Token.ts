@@ -17,7 +17,7 @@ export interface IAuthTokenInternalList {
 export interface IAuthTokenBase {
   name: string;
   description?: string;
-  namespace?: string;
+  namespaceKey?: string;
   expiresAt?: string;
 }
 

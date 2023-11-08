@@ -58,7 +58,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
         let token: IAuthTokenBase = {
           name: values.name,
           description: values.description?.trim() || '',
-          namespace: values.namespaceKey || ''
+          namespaceKey: values.namespaceKey || ''
         };
 
         // parse expires into UTC date
@@ -207,7 +207,10 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                         ...selectedNamespace,
                         displayValue: selectedNamespace?.name || ''
                       }}
-                      setSelected={setSelectedNamespace}
+                      setSelected={(v) => {
+                        setSelectedNamespace(v);
+                        formik.setFieldValue('namespaceKey', v.key);
+                      }}
                     />
                   )}
                 </div>
