@@ -1,13 +1,16 @@
 package oci
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,78 +18,154 @@ import (
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/internal/ext"
+	storagefs "go.flipt.io/flipt/internal/storage/fs"
+	"go.uber.org/zap"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/content/memory"
 	"oras.land/oras-go/v2/content/oci"
+	"oras.land/oras-go/v2/errdef"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
+)
+
+const (
+	SchemeHTTP  = "http"
+	SchemeHTTPS = "https"
+	SchemeFlipt = "flipt"
 )
 
 // Store is a type which can retrieve Flipt feature files from a target repository and reference
 // Repositories can be local (OCI layout directories on the filesystem) or a remote registry
 type Store struct {
-	reference registry.Reference
-	store     func() (oras.ReadOnlyTarget, error)
-	local     oras.Target
+	opts   StoreOptions
+	logger *zap.Logger
+	local  oras.Target
+}
+
+// StoreOptions are used to configure call to NewStore
+// This shouldn't be handled directory, instead use one of the function options
+// e.g. WithBundleDir or WithCredentials
+type StoreOptions struct {
+	bundleDir string
+	auth      *struct {
+		username string
+		password string
+	}
+}
+
+// WithBundleDir overrides the default bundles directory on the host for storing
+// local builds of Flipt bundles
+func WithBundleDir(dir string) containers.Option[StoreOptions] {
+	return func(so *StoreOptions) {
+		so.bundleDir = dir
+	}
+}
+
+// WithCredentials configures username and password credentials used for authenticating
+// with remote registries
+func WithCredentials(user, pass string) containers.Option[StoreOptions] {
+	return func(so *StoreOptions) {
+		so.auth = &struct {
+			username string
+			password string
+		}{
+			username: user,
+			password: pass,
+		}
+	}
 }
 
 // NewStore constructs and configures an instance of *Store for the provided config
-func NewStore(conf *config.OCI) (*Store, error) {
-	scheme, repository, match := strings.Cut(conf.Repository, "://")
-
-	// support empty scheme as remote and https
-	if !match {
-		repository = scheme
-		scheme = "https"
+func NewStore(logger *zap.Logger, opts ...containers.Option[StoreOptions]) (*Store, error) {
+	store := &Store{
+		opts:   StoreOptions{},
+		logger: logger,
+		local:  memory.New(),
 	}
 
-	ref, err := registry.ParseReference(repository)
+	dir, err := defaultBundleDirectory()
 	if err != nil {
 		return nil, err
 	}
 
-	store := &Store{
-		reference: ref,
-		local:     memory.New(),
+	store.opts.bundleDir = dir
+
+	containers.ApplyAll(&store.opts, opts...)
+
+	return store, nil
+}
+
+type Reference struct {
+	registry.Reference
+	Scheme string
+}
+
+func ParseReference(repository string) (Reference, error) {
+	scheme, repository, match := strings.Cut(repository, "://")
+	// support empty scheme as remote and https
+	if !match {
+		repository = scheme
+		scheme = SchemeHTTPS
 	}
+
+	if !strings.Contains(repository, "/") {
+		repository = "local/" + repository
+		scheme = SchemeFlipt
+	}
+
+	ref, err := registry.ParseReference(repository)
+	if err != nil {
+		return Reference{}, err
+	}
+
 	switch scheme {
-	case "http", "https":
+	case SchemeHTTP, SchemeHTTPS:
+	case SchemeFlipt:
+		if ref.Registry != "local" {
+			return Reference{}, fmt.Errorf("unexpected local reference: %q", ref)
+		}
+	default:
+		return Reference{}, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", scheme)
+	}
+
+	return Reference{
+		Reference: ref,
+		Scheme:    scheme,
+	}, nil
+}
+
+func (s *Store) getTarget(ref Reference) (oras.Target, error) {
+	switch ref.Scheme {
+	case SchemeHTTP, SchemeHTTPS:
 		remote, err := remote.NewRepository(fmt.Sprintf("%s/%s", ref.Registry, ref.Repository))
 		if err != nil {
 			return nil, err
 		}
 
-		remote.PlainHTTP = scheme == "http"
+		remote.PlainHTTP = ref.Scheme == "http"
 
-		store.store = func() (oras.ReadOnlyTarget, error) {
-			return remote, nil
-		}
-	case "flipt":
-		if ref.Registry != "local" {
-			return nil, fmt.Errorf("unexpected local reference: %q", conf.Repository)
-		}
-
+		return remote, nil
+	case SchemeFlipt:
 		// build the store once to ensure it is valid
-		_, err := oci.New(path.Join(conf.BundleDirectory, ref.Repository))
+		bundleDir := path.Join(s.opts.bundleDir, ref.Repository)
+		_, err := oci.New(bundleDir)
 		if err != nil {
 			return nil, err
 		}
 
-		store.store = func() (oras.ReadOnlyTarget, error) {
-			// we recreate the OCI store on every operation for local
-			// because the oci library we use maintains a reference cache
-			// in memory that doesn't get purged when the target directory
-			// contents changes underneath it
-			// this allows us to change the state with another process and
-			// have the store pickup the changes
-			return oci.New(path.Join(conf.BundleDirectory, ref.Repository))
+		store, err := oci.New(bundleDir)
+		if err != nil {
+			return nil, err
 		}
-	default:
-		return nil, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", scheme)
+
+		store.AutoSaveIndex = true
+
+		return store, nil
 	}
 
-	return store, nil
+	return nil, fmt.Errorf("unexpected repository scheme: %q should be one of [http|https|flipt]", ref.Scheme)
 }
 
 // FetchOptions configures a call to Fetch
@@ -115,20 +194,20 @@ func IfNoMatch(digest digest.Digest) containers.Option[FetchOptions] {
 // Fetch retrieves the associated files for the tracked repository and reference
 // It can optionally be configured to skip fetching given the caller has a digest
 // that matches the current reference target
-func (s *Store) Fetch(ctx context.Context, opts ...containers.Option[FetchOptions]) (*FetchResponse, error) {
+func (s *Store) Fetch(ctx context.Context, ref Reference, opts ...containers.Option[FetchOptions]) (*FetchResponse, error) {
 	var options FetchOptions
 	containers.ApplyAll(&options, opts...)
 
-	store, err := s.store()
+	store, err := s.getTarget(ref)
 	if err != nil {
 		return nil, err
 	}
 
 	desc, err := oras.Copy(ctx,
 		store,
-		s.reference.Reference,
+		ref.Reference.Reference,
 		s.local,
-		s.reference.Reference,
+		ref.Reference.Reference,
 		oras.DefaultCopyOptions)
 	if err != nil {
 		return nil, err
@@ -215,6 +294,145 @@ func (s *Store) fetchFiles(ctx context.Context, store oras.ReadOnlyTarget, manif
 	return files, nil
 }
 
+// Bundle is a record of an existing Flipt feature bundle
+type Bundle struct {
+	Digest     digest.Digest
+	Repository string
+	Tag        string
+	CreatedAt  time.Time
+}
+
+// List returns a slice of bundles available on the host
+func (s *Store) List(ctx context.Context) (bundles []Bundle, _ error) {
+	fi, err := os.Open(s.opts.bundleDir)
+	if err != nil {
+		return nil, err
+	}
+
+	defer fi.Close()
+
+	entries, err := fi.ReadDir(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		bytes, err := os.ReadFile(filepath.Join(s.opts.bundleDir, entry.Name(), v1.ImageIndexFile))
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return nil, nil
+			}
+
+			return nil, err
+		}
+
+		var index v1.Index
+		if err := json.Unmarshal(bytes, &index); err != nil {
+			return nil, err
+		}
+
+		for _, manifest := range index.Manifests {
+			digest := manifest.Digest
+			path := filepath.Join(s.opts.bundleDir, entry.Name(), "blobs", digest.Algorithm().String(), digest.Hex())
+			bytes, err := os.ReadFile(path)
+			if err != nil {
+				return nil, err
+			}
+
+			var man v1.Manifest
+			if err := json.Unmarshal(bytes, &man); err != nil {
+				return nil, err
+			}
+
+			bundle := Bundle{
+				Digest:     manifest.Digest,
+				Repository: entry.Name(),
+				Tag:        manifest.Annotations[v1.AnnotationRefName],
+			}
+
+			bundle.CreatedAt, err = parseCreated(man.Annotations)
+			if err != nil {
+				return nil, err
+			}
+
+			bundles = append(bundles, bundle)
+		}
+	}
+
+	return
+}
+
+// Build bundles the target directory Flipt feature state into the target configured on the Store
+// It returns a Bundle which contains metadata regarding the resulting bundle details
+func (s *Store) Build(ctx context.Context, src fs.FS, ref Reference) (Bundle, error) {
+	store, err := s.getTarget(ref)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	layers, err := s.buildLayers(ctx, store, src)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	desc, err := oras.PackManifest(ctx, store, oras.PackManifestVersion1_1_RC4, MediaTypeFliptFeatures, oras.PackManifestOptions{
+		ManifestAnnotations: map[string]string{},
+		Layers:              layers,
+	})
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	if ref.Reference.Reference != "" {
+		if err := store.Tag(ctx, desc, ref.Reference.Reference); err != nil {
+			return Bundle{}, err
+		}
+	}
+
+	bundle := Bundle{
+		Digest:     desc.Digest,
+		Repository: ref.Repository,
+		Tag:        ref.Reference.Reference,
+	}
+
+	bundle.CreatedAt, err = parseCreated(desc.Annotations)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	return bundle, nil
+}
+
+func (s *Store) buildLayers(ctx context.Context, store oras.Target, src fs.FS) (layers []v1.Descriptor, _ error) {
+	if err := storagefs.WalkDocuments(s.logger, src, func(doc *ext.Document) error {
+		payload, err := json.Marshal(&doc)
+		if err != nil {
+			return err
+		}
+
+		desc := v1.Descriptor{
+			Digest:    digest.FromBytes(payload),
+			Size:      int64(len(payload)),
+			MediaType: MediaTypeFliptNamespace,
+			Annotations: map[string]string{
+				AnnotationFliptNamespace: doc.Namespace,
+			},
+		}
+
+		s.logger.Debug("adding layer", zap.String("digest", desc.Digest.Hex()), zap.String("namespace", doc.Namespace))
+
+		if err := store.Push(ctx, desc, bytes.NewReader(payload)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+			return err
+		}
+
+		layers = append(layers, desc)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return layers, nil
+}
+
 func getMediaTypeAndEncoding(layer v1.Descriptor) (mediaType, encoding string, _ error) {
 	var ok bool
 	if mediaType = layer.MediaType; mediaType == "" {
@@ -279,4 +497,22 @@ func (f FileInfo) IsDir() bool {
 
 func (f FileInfo) Sys() any {
 	return nil
+}
+
+func parseCreated(annotations map[string]string) (time.Time, error) {
+	return time.Parse(time.RFC3339, annotations[v1.AnnotationCreated])
+}
+
+func defaultBundleDirectory() (string, error) {
+	dir, err := config.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	bundlesDir := filepath.Join(dir, "bundles")
+	if err := os.MkdirAll(bundlesDir, 0755); err != nil {
+		return "", fmt.Errorf("creating image directory: %w", err)
+	}
+
+	return bundlesDir, nil
 }

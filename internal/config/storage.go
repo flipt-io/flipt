@@ -3,8 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
@@ -63,18 +61,6 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		}
 	case string(OCIStorageType):
 		v.SetDefault("store.oci.insecure", false)
-
-		configDir, err := Dir()
-		if err != nil {
-			return fmt.Errorf("setting oci default: %w", err)
-		}
-
-		bundlesDir := filepath.Join(configDir, "bundles")
-		if err := os.MkdirAll(bundlesDir, 0755); err != nil {
-			return fmt.Errorf("creating image directory: %w", err)
-		}
-
-		v.SetDefault("store.oci.bundles_directory", bundlesDir)
 	default:
 		v.SetDefault("storage.type", "database")
 	}

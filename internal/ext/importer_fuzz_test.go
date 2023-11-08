@@ -20,7 +20,7 @@ func FuzzImport(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, in []byte) {
 		importer := NewImporter(&mockCreator{})
-		if err := importer.Import(context.Background(), bytes.NewReader(in)); err != nil {
+		if err := importer.Import(context.Background(), EncodingYAML, bytes.NewReader(in)); err != nil {
 			// we only care about panics
 			t.Skip()
 		}

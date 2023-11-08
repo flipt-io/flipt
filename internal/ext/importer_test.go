@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/rpc/flipt"
 )
+
+var extensions = []Encoding{EncodingYML, EncodingJSON}
 
 type mockCreator struct {
 	getNSReqs []*flipt.GetNamespaceRequest
@@ -187,7 +190,7 @@ func TestImport(t *testing.T) {
 	}{
 		{
 			name: "import with attachment",
-			path: "testdata/import.yml",
+			path: "testdata/import",
 			expected: &mockCreator{
 				flagReqs: []*flipt.CreateFlagRequest{
 					{
@@ -274,7 +277,7 @@ func TestImport(t *testing.T) {
 		},
 		{
 			name: "import without attachment",
-			path: "testdata/import_no_attachment.yml",
+			path: "testdata/import_no_attachment",
 			expected: &mockCreator{
 				flagReqs: []*flipt.CreateFlagRequest{
 					{
@@ -360,7 +363,7 @@ func TestImport(t *testing.T) {
 		},
 		{
 			name: "import with implicit rule ranks",
-			path: "testdata/import_implicit_rule_rank.yml",
+			path: "testdata/import_implicit_rule_rank",
 			expected: &mockCreator{
 				flagReqs: []*flipt.CreateFlagRequest{
 					{
@@ -447,7 +450,7 @@ func TestImport(t *testing.T) {
 		},
 		{
 			name: "import with multiple segments",
-			path: "testdata/import_rule_multiple_segments.yml",
+			path: "testdata/import_rule_multiple_segments",
 			expected: &mockCreator{
 				flagReqs: []*flipt.CreateFlagRequest{
 					{
@@ -534,7 +537,7 @@ func TestImport(t *testing.T) {
 		},
 		{
 			name: "import v1",
-			path: "testdata/import_v1.yml",
+			path: "testdata/import_v1",
 			expected: &mockCreator{
 				flagReqs: []*flipt.CreateFlagRequest{
 					{
@@ -590,7 +593,7 @@ func TestImport(t *testing.T) {
 		},
 		{
 			name: "import v1.1",
-			path: "testdata/import_v1_1.yml",
+			path: "testdata/import_v1_1",
 			expected: &mockCreator{
 				flagReqs: []*flipt.CreateFlagRequest{
 					{
@@ -679,21 +682,23 @@ func TestImport(t *testing.T) {
 
 	for _, tc := range tests {
 		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			var (
-				creator  = &mockCreator{}
-				importer = NewImporter(creator)
-			)
+		for _, ext := range extensions {
+			t.Run(fmt.Sprintf("%s (%s)", tc.name, ext), func(t *testing.T) {
+				var (
+					creator  = &mockCreator{}
+					importer = NewImporter(creator)
+				)
 
-			in, err := os.Open(tc.path)
-			assert.NoError(t, err)
-			defer in.Close()
+				in, err := os.Open(tc.path + "." + string(ext))
+				assert.NoError(t, err)
+				defer in.Close()
 
-			err = importer.Import(context.Background(), in)
-			assert.NoError(t, err)
+				err = importer.Import(context.Background(), ext, in)
+				assert.NoError(t, err)
 
-			assert.Equal(t, tc.expected, creator)
-		})
+				assert.Equal(t, tc.expected, creator)
+			})
+		}
 	}
 }
 
@@ -707,7 +712,7 @@ func TestImport_Export(t *testing.T) {
 	assert.NoError(t, err)
 	defer in.Close()
 
-	err = importer.Import(context.Background(), in)
+	err = importer.Import(context.Background(), EncodingYML, in)
 	require.NoError(t, err)
 	assert.Equal(t, "default", creator.flagReqs[0].NamespaceKey)
 }
@@ -718,12 +723,14 @@ func TestImport_InvalidVersion(t *testing.T) {
 		importer = NewImporter(creator)
 	)
 
-	in, err := os.Open("testdata/import_invalid_version.yml")
-	assert.NoError(t, err)
-	defer in.Close()
+	for _, ext := range extensions {
+		in, err := os.Open("testdata/import_invalid_version." + string(ext))
+		assert.NoError(t, err)
+		defer in.Close()
 
-	err = importer.Import(context.Background(), in)
-	assert.EqualError(t, err, "unsupported version: 5.0")
+		err = importer.Import(context.Background(), ext, in)
+		assert.EqualError(t, err, "unsupported version: 5.0")
+	}
 }
 
 func TestImport_FlagType_LTVersion1_1(t *testing.T) {
@@ -732,12 +739,14 @@ func TestImport_FlagType_LTVersion1_1(t *testing.T) {
 		importer = NewImporter(creator)
 	)
 
-	in, err := os.Open("testdata/import_v1_flag_type_not_supported.yml")
-	assert.NoError(t, err)
-	defer in.Close()
+	for _, ext := range extensions {
+		in, err := os.Open("testdata/import_v1_flag_type_not_supported." + string(ext))
+		assert.NoError(t, err)
+		defer in.Close()
 
-	err = importer.Import(context.Background(), in)
-	assert.EqualError(t, err, "flag.type is supported in version >=1.1, found 1.0")
+		err = importer.Import(context.Background(), ext, in)
+		assert.EqualError(t, err, "flag.type is supported in version >=1.1, found 1.0")
+	}
 }
 
 func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
@@ -746,12 +755,14 @@ func TestImport_Rollouts_LTVersion1_1(t *testing.T) {
 		importer = NewImporter(creator)
 	)
 
-	in, err := os.Open("testdata/import_v1_rollouts_not_supported.yml")
-	assert.NoError(t, err)
-	defer in.Close()
+	for _, ext := range extensions {
+		in, err := os.Open("testdata/import_v1_rollouts_not_supported." + string(ext))
+		assert.NoError(t, err)
+		defer in.Close()
 
-	err = importer.Import(context.Background(), in)
-	assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
+		err = importer.Import(context.Background(), ext, in)
+		assert.EqualError(t, err, "flag.rollouts is supported in version >=1.1, found 1.0")
+	}
 }
 
 func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
@@ -764,35 +775,35 @@ func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
 	}{
 		{
 			name:                      "single namespace no YAML stream",
-			path:                      "testdata/import.yml",
+			path:                      "testdata/import",
 			expectedGetNSReqs:         0,
 			expectedCreateFlagReqs:    2,
 			expectedCreateSegmentReqs: 1,
 		},
 		{
 			name:                      "single namespace foo non-YAML stream",
-			path:                      "testdata/import_single_namespace_foo.yml",
+			path:                      "testdata/import_single_namespace_foo",
 			expectedGetNSReqs:         1,
 			expectedCreateFlagReqs:    2,
 			expectedCreateSegmentReqs: 1,
 		},
 		{
 			name:                      "multiple namespaces default and foo",
-			path:                      "testdata/import_two_namespaces_default_and_foo.yml",
+			path:                      "testdata/import_two_namespaces_default_and_foo",
 			expectedGetNSReqs:         1,
 			expectedCreateFlagReqs:    4,
 			expectedCreateSegmentReqs: 2,
 		},
 		{
 			name:                      "yaml stream only default namespace",
-			path:                      "testdata/import_yaml_stream_default_namespace.yml",
+			path:                      "testdata/import_yaml_stream_default_namespace",
 			expectedGetNSReqs:         0,
 			expectedCreateFlagReqs:    4,
 			expectedCreateSegmentReqs: 2,
 		},
 		{
 			name:                      "yaml stream all unqiue namespaces",
-			path:                      "testdata/import_yaml_stream_all_unique_namespaces.yml",
+			path:                      "testdata/import_yaml_stream_all_unique_namespaces",
 			expectedGetNSReqs:         2,
 			expectedCreateFlagReqs:    6,
 			expectedCreateSegmentReqs: 3,
@@ -801,23 +812,25 @@ func TestImport_Namespaces_Mix_And_Match(t *testing.T) {
 
 	for _, tc := range tests {
 		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			var (
-				creator  = &mockCreator{}
-				importer = NewImporter(creator)
-			)
+		for _, ext := range extensions {
+			t.Run(fmt.Sprintf("%s (%s)", tc.name, ext), func(t *testing.T) {
+				var (
+					creator  = &mockCreator{}
+					importer = NewImporter(creator)
+				)
 
-			in, err := os.Open(tc.path)
-			assert.NoError(t, err)
-			defer in.Close()
+				in, err := os.Open(tc.path + "." + string(ext))
+				assert.NoError(t, err)
+				defer in.Close()
 
-			err = importer.Import(context.Background(), in)
-			assert.NoError(t, err)
+				err = importer.Import(context.Background(), ext, in)
+				assert.NoError(t, err)
 
-			assert.Len(t, creator.getNSReqs, tc.expectedGetNSReqs)
-			assert.Len(t, creator.flagReqs, tc.expectedCreateFlagReqs)
-			assert.Len(t, creator.segmentReqs, tc.expectedCreateSegmentReqs)
-		})
+				assert.Len(t, creator.getNSReqs, tc.expectedGetNSReqs)
+				assert.Len(t, creator.flagReqs, tc.expectedCreateFlagReqs)
+				assert.Len(t, creator.segmentReqs, tc.expectedCreateSegmentReqs)
+			})
+		}
 	}
 }
 

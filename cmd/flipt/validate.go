@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/storage/fs"
-	"go.uber.org/zap"
 )
 
 type validateCommand struct {
@@ -43,11 +42,15 @@ func newValidateCommand() *cobra.Command {
 }
 
 func (v *validateCommand) run(cmd *cobra.Command, args []string) error {
-	var err error
+	logger, _, err := buildConfig()
+	if err != nil {
+		return err
+	}
+
 	if len(args) == 0 {
-		_, err = fs.SnapshotFromFS(zap.NewNop(), os.DirFS("."))
+		_, err = fs.SnapshotFromFS(logger, os.DirFS("."))
 	} else {
-		_, err = fs.SnapshotFromPaths(os.DirFS("."), args...)
+		_, err = fs.SnapshotFromPaths(logger, os.DirFS("."), args...)
 	}
 
 	errs, ok := cue.Unwrap(err)

@@ -4,22 +4,102 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"fmt"
 	"io/fs"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	flipterrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/cue"
+	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
 )
 
-//go:embed all:fixtures
+//go:embed all:testdata
 var testdata embed.FS
 
+func TestSnapshotFromFS_Invalid(t *testing.T) {
+	for _, test := range []struct {
+		path string
+		err  error
+	}{
+		{
+			path: "testdata/invalid/extension",
+			err:  errors.New("unexpected extension: \".unknown\""),
+		},
+		{
+			path: "testdata/invalid/variant_flag_segment",
+			err:  flipterrors.ErrInvalid("flag fruit/apple rule 1 references unknown segment \"unknown\""),
+		},
+		{
+			path: "testdata/invalid/variant_flag_distribution",
+			err:  flipterrors.ErrInvalid("flag fruit/apple rule 1 references unknown variant \"braeburn\""),
+		},
+		{
+			path: "testdata/invalid/boolean_flag_segment",
+			err:  flipterrors.ErrInvalid("flag fruit/apple rule 1 references unknown segment \"unknown\""),
+		},
+		{
+			path: "testdata/invalid/namespace",
+			err: errors.Join(
+				cue.Error{Message: "namespace: 2 errors in empty disjunction:", Location: cue.Location{File: "features.json", Line: 0}},
+				cue.Error{Message: "namespace: conflicting values 1 and \"default\" (mismatched types int and string)", Location: cue.Location{File: "features.json", Line: 3}},
+				cue.Error{Message: "namespace: conflicting values 1 and string (mismatched types int and string)", Location: cue.Location{File: "features.json", Line: 3}},
+			),
+		},
+	} {
+		t.Run(test.path, func(t *testing.T) {
+			dir, err := fs.Sub(testdata, test.path)
+			require.NoError(t, err)
+
+			_, err = SnapshotFromFS(zaptest.NewLogger(t), dir)
+			if !assert.Equal(t, test.err, err) {
+				fmt.Println(err)
+			}
+		})
+	}
+
+}
+
+func TestWalkDocuments(t *testing.T) {
+	for _, test := range []struct {
+		path  string
+		count int
+	}{
+		{
+			path:  "testdata/valid/explicit_index",
+			count: 2,
+		},
+		{
+			path:  "testdata/valid/implicit_index",
+			count: 6,
+		},
+		{
+			path:  "testdata/valid/exclude_index",
+			count: 1,
+		},
+	} {
+		t.Run(test.path, func(t *testing.T) {
+			src, err := fs.Sub(testdata, test.path)
+			require.NoError(t, err)
+
+			var docs []*ext.Document
+			require.NoError(t, WalkDocuments(zaptest.NewLogger(t), src, func(d *ext.Document) error {
+				docs = append(docs, d)
+				return nil
+			}))
+
+			assert.Len(t, docs, test.count)
+		})
+	}
+}
+
 func TestFSWithIndex(t *testing.T) {
-	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
+	fwi, _ := fs.Sub(testdata, "testdata/valid/explicit_index")
 
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fwi)
 	require.NoError(t, err)
@@ -675,13 +755,46 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 	}
 }
 
+func (fis *FSIndexSuite) TestCountRules() {
+	t := fis.T()
+
+	testCases := []struct {
+		name      string
+		namespace string
+		flagKey   string
+		count     uint64
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "prod-flag",
+			count:     1,
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "sandbox-flag",
+			count:     1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			count, err := fis.store.CountRules(context.TODO(), tc.namespace, tc.flagKey)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.count, count)
+		})
+	}
+}
+
 type FSWithoutIndexSuite struct {
 	suite.Suite
 	store storage.Store
 }
 
 func TestFSWithoutIndex(t *testing.T) {
-	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
+	fwoi, _ := fs.Sub(testdata, "testdata/valid/implicit_index")
 
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fwoi)
 	require.NoError(t, err)
@@ -1609,26 +1722,8 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 	}
 }
 
-func TestFS_Invalid_VariantFlag_Segment(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/invalid_variant_flag_segment")
-	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
-	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
-}
-
-func TestFS_Invalid_VariantFlag_Distribution(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/invalid_variant_flag_distribution")
-	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
-	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown variant \"braeburn\"")
-}
-
-func TestFS_Invalid_BooleanFlag_Segment(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/invalid_boolean_flag_segment")
-	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
-	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
-}
-
 func TestFS_Empty_Features_File(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/empty_features")
+	fs, _ := fs.Sub(testdata, "testdata/valid/empty_features")
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.NoError(t, err)
 
@@ -1646,7 +1741,7 @@ func TestFS_Empty_Features_File(t *testing.T) {
 }
 
 func TestFS_YAML_Stream(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/yaml_stream")
+	fs, _ := fs.Sub(testdata, "testdata/valid/yaml_stream")
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.NoError(t, err)
 

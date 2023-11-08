@@ -881,7 +881,7 @@ func Benchmark_EvaluationV1AndV2(b *testing.B) {
 
 	require.NoError(t, err)
 
-	err = importer.Import(context.TODO(), reader)
+	err = importer.Import(context.TODO(), ext.EncodingYML, reader)
 	require.NoError(t, err)
 
 	flagKeys := make([]string, 0, 10)
