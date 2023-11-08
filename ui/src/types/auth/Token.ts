@@ -2,8 +2,8 @@ import { IAuth } from '~/types/Auth';
 
 export interface IAuthMethodTokenMetadata {
   'io.flipt.auth.token.name': string;
-  'io.flipt.auth.token.description': string;
-  'io.flipt.auth.token.namespace': string;
+  'io.flipt.auth.token.description'?: string;
+  'io.flipt.auth.token.namespace'?: string;
 }
 
 export interface IAuthTokenInternal extends IAuth {
@@ -16,7 +16,7 @@ export interface IAuthTokenInternalList {
 
 export interface IAuthTokenBase {
   name: string;
-  description: string;
+  description?: string;
   namespace?: string;
   expiresAt?: string;
 }
