@@ -1,19 +1,22 @@
-use crate::common;
+use crate::models::common;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Document {
     pub namespace: Namespace,
     pub flags: Vec<Flag>,
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Namespace {
     pub key: String,
     pub name: String,
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Flag {
     pub key: String,
     pub name: String,
@@ -41,6 +44,7 @@ pub struct Distribution {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Rollout {
     pub description: Option<String>,
     pub segment: Option<SegmentRule>,
@@ -56,6 +60,7 @@ pub struct SegmentRule {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Threshold {
     pub percentage: f32,
     pub value: bool,
@@ -70,6 +75,7 @@ pub struct Segment {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SegmentConstraint {
     pub r#type: common::ConstraintComparisonType,
     pub property: String,
