@@ -15,11 +15,19 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-//go:embed all:fixtures
+//go:embed all:testdata
 var testdata embed.FS
 
+func TestSnapshotFromFS_Invalid_Extension(t *testing.T) {
+	dir, err := fs.Sub(testdata, "testdata/invalid/extension")
+	require.NoError(t, err)
+
+	_, err = SnapshotFromFS(zaptest.NewLogger(t), dir)
+	require.Equal(t, errors.New("unexpected extension: \".unknown\""), err)
+}
+
 func TestFSWithIndex(t *testing.T) {
-	fwi, _ := fs.Sub(testdata, "fixtures/fswithindex")
+	fwi, _ := fs.Sub(testdata, "testdata/valid/explicit_index")
 
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fwi)
 	require.NoError(t, err)
@@ -681,7 +689,7 @@ type FSWithoutIndexSuite struct {
 }
 
 func TestFSWithoutIndex(t *testing.T) {
-	fwoi, _ := fs.Sub(testdata, "fixtures/fswithoutindex")
+	fwoi, _ := fs.Sub(testdata, "testdata/valid/implicit_index")
 
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fwoi)
 	require.NoError(t, err)
@@ -1610,25 +1618,25 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 }
 
 func TestFS_Invalid_VariantFlag_Segment(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/invalid_variant_flag_segment")
+	fs, _ := fs.Sub(testdata, "testdata/invalid/variant_flag_segment")
 	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
 }
 
 func TestFS_Invalid_VariantFlag_Distribution(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/invalid_variant_flag_distribution")
+	fs, _ := fs.Sub(testdata, "testdata/invalid/variant_flag_distribution")
 	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown variant \"braeburn\"")
 }
 
 func TestFS_Invalid_BooleanFlag_Segment(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/invalid_boolean_flag_segment")
+	fs, _ := fs.Sub(testdata, "testdata/invalid/boolean_flag_segment")
 	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
 }
 
 func TestFS_Empty_Features_File(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/empty_features")
+	fs, _ := fs.Sub(testdata, "testdata/valid/empty_features")
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.NoError(t, err)
 
@@ -1646,7 +1654,7 @@ func TestFS_Empty_Features_File(t *testing.T) {
 }
 
 func TestFS_YAML_Stream(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "fixtures/yaml_stream")
+	fs, _ := fs.Sub(testdata, "testdata/valid/yaml_stream")
 	ss, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
 	require.NoError(t, err)
 

@@ -184,10 +184,6 @@ func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
 	buf := &bytes.Buffer{}
 	reader := io.TeeReader(fi, buf)
 
-	if err := validator.Validate(stat.Name(), reader); err != nil {
-		return nil, err
-	}
-
 	var docs []*ext.Document
 	extn := filepath.Ext(stat.Name())
 
@@ -200,6 +196,14 @@ func documentsFromFile(fi fs.File) ([]*ext.Document, error) {
 		decode = json.NewDecoder(buf).Decode
 	default:
 		return nil, fmt.Errorf("unexpected extension: %q", extn)
+	}
+
+	// validate after we have checked supported
+	// extensions but before we attempt to decode the
+	// buffers contents to ensure we fill the buffer
+	// via the TeeReader
+	if err := validator.Validate(stat.Name(), reader); err != nil {
+		return nil, err
 	}
 
 	for {

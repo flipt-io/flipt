@@ -16,7 +16,7 @@ func Test_Store(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 		notify = make(chan struct{})
 		source = source{
-			get: mustSub(t, testdata, "fixtures/fswithindex"),
+			get: mustSub(t, testdata, "testdata/valid/explicit_index"),
 			ch:  make(chan *StoreSnapshot),
 		}
 	)
@@ -36,7 +36,7 @@ func Test_Store(t *testing.T) {
 	suite.Run(t, &FSIndexSuite{store: store})
 
 	// update snapshot by sending fs without index
-	source.ch <- mustSub(t, testdata, "fixtures/fswithoutindex")
+	source.ch <- mustSub(t, testdata, "testdata/valid/implicit_index")
 
 	// wait for update to apply
 	<-notify
