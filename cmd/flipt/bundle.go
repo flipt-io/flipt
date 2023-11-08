@@ -21,7 +21,7 @@ func newBundleCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(&cobra.Command{
-		Use:   "build",
+		Use:   "build [flags] <name>",
 		Short: "Build a bundle",
 		RunE:  bundle.build,
 		Args:  cobra.ExactArgs(1),
