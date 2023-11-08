@@ -683,6 +683,39 @@ func (fis *FSIndexSuite) TestListAndGetRules() {
 	}
 }
 
+func (fis *FSIndexSuite) TestCountRules() {
+	t := fis.T()
+
+	testCases := []struct {
+		name      string
+		namespace string
+		flagKey   string
+		count     uint64
+	}{
+		{
+			name:      "Production",
+			namespace: "production",
+			flagKey:   "prod-flag",
+			count:     1,
+		},
+		{
+			name:      "Sandbox",
+			namespace: "sandbox",
+			flagKey:   "sandbox-flag",
+			count:     1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			count, err := fis.store.CountRules(context.TODO(), tc.namespace, tc.flagKey)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.count, count)
+		})
+	}
+}
+
 type FSWithoutIndexSuite struct {
 	suite.Suite
 	store storage.Store
