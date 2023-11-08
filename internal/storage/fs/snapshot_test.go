@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
 	"go.uber.org/zap/zaptest"
@@ -24,6 +25,35 @@ func TestSnapshotFromFS_Invalid_Extension(t *testing.T) {
 
 	_, err = SnapshotFromFS(zaptest.NewLogger(t), dir)
 	require.Equal(t, errors.New("unexpected extension: \".unknown\""), err)
+}
+
+func TestWalkDocuments(t *testing.T) {
+	for _, test := range []struct {
+		path  string
+		count int
+	}{
+		{
+			path:  "testdata/valid/explicit_index",
+			count: 2,
+		},
+		{
+			path:  "testdata/valid/implicit_index",
+			count: 6,
+		},
+	} {
+		t.Run(test.path, func(t *testing.T) {
+			src, err := fs.Sub(testdata, test.path)
+			require.NoError(t, err)
+
+			var docs []*ext.Document
+			require.NoError(t, WalkDocuments(zaptest.NewLogger(t), src, func(d *ext.Document) error {
+				docs = append(docs, d)
+				return nil
+			}))
+
+			assert.Len(t, docs, test.count)
+		})
+	}
 }
 
 func TestFSWithIndex(t *testing.T) {
