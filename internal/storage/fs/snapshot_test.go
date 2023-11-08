@@ -78,6 +78,10 @@ func TestWalkDocuments(t *testing.T) {
 			path:  "testdata/valid/implicit_index",
 			count: 6,
 		},
+		{
+			path:  "testdata/valid/exclude_index",
+			count: 1,
+		},
 	} {
 		t.Run(test.path, func(t *testing.T) {
 			src, err := fs.Sub(testdata, test.path)

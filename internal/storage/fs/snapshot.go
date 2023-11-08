@@ -296,7 +296,7 @@ func listStateFiles(logger *zap.Logger, source fs.FS) ([]string, error) {
 		}
 
 	OUTER:
-		for i := range filenames {
+		for i := len(filenames) - 1; i >= 0; i-- {
 			for _, glob := range excludes {
 				if glob.Match(filenames[i]) {
 					filenames = append(filenames[:i], filenames[i+1:]...)
