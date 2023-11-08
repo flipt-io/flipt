@@ -107,6 +107,10 @@ func assertExec(ctx context.Context, flipt *dagger.Container, args []string, opt
 		}
 	}
 
+	if err == nil && !conf.success {
+		return nil, fmt.Errorf("expected error running flipt %q: found success", args)
+	}
+
 	for _, a := range conf.stdout {
 		stdout, err := execStdout(ctx)
 		if err != nil {

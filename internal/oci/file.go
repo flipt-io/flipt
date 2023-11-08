@@ -463,13 +463,28 @@ func (s *Store) Copy(ctx context.Context, src, dst Reference) (Bundle, error) {
 		return Bundle{}, err
 	}
 
+	rd, err := dstTarget.Fetch(ctx, desc)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	data, err := io.ReadAll(rd)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	var man v1.Manifest
+	if err := json.Unmarshal(data, &man); err != nil {
+		return Bundle{}, err
+	}
+
 	bundle := Bundle{
 		Digest:     desc.Digest,
 		Repository: dst.Repository,
 		Tag:        dst.Reference.Reference,
 	}
 
-	bundle.CreatedAt, err = parseCreated(desc.Annotations)
+	bundle.CreatedAt, err = parseCreated(man.Annotations)
 	if err != nil {
 		return Bundle{}, err
 	}

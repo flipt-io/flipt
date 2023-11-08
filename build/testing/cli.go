@@ -18,7 +18,6 @@ func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container
 		}
 
 		if _, err := assertExec(ctx, container, flipt("--help"),
-			fails,
 			stdout(equals(expected))); err != nil {
 			return err
 		}
@@ -27,7 +26,6 @@ func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container
 	{
 		container := container.Pipeline("flipt --version")
 		if _, err := assertExec(ctx, container, flipt("--version"),
-			fails,
 			stdout(contains("Commit:")),
 			stdout(matches(`Build Date: [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z`)),
 			stdout(matches(`Go Version: go[0-9]+\.[0-9]+\.[0-9]`)),
@@ -270,6 +268,95 @@ exit $?`,
 
 		if !strings.Contains(contents, expected) {
 			return fmt.Errorf("unexpected output: %q does not contain %q", contents, expected)
+		}
+	}
+
+	{
+		container = container.Pipeline("flipt bundle").
+			WithWorkdir("build/testing/testdata/bundle")
+
+		var err error
+		container, err = assertExec(ctx, container, flipt("bundle", "build", "mybundle:latest"),
+			stdout(matches(`sha256:[a-f0-9]{64}`)))
+		if err != nil {
+			return err
+		}
+
+		container, err = assertExec(ctx, container, flipt("bundle", "list"),
+			stdout(matches(`DIGEST[\s]+REPO[\s]+TAG[\s]+CREATED`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)))
+		if err != nil {
+			return err
+		}
+
+		// rebuild the same image
+		container, err = assertExec(ctx, container, flipt("bundle", "build", "mybundle:latest"),
+			stdout(matches(`sha256:[a-f0-9]{64}`)))
+		if err != nil {
+			return err
+		}
+
+		// image has been rebuilt and now there are two
+		container, err = assertExec(ctx, container, flipt("bundle", "list"),
+			stdout(matches(`DIGEST[\s]+REPO[\s]+TAG[\s]+CREATED`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)))
+		if err != nil {
+			return err
+		}
+
+		// push image to itself at a different tag
+		container, err = assertExec(ctx, container, flipt("bundle", "push", "mybundle:latest", "myotherbundle:latest"),
+			stdout(matches(`sha256:[a-f0-9]{64}`)))
+		if err != nil {
+			return err
+		}
+
+		// now there are three
+		container, err = assertExec(ctx, container, flipt("bundle", "list"),
+			stdout(matches(`DIGEST[\s]+REPO[\s]+TAG[\s]+CREATED`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+myotherbundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)))
+		if err != nil {
+			return err
+		}
+
+		// push to remote name
+		container, err = assertExec(ctx,
+			container.WithServiceBinding("zot",
+				client.Container().
+					From("ghcr.io/project-zot/zot-linux-arm64:latest").
+					WithExposedPort(5000)),
+			flipt("bundle", "push", "mybundle:latest", "http://zot:5000/myremotebundle:latest"),
+			stdout(matches(`sha256:[a-f0-9]{64}`)),
+		)
+		if err != nil {
+			return err
+		}
+
+		// pull remote bundle
+		container, err = assertExec(ctx,
+			container.WithServiceBinding("zot",
+				client.Container().
+					From("ghcr.io/project-zot/zot-linux-arm64:latest").
+					WithExposedPort(5000)),
+			flipt("bundle", "pull", "http://zot:5000/myremotebundle:latest"),
+			stdout(matches(`sha256:[a-f0-9]{64}`)),
+		)
+		if err != nil {
+			return err
+		}
+
+		// now there are four including local copy of remote name
+		container, err = assertExec(ctx, container, flipt("bundle", "list"),
+			stdout(matches(`DIGEST[\s]+REPO[\s]+TAG[\s]+CREATED`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+mybundle[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+myotherbundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)),
+			stdout(matches(`[a-f0-9]{7}[\s]+myremotebundle[\s]+latest[\s]+[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}`)))
+		if err != nil {
+			return err
 		}
 	}
 
