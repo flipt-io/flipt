@@ -46,3 +46,4 @@ screenshots/
 
 # Rust
 **/target
+/Cargo.lock
