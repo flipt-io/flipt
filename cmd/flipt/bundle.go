@@ -28,9 +28,23 @@ func newBundleCommand() *cobra.Command {
 	})
 
 	cmd.AddCommand(&cobra.Command{
-		Use:   "list",
+		Use:   "list [flags]",
 		Short: "List all bundles",
 		RunE:  bundle.list,
+	})
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "push [flags] <from> <to>",
+		Short: "Push local bundle to remote",
+		RunE:  bundle.push,
+		Args:  cobra.ExactArgs(2),
+	})
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "pull [flags] <remote>",
+		Short: "Pull a remote bundle",
+		RunE:  bundle.pull,
+		Args:  cobra.ExactArgs(1),
 	})
 
 	return cmd
@@ -76,6 +90,59 @@ func (c *bundleCommand) list(cmd *cobra.Command, args []string) error {
 	}
 
 	return wr.Flush()
+}
+
+func (c *bundleCommand) push(cmd *cobra.Command, args []string) error {
+	store, err := c.getStore()
+	if err != nil {
+		return err
+	}
+
+	src, err := oci.ParseReference(args[0])
+	if err != nil {
+		return err
+	}
+
+	dst, err := oci.ParseReference(args[1])
+	if err != nil {
+		return err
+	}
+
+	bundle, err := store.Copy(cmd.Context(), src, dst)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(bundle.Digest)
+
+	return nil
+}
+
+func (c *bundleCommand) pull(cmd *cobra.Command, args []string) error {
+	store, err := c.getStore()
+	if err != nil {
+		return err
+	}
+
+	src, err := oci.ParseReference(args[0])
+	if err != nil {
+		return err
+	}
+
+	// copy source into destination and rewrite
+	// to reference the local equivalent name
+	dst := src
+	dst.Registry = "local"
+	dst.Scheme = "flipt"
+
+	bundle, err := store.Copy(cmd.Context(), src, dst)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(bundle.Digest)
+
+	return nil
 }
 
 func (c *bundleCommand) getStore() (*oci.Store, error) {

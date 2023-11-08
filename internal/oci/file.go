@@ -433,6 +433,50 @@ func (s *Store) buildLayers(ctx context.Context, store oras.Target, src fs.FS) (
 	return layers, nil
 }
 
+func (s *Store) Copy(ctx context.Context, src, dst Reference) (Bundle, error) {
+	if src.Reference.Reference == "" {
+		return Bundle{}, fmt.Errorf("source bundle: %w", ErrReferenceRequired)
+	}
+
+	if dst.Reference.Reference == "" {
+		return Bundle{}, fmt.Errorf("destination bundle: %w", ErrReferenceRequired)
+	}
+
+	srcTarget, err := s.getTarget(src)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	dstTarget, err := s.getTarget(dst)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	desc, err := oras.Copy(
+		ctx,
+		srcTarget,
+		src.Reference.Reference,
+		dstTarget,
+		dst.Reference.Reference,
+		oras.DefaultCopyOptions)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	bundle := Bundle{
+		Digest:     desc.Digest,
+		Repository: dst.Repository,
+		Tag:        dst.Reference.Reference,
+	}
+
+	bundle.CreatedAt, err = parseCreated(desc.Annotations)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	return bundle, nil
+}
+
 func getMediaTypeAndEncoding(layer v1.Descriptor) (mediaType, encoding string, _ error) {
 	var ok bool
 	if mediaType = layer.MediaType; mediaType == "" {
