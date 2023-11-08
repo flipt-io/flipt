@@ -4,12 +4,15 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"fmt"
 	"io/fs"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	flipterrors "go.flipt.io/flipt/errors"
+	"go.flipt.io/flipt/internal/cue"
 	"go.flipt.io/flipt/internal/ext"
 	"go.flipt.io/flipt/internal/storage"
 	"go.flipt.io/flipt/rpc/flipt"
@@ -19,12 +22,47 @@ import (
 //go:embed all:testdata
 var testdata embed.FS
 
-func TestSnapshotFromFS_Invalid_Extension(t *testing.T) {
-	dir, err := fs.Sub(testdata, "testdata/invalid/extension")
-	require.NoError(t, err)
+func TestSnapshotFromFS_Invalid(t *testing.T) {
+	for _, test := range []struct {
+		path string
+		err  error
+	}{
+		{
+			path: "testdata/invalid/extension",
+			err:  errors.New("unexpected extension: \".unknown\""),
+		},
+		{
+			path: "testdata/invalid/variant_flag_segment",
+			err:  flipterrors.ErrInvalid("flag fruit/apple rule 1 references unknown segment \"unknown\""),
+		},
+		{
+			path: "testdata/invalid/variant_flag_distribution",
+			err:  flipterrors.ErrInvalid("flag fruit/apple rule 1 references unknown variant \"braeburn\""),
+		},
+		{
+			path: "testdata/invalid/boolean_flag_segment",
+			err:  flipterrors.ErrInvalid("flag fruit/apple rule 1 references unknown segment \"unknown\""),
+		},
+		{
+			path: "testdata/invalid/namespace",
+			err: errors.Join(
+				cue.Error{Message: "namespace: 2 errors in empty disjunction:", Location: cue.Location{File: "features.json", Line: 0}},
+				cue.Error{Message: "namespace: conflicting values 1 and \"default\" (mismatched types int and string)", Location: cue.Location{File: "features.json", Line: 3}},
+				cue.Error{Message: "namespace: conflicting values 1 and string (mismatched types int and string)", Location: cue.Location{File: "features.json", Line: 3}},
+			),
+		},
+	} {
+		t.Run(test.path, func(t *testing.T) {
+			dir, err := fs.Sub(testdata, test.path)
+			require.NoError(t, err)
 
-	_, err = SnapshotFromFS(zaptest.NewLogger(t), dir)
-	require.Equal(t, errors.New("unexpected extension: \".unknown\""), err)
+			_, err = SnapshotFromFS(zaptest.NewLogger(t), dir)
+			if !assert.Equal(t, test.err, err) {
+				fmt.Println(err)
+			}
+		})
+	}
+
 }
 
 func TestWalkDocuments(t *testing.T) {
@@ -1678,24 +1716,6 @@ func (fis *FSWithoutIndexSuite) TestListAndGetRules() {
 			}
 		})
 	}
-}
-
-func TestFS_Invalid_VariantFlag_Segment(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "testdata/invalid/variant_flag_segment")
-	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
-	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
-}
-
-func TestFS_Invalid_VariantFlag_Distribution(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "testdata/invalid/variant_flag_distribution")
-	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
-	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown variant \"braeburn\"")
-}
-
-func TestFS_Invalid_BooleanFlag_Segment(t *testing.T) {
-	fs, _ := fs.Sub(testdata, "testdata/invalid/boolean_flag_segment")
-	_, err := SnapshotFromFS(zaptest.NewLogger(t), fs)
-	require.EqualError(t, err, "flag fruit/apple rule 1 references unknown segment \"unknown\"")
 }
 
 func TestFS_Empty_Features_File(t *testing.T) {
