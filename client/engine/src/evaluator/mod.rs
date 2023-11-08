@@ -234,7 +234,8 @@ impl Evaluator<parsers::FliptParser> {
 
         if !flag.enabled {
             variant_evaluation_response.reason = common::EvaluationReason::FlagDisabled;
-            variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+            variant_evaluation_response.request_duration_millis =
+                get_duration_millis(now.elapsed())?;
             return Ok(variant_evaluation_response);
         }
 
@@ -322,7 +323,8 @@ impl Evaluator<parsers::FliptParser> {
             if valid_distributions.is_empty() {
                 variant_evaluation_response.r#match = true;
                 variant_evaluation_response.reason = common::EvaluationReason::Match;
-                variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+                variant_evaluation_response.request_duration_millis =
+                    get_duration_millis(now.elapsed())?;
                 return Ok(variant_evaluation_response);
             }
 
@@ -344,7 +346,8 @@ impl Evaluator<parsers::FliptParser> {
 
             if index == valid_distributions.len() {
                 variant_evaluation_response.r#match = false;
-                variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+                variant_evaluation_response.request_duration_millis =
+                    get_duration_millis(now.elapsed())?;
                 return Ok(variant_evaluation_response);
             }
 
@@ -354,7 +357,8 @@ impl Evaluator<parsers::FliptParser> {
             variant_evaluation_response.variant_key = d.variant_key.clone();
             variant_evaluation_response.variant_attachment = d.variant_attachment.clone();
             variant_evaluation_response.reason = common::EvaluationReason::Match;
-            variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+            variant_evaluation_response.request_duration_millis =
+                get_duration_millis(now.elapsed())?;
             return Ok(variant_evaluation_response);
         }
 
@@ -405,7 +409,7 @@ impl Evaluator<parsers::FliptParser> {
                         enabled: threshold.value,
                         flag_key: flag.key.clone(),
                         reason: common::EvaluationReason::Match,
-                        request_duration_millis: get_duration(now.elapsed())?,
+                        request_duration_millis: get_duration_millis(now.elapsed())?,
                         timestamp: chrono::offset::Utc::now(),
                     });
                 }
@@ -442,7 +446,7 @@ impl Evaluator<parsers::FliptParser> {
                     enabled: segment.value,
                     flag_key: flag.key.clone(),
                     reason: common::EvaluationReason::Match,
-                    request_duration_millis: get_duration(now.elapsed())?,
+                    request_duration_millis: get_duration_millis(now.elapsed())?,
                     timestamp: chrono::offset::Utc::now(),
                 });
             }
@@ -452,7 +456,7 @@ impl Evaluator<parsers::FliptParser> {
             enabled: flag.enabled,
             flag_key: flag.key.clone(),
             reason: common::EvaluationReason::Default,
-            request_duration_millis: get_duration(now.elapsed())?,
+            request_duration_millis: get_duration_millis(now.elapsed())?,
             timestamp: chrono::offset::Utc::now(),
         })
     }
@@ -654,7 +658,7 @@ fn matches_datetime(
     }
 }
 
-fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whatever> {
+fn get_duration_millis(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whatever> {
     match elapsed {
         Ok(elapsed) => Ok(elapsed.as_secs_f64() * 1000.0),
         Err(e) => {
