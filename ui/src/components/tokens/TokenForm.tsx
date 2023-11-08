@@ -1,12 +1,16 @@
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import * as Yup from 'yup';
+import { selectNamespaces } from '~/app/namespaces/namespacesSlice';
 import Button from '~/components/forms/buttons/Button';
 import Input from '~/components/forms/Input';
+import Listbox from '~/components/forms/Listbox';
 import Loading from '~/components/Loading';
 import MoreInfo from '~/components/MoreInfo';
+import { SelectableNamespace } from '~/components/namespaces/NamespaceListbox';
 import { createToken } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { requiredValidation } from '~/data/validations';
@@ -27,9 +31,20 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
     });
   };
 
+  const namespaces = useSelector(selectNamespaces);
+
+  const [namespaceScoped, setNamespaceScoped] = useState<boolean>(false);
+
+  const [selectedNamespace, setSelectedNamespace] =
+    useState<SelectableNamespace>({
+      ...namespaces[0],
+      displayValue: namespaces[0].name
+    });
+
   const initialValues = {
     name: '',
     description: '',
+    namespaceKey: '',
     expires: ''
   };
 
@@ -37,13 +52,13 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
     <Formik
       initialValues={initialValues}
       validationSchema={Yup.object({
-        name: requiredValidation,
-        description: requiredValidation
+        name: requiredValidation
       })}
       onSubmit={(values, { setSubmitting }) => {
         let token: IAuthTokenBase = {
           name: values.name,
-          description: values.description
+          description: values.description?.trim() || '',
+          namespace: values.namespaceKey || ''
         };
 
         // parse expires into UTC date
@@ -114,6 +129,12 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                   >
                     Description
                   </label>
+                  <span
+                    className="text-gray-400 text-xs"
+                    id="description-optional"
+                  >
+                    Optional
+                  </span>
                 </div>
                 <div className="sm:col-span-2">
                   <Input name="description" id="description" />
@@ -138,6 +159,57 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                     name="expires"
                     min={new Date().toISOString().split('T')[0]}
                   />
+                </div>
+              </div>
+              <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                <div>
+                  <label
+                    htmlFor="expires"
+                    className="text-gray-900 block text-sm font-medium sm:mt-px sm:pt-2"
+                  >
+                    Namespace
+                  </label>
+                  <span className="text-gray-400 text-xs" id="expires-optional">
+                    Optional
+                  </span>
+                </div>
+                <div className="space-y-4 sm:col-span-2">
+                  <div className="relative flex items-start">
+                    <div className="flex h-6 items-center">
+                      <input
+                        id="namespaced"
+                        name="namespaced"
+                        type="checkbox"
+                        className="text-violet-600 border-gray-300 h-4 w-4 rounded focus:ring-violet-600"
+                        onChange={(e) => {
+                          setNamespaceScoped(e.target.checked);
+                        }}
+                      />
+                    </div>
+                    <div className="ml-3 text-sm leading-6">
+                      <label
+                        htmlFor="namespaced"
+                        className="text-gray-800 font-medium"
+                      >
+                        Scope this token to a single namespace
+                      </label>
+                    </div>
+                  </div>
+                  {namespaceScoped && (
+                    <Listbox<SelectableNamespace>
+                      id="tokenNamespace"
+                      name="namespaceKey"
+                      values={namespaces.map((n) => ({
+                        ...n,
+                        displayValue: n.name
+                      }))}
+                      selected={{
+                        ...selectedNamespace,
+                        displayValue: selectedNamespace?.name || ''
+                      }}
+                      setSelected={setSelectedNamespace}
+                    />
+                  )}
                 </div>
               </div>
             </div>
