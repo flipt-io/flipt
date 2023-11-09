@@ -478,8 +478,12 @@ message DeleteDistributionRequest {
 }
 
 service Flipt {
-  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {}
-  rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
+  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {
+    option deprecated = true;
+  }
+  rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
+    option deprecated = true;
+  }
   rpc GetNamespace(GetNamespaceRequest) returns (Namespace) { } 
   rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {}
   rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {}
