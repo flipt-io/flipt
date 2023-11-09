@@ -44,6 +44,7 @@ pub struct VariantEvaluationResponse {
     pub timestamp: DateTime<Utc>,
 }
 
+#[derive(Serialize)]
 pub struct BooleanEvaluationResponse {
     pub enabled: bool,
     pub flag_key: String,
@@ -656,7 +657,7 @@ fn matches_datetime(
 
 fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whatever> {
     match elapsed {
-        Ok(elapsed) => Ok(elapsed.as_secs_f64()),
+        Ok(elapsed) => Ok(elapsed.as_secs_f64() * 1000.0),
         Err(e) => {
             whatever!("error getting duration {}", e)
         }

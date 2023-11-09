@@ -111,16 +111,43 @@ pub unsafe extern "C" fn initialize_engine(namespaces: *const *const c_char) -> 
 
 /// # Safety
 ///
-/// This function will take in an engine pointer and return an evalution response for boolean or variant.
+/// This function will take in a pointer to the engine and return a variant evaluation response.
 #[no_mangle]
 pub unsafe extern "C" fn variant(
     engine_ptr: *mut c_void,
     evaluation_request: *const c_char,
 ) -> *const c_char {
-    let bytes = unsafe { CStr::from_ptr(evaluation_request).to_bytes() };
-    let e_req = std::str::from_utf8(bytes).unwrap();
+    let e = get_engine(engine_ptr).unwrap();
+    let e_req = get_evaluation_request(evaluation_request);
 
-    let client_eval_request: EvaluationReq = serde_json::from_str(e_req).unwrap();
+    let variant_response = e.variant(&e_req).unwrap();
+
+    result_to_json_ptr(variant_response)
+}
+
+/// # Safety
+///
+/// This function will take in a pointer to the engine and return a boolean evaluation response.
+#[no_mangle]
+pub unsafe extern "C" fn boolean(
+    engine_ptr: *mut c_void,
+    evaluation_request: *const c_char,
+) -> *const c_char {
+    let e = get_engine(engine_ptr).unwrap();
+    let e_req = get_evaluation_request(evaluation_request);
+
+    let boolean_response = e.boolean(&e_req).unwrap();
+
+    result_to_json_ptr(boolean_response)
+}
+
+unsafe fn get_evaluation_request(
+    evaluation_request: *const c_char,
+) -> evaluator::EvaluationRequest {
+    let evaluation_request_bytes = CStr::from_ptr(evaluation_request).to_bytes();
+    let bytes_str_repr = std::str::from_utf8(evaluation_request_bytes).unwrap();
+
+    let client_eval_request: EvaluationReq = serde_json::from_str(bytes_str_repr).unwrap();
 
     let parsed_context: serde_json::Value =
         serde_json::from_str(&client_eval_request.context).unwrap();
@@ -134,20 +161,12 @@ pub unsafe extern "C" fn variant(
         }
     }
 
-    let e = get_engine(engine_ptr).unwrap();
-
-    let variant_response = e
-        .variant(&evaluator::EvaluationRequest {
-            namespace_key: client_eval_request.namespace_key,
-            flag_key: client_eval_request.flag_key,
-            entity_id: client_eval_request.entity_id,
-            context: HashMap::new(),
-        })
-        .unwrap();
-
-    println!("{}", variant_response.variant_key);
-
-    result_to_json_ptr(variant_response)
+    evaluator::EvaluationRequest {
+        namespace_key: client_eval_request.namespace_key,
+        flag_key: client_eval_request.flag_key,
+        entity_id: client_eval_request.entity_id,
+        context: context_map,
+    }
 }
 
 /// # Safety

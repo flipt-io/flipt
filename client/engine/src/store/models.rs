@@ -10,7 +10,7 @@ pub struct Document {
 #[derive(Deserialize)]
 pub struct Namespace {
     pub key: String,
-    pub name: String,
+    pub name: Option<String>,
 }
 
 #[derive(Deserialize)]
