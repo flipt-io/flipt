@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"dagger.io/dagger"
+	"github.com/containerd/containerd/platforms"
 )
 
 func CLI(ctx context.Context, client *dagger.Client, container *dagger.Container) error {
@@ -322,11 +323,19 @@ exit $?`,
 			return err
 		}
 
+		platform, err := client.DefaultPlatform(ctx)
+		if err != nil {
+			return err
+		}
+
+		// switch out zot images based on host platform
+		p := platforms.MustParse(string(platform))
+
 		// push to remote name
 		container, err = assertExec(ctx,
 			container.WithServiceBinding("zot",
 				client.Container().
-					From("ghcr.io/project-zot/zot-linux-arm64:latest").
+					From(fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest", p.Architecture)).
 					WithExposedPort(5000)),
 			flipt("bundle", "push", "mybundle:latest", "http://zot:5000/myremotebundle:latest"),
 			stdout(matches(`sha256:[a-f0-9]{64}`)),
