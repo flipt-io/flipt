@@ -407,6 +407,7 @@ message ListRuleRequest {
   string page_token = 4;
   string namespace_key = 5;
 }
+
 message GetRuleRequest {
   string id = 1;
   string flag_key = 2;

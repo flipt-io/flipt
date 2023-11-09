@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/containers"
+	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -176,10 +177,6 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 	}
 }
 
-type namespaceKeyer interface {
-	GetNamespaceKey() string
-}
-
 func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		auth := GetAuthenticationFrom(ctx)
@@ -195,6 +192,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 
 		namespace, ok := auth.Metadata["io.flipt.auth.token.namespace"]
 		if !ok {
+			// if no namespace is provided then we should allow the request
 			return handler(ctx, req)
 		}
 
@@ -204,20 +202,21 @@ func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 			return handler(ctx, req)
 		}
 
-		// TODO: think of a more robust way of doing this that is probably enforced at compile time
-		// we dont want to allow users to specify namespaces that are not valid and not all requests
-		// have a namespace keyer
+		nsReq, ok := req.(flipt.Namespaced)
+		if !ok {
+			// if the the token has a namespace but the request does not then we should reject the request
+			logger.Error("unauthenticated", zap.String("reason", "namespace is not allowed"))
+			return ctx, errUnauthenticated
+		}
 
-		// TODO: add support for `XNamespaceRequest` types
-		if nsReq, ok := req.(namespaceKeyer); ok {
-			reqNamespace := nsReq.GetNamespaceKey()
-			if reqNamespace == "" {
-				reqNamespace = "default"
-			}
-			if reqNamespace != namespace {
-				logger.Error("unauthenticated", zap.String("reason", "namespace is not allowed"))
-				return ctx, errUnauthenticated
-			}
+		reqNamespace := nsReq.GetNamespaceKey()
+		if reqNamespace == "" {
+			reqNamespace = "default"
+		}
+
+		if reqNamespace != namespace {
+			logger.Error("unauthenticated", zap.String("reason", "namespace is not allowed"))
+			return ctx, errUnauthenticated
 		}
 
 		return handler(ctx, req)
