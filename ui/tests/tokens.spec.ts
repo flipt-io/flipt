@@ -14,7 +14,7 @@ test.describe('API Tokens', () => {
         page.getByRole('heading', { name: 'Static Tokens' })
       ).toBeVisible();
       await page.getByRole('button', { name: 'New Token' }).nth(0).click();
-      await page.getByLabel('Name').fill('abcdef');
+      await page.getByLabel('Name', { exact: true }).fill('abcdef');
       await page.getByLabel('Description').fill('xyz');
       await page.getByRole('button', { name: 'Create' }).click();
       await page.getByRole('button', { name: 'Copy' }).click();
