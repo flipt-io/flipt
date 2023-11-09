@@ -149,13 +149,7 @@ func (s *Store) getTarget(ref Reference) (oras.Target, error) {
 		return remote, nil
 	case SchemeFlipt:
 		// build the store once to ensure it is valid
-		bundleDir := path.Join(s.opts.bundleDir, ref.Repository)
-		_, err := oci.New(bundleDir)
-		if err != nil {
-			return nil, err
-		}
-
-		store, err := oci.New(bundleDir)
+		store, err := oci.New(path.Join(s.opts.bundleDir, ref.Repository))
 		if err != nil {
 			return nil, err
 		}
@@ -431,6 +425,65 @@ func (s *Store) buildLayers(ctx context.Context, store oras.Target, src fs.FS) (
 		return nil, err
 	}
 	return layers, nil
+}
+
+func (s *Store) Copy(ctx context.Context, src, dst Reference) (Bundle, error) {
+	if src.Reference.Reference == "" {
+		return Bundle{}, fmt.Errorf("source bundle: %w", ErrReferenceRequired)
+	}
+
+	if dst.Reference.Reference == "" {
+		return Bundle{}, fmt.Errorf("destination bundle: %w", ErrReferenceRequired)
+	}
+
+	srcTarget, err := s.getTarget(src)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	dstTarget, err := s.getTarget(dst)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	desc, err := oras.Copy(
+		ctx,
+		srcTarget,
+		src.Reference.Reference,
+		dstTarget,
+		dst.Reference.Reference,
+		oras.DefaultCopyOptions)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	rd, err := dstTarget.Fetch(ctx, desc)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	data, err := io.ReadAll(rd)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	var man v1.Manifest
+	if err := json.Unmarshal(data, &man); err != nil {
+		return Bundle{}, err
+	}
+
+	bundle := Bundle{
+		Digest:     desc.Digest,
+		Repository: dst.Repository,
+		Tag:        dst.Reference.Reference,
+	}
+
+	bundle.CreatedAt, err = parseCreated(man.Annotations)
+	if err != nil {
+		return Bundle{}, err
+	}
+
+	return bundle, nil
 }
 
 func getMediaTypeAndEncoding(layer v1.Descriptor) (mediaType, encoding string, _ error) {
