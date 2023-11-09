@@ -448,13 +448,8 @@ func (s *Store) Copy(ctx context.Context, src, dst Reference) (Bundle, error) {
 		return Bundle{}, err
 	}
 
-	data, err := io.ReadAll(rd)
-	if err != nil {
-		return Bundle{}, err
-	}
-
 	var man v1.Manifest
-	if err := json.Unmarshal(data, &man); err != nil {
+	if err := json.NewDecoder(rd).Decode(&man); err != nil {
 		return Bundle{}, err
 	}
 
