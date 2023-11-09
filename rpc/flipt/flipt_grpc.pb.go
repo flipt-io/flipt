@@ -64,7 +64,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FliptClient interface {
+	// Deprecated: Do not use.
 	Evaluate(ctx context.Context, in *EvaluationRequest, opts ...grpc.CallOption) (*EvaluationResponse, error)
+	// Deprecated: Do not use.
 	BatchEvaluate(ctx context.Context, in *BatchEvaluationRequest, opts ...grpc.CallOption) (*BatchEvaluationResponse, error)
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*Namespace, error)
 	ListNamespaces(ctx context.Context, in *ListNamespaceRequest, opts ...grpc.CallOption) (*NamespaceList, error)
@@ -112,6 +114,7 @@ func NewFliptClient(cc grpc.ClientConnInterface) FliptClient {
 	return &fliptClient{cc}
 }
 
+// Deprecated: Do not use.
 func (c *fliptClient) Evaluate(ctx context.Context, in *EvaluationRequest, opts ...grpc.CallOption) (*EvaluationResponse, error) {
 	out := new(EvaluationResponse)
 	err := c.cc.Invoke(ctx, Flipt_Evaluate_FullMethodName, in, out, opts...)
@@ -121,6 +124,7 @@ func (c *fliptClient) Evaluate(ctx context.Context, in *EvaluationRequest, opts 
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *fliptClient) BatchEvaluate(ctx context.Context, in *BatchEvaluationRequest, opts ...grpc.CallOption) (*BatchEvaluationResponse, error) {
 	out := new(BatchEvaluationResponse)
 	err := c.cc.Invoke(ctx, Flipt_BatchEvaluate_FullMethodName, in, out, opts...)
@@ -458,7 +462,9 @@ func (c *fliptClient) DeleteConstraint(ctx context.Context, in *DeleteConstraint
 // All implementations must embed UnimplementedFliptServer
 // for forward compatibility
 type FliptServer interface {
+	// Deprecated: Do not use.
 	Evaluate(context.Context, *EvaluationRequest) (*EvaluationResponse, error)
+	// Deprecated: Do not use.
 	BatchEvaluate(context.Context, *BatchEvaluationRequest) (*BatchEvaluationResponse, error)
 	GetNamespace(context.Context, *GetNamespaceRequest) (*Namespace, error)
 	ListNamespaces(context.Context, *ListNamespaceRequest) (*NamespaceList, error)
