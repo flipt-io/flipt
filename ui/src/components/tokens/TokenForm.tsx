@@ -189,7 +189,7 @@ const TokenForm = forwardRef((props: TokenFormProps, ref: any) => {
                     <div className="ml-3 text-sm leading-6">
                       <label
                         htmlFor="namespaced"
-                        className="text-gray-800 font-medium"
+                        className="text-gray-700 font-medium"
                       >
                         Scope this token to a single namespace
                       </label>

@@ -32,7 +32,7 @@ test.describe('API Tokens', () => {
       await page.getByRole('button', { name: 'New Token' }).nth(0).click();
       await page.getByLabel('Name', { exact: true }).fill('fooo');
       await page.getByLabel('Description').press('Tab');
-      await page.getByLabel('Expires On').fill('2023-11-01');
+      await page.getByLabel('Expires On').fill('2030-11-01');
       await page.getByLabel('Scope this token to a single namespace').check();
       await page.getByRole('button', { name: 'Default' }).click();
       await page.getByLabel('Default').getByText('Default').click();
