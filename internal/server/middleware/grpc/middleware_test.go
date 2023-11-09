@@ -2178,8 +2178,7 @@ func TestAuditUnaryInterceptor_CreateToken(t *testing.T) {
 	store.On("CreateAuthentication", mock.Anything, &storageauth.CreateAuthenticationRequest{
 		Method: authrpc.Method_METHOD_TOKEN,
 		Metadata: map[string]string{
-			"io.flipt.auth.token.description": "",
-			"io.flipt.auth.token.name":        "token",
+			"io.flipt.auth.token.name": "token",
 		},
 	}).Return("", &authrpc.Authentication{Metadata: map[string]string{
 		"email": "example@flipt.io",
