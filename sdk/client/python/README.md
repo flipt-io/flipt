@@ -1,6 +1,6 @@
-## Python Evaluation Client
+## Flipt Client Python
 
-This directory contains the Python source code for a Flipt evaluation client using FFI to make calls to the core built in Rust.
+This directory contains the Python source code for a Flipt evaluation client using FFI to make calls to a core built in Rust.
 
 ### Instructions
 

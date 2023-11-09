@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "python-evaluation"
+name = "flipt-client-python"
 version = "0.1.0"
 description = ""
 authors = ["Yoofi Quansah <ybquansah@gmail.com>"]
