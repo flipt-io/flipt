@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"dagger.io/dagger"
 	"github.com/containerd/containerd/platforms"
@@ -289,6 +290,10 @@ exit $?`,
 		if err != nil {
 			return err
 		}
+
+		// we need to wait for a second to ensure the timestamp ticks over so that
+		// a new digest is created on the second build
+		time.Sleep(time.Second)
 
 		// rebuild the same image
 		container, err = assertExec(ctx, container, flipt("bundle", "build", "mybundle:latest"),
