@@ -37,7 +37,7 @@ export default function Header(props: HeaderProps) {
     : undefined;
 
   return (
-    <div className="bg-violet-400 sticky top-0 z-10 flex h-16 flex-shrink-0">
+    <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 bg-gray-950 dark:border-b dark:border-b-white/40">
       <button
         type="button"
         className="without-ring text-white px-4 md:hidden"

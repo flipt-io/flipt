@@ -43,7 +43,7 @@ export default function Sidebar(props: SidebarProps) {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="bg-violet-300 relative flex w-full max-w-xs flex-1 flex-col pb-4 pt-5">
+              <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-950 pb-4 pt-5">
                 <Transition.Child
                   as={Fragment}
                   enter="ease-in-out duration-300"
@@ -94,7 +94,7 @@ export default function Sidebar(props: SidebarProps) {
       {/* Static sidebar for desktop */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="bg-gray-200 flex min-h-0 flex-1 flex-col">
-          <div className="bg-violet-400 relative flex h-16 flex-shrink-0 items-center px-4 pt-2">
+          <div className="relative flex h-16 flex-shrink-0 items-center bg-gray-950 px-4 pt-2 dark:border-b dark:border-b-white/40">
             <Link to="/">
               <img
                 src={logoLight}
