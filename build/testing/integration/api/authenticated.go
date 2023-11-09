@@ -33,6 +33,7 @@ func Authenticated(t *testing.T, client sdk.SDK) {
 
 		t.Run("Static Token", func(t *testing.T) {
 			t.Log(`Create token.`)
+
 			t.Run("With name and description", func(t *testing.T) {
 				resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
 					Name:        "Access Token",
@@ -44,6 +45,7 @@ func Authenticated(t *testing.T, client sdk.SDK) {
 				assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
 				assert.Equal(t, "Some kind of access token.", resp.Authentication.Metadata["io.flipt.auth.token.description"])
 			})
+
 			t.Run("With name and namespaceKey", func(t *testing.T) {
 				resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
 					Name:         "Scoped Access Token",
@@ -52,7 +54,7 @@ func Authenticated(t *testing.T, client sdk.SDK) {
 				require.NoError(t, err)
 
 				assert.NotEmpty(t, resp.ClientToken)
-				assert.Equal(t, "Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
+				assert.Equal(t, "Scoped Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
 				assert.Empty(t, resp.Authentication.Metadata["io.flipt.auth.token.description"])
 				assert.Equal(t, "some-namespace", resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
 			})
