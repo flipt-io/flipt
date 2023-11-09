@@ -149,13 +149,7 @@ func (s *Store) getTarget(ref Reference) (oras.Target, error) {
 		return remote, nil
 	case SchemeFlipt:
 		// build the store once to ensure it is valid
-		bundleDir := path.Join(s.opts.bundleDir, ref.Repository)
-		_, err := oci.New(bundleDir)
-		if err != nil {
-			return nil, err
-		}
-
-		store, err := oci.New(bundleDir)
+		store, err := oci.New(path.Join(s.opts.bundleDir, ref.Repository))
 		if err != nil {
 			return nil, err
 		}
