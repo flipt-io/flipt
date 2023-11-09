@@ -244,6 +244,9 @@ func NewGRPCServer(
 		source, err := storageoci.NewSource(logger, ocistore, ref,
 			storageoci.WithPollInterval(cfg.Storage.OCI.PollInterval),
 		)
+		if err != nil {
+			return nil, err
+		}
 
 		store, err = fs.NewStore(logger, source)
 		if err != nil {
