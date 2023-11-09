@@ -334,13 +334,14 @@ exit $?`,
 		}
 
 		// switch out zot images based on host platform
-		p := platforms.MustParse(string(platform))
+		image := fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest",
+			platforms.MustParse(string(platform)).Architecture)
 
 		// push to remote name
 		container, err = assertExec(ctx,
 			container.WithServiceBinding("zot",
 				client.Container().
-					From(fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest", p.Architecture)).
+					From(image).
 					WithExposedPort(5000)),
 			flipt("bundle", "push", "mybundle:latest", "http://zot:5000/myremotebundle:latest"),
 			stdout(matches(`sha256:[a-f0-9]{64}`)),
@@ -353,7 +354,7 @@ exit $?`,
 		container, err = assertExec(ctx,
 			container.WithServiceBinding("zot",
 				client.Container().
-					From("ghcr.io/project-zot/zot-linux-arm64:latest").
+					From(image).
 					WithExposedPort(5000)),
 			flipt("bundle", "pull", "http://zot:5000/myremotebundle:latest"),
 			stdout(matches(`sha256:[a-f0-9]{64}`)),
