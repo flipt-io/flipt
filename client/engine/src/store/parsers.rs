@@ -3,8 +3,8 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-use super::models;
 use super::snapshot::Parser;
+use crate::models::transport;
 
 pub struct FliptParser {
     namespaces: Vec<String>,
@@ -30,7 +30,7 @@ impl Parser for FliptParser {
         }
     }
 
-    fn parse(&self, namespace: String) -> Result<models::Document, Whatever> {
+    fn parse(&self, namespace: String) -> Result<transport::Document, Whatever> {
         let response = match self
             .http_client
             .get(format!(
@@ -48,7 +48,7 @@ impl Parser for FliptParser {
             Err(e) => whatever!("failed to get response body: err {}", e),
         };
 
-        let document: models::Document = match serde_json::from_str(&response_text) {
+        let document: transport::Document = match serde_json::from_str(&response_text) {
             Ok(doc) => doc,
             Err(e) => whatever!("failed to deserialize text into document: err {}", e),
         };
@@ -70,14 +70,14 @@ impl Parser for TestParser {
         Self { namespaces }
     }
 
-    fn parse(&self, _: String) -> Result<models::Document, Whatever> {
+    fn parse(&self, _: String) -> Result<transport::Document, Whatever> {
         let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         d.push("src/testdata/state.json");
 
         let state =
             fs::read_to_string(d.display().to_string()).expect("file should have read correctly");
 
-        let document: models::Document = match serde_json::from_str(&state) {
+        let document: transport::Document = match serde_json::from_str(&state) {
             Ok(document) => document,
             Err(e) => whatever!("failed to deserialize text into document: err {}", e),
         };
