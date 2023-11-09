@@ -204,6 +204,11 @@ func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 			return handler(ctx, req)
 		}
 
+		// TODO: think of a more robust way of doing this that is probably enforced at compile time
+		// we dont want to allow users to specify namespaces that are not valid and not all requests
+		// have a namespace keyer
+
+		// TODO: add support for `XNamespaceRequest` types
 		if nsReq, ok := req.(namespaceKeyer); ok {
 			reqNamespace := nsReq.GetNamespaceKey()
 			if reqNamespace == "" {

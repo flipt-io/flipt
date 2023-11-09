@@ -11,7 +11,7 @@ log:
 #   enabled: true
 
 authentication:
-  required: false
+  required: true
   session:
     domain: "localhost:8080"
     secure: false
