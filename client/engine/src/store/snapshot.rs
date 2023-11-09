@@ -1,12 +1,12 @@
-use super::models;
-use crate::common;
-use crate::flipt::models as flipt_models;
+use crate::models::common;
+use crate::models::flipt;
+use crate::models::transport;
 use snafu::Whatever;
 use std::collections::HashMap;
 
 pub trait Parser {
     fn new(namespaces: Vec<String>) -> Self;
-    fn parse(&self, namespace: String) -> Result<models::Document, Whatever>;
+    fn parse(&self, namespace: String) -> Result<transport::Document, Whatever>;
     fn get_namespaces(&self) -> Vec<String>;
 }
 
@@ -16,10 +16,10 @@ pub struct Snapshot {
 
 struct Namespace {
     _key: String,
-    flags: HashMap<String, flipt_models::Flag>,
-    eval_rules: HashMap<String, Vec<flipt_models::EvaluationRule>>,
-    eval_rollouts: HashMap<String, Vec<flipt_models::EvaluationRollout>>,
-    eval_distributions: HashMap<String, Vec<flipt_models::EvaluationDistribution>>,
+    flags: HashMap<String, flipt::Flag>,
+    eval_rules: HashMap<String, Vec<flipt::EvaluationRule>>,
+    eval_rollouts: HashMap<String, Vec<flipt::EvaluationRollout>>,
+    eval_distributions: HashMap<String, Vec<flipt::EvaluationDistribution>>,
 }
 
 impl Snapshot {
@@ -32,15 +32,14 @@ impl Snapshot {
         for n in parser.get_namespaces() {
             let doc = parser.parse(n.clone())?;
 
-            let mut flags: HashMap<String, flipt_models::Flag> = HashMap::new();
-            let mut eval_rules: HashMap<String, Vec<flipt_models::EvaluationRule>> = HashMap::new();
-            let mut eval_rollouts: HashMap<String, Vec<flipt_models::EvaluationRollout>> =
-                HashMap::new();
-            let mut eval_dists: HashMap<String, Vec<flipt_models::EvaluationDistribution>> =
+            let mut flags: HashMap<String, flipt::Flag> = HashMap::new();
+            let mut eval_rules: HashMap<String, Vec<flipt::EvaluationRule>> = HashMap::new();
+            let mut eval_rollouts: HashMap<String, Vec<flipt::EvaluationRollout>> = HashMap::new();
+            let mut eval_dists: HashMap<String, Vec<flipt::EvaluationDistribution>> =
                 HashMap::new();
 
             for flag in doc.flags {
-                let f = flipt_models::Flag {
+                let f = flipt::Flag {
                     key: flag.key.clone(),
                     enabled: flag.enabled,
                     r#type: flag.r#type.unwrap_or(common::FlagType::Variant),
@@ -49,13 +48,13 @@ impl Snapshot {
                 flags.insert(f.key.clone(), f);
 
                 // Flag Rules
-                let mut eval_rules_collection: Vec<flipt_models::EvaluationRule> = Vec::new();
+                let mut eval_rules_collection: Vec<flipt::EvaluationRule> = Vec::new();
 
                 let flag_rules = flag.rules.unwrap_or(vec![]);
 
                 for (idx, rule) in flag_rules.into_iter().enumerate() {
                     let rule_id = uuid::Uuid::new_v4().to_string();
-                    let mut eval_rule = flipt_models::EvaluationRule {
+                    let mut eval_rule = flipt::EvaluationRule {
                         id: rule_id.clone(),
                         rank: idx + 1,
                         flag_key: flag.key.clone(),
@@ -67,10 +66,9 @@ impl Snapshot {
                         let rule_segments = rule.segments.unwrap();
 
                         for rule_segment in rule_segments {
-                            let mut eval_constraints: Vec<flipt_models::EvaluationConstraint> =
-                                Vec::new();
+                            let mut eval_constraints: Vec<flipt::EvaluationConstraint> = Vec::new();
                             for constraint in rule_segment.constraints {
-                                eval_constraints.push(flipt_models::EvaluationConstraint {
+                                eval_constraints.push(flipt::EvaluationConstraint {
                                     r#type: constraint.r#type,
                                     property: constraint.property,
                                     operator: constraint.operator,
@@ -80,7 +78,7 @@ impl Snapshot {
 
                             eval_rule.segments.insert(
                                 rule_segment.key.clone(),
-                                flipt_models::EvaluationSegment {
+                                flipt::EvaluationSegment {
                                     segment_key: rule_segment.key,
                                     match_type: rule_segment.match_type,
                                     constraints: eval_constraints,
@@ -89,11 +87,11 @@ impl Snapshot {
                         }
                     }
 
-                    let mut evaluation_distributions: Vec<flipt_models::EvaluationDistribution> =
+                    let mut evaluation_distributions: Vec<flipt::EvaluationDistribution> =
                         Vec::new();
 
                     for distribution in rule.distributions {
-                        evaluation_distributions.push(flipt_models::EvaluationDistribution {
+                        evaluation_distributions.push(flipt::EvaluationDistribution {
                             rule_id: rule_id.clone(),
                             variant_key: distribution.variant_key,
                             variant_attachment: distribution.variant_attachment,
@@ -109,7 +107,7 @@ impl Snapshot {
                 eval_rules.insert(flag.key.clone(), eval_rules_collection);
 
                 // Flag Rollouts
-                let mut eval_rollout_collection: Vec<flipt_models::EvaluationRollout> = Vec::new();
+                let mut eval_rollout_collection: Vec<flipt::EvaluationRollout> = Vec::new();
                 let mut rollout_idx = 0;
 
                 let flag_rollouts = flag.rollouts.unwrap_or(vec![]);
@@ -117,8 +115,8 @@ impl Snapshot {
                 for rollout in flag_rollouts {
                     rollout_idx += 1;
 
-                    let mut evaluation_rollout: flipt_models::EvaluationRollout =
-                        flipt_models::EvaluationRollout {
+                    let mut evaluation_rollout: flipt::EvaluationRollout =
+                        flipt::EvaluationRollout {
                             rank: rollout_idx,
                             rollout_type: common::RolloutType::Unknown,
                             segment: None,
@@ -129,7 +127,7 @@ impl Snapshot {
 
                     if rollout.threshold.is_some() {
                         let threshold = rollout.threshold.unwrap();
-                        evaluation_rollout.threshold = Some(flipt_models::RolloutThreshold {
+                        evaluation_rollout.threshold = Some(flipt::RolloutThreshold {
                             percentage: threshold.percentage,
                             value: threshold.value,
                         });
@@ -138,16 +136,15 @@ impl Snapshot {
                     } else if rollout.segment.is_some() {
                         let mut evaluation_rollout_segments: HashMap<
                             String,
-                            flipt_models::EvaluationSegment,
+                            flipt::EvaluationSegment,
                         > = HashMap::new();
 
                         let segment_rule = rollout.segment.unwrap();
 
                         for segment in segment_rule.segments {
-                            let mut constraints: Vec<flipt_models::EvaluationConstraint> =
-                                Vec::new();
+                            let mut constraints: Vec<flipt::EvaluationConstraint> = Vec::new();
                             for constraint in segment.constraints {
-                                constraints.push(flipt_models::EvaluationConstraint {
+                                constraints.push(flipt::EvaluationConstraint {
                                     r#type: constraint.r#type,
                                     property: constraint.property,
                                     value: constraint.value,
@@ -157,7 +154,7 @@ impl Snapshot {
 
                             evaluation_rollout_segments.insert(
                                 segment.key.clone(),
-                                flipt_models::EvaluationSegment {
+                                flipt::EvaluationSegment {
                                     segment_key: segment.key,
                                     match_type: segment.match_type.clone(),
                                     constraints,
@@ -166,7 +163,7 @@ impl Snapshot {
                         }
 
                         evaluation_rollout.rollout_type = common::RolloutType::Segment;
-                        evaluation_rollout.segment = Some(flipt_models::RolloutSegment {
+                        evaluation_rollout.segment = Some(flipt::RolloutSegment {
                             value: segment_rule.value,
                             segment_operator: segment_rule
                                 .segment_operator
@@ -196,7 +193,7 @@ impl Snapshot {
         Ok(Self { namespace: ns })
     }
 
-    pub fn get_flag(&self, namespace_key: &str, flag_key: &str) -> Option<flipt_models::Flag> {
+    pub fn get_flag(&self, namespace_key: &str, flag_key: &str) -> Option<flipt::Flag> {
         let namespace = self.namespace.get(namespace_key)?;
 
         let flag = namespace.flags.get(flag_key)?;
@@ -208,7 +205,7 @@ impl Snapshot {
         &self,
         namespace_key: &str,
         flag_key: &str,
-    ) -> Option<Vec<flipt_models::EvaluationRule>> {
+    ) -> Option<Vec<flipt::EvaluationRule>> {
         let namespace = self.namespace.get(namespace_key)?;
 
         let eval_rules = namespace.eval_rules.get(flag_key)?;
@@ -220,7 +217,7 @@ impl Snapshot {
         &self,
         namespace_key: &str,
         rule_id: &str,
-    ) -> Option<Vec<flipt_models::EvaluationDistribution>> {
+    ) -> Option<Vec<flipt::EvaluationDistribution>> {
         let namespace = self.namespace.get(namespace_key)?;
 
         let evaluation_distributions = namespace.eval_distributions.get(rule_id)?;
@@ -232,7 +229,7 @@ impl Snapshot {
         &self,
         namespace_key: &str,
         flag_key: &str,
-    ) -> Option<Vec<flipt_models::EvaluationRollout>> {
+    ) -> Option<Vec<flipt::EvaluationRollout>> {
         let namespace = self.namespace.get(namespace_key)?;
 
         let eval_rollouts = namespace.eval_rollouts.get(flag_key)?;
@@ -245,9 +242,8 @@ impl Snapshot {
 mod tests {
     use super::Parser;
     use super::Snapshot;
-    use crate::common;
-    use crate::flipt::models as flipt_models;
-    use crate::flipt::models::EvaluationConstraint;
+    use crate::models::common;
+    use crate::models::flipt;
     use crate::store::parsers::TestParser;
 
     #[test]
@@ -292,10 +288,10 @@ mod tests {
                 .segments
                 .get("segment1")
                 .expect("segment1 should exist"),
-            flipt_models::EvaluationSegment {
+            flipt::EvaluationSegment {
                 segment_key: "segment1".into(),
                 match_type: common::SegmentMatchType::Any,
-                constraints: vec![EvaluationConstraint {
+                constraints: vec![flipt::EvaluationConstraint {
                     r#type: common::ConstraintComparisonType::String,
                     property: "fizz".into(),
                     operator: "eq".into(),
@@ -338,10 +334,10 @@ mod tests {
                 .segments
                 .get("segment1")
                 .expect("segment1 should exist"),
-            flipt_models::EvaluationSegment {
+            flipt::EvaluationSegment {
                 segment_key: "segment1".into(),
                 match_type: common::SegmentMatchType::Any,
-                constraints: vec![EvaluationConstraint {
+                constraints: vec![flipt::EvaluationConstraint {
                     r#type: common::ConstraintComparisonType::String,
                     property: "fizz".into(),
                     operator: "eq".into(),

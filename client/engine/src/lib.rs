@@ -7,9 +7,8 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::sync::{Arc, Mutex};
 
-mod common;
 pub mod evaluator;
-mod flipt;
+mod models;
 mod store;
 
 #[derive(Deserialize)]

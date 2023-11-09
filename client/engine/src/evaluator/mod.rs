@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, SystemTime, SystemTimeError};
 
-use crate::common;
-use crate::flipt::models;
+use crate::models::common;
+use crate::models::flipt;
 use crate::store::parsers;
 use crate::store::snapshot;
 use crate::store::snapshot::Parser;
@@ -221,7 +221,7 @@ impl Evaluator<parsers::FliptParser> {
 
     fn variant_evaluation(
         &self,
-        flag: &models::Flag,
+        flag: &flipt::Flag,
         evaluation_request: &EvaluationRequest,
     ) -> VariantEvaluationResult<VariantEvaluationResponse> {
         let now = SystemTime::now();
@@ -234,7 +234,8 @@ impl Evaluator<parsers::FliptParser> {
 
         if !flag.enabled {
             variant_evaluation_response.reason = common::EvaluationReason::FlagDisabled;
-            variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+            variant_evaluation_response.request_duration_millis =
+                get_duration_millis(now.elapsed())?;
             return Ok(variant_evaluation_response);
         }
 
@@ -300,7 +301,7 @@ impl Evaluator<parsers::FliptParser> {
                 ),
             };
 
-            let mut valid_distributions: Vec<models::EvaluationDistribution> = Vec::new();
+            let mut valid_distributions: Vec<flipt::EvaluationDistribution> = Vec::new();
             let mut buckets: Vec<i32> = Vec::new();
 
             for distribution in distributions {
@@ -322,7 +323,8 @@ impl Evaluator<parsers::FliptParser> {
             if valid_distributions.is_empty() {
                 variant_evaluation_response.r#match = true;
                 variant_evaluation_response.reason = common::EvaluationReason::Match;
-                variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+                variant_evaluation_response.request_duration_millis =
+                    get_duration_millis(now.elapsed())?;
                 return Ok(variant_evaluation_response);
             }
 
@@ -344,7 +346,8 @@ impl Evaluator<parsers::FliptParser> {
 
             if index == valid_distributions.len() {
                 variant_evaluation_response.r#match = false;
-                variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+                variant_evaluation_response.request_duration_millis =
+                    get_duration_millis(now.elapsed())?;
                 return Ok(variant_evaluation_response);
             }
 
@@ -354,7 +357,8 @@ impl Evaluator<parsers::FliptParser> {
             variant_evaluation_response.variant_key = d.variant_key.clone();
             variant_evaluation_response.variant_attachment = d.variant_attachment.clone();
             variant_evaluation_response.reason = common::EvaluationReason::Match;
-            variant_evaluation_response.request_duration_millis = get_duration(now.elapsed())?;
+            variant_evaluation_response.request_duration_millis =
+                get_duration_millis(now.elapsed())?;
             return Ok(variant_evaluation_response);
         }
 
@@ -363,7 +367,7 @@ impl Evaluator<parsers::FliptParser> {
 
     fn boolean_evaluation(
         &self,
-        flag: &models::Flag,
+        flag: &flipt::Flag,
         evaluation_request: &EvaluationRequest,
     ) -> BooleanEvaluationResult<BooleanEvaluationResponse> {
         let now = SystemTime::now();
@@ -405,7 +409,7 @@ impl Evaluator<parsers::FliptParser> {
                         enabled: threshold.value,
                         flag_key: flag.key.clone(),
                         reason: common::EvaluationReason::Match,
-                        request_duration_millis: get_duration(now.elapsed())?,
+                        request_duration_millis: get_duration_millis(now.elapsed())?,
                         timestamp: chrono::offset::Utc::now(),
                     });
                 }
@@ -442,7 +446,7 @@ impl Evaluator<parsers::FliptParser> {
                     enabled: segment.value,
                     flag_key: flag.key.clone(),
                     reason: common::EvaluationReason::Match,
-                    request_duration_millis: get_duration(now.elapsed())?,
+                    request_duration_millis: get_duration_millis(now.elapsed())?,
                     timestamp: chrono::offset::Utc::now(),
                 });
             }
@@ -452,7 +456,7 @@ impl Evaluator<parsers::FliptParser> {
             enabled: flag.enabled,
             flag_key: flag.key.clone(),
             reason: common::EvaluationReason::Default,
-            request_duration_millis: get_duration(now.elapsed())?,
+            request_duration_millis: get_duration_millis(now.elapsed())?,
             timestamp: chrono::offset::Utc::now(),
         })
     }
@@ -460,7 +464,7 @@ impl Evaluator<parsers::FliptParser> {
     fn matches_constraints(
         &self,
         eval_context: &HashMap<String, String>,
-        constraints: &Vec<models::EvaluationConstraint>,
+        constraints: &Vec<flipt::EvaluationConstraint>,
         segment_match_type: &common::SegmentMatchType,
     ) -> Result<bool, Whatever> {
         let mut constraint_matches: usize = 0;
@@ -505,7 +509,7 @@ impl Evaluator<parsers::FliptParser> {
     }
 }
 
-fn matches_string(evaluation_constraint: &models::EvaluationConstraint, v: &str) -> bool {
+fn matches_string(evaluation_constraint: &flipt::EvaluationConstraint, v: &str) -> bool {
     let operator = evaluation_constraint.operator.as_str();
 
     match operator {
@@ -533,7 +537,7 @@ fn matches_string(evaluation_constraint: &models::EvaluationConstraint, v: &str)
 }
 
 fn matches_number(
-    evaluation_constraint: &models::EvaluationConstraint,
+    evaluation_constraint: &flipt::EvaluationConstraint,
     v: &str,
 ) -> Result<bool, Whatever> {
     let operator = evaluation_constraint.operator.as_str();
@@ -578,7 +582,7 @@ fn matches_number(
 }
 
 fn matches_boolean(
-    evaluation_constraint: &models::EvaluationConstraint,
+    evaluation_constraint: &flipt::EvaluationConstraint,
     v: &str,
 ) -> Result<bool, Whatever> {
     let operator = evaluation_constraint.operator.as_str();
@@ -610,7 +614,7 @@ fn matches_boolean(
 }
 
 fn matches_datetime(
-    evaluation_constraint: &models::EvaluationConstraint,
+    evaluation_constraint: &flipt::EvaluationConstraint,
     v: &str,
 ) -> Result<bool, Whatever> {
     let operator = evaluation_constraint.operator.as_str();
@@ -654,9 +658,9 @@ fn matches_datetime(
     }
 }
 
-fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whatever> {
+fn get_duration_millis(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whatever> {
     match elapsed {
-        Ok(elapsed) => Ok(elapsed.as_secs_f64()),
+        Ok(elapsed) => Ok(elapsed.as_secs_f64() * 1000.0),
         Err(e) => {
             whatever!("error getting duration {}", e)
         }
@@ -666,8 +670,8 @@ fn get_duration(elapsed: Result<Duration, SystemTimeError>) -> Result<f64, Whate
 #[cfg(test)]
 mod tests {
     use super::{matches_boolean, matches_datetime, matches_number, matches_string};
-    use crate::common;
-    use crate::flipt::models as flipt_models;
+    use crate::models::common;
+    use crate::models::flipt;
 
     macro_rules! matches_string_tests {
         ($($name:ident: $value:expr,)*) => {
@@ -706,25 +710,25 @@ mod tests {
     }
 
     matches_string_tests! {
-        string_eq: (&flipt_models::EvaluationConstraint{
+        string_eq: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::String,
             property: String::from("number"),
             operator: String::from("eq"),
             value: String::from("number"),
         }, "number", true),
-        string_neq: (&flipt_models::EvaluationConstraint{
+        string_neq: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::String,
             property: String::from("number"),
             operator: String::from("neq"),
             value: String::from("number"),
         }, "num", true),
-        string_prefix: (&flipt_models::EvaluationConstraint{
+        string_prefix: (&flipt::EvaluationConstraint{
                 r#type: common::ConstraintComparisonType::String,
                 property: String::from("number"),
                 operator: String::from("prefix"),
                 value: String::from("num"),
             }, "number", true),
-        string_suffix: (&flipt_models::EvaluationConstraint{
+        string_suffix: (&flipt::EvaluationConstraint{
                 r#type: common::ConstraintComparisonType::String,
                 property: String::from("number"),
                 operator: String::from("suffix"),
@@ -733,37 +737,37 @@ mod tests {
     }
 
     matches_datetime_tests! {
-        datetime_eq: (&flipt_models::EvaluationConstraint{
+        datetime_eq: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::DateTime,
             property: String::from("date"),
             operator: String::from("eq"),
             value: String::from("2006-01-02T15:04:05Z"),
         }, "2006-01-02T15:04:05Z", true),
-        datetime_neq: (&flipt_models::EvaluationConstraint{
+        datetime_neq: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::DateTime,
             property: String::from("date"),
             operator: String::from("neq"),
             value: String::from("2006-01-02T15:04:05Z"),
         }, "2006-01-02T15:03:05Z", true),
-        datetime_lt: (&flipt_models::EvaluationConstraint{
+        datetime_lt: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::DateTime,
             property: String::from("date"),
             operator: String::from("lt"),
             value: String::from("2006-01-02T15:04:05Z"),
         }, "2006-01-02T14:03:05Z", true),
-        datetime_gt: (&flipt_models::EvaluationConstraint{
+        datetime_gt: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::DateTime,
             property: String::from("date"),
             operator: String::from("gt"),
             value: String::from("2006-01-02T15:04:05Z"),
         }, "2006-01-02T16:03:05Z", true),
-        datetime_lte: (&flipt_models::EvaluationConstraint{
+        datetime_lte: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::DateTime,
             property: String::from("date"),
             operator: String::from("lte"),
             value: String::from("2006-01-02T15:04:05Z"),
         }, "2006-01-02T15:04:05Z", true),
-        datetime_gte: (&flipt_models::EvaluationConstraint{
+        datetime_gte: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::DateTime,
             property: String::from("date"),
             operator: String::from("gte"),
@@ -773,37 +777,37 @@ mod tests {
     }
 
     matches_number_tests! {
-        number_eq: (&flipt_models::EvaluationConstraint{
+        number_eq: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::Number,
             property: String::from("number"),
             operator: String::from("eq"),
             value: String::from("1"),
         }, "1", true),
-        number_neq: (&flipt_models::EvaluationConstraint{
+        number_neq: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::Number,
             property: String::from("number"),
             operator: String::from("neq"),
             value: String::from("1"),
         }, "0", true),
-        number_lt: (&flipt_models::EvaluationConstraint{
+        number_lt: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::Number,
             property: String::from("number"),
             operator: String::from("lt"),
             value: String::from("4"),
         }, "3", true),
-        number_gt: (&flipt_models::EvaluationConstraint{
+        number_gt: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::Number,
             property: String::from("number"),
             operator: String::from("gt"),
             value: String::from("3"),
         }, "4", true),
-        number_lte: (&flipt_models::EvaluationConstraint{
+        number_lte: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::Number,
             property: String::from("date"),
             operator: String::from("lte"),
             value: String::from("3"),
         }, "3", true),
-        number_gte: (&flipt_models::EvaluationConstraint{
+        number_gte: (&flipt::EvaluationConstraint{
             r#type: common::ConstraintComparisonType::Number,
             property: String::from("date"),
             operator: String::from("gte"),
@@ -815,7 +819,7 @@ mod tests {
     #[test]
     fn test_matches_boolean_success() {
         let value_one = matches_boolean(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::Boolean,
                 property: String::from("fizz"),
                 operator: String::from("true"),
@@ -828,7 +832,7 @@ mod tests {
         assert!(value_one);
 
         let value_two = matches_boolean(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::Boolean,
                 property: String::from("fizz"),
                 operator: String::from("false"),
@@ -844,7 +848,7 @@ mod tests {
     #[test]
     fn test_matches_boolean_failure() {
         let result = matches_boolean(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::Boolean,
                 property: String::from("fizz"),
                 operator: String::from("true"),
@@ -863,7 +867,7 @@ mod tests {
     #[test]
     fn test_matches_number_failure() {
         let result_one = matches_number(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::Number,
                 property: String::from("number"),
                 operator: String::from("eq"),
@@ -879,7 +883,7 @@ mod tests {
         );
 
         let result_two = matches_number(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::Number,
                 property: String::from("number"),
                 operator: String::from("eq"),
@@ -898,7 +902,7 @@ mod tests {
     #[test]
     fn test_matches_datetime_failure() {
         let result_one = matches_datetime(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::String,
                 property: String::from("date"),
                 operator: String::from("eq"),
@@ -914,7 +918,7 @@ mod tests {
         );
 
         let result_two = matches_datetime(
-            &flipt_models::EvaluationConstraint {
+            &flipt::EvaluationConstraint {
                 r#type: common::ConstraintComparisonType::String,
                 property: String::from("date"),
                 operator: String::from("eq"),
