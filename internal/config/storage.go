@@ -3,10 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
-	"oras.land/oras-go/v2/registry"
+	"go.flipt.io/flipt/internal/oci"
 )
 
 // cheers up the unparam linter
@@ -60,7 +62,15 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 			v.SetDefault("storage.object.s3.poll_interval", "1m")
 		}
 	case string(OCIStorageType):
-		v.SetDefault("store.oci.insecure", false)
+		v.SetDefault("storage.oci.insecure", false)
+		v.SetDefault("storage.oci.poll_interval", "30s")
+
+		dir, err := DefaultBundleDir()
+		if err != nil {
+			return err
+		}
+
+		v.SetDefault("storage.oci.bundles_directory", dir)
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -99,7 +109,7 @@ func (c *StorageConfig) validate() error {
 			return errors.New("oci storage repository must be specified")
 		}
 
-		if _, err := registry.ParseReference(c.OCI.Repository); err != nil {
+		if _, err := oci.ParseReference(c.OCI.Repository); err != nil {
 			return fmt.Errorf("validating OCI configuration: %w", err)
 		}
 	}
@@ -243,16 +253,29 @@ type OCI struct {
 	// When the registry is omitted, the bundle is referenced via the local bundle store.
 	// Tag defaults to 'latest' when not supplied.
 	Repository string `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
-	// BundleDirectory is the root directory in which Flipt will store and access local feature bundles.
-	BundleDirectory string `json:"bundles_directory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
-	// Insecure configures whether or not to use HTTP instead of HTTPS
-	Insecure bool `json:"insecure,omitempty" mapstructure:"insecure" yaml:"insecure,omitempty"`
+	// BundlesDirectory is the root directory in which Flipt will store and access local feature bundles.
+	BundlesDirectory string `json:"bundles_directory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
 	// Authentication configures authentication credentials for accessing the target registry
 	Authentication *OCIAuthentication `json:"-,omitempty" mapstructure:"authentication" yaml:"-,omitempty"`
+	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
 }
 
 // OCIAuthentication configures the credentials for authenticating against a target OCI regitstry
 type OCIAuthentication struct {
 	Username string `json:"-" mapstructure:"username" yaml:"-"`
 	Password string `json:"-" mapstructure:"password" yaml:"-"`
+}
+
+func DefaultBundleDir() (string, error) {
+	dir, err := Dir()
+	if err != nil {
+		return "", err
+	}
+
+	bundlesDir := filepath.Join(dir, "bundles")
+	if err := os.MkdirAll(bundlesDir, 0755); err != nil {
+		return "", fmt.Errorf("creating image directory: %w", err)
+	}
+
+	return bundlesDir, nil
 }

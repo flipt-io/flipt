@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"dagger.io/dagger"
+	"github.com/containerd/containerd/platforms"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
@@ -29,6 +30,7 @@ var (
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
+		"fs/oci":        oci,
 		"import/export": importExport,
 	}
 )
@@ -233,6 +235,41 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_TYPE", "s3").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_ENDPOINT", "http://minio:9009").
 		WithEnvVariable("FLIPT_STORAGE_OBJECT_S3_BUCKET", "testdata").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+}
+
+func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	// switch out zot images based on host platform
+	// and push to remote name
+	zot := client.Container().
+		From(fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest",
+			platforms.MustParse(string(platform)).Architecture)).
+		WithExposedPort(5000)
+
+	if _, err := flipt.
+		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithWorkdir("/tmp/testdata").
+		WithServiceBinding("zot", zot).
+		WithExec([]string{"/flipt", "bundle", "build", "readonly:latest"}).
+		WithExec([]string{"/flipt", "bundle", "push", "readonly:latest", "http://zot:5000/readonly:latest"}).
+		Sync(ctx); err != nil {
+		return func() error {
+			return err
+		}
+	}
+
+	flipt = flipt.
+		WithServiceBinding("zot", zot).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
+		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)

@@ -19,6 +19,7 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
+	"go.flipt.io/flipt/internal/oci"
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
@@ -31,6 +32,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	"go.flipt.io/flipt/internal/storage/fs"
+	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
@@ -217,6 +219,33 @@ func NewGRPCServer(
 		}
 	case config.ObjectStorageType:
 		store, err = NewObjectStore(cfg, logger)
+		if err != nil {
+			return nil, err
+		}
+	case config.OCIStorageType:
+		var opts []containers.Option[oci.StoreOptions]
+		if auth := cfg.Storage.OCI.Authentication; auth != nil {
+			opts = append(opts, oci.WithCredentials(
+				auth.Username,
+				auth.Password,
+			))
+		}
+
+		ocistore, err := oci.NewStore(logger, cfg.Storage.OCI.BundlesDirectory, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		ref, err := oci.ParseReference(cfg.Storage.OCI.Repository)
+		if err != nil {
+			return nil, err
+		}
+
+		source, err := storageoci.NewSource(logger, ocistore, ref,
+			storageoci.WithPollInterval(cfg.Storage.OCI.PollInterval),
+		)
+
+		store, err = fs.NewStore(logger, source)
 		if err != nil {
 			return nil, err
 		}
