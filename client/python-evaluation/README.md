@@ -6,7 +6,7 @@ This directory contains the Python source code for a Flipt evaluation client usi
 
 To use this client, you can run:
 
-```
+```bash
 cargo build --release
 ```
 
