@@ -12,7 +12,7 @@ pub struct Document {
 #[serde(rename_all = "camelCase")]
 pub struct Namespace {
     pub key: String,
-    pub name: String,
+    pub name: Option<String>,
 }
 
 #[derive(Deserialize)]

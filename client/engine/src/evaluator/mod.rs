@@ -44,6 +44,7 @@ pub struct VariantEvaluationResponse {
     pub timestamp: DateTime<Utc>,
 }
 
+#[derive(Serialize)]
 pub struct BooleanEvaluationResponse {
     pub enabled: bool,
     pub flag_key: String,
