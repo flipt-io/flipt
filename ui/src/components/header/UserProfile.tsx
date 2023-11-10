@@ -49,11 +49,11 @@ export default function UserProfile(props: UserProfileProps) {
   return (
     <Menu as="div" className="relative ml-3">
       <div>
-        <Menu.Button className="nightwind-prevent bg-white flex max-w-xs items-center rounded-full text-sm hover:ring-2 hover:ring-white/80 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2">
+        <Menu.Button className="nightwind-prevent bg-white flex max-w-xs items-center rounded-full text-sm hover:ring-2 hover:ring-violet-500/80 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-2">
           <span className="sr-only">Open user menu</span>
           {imgURL && (
             <img
-              className="h-8 w-8 rounded-full"
+              className="h-6 w-6 rounded-full"
               src={imgURL}
               alt={name}
               title={name}
@@ -62,7 +62,7 @@ export default function UserProfile(props: UserProfileProps) {
           )}
           {!imgURL && (
             <UserCircleIcon
-              className="text-violet-300 h-8 w-8 rounded-full"
+              className="nightwind-prevent text-gray-800 h-6 w-6 rounded-full"
               aria-hidden="true"
             />
           )}

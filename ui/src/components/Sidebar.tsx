@@ -61,7 +61,7 @@ export default function Sidebar(props: SidebarProps) {
                     >
                       <span className="sr-only">Close sidebar</span>
                       <XMarkIcon
-                        className="text-white h-6 w-6"
+                        className="nightwind-prevent text-white h-6 w-6"
                         aria-hidden="true"
                       />
                     </button>
@@ -94,7 +94,7 @@ export default function Sidebar(props: SidebarProps) {
       {/* Static sidebar for desktop */}
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="bg-gray-200 flex min-h-0 flex-1 flex-col">
-          <div className="relative flex h-16 flex-shrink-0 items-center bg-gray-950 px-4 pt-2 dark:border-b dark:border-b-white/40">
+          <div className="relative flex h-16 flex-shrink-0 items-center bg-gray-950 px-4 pb-1 pt-2 dark:border-b dark:border-b-white/20">
             <Link to="/">
               <img
                 src={logoLight}
