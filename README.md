@@ -59,8 +59,8 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 <br clear="both"/>
 
 <p align="center">
-    <a href="https://devhunt.org/tool/flipt" title="DevHunt"><img src="./.github/images/devhunt-solid.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
-    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge-logo-dark.png" width=250 alt="Console - Developer Tool of the Week" /></a>
+    <a href="https://devhunt.org/tool/flipt" title="DevHunt"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
 ## Usecases
@@ -91,13 +91,6 @@ Flipt supports use cases such as:
 - Audit logging with webhooks support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
-
-<br clear="both"/>
-
-<div align="center">
-<img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
-<img align="right" src=".github/images/console-dark.png" alt="Flipt Console - Dark" width=45% />
-</div>
 
 <br clear="both"/>
 
