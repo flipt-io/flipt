@@ -29,10 +29,13 @@
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
     <a href="https://flipt.io/discord">
-        <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
+        <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat" />
     </a>
     <a href="https://features.flipt.io/roadmap">
-        <img alt="Public Roadmap" src="https://img.shields.io/badge/roadmap-public-violet">
+        <img src="https://img.shields.io/badge/roadmap-public-violet" alt="Public Roadmap" />
+    </a>
+    <a href="https://flipt.io/#newsletter">
+        <img src="https://img.shields.io/badge/newsletter-subscribe-green" alt="Flipt Newsletter" />
     </a>
     <a href="https://twitter.com/flipt_io">
         <img src="https://img.shields.io/twitter/follow/flipt_io?label=Follow" alt="Flipt Twitter" />
@@ -56,7 +59,8 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 <br clear="both"/>
 
 <p align="center">
-    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="https://console.dev/img/badges/1.0/png/console-badge-logo-dark.png" width=250 alt="Console - Developer Tool of the Week" /></a>
+    <a href="https://devhunt.org/tool/flipt" title="DevHunt"><img src="./.github/images/devhunt-solid.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge-logo-dark.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
 ## Usecases
@@ -107,35 +111,20 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 
 <br clear="both"/>
 
-## Works With
-
-<p align="center">
-    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 />
-    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
-    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
-    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
-    <img src="./logos/turso.svg" alt="Turso" width=150 height=150 />
-</p>
-<p align="center">
-    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
-    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
-    <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
-    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
-    <img src="./logos/git.svg" alt="Git" width=150 height=150 />
-</p>
-
 ## Try It
 
 Try the latest version of Flipt for yourself.
 
 ### Deploy 
 
-<a href="https://marketplace.digitalocean.com/apps/flipt" alt="Deploy to DigitalOcean">
-    <img width="200" alt="Deploy to DigitalOcean" src="https://www.deploytodo.com/do-btn-blue.svg"/>
-</a>
-<a href="https://render.com/deploy" alt="Deploy to Render">
-    <img width="200" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
-</a>
+<div>
+    <a href="https://marketplace.digitalocean.com/apps/flipt" alt="Deploy to DigitalOcean">
+        <img width="200" alt="Deploy to DigitalOcean" src="https://www.deploytodo.com/do-btn-blue.svg"/>
+    </a>&nbsp;
+    <a href="https://render.com/deploy" alt="Deploy to Render">
+        <img width="150" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
+    </a>
+</div>
 
 ### Sandbox
 
@@ -175,12 +164,22 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 
 <br clear="both"/>
 
-## Release Cadence
+## Works With
 
-Flipt follows [semantic versioning](https://semver.org/) for versioning.
-
-We aim to release a new minor version of Flipt every 2-3 weeks. This allows us to quickly iterate on new features.
-Bug fixes and security patches (patch versions) will be released as needed.
+<p align="center">
+    <img src="./logos/sqlite.svg" alt="SQLite" width=125 />
+    <img src="./logos/mysql.svg" alt="MySQL" width=125 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=125 />
+    <img src="./logos/turso.svg" alt="Turso" width=150 />
+    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=75 />
+</p>
+<p align="center">
+    <img src="./logos/redis.svg" alt="Redis" width=150 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 />
+    <img src="./logos/openid.svg" alt="OpenID" width=100 />
+    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=125 />
+    <img src="./logos/git.svg" alt="Git" width=125 />
+</p>
 
 <br clear="both"/>
 
@@ -226,6 +225,15 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
 
 Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+
+<br clear="both"/>
+
+## Release Cadence
+
+Flipt follows [semantic versioning](https://semver.org/) for versioning.
+
+We aim to release a new minor version of Flipt every 2-3 weeks. This allows us to quickly iterate on new features.
+Bug fixes and security patches (patch versions) will be released as needed.
 
 <br clear="both"/>
 
