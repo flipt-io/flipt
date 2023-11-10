@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.flipt.io/flipt/rpc/flipt"
 	"go.flipt.io/flipt/rpc/flipt/auth"
 	sdk "go.flipt.io/flipt/sdk/go"
 	sdkgrpc "go.flipt.io/flipt/sdk/go/grpc"
@@ -91,13 +92,24 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 
 			t.Log("Creating namespaced token for test suite")
 
+			ctx := context.Background()
 			authn, err := client.Auth().AuthenticationMethodTokenService().CreateToken(
-				context.Background(),
+				ctx,
 				&auth.CreateTokenRequest{
 					Name:         "Integration Test Token",
 					NamespaceKey: *fliptNamespace,
 				},
 			)
+
+			t.Log("Creating namespace for test suite")
+
+			if *fliptNamespace != "" {
+				_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+					Key:  *fliptNamespace,
+					Name: *fliptNamespace,
+				})
+				require.NoError(t, err)
+			}
 
 			require.NoError(t, err)
 

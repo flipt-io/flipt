@@ -20,14 +20,19 @@ import (
 
 func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.TestOpts) {
 	var (
-		namespace  = opts.Namespace
-		authConfig = opts.AuthConfig
 		addr       = opts.Addr
 		protocol   = opts.Protocol
+		namespace  = opts.Namespace
+		authConfig = opts.AuthConfig
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
+		if authConfig == integration.AuthNamespaced {
+			t.Skip("Skipping namespace tests for namespaced auth config")
+		}
+
 		if !namespaceIsDefault(namespace) {
+
 			t.Log(`Create namespace.`)
 
 			created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
