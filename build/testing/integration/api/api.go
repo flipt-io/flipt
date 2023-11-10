@@ -499,7 +499,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		assert.Equal(t, int32(3), updatedRuleThree.Rank)
 
 		// ensure you can not link flags and segments from different namespaces.
-		if !namespaceIsDefault(namespace) {
+		if !namespaceIsDefault(namespace) && authConfig != integration.AuthNamespaced {
 			t.Log(`Ensure that rules can only link entities in the same namespace.`)
 			_, err = client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:    "test",
@@ -579,7 +579,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		})
 		require.NoError(t, err)
 
-		if !namespaceIsDefault(namespace) {
+		if !namespaceIsDefault(namespace) && authConfig != integration.AuthNamespaced {
 			t.Log(`Ensure that distributions and all entities associated with them are part of same namespace.`)
 			var (
 				flagKey = "defaultflag"

@@ -59,10 +59,10 @@ func authenticationGRPC(
 	}
 
 	var (
-		authCfg                   = cfg.Authentication
-		store   storageauth.Store = authsql.NewStore(driver, builder, logger)
-		oplock                    = oplocksql.New(logger, driver, builder)
-		public                    = public.NewServer(logger, authCfg)
+		authCfg                        = cfg.Authentication
+		store        storageauth.Store = authsql.NewStore(driver, builder, logger)
+		oplock                         = oplocksql.New(logger, driver, builder)
+		publicServer                   = public.NewServer(logger, authCfg)
 	)
 
 	if cfg.Cache.Enabled {
@@ -73,15 +73,17 @@ func authenticationGRPC(
 		store = storageauthcache.NewStore(store, cacher, logger)
 	}
 
+	authServer := auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(tokenDeletedEnabled))
+
 	var (
 		register = grpcRegisterers{
-			public,
-			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(tokenDeletedEnabled)),
+			publicServer,
+			authServer,
 		}
 		interceptors []grpc.UnaryServerInterceptor
 	)
 
-	authOpts = append(authOpts, auth.WithServerSkipsAuthentication(public))
+	authOpts = append(authOpts, auth.WithServerSkipsAuthentication(publicServer))
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
@@ -168,6 +170,8 @@ func authenticationGRPC(
 		}
 
 		if authCfg.Methods.Token.Enabled {
+			// dont require namespace auth for interacting with auth service
+			authOpts = append(authOpts, auth.WithServerSkipsAuthentication(authServer))
 			interceptors = append(interceptors, auth.NamespaceMatchingInterceptor(logger, authOpts...))
 		}
 
