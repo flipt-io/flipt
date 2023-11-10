@@ -20,10 +20,10 @@ import (
 
 func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.TestOpts) {
 	var (
-		namespace     = opts.Namespace
-		authenticated = opts.Authenticated
-		addr          = opts.Addr
-		protocol      = opts.Protocol
+		namespace  = opts.Namespace
+		authConfig = opts.AuthConfig
+		addr       = opts.Addr
+		protocol   = opts.Protocol
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
@@ -1373,7 +1373,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Auth", func(t *testing.T) {
 		t.Run("Self", func(t *testing.T) {
 			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			if authenticated {
+			if authConfig.Required() {
 				assert.NoError(t, err)
 			} else {
 				assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")

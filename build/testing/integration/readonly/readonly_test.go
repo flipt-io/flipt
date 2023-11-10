@@ -19,9 +19,9 @@ import (
 func TestReadOnly(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, opts integration.TestOpts) {
 		var (
-			ctx           = context.Background()
-			namespace     = opts.Namespace
-			authenticated = opts.Authenticated
+			ctx        = context.Background()
+			namespace  = opts.Namespace
+			authConfig = opts.AuthConfig
 		)
 
 		ns, err := sdk.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
@@ -650,7 +650,7 @@ func TestReadOnly(t *testing.T) {
 		t.Run("Auth", func(t *testing.T) {
 			t.Run("Self", func(t *testing.T) {
 				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-				if authenticated {
+				if authConfig.Required() {
 					assert.NoError(t, err)
 				} else {
 					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")

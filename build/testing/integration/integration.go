@@ -23,11 +23,36 @@ var (
 	fliptNamespace             = flag.String("flipt-namespace", "", "Namespace used to scope API calls.")
 )
 
+type AuthConfig int
+
+const (
+	NoAuth AuthConfig = iota
+	AuthNoNamespace
+	AuthNamespaced
+)
+
+func (a AuthConfig) String() string {
+	switch a {
+	case NoAuth:
+		return "NoAuth"
+	case AuthNoNamespace:
+		return "AuthNoNamespace"
+	case AuthNamespaced:
+		return "AuthNamespaced"
+	default:
+		return "Unknown"
+	}
+}
+
+func (a AuthConfig) Required() bool {
+	return a != NoAuth
+}
+
 type TestOpts struct {
-	Addr          string
-	Protocol      string
-	Namespace     string
-	Authenticated bool
+	Addr       string
+	Protocol   string
+	Namespace  string
+	AuthConfig AuthConfig
 }
 
 func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
@@ -47,12 +72,14 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 	}
 
 	var (
-		opts           []sdk.Option
-		authentication bool
-		client         sdk.SDK
+		opts       []sdk.Option
+		authConfig AuthConfig
+		client     sdk.SDK
 	)
 
-	if authentication = *fliptToken != ""; authentication {
+	if authentication := *fliptToken != ""; authentication {
+		authConfig = AuthNoNamespace
+
 		opts = append(opts, sdk.WithClientTokenProvider(
 			sdk.StaticClientTokenProvider(*fliptToken),
 		))
@@ -60,6 +87,8 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 		client = sdk.New(transport, opts...)
 
 		if *fliptCreateNamespacedToken {
+			authConfig = AuthNamespaced
+
 			t.Log("Creating namespaced token for test suite")
 
 			authn, err := client.Auth().AuthenticationMethodTokenService().CreateToken(
@@ -85,13 +114,13 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 		namespace = *fliptNamespace
 	}
 
-	name := fmt.Sprintf("[Protocol %q; Namespace %q; Authentication %v]", protocol, namespace, authentication)
+	name := fmt.Sprintf("[Protocol %q; Namespace %q; Authentication %s]", protocol, namespace, authConfig)
 	t.Run(name, func(t *testing.T) {
 		fn(t, client, TestOpts{
-			Protocol:      protocol,
-			Addr:          *fliptAddr,
-			Namespace:     namespace,
-			Authenticated: authentication},
-		)
+			Protocol:   protocol,
+			Addr:       *fliptAddr,
+			Namespace:  namespace,
+			AuthConfig: authConfig,
+		})
 	})
 }

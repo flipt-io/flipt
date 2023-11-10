@@ -67,7 +67,7 @@ type authConfig int
 const (
 	noAuth authConfig = iota
 	authNoNamespace
-	authNamespace
+	authNamespaced
 )
 
 func (a authConfig) enabled() bool {
@@ -93,8 +93,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, auth := range []authConfig{noAuth, authNoNamespace, authNamespace} {
-
+			for _, auth := range []authConfig{noAuth, authNoNamespace, authNamespaced} {
 				config := testConfig{
 					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
 					namespace: namespace,
@@ -108,7 +107,7 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 					config.name = fmt.Sprintf("%s without auth", config.name)
 				case authNoNamespace:
 					config.name = fmt.Sprintf("%s with auth no namespaced token", config.name)
-				case authNamespace:
+				case authNamespaced:
 					config.name = fmt.Sprintf("%s with auth namespaced token", config.name)
 				}
 
@@ -351,7 +350,7 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 
 		if conf.auth.enabled() {
 			flags = append(flags, "--flipt-token", bootstrapToken)
-			if conf.auth == authNamespace {
+			if conf.auth == authNamespaced {
 				flags = append(flags, "--flipt-create-namespaced-token")
 			}
 		}
