@@ -141,8 +141,16 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 // EmailMatchingInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
 // and wants to whitelist a group of users issuing operations against the Flipt server.
-func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.UnaryServerInterceptor {
+func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if opts.skipped(info.Server) {
+			return handler(ctx, req)
+		}
+
 		auth := GetAuthenticationFrom(ctx)
 
 		if auth == nil {
@@ -177,8 +185,16 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 	}
 }
 
-func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if opts.skipped(info.Server) {
+			return handler(ctx, req)
+		}
+
 		auth := GetAuthenticationFrom(ctx)
 
 		if auth == nil {
