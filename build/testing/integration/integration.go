@@ -75,11 +75,10 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 			opts = append(opts, sdk.WithClientTokenProvider(
 				sdk.StaticClientTokenProvider(authn.ClientToken),
 			))
-
-			// re-initialize client with new token
-			client = sdk.New(transport, opts...)
 		}
 	}
+
+	client = sdk.New(transport, opts...)
 
 	namespace := "default"
 	if *fliptNamespace != "" {
