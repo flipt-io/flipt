@@ -146,6 +146,29 @@ func TestUnaryInterceptor(t *testing.T) {
 	}
 }
 
+func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
+	var (
+		logger = zaptest.NewLogger(t)
+
+		ctx     = context.Background()
+		called  = false
+		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+			called = true
+			return nil, nil
+		}
+	)
+
+	_, err := EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
+		ctx,
+		nil,
+		&grpc.UnaryServerInfo{Server: &fakeserver},
+		handler,
+	)
+
+	require.NoError(t, err)
+	assert.True(t, called)
+}
+
 func TestEmailMatchingInterceptor(t *testing.T) {
 	authenticator := memory.NewStore()
 	clientToken, storedAuth, err := authenticator.CreateAuthentication(
@@ -284,6 +307,29 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 	}
 }
 
+func TestNamespaceMatchingInterceptorWithNoAuth(t *testing.T) {
+	var (
+		logger = zaptest.NewLogger(t)
+
+		ctx     = context.Background()
+		called  = false
+		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
+			called = true
+			return nil, nil
+		}
+	)
+
+	_, err := NamespaceMatchingInterceptor(logger)(
+		ctx,
+		nil,
+		&grpc.UnaryServerInfo{Server: &fakeserver},
+		handler,
+	)
+
+	require.NoError(t, err)
+	assert.True(t, called)
+}
+
 func TestNamespaceMatchingInterceptor(t *testing.T) {
 	for _, tt := range []struct {
 		name        string
@@ -342,6 +388,19 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			wantCalled: true,
 		},
 		{
+			name: "empty namespace provided by token authentication",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "",
+				},
+			},
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo",
+			},
+			wantCalled: true,
+		},
+		{
 			name: "namespace not provided by request",
 			authReq: &auth.CreateAuthenticationRequest{
 				Method: authrpc.Method_METHOD_TOKEN,
@@ -350,6 +409,17 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				},
 			},
 			req:         &evaluation.EvaluationRequest{},
+			expectedErr: errUnauthenticated,
+		},
+		{
+			name: "namespace not available",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req:         &evaluation.BatchEvaluationRequest{},
 			expectedErr: errUnauthenticated,
 		},
 	} {
