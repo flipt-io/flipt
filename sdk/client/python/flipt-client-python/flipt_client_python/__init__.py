@@ -40,7 +40,7 @@ class FliptEvaluationClient:
     ) -> VariantEvaluationResponse:
         response = self.ffi_core.variant(
             self.engine,
-            seriliaze_evaluation_request(namespace_key, flag_key, entity_id, context),
+            serialize_evaluation_request(namespace_key, flag_key, entity_id, context),
         )
 
         bytes_returned = ctypes.c_char_p(response).value
@@ -56,7 +56,7 @@ class FliptEvaluationClient:
     ) -> BooleanEvaluationResponse:
         response = self.ffi_core.boolean(
             self.engine,
-            seriliaze_evaluation_request(namespace_key, flag_key, entity_id, context),
+            serialize_evaluation_request(namespace_key, flag_key, entity_id, context),
         )
 
         bytes_returned = ctypes.c_char_p(response).value
@@ -68,7 +68,7 @@ class FliptEvaluationClient:
         return boolean_evaluation_response
 
 
-def seriliaze_evaluation_request(
+def serialize_evaluation_request(
     namespace_key: str, flag_key: str, entity_id: str, context: dict
 ) -> str:
     evaluation_request = EvaluationRequest(

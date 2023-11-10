@@ -10,7 +10,7 @@ To use this client, you can run the following command from the root of the repos
 cargo build
 ```
 
-This should generate a `target/` directory in the root of this repository, which contains the dynamic linking library built for your platform. This dynamic library will contain the functinonality necessary for the Python client to make FFI calls. Depending on what your platform is you can set the `ENGINE_LIB_PATH` to:
+This should generate a `target/` directory in the root of this repository, which contains the dynamic linking library built for your platform. This dynamic library will contain the functionality necessary for the Python client to make FFI calls. You'll need to set the `ENGINE_LIB_PATH` environment variable depending on your platform:
 
 - **Linux**: `{FLIPT_REPO_ROOT}/target/debug/libengine.so`
 - **Windows**: `{FLIPT_REPO_ROOT}/target/debug/libengine.dll`
