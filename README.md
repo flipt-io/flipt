@@ -325,6 +325,12 @@ Not sure how to get started? You can:
 
 - [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
 - Join our [Discord](https://www.flipt.io/discord), and ask any questions there
+- Dive into any of the open issues, here are some examples: 
+  - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
+  - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
+
+Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
 
 <br clear="both"/>
 
