@@ -62,7 +62,7 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 		if *fliptCreateNamespacedToken {
 			t.Log("Creating namespaced token for test suite")
 
-			authn, err := sdk.New(transport).Auth().AuthenticationMethodTokenService().CreateToken(
+			authn, err := client.Auth().AuthenticationMethodTokenService().CreateToken(
 				context.Background(),
 				&auth.CreateTokenRequest{
 					Name:         "Integration Test Token",
