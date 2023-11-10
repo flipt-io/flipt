@@ -157,7 +157,7 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 	)
 
 	require.Panics(t, func() {
-		EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
+		_, _ = EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
 			ctx,
 			nil,
 			&grpc.UnaryServerInfo{Server: &fakeserver},
@@ -315,7 +315,7 @@ func TestNamespaceMatchingInterceptorWithNoAuth(t *testing.T) {
 	)
 
 	require.Panics(t, func() {
-		NamespaceMatchingInterceptor(logger)(
+		_, _ = NamespaceMatchingInterceptor(logger)(
 			ctx,
 			nil,
 			&grpc.UnaryServerInfo{Server: &fakeserver},

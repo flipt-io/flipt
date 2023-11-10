@@ -1035,7 +1035,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 			})
 		})
 
-		t.Run("Compatability", func(t *testing.T) {
+		t.Run("Compatibility", func(t *testing.T) {
 			// ensure we can leverage new and old evaluation paths and produce consistent results
 			t.Run("new API to legacy API", func(t *testing.T) {
 				entity := uuid.Must(uuid.NewV4()).String()
@@ -1269,7 +1269,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		require.NoError(t, err)
 
 		for _, rule := range rules.Rules {
-			client.Flipt().DeleteRule(ctx, &flipt.DeleteRuleRequest{
+			_ = client.Flipt().DeleteRule(ctx, &flipt.DeleteRuleRequest{
 				NamespaceKey: namespace,
 				FlagKey:      "test",
 				Id:           rule.Id,
