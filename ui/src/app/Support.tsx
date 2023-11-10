@@ -64,20 +64,20 @@ export default function Support() {
                   <div className="flex items-center space-x-2">
                     <ChatBubbleBottomCenterIcon className="text-gray-400 h-6 w-6" />
                     <h3 className="text-gray-900 text-base font-semibold">
-                      Slack Connect
+                      Chat in Discord
                     </h3>
                   </div>
                   <p className="text-gray-500 pt-1 text-sm leading-5">
-                    Invite your team to collaborate in a shared Slack channel
+                    Ask a question in our Discord community
                   </p>
                 </div>
                 <div className="mt-4 flex grow items-end sm:mt-0">
                   <a
                     className="border-gray-200 rounded-md border px-2 py-1 hover:border-gray-300 hover:shadow-sm hover:shadow-violet-300 sm:px-3 sm:py-2"
-                    href="mailto:info@flipt.io?subject=Slack Connect Request&body=Hi there! I'd like to request a Slack Connect channel for our team."
+                    href="https://www.flipt.io/discord"
                   >
                     <span className="text-gray-700 text-sm">
-                      Request Invite
+                      Join Discord Server
                     </span>
                   </a>
                 </div>
