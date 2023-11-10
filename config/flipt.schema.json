@@ -628,9 +628,8 @@
             "repository": {
               "type": "string"
             },
-            "insecure": {
-              "type": "boolean",
-              "default": false
+            "bundles_directory": {
+              "type": "string"
             },
             "authentication": {
               "type": "object",
@@ -639,6 +638,18 @@
                 "username": { "type": "string" },
                 "password": { "type": "string" }
               }
+            },
+            "poll_interval": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "^([0-9]+(ns|us|µs|ms|s|m|h))+$"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": "1m"
             }
           },
           "title": "OCI"

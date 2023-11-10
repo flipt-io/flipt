@@ -167,12 +167,13 @@ import "strings"
 			}
 		}
 		oci?: {
-			repository: string
-			insecure?:  bool | *false
+			repository:         string
+			bundles_directory?: string
 			authentication?: {
 				username: string
 				password: string
 			}
+			poll_interval?: =~#duration | *"30s"
 		}
 	}
 
