@@ -32,15 +32,15 @@ function NavItem(props: NavItemProps) {
       className={({ isActive }) =>
         classNames(
           isActive
-            ? 'text-gray-600 bg-violet-100 md:bg-gray-50'
-            : 'text-white hover:bg-violet-400 md:text-gray-600 md:hover:bg-gray-50',
+            ? 'nightwind-prevent text-white bg-gray-800 md:text-gray-700 md:bg-gray-50 md:dark:text-gray-50 md:dark:bg-gray-700'
+            : 'nightwind-prevent text-white hover:bg-gray-700 md:text-gray-600 md:hover:text-gray-700 md:hover:bg-gray-50 md:dark:text-gray-400 md:dark:hover:text-gray-300 md:dark:hover:bg-gray-700',
           'group flex items-center rounded-md px-2 py-2 text-sm font-medium'
         )
       }
       onClick={onClick}
     >
       <Icon
-        className="text-wite mr-3 h-6 w-6 flex-shrink-0 hover:bg-gray-50 md:text-gray-500"
+        className="nightwind-prevent text-white mr-3 h-6 w-6 flex-shrink-0 md:text-gray-500 md:dark:text-gray-400"
         aria-hidden="true"
       />
       {name}
