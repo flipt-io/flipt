@@ -121,7 +121,14 @@ const Rollout = forwardRef(
         </div>
       </div>
       <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
-        <div className="flex grow flex-col items-center justify-center sm:ml-2 md:flex-row md:justify-between">
+        <div className="flex grow flex-col items-center justify-center sm:ml-2">
+          {rollout.description && (
+            <div className="flex pb-4 pt-2">
+              <p className="text-gray-600 text-sm font-light">
+                {rollout.description}
+              </p>
+            </div>
+          )}
           <QuickEditRolloutForm
             flag={flag}
             rollout={rollout}
