@@ -344,26 +344,19 @@ export default function Rollouts(props: RolloutsProps) {
                   <div className="flex w-full flex-1 items-center p-2 text-xs lg:p-0">
                     <div className="flex grow flex-col items-center justify-center sm:ml-2">
                       <div className="flex flex-col pb-4 pt-2">
-                        <p className="text-gray-500 text-sm font-light">
+                        <p className="text-gray-600 text-center text-sm font-light">
                           This is the default value that will be returned if no
                           other rules match. It is directly tied to the flag
                           enabled state.
                         </p>
                       </div>
-                      <div className="flex-1">
-                        <div className="space-y-6 py-6 sm:space-y-0 sm:py-0">
-                          <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:p-2">
-                            <label
-                              htmlFor="value"
-                              className="text-gray-900 mb-2 block text-sm font-medium"
-                            >
-                              Value
-                            </label>
-                            <span className="text-gray-600 bg-gray-50 inline-flex w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10">
-                              {flag.enabled ? 'True' : 'False'}
-                            </span>
-                          </div>
-                        </div>
+                      <div className="flex items-baseline space-x-4 py-6 sm:space-y-0 sm:py-0">
+                        <span className="text-gray-900 mb-2 text-sm font-medium">
+                          Value
+                        </span>
+                        <span className="text-gray-600 bg-gray-50 w-fit items-center rounded-md px-3 py-1 text-sm font-medium ring-1 ring-inset ring-gray-500/10">
+                          {flag.enabled ? 'True' : 'False'}
+                        </span>
                       </div>
                     </div>
                   </div>

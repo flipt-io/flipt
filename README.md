@@ -59,8 +59,8 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 <br clear="both"/>
 
 <p align="center">
-    <a href="https://devhunt.org/tool/flipt" title="DevHunt"><img src="./.github/images/devhunt-solid.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
-    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge-logo-dark.png" width=250 alt="Console - Developer Tool of the Week" /></a>
+    <a href="https://devhunt.org/tool/flipt" title="DevHunt"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
 ## Usecases
@@ -91,13 +91,6 @@ Flipt supports use cases such as:
 - Audit logging with webhooks support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
-
-<br clear="both"/>
-
-<div align="center">
-<img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
-<img align="right" src=".github/images/console-dark.png" alt="Flipt Console - Dark" width=45% />
-</div>
 
 <br clear="both"/>
 
@@ -325,6 +318,12 @@ Not sure how to get started? You can:
 
 - [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
 - Join our [Discord](https://www.flipt.io/discord), and ask any questions there
+- Dive into any of the open issues, here are some examples: 
+  - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
+  - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
+
+Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
 
 <br clear="both"/>
 
