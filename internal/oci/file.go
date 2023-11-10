@@ -133,11 +133,13 @@ func (s *Store) getTarget(ref Reference) (oras.Target, error) {
 
 		remote.PlainHTTP = ref.Scheme == "http"
 
-		remote.Client = &auth.Client{
-			Credential: auth.StaticCredential(ref.Registry, auth.Credential{
-				Username: s.opts.auth.username,
-				Password: s.opts.auth.password,
-			}),
+		if s.opts.auth != nil {
+			remote.Client = &auth.Client{
+				Credential: auth.StaticCredential(ref.Registry, auth.Credential{
+					Username: s.opts.auth.username,
+					Password: s.opts.auth.password,
+				}),
+			}
 		}
 
 		return remote, nil

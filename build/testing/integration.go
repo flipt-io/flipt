@@ -246,17 +246,42 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		return func() error { return err }
 	}
 
+	var (
+		// username == "username" password == "password"
+		htpasswd  = "username:$2y$05$0krVCN7KfnmV5MwdD6Z7CuFuFnmbqP8.14iEV/nhNLM4V3VFF7NVK"
+		zotConfig = `{
+    "storage": {
+        "rootDirectory": "/var/lib/registry"
+    },
+    "http": {
+        "address": "0.0.0.0",
+        "port": "5000",
+        "auth": {
+            "htpasswd": {
+                "path": "/etc/zot/htpasswd"
+            }
+        }
+    },
+    "log": {
+        "level": "debug"
+    }
+}`
+	)
 	// switch out zot images based on host platform
 	// and push to remote name
 	zot := client.Container().
 		From(fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest",
 			platforms.MustParse(string(platform)).Architecture)).
-		WithExposedPort(5000)
+		WithExposedPort(5000).
+		WithNewFile("/etc/zot/htpasswd", dagger.ContainerWithNewFileOpts{Contents: htpasswd}).
+		WithNewFile("/etc/zot/config.json", dagger.ContainerWithNewFileOpts{Contents: zotConfig})
 
 	if _, err := flipt.
 		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
 		WithWorkdir("/tmp/testdata").
 		WithServiceBinding("zot", zot).
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
 		WithExec([]string{"/flipt", "bundle", "build", "readonly:latest"}).
 		WithExec([]string{"/flipt", "bundle", "push", "readonly:latest", "http://zot:5000/readonly:latest"}).
 		Sync(ctx); err != nil {
@@ -270,6 +295,8 @@ func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Contain
 		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
 		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
 		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
 		WithEnvVariable("UNIQUE", uuid.New().String())
 
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)

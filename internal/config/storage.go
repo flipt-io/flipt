@@ -62,7 +62,6 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 			v.SetDefault("storage.object.s3.poll_interval", "1m")
 		}
 	case string(OCIStorageType):
-		v.SetDefault("storage.oci.insecure", false)
 		v.SetDefault("storage.oci.poll_interval", "30s")
 
 		dir, err := DefaultBundleDir()

@@ -166,7 +166,9 @@ func (c *bundleCommand) getStore() (*oci.Store, error) {
 			))
 		}
 
-		dir = cfg.BundlesDirectory
+		if cfg.BundlesDirectory != "" {
+			dir = cfg.BundlesDirectory
+		}
 	}
 
 	return oci.NewStore(logger, dir, opts...)
