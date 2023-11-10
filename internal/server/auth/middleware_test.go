@@ -151,22 +151,19 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 
 		ctx     = context.Background()
-		called  = false
 		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
-			called = true
 			return nil, nil
 		}
 	)
 
-	_, err := EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
-		ctx,
-		nil,
-		&grpc.UnaryServerInfo{Server: &fakeserver},
-		handler,
-	)
-
-	require.NoError(t, err)
-	assert.True(t, called)
+	require.Panics(t, func() {
+		EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
+			ctx,
+			nil,
+			&grpc.UnaryServerInfo{Server: &fakeserver},
+			handler,
+		)
+	})
 }
 
 func TestEmailMatchingInterceptor(t *testing.T) {
@@ -312,22 +309,19 @@ func TestNamespaceMatchingInterceptorWithNoAuth(t *testing.T) {
 		logger = zaptest.NewLogger(t)
 
 		ctx     = context.Background()
-		called  = false
 		handler = func(ctx context.Context, req interface{}) (interface{}, error) {
-			called = true
 			return nil, nil
 		}
 	)
 
-	_, err := NamespaceMatchingInterceptor(logger)(
-		ctx,
-		nil,
-		&grpc.UnaryServerInfo{Server: &fakeserver},
-		handler,
-	)
-
-	require.NoError(t, err)
-	assert.True(t, called)
+	require.Panics(t, func() {
+		NamespaceMatchingInterceptor(logger)(
+			ctx,
+			nil,
+			&grpc.UnaryServerInfo{Server: &fakeserver},
+			handler,
+		)
+	})
 }
 
 func TestNamespaceMatchingInterceptor(t *testing.T) {

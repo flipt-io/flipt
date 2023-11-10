@@ -146,7 +146,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 		auth := GetAuthenticationFrom(ctx)
 
 		if auth == nil {
-			return handler(ctx, req)
+			panic("authentication not found in context, middleware installed incorrectly")
 		}
 
 		// this mechanism only applies to authentications created using OIDC
@@ -182,7 +182,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 		auth := GetAuthenticationFrom(ctx)
 
 		if auth == nil {
-			return handler(ctx, req)
+			panic("authentication not found in context, middleware installed incorrectly")
 		}
 
 		// this mechanism only applies to static toke authentications
