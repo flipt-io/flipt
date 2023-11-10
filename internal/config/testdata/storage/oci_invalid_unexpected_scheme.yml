@@ -1,7 +1,7 @@
 storage:
   type: oci
   oci:
-    repository: just.a.registry
+    repository: unknown://registry/repo:tag
     authentication:
       username: foo
       password: bar

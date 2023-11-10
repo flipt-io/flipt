@@ -6,3 +6,4 @@ storage:
     authentication:
       username: foo
       password: bar
+    poll_interval: 5m

@@ -50,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         test:
-          ["api", "api/cache", "fs/git", "fs/local", "fs/s3", "import/export"]
+          ["api", "api/cache", "fs/git", "fs/local", "fs/s3", "fs/oci", "import/export"]
     steps:
       - uses: actions/checkout@v4
 
