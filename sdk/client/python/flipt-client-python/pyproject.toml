@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "flipt-client-python"
+version = "0.0.1"
+description = ""
+authors = ["Flipt Devs <dev@flipt.io>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.4.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
