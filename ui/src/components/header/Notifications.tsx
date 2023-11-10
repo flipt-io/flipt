@@ -1,7 +1,7 @@
 import { Transition } from '@headlessui/react';
 import {
-  BellIcon,
-  MegaphoneIcon,
+  BellAlertIcon,
+  SparklesIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Fragment, useState } from 'react';
@@ -39,7 +39,7 @@ export function Notification(props: NotificationProps) {
               <div className="p-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <MegaphoneIcon
+                    <SparklesIcon
                       className="text-gray-400 h-6 w-6"
                       aria-hidden="true"
                     />
@@ -123,14 +123,13 @@ export default function Notifications(props: NotificationsProps) {
       >
         {newNotifications && (
           <span className="absolute right-0 top-0 flex h-2 w-2">
-            <span className="bg-white absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"></span>
             <span className="bg-violet-100 relative inline-flex h-2 w-2 rounded-full"></span>
           </span>
         )}
         <span className="sr-only">View notifications</span>
 
-        <BellIcon
-          className="h-8 w-6 fill-violet-300 hover:fill-violet-200"
+        <BellAlertIcon
+          className="nightwind-prevent text-gray-300 h-5 w-5 hover:text-gray-100 dark:text-gray-400 dark:hover:text-gray-200"
           aria-hidden="true"
           onClick={() => {
             setShow(true);
