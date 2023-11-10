@@ -11,12 +11,11 @@ from .models import (
 
 class FliptEvaluationClient:
     def __init__(self, namespaces: list[str]):
-        engine_core_path = os.environ.get("ENGINE_LIB_PATH")
-        if engine_core_path is None:
+        engine_library_path = os.environ.get("ENGINE_LIB_PATH")
+        if engine_library_path is None:
             raise Exception("ENGINE_LIB_PATH not set")
-        engine_link_file_path = os.path.join(engine_core_path, "libengine.dylib")
 
-        self.ffi_core = ctypes.CDLL(engine_link_file_path)
+        self.ffi_core = ctypes.CDLL(engine_library_path)
 
         self.ffi_core.initialize_engine.restype = ctypes.c_void_p
         self.ffi_core.destroy_engine.argtypes = [ctypes.c_void_p]

@@ -4,10 +4,25 @@ This directory contains the Python source code for a Flipt evaluation client usi
 
 ### Instructions
 
-To use this client, you can run:
+To use this client, you can run the following command from the root of the repository:
 
 ```bash
-cargo build --release
+cargo build
 ```
 
-from the root of the repository and set the `ENGINE_LIB_PATH` environment variable to `{FLIPT_REPO_ROOT}/target/release` which will contain the dynamic linking library necessary for FFI calls with Python.
+This should generate a `target/` directory in the root of this repository, which contains the dynamic linking library built for your platform. This dynamic library will contain the functinonality necessary for the Python client to make FFI calls. Depending on what your platform is you can set the `ENGINE_LIB_PATH` to:
+
+- **Linux**: `{FLIPT_REPO_ROOT}/target/debug/libengine.so`
+- **Windows**: `{FLIPT_REPO_ROOT}/target/debug/libengine.dll`
+- **MacOS**: `{FLIPT_REPO_ROOT}/target/debug/libengine.dylib`
+
+In your Python code you can import this client and use it as so:
+
+```python
+from flipt_client_python import FliptEvaluationClient
+
+flipt_evaluation_client = FliptEvaluationClient(namespaces=["default", "another-namespace"])
+
+variant_response = flipt_evaluation_client.variant(namespace_key="default", flag_key="flag1", entity_id="entity", context={"this": "context"})
+```
+
