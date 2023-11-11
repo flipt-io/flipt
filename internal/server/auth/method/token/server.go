@@ -38,6 +38,10 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodTokenServiceServer(server, s)
 }
 
+func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+	return true
+}
+
 // CreateToken adapts and delegates the token request to the backing AuthenticationStore.
 //
 // Implicitly, the Authentication created will be of type auth.Method_TOKEN.

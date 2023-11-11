@@ -66,14 +66,22 @@ func (o InterceptorOptions) skipped(server any) bool {
 	return false
 }
 
-// WithServerSkipsAuthentication can be used to configure an auth unary interceptor
-// which skips authentication when the provided server instance matches the intercepted
-// calls parent server instance.
-// This allows the caller to registers servers which explicitly skip authentication (e.g. OIDC).
 func WithServerSkipsAuthentication(server any) containers.Option[InterceptorOptions] {
 	return func(o *InterceptorOptions) {
 		o.skippedServers = append(o.skippedServers, server)
 	}
+}
+
+type NamespacedServer interface {
+	AllowsNamespacedAuthentication() bool
+}
+
+// WithServerSkipsAuthentication can be used to configure an auth unary interceptor
+// which skips authentication when the provided server instance matches the intercepted
+// calls parent server instance.
+// This allows the caller to registers servers which explicitly skip authentication (e.g. OIDC).
+type SkipsAuthenticationServer interface {
+	SkipsAuthentication() bool
 }
 
 // UnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
@@ -85,6 +93,13 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
+		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication() {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		// skip auth for any preconfigured servers
+		// TODO: refactor to remove this check
 		if opts.skipped(info.Server) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
@@ -138,16 +153,8 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 // EmailMatchingInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
 // and wants to whitelist a group of users issuing operations against the Flipt server.
-func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
-	var opts InterceptorOptions
-	containers.ApplyAll(&opts, o...)
-
+func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// skip auth for any preconfigured servers
-		if opts.skipped(info.Server) {
-			return handler(ctx, req)
-		}
-
 		auth := GetAuthenticationFrom(ctx)
 
 		if auth == nil {
@@ -182,18 +189,9 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 	}
 }
 
-func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
-	var opts InterceptorOptions
-	containers.ApplyAll(&opts, o...)
-
+func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// skip auth for any preconfigured servers
-		if opts.skipped(info.Server) {
-			return handler(ctx, req)
-		}
-
 		auth := GetAuthenticationFrom(ctx)
-
 		if auth == nil {
 			panic("authentication not found in context, middleware installed incorrectly")
 		}
@@ -207,6 +205,13 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 		if !ok {
 			// if no namespace is provided then we should allow the request
 			return handler(ctx, req)
+		}
+
+		nsServer, ok := info.Server.(NamespacedServer)
+		if !ok || !nsServer.AllowsNamespacedAuthentication() {
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespace is not allowed"))
+			return ctx, ErrUnauthenticated
 		}
 
 		namespace = strings.TrimSpace(namespace)

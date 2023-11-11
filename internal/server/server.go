@@ -38,3 +38,7 @@ func New(logger *zap.Logger, store storage.Store) *Server {
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	flipt.RegisterFliptServer(server, s)
 }
+
+func (s *Server) AllowsNamespacedAuthentication(ctx context.Context) bool {
+	return true
+}

@@ -12,9 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var (
-	stateCookieKey = "flipt_client_state"
-)
+const stateCookieKey = "flipt_client_state"
 
 // Middleware contains various extensions for appropriate integration of the generic auth services
 // behind gRPC gateway. This currently includes clearing the appropriate cookies on logout.

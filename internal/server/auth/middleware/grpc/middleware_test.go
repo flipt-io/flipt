@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
@@ -44,7 +43,6 @@ func TestUnaryInterceptor(t *testing.T) {
 		name         string
 		metadata     metadata.MD
 		server       any
-		options      []containers.Option[InterceptorOptions]
 		expectedErr  error
 		expectedAuth *authrpc.Authentication
 	}{
@@ -66,9 +64,6 @@ func TestUnaryInterceptor(t *testing.T) {
 			name:     "successful authentication (skipped)",
 			metadata: metadata.MD{},
 			server:   &fakeserver,
-			options: []containers.Option[InterceptorOptions]{
-				WithServerSkipsAuthentication(&fakeserver),
-			},
 		},
 		{
 			name: "token has expired",
@@ -134,7 +129,7 @@ func TestUnaryInterceptor(t *testing.T) {
 				ctx = metadata.NewIncomingContext(ctx, test.metadata)
 			}
 
-			_, err := UnaryInterceptor(logger, authenticator, test.options...)(
+			_, err := UnaryInterceptor(logger, authenticator)(
 				ctx,
 				nil,
 				&grpc.UnaryServerInfo{Server: test.server},

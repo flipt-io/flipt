@@ -85,8 +85,6 @@ func authenticationGRPC(
 		interceptors []grpc.UnaryServerInterceptor
 	)
 
-	authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(publicServer))
-
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
 		opts := []storageauth.BootstrapOption{}
@@ -120,8 +118,6 @@ func authenticationGRPC(
 	if authCfg.Methods.OIDC.Enabled {
 		oidcServer := authoidc.NewServer(logger, store, authCfg)
 		register.Add(oidcServer)
-		// OIDC server exposes unauthenticated endpoints
-		authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(oidcServer))
 
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
@@ -129,8 +125,6 @@ func authenticationGRPC(
 	if authCfg.Methods.Github.Enabled {
 		githubServer := authgithub.NewServer(logger, store, authCfg)
 		register.Add(githubServer)
-
-		authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(githubServer))
 
 		logger.Debug("authentication method \"github\" registered")
 	}
@@ -142,9 +136,6 @@ func authenticationGRPC(
 		}
 		register.Add(kubernetesServer)
 
-		// OIDC server exposes unauthenticated endpoints
-		authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(kubernetesServer))
-
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
 
@@ -153,7 +144,6 @@ func authenticationGRPC(
 		interceptors = append(interceptors, authmiddlewaregrpc.UnaryInterceptor(
 			logger,
 			store,
-			authOpts...,
 		))
 
 		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
@@ -168,11 +158,11 @@ func authenticationGRPC(
 				rgxs = append(rgxs, rgx)
 			}
 
-			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...))
+			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs))
 		}
 
 		if authCfg.Methods.Token.Enabled {
-			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...))
+			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger))
 		}
 
 		logger.Info("authentication middleware enabled")

@@ -39,3 +39,7 @@ func New(logger *zap.Logger, store Storer) *Server {
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterEvaluationServiceServer(server, s)
 }
+
+func (s *Server) AllowsNamespacedAuthentication(ctx context.Context) bool {
+	return true
+}
