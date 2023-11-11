@@ -40,7 +40,8 @@ export const ConstraintStringOperators: Record<string, string> = {
   empty: 'IS EMPTY',
   notempty: 'IS NOT EMPTY',
   prefix: 'HAS PREFIX',
-  suffix: 'HAS SUFFIX'
+  suffix: 'HAS SUFFIX',
+  isoneof: 'IS ONE OF'
 };
 
 export const ConstraintNumberOperators: Record<string, string> = {

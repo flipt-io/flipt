@@ -2,8 +2,10 @@ package evaluation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -332,6 +334,13 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 		return strings.HasPrefix(strings.TrimSpace(v), value)
 	case flipt.OpSuffix:
 		return strings.HasSuffix(strings.TrimSpace(v), value)
+	case flipt.OpIsOneOf:
+		values := []string{}
+		err := json.Unmarshal([]byte(value), &values)
+		if err != nil {
+			return false
+		}
+		return slices.Contains(values, v)
 	}
 
 	return false

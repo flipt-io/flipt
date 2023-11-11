@@ -140,6 +140,25 @@ func Test_matchesString(t *testing.T) {
 			},
 			value: "nope",
 		},
+		{
+			name: "is one of",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isoneof",
+				Value:    "[\"bar\", \"baz\"]",
+			},
+			value:     "baz",
+			wantMatch: true,
+		},
+		{
+			name: "negative is one of",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isoneof",
+				Value:    "[\"bar\", \"baz\"]",
+			},
+			value: "nope",
+		},
 	}
 	for _, tt := range tests {
 		var (
