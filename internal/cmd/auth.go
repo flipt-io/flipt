@@ -144,6 +144,7 @@ func authenticationGRPC(
 		interceptors = append(interceptors, authmiddlewaregrpc.UnaryInterceptor(
 			logger,
 			store,
+			authOpts...,
 		))
 
 		if authCfg.Methods.OIDC.Enabled && len(authCfg.Methods.OIDC.Method.EmailMatches) != 0 {
