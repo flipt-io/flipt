@@ -5,6 +5,10 @@ type Namespaced interface {
 	GetNamespaceKey() string
 }
 
+type BatchNamespaced interface {
+	GetNamespaceKeys() []string
+}
+
 func (req *GetNamespaceRequest) GetNamespaceKey() string {
 	return req.Key
 }

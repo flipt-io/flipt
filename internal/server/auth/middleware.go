@@ -213,25 +213,48 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 		}
 
 		namespace = strings.TrimSpace(namespace)
-
 		if namespace == "" {
 			return handler(ctx, req)
 		}
 
-		nsReq, ok := req.(flipt.Namespaced)
-		if !ok {
+		logger := logger.With(zap.String("expected_namespace", namespace))
+
+		var reqNamespace string
+		switch nsReq := req.(type) {
+		case flipt.Namespaced:
+			reqNamespace = nsReq.GetNamespaceKey()
+			if reqNamespace == "" {
+				reqNamespace = "default"
+			}
+		case flipt.BatchNamespaced:
+			// ensure that all namespaces referenced in
+			// the batch are the same
+			for _, ns := range nsReq.GetNamespaceKeys() {
+				if ns == "" {
+					ns = "default"
+				}
+
+				if reqNamespace == "" {
+					reqNamespace = ns
+					continue
+				}
+
+				if reqNamespace != ns {
+					logger.Error("unauthenticated",
+						zap.String("reason", "namespace is not allowed"))
+					return ctx, errUnauthenticated
+				}
+			}
+		default:
 			// if the the token has a namespace but the request does not then we should reject the request
-			logger.Error("unauthenticated", zap.String("reason", "namespace is not allowed"))
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespace is not allowed"))
 			return ctx, errUnauthenticated
 		}
 
-		reqNamespace := nsReq.GetNamespaceKey()
-		if reqNamespace == "" {
-			reqNamespace = "default"
-		}
-
 		if reqNamespace != namespace {
-			logger.Error("unauthenticated", zap.String("reason", "namespace is not allowed"))
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespace is not allowed"))
 			return ctx, errUnauthenticated
 		}
 
