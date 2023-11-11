@@ -41,7 +41,7 @@ func WithPollInterval(tick time.Duration) containers.Option[Source] {
 }
 
 // Get returns an fs.FS for the local filesystem.
-func (s *Source) Get() (*storagefs.StoreSnapshot, error) {
+func (s *Source) Get(context.Context) (*storagefs.StoreSnapshot, error) {
 	return storagefs.SnapshotFromFS(s.logger, os.DirFS(s.dir))
 }
 
@@ -56,7 +56,7 @@ func (s *Source) Subscribe(ctx context.Context, ch chan<- *storagefs.StoreSnapsh
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			snap, err := s.Get()
+			snap, err := s.Get(ctx)
 			if err != nil {
 				s.logger.Error("error getting file system from directory", zap.Error(err))
 				continue

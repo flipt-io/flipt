@@ -1,0 +1,5 @@
+version: "1.0"
+include:
+- "*.features.yml"
+exclude:
+- "exclude.features.yml"

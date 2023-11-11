@@ -69,7 +69,6 @@ segments:
     match_type: "ANY_MATCH_TYPE"
     description: description
 ---
-version: "1.2"
 namespace: foo
 flags:
   - key: flag1

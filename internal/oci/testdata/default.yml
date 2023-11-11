@@ -1,0 +1,25 @@
+flags:
+- key: flag_boolean
+  name: FLAG_BOOLEAN
+  type: BOOLEAN_FLAG_TYPE
+  description: Boolean Flag Description
+  enabled: false
+  rollouts:
+  - description: enabled for segment_001
+    segment:
+      key: segment_001
+      value: true
+  - description: disabled for segment_002
+    segment:
+      key: segment_002
+  - description: enabled for segment_003
+    segment:
+      key: segment_003
+      value: true
+  - description: disabled for segment_004
+    segment:
+      key: segment_004
+  - description: enabled for 50%
+    threshold:
+      percentage: 50
+      value: true

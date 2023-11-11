@@ -9,7 +9,6 @@ import (
 
 	"github.com/blang/semver/v4"
 	"go.flipt.io/flipt/rpc/flipt"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -56,9 +55,9 @@ func versionString(v semver.Version) string {
 	return fmt.Sprintf("%d.%d", v.Major, v.Minor)
 }
 
-func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
+func (e *Exporter) Export(ctx context.Context, encoding Encoding, w io.Writer) error {
 	var (
-		enc       = yaml.NewEncoder(w)
+		enc       = encoding.NewEncoder(w)
 		batchSize = e.batchSize
 	)
 
@@ -97,8 +96,7 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 
 	for i := 0; i < len(namespaces); i++ {
 		doc := new(Document)
-		// Only provide the version to the first document in the YAML
-		// file.
+		// Only provide the version to the first document in the stream.
 		if i == 0 {
 			doc.Version = versionString(latestVersion)
 		}
@@ -285,8 +283,6 @@ func (e *Exporter) Export(ctx context.Context, w io.Writer) error {
 			}
 		}
 
-		// The YAML encoder does the stream separation by default, so no need to write to the file the
-		// "---" separator manually.
 		if err := enc.Encode(doc); err != nil {
 			return fmt.Errorf("marshaling document: %w", err)
 		}
