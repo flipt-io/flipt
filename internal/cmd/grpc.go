@@ -293,6 +293,8 @@ func NewGRPCServer(
 		// it's initialized with the default option of skipping authentication for the health service which should never require authentication.
 		authOpts = []containers.Option[auth.InterceptorOptions]{
 			auth.WithServerSkipsAuthentication(healthsrv),
+			auth.WithServerNamespaceScoped(fliptsrv),
+			auth.WithServerNamespaceScoped(evalsrv),
 		}
 		skipAuthIfExcluded = func(server any, excluded bool) {
 			if excluded {

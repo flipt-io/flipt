@@ -56,11 +56,22 @@ func ContextWithAuthentication(ctx context.Context, a *authrpc.Authentication) c
 
 // InterceptorOptions configure the UnaryInterceptor
 type InterceptorOptions struct {
-	skippedServers []any
+	skippedServers  []any
+	namespaceScoped []any
 }
 
 func (o InterceptorOptions) skipped(server any) bool {
 	for _, s := range o.skippedServers {
+		if s == server {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (o InterceptorOptions) namespaced(server any) bool {
+	for _, s := range o.namespaceScoped {
 		if s == server {
 			return true
 		}
@@ -76,6 +87,14 @@ func (o InterceptorOptions) skipped(server any) bool {
 func WithServerSkipsAuthentication(server any) containers.Option[InterceptorOptions] {
 	return func(o *InterceptorOptions) {
 		o.skippedServers = append(o.skippedServers, server)
+	}
+}
+
+// WithServerNamespaceScoped is used to identify that a server supports authentication
+// with a namespaced token.
+func WithServerNamespaceScoped(server any) containers.Option[InterceptorOptions] {
+	return func(o *InterceptorOptions) {
+		o.namespaceScoped = append(o.namespaceScoped, server)
 	}
 }
 
@@ -190,9 +209,12 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 	containers.ApplyAll(&opts, o...)
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// skip auth for any preconfigured servers
-		if opts.skipped(info.Server) {
-			return handler(ctx, req)
+		// return unauthorized for servers that dont support
+		// namespaced authentications
+		if !opts.namespaced(info.Server) {
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespaced token not supported"))
+			return ctx, errUnauthenticated
 		}
 
 		auth := GetAuthenticationFrom(ctx)

@@ -54,24 +54,22 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 			})
 
 			t.Run("With name and namespaceKey", func(t *testing.T) {
-				// namespaced scoped tokens can only create tokens
-				// in the same namespace
-				// this ensures that the scope is appropriate for that condition
-				namespace := opts.Namespace
-				if namespace == "" {
-					namespace = "some-namespace"
-				}
-
 				resp, err := client.Auth().AuthenticationMethodTokenService().CreateToken(ctx, &auth.CreateTokenRequest{
 					Name:         "Scoped Access Token",
-					NamespaceKey: namespace,
+					NamespaceKey: "some-namespace",
 				})
 				require.NoError(t, err)
+
+				if opts.AuthConfig == integration.AuthNamespaced {
+					_, err := client.Meta().GetInfo(ctx)
+					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+					return
+				}
 
 				assert.NotEmpty(t, resp.ClientToken)
 				assert.Equal(t, "Scoped Access Token", resp.Authentication.Metadata["io.flipt.auth.token.name"])
 				assert.Empty(t, resp.Authentication.Metadata["io.flipt.auth.token.description"])
-				assert.Equal(t, namespace, resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
+				assert.Equal(t, "some-namespace", resp.Authentication.Metadata["io.flipt.auth.token.namespace"])
 			})
 		})
 
