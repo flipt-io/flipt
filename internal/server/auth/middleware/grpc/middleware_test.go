@@ -18,8 +18,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// fakeserver is used to test skipping auth
-var fakeserver struct{}
+// fakeServer is used to test skipping auth
+type fakeServer struct{}
+
+func (s *fakeServer) SkipsAuthentication() bool {
+	return true
+}
+
+func (s *fakeServer) AllowsNamespaceScopedAuthentication() bool {
+	return true
+}
 
 func TestUnaryInterceptor(t *testing.T) {
 	authenticator := memory.NewStore()
@@ -63,7 +71,7 @@ func TestUnaryInterceptor(t *testing.T) {
 		{
 			name:     "successful authentication (skipped)",
 			metadata: metadata.MD{},
-			server:   &fakeserver,
+			server:   &fakeServer{},
 		},
 		{
 			name: "token has expired",
@@ -155,7 +163,7 @@ func TestEmailMatchingInterceptorWithNoAuth(t *testing.T) {
 		_, _ = EmailMatchingInterceptor(logger, []*regexp.Regexp{regexp.MustCompile("^.*@flipt.io$")})(
 			ctx,
 			nil,
-			&grpc.UnaryServerInfo{Server: &fakeserver},
+			&grpc.UnaryServerInfo{Server: &fakeServer{}},
 			handler,
 		)
 	})
@@ -313,7 +321,7 @@ func TestNamespaceMatchingInterceptorWithNoAuth(t *testing.T) {
 		_, _ = NamespaceMatchingInterceptor(logger)(
 			ctx,
 			nil,
-			&grpc.UnaryServerInfo{Server: &fakeserver},
+			&grpc.UnaryServerInfo{Server: &fakeServer{}},
 			handler,
 		)
 	})
@@ -434,9 +442,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 					return nil, nil
 				}
 
-				info = &grpc.UnaryServerInfo{
-					FullMethod: "FooMethod",
-				}
+				srv = &grpc.UnaryServerInfo{Server: &fakeServer{}}
 
 				unaryInterceptor = NamespaceMatchingInterceptor(logger)
 			)
@@ -445,7 +451,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				"Authorization": []string{"Bearer " + clientToken},
 			})
 
-			_, err = unaryInterceptor(ctx, tt.req, info, handler)
+			_, err = unaryInterceptor(ctx, tt.req, srv, handler)
 			require.Equal(t, tt.expectedErr, err)
 		})
 	}
