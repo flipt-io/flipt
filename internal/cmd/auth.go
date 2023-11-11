@@ -159,11 +159,11 @@ func authenticationGRPC(
 				rgxs = append(rgxs, rgx)
 			}
 
-			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs))
+			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...))
 		}
 
 		if authCfg.Methods.Token.Enabled {
-			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger))
+			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...))
 		}
 
 		logger.Info("authentication middleware enabled")

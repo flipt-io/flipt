@@ -155,10 +155,25 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 // EmailMatchingInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
 // and wants to whitelist a group of users issuing operations against the Flipt server.
-func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		auth := GetAuthenticationFrom(ctx)
+func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
 
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication() {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		// skip auth for any preconfigured servers
+		// TODO: refactor to remove this check
+		if opts.skipped(info.Server) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
 			panic("authentication not found in context, middleware installed incorrectly")
 		}
@@ -191,8 +206,24 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 	}
 }
 
-func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
+func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication() {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		// skip auth for any preconfigured servers
+		// TODO: refactor to remove this check
+		if opts.skipped(info.Server) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
 		auth := GetAuthenticationFrom(ctx)
 		if auth == nil {
 			panic("authentication not found in context, middleware installed incorrectly")
