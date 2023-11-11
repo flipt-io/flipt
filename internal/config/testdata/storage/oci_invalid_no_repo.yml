@@ -1,0 +1,6 @@
+storage:
+  type: oci
+  oci:
+    authentication:
+      username: foo
+      password: bar

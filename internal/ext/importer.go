@@ -12,7 +12,6 @@ import (
 	"go.flipt.io/flipt/rpc/flipt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"gopkg.in/yaml.v2"
 )
 
 type Creator interface {
@@ -45,9 +44,9 @@ func NewImporter(store Creator, opts ...ImportOpt) *Importer {
 	return i
 }
 
-func (i *Importer) Import(ctx context.Context, r io.Reader) (err error) {
+func (i *Importer) Import(ctx context.Context, enc Encoding, r io.Reader) (err error) {
 	var (
-		dec     = yaml.NewDecoder(r)
+		dec     = enc.NewDecoder(r)
 		version semver.Version
 	)
 

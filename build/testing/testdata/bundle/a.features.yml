@@ -1,0 +1,8 @@
+namespace: a
+flags:
+- key: one
+  name: One
+  type: VARIANT_FLAG_TYPE
+- key: two
+  name: Two
+  type: BOOLEAN_FLAG_TYPE
