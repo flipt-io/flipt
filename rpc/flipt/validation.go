@@ -369,6 +369,17 @@ func (req *DeleteSegmentRequest) Validate() error {
 	return nil
 }
 
+func validateMultipleValue(valueType ComparisonType, value string, property string) error {
+	switch valueType {
+	case ComparisonType_STRING_COMPARISON_TYPE:
+		if parseErr := json.Unmarshal([]byte(value), &[]string{}); parseErr != nil {
+			return errors.ErrInvalidf("invalid value provided for property %q for type string", property)
+		}
+	}
+
+	return nil
+}
+
 func (req *CreateConstraintRequest) Validate() error {
 	if req.SegmentKey == "" {
 		return errors.EmptyFieldError("segmentKey")
@@ -420,6 +431,10 @@ func (req *CreateConstraintRequest) Validate() error {
 			return err
 		}
 		req.Value = v
+	} else if operator == "isoneof" {
+		if err := validateMultipleValue(req.Type, req.Value, req.Property); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -480,6 +495,10 @@ func (req *UpdateConstraintRequest) Validate() error {
 			return err
 		}
 		req.Value = v
+	} else if operator == "isoneof" {
+		if err := validateMultipleValue(req.Type, req.Value, req.Property); err != nil {
+			return err
+		}
 	}
 
 	return nil

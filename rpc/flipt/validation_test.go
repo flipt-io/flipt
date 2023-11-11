@@ -1278,6 +1278,28 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 				Operator:   "present",
 			},
 		},
+		{
+			name: "invalid isoneof (invalid json)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[\"invalid json\"",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" for type string"),
+		},
+		{
+			name: "invalid isoneof (non-string values)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[1, 2, \"test\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" for type string"),
+		},
 	}
 
 	for _, tt := range tests {
