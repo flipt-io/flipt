@@ -66,20 +66,22 @@ func (o InterceptorOptions) skipped(server any) bool {
 	return false
 }
 
+// WithServerSkipsAuthentication can be used to configure an auth unary interceptor
+// which skips authentication when the provided server instance matches the intercepted
+// calls parent server instance.
+// This allows the caller to registers servers which explicitly skip authentication (e.g. OIDC).
 func WithServerSkipsAuthentication(server any) containers.Option[InterceptorOptions] {
 	return func(o *InterceptorOptions) {
 		o.skippedServers = append(o.skippedServers, server)
 	}
 }
 
-type NamespacedServer interface {
-	AllowsNamespacedAuthentication() bool
+// ScopedAuthenticationServer is a grpc.Server which allows for specific scoped authentication.
+type ScopedAuthenticationServer interface {
+	AllowsNamespaceScopedAuthentication() bool
 }
 
-// WithServerSkipsAuthentication can be used to configure an auth unary interceptor
-// which skips authentication when the provided server instance matches the intercepted
-// calls parent server instance.
-// This allows the caller to registers servers which explicitly skip authentication (e.g. OIDC).
+// SkipsAuthenticationServer is a grpc.Server which should always skip authentication.
 type SkipsAuthenticationServer interface {
 	SkipsAuthentication() bool
 }
@@ -207,8 +209,8 @@ func NamespaceMatchingInterceptor(logger *zap.Logger) grpc.UnaryServerIntercepto
 			return handler(ctx, req)
 		}
 
-		nsServer, ok := info.Server.(NamespacedServer)
-		if !ok || !nsServer.AllowsNamespacedAuthentication() {
+		nsServer, ok := info.Server.(ScopedAuthenticationServer)
+		if !ok || !nsServer.AllowsNamespaceScopedAuthentication() {
 			logger.Error("unauthenticated",
 				zap.String("reason", "namespace is not allowed"))
 			return ctx, ErrUnauthenticated
