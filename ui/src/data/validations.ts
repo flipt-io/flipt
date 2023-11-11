@@ -23,3 +23,28 @@ export const jsonValidation = Yup.string()
       return false;
     }
   });
+
+const checkJsonArray = (checkItem: (v: any) => boolean) => (value: any) => {
+  if (value === undefined || value === null || value === '') {
+    return true;
+  }
+
+  try {
+    const json = JSON.parse(value);
+    if (!Array.isArray(json) || !json.every(checkItem)) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const jsonStringArrayValidation = Yup.string()
+  .optional()
+  .test(
+    'is-json-array',
+    'Must be valid JSON string array',
+    checkJsonArray((v: any) => typeof v === 'string')
+  );

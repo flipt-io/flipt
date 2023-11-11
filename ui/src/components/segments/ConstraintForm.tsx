@@ -17,7 +17,10 @@ import MoreInfo from '~/components/MoreInfo';
 import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { requiredValidation } from '~/data/validations';
+import {
+  jsonStringArrayValidation,
+  requiredValidation
+} from '~/data/validations';
 import {
   ConstraintBooleanOperators,
   ConstraintDateTimeOperators,
@@ -214,6 +217,14 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   );
 }
 
+const validationSchema = Yup.object({
+  property: requiredValidation
+}).when({
+  is: (c: IConstraint) =>
+    c.type === ConstraintType.STRING && c.operator === 'isoneof',
+  then: (schema) => schema.shape({ value: jsonStringArrayValidation })
+});
+
 type ConstraintFormProps = {
   setOpen: (open: boolean) => void;
   segmentKey: string;
@@ -271,9 +282,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
             setSubmitting(false);
           });
       }}
-      validationSchema={Yup.object({
-        property: requiredValidation
-      })}
+      validationSchema={validationSchema}
     >
       {(formik) => (
         <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
