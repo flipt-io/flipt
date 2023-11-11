@@ -1,4 +1,4 @@
-package auth
+package grpc_middleware
 
 import (
 	"context"
@@ -75,45 +75,45 @@ func TestUnaryInterceptor(t *testing.T) {
 			metadata: metadata.MD{
 				"Authorization": []string{"Bearer " + expiredToken},
 			},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "client token not found in store",
 			metadata: metadata.MD{
 				"Authorization": []string{"Bearer unknowntoken"},
 			},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "client token missing Bearer prefix",
 			metadata: metadata.MD{
 				"Authorization": []string{clientToken},
 			},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "authorization header empty",
 			metadata: metadata.MD{
 				"Authorization": []string{},
 			},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "cookie header with no flipt_client_token",
 			metadata: metadata.MD{
 				"grcpgateway-cookie": []string{"blah"},
 			},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name:        "authorization header not set",
 			metadata:    metadata.MD{},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name:        "no metadata on context",
 			metadata:    nil,
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 	} {
 		test := test
@@ -244,7 +244,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"bar@flipt.io",
 			},
 			auth:        storedAuth,
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "email does not match (regex)",
@@ -255,7 +255,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"^.*@gmail.com$",
 			},
 			auth:        storedAuth,
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "email not provided by oidc provider",
@@ -266,7 +266,7 @@ func TestEmailMatchingInterceptor(t *testing.T) {
 				"foo@flipt.io",
 			},
 			auth:        nonEmailStoredAuth,
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 	} {
 		test := test
@@ -369,7 +369,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			req: &evaluation.EvaluationRequest{
 				NamespaceKey: "foo",
 			},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "namespace not provided by token authentication",
@@ -403,7 +403,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				},
 			},
 			req:         &evaluation.EvaluationRequest{},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 		{
 			name: "namespace not available",
@@ -414,7 +414,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 				},
 			},
 			req:         &evaluation.BatchEvaluationRequest{},
-			expectedErr: errUnauthenticated,
+			expectedErr: ErrUnauthenticated,
 		},
 	} {
 		tt := tt

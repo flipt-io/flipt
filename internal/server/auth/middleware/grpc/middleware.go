@@ -1,4 +1,4 @@
-package auth
+package grpc_middleware
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/containers"
+	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
 	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
@@ -21,13 +22,9 @@ import (
 const (
 	authenticationHeaderKey = "authorization"
 	cookieHeaderKey         = "grpcgateway-cookie"
-
-	// tokenCookieKey is the key used when storing the flipt client token
-	// as a http cookie.
-	tokenCookieKey = "flipt_client_token"
 )
 
-var errUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
+var ErrUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
 
 type authenticationContextKey struct{}
 
@@ -96,7 +93,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		clientToken, err := clientTokenFromMetadata(md)
@@ -105,7 +102,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				zap.String("reason", "no authorization provided"),
 				zap.Error(err))
 
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		auth, err := authenticator.GetAuthenticationByClientToken(ctx, clientToken)
@@ -124,7 +121,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				return ctx, err
 			}
 
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
@@ -132,7 +129,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				zap.String("reason", "authorization expired"),
 				zap.String("authentication_id", auth.Id),
 			)
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
@@ -165,7 +162,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 		email, ok := auth.Metadata["io.flipt.auth.oidc.email"]
 		if !ok {
 			logger.Debug("no email provided but required for auth")
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		matched := false
@@ -178,7 +175,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 
 		if !matched {
 			logger.Error("unauthenticated", zap.String("reason", "email is not allowed"))
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		return handler(ctx, req)
@@ -242,20 +239,20 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 				if reqNamespace != ns {
 					logger.Error("unauthenticated",
 						zap.String("reason", "namespace is not allowed"))
-					return ctx, errUnauthenticated
+					return ctx, ErrUnauthenticated
 				}
 			}
 		default:
 			// if the the token has a namespace but the request does not then we should reject the request
 			logger.Error("unauthenticated",
 				zap.String("reason", "namespace is not allowed"))
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		if reqNamespace != namespace {
 			logger.Error("unauthenticated",
 				zap.String("reason", "namespace is not allowed"))
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		return handler(ctx, req)
@@ -267,7 +264,7 @@ func clientTokenFromMetadata(md metadata.MD) (string, error) {
 		return clientTokenFromAuthorization(authenticationHeader[0])
 	}
 
-	cookie, err := cookieFromMetadata(md, tokenCookieKey)
+	cookie, err := cookieFromMetadata(md, middlewarecommon.TokenCookieKey)
 	if err != nil {
 		return "", err
 	}
@@ -281,7 +278,7 @@ func clientTokenFromAuthorization(auth string) (string, error) {
 		return clientToken, nil
 	}
 
-	return "", errUnauthenticated
+	return "", ErrUnauthenticated
 }
 
 func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {

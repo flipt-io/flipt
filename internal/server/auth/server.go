@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"go.flipt.io/flipt/internal/server/audit"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	"go.flipt.io/flipt/internal/storage"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/rpc/flipt/auth"
@@ -37,7 +38,7 @@ func ActorFromContext(ctx context.Context) Actor {
 		actor["ip"] = md[ipKey][0]
 	}
 
-	auth := GetAuthenticationFrom(ctx)
+	auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx)
 	if auth != nil {
 		authentication = strings.ToLower(strings.TrimPrefix(auth.Method.String(), "METHOD_"))
 		for k, v := range auth.Metadata {
@@ -90,13 +91,13 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 
 // GetAuthenticationSelf returns the Authentication which was derived from the request context.
 func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*auth.Authentication, error) {
-	if auth := GetAuthenticationFrom(ctx); auth != nil {
+	if auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx); auth != nil {
 		s.logger.Debug("GetAuthentication", zap.String("id", auth.Id))
 
 		return auth, nil
 	}
 
-	return nil, errUnauthenticated
+	return nil, authmiddlewaregrpc.ErrUnauthenticated
 }
 
 // GetAuthentication returns the Authentication identified by the supplied id.
@@ -157,7 +158,7 @@ func (s *Server) DeleteAuthentication(ctx context.Context, req *auth.DeleteAuthe
 // If no expire_at is provided, the current time is used. This is useful for logging out a user.
 // If the expire_at is greater than the current expiry time, the expiry time is extended.
 func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireAuthenticationSelfRequest) (*emptypb.Empty, error) {
-	if auth := GetAuthenticationFrom(ctx); auth != nil {
+	if auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx); auth != nil {
 		s.logger.Debug("ExpireAuthentication", zap.String("id", auth.Id))
 
 		if req.ExpiresAt == nil || !req.ExpiresAt.IsValid() {
@@ -167,5 +168,5 @@ func (s *Server) ExpireAuthenticationSelf(ctx context.Context, req *auth.ExpireA
 		return &emptypb.Empty{}, s.store.ExpireAuthenticationByID(ctx, auth.Id, req.ExpiresAt)
 	}
 
-	return nil, errUnauthenticated
+	return nil, authmiddlewaregrpc.ErrUnauthenticated
 }

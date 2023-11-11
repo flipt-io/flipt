@@ -11,8 +11,8 @@ import (
 	"go.flipt.io/flipt/internal/common"
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/server"
-	"go.flipt.io/flipt/internal/server/auth"
 	"go.flipt.io/flipt/internal/server/auth/method/token"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	servereval "go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/storage"
 	flipt "go.flipt.io/flipt/rpc/flipt"
@@ -2146,7 +2146,7 @@ func TestAuthMetadataAuditUnaryInterceptor(t *testing.T) {
 	tr := tp.Tracer("SpanProcessor")
 	ctx, span := tr.Start(context.Background(), "OnStart")
 
-	ctx = auth.ContextWithAuthentication(ctx, &authrpc.Authentication{
+	ctx = authmiddlewaregrpc.ContextWithAuthentication(ctx, &authrpc.Authentication{
 		Method: authrpc.Method_METHOD_OIDC,
 		Metadata: map[string]string{
 			"email": "example@flipt.com",
