@@ -1331,6 +1331,13 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Meta", func(t *testing.T) {
 		t.Log(`Returns Flipt service information.`)
 
+		// meta shouldn't be reachable with a namespace scoped token
+		if authConfig == integration.AuthNamespaced {
+			_, err := client.Meta().GetInfo(ctx)
+			require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+			return
+		}
+
 		info, err := client.Meta().GetInfo(ctx)
 		require.NoError(t, err)
 

@@ -17,7 +17,7 @@ func TestAPI(t *testing.T) {
 
 		// run extra tests in authenticated context
 		if opts.AuthConfig.Required() {
-			api.Authenticated(t, sdk)
+			api.Authenticated(t, sdk, opts)
 		}
 	})
 }
