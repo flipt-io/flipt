@@ -18,6 +18,7 @@ import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
 import {
+  jsonNumberArrayValidation,
   jsonStringArrayValidation,
   requiredValidation
 } from '~/data/validations';
@@ -219,11 +220,17 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
 
 const validationSchema = Yup.object({
   property: requiredValidation
-}).when({
-  is: (c: IConstraint) =>
-    c.type === ConstraintType.STRING && c.operator === 'isoneof',
-  then: (schema) => schema.shape({ value: jsonStringArrayValidation })
-});
+})
+  .when({
+    is: (c: IConstraint) =>
+      c.type === ConstraintType.STRING && c.operator === 'isoneof',
+    then: (schema) => schema.shape({ value: jsonStringArrayValidation })
+  })
+  .when({
+    is: (c: IConstraint) =>
+      c.type === ConstraintType.NUMBER && c.operator === 'isoneof',
+    then: (schema) => schema.shape({ value: jsonNumberArrayValidation })
+  });
 
 type ConstraintFormProps = {
   setOpen: (open: boolean) => void;

@@ -62,6 +62,7 @@ var (
 		OpGTE:        {},
 		OpPresent:    {},
 		OpNotPresent: {},
+		OpIsOneOf:    {},
 	}
 	BooleanOperators = map[string]struct{}{
 		OpTrue:       {},

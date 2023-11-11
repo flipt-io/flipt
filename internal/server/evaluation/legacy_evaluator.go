@@ -336,8 +336,7 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 		return strings.HasSuffix(strings.TrimSpace(v), value)
 	case flipt.OpIsOneOf:
 		values := []string{}
-		err := json.Unmarshal([]byte(value), &values)
-		if err != nil {
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
 			return false
 		}
 		return slices.Contains(values, v)
@@ -362,6 +361,14 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	n, err := strconv.ParseFloat(v, 64)
 	if err != nil {
 		return false, errs.ErrInvalidf("parsing number from %q", v)
+	}
+
+	if c.Operator == flipt.OpIsOneOf {
+		values := []float64{}
+		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+			return false, nil
+		}
+		return slices.Contains(values, n), nil
 	}
 
 	// TODO: we should consider parsing this at creation time since it doesn't change and it doesnt make sense to allow invalid constraint values

@@ -44,7 +44,15 @@ const checkJsonArray = (checkItem: (v: any) => boolean) => (value: any) => {
 export const jsonStringArrayValidation = Yup.string()
   .optional()
   .test(
-    'is-json-array',
+    'is-json-string-array',
     'Must be valid JSON string array',
     checkJsonArray((v: any) => typeof v === 'string')
+  );
+
+export const jsonNumberArrayValidation = Yup.string()
+  .optional()
+  .test(
+    'is-json-number-array',
+    'Must be valid JSON number array',
+    checkJsonArray((v: any) => typeof v === 'number')
   );

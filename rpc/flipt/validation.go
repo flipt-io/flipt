@@ -375,6 +375,12 @@ func validateMultipleValue(valueType ComparisonType, value string, property stri
 		if parseErr := json.Unmarshal([]byte(value), &[]string{}); parseErr != nil {
 			return errors.ErrInvalidf("invalid value provided for property %q for type string", property)
 		}
+		return nil
+	case ComparisonType_NUMBER_COMPARISON_TYPE:
+		if parseErr := json.Unmarshal([]byte(value), &[]float64{}); parseErr != nil {
+			return errors.ErrInvalidf("invalid value provided for property %q for type number", property)
+		}
+		return nil
 	}
 
 	return nil

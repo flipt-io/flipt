@@ -52,7 +52,8 @@ export const ConstraintNumberOperators: Record<string, string> = {
   lt: '<',
   lte: '<=',
   present: 'IS PRESENT',
-  notpresent: 'IS NOT PRESENT'
+  notpresent: 'IS NOT PRESENT',
+  isoneof: 'IS ONE OF'
 };
 
 export const ConstraintBooleanOperators: Record<string, string> = {
