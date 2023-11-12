@@ -166,8 +166,7 @@ func Test_matchesString(t *testing.T) {
 				Operator: "isnotoneof",
 				Value:    "[\"bar\", \"baz\"]",
 			},
-			value:     "nope",
-			wantMatch: true,
+			value: "baz",
 		},
 		{
 			name: "negative is not one of",
@@ -176,7 +175,8 @@ func Test_matchesString(t *testing.T) {
 				Operator: "isnotoneof",
 				Value:    "[\"bar\", \"baz\"]",
 			},
-			value: "baz",
+			value:     "nope",
+			wantMatch: true,
 		},
 	}
 	for _, tt := range tests {
