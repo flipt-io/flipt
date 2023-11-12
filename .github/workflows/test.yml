@@ -54,20 +54,10 @@ jobs:
           check-latest: true
           cache: true
 
-      - name: Install Dagger
-        run: |
-          cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
-
-      - name: Install Mage
-        uses: magefile/mage-action@v3
-        with:
-          install-only: true
-
       - name: Unit Test SQLite
         env:
           FLIPT_TEST_SHORT: "true"
-        run: mage test
+        run: go test -v -count=1 -timeout=60s -short ./...
 
   ui:
     name: "Tests (UI)"
