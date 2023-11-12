@@ -24,11 +24,11 @@ type mockServer struct {
 	allowNamespacedAuth bool
 }
 
-func (s *mockServer) SkipsAuthentication() bool {
+func (s *mockServer) SkipsAuthentication(ctx context.Context) bool {
 	return s.skipsAuth
 }
 
-func (s *mockServer) AllowsNamespaceScopedAuthentication() bool {
+func (s *mockServer) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
 	return s.allowNamespacedAuth
 }
 
