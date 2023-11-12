@@ -42,6 +42,31 @@ jobs:
       - name: Upload Coverage
         uses: codecov/codecov-action@v3.1.4
 
+  test-darwin:
+    name: "Tests (Go - Darwin)"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
+      - name: Install Dagger
+        run: |
+          cd /usr/local
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
+
+      - name: Install Mage
+        uses: magefile/mage-action@v3
+        with:
+          install-only: true
+
+      - name: Unit Test SQLite}
+        run: mage dagger:run "test:database sqlite"
+
   ui:
     name: "Tests (UI)"
     runs-on: ubuntu-latest
