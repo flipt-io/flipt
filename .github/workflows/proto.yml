@@ -11,6 +11,9 @@ on:
       - "sdk/**"
       - "rpc/**"
 
+env:
+  GO_VERSION: "1.21"
+
 jobs:
   proto-lint:
     name: "Lint Protos"
@@ -39,7 +42,7 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: "$GO_VERSION"
           check-latest: true
           cache: true
 

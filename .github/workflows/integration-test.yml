@@ -14,6 +14,10 @@ on:
       - "**.txt"
   workflow_dispatch:
 
+env:
+  GO_VERSION: "1.21"
+  DAGGER_VERSION: "0.8.3"
+
 jobs:
   cli:
     name: CLI Integration Tests
@@ -25,14 +29,14 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: "$GO_VERSION"
           check-latest: true
           cache: true
 
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${{ vars.DAGGER_VERSION }} sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
 
       - name: Install Mage
         uses: magefile/mage-action@v3
@@ -50,20 +54,28 @@ jobs:
       fail-fast: false
       matrix:
         test:
-          ["api", "api/cache", "fs/git", "fs/local", "fs/s3", "fs/oci", "import/export"]
+          [
+            "api",
+            "api/cache",
+            "fs/git",
+            "fs/local",
+            "fs/s3",
+            "fs/oci",
+            "import/export",
+          ]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: "$GO_VERSION"
           check-latest: true
           cache: true
 
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${{ vars.DAGGER_VERSION }} sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
 
       - name: Install Mage
         uses: magefile/mage-action@v3
@@ -91,14 +103,14 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: "$GO_VERSION"
           check-latest: true
           cache: true
 
       - name: Install Dagger
         run: |
           cd /usr/local
-          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=${{ vars.DAGGER_VERSION }} sh
+          curl -L https://dl.dagger.io/dagger/install.sh | DAGGER_VERSION=$DAGGER_VERSION sh
 
       - name: Install Mage
         uses: magefile/mage-action@v3

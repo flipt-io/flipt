@@ -16,6 +16,9 @@ on:
       - "**.txt"
   workflow_dispatch:
 
+env:
+  GO_VERSION: "1.21"
+
 jobs:
   benchmark:
     name: Benchmark SQLite
@@ -25,7 +28,7 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: "$GO_VERSION"
           check-latest: true
           cache: true
 
