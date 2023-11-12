@@ -8,6 +8,9 @@ permissions:
   contents: write
   packages: write
 
+env:
+  GO_VERSION: "1.21"
+
 jobs:
   nightly-build:
     runs-on: ${{ matrix.os }}
@@ -26,7 +29,7 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: ${{ env.GO_VERSION }}
           check-latest: true
           cache: true
 
@@ -89,7 +92,7 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: ${{ env.GO_VERSION }}
           check-latest: true
           cache: true
 
