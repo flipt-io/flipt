@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "$GO_VERSION"
+          go-version: ${{ env.GO_VERSION }}
           check-latest: true
           cache: true
 
