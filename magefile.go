@@ -238,13 +238,18 @@ func (g Go) Test() error {
 		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	}
 
-	testCmd := "go test"
+	var (
+		testCmd  = "gotest"
+		testArgs = []string{}
+	)
+
 	// check of gotest is on path and use that instead
-	if _, err := exec.LookPath("gotest"); err == nil {
-		testCmd = "gotest"
+	if _, err := exec.LookPath("gotest"); err != nil {
+		testCmd = "go"
+		testArgs = append(testArgs, "test")
 	}
 
-	testArgs := []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s"}
+	testArgs = append(testArgs, []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s"}...)
 
 	if os.Getenv("FLIPT_TEST_SHORT") != "" {
 		testArgs = append(testArgs, "-short")
