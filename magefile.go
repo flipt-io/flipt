@@ -238,6 +238,12 @@ func (g Go) Test() error {
 		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	}
 
+	testCmd := "go test"
+	// check of gotest is on path and use that instead
+	if _, err := exec.LookPath("gotest"); err == nil {
+		testCmd = "gotest"
+	}
+
 	testArgs := []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s"}
 
 	if os.Getenv("FLIPT_TEST_SHORT") != "" {
@@ -245,7 +251,7 @@ func (g Go) Test() error {
 	}
 
 	testArgs = append(testArgs, "./...")
-	return sh.RunWithV(env, "gotest", testArgs...)
+	return sh.RunWithV(env, testCmd, testArgs...)
 }
 
 type UI mg.Namespace
