@@ -369,16 +369,26 @@ func (req *DeleteSegmentRequest) Validate() error {
 	return nil
 }
 
+const MAX_JSON_ARRAY_ITEMS = 100
+
 func validateArrayValue(valueType ComparisonType, value string, property string) error {
 	switch valueType {
 	case ComparisonType_STRING_COMPARISON_TYPE:
-		if parseErr := json.Unmarshal([]byte(value), &[]string{}); parseErr != nil {
-			return errors.ErrInvalidf("invalid value provided for property %q for type string", property)
+		values := []string{};
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
+			return errors.ErrInvalidf("invalid value provided for property %q of type string", property)
+		}
+		if len(values) > MAX_JSON_ARRAY_ITEMS {
+			return errors.ErrInvalidf("too many values provided for property %q of type string (maximum %d)", property, MAX_JSON_ARRAY_ITEMS)
 		}
 		return nil
 	case ComparisonType_NUMBER_COMPARISON_TYPE:
-		if parseErr := json.Unmarshal([]byte(value), &[]float64{}); parseErr != nil {
-			return errors.ErrInvalidf("invalid value provided for property %q for type number", property)
+		values := []float64{};
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
+			return errors.ErrInvalidf("invalid value provided for property %q of type number", property)
+		}
+		if len(values) > MAX_JSON_ARRAY_ITEMS {
+			return errors.ErrInvalidf("too many values provided for property %q of type number (maximum %d)", property, MAX_JSON_ARRAY_ITEMS)
 		}
 		return nil
 	}
