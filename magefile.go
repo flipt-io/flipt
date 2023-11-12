@@ -238,7 +238,14 @@ func (g Go) Test() error {
 		env["FLIPT_TEST_DATABASE_PROTOCOL"] = os.Getenv("FLIPT_TEST_DATABASE_PROTOCOL")
 	}
 
-	return sh.RunWithV(env, "gotest", "-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s", "./...")
+	testArgs := []string{"-v", "-covermode=atomic", "-count=1", "-coverprofile=coverage.txt", "-timeout=60s"}
+
+	if os.Getenv("FLIPT_TEST_SHORT") != "" {
+		testArgs = append(testArgs, "-short")
+	}
+
+	testArgs = append(testArgs, "./...")
+	return sh.RunWithV(env, "gotest", testArgs...)
 }
 
 type UI mg.Namespace
