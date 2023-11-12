@@ -372,13 +372,13 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	if c.Operator == flipt.OpIsOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, nil
+			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
 		}
 		return slices.Contains(values, n), nil
 	} else if c.Operator == flipt.OpIsNotOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
-			return false, nil
+			return false, errs.ErrInvalidf("Invalid value for constraint %q", c.Value)
 		}
 		return slices.Contains(values, n), nil
 	}
