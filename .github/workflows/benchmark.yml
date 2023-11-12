@@ -3,18 +3,11 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "examples/**"
-      - "logos/**"
-      - "**.md"
-      - "**.txt"
   pull_request:
-    paths-ignore:
-      - "examples/**"
-      - "logos/**"
-      - "**.md"
-      - "**.txt"
   workflow_dispatch:
+
+env:
+  GO_VERSION: "1.21"
 
 jobs:
   benchmark:
@@ -25,7 +18,7 @@ jobs:
 
       - uses: actions/setup-go@v4
         with:
-          go-version: "${{ vars.GO_VERSION }}"
+          go-version: ${{ env.GO_VERSION }}
           check-latest: true
           cache: true
 
