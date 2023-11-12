@@ -3,17 +3,7 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - "examples/**"
-      - "logos/**"
-      - "**.md"
-      - "**.txt"
   pull_request:
-    paths-ignore:
-      - "examples/**"
-      - "logos/**"
-      - "**.md"
-      - "**.txt"
   workflow_dispatch:
 
 env:
