@@ -340,6 +340,12 @@ func matchesString(c storage.EvaluationConstraint, v string) bool {
 			return false
 		}
 		return slices.Contains(values, v)
+	case flipt.OpIsNotOneOf:
+		values := []string{}
+		if err := json.Unmarshal([]byte(value), &values); err != nil {
+			return false
+		}
+		return !slices.Contains(values, v)
 	}
 
 	return false
@@ -364,6 +370,12 @@ func matchesNumber(c storage.EvaluationConstraint, v string) (bool, error) {
 	}
 
 	if c.Operator == flipt.OpIsOneOf {
+		values := []float64{}
+		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
+			return false, nil
+		}
+		return slices.Contains(values, n), nil
+	} else if c.Operator == flipt.OpIsNotOneOf {
 		values := []float64{}
 		if err := json.Unmarshal([]byte(c.Value), &values); err != nil {
 			return false, nil

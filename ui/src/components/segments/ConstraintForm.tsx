@@ -223,12 +223,14 @@ const validationSchema = Yup.object({
 })
   .when({
     is: (c: IConstraint) =>
-      c.type === ConstraintType.STRING && c.operator === 'isoneof',
+      c.type === ConstraintType.STRING &&
+      ['isoneof', 'isnotoneof'].includes(c.operator),
     then: (schema) => schema.shape({ value: jsonStringArrayValidation })
   })
   .when({
     is: (c: IConstraint) =>
-      c.type === ConstraintType.NUMBER && c.operator === 'isoneof',
+      c.type === ConstraintType.NUMBER &&
+      ['isoneof', 'isnotoneof'].includes(c.operator),
     then: (schema) => schema.shape({ value: jsonNumberArrayValidation })
   });
 

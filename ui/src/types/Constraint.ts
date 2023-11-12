@@ -41,7 +41,8 @@ export const ConstraintStringOperators: Record<string, string> = {
   notempty: 'IS NOT EMPTY',
   prefix: 'HAS PREFIX',
   suffix: 'HAS SUFFIX',
-  isoneof: 'IS ONE OF'
+  isoneof: 'IS ONE OF',
+  isnotoneof: 'IS NOT ONE OF'
 };
 
 export const ConstraintNumberOperators: Record<string, string> = {
@@ -53,7 +54,8 @@ export const ConstraintNumberOperators: Record<string, string> = {
   lte: '<=',
   present: 'IS PRESENT',
   notpresent: 'IS NOT PRESENT',
-  isoneof: 'IS ONE OF'
+  isoneof: 'IS ONE OF',
+  isnotoneof: 'IS NOT ONE OF'
 };
 
 export const ConstraintBooleanOperators: Record<string, string> = {

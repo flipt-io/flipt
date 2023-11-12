@@ -369,7 +369,7 @@ func (req *DeleteSegmentRequest) Validate() error {
 	return nil
 }
 
-func validateMultipleValue(valueType ComparisonType, value string, property string) error {
+func validateArrayValue(valueType ComparisonType, value string, property string) error {
 	switch valueType {
 	case ComparisonType_STRING_COMPARISON_TYPE:
 		if parseErr := json.Unmarshal([]byte(value), &[]string{}); parseErr != nil {
@@ -437,8 +437,8 @@ func (req *CreateConstraintRequest) Validate() error {
 			return err
 		}
 		req.Value = v
-	} else if operator == "isoneof" {
-		if err := validateMultipleValue(req.Type, req.Value, req.Property); err != nil {
+	} else if operator == OpIsOneOf || operator == OpIsNotOneOf {
+		if err := validateArrayValue(req.Type, req.Value, req.Property); err != nil {
 			return err
 		}
 	}
@@ -501,8 +501,8 @@ func (req *UpdateConstraintRequest) Validate() error {
 			return err
 		}
 		req.Value = v
-	} else if operator == "isoneof" {
-		if err := validateMultipleValue(req.Type, req.Value, req.Property); err != nil {
+	} else if operator == OpIsOneOf || operator == OpIsNotOneOf {
+		if err := validateArrayValue(req.Type, req.Value, req.Property); err != nil {
 			return err
 		}
 	}

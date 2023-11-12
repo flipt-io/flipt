@@ -16,6 +16,7 @@ const (
 	OpPrefix     = "prefix"
 	OpSuffix     = "suffix"
 	OpIsOneOf    = "isoneof"
+	OpIsNotOneOf = "isnotoneof"
 )
 
 var (
@@ -35,6 +36,7 @@ var (
 		OpPrefix:     {},
 		OpSuffix:     {},
 		OpIsOneOf:    {},
+		OpIsNotOneOf: {},
 	}
 	NoValueOperators = map[string]struct{}{
 		OpTrue:       {},
@@ -45,13 +47,14 @@ var (
 		OpNotPresent: {},
 	}
 	StringOperators = map[string]struct{}{
-		OpEQ:       {},
-		OpNEQ:      {},
-		OpEmpty:    {},
-		OpNotEmpty: {},
-		OpPrefix:   {},
-		OpSuffix:   {},
-		OpIsOneOf:  {},
+		OpEQ:         {},
+		OpNEQ:        {},
+		OpEmpty:      {},
+		OpNotEmpty:   {},
+		OpPrefix:     {},
+		OpSuffix:     {},
+		OpIsOneOf:    {},
+		OpIsNotOneOf: {},
 	}
 	NumberOperators = map[string]struct{}{
 		OpEQ:         {},
@@ -63,6 +66,7 @@ var (
 		OpPresent:    {},
 		OpNotPresent: {},
 		OpIsOneOf:    {},
+		OpIsNotOneOf: {},
 	}
 	BooleanOperators = map[string]struct{}{
 		OpTrue:       {},
