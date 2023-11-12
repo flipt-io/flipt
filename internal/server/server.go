@@ -39,6 +39,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	flipt.RegisterFliptServer(server, s)
 }
 
-func (s *Server) AllowsNamespacedAuthentication(ctx context.Context) bool {
+func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
 	return true
 }
