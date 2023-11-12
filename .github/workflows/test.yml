@@ -64,17 +64,10 @@ jobs:
         with:
           install-only: true
 
-      - name: Setup Docker (Colima)
-        run: |
-          brew install docker
-          colima start
-
-          # For testcontainers to find the Colima socket
-          # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
-          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-
       - name: Unit Test SQLite
-        run: mage dagger:run "test:database sqlite"
+        env:
+          FLIPT_TEST_SHORT: "true"
+        run: mage test
 
   ui:
     name: "Tests (UI)"
