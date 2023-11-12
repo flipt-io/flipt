@@ -64,7 +64,7 @@ jobs:
         with:
           install-only: true
 
-      - name: Unit Test SQLite}
+      - name: Unit Test SQLite
         run: mage dagger:run "test:database sqlite"
 
   ui:
