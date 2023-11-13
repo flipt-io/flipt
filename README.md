@@ -381,6 +381,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jamess-Lucass"><img src="https://avatars.githubusercontent.com/u/23193271?v=4?s=100" width="100px;" alt="James"/><br /><sub><b>James</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=Jamess-Lucass" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/legoheld"><img src="https://avatars.githubusercontent.com/u/4560982?v=4?s=100" width="100px;" alt="legoheld"/><br /><sub><b>legoheld</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=legoheld" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://ediblemonad.dev"><img src="https://avatars.githubusercontent.com/u/11407672?v=4?s=100" width="100px;" alt="Akshay Nair"/><br /><sub><b>Akshay Nair</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=phenax" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
