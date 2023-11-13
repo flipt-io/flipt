@@ -342,7 +342,7 @@ export default function Segment() {
                         <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                           {ConstraintOperators[constraint.operator]}
                         </td>
-                        <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
+                        <td className="text-gray-500 hidden whitespace-normal px-3 py-4 text-sm lg:table-cell">
                           {constraint.type === ConstraintType.DATETIME &&
                           constraint.value !== undefined
                             ? inTimezone(constraint.value)

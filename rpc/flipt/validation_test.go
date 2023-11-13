@@ -1,6 +1,7 @@
 package flipt
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -1137,6 +1138,15 @@ func TestValidate_DeleteSegmentRequest(t *testing.T) {
 	}
 }
 
+func largeJSONArrayString() string {
+	var zeroesNumbers [101]int
+	zeroes, err := json.Marshal(zeroesNumbers)
+	if err != nil {
+		panic(err)
+	}
+	return string(zeroes)
+}
+
 func TestValidate_CreateConstraintRequest(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -1277,6 +1287,72 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 				Property:   "foo",
 				Operator:   "present",
 			},
+		},
+		{
+			name: "invalid isoneof (invalid json)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[\"invalid json\"",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isoneof (non-string values)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[1, 2, \"test\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isnotoneof (invalid json)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[\"invalid json\"",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isnotoneof (non-string values)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isnotoneof",
+				Value:      "[1, 2, \"test\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isoneof (non-number values)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isnotoneof",
+				Value:      "[\"100foo\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type number"),
+		},
+		{
+			name: "invalid isoneof (too many items)",
+			req: &CreateConstraintRequest{
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      largeJSONArrayString(),
+			},
+			wantErr: errors.ErrInvalid("too many values provided for property \"foo\" of type number (maximum 100)"),
 		},
 	}
 
@@ -1480,6 +1556,66 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 				Property:   "foo",
 				Operator:   "present",
 			},
+		},
+		{
+			name: "invalid isoneof (invalid json)",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[\"invalid json\"",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isoneof (non-string values)",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[1, 2, \"test\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isnotoneof (invalid json)",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isoneof",
+				Value:      "[\"invalid json\"",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isnotoneof (non-string values)",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_STRING_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isnotoneof",
+				Value:      "[1, 2, \"test\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
+		},
+		{
+			name: "invalid isoneof (non-number values)",
+			req: &UpdateConstraintRequest{
+				Id:         "1",
+				SegmentKey: "segmentKey",
+				Type:       ComparisonType_NUMBER_COMPARISON_TYPE,
+				Property:   "foo",
+				Operator:   "isnotoneof",
+				Value:      "[\"100foo\"]",
+			},
+			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type number"),
 		},
 	}
 
