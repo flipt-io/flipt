@@ -3,7 +3,7 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Form, Formik, useField, useFormikContext } from 'formik';
 import moment from 'moment';
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
@@ -68,6 +68,7 @@ const constraintOperators = (c: string) => {
 type ConstraintInputProps = {
   name: string;
   id: string;
+  placeholder?: string;
 };
 
 type ConstraintOperatorSelectProps = ConstraintInputProps & {
@@ -253,6 +254,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
 
   const [hasValue, setHasValue] = useState(true);
   const [type, setType] = useState(constraint?.type || ConstraintType.STRING);
+  const [operator, setOperator] = useState(constraint?.operator || '');
 
   const namespace = useSelector(selectCurrentNamespace);
 
@@ -270,6 +272,22 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
     }
     return updateConstraint(namespace.key, segmentKey, constraint?.id, values);
   };
+
+  const placeholder = useMemo(() => {
+    if (['isoneof', 'isnotoneof'].includes(operator)) {
+      const placeholder = {
+        [ConstraintType.STRING]: 'Eg: ["value1", "value2"]',
+        [ConstraintType.NUMBER]: 'Eg: [1, 2, 3]'
+      }[type as string];
+      return placeholder ?? '';
+    }
+
+    const placeholder = {
+      [ConstraintType.STRING]: 'Eg: Any text',
+      [ConstraintType.NUMBER]: 'Eg: 200'
+    }[type as string];
+    return placeholder ?? '';
+  }, [type, operator]);
 
   return (
     <Formik
@@ -383,6 +401,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     onChange={(e) => {
                       const noValue = NoValueOperators.includes(e.target.value);
                       setHasValue(!noValue);
+                      setOperator(e.target.value);
                     }}
                   />
                 </div>
@@ -391,7 +410,11 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 (type === ConstraintType.DATETIME ? (
                   <ConstraintValueDateTimeInput name="value" id="value" />
                 ) : (
-                  <ConstraintValueInput name="value" id="value" />
+                  <ConstraintValueInput
+                    name="value"
+                    id="value"
+                    placeholder={placeholder}
+                  />
                 ))}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
