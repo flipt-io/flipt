@@ -89,15 +89,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationServiceServer(server, s)
 }
 
-func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool {
-	methodName := strings.TrimPrefix(info.FullMethod, "/flipt.auth.AuthenticationService/")
-	switch methodName {
-	case "GetAuthenticationSelf", "ExpireAuthenticationSelf", "ListAuthentications":
-		return true
-	}
-	return false
-}
-
 // GetAuthenticationSelf returns the Authentication which was derived from the request context.
 func (s *Server) GetAuthenticationSelf(ctx context.Context, _ *emptypb.Empty) (*auth.Authentication, error) {
 	if auth := authmiddlewaregrpc.GetAuthenticationFrom(ctx); auth != nil {

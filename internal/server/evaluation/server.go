@@ -40,6 +40,6 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	evaluation.RegisterEvaluationServiceServer(server, s)
 }
 
-func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool {
+func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
 	return true
 }
