@@ -38,7 +38,7 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodTokenServiceServer(server, s)
 }
 
-func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context) bool {
+func (s *Server) AllowsNamespaceScopedAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool {
 	return false
 }
 

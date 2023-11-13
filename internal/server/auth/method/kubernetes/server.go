@@ -75,7 +75,7 @@ func (s *Server) RegisterGRPC(srv *grpc.Server) {
 	auth.RegisterAuthenticationMethodKubernetesServiceServer(srv, s)
 }
 
-func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+func (s *Server) SkipsAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool {
 	return true
 }
 

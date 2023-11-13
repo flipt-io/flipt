@@ -77,7 +77,7 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodOIDCServiceServer(server, s)
 }
 
-func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+func (s *Server) SkipsAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool {
 	return true
 }
 

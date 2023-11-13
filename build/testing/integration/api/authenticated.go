@@ -22,12 +22,6 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 			t.Log(`List methods (ensure at-least 1).`)
 
 			methods, err := client.Auth().PublicAuthenticationService().ListAuthenticationMethods(ctx)
-
-			if opts.AuthConfig == integration.AuthNamespaced {
-				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-				return
-			}
-
 			require.NoError(t, err)
 
 			assert.NotEmpty(t, methods)
@@ -35,12 +29,6 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 
 		t.Run("Get Self", func(t *testing.T) {
 			authn, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-
-			if opts.AuthConfig == integration.AuthNamespaced {
-				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-				return
-			}
-
 			require.NoError(t, err)
 
 			assert.NotEmpty(t, authn.Id)
@@ -101,12 +89,6 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 			err := client.Auth().AuthenticationService().ExpireAuthenticationSelf(ctx, &auth.ExpireAuthenticationSelfRequest{
 				ExpiresAt: timestamppb.Now(),
 			})
-
-			if opts.AuthConfig == integration.AuthNamespaced {
-				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
-				return
-			}
-
 			require.NoError(t, err)
 
 			t.Log(`Ensure token is no longer valid.`)

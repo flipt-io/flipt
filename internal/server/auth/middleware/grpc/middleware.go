@@ -78,12 +78,12 @@ func WithServerSkipsAuthentication(server any) containers.Option[InterceptorOpti
 
 // ScopedAuthenticationServer is a grpc.Server which allows for specific scoped authentication.
 type ScopedAuthenticationServer interface {
-	AllowsNamespaceScopedAuthentication(ctx context.Context) bool
+	AllowsNamespaceScopedAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool
 }
 
 // SkipsAuthenticationServer is a grpc.Server which should always skip authentication.
 type SkipsAuthenticationServer interface {
-	SkipsAuthentication(ctx context.Context) bool
+	SkipsAuthentication(ctx context.Context, info *grpc.UnaryServerInfo) bool
 }
 
 // UnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
@@ -95,7 +95,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx, info) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -161,7 +161,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx, info) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -212,7 +212,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx, info) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -241,10 +241,9 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 		}
 
 		nsServer, ok := info.Server.(ScopedAuthenticationServer)
-		logger.Debug("namespace matching interceptor", zap.String("method", info.FullMethod), zap.Bool("ok", ok))
-		if !ok || !nsServer.AllowsNamespaceScopedAuthentication(ctx) {
+		if !ok || !nsServer.AllowsNamespaceScopedAuthentication(ctx, info) {
 			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is not allowed 1"))
+				zap.String("reason", "namespace is not allowed"))
 			return ctx, ErrUnauthenticated
 		}
 
@@ -277,20 +276,20 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 
 				if reqNamespace != ns {
 					logger.Error("unauthenticated",
-						zap.String("reason", "namespace is not allowed 2"))
+						zap.String("reason", "namespace is not allowed"))
 					return ctx, ErrUnauthenticated
 				}
 			}
 		default:
 			// if the the token has a namespace but the request does not then we should reject the request
 			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is not allowed 3"))
+				zap.String("reason", "namespace is not allowed"))
 			return ctx, ErrUnauthenticated
 		}
 
 		if reqNamespace != namespace {
 			logger.Error("unauthenticated",
-				zap.String("reason", "namespace is not allowed 4"))
+				zap.String("reason", "namespace is not allowed"))
 			return ctx, ErrUnauthenticated
 		}
 
