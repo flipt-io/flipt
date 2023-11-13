@@ -23,3 +23,44 @@ export const jsonValidation = Yup.string()
       return false;
     }
   });
+
+const MAX_JSON_ARRAY_ITEMS = 100;
+
+const checkJsonArray =
+  (checkItem: (v: any) => boolean) => (value: any, ctx: any) => {
+    if (value === undefined || value === null || value === '') {
+      return true;
+    }
+
+    try {
+      const json = JSON.parse(value);
+      if (!Array.isArray(json) || !json.every(checkItem)) {
+        return false;
+      }
+      if (json.length > MAX_JSON_ARRAY_ITEMS) {
+        return ctx.createError({
+          message: `Too many items (maximum ${MAX_JSON_ARRAY_ITEMS})`
+        });
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+export const jsonStringArrayValidation = Yup.string()
+  .optional()
+  .test(
+    'is-json-string-array',
+    'Must be valid JSON string array',
+    checkJsonArray((v: any) => typeof v === 'string')
+  );
+
+export const jsonNumberArrayValidation = Yup.string()
+  .optional()
+  .test(
+    'is-json-number-array',
+    'Must be valid JSON number array',
+    checkJsonArray((v: any) => typeof v === 'number')
+  );
