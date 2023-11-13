@@ -243,7 +243,8 @@ func (g Go) Test() error {
 		testArgs = []string{}
 	)
 
-	// check of gotest is on path and use that instead
+	// check if gotest is on path and use that instead for better output
+	// https://github.com/rakyll/gotest
 	if _, err := exec.LookPath("gotest"); err != nil {
 		testCmd = "go"
 		testArgs = append(testArgs, "test")
