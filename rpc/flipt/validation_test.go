@@ -613,7 +613,7 @@ func TestValidate_CreateRuleRequest(t *testing.T) {
 				SegmentKey: "",
 				Rank:       1,
 			},
-			wantErr: errors.EmptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey or segmentKeys"),
 		},
 		{
 			name: "rankLessThanZero",
@@ -678,7 +678,7 @@ func TestValidate_UpdateRuleRequest(t *testing.T) {
 				FlagKey:    "flagKey",
 				SegmentKey: "",
 			},
-			wantErr: errors.EmptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey or segmentKeys"),
 		},
 		{
 			name: "valid",
@@ -1808,7 +1808,7 @@ func TestValidate_CreateRolloutRequest(t *testing.T) {
 					},
 				},
 			},
-			wantErr: errors.EmptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey or segmentKeys"),
 		},
 		{
 			name: "valid",
@@ -1887,7 +1887,7 @@ func TestValidate_UpdateRolloutRequest(t *testing.T) {
 					},
 				},
 			},
-			wantErr: errors.EmptyFieldError("segmentKey"),
+			wantErr: errors.EmptyFieldError("segmentKey or segmentKeys"),
 		},
 		{
 			name: "valid",
