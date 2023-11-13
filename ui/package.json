@@ -49,7 +49,7 @@
     "@playwright/test": "^1.39.0",
     "@tailwindcss/forms": "^0.5.7",
     "@types/jest": "^29.5.7",
-    "@types/loadable__component": "^5.13.5",
+    "@types/loadable__component": "^5.13.7",
     "@types/lodash": "^4.14.200",
     "@types/node": "^18.18.7",
     "@types/react": "^18.2.31",
