@@ -38,8 +38,8 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodTokenServiceServer(server, s)
 }
 
-func (s *Server) SkipsAuthentication(ctx context.Context) bool {
-	return true
+func (s *Server) AllowsNamespaceScopedAuthentication((ctx context.Context) bool {
+	return false
 }
 
 // CreateToken adapts and delegates the token request to the backing AuthenticationStore.
