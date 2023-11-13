@@ -4,7 +4,7 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectReadonly } from '~/app/meta/metaSlice';
@@ -12,6 +12,7 @@ import {
   selectCurrentNamespace,
   selectNamespaces
 } from '~/app/namespaces/namespacesSlice';
+import Chips from '~/components/Chips';
 import EmptyState from '~/components/EmptyState';
 import Button from '~/components/forms/buttons/Button';
 import Dropdown from '~/components/forms/Dropdown';
@@ -39,6 +40,36 @@ import {
   IConstraint
 } from '~/types/Constraint';
 import { ISegment } from '~/types/Segment';
+
+function ConstraintArrayValue({ value }: { value: string | undefined }) {
+  const items: string[] | number[] = useMemo(() => {
+    try {
+      return JSON.parse(value || '[]');
+    } catch (err) {
+      return [];
+    }
+  }, [value]);
+
+  return <Chips values={items} maxItemCount={5} />;
+}
+
+function ConstraintValue({ constraint }: { constraint: IConstraint }) {
+  const { inTimezone } = useTimezone();
+  const isArrayValue = ['isoneof', 'isnotoneof'].includes(constraint.operator);
+
+  if (
+    constraint.type === ConstraintType.DATETIME &&
+    constraint.value !== undefined
+  ) {
+    return <>{inTimezone(constraint.value)}</>;
+  }
+
+  if (isArrayValue) {
+    return <ConstraintArrayValue value={constraint.value} />;
+  }
+
+  return <div className="whitespace-normal">{constraint.value}</div>;
+}
 
 export default function Segment() {
   let { segmentKey } = useParams();
@@ -342,11 +373,8 @@ export default function Segment() {
                         <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                           {ConstraintOperators[constraint.operator]}
                         </td>
-                        <td className="text-gray-500 hidden whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
-                          {constraint.type === ConstraintType.DATETIME &&
-                          constraint.value !== undefined
-                            ? inTimezone(constraint.value)
-                            : constraint.value}
+                        <td className="text-gray-500 hidden whitespace-normal px-3 py-4 text-sm lg:table-cell">
+                          <ConstraintValue constraint={constraint} />
                         </td>
                         <td className="text-gray-500 hidden truncate whitespace-nowrap px-3 py-4 text-sm lg:table-cell">
                           {constraint.description}

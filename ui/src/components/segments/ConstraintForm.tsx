@@ -17,7 +17,11 @@ import MoreInfo from '~/components/MoreInfo';
 import { createConstraint, updateConstraint } from '~/data/api';
 import { useError } from '~/data/hooks/error';
 import { useSuccess } from '~/data/hooks/success';
-import { requiredValidation } from '~/data/validations';
+import {
+  jsonNumberArrayValidation,
+  jsonStringArrayValidation,
+  requiredValidation
+} from '~/data/validations';
 import {
   ConstraintBooleanOperators,
   ConstraintDateTimeOperators,
@@ -64,6 +68,7 @@ const constraintOperators = (c: string) => {
 type ConstraintInputProps = {
   name: string;
   id: string;
+  placeholder?: string;
 };
 
 type ConstraintOperatorSelectProps = ConstraintInputProps & {
@@ -214,6 +219,22 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
   );
 }
 
+const validationSchema = Yup.object({
+  property: requiredValidation
+})
+  .when({
+    is: (c: IConstraint) =>
+      c.type === ConstraintType.STRING &&
+      ['isoneof', 'isnotoneof'].includes(c.operator),
+    then: (schema) => schema.shape({ value: jsonStringArrayValidation })
+  })
+  .when({
+    is: (c: IConstraint) =>
+      c.type === ConstraintType.NUMBER &&
+      ['isoneof', 'isnotoneof'].includes(c.operator),
+    then: (schema) => schema.shape({ value: jsonNumberArrayValidation })
+  });
+
 type ConstraintFormProps = {
   setOpen: (open: boolean) => void;
   segmentKey: string;
@@ -232,7 +253,6 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
   const { setSuccess } = useSuccess();
 
   const [hasValue, setHasValue] = useState(true);
-  const [type, setType] = useState(constraint?.type || ConstraintType.STRING);
 
   const namespace = useSelector(selectCurrentNamespace);
 
@@ -249,6 +269,22 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
       return createConstraint(namespace.key, segmentKey, values);
     }
     return updateConstraint(namespace.key, segmentKey, constraint?.id, values);
+  };
+
+  const getValuePlaceholder = (type: ConstraintType, operator: string) => {
+    if (['isoneof', 'isnotoneof'].includes(operator)) {
+      const placeholder = {
+        [ConstraintType.STRING]: 'Eg: ["value1", "value2"]',
+        [ConstraintType.NUMBER]: 'Eg: [1, 2, 3]'
+      }[type as string];
+      return placeholder ?? '';
+    }
+
+    const placeholder = {
+      [ConstraintType.STRING]: 'Eg: Any text',
+      [ConstraintType.NUMBER]: 'Eg: 200'
+    }[type as string];
+    return placeholder ?? '';
   };
 
   return (
@@ -271,9 +307,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
             setSubmitting(false);
           });
       }}
-      validationSchema={Yup.object({
-        property: requiredValidation
-      })}
+      validationSchema={validationSchema}
     >
       {(formik) => (
         <Form className="bg-white flex h-full flex-col overflow-y-scroll shadow-xl">
@@ -335,7 +369,6 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                     onChange={(e) => {
                       const type = e.target.value as ConstraintType;
                       formik.setFieldValue('type', type);
-                      setType(type);
 
                       if (e.target.value === ConstraintType.BOOLEAN) {
                         formik.setFieldValue('operator', 'true');
@@ -361,7 +394,7 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                   <ConstraintOperatorSelect
                     id="operator"
                     name="operator"
-                    type={type}
+                    type={formik.values.type}
                     onChange={(e) => {
                       const noValue = NoValueOperators.includes(e.target.value);
                       setHasValue(!noValue);
@@ -370,10 +403,17 @@ const ConstraintForm = forwardRef((props: ConstraintFormProps, ref: any) => {
                 </div>
               </div>
               {hasValue &&
-                (type === ConstraintType.DATETIME ? (
+                (formik.values.type === ConstraintType.DATETIME ? (
                   <ConstraintValueDateTimeInput name="value" id="value" />
                 ) : (
-                  <ConstraintValueInput name="value" id="value" />
+                  <ConstraintValueInput
+                    name="value"
+                    id="value"
+                    placeholder={getValuePlaceholder(
+                      formik.values.type,
+                      formik.values.operator
+                    )}
+                  />
                 ))}
               <div className="space-y-1 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                 <div>
