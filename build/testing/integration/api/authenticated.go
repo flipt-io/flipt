@@ -55,6 +55,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 					Description: "Some kind of access token.",
 				})
 
+				// a namespaced token should not be able to create any other tokens
 				if opts.AuthConfig == integration.AuthNamespaced {
 					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 					return
@@ -81,6 +82,7 @@ func Authenticated(t *testing.T, client sdk.SDK, opts integration.TestOpts) {
 					NamespaceKey: namespace,
 				})
 
+				// a namespaced token should not be able to create any other tokens
 				if opts.AuthConfig == integration.AuthNamespaced {
 					require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
 					return
