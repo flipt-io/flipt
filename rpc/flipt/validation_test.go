@@ -1139,8 +1139,8 @@ func TestValidate_DeleteSegmentRequest(t *testing.T) {
 }
 
 func largeJSONArrayString() string {
-	var zeroesNumbers [101]int;
-	zeroes, err := json.Marshal(zeroesNumbers);
+	var zeroesNumbers [101]int
+	zeroes, err := json.Marshal(zeroesNumbers)
 	if err != nil {
 		panic(err)
 	}
@@ -1322,7 +1322,7 @@ func TestValidate_CreateConstraintRequest(t *testing.T) {
 			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
 		},
 		{
-			name: "invalid isnotoneof",
+			name: "invalid isnotoneof (non-string values)",
 			req: &CreateConstraintRequest{
 				SegmentKey: "segmentKey",
 				Type:       ComparisonType_STRING_COMPARISON_TYPE,
@@ -1594,7 +1594,7 @@ func TestValidate_UpdateConstraintRequest(t *testing.T) {
 			wantErr: errors.ErrInvalid("invalid value provided for property \"foo\" of type string"),
 		},
 		{
-			name: "invalid isnotoneof",
+			name: "invalid isnotoneof (non-string values)",
 			req: &UpdateConstraintRequest{
 				Id:         "1",
 				SegmentKey: "segmentKey",

@@ -169,6 +169,15 @@ func Test_matchesString(t *testing.T) {
 			value: "bar",
 		},
 		{
+			name: "negative is one of (non-string values)",
+			constraint: storage.EvaluationConstraint{
+				Property: "foo",
+				Operator: "isoneof",
+				Value:    "[\"bar\", 5]",
+			},
+			value: "bar",
+		},
+		{
 			name: "is not one of",
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
@@ -421,7 +430,7 @@ func Test_matchesNumber(t *testing.T) {
 			value: "9",
 		},
 		{
-			name: "negative is one of (invalid json)",
+			name: "negative is one of (non-number values)",
 			constraint: storage.EvaluationConstraint{
 				Property: "foo",
 				Operator: "isoneof",
