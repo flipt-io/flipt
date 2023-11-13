@@ -14,7 +14,7 @@ This should generate a `target/` directory in the root of this repository, which
 
 You can import the module that contains the evaluation client: `go.flipt.io/flipt/flipt-client-go` and build your Go project with the environment variable:
 
-```
+```bash
 CGO_LDFLAGS="-L/path/to/lib -lengine"
 ```
 
