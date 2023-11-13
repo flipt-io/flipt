@@ -1,0 +1,210 @@
+flags:
+- key: no_distributions_all
+  name: no_distributions_all
+  description: description
+  enabled: true
+  rules:
+  - segment: segment_all_a
+- key: multiple_segments_matched_all
+  name: multiple_segments_matched_all
+  description: description
+  enabled: true
+  rules:
+  - segment:
+      keys:
+      - segment_all_a
+      - segment_all_b
+      operator: AND_SEGMENT_OPERATOR
+- key: distributions_not_matched_all
+  name: distributions_not_matched_all
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment_all_c
+    distributions:
+    - variant: variant1
+      rollout: 10
+- key: single_variant_distribution_all
+  name: single_variant_distribution_all
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment_all_c
+    distributions:
+    - variant: variant1
+      rollout: 100
+- key: multiple_rollout_distribution_all
+  name: multiple_rollout_distribution_all
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  - key: variant2
+    name: variant2
+  rules:
+  - segment: segment_all_c
+    distributions:
+    - variant: variant1
+      rollout: 50
+    - variant: variant2
+      rollout: 50
+- key: no_constraints_all
+  name: no_constraints_all
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  - key: variant2
+    name: variant2
+  rules:
+  - segment: segment_all_d
+    distributions:
+    - variant: variant1
+      rollout: 50
+    - variant: variant2
+      rollout: 50
+- key: no_distributions_any
+  name: no_distributions_any
+  description: description
+  enabled: true
+  rules:
+  - segment: segment_any_a
+- key: multiple_segments_matched_any
+  name: multiple_segments_matched_any
+  description: description
+  enabled: true
+  rules:
+  - segment:
+      keys:
+      - segment_any_a
+      - segment_any_b
+      operator: AND_SEGMENT_OPERATOR
+- key: distributions_not_matched_any
+  name: distributions_not_matched_any
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment_any_c
+    distributions:
+    - variant: variant1
+      rollout: 10
+- key: single_variant_distribution_any
+  name: single_variant_distribution_any
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  rules:
+  - segment: segment_any_c
+    distributions:
+    - variant: variant1
+      rollout: 100
+- key: multiple_rollout_distribution_any
+  name: multiple_rollout_distribution_any
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  - key: variant2
+    name: variant2
+  rules:
+  - segment: segment_any_c
+    distributions:
+    - variant: variant1
+      rollout: 50
+    - variant: variant2
+      rollout: 50
+- key: no_constraints_any
+  name: no_constraints_any
+  description: description
+  enabled: true
+  variants:
+  - key: variant1
+    name: variant1
+  - key: variant2
+    name: variant2
+  rules:
+  - segment: segment_any_d
+    distributions:
+    - variant: variant1
+      rollout: 50
+    - variant: variant2
+      rollout: 50
+segments:
+- key: segment_all_a
+  name: segment_all_a
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: segment_all_a
+    operator: eq
+    value: segment_all_a
+  match_type: ALL_MATCH_TYPE
+- key: segment_all_b
+  name: segment_all_b
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: segment_all_b
+    operator: eq
+    value: segment_all_b
+  match_type: ALL_MATCH_TYPE
+- key: segment_all_c
+  name: segment_all_c
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: segment_all_c
+    operator: eq
+    value: segment_all_c
+  - type: BOOLEAN_COMPARISON_TYPE
+    property: boolean_comp
+    operator: true
+  match_type: ALL_MATCH_TYPE
+- key: segment_all_d
+  name: segment_all_d
+  description: description
+  match_type: ALL_MATCH_TYPE
+- key: segment_any_a
+  name: segment_any_a
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: segment_any_a
+    operator: eq
+    value: segment_any_a
+- key: segment_any_b
+  name: segment_any_b
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: segment_any_b
+    operator: eq
+    value: segment_any_b
+- key: segment_any_c
+  name: segment_any_c
+  description: description
+  constraints:
+  - type: STRING_COMPARISON_TYPE
+    property: segment_any_c
+    operator: eq
+    value: segment_any_c
+  - type: BOOLEAN_COMPARISON_TYPE
+    property: boolean_comp
+    operator: true
+- key: segment_any_d
+  name: segment_any_d
+  description: description

@@ -163,6 +163,13 @@ func (t Test) LoadTest(ctx context.Context) error {
 	})
 }
 
+// EvaluationTest runs an evaluation test suite against a running instance of Flipt, and a build of the Rust evaluator core.
+func (t Test) EvaluationTest(ctx context.Context) error {
+	return daggerBuild(ctx, func(client *dagger.Client, req internal.FliptRequest, base, flipt *dagger.Container) error {
+		return testing.Evaluation(ctx, client, base, flipt)
+	})
+}
+
 type Generate mg.Namespace
 
 func (g Generate) Screenshots(ctx context.Context) error {
