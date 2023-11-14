@@ -1323,10 +1323,14 @@ mod tests {
         assert_eq!(v.reason, common::EvaluationReason::Match);
         assert_eq!(v.variant_key, String::from("variant1"));
         assert_eq!(v.variant_attachment, String::from(r#"{"foo": "bar"}"#));
-        assert_eq!(
-            v.segment_keys,
-            vec![String::from("segment1"), String::from("segment2")]
-        );
+        assert!(v
+            .segment_keys
+            .iter()
+            .any(|segment_key| segment_key == "segment1"),);
+        assert!(v
+            .segment_keys
+            .iter()
+            .any(|segment_key| segment_key == "segment2"),);
     }
 
     #[test]

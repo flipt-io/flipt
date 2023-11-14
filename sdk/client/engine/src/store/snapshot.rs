@@ -1,6 +1,8 @@
 use crate::models::common;
 use crate::models::flipt;
 use crate::models::transport;
+
+#[cfg(test)]
 use mockall::automock;
 use snafu::Whatever;
 use std::collections::HashMap;
@@ -10,7 +12,7 @@ pub trait Parser {
     fn get_namespaces(&self) -> Vec<String>;
 }
 
-#[automock]
+#[cfg_attr(test, automock)]
 pub trait Store {
     fn get_flag(&self, namespace_key: &str, flag_key: &str) -> Option<flipt::Flag>;
     fn get_evaluation_rules(

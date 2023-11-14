@@ -1,6 +1,9 @@
 use snafu::{prelude::*, Whatever};
 use std::env;
+
+#[cfg(test)]
 use std::fs;
+#[cfg(test)]
 use std::path::PathBuf;
 
 use super::snapshot::Parser;
@@ -63,16 +66,19 @@ impl Parser for FliptParser {
     }
 }
 
+#[cfg(test)]
 pub struct TestParser {
     namespaces: Vec<String>,
 }
 
+#[cfg(test)]
 impl TestParser {
     pub fn new(namespaces: Vec<String>) -> Self {
         Self { namespaces }
     }
 }
 
+#[cfg(test)]
 impl Parser for TestParser {
     fn parse(&self, _: String) -> Result<transport::Document, Whatever> {
         let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
