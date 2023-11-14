@@ -18,6 +18,8 @@ import (
 	authkubernetes "go.flipt.io/flipt/internal/server/auth/method/kubernetes"
 	authoidc "go.flipt.io/flipt/internal/server/auth/method/oidc"
 	authtoken "go.flipt.io/flipt/internal/server/auth/method/token"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
+	authmiddlewarehttp "go.flipt.io/flipt/internal/server/auth/middleware/http"
 	"go.flipt.io/flipt/internal/server/auth/public"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	storageauthcache "go.flipt.io/flipt/internal/storage/auth/cache"
@@ -35,7 +37,7 @@ func authenticationGRPC(
 	cfg *config.Config,
 	forceMigrate bool,
 	tokenDeletedEnabled bool,
-	authOpts ...containers.Option[auth.InterceptorOptions],
+	authOpts ...containers.Option[authmiddlewaregrpc.InterceptorOptions],
 ) (grpcRegisterers, []grpc.UnaryServerInterceptor, func(context.Context) error, error) {
 
 	shutdown := func(ctx context.Context) error {
@@ -59,10 +61,10 @@ func authenticationGRPC(
 	}
 
 	var (
-		authCfg                   = cfg.Authentication
-		store   storageauth.Store = authsql.NewStore(driver, builder, logger)
-		oplock                    = oplocksql.New(logger, driver, builder)
-		public                    = public.NewServer(logger, authCfg)
+		authCfg                        = cfg.Authentication
+		store        storageauth.Store = authsql.NewStore(driver, builder, logger)
+		oplock                         = oplocksql.New(logger, driver, builder)
+		publicServer                   = public.NewServer(logger, authCfg)
 	)
 
 	if cfg.Cache.Enabled {
@@ -73,15 +75,15 @@ func authenticationGRPC(
 		store = storageauthcache.NewStore(store, cacher, logger)
 	}
 
+	authServer := auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(tokenDeletedEnabled))
+
 	var (
 		register = grpcRegisterers{
-			public,
-			auth.NewServer(logger, store, auth.WithAuditLoggingEnabled(tokenDeletedEnabled)),
+			publicServer,
+			authServer,
 		}
 		interceptors []grpc.UnaryServerInterceptor
 	)
-
-	authOpts = append(authOpts, auth.WithServerSkipsAuthentication(public))
 
 	// register auth method token service
 	if authCfg.Methods.Token.Enabled {
@@ -116,8 +118,6 @@ func authenticationGRPC(
 	if authCfg.Methods.OIDC.Enabled {
 		oidcServer := authoidc.NewServer(logger, store, authCfg)
 		register.Add(oidcServer)
-		// OIDC server exposes unauthenticated endpoints
-		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(oidcServer))
 
 		logger.Debug("authentication method \"oidc\" server registered")
 	}
@@ -125,8 +125,6 @@ func authenticationGRPC(
 	if authCfg.Methods.Github.Enabled {
 		githubServer := authgithub.NewServer(logger, store, authCfg)
 		register.Add(githubServer)
-
-		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(githubServer))
 
 		logger.Debug("authentication method \"github\" registered")
 	}
@@ -138,15 +136,12 @@ func authenticationGRPC(
 		}
 		register.Add(kubernetesServer)
 
-		// OIDC server exposes unauthenticated endpoints
-		authOpts = append(authOpts, auth.WithServerSkipsAuthentication(kubernetesServer))
-
 		logger.Debug("authentication method \"kubernetes\" server registered")
 	}
 
 	// only enable enforcement middleware if authentication required
 	if authCfg.Required {
-		interceptors = append(interceptors, auth.UnaryInterceptor(
+		interceptors = append(interceptors, authmiddlewaregrpc.UnaryInterceptor(
 			logger,
 			store,
 			authOpts...,
@@ -164,7 +159,11 @@ func authenticationGRPC(
 				rgxs = append(rgxs, rgx)
 			}
 
-			interceptors = append(interceptors, auth.EmailMatchingInterceptor(logger, rgxs))
+			interceptors = append(interceptors, authmiddlewaregrpc.EmailMatchingInterceptor(logger, rgxs, authOpts...))
+		}
+
+		if authCfg.Methods.Token.Enabled {
+			interceptors = append(interceptors, authmiddlewaregrpc.NamespaceMatchingInterceptor(logger, authOpts...))
 		}
 
 		logger.Info("authentication middleware enabled")
@@ -210,7 +209,7 @@ func authenticationHTTPMount(
 	conn *grpc.ClientConn,
 ) {
 	var (
-		authmiddleware = auth.NewHTTPMiddleware(cfg.Session)
+		authmiddleware = authmiddlewarehttp.NewHTTPMiddleware(cfg.Session)
 		middleware     = []func(next http.Handler) http.Handler{authmiddleware.Handler}
 		muxOpts        = []runtime.ServeMuxOption{
 			registerFunc(ctx, conn, rpcauth.RegisterPublicAuthenticationServiceHandler),

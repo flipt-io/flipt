@@ -1,4 +1,4 @@
-package auth
+package http_middleware
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/internal/config"
+	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -79,7 +80,7 @@ func assertCookiesCleared(t *testing.T, cookies []*http.Cookie) {
 		cookiesMap[cookie.Name] = cookie
 	}
 
-	for _, cookieName := range []string{stateCookieKey, tokenCookieKey} {
+	for _, cookieName := range []string{stateCookieKey, middlewarecommon.TokenCookieKey} {
 		assert.Contains(t, cookiesMap, cookieName)
 		assert.Equal(t, "", cookiesMap[cookieName].Value)
 		assert.Equal(t, "localhost", cookiesMap[cookieName].Domain)
