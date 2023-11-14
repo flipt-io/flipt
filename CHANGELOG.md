@@ -7,25 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `auth`" Supporting namespaced auth tokens (#2352)
-- Adds constraint operator `IS ONE OF`/`IS NOT ONE OF` (#2368)
+- Ass support for namespaced auth tokens (#2352)
+- Add constraint operator `IS ONE OF`/`IS NOT ONE OF` (#2368)
 - Add rollout description to rollout cards (#2366)
 - Update Colorscheme (#2363)
-- `oci`: integrate new FS backend into Flipt (#2359)
-- `cmd/flipt`: add bundle push and pull (#2355)
-- `cmd/bundle`: add new bundle build and list sub-commands (#2334)
-- `storage/fs/oci`: add new OCI source (#2333)
-- `oci`: add new package with store implementation (#2332)
-- `oci`: add configuration for new OCI backend (#2324)
+- Add OCI backend support (#2328)
 
 ### Changed
 
-- add LiteFS example for Flipt in the examples directory (#2297)
+- Add LiteFS example for Flipt in the examples directory (#2297)
 
 ### Fixed
 
-- no value bug for boolean constraint type (#2395)
-- `cors`: support fern and customizable allowed headers (#2393)
+- No value bug for boolean constraint type (#2395)
+- Support fern and customizable allowed headers via CORS (#2393)
 
 ## [v1.30.1](https://github.com/flipt-io/flipt/releases/tag/v1.30.1) - 2023-11-06
 
