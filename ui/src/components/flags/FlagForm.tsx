@@ -21,11 +21,15 @@ import { classNames, copyTextToClipboard, stringAsKey } from '~/utils/helpers';
 const flagTypes = [
   {
     id: FlagType.VARIANT,
-    name: 'Variant'
+    name: 'Variant',
+    description:
+      "Can have multiple string values or 'variants'. Rules can be used to determine which variant is returned."
   },
   {
     id: FlagType.BOOLEAN,
-    name: 'Boolean'
+    name: 'Boolean',
+    description:
+      "Can be either 'true' or 'false'. Rollouts can be used to determine which value is returned."
   }
 ];
 
@@ -209,33 +213,40 @@ export default function FlagForm(props: { flag?: IFlag }) {
                   </label>
                   <fieldset className="mt-2">
                     <legend className="sr-only">Type</legend>
-                    <div className="flex flex-row space-x-5">
-                      {flagTypes.map((type) => (
+                    <div className="space-y-5">
+                      {flagTypes.map((flagType) => (
                         <div
-                          key={type.id}
+                          key={flagType.id}
                           className="relative flex items-start"
                         >
                           <div className="flex h-5 items-center">
                             <input
-                              id={type.id}
+                              id={flagType.id}
+                              aria-describedby={`${flagType.id}-description`}
                               name="type"
                               type="radio"
                               disabled={!isNew || readOnly}
                               className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               onChange={() => {
-                                formik.setFieldValue('type', type.id);
+                                formik.setFieldValue('type', flagType.id);
                               }}
-                              checked={type.id === formik.values.type}
-                              value={type.id}
+                              checked={flagType.id === formik.values.type}
+                              value={flagType.id}
                             />
                           </div>
                           <div className="ml-3 text-sm">
                             <label
-                              htmlFor={type.id}
+                              htmlFor={flagType.id}
                               className="text-gray-700 font-medium"
                             >
-                              {type.name}
+                              {flagType.name}
                             </label>
+                            <p
+                              id={`${flagType.id}-description`}
+                              className="text-gray-500"
+                            >
+                              {flagType.description}
+                            </p>
                           </div>
                         </div>
                       ))}
