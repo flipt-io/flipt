@@ -9,7 +9,7 @@
 <hr />
 
 <p align="center">
-    <img src=".github/images/flags.png" alt="Flipt Dashboard" width=600 />
+    <img src=".github/images/dashboard.png" alt="Flipt Dashboard" width=600 />
 </p>
 
 <div align="center">
@@ -59,7 +59,7 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 <br clear="both"/>
 
 <p align="center">
-    <a href="https://devhunt.org/tool/flipt" title="DevHunt"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
+    <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
     <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
@@ -87,7 +87,7 @@ Flipt supports use cases such as:
 - Import and export to allow storing your data as code
 - Cloud-ready. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- [Filesystem, S3, and Git storage backends](https://www.flipt.io/docs/configuration/storage#filesystem) to support GitOps workflows
+- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
 - Audit logging with webhooks support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
@@ -201,7 +201,7 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | [Go](./sdk/go) | ![go](https://img.shields.io/github/v/tag/flipt-io/flipt?filter=sdk%2Fgo%2Fv*&label=go&link=https%3A%2F%2Fpkg.go.dev%2Fgo.flipt.io%2Fflipt%2Fsdk%2Fgo) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [Node/TypeScript](https://github.com/flipt-io/flipt-node) | [![npm](https://img.shields.io/npm/v/@flipt-io/flipt)](https://www.npmjs.com/package/@flipt-io/flipt) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [Java](https://github.com/flipt-io/flipt-java) | [![Maven Central](https://img.shields.io/maven-central/v/io.flipt/flipt-java)](https://central.sonatype.com/artifact/io.flipt/flipt-java) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-stable-green) |
 | [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 | [PHP](https://github.com/flipt-io/flipt-php) | [![Packagist](https://img.shields.io/packagist/v/flipt-io/flipt)](https://packagist.org/packages/flipt-io/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
 
