@@ -1,5 +1,9 @@
 import { Dialog } from '@headlessui/react';
-import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
+import {
+  CheckIcon,
+  ClipboardDocumentIcon,
+  LockClosedIcon
+} from '@heroicons/react/24/outline';
 import hljs from 'highlight.js';
 import text from 'highlight.js/lib/languages/plaintext';
 import 'highlight.js/styles/tokyo-night-dark.css';
@@ -28,7 +32,10 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
     <>
       <div>
         <div className="bg-green-100 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <CheckIcon className="text-green-600 h-6 w-6" aria-hidden="true" />
+          <LockClosedIcon
+            className="text-green-600 h-6 w-6"
+            aria-hidden="true"
+          />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <Dialog.Title
