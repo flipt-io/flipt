@@ -77,6 +77,8 @@ export const ConstraintDateTimeOperators: Record<string, string> = {
 };
 
 export const NoValueOperators: string[] = [
+  'true',
+  'false',
   'empty',
   'notempty',
   'present',
