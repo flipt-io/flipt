@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/auth"
@@ -196,4 +197,14 @@ func TestServer(t *testing.T) {
 		_, err = client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
 		require.ErrorIs(t, err, status.Error(codes.Unauthenticated, "request was not authenticated"))
 	})
+}
+
+func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
+	var (
+		logger = zaptest.NewLogger(t)
+		store  = memory.NewStore()
+		server = auth.NewServer(logger, store)
+	)
+
+	assert.False(t, server.AllowsNamespaceScopedAuthentication(context.Background()))
 }
