@@ -28,11 +28,18 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 
 	t.Run("Namespaces", func(t *testing.T) {
 		if authConfig == integration.AuthNamespaced {
-			t.Skip("Skipping namespace tests for namespaced auth config")
+			t.Log("Create namespace.")
+
+			_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+				Key:  namespace,
+				Name: namespace,
+			})
+
+			require.NoError(t, err)
+			return
 		}
 
 		if !namespaceIsDefault(namespace) {
-
 			t.Log(`Create namespace.`)
 
 			created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
