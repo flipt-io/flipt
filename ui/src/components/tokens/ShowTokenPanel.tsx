@@ -49,7 +49,8 @@ export default function ShowTokenPanel(props: ShowTokenPanelProps) {
               Please copy the token below and store it in a secure location.
             </p>
             <p className="text-gray-700 mt-2 text-sm">
-              You will not be able to view it again
+              You will <span className="font-extrabold">not</span>&nbsp;be able
+              to view it again
             </p>
           </div>
           <div className="m-auto mt-4 flex content-center bg-[#1a1b26]">
