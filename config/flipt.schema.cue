@@ -139,6 +139,7 @@ import "strings"
 
 	#storage: {
 		type: "database" | "git" | "local" | "object" | "oci" | *""
+ 		read_only?: bool | *false
 		local?: path: string | *"."
 		git?: {
 			repository:      string
