@@ -120,6 +120,15 @@ import "strings"
 	#cors: {
 		enabled?:         bool | *false
 		allowed_origins?: [...] | string | *["*"]
+		allowed_headers?: [...string] | string | *[
+					"Accept",
+					"Authorization",
+					"Content-Type",
+					"X-CSRF-Token",
+					"X-Fern-Language",
+					"X-Fern-SDK-Name",
+					"X-Fern-SDK-Version",
+		]
 	}
 
 	#diagnostics: {
