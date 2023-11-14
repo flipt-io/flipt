@@ -479,6 +479,7 @@ func TestLoad(t *testing.T) {
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
+					AllowedHeaders: []string{"X-Some-Header", "X-Some-Other-Header"},
 				}
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
@@ -929,6 +930,19 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 		switch v := value.(type) {
 		case map[any]any:
 			vals = append(vals, getEnvVars(fmt.Sprintf("%s_%v", prefix, key), v)...)
+		case []any:
+			builder := strings.Builder{}
+			for i, s := range v {
+				builder.WriteString(fmt.Sprintf("%v", s))
+				if i < len(v)-1 {
+					builder.WriteByte(' ')
+				}
+			}
+
+			vals = append(vals, [2]string{
+				fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(fmt.Sprintf("%v", key))),
+				builder.String(),
+			})
 		default:
 			vals = append(vals, [2]string{
 				fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(fmt.Sprintf("%v", key))),

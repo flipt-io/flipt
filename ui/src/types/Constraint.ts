@@ -40,7 +40,9 @@ export const ConstraintStringOperators: Record<string, string> = {
   empty: 'IS EMPTY',
   notempty: 'IS NOT EMPTY',
   prefix: 'HAS PREFIX',
-  suffix: 'HAS SUFFIX'
+  suffix: 'HAS SUFFIX',
+  isoneof: 'IS ONE OF',
+  isnotoneof: 'IS NOT ONE OF'
 };
 
 export const ConstraintNumberOperators: Record<string, string> = {
@@ -51,7 +53,9 @@ export const ConstraintNumberOperators: Record<string, string> = {
   lt: '<',
   lte: '<=',
   present: 'IS PRESENT',
-  notpresent: 'IS NOT PRESENT'
+  notpresent: 'IS NOT PRESENT',
+  isoneof: 'IS ONE OF',
+  isnotoneof: 'IS NOT ONE OF'
 };
 
 export const ConstraintBooleanOperators: Record<string, string> = {
@@ -73,6 +77,8 @@ export const ConstraintDateTimeOperators: Record<string, string> = {
 };
 
 export const NoValueOperators: string[] = [
+  'true',
+  'false',
   'empty',
   'notempty',
   'present',

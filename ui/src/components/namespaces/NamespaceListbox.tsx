@@ -14,12 +14,12 @@ import { addNamespaceToPath } from '~/utils/helpers';
 export type SelectableNamespace = Pick<INamespace, 'key' | 'name'> &
   ISelectable;
 
-type NamespaceLisboxProps = {
+type NamespaceListboxProps = {
   disabled: boolean;
   className?: string;
 };
 
-export default function NamespaceListbox(props: NamespaceLisboxProps) {
+export default function NamespaceListbox(props: NamespaceListboxProps) {
   const { disabled, className } = props;
 
   const namespace = useSelector(selectCurrentNamespace);

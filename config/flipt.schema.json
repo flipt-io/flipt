@@ -395,6 +395,18 @@
         "allowed_origins": {
           "type": "array",
           "default": ["*"]
+        },
+        "allowed_headers": {
+          "type": "array",
+          "default": [
+            "Accept",
+            "Authorization",
+            "Content-Type",
+            "X-CSRF-Token",
+            "X-Fern-Language",
+            "X-Fern-SDK-Name",
+            "X-Fern-SDK-Version"
+          ]
         }
       },
       "required": [],
@@ -478,6 +490,10 @@
           "enum": ["database", "git", "local", "object"],
           "default": "database"
         },
+        "read_only": {
+          "type": "boolean",
+          "default": false
+        },
         "local": {
           "type": "object",
           "additionalProperties": false,
@@ -552,9 +568,9 @@
                       "type": "object",
                       "additionalProperties": false,
                       "properties": {
-                        "user": {"type": "string"},
-                        "password": {"type": "string"},
-                        "private_key_path": {"type": "string"}
+                        "user": { "type": "string" },
+                        "password": { "type": "string" },
+                        "private_key_path": { "type": "string" }
                       }
                     }
                   }
@@ -566,9 +582,9 @@
                       "type": "object",
                       "additionalProperties": false,
                       "properties": {
-                        "user": {"type": "string"},
-                        "password": {"type": "string"},
-                        "private_key_bytes": {"type": "string"}
+                        "user": { "type": "string" },
+                        "password": { "type": "string" },
+                        "private_key_bytes": { "type": "string" }
                       }
                     }
                   }

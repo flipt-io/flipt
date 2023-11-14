@@ -14,7 +14,7 @@ import (
 )
 
 func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Container) error {
-	if err := os.RemoveAll("./screenshots"); err != nil {
+	if err := os.RemoveAll("./tmp/screenshots"); err != nil {
 		return err
 	}
 	src := client.Host().Directory("./ui/", dagger.HostDirectoryOpts{
@@ -110,7 +110,7 @@ func Screenshots(ctx context.Context, client *dagger.Client, flipt *dagger.Conta
 
 		for c := range containers {
 			if _, err := c.Directory("screenshots").
-				Export(ctx, "screenshots"); err != nil {
+				Export(ctx, "./tmp/screenshots"); err != nil {
 				return err
 			}
 		}
