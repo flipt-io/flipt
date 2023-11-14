@@ -188,7 +188,6 @@ export default function RolloutForm(props: RolloutFormProps) {
                               type="radio"
                               className="text-violet-400 border-gray-300 h-4 w-4 focus:ring-violet-400"
                               onChange={() => {
-                                formik.setFieldValue('type', rolloutRule.id);
                                 setRolloutRuleType(rolloutRule.id);
                                 formik.setFieldValue('type', rolloutRule.id);
                               }}

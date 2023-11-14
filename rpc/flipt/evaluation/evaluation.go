@@ -61,6 +61,13 @@ func (x *BooleanEvaluationResponse) SetRequestIDIfNotBlank(id string) string {
 	return x.RequestId
 }
 
+func (x *BatchEvaluationRequest) GetNamespaceKeys() (keys []string) {
+	for _, r := range x.Requests {
+		keys = append(keys, r.NamespaceKey)
+	}
+	return
+}
+
 // SetRequestIDIfNotBlank attempts to set the provided ID on the instance
 // If the ID was blank, it returns the ID provided to this call.
 // If the ID was not blank, it returns the ID found on the instance.

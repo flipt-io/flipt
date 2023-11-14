@@ -20,14 +20,26 @@ import (
 
 func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.TestOpts) {
 	var (
-		namespace     = opts.Namespace
-		authenticated = opts.Authenticated
-		addr          = opts.Addr
-		protocol      = opts.Protocol
+		addr       = opts.Addr
+		protocol   = opts.Protocol
+		namespace  = opts.Namespace
+		authConfig = opts.AuthConfig
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
 		if !namespaceIsDefault(namespace) {
+			if authConfig == integration.AuthNamespaced {
+				t.Log("Create namespace.")
+
+				_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+					Key:  namespace,
+					Name: namespace,
+				})
+
+				require.NoError(t, err)
+				return
+			}
+
 			t.Log(`Create namespace.`)
 
 			created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
@@ -494,7 +506,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		assert.Equal(t, int32(3), updatedRuleThree.Rank)
 
 		// ensure you can not link flags and segments from different namespaces.
-		if !namespaceIsDefault(namespace) {
+		if !namespaceIsDefault(namespace) && authConfig != integration.AuthNamespaced {
 			t.Log(`Ensure that rules can only link entities in the same namespace.`)
 			_, err = client.Flipt().CreateRule(ctx, &flipt.CreateRuleRequest{
 				FlagKey:    "test",
@@ -574,7 +586,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		})
 		require.NoError(t, err)
 
-		if !namespaceIsDefault(namespace) {
+		if !namespaceIsDefault(namespace) && authConfig != integration.AuthNamespaced {
 			t.Log(`Ensure that distributions and all entities associated with them are part of same namespace.`)
 			var (
 				flagKey = "defaultflag"
@@ -1035,7 +1047,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 			})
 		})
 
-		t.Run("Compatability", func(t *testing.T) {
+		t.Run("Compatibility", func(t *testing.T) {
 			// ensure we can leverage new and old evaluation paths and produce consistent results
 			t.Run("new API to legacy API", func(t *testing.T) {
 				entity := uuid.Must(uuid.NewV4()).String()
@@ -1269,7 +1281,7 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 		require.NoError(t, err)
 
 		for _, rule := range rules.Rules {
-			client.Flipt().DeleteRule(ctx, &flipt.DeleteRuleRequest{
+			_ = client.Flipt().DeleteRule(ctx, &flipt.DeleteRuleRequest{
 				NamespaceKey: namespace,
 				FlagKey:      "test",
 				Id:           rule.Id,
@@ -1326,6 +1338,13 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Meta", func(t *testing.T) {
 		t.Log(`Returns Flipt service information.`)
 
+		// meta shouldn't be reachable with a namespace scoped token
+		if authConfig == integration.AuthNamespaced {
+			_, err := client.Meta().GetInfo(ctx)
+			require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+			return
+		}
+
 		info, err := client.Meta().GetInfo(ctx)
 		require.NoError(t, err)
 
@@ -1373,7 +1392,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Auth", func(t *testing.T) {
 		t.Run("Self", func(t *testing.T) {
 			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			if authenticated {
+			if authConfig == integration.AuthNoNamespace {
+				// only valid with a non-scoped token
 				assert.NoError(t, err)
 			} else {
 				assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")

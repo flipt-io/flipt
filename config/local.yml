@@ -6,22 +6,22 @@ log:
 
 # authentication:
 #   required: false
-
-# ui:
-#   enabled: true
+#   session:
+#     domain: "localhost:8080"
+#     secure: false
+#   methods:
+#     token:
+#       enabled: true
+#       bootstrap:
+#         token: "secret"
+#         expiration: 24h
+#       cleanup:
+#         interval: 2h
+#         grace_period: 48h
 
 cors:
   enabled: true
   allowed_origins: ["*"]
-# cache:
-#   enabled: false
-#   backend: memory
-#   ttl: 60s
-#   redis:
-#     host: localhost
-#     port: 6379
-#   memory:
-#     eviction_interval: 5m # evict expired items every 5m
 
 # server:
 #   protocol: http

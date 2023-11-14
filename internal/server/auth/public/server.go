@@ -45,3 +45,7 @@ func (s *Server) ListAuthenticationMethods(_ context.Context, _ *emptypb.Empty) 
 func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterPublicAuthenticationServiceServer(server, s)
 }
+
+func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+	return true
+}
