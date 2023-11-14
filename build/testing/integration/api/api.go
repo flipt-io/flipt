@@ -27,19 +27,19 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	)
 
 	t.Run("Namespaces", func(t *testing.T) {
-		if authConfig == integration.AuthNamespaced {
-			t.Log("Create namespace.")
-
-			_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-				Key:  namespace,
-				Name: namespace,
-			})
-
-			require.NoError(t, err)
-			return
-		}
-
 		if !namespaceIsDefault(namespace) {
+			if authConfig == integration.AuthNamespaced {
+				t.Log("Create namespace.")
+
+				_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
+					Key:  namespace,
+					Name: namespace,
+				})
+
+				require.NoError(t, err)
+				return
+			}
+
 			t.Log(`Create namespace.`)
 
 			created, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
