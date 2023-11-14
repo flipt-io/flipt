@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Ass support for namespaced auth tokens (#2352)
+- Add support for namespaced auth tokens (#2352)
 - Add constraint operator `IS ONE OF`/`IS NOT ONE OF` (#2368)
 - Add rollout description to rollout cards (#2366)
 - Update Colorscheme (#2363)
