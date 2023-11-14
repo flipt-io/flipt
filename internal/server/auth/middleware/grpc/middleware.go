@@ -56,7 +56,12 @@ type InterceptorOptions struct {
 	skippedServers []any
 }
 
-func (o InterceptorOptions) skipped(server any) bool {
+func skipped(ctx context.Context, server any, o InterceptorOptions) bool {
+	if skipSrv, ok := server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+		return true
+	}
+
+	// TODO: refactor to remove this check
 	for _, s := range o.skippedServers {
 		if s == server {
 			return true
@@ -95,14 +100,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
-			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
-			return handler(ctx, req)
-		}
-
-		// skip auth for any preconfigured servers
-		// TODO: refactor to remove this check
-		if opts.skipped(info.Server) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -161,14 +159,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...co
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
-			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
-			return handler(ctx, req)
-		}
-
-		// skip auth for any preconfigured servers
-		// TODO: refactor to remove this check
-		if opts.skipped(info.Server) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -212,14 +203,7 @@ func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[Int
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if skipSrv, ok := info.Server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
-			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
-			return handler(ctx, req)
-		}
-
-		// skip auth for any preconfigured servers
-		// TODO: refactor to remove this check
-		if opts.skipped(info.Server) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}

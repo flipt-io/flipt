@@ -78,6 +78,11 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 		client     sdk.SDK
 	)
 
+	namespace := "default"
+	if *fliptNamespace != "" {
+		namespace = *fliptNamespace
+	}
+
 	if authentication := *fliptToken != ""; authentication {
 		authConfig = AuthNoNamespace
 
@@ -97,16 +102,20 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 				ctx,
 				&auth.CreateTokenRequest{
 					Name:         "Integration Test Token",
-					NamespaceKey: *fliptNamespace,
+					NamespaceKey: namespace,
 				},
 			)
+
+			t.Log("Created token", authn.ClientToken, authn.Authentication.Metadata)
+
+			require.NoError(t, err)
 
 			t.Log("Creating namespace for test suite")
 
 			if *fliptNamespace != "" {
 				_, err := client.Flipt().CreateNamespace(ctx, &flipt.CreateNamespaceRequest{
-					Key:  *fliptNamespace,
-					Name: *fliptNamespace,
+					Key:  namespace,
+					Name: namespace,
 				})
 				require.NoError(t, err)
 			}
@@ -120,11 +129,6 @@ func Harness(t *testing.T, fn func(t *testing.T, sdk sdk.SDK, opts TestOpts)) {
 	}
 
 	client = sdk.New(transport, opts...)
-
-	namespace := "default"
-	if *fliptNamespace != "" {
-		namespace = *fliptNamespace
-	}
 
 	name := fmt.Sprintf("[Protocol %q; Namespace %q; Authentication %s]", protocol, namespace, authConfig)
 	t.Run(name, func(t *testing.T) {

@@ -1385,7 +1385,8 @@ func API(t *testing.T, ctx context.Context, client sdk.SDK, opts integration.Tes
 	t.Run("Auth", func(t *testing.T) {
 		t.Run("Self", func(t *testing.T) {
 			_, err := client.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-			if authConfig.Required() {
+			if authConfig == integration.AuthNoNamespace {
+				// only valid with a non-scoped token
 				assert.NoError(t, err)
 			} else {
 				assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
