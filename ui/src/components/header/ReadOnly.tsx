@@ -2,6 +2,7 @@ import {
   CircleStackIcon,
   CloudIcon,
   CodeBracketIcon,
+  CubeIcon,
   DocumentIcon
 } from '@heroicons/react/20/solid';
 import { useSelector } from 'react-redux';
@@ -12,7 +13,8 @@ const storageTypes: Record<string, Icon> = {
   local: DocumentIcon,
   object: CloudIcon,
   git: CodeBracketIcon,
-  database: CircleStackIcon
+  database: CircleStackIcon,
+  oci: CubeIcon
 };
 
 export default function ReadOnly() {
