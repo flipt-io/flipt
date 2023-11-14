@@ -184,7 +184,9 @@ function ConstraintValueDateTimeInput(props: ConstraintInputProps) {
               className="text-gray-300 -ml-1 h-4 w-4 group-hover:text-gray-400"
               aria-hidden="true"
             />
-            <span className="ml-1">{timezone}</span>
+            <span className="ml-1">
+              {timezone === Timezone.UTC ? 'UTC' : 'Local'}
+            </span>
           </Link>
         </span>
       </div>
