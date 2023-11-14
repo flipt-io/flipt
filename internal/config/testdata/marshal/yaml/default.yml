@@ -8,6 +8,14 @@ cors:
   enabled: false
   allowed_origins:
     - "*"
+  allowed_headers:
+    - "Accept"
+    - "Authorization"
+    - "Content-Type"
+    - "X-CSRF-Token"
+    - "X-Fern-Language"
+    - "X-Fern-SDK-Name"
+    - "X-Fern-SDK-Version"
 server:
   host: 0.0.0.0
   http_port: 8080
