@@ -98,3 +98,8 @@ func TestServer(t *testing.T) {
 
 	require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "attempting to create token: invalid expiry time: nanos:-1"))
 }
+
+func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
+	server := &Server{}
+	assert.False(t, server.AllowsNamespaceScopedAuthentication(context.Background()))
+}
