@@ -39,7 +39,7 @@ import (
 )
 
 func main() {
-	evaluationClient := evaluation.NewClient([]string{"default"})
+	evaluationClient := evaluation.NewClient("default")
 
 	evalCtx := map[string]string{
 		"fizz": "buzz",

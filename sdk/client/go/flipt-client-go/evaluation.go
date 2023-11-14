@@ -27,12 +27,8 @@ type Client struct {
 }
 
 // NewClient constructs an Client.
-func NewClient(namespaces []string) *Client {
-	ns := make([]*C.char, 0, len(namespaces))
-
-	for _, namespace := range namespaces {
-		ns = append(ns, C.CString(namespace))
-	}
+func NewClient(namespace string) *Client {
+	ns := []*C.char{C.CString(namespace)}
 
 	// Free the memory of the C Strings that were created to initialize the engine.
 	defer func() {
