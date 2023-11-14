@@ -1,4 +1,4 @@
-## Flipt Client Golang
+## Flipt Client Go
 
 The `flipt-client-go` directory contains the Golang source code for a Flipt evaluation client using FFI to make calls to a core built in Rust.
 
@@ -12,7 +12,7 @@ cargo build
 
 This should generate a `target/` directory in the root of this repository, which contains the dynamic linking library built for your platform. This dynamic library will contain the functionality necessary for the Golang client to make FFI calls.
 
-You can import the module that contains the evaluation client: `go.flipt.io/flipt/flipt-client-go` and build your Go project with the environment variable:
+You can import the module that contains the evaluation client: `go.flipt.io/flipt/flipt-client-go` and build your Go project with the `CGO_LDFLAGS` environment variable set:
 
 ```bash
 CGO_LDFLAGS="-L/path/to/lib -lengine"
@@ -24,7 +24,7 @@ The `path/to/lib` will be the path to the dynamic library which will have the fo
 - **Windows**: `{FLIPT_REPO_ROOT}/target/debug/libengine.dll`
 - **MacOS**: `{FLIPT_REPO_ROOT}/target/debug/libengine.dylib`
 
-A sample code will look something like the following:
+You can then use the client like so:
 
 ```golang
 package main
