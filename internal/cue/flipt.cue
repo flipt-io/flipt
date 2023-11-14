@@ -79,19 +79,19 @@ close({
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string
-	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix"
+	operator:     "eq" | "neq" | "empty" | "notempty" | "prefix" | "suffix" | "isoneof" | "isnotoneof"
 } | {
 	type:         "NUMBER_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
 	description?: string
-	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte"
+	operator:     "eq" | "neq" | "present" | "notpresent" | "le" | "lte" | "gt" | "gte" | "isoneof" | "isnotoneof"
 } | {
 	type:         "BOOLEAN_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
 	value?:       string
-	operator:     "true" | "false" | "present" | "notpresent"
 	description?: string
+	operator:     "true" | "false" | "present" | "notpresent"
 } | {
 	type:         "DATETIME_COMPARISON_TYPE"
 	property:     string & =~"^.+$"
