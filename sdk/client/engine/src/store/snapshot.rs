@@ -1,13 +1,33 @@
 use crate::models::common;
 use crate::models::flipt;
 use crate::models::transport;
+use mockall::automock;
 use snafu::Whatever;
 use std::collections::HashMap;
 
 pub trait Parser {
-    fn new(namespaces: Vec<String>) -> Self;
     fn parse(&self, namespace: String) -> Result<transport::Document, Whatever>;
     fn get_namespaces(&self) -> Vec<String>;
+}
+
+#[automock]
+pub trait Store {
+    fn get_flag(&self, namespace_key: &str, flag_key: &str) -> Option<flipt::Flag>;
+    fn get_evaluation_rules(
+        &self,
+        namespace_key: &str,
+        flag_key: &str,
+    ) -> Option<Vec<flipt::EvaluationRule>>;
+    fn get_evaluation_distributions(
+        &self,
+        namespace_key: &str,
+        rule_id: &str,
+    ) -> Option<Vec<flipt::EvaluationDistribution>>;
+    fn get_evaluation_rollouts(
+        &self,
+        namespace_key: &str,
+        flag_key: &str,
+    ) -> Option<Vec<flipt::EvaluationRollout>>;
 }
 
 pub struct Snapshot {
@@ -23,10 +43,7 @@ struct Namespace {
 }
 
 impl Snapshot {
-    pub fn build<T>(parser: &T) -> Result<Snapshot, Whatever>
-    where
-        T: Parser,
-    {
+    pub fn build(parser: &dyn Parser) -> Result<Snapshot, Whatever> {
         let mut ns: HashMap<String, Namespace> = HashMap::new();
 
         for n in parser.get_namespaces() {
@@ -192,8 +209,10 @@ impl Snapshot {
 
         Ok(Self { namespace: ns })
     }
+}
 
-    pub fn get_flag(&self, namespace_key: &str, flag_key: &str) -> Option<flipt::Flag> {
+impl Store for Snapshot {
+    fn get_flag(&self, namespace_key: &str, flag_key: &str) -> Option<flipt::Flag> {
         let namespace = self.namespace.get(namespace_key)?;
 
         let flag = namespace.flags.get(flag_key)?;
@@ -201,7 +220,7 @@ impl Snapshot {
         Some(flag.clone())
     }
 
-    pub fn get_evaluation_rules(
+    fn get_evaluation_rules(
         &self,
         namespace_key: &str,
         flag_key: &str,
@@ -213,7 +232,7 @@ impl Snapshot {
         Some(eval_rules.to_vec())
     }
 
-    pub fn get_evaluation_distributions(
+    fn get_evaluation_distributions(
         &self,
         namespace_key: &str,
         rule_id: &str,
@@ -225,7 +244,7 @@ impl Snapshot {
         Some(evaluation_distributions.to_vec())
     }
 
-    pub fn get_evaluation_rollouts(
+    fn get_evaluation_rollouts(
         &self,
         namespace_key: &str,
         flag_key: &str,
@@ -240,14 +259,13 @@ impl Snapshot {
 
 #[cfg(test)]
 mod tests {
-    use super::Parser;
-    use super::Snapshot;
+    use super::{Snapshot, Store};
     use crate::models::common;
     use crate::models::flipt;
     use crate::store::parsers::TestParser;
 
     #[test]
-    fn snapshot_tests() {
+    fn test_snapshot() {
         let tp = TestParser::new(vec!["default".into()]);
 
         let snapshot = match Snapshot::build(&tp) {
