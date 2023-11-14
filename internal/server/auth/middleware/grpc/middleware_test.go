@@ -337,6 +337,7 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 		name        string
 		authReq     *auth.CreateAuthenticationRequest
 		req         any
+		srv         any
 		wantCalled  bool
 		expectedErr error
 	}{
@@ -350,6 +351,56 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			},
 			req: &evaluation.EvaluationRequest{
 				NamespaceKey: "foo",
+			},
+			wantCalled: true,
+		},
+		{
+			name: "successful namespace match on batch",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req: &evaluation.BatchEvaluationRequest{
+				Requests: []*evaluation.EvaluationRequest{
+					{
+						NamespaceKey: "foo",
+					},
+					{
+						NamespaceKey: "foo",
+					},
+				},
+			},
+			wantCalled: true,
+		},
+		{
+			name: "successful namespace (default) match on batch",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "default",
+				},
+			},
+			req: &evaluation.BatchEvaluationRequest{
+				Requests: []*evaluation.EvaluationRequest{
+					{},
+					{},
+				},
+			},
+			wantCalled: true,
+		},
+		{
+			name: "successful skips auth",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req: &struct{}{},
+			srv: &mockServer{
+				skipsAuth: true,
 			},
 			wantCalled: true,
 		},
@@ -424,6 +475,53 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 			req:         &evaluation.BatchEvaluationRequest{},
 			expectedErr: ErrUnauthenticated,
 		},
+		{
+			name: "namespace not consistent for batch",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req: &evaluation.BatchEvaluationRequest{
+				Requests: []*evaluation.EvaluationRequest{
+					{
+						NamespaceKey: "foo",
+					},
+					{
+						NamespaceKey: "bar",
+					},
+				},
+			},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name: "non-namespaced request",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req:         &struct{}{},
+			expectedErr: ErrUnauthenticated,
+		},
+		{
+			name: "non-namespaced scoped server",
+			authReq: &auth.CreateAuthenticationRequest{
+				Method: authrpc.Method_METHOD_TOKEN,
+				Metadata: map[string]string{
+					"io.flipt.auth.token.namespace": "foo",
+				},
+			},
+			req: &evaluation.EvaluationRequest{
+				NamespaceKey: "foo",
+			},
+			srv: &mockServer{
+				allowNamespacedAuth: false,
+			},
+			expectedErr: ErrUnauthenticated,
+		},
 	} {
 		tt := tt
 
@@ -453,6 +551,10 @@ func TestNamespaceMatchingInterceptor(t *testing.T) {
 
 				unaryInterceptor = NamespaceMatchingInterceptor(logger)
 			)
+
+			if tt.srv != nil {
+				srv.Server = tt.srv
+			}
 
 			ctx = metadata.NewIncomingContext(ctx, metadata.MD{
 				"Authorization": []string{"Bearer " + clientToken},
