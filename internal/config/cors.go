@@ -10,7 +10,7 @@ var _ defaulter = (*CorsConfig)(nil)
 type CorsConfig struct {
 	Enabled        bool     `json:"enabled" mapstructure:"enabled" yaml:"enabled"`
 	AllowedOrigins []string `json:"allowedOrigins,omitempty" mapstructure:"allowed_origins" yaml:"allowed_origins,omitempty"`
-	AllowedHeaders []string `json:"allowed_headers,omitempty" mapstructure:"allowed_headers" yaml:"allowed_headers,omitempty"`
+	AllowedHeaders []string `json:"allowedHeaders,omitempty" mapstructure:"allowed_headers" yaml:"allowed_headers,omitempty"`
 }
 
 func (c *CorsConfig) setDefaults(v *viper.Viper) error {
