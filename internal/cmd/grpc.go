@@ -25,7 +25,7 @@ import (
 	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
-	"go.flipt.io/flipt/internal/server/auth"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	"go.flipt.io/flipt/internal/server/metadata"
 	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
@@ -323,12 +323,12 @@ func NewGRPCServer(
 	var (
 		// authOpts is a slice of options that will be passed to the authentication service.
 		// it's initialized with the default option of skipping authentication for the health service which should never require authentication.
-		authOpts = []containers.Option[auth.InterceptorOptions]{
-			auth.WithServerSkipsAuthentication(healthsrv),
+		authOpts = []containers.Option[authmiddlewaregrpc.InterceptorOptions]{
+			authmiddlewaregrpc.WithServerSkipsAuthentication(healthsrv),
 		}
 		skipAuthIfExcluded = func(server any, excluded bool) {
 			if excluded {
-				authOpts = append(authOpts, auth.WithServerSkipsAuthentication(server))
+				authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(server))
 			}
 		}
 	)

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
@@ -27,7 +26,7 @@ func TestServer(t *testing.T) {
 		store    = memory.NewStore()
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
-			grpc_middleware.WithUnaryServerChain(
+			grpc.ChainUnaryInterceptor(
 				middleware.ErrorUnaryInterceptor,
 			),
 		)
@@ -65,8 +64,9 @@ func TestServer(t *testing.T) {
 
 	// attempt to create token
 	resp, err := client.CreateToken(ctx, &auth.CreateTokenRequest{
-		Name:        "access_all_areas",
-		Description: "Super secret skeleton key",
+		Name:         "access_all_areas",
+		Description:  "Super secret skeleton key",
+		NamespaceKey: "my-namespace",
 	})
 	require.NoError(t, err)
 
@@ -74,6 +74,7 @@ func TestServer(t *testing.T) {
 	metadata := resp.Authentication.Metadata
 	assert.Equal(t, "access_all_areas", metadata["io.flipt.auth.token.name"])
 	assert.Equal(t, "Super secret skeleton key", metadata["io.flipt.auth.token.description"])
+	assert.Equal(t, "my-namespace", metadata["io.flipt.auth.token.namespace"])
 
 	// ensure client token can be used on store to fetch authentication
 	// and that the authentication returned matches the one received
@@ -94,5 +95,11 @@ func TestServer(t *testing.T) {
 		// invalid expires at, nanos must be positive
 		ExpiresAt: &timestamppb.Timestamp{Nanos: -1},
 	})
+
 	require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "attempting to create token: invalid expiry time: nanos:-1"))
+}
+
+func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
+	server := &Server{}
+	assert.False(t, server.AllowsNamespaceScopedAuthentication(context.Background()))
 }

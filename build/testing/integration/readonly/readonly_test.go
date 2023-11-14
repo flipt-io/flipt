@@ -19,9 +19,9 @@ import (
 func TestReadOnly(t *testing.T) {
 	integration.Harness(t, func(t *testing.T, sdk sdk.SDK, opts integration.TestOpts) {
 		var (
-			ctx           = context.Background()
-			namespace     = opts.Namespace
-			authenticated = opts.Authenticated
+			ctx        = context.Background()
+			namespace  = opts.Namespace
+			authConfig = opts.AuthConfig
 		)
 
 		ns, err := sdk.Flipt().GetNamespace(ctx, &flipt.GetNamespaceRequest{
@@ -45,13 +45,24 @@ func TestReadOnly(t *testing.T) {
 				Limit:     10,
 				PageToken: "Hello World",
 			})
-			require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+			if authConfig == integration.AuthNamespaced {
+				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+			} else {
+				require.EqualError(t, err, "rpc error: code = InvalidArgument desc = pageToken is not valid: \"Hello World\"")
+			}
 
 			// NOTE: different cases load different amount of Namespaces
 			// so we're just interested in the shape of the response as
 			// opposed to the specific contents of namespaces
 			ns, err := sdk.Flipt().ListNamespaces(ctx, &flipt.ListNamespaceRequest{})
-			require.NoError(t, err)
+			if authConfig == integration.AuthNamespaced {
+				require.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
+				// stop the test here as we shouldn't be able to
+				// list namespaces due to authentication
+				return
+			} else {
+				require.NoError(t, err)
+			}
 
 			// we at-least want to ensure that the namespace used in
 			// the context of this test invocation is present in the
@@ -650,7 +661,7 @@ func TestReadOnly(t *testing.T) {
 		t.Run("Auth", func(t *testing.T) {
 			t.Run("Self", func(t *testing.T) {
 				_, err := sdk.Auth().AuthenticationService().GetAuthenticationSelf(ctx)
-				if authenticated {
+				if authConfig == integration.AuthNoNamespace {
 					assert.NoError(t, err)
 				} else {
 					assert.EqualError(t, err, "rpc error: code = Unauthenticated desc = request was not authenticated")
