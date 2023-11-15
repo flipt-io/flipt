@@ -1,6 +1,6 @@
 ## Flipt Client Python
 
-This directory contains the Python source code for a Flipt evaluation client using FFI to make calls to a core built in Rust.
+The `flipt-client-python` directory contains the Python source code for a Flipt evaluation client using FFI to make calls to a core built in Rust.
 
 ### Instructions
 
@@ -25,4 +25,3 @@ flipt_evaluation_client = FliptEvaluationClient(namespaces=["default", "another-
 
 variant_response = flipt_evaluation_client.variant(namespace_key="default", flag_key="flag1", entity_id="entity", context={"this": "context"})
 ```
-
