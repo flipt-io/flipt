@@ -1,6 +1,9 @@
 use snafu::{prelude::*, Whatever};
 use std::env;
+
+#[cfg(test)]
 use std::fs;
+#[cfg(test)]
 use std::path::PathBuf;
 
 use super::snapshot::Parser;
@@ -12,8 +15,8 @@ pub struct FliptParser {
     http_url: String,
 }
 
-impl Parser for FliptParser {
-    fn new(namespaces: Vec<String>) -> Self {
+impl FliptParser {
+    pub fn new(namespaces: Vec<String>) -> Self {
         // We will allow the following line to panic when an error is encountered.
         let http_client = reqwest::blocking::Client::builder()
             .timeout(std::time::Duration::from_secs(10))
@@ -29,7 +32,9 @@ impl Parser for FliptParser {
             http_url,
         }
     }
+}
 
+impl Parser for FliptParser {
     fn parse(&self, namespace: String) -> Result<transport::Document, Whatever> {
         let response = match self
             .http_client
@@ -61,15 +66,20 @@ impl Parser for FliptParser {
     }
 }
 
+#[cfg(test)]
 pub struct TestParser {
     namespaces: Vec<String>,
 }
 
-impl Parser for TestParser {
-    fn new(namespaces: Vec<String>) -> Self {
+#[cfg(test)]
+impl TestParser {
+    pub fn new(namespaces: Vec<String>) -> Self {
         Self { namespaces }
     }
+}
 
+#[cfg(test)]
+impl Parser for TestParser {
     fn parse(&self, _: String) -> Result<transport::Document, Whatever> {
         let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         d.push("src/testdata/state.json");

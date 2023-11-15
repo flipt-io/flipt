@@ -8,19 +8,15 @@ use std::time::{Duration, SystemTime, SystemTimeError};
 use crate::models::common;
 use crate::models::flipt;
 use crate::store::parsers;
-use crate::store::snapshot;
-use crate::store::snapshot::Parser;
+use crate::store::snapshot::{Parser, Snapshot, Store};
 
 const DEFAULT_PERCENT: f32 = 100.0;
-const DEFAULT_TOTAL_BUCKET_NUMBER: i32 = 1000;
+const DEFAULT_TOTAL_BUCKET_NUMBER: u32 = 1000;
 const DEFAULT_PERCENT_MULTIPIER: f32 = DEFAULT_TOTAL_BUCKET_NUMBER as f32 / DEFAULT_PERCENT;
 
-pub struct Evaluator<T>
-where
-    T: snapshot::Parser,
-{
-    flipt_parser: T,
-    snapshot: snapshot::Snapshot,
+pub struct Evaluator {
+    flipt_parser: Box<dyn Parser + Send>,
+    snapshot: Box<dyn Store + Send>,
     mtx: Arc<RwLock<i32>>,
 }
 
@@ -104,22 +100,22 @@ type VariantEvaluationResult<T> = std::result::Result<T, Whatever>;
 
 type BooleanEvaluationResult<T> = std::result::Result<T, Whatever>;
 
-impl Evaluator<parsers::FliptParser> {
+impl Evaluator {
     pub fn new(namespaces: Vec<String>) -> Result<Self, Whatever> {
         let flipt_parser = parsers::FliptParser::new(namespaces.clone());
-        let snap = snapshot::Snapshot::build(&flipt_parser)?;
+        let snap = Snapshot::build(&flipt_parser)?;
 
         Ok(Self {
-            flipt_parser,
-            snapshot: snap,
+            flipt_parser: Box::new(flipt_parser),
+            snapshot: Box::new(snap),
             mtx: Arc::new(RwLock::new(0)),
         })
     }
 
     pub fn replace_snapshot(&mut self) {
         let _w_lock = self.mtx.write().unwrap();
-        let snap = snapshot::Snapshot::build(&self.flipt_parser);
-        self.snapshot = snap.unwrap();
+        let snap = Snapshot::build(self.flipt_parser.as_ref());
+        self.snapshot = Box::new(snap.unwrap());
     }
 
     pub fn variant(
@@ -308,15 +304,15 @@ impl Evaluator<parsers::FliptParser> {
             for distribution in distributions {
                 if distribution.rollout > 0.0 {
                     valid_distributions.push(distribution.clone());
-                }
 
-                if buckets.is_empty() {
-                    let bucket = (distribution.rollout * DEFAULT_PERCENT_MULTIPIER) as i32;
-                    buckets.push(bucket);
-                } else {
-                    let bucket = buckets[buckets.len() - 1]
-                        + (distribution.rollout * DEFAULT_PERCENT_MULTIPIER) as i32;
-                    buckets.push(bucket);
+                    if buckets.is_empty() {
+                        let bucket = (distribution.rollout * DEFAULT_PERCENT_MULTIPIER) as i32;
+                        buckets.push(bucket);
+                    } else {
+                        let bucket = buckets[buckets.len() - 1]
+                            + (distribution.rollout * DEFAULT_PERCENT_MULTIPIER) as i32;
+                        buckets.push(bucket);
+                    }
                 }
             }
 
@@ -332,15 +328,15 @@ impl Evaluator<parsers::FliptParser> {
             let bucket = crc32fast::hash(
                 format!(
                     "{}{}",
-                    evaluation_request.entity_id, evaluation_request.flag_key
+                    evaluation_request.flag_key, evaluation_request.entity_id
                 )
                 .as_bytes(),
-            ) as i32
+            ) as u32
                 % DEFAULT_TOTAL_BUCKET_NUMBER;
 
             buckets.sort();
 
-            let index = match buckets.binary_search(&bucket) {
+            let index = match buckets.binary_search(&(bucket as i32)) {
                 Ok(idx) => idx,
                 Err(idx) => idx,
             };
@@ -670,9 +666,11 @@ fn get_duration_millis(elapsed: Result<Duration, SystemTimeError>) -> Result<f64
 
 #[cfg(test)]
 mod tests {
-    use super::{matches_boolean, matches_datetime, matches_number, matches_string};
+    use super::*;
     use crate::models::common;
     use crate::models::flipt;
+    use crate::store::parsers::TestParser;
+    use crate::store::snapshot::MockStore;
 
     macro_rules! matches_string_tests {
         ($($name:ident: $value:expr,)*) => {
@@ -933,5 +931,1658 @@ mod tests {
             result_two.err().unwrap().to_string(),
             "error parsing time blah, err: input contains invalid characters"
         );
+    }
+
+    // Segment Match Type ALL
+    #[test]
+    fn test_evaluator_match_all_no_variants_no_distributions() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::Or,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| Some(vec![]));
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("foo"), String::from("bar"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("entity"),
+            context,
+        });
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert_eq!(v.r#match, true);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_match_all_multiple_segments() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+        segments.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::String,
+                    property: String::from("company"),
+                    operator: String::from("eq"),
+                    value: String::from("flipt"),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| Some(vec![]));
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("foo"), String::from("bar"));
+        context.insert(String::from("company"), String::from("flipt"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("entity"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+
+        let mut context: HashMap<String, String> = HashMap::new();
+        context.insert(String::from("bar"), String::from("boz"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("entity"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(!v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Unknown);
+        assert!(v.segment_keys.is_empty());
+    }
+
+    #[test]
+    fn test_evaluator_match_all_distribution_not_matched() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+        segments.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::Boolean,
+                    property: String::from("admin"),
+                    operator: String::from("true"),
+                    value: String::from(""),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![flipt::EvaluationDistribution {
+                    rule_id: String::from("1"),
+                    variant_key: String::from("variant1"),
+                    variant_attachment: String::from(""),
+                    rollout: 10.0,
+                }])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("foo"), String::from("bar"));
+        context.insert(String::from("admin"), String::from("true"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("123"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(!v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Unknown);
+    }
+
+    #[test]
+    fn test_evaluator_match_all_single_variant_distribution() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+        segments.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::Boolean,
+                    property: String::from("admin"),
+                    operator: String::from("true"),
+                    value: String::from(""),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![flipt::EvaluationDistribution {
+                    rule_id: String::from("1"),
+                    variant_key: String::from("variant1"),
+                    variant_attachment: String::from(r#"{"foo": "bar"}"#),
+                    rollout: 100.0,
+                }])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("foo"), String::from("bar"));
+        context.insert(String::from("admin"), String::from("true"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("123"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.variant_attachment, String::from(r#"{"foo": "bar"}"#));
+        assert!(v
+            .segment_keys
+            .iter()
+            .any(|segment_key| segment_key == "segment1"),);
+        assert!(v
+            .segment_keys
+            .iter()
+            .any(|segment_key| segment_key == "segment2"),);
+    }
+
+    #[test]
+    fn test_evaluator_match_all_rollout_distribution() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 50.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("foo"), String::from("bar"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("1"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("2"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant2"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_match_all_rollout_distribution_multi_rule() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::Boolean,
+                        property: String::from("premium_user"),
+                        operator: String::from("true"),
+                        value: String::from(""),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+
+        let mut segments_two: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments_two.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![
+                    flipt::EvaluationRule {
+                        id: String::from("1"),
+                        flag_key: String::from("foo"),
+                        segments: segments.clone(),
+                        rank: 1,
+                        segment_operator: common::SegmentOperator::And,
+                    },
+                    flipt::EvaluationRule {
+                        id: String::from("2"),
+                        flag_key: String::from("foo"),
+                        segments: segments_two.clone(),
+                        rank: 2,
+                        segment_operator: common::SegmentOperator::And,
+                    },
+                ])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 50.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("premium_user"), String::from("true"));
+        context.insert(String::from("foo"), String::from("bar"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("1"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_match_all_no_constraints() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::All,
+                constraints: vec![],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 50.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let context: HashMap<String, String> = HashMap::new();
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("10"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("01"),
+            context: context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant2"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    // Segment Match Type ANY
+    #[test]
+    fn test_evaluator_match_any_no_variants_no_distributions() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::Or,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| Some(vec![]));
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+        context.insert(String::from("bar"), String::from("baz"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("entity"),
+            context,
+        });
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert_eq!(v.r#match, true);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_match_any_multiple_segments() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+        segments.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::String,
+                    property: String::from("company"),
+                    operator: String::from("eq"),
+                    value: String::from("flipt"),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| Some(vec![]));
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("company"), String::from("flipt"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("entity"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+
+        let mut context: HashMap<String, String> = HashMap::new();
+        context.insert(String::from("bar"), String::from("boz"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("entity"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(!v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Unknown);
+        assert!(v.segment_keys.is_empty());
+    }
+
+    #[test]
+    fn test_evaluator_match_any_distribution_not_matched() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+        segments.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::Boolean,
+                    property: String::from("admin"),
+                    operator: String::from("true"),
+                    value: String::from(""),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![flipt::EvaluationDistribution {
+                    rule_id: String::from("1"),
+                    variant_key: String::from("variant1"),
+                    variant_attachment: String::from(""),
+                    rollout: 10.0,
+                }])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("admin"), String::from("true"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("123"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(!v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Unknown);
+    }
+
+    #[test]
+    fn test_evaluator_match_any_single_variant_distribution() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+        segments.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::Boolean,
+                    property: String::from("admin"),
+                    operator: String::from("true"),
+                    value: String::from(""),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![flipt::EvaluationDistribution {
+                    rule_id: String::from("1"),
+                    variant_key: String::from("variant1"),
+                    variant_attachment: String::from(r#"{"foo": "bar"}"#),
+                    rollout: 100.0,
+                }])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+        context.insert(String::from("admin"), String::from("true"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("123"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.variant_attachment, String::from(r#"{"foo": "bar"}"#));
+    }
+
+    #[test]
+    fn test_evaluator_match_any_rollout_distribution() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("bar"),
+                        operator: String::from("eq"),
+                        value: String::from("baz"),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 50.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("1"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("2"),
+            context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant2"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_match_any_rollout_distribution_multi_rule() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::Boolean,
+                        property: String::from("premium_user"),
+                        operator: String::from("true"),
+                        value: String::from(""),
+                    },
+                    flipt::EvaluationConstraint {
+                        r#type: common::ConstraintComparisonType::String,
+                        property: String::from("foo"),
+                        operator: String::from("eq"),
+                        value: String::from("bar"),
+                    },
+                ],
+            },
+        );
+
+        let mut segments_two: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments_two.insert(
+            String::from("segment2"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment2"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![
+                    flipt::EvaluationRule {
+                        id: String::from("1"),
+                        flag_key: String::from("foo"),
+                        segments: segments.clone(),
+                        rank: 1,
+                        segment_operator: common::SegmentOperator::And,
+                    },
+                    flipt::EvaluationRule {
+                        id: String::from("2"),
+                        flag_key: String::from("foo"),
+                        segments: segments_two.clone(),
+                        rank: 2,
+                        segment_operator: common::SegmentOperator::And,
+                    },
+                ])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 50.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("premium_user"), String::from("true"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("1"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_match_any_no_constraints() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 50.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("10"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant1"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("01"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant2"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+
+        context.insert(String::from("foo"), String::from("bar"));
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("01"),
+            context: context,
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant2"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    // Test cases where rollouts have a zero value
+    #[test]
+    fn test_evaluator_first_rollout_rule_zero() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::String,
+                    property: String::from("bar"),
+                    operator: String::from("eq"),
+                    value: String::from("baz"),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 0.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 100.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("1"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant2"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
+    }
+
+    #[test]
+    fn test_evaluator_multiple_zero_rollout_distributions() {
+        let test_parser = TestParser::new(vec!["default".into()]);
+        let mut mock_store = MockStore::new();
+
+        mock_store.expect_get_flag().returning(|_, _| {
+            Some(flipt::Flag {
+                key: String::from("foo"),
+                enabled: true,
+                r#type: common::FlagType::Variant,
+            })
+        });
+
+        let mut segments: HashMap<String, flipt::EvaluationSegment> = HashMap::new();
+        segments.insert(
+            String::from("segment1"),
+            flipt::EvaluationSegment {
+                segment_key: String::from("segment1"),
+                match_type: common::SegmentMatchType::Any,
+                constraints: vec![flipt::EvaluationConstraint {
+                    r#type: common::ConstraintComparisonType::String,
+                    property: String::from("bar"),
+                    operator: String::from("eq"),
+                    value: String::from("baz"),
+                }],
+            },
+        );
+
+        mock_store
+            .expect_get_evaluation_rules()
+            .returning(move |_, _| {
+                Some(vec![flipt::EvaluationRule {
+                    id: String::from("1"),
+                    flag_key: String::from("foo"),
+                    segments: segments.clone(),
+                    rank: 1,
+                    segment_operator: common::SegmentOperator::And,
+                }])
+            });
+
+        mock_store
+            .expect_get_evaluation_distributions()
+            .returning(|_, _| {
+                Some(vec![
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant1"),
+                        variant_attachment: String::from(""),
+                        rollout: 0.0,
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant2"),
+                        rollout: 0.0,
+                        variant_attachment: String::from(""),
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant3"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant4"),
+                        rollout: 0.0,
+                        variant_attachment: String::from(""),
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant5"),
+                        rollout: 0.0,
+                        variant_attachment: String::from(""),
+                    },
+                    flipt::EvaluationDistribution {
+                        rule_id: String::from("1"),
+                        variant_key: String::from("variant6"),
+                        rollout: 50.0,
+                        variant_attachment: String::from(""),
+                    },
+                ])
+            });
+
+        let evaluator = &Evaluator {
+            flipt_parser: Box::new(test_parser),
+            snapshot: Box::new(mock_store),
+            mtx: Arc::new(RwLock::new(0)),
+        };
+
+        let mut context: HashMap<String, String> = HashMap::new();
+
+        context.insert(String::from("bar"), String::from("baz"));
+
+        let variant = evaluator.variant(&EvaluationRequest {
+            namespace_key: String::from("default"),
+            flag_key: String::from("foo"),
+            entity_id: String::from("1"),
+            context: context.clone(),
+        });
+
+        assert!(variant.is_ok());
+
+        let v = variant.unwrap();
+
+        assert_eq!(v.flag_key, String::from("foo"));
+        assert!(v.r#match);
+        assert_eq!(v.reason, common::EvaluationReason::Match);
+        assert_eq!(v.variant_key, String::from("variant3"));
+        assert_eq!(v.segment_keys, vec![String::from("segment1")]);
     }
 }
