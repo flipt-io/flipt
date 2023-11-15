@@ -23,8 +23,28 @@ TODO: Add more details
 
 ### Building the Library
 
+Development:
+
 ```bash
 cargo build
+```
+
+Specify a relative target directory:
+
+```bash
+cargo build --target-dir ./target
+```
+
+Release:
+
+```bash
+cargo build --release
+```
+
+Specify a relative target directory:
+
+```bash
+cargo build --release --target-dir ./target
 ```
 
 ### Test the Library

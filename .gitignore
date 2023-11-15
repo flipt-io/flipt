@@ -47,6 +47,10 @@ screenshots/
 # Rust
 **/target
 /Cargo.lock
+*.dylib
+*.dll
+*.d
+*.rlib
 
 # Python
 **/__pycache__

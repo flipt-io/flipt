@@ -1,40 +1,39 @@
-# Flipt::Client::Ruby
+## Flipt Client Ruby
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/flipt/client/ruby`. To experiment with that code, run `bin/console` for an interactive prompt.
+The `flipt-client-ruby` directory contains the Ruby source code for a Flipt evaluation client using FFI to make calls to a core built in Rust.
 
-TODO: Delete this and the text above, and describe your gem
+### Instructions
 
-## Installation
+To use this client, you can run the following command from the root of the repository:
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'flipt-client-ruby'
+```bash
+cargo build --release
 ```
 
-And then execute:
+This should generate a `target/` directory in the root of this repository, which contains the dynamically linked library built for your platform. This dynamic library will contain the functionality necessary for the Ruby client to make FFI calls. 
 
-    $ bundle install
+TODO: Currently, you'll need copy the dynamic library to the `flipt-client-ruby/lib/ext` directory. This is a temporary solution until we can figure out a better way to package the libraries with the gem.
 
-Or install it yourself as:
+The `path/to/lib` will be the path to the dynamic library which will have the following paths depending on your platform.
 
-    $ gem install flipt-client-ruby
+- **Linux**: `{FLIPT_REPO_ROOT}/target/release/libfliptengine.so`
+- **Windows**: `{FLIPT_REPO_ROOT}/target/release/libfliptengine.dll`
+- **MacOS**: `{FLIPT_REPO_ROOT}/target/release/libfliptengine.dylib`
 
-## Usage
+You can then build the gem and install it locally:
 
-TODO: Write usage instructions here
+```bash
+rake build
+gem install pkg/flipt_client-0.1.0.gem
+```
 
-## Development
+In your Ruby code you can import this client and use it as so:
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+require 'flipt_client'
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+client = Flipt::EvaluationClient.new() # uses 'default' namespace
+resp = client.variant({ flagKey: 'buzz', entityId: 'someentity', context: { fizz: 'buzz' } })
 
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/markphelps/flipt-client-ruby.
-
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+puts resp
+```

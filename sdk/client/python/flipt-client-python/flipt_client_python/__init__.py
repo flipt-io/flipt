@@ -11,9 +11,9 @@ from .models import (
 
 class FliptEvaluationClient:
     def __init__(self, namespaces: list[str]):
-        engine_library_path = os.environ.get("ENGINE_LIB_PATH")
+        engine_library_path = os.environ.get("FLIPT_ENGINE_LIB_PATH")
         if engine_library_path is None:
-            raise Exception("ENGINE_LIB_PATH not set")
+            raise Exception("FLIPT_ENGINE_LIB_PATH not set")
 
         self.ffi_core = ctypes.CDLL(engine_library_path)
 
