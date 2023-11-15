@@ -25,3 +25,15 @@ type BooleanEvaluationResponse struct {
 	RequestDurationMillis float64 `json:"request_duration_millis"`
 	Timestamp             string  `json:"timestamp"`
 }
+
+type VariantResult struct {
+	ResponseCode string                     `json:"response_code"`
+	Result       *VariantEvaluationResponse `json:"result,omitempty"`
+	Error        string                     `json:"error_message,omitempty"`
+}
+
+type BooleanResult struct {
+	ResponseCode string                     `json:"response_code"`
+	Result       *BooleanEvaluationResponse `json:"result,omitempty"`
+	ErrorMessage string                     `json:"error_message,omitempty"`
+}

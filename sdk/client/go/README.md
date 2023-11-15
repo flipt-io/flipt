@@ -50,7 +50,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	variantEvaluationResponse, err := evaluationClient.Variant(context.Background(), &evaluation.EvaluationRequest{
+	variantResult, err := evaluationClient.Variant(context.Background(), &evaluation.EvaluationRequest{
 		NamespaceKey: "default",
 		FlagKey:      "flag1",
 		EntityId:     "someentity",
@@ -60,6 +60,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(variantEvaluationResponse)
+	fmt.Println(variantResult)
 }
 ```

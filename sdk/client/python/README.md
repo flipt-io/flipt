@@ -23,5 +23,7 @@ from flipt_client_python import FliptEvaluationClient
 
 flipt_evaluation_client = FliptEvaluationClient(namespaces=["default", "another-namespace"])
 
-variant_response = flipt_evaluation_client.variant(namespace_key="default", flag_key="flag1", entity_id="entity", context={"this": "context"})
+variant_result = flipt_evaluation_client.variant(namespace_key="default", flag_key="flag1", entity_id="entity", context={"fizz": "buzz"})
+
+print(variant_result)
 ```

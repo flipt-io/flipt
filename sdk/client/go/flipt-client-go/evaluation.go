@@ -47,7 +47,7 @@ func NewClient(namespace string) *Client {
 }
 
 // Variant makes an evaluation on a variant flag using the allocated Rust engine.
-func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest) (*VariantEvaluationResponse, error) {
+func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest) (*VariantResult, error) {
 	ereq, err := json.Marshal(evaluationRequest)
 	if err != nil {
 		return nil, err
@@ -58,17 +58,17 @@ func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest
 
 	b := C.GoBytes(unsafe.Pointer(variant), (C.int)(C.strlen(variant)))
 
-	var ver *VariantEvaluationResponse
+	var vr *VariantResult
 
-	if err := json.Unmarshal(b, &ver); err != nil {
+	if err := json.Unmarshal(b, &vr); err != nil {
 		return nil, err
 	}
 
-	return ver, nil
+	return vr, nil
 }
 
 // Boolean makes an evaluation on a boolean flag using the allocated Rust engine.
-func (e *Client) Boolean(_ context.Context, evaluationRequest *EvaluationRequest) (*BooleanEvaluationResponse, error) {
+func (e *Client) Boolean(_ context.Context, evaluationRequest *EvaluationRequest) (*BooleanResult, error) {
 	ereq, err := json.Marshal(evaluationRequest)
 	if err != nil {
 		return nil, err
@@ -79,13 +79,13 @@ func (e *Client) Boolean(_ context.Context, evaluationRequest *EvaluationRequest
 
 	b := C.GoBytes(unsafe.Pointer(boolean), (C.int)(C.strlen(boolean)))
 
-	var ber *BooleanEvaluationResponse
+	var br *BooleanResult
 
-	if err := json.Unmarshal(b, &ber); err != nil {
+	if err := json.Unmarshal(b, &br); err != nil {
 		return nil, err
 	}
 
-	return ber, nil
+	return br, nil
 }
 
 // Close cleans up the allocated engine as it was initialized in the constructor.

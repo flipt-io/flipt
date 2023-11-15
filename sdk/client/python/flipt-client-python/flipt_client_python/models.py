@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class EvaluationRequest(BaseModel):
@@ -26,3 +26,15 @@ class BooleanEvaluationResponse(BaseModel):
     reason: str
     request_duration_millis: float
     timestamp: str
+
+
+class VariantResult(BaseModel):
+    response_code: str
+    result: Optional[VariantEvaluationResponse] = None
+    error_message: Optional[str] = None
+
+
+class BooleanResult(BaseModel):
+    response_code: str
+    result: Optional[BooleanEvaluationResponse] = None
+    error_message: Optional[str] = None

@@ -3,9 +3,9 @@ import json
 import os
 
 from .models import (
-    BooleanEvaluationResponse,
+    BooleanResult,
     EvaluationRequest,
-    VariantEvaluationResponse,
+    VariantResult,
 )
 
 
@@ -33,11 +33,11 @@ class FliptEvaluationClient:
 
     def __del__(self):
         if hasattr(self, "engine") and self.engine is not None:
-            self.destroy_engine(self.engine)
+            self.ffi_core.destroy_engine(self.engine)
 
     def variant(
         self, namespace_key: str, flag_key: str, entity_id: str, context: dict
-    ) -> VariantEvaluationResponse:
+    ) -> VariantResult:
         response = self.ffi_core.variant(
             self.engine,
             serialize_evaluation_request(namespace_key, flag_key, entity_id, context),
@@ -45,15 +45,13 @@ class FliptEvaluationClient:
 
         bytes_returned = ctypes.c_char_p(response).value
 
-        variant_evaluation_response = VariantEvaluationResponse.parse_raw(
-            bytes_returned
-        )
+        variant_result = VariantResult.parse_raw(bytes_returned)
 
-        return variant_evaluation_response
+        return variant_result
 
     def boolean(
         self, namespace_key: str, flag_key: str, entity_id: str, context: dict
-    ) -> BooleanEvaluationResponse:
+    ) -> BooleanResult:
         response = self.ffi_core.boolean(
             self.engine,
             serialize_evaluation_request(namespace_key, flag_key, entity_id, context),
@@ -61,11 +59,9 @@ class FliptEvaluationClient:
 
         bytes_returned = ctypes.c_char_p(response).value
 
-        boolean_evaluation_response = BooleanEvaluationResponse.parse_raw(
-            bytes_returned
-        )
+        boolean_result = BooleanResult.parse_raw(bytes_returned)
 
-        return boolean_evaluation_response
+        return boolean_result
 
 
 def serialize_evaluation_request(
