@@ -23,12 +23,21 @@ import (
 // Client wraps the functionality of making variant and boolean evaluation of Flipt feature flags
 // using an engine that is compiled to a dynamic linking library.
 type Client struct {
-	engine unsafe.Pointer
+	engine    unsafe.Pointer
+	namespace string
 }
 
 // NewClient constructs an Client.
-func NewClient(namespace string) *Client {
-	ns := []*C.char{C.CString(namespace)}
+func NewClient(opts ...clientOption) *Client {
+	client := &Client{
+		namespace: "default",
+	}
+
+	for _, opt := range opts {
+		opt(client)
+	}
+
+	ns := []*C.char{C.CString(client.namespace)}
 
 	// Free the memory of the C Strings that were created to initialize the engine.
 	defer func() {
@@ -41,8 +50,18 @@ func NewClient(namespace string) *Client {
 
 	eng := C.initialize_engine(nsPtr)
 
-	return &Client{
-		engine: eng,
+	client.engine = eng
+
+	return client
+}
+
+// clientOption adds additional configuraiton for Client parameters
+type clientOption func(*Client)
+
+// WithNamespace allows for specifying which namespace the clients wants to make evaluations from.
+func WithNamespace(namespace string) clientOption {
+	return func(c *Client) {
+		c.namespace = namespace
 	}
 }
 

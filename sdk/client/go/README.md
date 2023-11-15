@@ -39,7 +39,9 @@ import (
 )
 
 func main() {
-	evaluationClient := evaluation.NewClient("default")
+	// You can initialize the client with an namespace using "WithNamespace", otherwise
+	// it will target the default namespace.
+	evaluationClient := evaluation.NewClient(evaluation.WithNamespace("staging"))
 
 	evalCtx := map[string]string{
 		"fizz": "buzz",

@@ -10,7 +10,7 @@ from .models import (
 
 
 class FliptEvaluationClient:
-    def __init__(self, namespaces: list[str]):
+    def __init__(self, namespace: str = "default"):
         engine_library_path = os.environ.get("ENGINE_LIB_PATH")
         if engine_library_path is None:
             raise Exception("ENGINE_LIB_PATH not set")
@@ -26,8 +26,10 @@ class FliptEvaluationClient:
         self.ffi_core.boolean.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
         self.ffi_core.boolean.restype = ctypes.c_char_p
 
-        ns = (ctypes.c_char_p * len(namespaces))()
-        ns[:] = [s.encode("utf-8") for s in namespaces]
+        namespace_list = [namespace]
+
+        ns = (ctypes.c_char_p * len(namespace_list))()
+        ns[:] = [s.encode("utf-8") for s in namespace_list]
 
         self.engine = self.ffi_core.initialize_engine(ns)
 
