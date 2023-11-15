@@ -407,6 +407,7 @@ message ListRuleRequest {
   string page_token = 4;
   string namespace_key = 5;
 }
+
 message GetRuleRequest {
   string id = 1;
   string flag_key = 2;
@@ -478,8 +479,12 @@ message DeleteDistributionRequest {
 }
 
 service Flipt {
-  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {}
-  rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {}
+  rpc Evaluate(EvaluationRequest) returns (EvaluationResponse) {
+    option deprecated = true;
+  }
+  rpc BatchEvaluate(BatchEvaluationRequest) returns (BatchEvaluationResponse) {
+    option deprecated = true;
+  }
   rpc GetNamespace(GetNamespaceRequest) returns (Namespace) { } 
   rpc ListNamespaces(ListNamespaceRequest) returns (NamespaceList) {}
   rpc CreateNamespace(CreateNamespaceRequest) returns (Namespace) {}

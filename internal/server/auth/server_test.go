@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.flipt.io/flipt/errors"
 	"go.flipt.io/flipt/internal/server/auth"
-	middleware "go.flipt.io/flipt/internal/server/middleware/grpc"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
+	middlewaregrpc "go.flipt.io/flipt/internal/server/middleware/grpc"
 	storageauth "go.flipt.io/flipt/internal/storage/auth"
 	"go.flipt.io/flipt/internal/storage/auth/memory"
 	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
@@ -33,7 +34,7 @@ func TestActorFromContext(t *testing.T) {
 	)
 
 	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{"x-forwarded-for": {"127.0.0.1"}})
-	ctx = auth.ContextWithAuthentication(ctx, &rpcauth.Authentication{Method: rpcauth.Method_METHOD_TOKEN})
+	ctx = authmiddlewaregrpc.ContextWithAuthentication(ctx, &rpcauth.Authentication{Method: rpcauth.Method_METHOD_TOKEN})
 
 	actor := auth.ActorFromContext(ctx)
 
@@ -47,9 +48,9 @@ func TestServer(t *testing.T) {
 		store    = memory.NewStore()
 		listener = bufconn.Listen(1024 * 1024)
 		server   = grpc.NewServer(
-			grpc_middleware.WithUnaryServerChain(
-				auth.UnaryInterceptor(logger, store),
-				middleware.ErrorUnaryInterceptor,
+			grpc.ChainUnaryInterceptor(
+				authmiddlewaregrpc.UnaryInterceptor(logger, store),
+				middlewaregrpc.ErrorUnaryInterceptor,
 			),
 		)
 		errC     = make(chan error)
@@ -196,4 +197,14 @@ func TestServer(t *testing.T) {
 		_, err = client.GetAuthenticationSelf(ctx, &emptypb.Empty{})
 		require.ErrorIs(t, err, status.Error(codes.Unauthenticated, "request was not authenticated"))
 	})
+}
+
+func Test_Server_DisallowsNamespaceScopedAuthentication(t *testing.T) {
+	var (
+		logger = zaptest.NewLogger(t)
+		store  = memory.NewStore()
+		server = auth.NewServer(logger, store)
+	)
+
+	assert.False(t, server.AllowsNamespaceScopedAuthentication(context.Background()))
 }

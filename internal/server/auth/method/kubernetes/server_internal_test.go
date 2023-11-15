@@ -115,6 +115,11 @@ func Test_Server_VerifyServiceAccount(t *testing.T) {
 	}
 }
 
+func Test_Server_SkipsAuthentication(t *testing.T) {
+	server := &Server{}
+	assert.True(t, server.SkipsAuthentication(context.Background()))
+}
+
 type mockTokenVerifier map[string]claims
 
 func (m mockTokenVerifier) verify(_ context.Context, jwt string) (claims, error) {

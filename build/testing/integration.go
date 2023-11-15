@@ -12,10 +12,13 @@ import (
 	"time"
 
 	"dagger.io/dagger"
+	"github.com/containerd/containerd/platforms"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
+
+const bootstrapToken = "s3cr3t"
 
 var (
 	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
@@ -29,6 +32,7 @@ var (
 		"fs/git":        git,
 		"fs/local":      local,
 		"fs/s3":         s3,
+		"fs/oci":        oci,
 		"import/export": importExport,
 	}
 )
@@ -37,7 +41,7 @@ type testConfig struct {
 	name      string
 	namespace string
 	address   string
-	token     string
+	auth      authConfig
 	port      int
 }
 
@@ -60,6 +64,18 @@ func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	return cases, nil
 }
 
+type authConfig int
+
+const (
+	noAuth authConfig = iota
+	authNoNamespace
+	authNamespaced
+)
+
+func (a authConfig) enabled() bool {
+	return a != noAuth
+}
+
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
 	cases, err := filterCases(caseNames...)
 	if err != nil {
@@ -79,21 +95,25 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, token := range []string{"", "some-token"} {
-				name := fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace)
-				if token != "" {
-					name = fmt.Sprintf("%s with token %s", name, token)
+			for _, auth := range []authConfig{noAuth, authNoNamespace, authNamespaced} {
+				config := testConfig{
+					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
+					namespace: namespace,
+					auth:      auth,
+					address:   fmt.Sprintf("%s://flipt:%d", protocol, port),
+					port:      port,
 				}
 
-				configs = append(configs,
-					testConfig{
-						name:      name,
-						namespace: namespace,
-						address:   fmt.Sprintf("%s://flipt:%d", protocol, port),
-						token:     token,
-						port:      port,
-					},
-				)
+				switch auth {
+				case noAuth:
+					config.name = fmt.Sprintf("%s without auth", config.name)
+				case authNoNamespace:
+					config.name = fmt.Sprintf("%s with auth no namespaced token", config.name)
+				case authNamespaced:
+					config.name = fmt.Sprintf("%s with auth namespaced token", config.name)
+				}
+
+				configs = append(configs, config)
 			}
 		}
 	}
@@ -110,11 +130,11 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			)
 
 			flipt := flipt
-			if config.token != "" {
+			if config.auth.enabled() {
 				flipt = flipt.
 					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", config.token)
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
 			}
 
 			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
@@ -238,12 +258,74 @@ func s3(ctx context.Context, client *dagger.Client, base, flipt *dagger.Containe
 	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
 }
 
+func oci(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
+	platform, err := client.DefaultPlatform(ctx)
+	if err != nil {
+		return func() error { return err }
+	}
+
+	var (
+		// username == "username" password == "password"
+		htpasswd  = "username:$2y$05$0krVCN7KfnmV5MwdD6Z7CuFuFnmbqP8.14iEV/nhNLM4V3VFF7NVK"
+		zotConfig = `{
+    "storage": {
+        "rootDirectory": "/var/lib/registry"
+    },
+    "http": {
+        "address": "0.0.0.0",
+        "port": "5000",
+        "auth": {
+            "htpasswd": {
+                "path": "/etc/zot/htpasswd"
+            }
+        }
+    },
+    "log": {
+        "level": "debug"
+    }
+}`
+	)
+	// switch out zot images based on host platform
+	// and push to remote name
+	zot := client.Container().
+		From(fmt.Sprintf("ghcr.io/project-zot/zot-linux-%s:latest",
+			platforms.MustParse(string(platform)).Architecture)).
+		WithExposedPort(5000).
+		WithNewFile("/etc/zot/htpasswd", dagger.ContainerWithNewFileOpts{Contents: htpasswd}).
+		WithNewFile("/etc/zot/config.json", dagger.ContainerWithNewFileOpts{Contents: zotConfig})
+
+	if _, err := flipt.
+		WithDirectory("/tmp/testdata", base.Directory(testdataDir)).
+		WithWorkdir("/tmp/testdata").
+		WithServiceBinding("zot", zot).
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
+		WithExec([]string{"/flipt", "bundle", "build", "readonly:latest"}).
+		WithExec([]string{"/flipt", "bundle", "push", "readonly:latest", "http://zot:5000/readonly:latest"}).
+		Sync(ctx); err != nil {
+		return func() error {
+			return err
+		}
+	}
+
+	flipt = flipt.
+		WithServiceBinding("zot", zot).
+		WithEnvVariable("FLIPT_LOG_LEVEL", "DEBUG").
+		WithEnvVariable("FLIPT_STORAGE_TYPE", "oci").
+		WithEnvVariable("FLIPT_STORAGE_OCI_REPOSITORY", "http://zot:5000/readonly:latest").
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_USERNAME", "username").
+		WithEnvVariable("FLIPT_STORAGE_OCI_AUTHENTICATION_PASSWORD", "password").
+		WithEnvVariable("UNIQUE", uuid.New().String())
+
+	return suite(ctx, "readonly", base, flipt.WithExec(nil), conf)
+}
+
 func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Container, conf testConfig) func() error {
 	return func() error {
 		// import testdata before running readonly suite
 		flags := []string{"--address", conf.address}
-		if conf.token != "" {
-			flags = append(flags, "--token", conf.token)
+		if conf.auth.enabled() {
+			flags = append(flags, "--token", bootstrapToken)
 		}
 
 		ns := "default"
@@ -330,8 +412,11 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			flags = append(flags, "--flipt-namespace", conf.namespace)
 		}
 
-		if conf.token != "" {
-			flags = append(flags, "--flipt-token", conf.token)
+		if conf.auth.enabled() {
+			flags = append(flags, "--flipt-token", bootstrapToken)
+			if conf.auth == authNamespaced {
+				flags = append(flags, "--flipt-create-namespaced-token")
+			}
 		}
 
 		_, err = base.

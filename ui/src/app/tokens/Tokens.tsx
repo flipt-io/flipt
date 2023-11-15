@@ -63,7 +63,9 @@ export default function Tokens() {
           return {
             ...token,
             name: token.metadata['io.flipt.auth.token.name'],
-            description: token.metadata['io.flipt.auth.token.description']
+            description:
+              token.metadata['io.flipt.auth.token.description'] ?? '',
+            namespaceKey: token.metadata['io.flipt.auth.token.namespace'] ?? ''
           };
         });
         setTokens(tokens);

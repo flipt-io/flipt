@@ -3,10 +3,6 @@
 
 package config
 
-import (
-	"os"
-)
-
 func defaultDatabaseRoot() (string, error) {
-	return os.UserConfigDir()
+	return Dir()
 }

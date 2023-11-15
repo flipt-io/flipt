@@ -9,7 +9,7 @@
 <hr />
 
 <p align="center">
-    <img src=".github/images/flags.png" alt="Flipt Dashboard" width=600 />
+    <img src=".github/images/dashboard.png" alt="Flipt Dashboard" width=600 />
 </p>
 
 <div align="center">
@@ -29,10 +29,13 @@
         <img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" />
     </a>
     <a href="https://flipt.io/discord">
-        <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat">
+        <img alt="Discord" src="https://img.shields.io/discord/960634591000014878?color=%238440f1&label=Discord&logo=discord&logoColor=%238440f1&style=flat" />
     </a>
     <a href="https://features.flipt.io/roadmap">
-        <img alt="Public Roadmap" src="https://img.shields.io/badge/roadmap-public-violet">
+        <img src="https://img.shields.io/badge/roadmap-public-violet" alt="Public Roadmap" />
+    </a>
+    <a href="https://flipt.io/#newsletter">
+        <img src="https://img.shields.io/badge/newsletter-subscribe-green" alt="Flipt Newsletter" />
     </a>
     <a href="https://twitter.com/flipt_io">
         <img src="https://img.shields.io/twitter/follow/flipt_io?label=Follow" alt="Flipt Twitter" />
@@ -56,7 +59,8 @@ Flipt can be deployed within your existing infrastructure so that you don't have
 <br clear="both"/>
 
 <p align="center">
-    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="https://console.dev/img/badges/1.0/png/console-badge-logo-dark.png" width=250 alt="Console - Developer Tool of the Week" /></a>
+    <a href="https://devhunt.org/tool/flipt" title="DevHunt - Tool of the Week"><img src="./.github/images/devhunt-badge.png" width=225 alt="DevHunt - Tool of the Week" /></a>&nbsp;
+    <a href="https://console.dev/tools/flipt" title="Visit Console - the best tools for developers"><img src="./.github/images/console-badge.png" width=250 alt="Console - Developer Tool of the Week" /></a>
 </p>
 
 ## Usecases
@@ -83,17 +87,10 @@ Flipt supports use cases such as:
 - Import and export to allow storing your data as code
 - Cloud-ready. Runs anywhere: bare metal, PaaS, K8s, with Docker or without
 - Works with [Prometheus](https://prometheus.io/) and [OpenTelemetry](https://opentelemetry.io/) out of the box 🔋
-- [Filesystem, S3, and Git storage backends](https://www.flipt.io/docs/configuration/storage#filesystem) to support GitOps workflows
+- [Filesystem, Object, Git, and OCI declarative storage backends](https://www.flipt.io/docs/configuration/storage#declarative) to support GitOps workflows and more.
 - Audit logging with webhooks support to track changes to your data
 
 Are we missing a feature that you'd like to see? [Let us know!](https://features.flipt.io)
-
-<br clear="both"/>
-
-<div align="center">
-<img align="left" src=".github/images/console.png" alt="Flipt Console" width=45% />
-<img align="right" src=".github/images/console-dark.png" alt="Flipt Console - Dark" width=45% />
-</div>
 
 <br clear="both"/>
 
@@ -107,35 +104,20 @@ Are we missing a feature that you'd like to see? [Let us know!](https://features
 
 <br clear="both"/>
 
-## Works With
-
-<p align="center">
-    <img src="./logos/sqlite.svg" alt="SQLite" width=150 height=150 />
-    <img src="./logos/mysql.svg" alt="MySQL" width=150 height=150 />
-    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=150 height=150 />
-    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=100 height=150 />
-    <img src="./logos/turso.svg" alt="Turso" width=150 height=150 />
-</p>
-<p align="center">
-    <img src="./logos/redis.svg" alt="Redis" width=150 height=150 />
-    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 height=150 />
-    <img src="./logos/openid.svg" alt="OpenID" width=125 height=125 />
-    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=150 height=150 />
-    <img src="./logos/git.svg" alt="Git" width=150 height=150 />
-</p>
-
 ## Try It
 
 Try the latest version of Flipt for yourself.
 
 ### Deploy 
 
-<a href="https://marketplace.digitalocean.com/apps/flipt" alt="Deploy to DigitalOcean">
-    <img width="200" alt="Deploy to DigitalOcean" src="https://www.deploytodo.com/do-btn-blue.svg"/>
-</a>
-<a href="https://render.com/deploy" alt="Deploy to Render">
-    <img width="200" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
-</a>
+<div>
+    <a href="https://marketplace.digitalocean.com/apps/flipt" alt="Deploy to DigitalOcean">
+        <img width="200" alt="Deploy to DigitalOcean" src="https://www.deploytodo.com/do-btn-blue.svg"/>
+    </a>&nbsp;
+    <a href="https://render.com/deploy" alt="Deploy to Render">
+        <img width="150" alt="Deploy to Render" src="http://render.com/images/deploy-to-render-button.svg" />
+    </a>
+</div>
 
 ### Sandbox
 
@@ -175,12 +157,22 @@ docker run --rm -p 8080:8080 -p 9000:9000 -t docker.flipt.io/flipt/flipt:nightly
 
 <br clear="both"/>
 
-## Release Cadence
+## Works With
 
-Flipt follows [semantic versioning](https://semver.org/) for versioning.
-
-We aim to release a new minor version of Flipt every 2-3 weeks. This allows us to quickly iterate on new features.
-Bug fixes and security patches (patch versions) will be released as needed.
+<p align="center">
+    <img src="./logos/sqlite.svg" alt="SQLite" width=125 />
+    <img src="./logos/mysql.svg" alt="MySQL" width=125 />
+    <img src="./logos/postgresql.svg" alt="PostgreSQL" width=125 />
+    <img src="./logos/turso.svg" alt="Turso" width=150 />
+    <img src="./logos/cockroachdb.svg" alt="CockroachDB" width=75 />
+</p>
+<p align="center">
+    <img src="./logos/redis.svg" alt="Redis" width=150 />
+    <img src="./logos/prometheus.svg" alt="Prometheus" width=150 />
+    <img src="./logos/openid.svg" alt="OpenID" width=100 />
+    <img src="./logos/opentelemetry.svg" alt="OpenTelemetry" width=125 />
+    <img src="./logos/git.svg" alt="Git" width=125 />
+</p>
 
 <br clear="both"/>
 
@@ -209,7 +201,7 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 | [Go](./sdk/go) | ![go](https://img.shields.io/github/v/tag/flipt-io/flipt?filter=sdk%2Fgo%2Fv*&label=go&link=https%3A%2F%2Fpkg.go.dev%2Fgo.flipt.io%2Fflipt%2Fsdk%2Fgo) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [Node/TypeScript](https://github.com/flipt-io/flipt-node) | [![npm](https://img.shields.io/npm/v/@flipt-io/flipt)](https://www.npmjs.com/package/@flipt-io/flipt) | ![stable](https://img.shields.io/badge/status-stable-green) |
 | [Java](https://github.com/flipt-io/flipt-java) | [![Maven Central](https://img.shields.io/maven-central/v/io.flipt/flipt-java)](https://central.sonatype.com/artifact/io.flipt/flipt-java) | ![stable](https://img.shields.io/badge/status-stable-green) |
-| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
+| [Python](https://github.com/flipt-io/flipt-python) | [![pypi](https://img.shields.io/pypi/v/flipt.svg)](https://pypi.org/project/flipt) | ![hardening](https://img.shields.io/badge/status-stable-green) |
 | [Rust](https://github.com/flipt-io/flipt-rust) | [![crates.io](https://img.shields.io/crates/v/flipt.svg)](https://crates.io/crates/flipt) | ![hardening](https://img.shields.io/badge/status-hardening-orange) |
 | [PHP](https://github.com/flipt-io/flipt-php) | [![Packagist](https://img.shields.io/packagist/v/flipt-io/flipt)](https://packagist.org/packages/flipt-io/flipt) | ![beta](https://img.shields.io/badge/status-beta-yellow) |
 
@@ -226,6 +218,15 @@ The [Flipt REST API](https://www.flipt.io/docs/reference/overview) can also be u
 If a client in your language is not available for download, you can easily generate one yourself using the existing [protobuf definition](https://github.com/flipt-io/flipt/blob/main/rpc/flipt/flipt.proto).
 
 Our [integration documentation](https://www.flipt.io/docs/integration) has more information on how to generate your own Flipt clients in your language of choice.
+
+<br clear="both"/>
+
+## Release Cadence
+
+Flipt follows [semantic versioning](https://semver.org/) for versioning.
+
+We aim to release a new minor version of Flipt every 2-3 weeks. This allows us to quickly iterate on new features.
+Bug fixes and security patches (patch versions) will be released as needed.
 
 <br clear="both"/>
 
@@ -317,6 +318,12 @@ Not sure how to get started? You can:
 
 - [Book a free, non-pressure pairing session/code walkthrough](https://calendly.com/flipt-mark/30) with one of our teammates!
 - Join our [Discord](https://www.flipt.io/discord), and ask any questions there
+- Dive into any of the open issues, here are some examples: 
+  - [Good First Issues](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  - [Backend](https://github.com/flipt-io/flipt/issues?q=is%3Aissue+is%3Aopen+label%3Ago)
+  - [Frontend](https://github.com/flipt-io/flipt/issues?q=is%3Aopen+is%3Aissue+label%3Aui)
+
+Review the [Architecture](ARCHITECTURE.md) and [Development](DEVELOPMENT.md) documentation for more information on how Flipt works.
 
 <br clear="both"/>
 
@@ -373,6 +380,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Provinite"><img src="https://avatars.githubusercontent.com/u/13734094?v=4?s=100" width="100px;" alt="Collin Driscoll"/><br /><sub><b>Collin Driscoll</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=Provinite" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jamess-Lucass"><img src="https://avatars.githubusercontent.com/u/23193271?v=4?s=100" width="100px;" alt="James"/><br /><sub><b>James</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=Jamess-Lucass" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/legoheld"><img src="https://avatars.githubusercontent.com/u/4560982?v=4?s=100" width="100px;" alt="legoheld"/><br /><sub><b>legoheld</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=legoheld" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://ediblemonad.dev"><img src="https://avatars.githubusercontent.com/u/11407672?v=4?s=100" width="100px;" alt="Akshay Nair"/><br /><sub><b>Akshay Nair</b></sub></a><br /><a href="https://github.com/flipt-io/flipt/commits?author=phenax" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

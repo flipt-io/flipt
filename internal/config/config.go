@@ -63,6 +63,16 @@ type Result struct {
 	Warnings []string
 }
 
+// Dir returns the default root directory for Flipt configuration
+func Dir() (string, error) {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", fmt.Errorf("getting user config dir: %w", err)
+	}
+
+	return filepath.Join(configDir, "flipt"), nil
+}
+
 func Load(path string) (*Result, error) {
 	v := viper.New()
 	v.SetEnvPrefix("FLIPT")
@@ -427,7 +437,7 @@ func Default() *Config {
 		panic(err)
 	}
 
-	dbPath := filepath.Join(dbRoot, "flipt", "flipt.db")
+	dbPath := filepath.Join(dbRoot, "flipt.db")
 
 	return &Config{
 		Log: LogConfig{
@@ -448,6 +458,15 @@ func Default() *Config {
 		Cors: CorsConfig{
 			Enabled:        false,
 			AllowedOrigins: []string{"*"},
+			AllowedHeaders: []string{
+				"Accept",
+				"Authorization",
+				"Content-Type",
+				"X-CSRF-Token",
+				"X-Fern-Language",
+				"X-Fern-SDK-Name",
+				"X-Fern-SDK-Version",
+			},
 		},
 
 		Cache: CacheConfig{

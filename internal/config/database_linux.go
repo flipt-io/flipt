@@ -4,5 +4,5 @@
 package config
 
 func defaultDatabaseRoot() (string, error) {
-	return "/var/opt", nil
+	return "/var/opt/flipt", nil
 }

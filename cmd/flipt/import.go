@@ -65,6 +65,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 	var (
 		in     io.Reader = os.Stdin
 		logger           = zap.Must(zap.NewDevelopment())
+		enc              = ext.EncodingYML
 	)
 
 	if !c.importStdin {
@@ -89,6 +90,11 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		defer fi.Close()
 
 		in = fi
+
+		if extn := filepath.Ext(importFilename); len(extn) > 0 {
+			// strip off leading .
+			enc = ext.Encoding(extn[1:])
+		}
 	}
 
 	// Use client when remote address is configured.
@@ -97,7 +103,7 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		return ext.NewImporter(client).Import(cmd.Context(), in)
+		return ext.NewImporter(client).Import(cmd.Context(), enc, in)
 	}
 
 	logger, cfg, err := buildConfig()
@@ -150,5 +156,5 @@ func (c *importCommand) run(cmd *cobra.Command, args []string) error {
 
 	return ext.NewImporter(
 		server,
-	).Import(cmd.Context(), in)
+	).Import(cmd.Context(), enc, in)
 }

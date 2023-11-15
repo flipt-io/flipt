@@ -1,7 +1,6 @@
 version: "1.2"
 namespace: default
 ---
-version: "1.2"
 namespace: foo
 flags:
   - key: flag1
@@ -72,7 +71,6 @@ segments:
     match_type: "ANY_MATCH_TYPE"
     description: description
 ---
-version: "1.2"
 namespace: bar
 flags:
   - key: flag1

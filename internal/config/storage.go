@@ -3,9 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
+	"go.flipt.io/flipt/internal/oci"
 )
 
 // cheers up the unparam linter
@@ -18,6 +21,7 @@ const (
 	LocalStorageType    = StorageType("local")
 	GitStorageType      = StorageType("git")
 	ObjectStorageType   = StorageType("object")
+	OCIStorageType      = StorageType("oci")
 )
 
 type ObjectSubStorageType string
@@ -33,7 +37,8 @@ type StorageConfig struct {
 	Local    *Local      `json:"local,omitempty" mapstructure:"local,omitempty" yaml:"local,omitempty"`
 	Git      *Git        `json:"git,omitempty" mapstructure:"git,omitempty" yaml:"git,omitempty"`
 	Object   *Object     `json:"object,omitempty" mapstructure:"object,omitempty" yaml:"object,omitempty"`
-	ReadOnly *bool       `json:"readOnly,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
+	OCI      *OCI        `json:"oci,omitempty" mapstructure:"oci,omitempty" yaml:"oci,omitempty"`
+	ReadOnly *bool       `json:"read_only,omitempty" mapstructure:"read_only,omitempty" yaml:"read_only,omitempty"`
 }
 
 func (c *StorageConfig) setDefaults(v *viper.Viper) error {
@@ -56,6 +61,15 @@ func (c *StorageConfig) setDefaults(v *viper.Viper) error {
 		case string(S3ObjectSubStorageType):
 			v.SetDefault("storage.object.s3.poll_interval", "1m")
 		}
+	case string(OCIStorageType):
+		v.SetDefault("storage.oci.poll_interval", "30s")
+
+		dir, err := DefaultBundleDir()
+		if err != nil {
+			return err
+		}
+
+		v.SetDefault("storage.oci.bundles_directory", dir)
 	default:
 		v.SetDefault("storage.type", "database")
 	}
@@ -78,18 +92,24 @@ func (c *StorageConfig) validate() error {
 		}
 
 	case LocalStorageType:
-
 		if c.Local.Path == "" {
 			return errors.New("local path must be specified")
 		}
 
 	case ObjectStorageType:
-
 		if c.Object == nil {
 			return errors.New("object storage type must be specified")
 		}
 		if err := c.Object.validate(); err != nil {
 			return err
+		}
+	case OCIStorageType:
+		if c.OCI.Repository == "" {
+			return errors.New("oci storage repository must be specified")
+		}
+
+		if _, err := oci.ParseReference(c.OCI.Repository); err != nil {
+			return fmt.Errorf("validating OCI configuration: %w", err)
 		}
 	}
 
@@ -223,4 +243,38 @@ func (a SSHAuth) validate() (err error) {
 	}
 
 	return nil
+}
+
+// OCI provides configuration support for OCI target registries as a backend store for Flipt.
+type OCI struct {
+	// Repository is the target repository and reference to track.
+	// It should be in the form [<registry>/]<bundle>[:<tag>].
+	// When the registry is omitted, the bundle is referenced via the local bundle store.
+	// Tag defaults to 'latest' when not supplied.
+	Repository string `json:"repository,omitempty" mapstructure:"repository" yaml:"repository,omitempty"`
+	// BundlesDirectory is the root directory in which Flipt will store and access local feature bundles.
+	BundlesDirectory string `json:"bundles_directory,omitempty" mapstructure:"bundles_directory" yaml:"bundles_directory,omitempty"`
+	// Authentication configures authentication credentials for accessing the target registry
+	Authentication *OCIAuthentication `json:"-,omitempty" mapstructure:"authentication" yaml:"-,omitempty"`
+	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
+}
+
+// OCIAuthentication configures the credentials for authenticating against a target OCI regitstry
+type OCIAuthentication struct {
+	Username string `json:"-" mapstructure:"username" yaml:"-"`
+	Password string `json:"-" mapstructure:"password" yaml:"-"`
+}
+
+func DefaultBundleDir() (string, error) {
+	dir, err := Dir()
+	if err != nil {
+		return "", err
+	}
+
+	bundlesDir := filepath.Join(dir, "bundles")
+	if err := os.MkdirAll(bundlesDir, 0755); err != nil {
+		return "", fmt.Errorf("creating image directory: %w", err)
+	}
+
+	return bundlesDir, nil
 }

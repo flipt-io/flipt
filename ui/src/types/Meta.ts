@@ -29,7 +29,8 @@ export enum StorageType {
   DATABASE = 'database',
   GIT = 'git',
   LOCAL = 'local',
-  OBJECT = 'object'
+  OBJECT = 'object',
+  OCI = 'oci'
 }
 
 export enum LoadingStatus {

@@ -479,6 +479,7 @@ func TestLoad(t *testing.T) {
 				cfg.Cors = CorsConfig{
 					Enabled:        true,
 					AllowedOrigins: []string{"foo.com", "bar.com", "baz.com"},
+					AllowedHeaders: []string{"X-Some-Header", "X-Some-Other-Header"},
 				}
 				cfg.Cache.Enabled = true
 				cfg.Cache.Backend = CacheMemory
@@ -745,6 +746,36 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
+			name: "OCI config provided",
+			path: "./testdata/storage/oci_provided.yml",
+			expected: func() *Config {
+				cfg := Default()
+				cfg.Storage = StorageConfig{
+					Type: OCIStorageType,
+					OCI: &OCI{
+						Repository:       "some.target/repository/abundle:latest",
+						BundlesDirectory: "/tmp/bundles",
+						Authentication: &OCIAuthentication{
+							Username: "foo",
+							Password: "bar",
+						},
+						PollInterval: 5 * time.Minute,
+					},
+				}
+				return cfg
+			},
+		},
+		{
+			name:    "OCI invalid no repository",
+			path:    "./testdata/storage/oci_invalid_no_repo.yml",
+			wantErr: errors.New("oci storage repository must be specified"),
+		},
+		{
+			name:    "OCI invalid unexpected scheme",
+			path:    "./testdata/storage/oci_invalid_unexpected_scheme.yml",
+			wantErr: errors.New("validating OCI configuration: unexpected repository scheme: \"unknown\" should be one of [http|https|flipt]"),
+		},
+		{
 			name:    "storage readonly config invalid",
 			path:    "./testdata/storage/invalid_readonly.yml",
 			wantErr: errors.New("setting read only mode is only supported with database storage"),
@@ -801,7 +832,7 @@ func TestLoad(t *testing.T) {
 				} else if err.Error() == wantErr.Error() {
 					return
 				}
-				require.Fail(t, "expected error", "expected %q, found %q", err, wantErr)
+				require.Fail(t, "expected error", "expected %q, found %q", wantErr, err)
 			}
 
 			require.NoError(t, err)
@@ -899,6 +930,19 @@ func getEnvVars(prefix string, v map[any]any) (vals [][2]string) {
 		switch v := value.(type) {
 		case map[any]any:
 			vals = append(vals, getEnvVars(fmt.Sprintf("%s_%v", prefix, key), v)...)
+		case []any:
+			builder := strings.Builder{}
+			for i, s := range v {
+				builder.WriteString(fmt.Sprintf("%v", s))
+				if i < len(v)-1 {
+					builder.WriteByte(' ')
+				}
+			}
+
+			vals = append(vals, [2]string{
+				fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(fmt.Sprintf("%v", key))),
+				builder.String(),
+			})
 		default:
 			vals = append(vals, [2]string{
 				fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(fmt.Sprintf("%v", key))),

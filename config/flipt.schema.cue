@@ -120,6 +120,15 @@ import "strings"
 	#cors: {
 		enabled?:         bool | *false
 		allowed_origins?: [...] | string | *["*"]
+		allowed_headers?: [...string] | string | *[
+					"Accept",
+					"Authorization",
+					"Content-Type",
+					"X-CSRF-Token",
+					"X-Fern-Language",
+					"X-Fern-SDK-Name",
+					"X-Fern-SDK-Version",
+		]
 	}
 
 	#diagnostics: {
@@ -129,7 +138,8 @@ import "strings"
 	}
 
 	#storage: {
-		type: "database" | "git" | "local" | "object" | *""
+		type: "database" | "git" | "local" | "object" | "oci" | *""
+ 		read_only?: bool | *false
 		local?: path: string | *"."
 		git?: {
 			repository:      string
@@ -165,6 +175,15 @@ import "strings"
 				endpoint?:      string
 				poll_interval?: =~#duration | *"1m"
 			}
+		}
+		oci?: {
+			repository:         string
+			bundles_directory?: string
+			authentication?: {
+				username: string
+				password: string
+			}
+			poll_interval?: =~#duration | *"30s"
 		}
 	}
 

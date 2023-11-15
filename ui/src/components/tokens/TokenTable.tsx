@@ -71,16 +71,14 @@ export default function TokenTable(props: TokenTableProps) {
         className: 'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500'
       }
     }),
-    columnHelper.accessor(
-      (row) => format(parseISO(row.createdAt), 'MM/dd/yyyy'),
-      {
-        header: 'Created',
-        id: 'createdAt',
-        meta: {
-          className: 'whitespace-nowrap px-3 py-4 text-sm text-gray-500'
-        }
+    columnHelper.accessor('namespaceKey', {
+      header: 'Namespace',
+      cell: (info) => info.getValue(),
+      meta: {
+        className:
+          'truncate whitespace-nowrap px-3 py-4 font-medium text-sm text-gray-500'
       }
-    ),
+    }),
     columnHelper.accessor(
       (row) => {
         if (!row.expiresAt) {
@@ -93,7 +91,17 @@ export default function TokenTable(props: TokenTableProps) {
         id: 'expiresAt',
         meta: {
           className:
-            'truncate whitespace-nowrap px-3 py-4 text-sm text-gray-500'
+            'truncate whitespace-nowrap px-3 py-4 font-semibold text-sm text-gray-500'
+        }
+      }
+    ),
+    columnHelper.accessor(
+      (row) => format(parseISO(row.createdAt), 'MM/dd/yyyy'),
+      {
+        header: 'Created',
+        id: 'createdAt',
+        meta: {
+          className: 'whitespace-nowrap px-3 py-4 text-sm text-gray-500'
         }
       }
     ),

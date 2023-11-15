@@ -19,12 +19,13 @@ import (
 	"go.flipt.io/flipt/internal/config"
 	"go.flipt.io/flipt/internal/containers"
 	"go.flipt.io/flipt/internal/info"
+	"go.flipt.io/flipt/internal/oci"
 	fliptserver "go.flipt.io/flipt/internal/server"
 	"go.flipt.io/flipt/internal/server/audit"
 	"go.flipt.io/flipt/internal/server/audit/logfile"
 	"go.flipt.io/flipt/internal/server/audit/template"
 	"go.flipt.io/flipt/internal/server/audit/webhook"
-	"go.flipt.io/flipt/internal/server/auth"
+	authmiddlewaregrpc "go.flipt.io/flipt/internal/server/auth/middleware/grpc"
 	"go.flipt.io/flipt/internal/server/evaluation"
 	evaluationdata "go.flipt.io/flipt/internal/server/evaluation/data"
 	"go.flipt.io/flipt/internal/server/metadata"
@@ -32,6 +33,7 @@ import (
 	"go.flipt.io/flipt/internal/storage"
 	storagecache "go.flipt.io/flipt/internal/storage/cache"
 	"go.flipt.io/flipt/internal/storage/fs"
+	storageoci "go.flipt.io/flipt/internal/storage/fs/oci"
 	fliptsql "go.flipt.io/flipt/internal/storage/sql"
 	"go.flipt.io/flipt/internal/storage/sql/mysql"
 	"go.flipt.io/flipt/internal/storage/sql/postgres"
@@ -221,6 +223,36 @@ func NewGRPCServer(
 		if err != nil {
 			return nil, err
 		}
+	case config.OCIStorageType:
+		var opts []containers.Option[oci.StoreOptions]
+		if auth := cfg.Storage.OCI.Authentication; auth != nil {
+			opts = append(opts, oci.WithCredentials(
+				auth.Username,
+				auth.Password,
+			))
+		}
+
+		ocistore, err := oci.NewStore(logger, cfg.Storage.OCI.BundlesDirectory, opts...)
+		if err != nil {
+			return nil, err
+		}
+
+		ref, err := oci.ParseReference(cfg.Storage.OCI.Repository)
+		if err != nil {
+			return nil, err
+		}
+
+		source, err := storageoci.NewSource(logger, ocistore, ref,
+			storageoci.WithPollInterval(cfg.Storage.OCI.PollInterval),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		store, err = fs.NewStore(logger, source)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unexpected storage type: %q", cfg.Storage.Type)
 	}
@@ -293,12 +325,12 @@ func NewGRPCServer(
 	var (
 		// authOpts is a slice of options that will be passed to the authentication service.
 		// it's initialized with the default option of skipping authentication for the health service which should never require authentication.
-		authOpts = []containers.Option[auth.InterceptorOptions]{
-			auth.WithServerSkipsAuthentication(healthsrv),
+		authOpts = []containers.Option[authmiddlewaregrpc.InterceptorOptions]{
+			authmiddlewaregrpc.WithServerSkipsAuthentication(healthsrv),
 		}
 		skipAuthIfExcluded = func(server any, excluded bool) {
 			if excluded {
-				authOpts = append(authOpts, auth.WithServerSkipsAuthentication(server))
+				authOpts = append(authOpts, authmiddlewaregrpc.WithServerSkipsAuthentication(server))
 			}
 		}
 	)
