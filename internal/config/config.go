@@ -437,7 +437,7 @@ func Default() *Config {
 		panic(err)
 	}
 
-	dbPath := filepath.Join(dbRoot, "flipt", "flipt.db")
+	dbPath := filepath.Join(dbRoot, "flipt.db")
 
 	return &Config{
 		Log: LogConfig{
@@ -458,6 +458,15 @@ func Default() *Config {
 		Cors: CorsConfig{
 			Enabled:        false,
 			AllowedOrigins: []string{"*"},
+			AllowedHeaders: []string{
+				"Accept",
+				"Authorization",
+				"Content-Type",
+				"X-CSRF-Token",
+				"X-Fern-Language",
+				"X-Fern-SDK-Name",
+				"X-Fern-SDK-Version",
+			},
 		},
 
 		Cache: CacheConfig{

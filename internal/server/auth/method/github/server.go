@@ -73,6 +73,10 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodGithubServiceServer(server, s)
 }
 
+func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+	return true
+}
+
 func callbackURL(host string) string {
 	// strip trailing slash from host
 	host = strings.TrimSuffix(host, "/")

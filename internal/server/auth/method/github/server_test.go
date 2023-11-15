@@ -49,7 +49,7 @@ func (o *OAuth2Mock) Client(ctx context.Context, t *oauth2.Token) *http.Client {
 	return &http.Client{}
 }
 
-func TestServer_Github(t *testing.T) {
+func Test_Server(t *testing.T) {
 	var (
 		logger   = zaptest.NewLogger(t)
 		store    = memory.NewStore()
@@ -149,6 +149,11 @@ func TestServer_Github(t *testing.T) {
 	assert.EqualError(t, err, "rpc error: code = Internal desc = github user info response status: \"400 Bad Request\"")
 
 	gock.Off()
+}
+
+func Test_Server_SkipsAuthentication(t *testing.T) {
+	server := &Server{}
+	assert.True(t, server.SkipsAuthentication(context.Background()))
 }
 
 func TestCallbackURL(t *testing.T) {

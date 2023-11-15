@@ -18,6 +18,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const bootstrapToken = "s3cr3t"
+
 var (
 	protocolPorts = map[string]int{"http": 8080, "grpc": 9000}
 	replacer      = strings.NewReplacer(" ", "-", "/", "-")
@@ -39,7 +41,7 @@ type testConfig struct {
 	name      string
 	namespace string
 	address   string
-	token     string
+	auth      authConfig
 	port      int
 }
 
@@ -62,6 +64,18 @@ func filterCases(caseNames ...string) (map[string]testCaseFn, error) {
 	return cases, nil
 }
 
+type authConfig int
+
+const (
+	noAuth authConfig = iota
+	authNoNamespace
+	authNamespaced
+)
+
+func (a authConfig) enabled() bool {
+	return a != noAuth
+}
+
 func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger.Container, caseNames ...string) error {
 	cases, err := filterCases(caseNames...)
 	if err != nil {
@@ -81,21 +95,25 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 
 	for _, namespace := range []string{"", "production"} {
 		for protocol, port := range protocolPorts {
-			for _, token := range []string{"", "some-token"} {
-				name := fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace)
-				if token != "" {
-					name = fmt.Sprintf("%s with token %s", name, token)
+			for _, auth := range []authConfig{noAuth, authNoNamespace, authNamespaced} {
+				config := testConfig{
+					name:      fmt.Sprintf("%s namespace %s", strings.ToUpper(protocol), namespace),
+					namespace: namespace,
+					auth:      auth,
+					address:   fmt.Sprintf("%s://flipt:%d", protocol, port),
+					port:      port,
 				}
 
-				configs = append(configs,
-					testConfig{
-						name:      name,
-						namespace: namespace,
-						address:   fmt.Sprintf("%s://flipt:%d", protocol, port),
-						token:     token,
-						port:      port,
-					},
-				)
+				switch auth {
+				case noAuth:
+					config.name = fmt.Sprintf("%s without auth", config.name)
+				case authNoNamespace:
+					config.name = fmt.Sprintf("%s with auth no namespaced token", config.name)
+				case authNamespaced:
+					config.name = fmt.Sprintf("%s with auth namespaced token", config.name)
+				}
+
+				configs = append(configs, config)
 			}
 		}
 	}
@@ -112,11 +130,11 @@ func Integration(ctx context.Context, client *dagger.Client, base, flipt *dagger
 			)
 
 			flipt := flipt
-			if config.token != "" {
+			if config.auth.enabled() {
 				flipt = flipt.
 					WithEnvVariable("FLIPT_AUTHENTICATION_REQUIRED", "true").
 					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_ENABLED", "true").
-					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", config.token)
+					WithEnvVariable("FLIPT_AUTHENTICATION_METHODS_TOKEN_BOOTSTRAP_TOKEN", bootstrapToken)
 			}
 
 			name := strings.ToLower(replacer.Replace(fmt.Sprintf("flipt-test-%s-config-%s", caseName, config.name)))
@@ -306,8 +324,8 @@ func importExport(ctx context.Context, _ *dagger.Client, base, flipt *dagger.Con
 	return func() error {
 		// import testdata before running readonly suite
 		flags := []string{"--address", conf.address}
-		if conf.token != "" {
-			flags = append(flags, "--token", conf.token)
+		if conf.auth.enabled() {
+			flags = append(flags, "--token", bootstrapToken)
 		}
 
 		ns := "default"
@@ -394,8 +412,11 @@ func suite(ctx context.Context, dir string, base, flipt *dagger.Container, conf 
 			flags = append(flags, "--flipt-namespace", conf.namespace)
 		}
 
-		if conf.token != "" {
-			flags = append(flags, "--flipt-token", conf.token)
+		if conf.auth.enabled() {
+			flags = append(flags, "--flipt-token", bootstrapToken)
+			if conf.auth == authNamespaced {
+				flags = append(flags, "--flipt-create-namespaced-token")
+			}
 		}
 
 		_, err = base.

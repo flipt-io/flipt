@@ -1,4 +1,4 @@
-package auth
+package grpc_middleware
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"go.flipt.io/flipt/internal/containers"
+	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
+	"go.flipt.io/flipt/rpc/flipt"
 	authrpc "go.flipt.io/flipt/rpc/flipt/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -20,13 +22,9 @@ import (
 const (
 	authenticationHeaderKey = "authorization"
 	cookieHeaderKey         = "grpcgateway-cookie"
-
-	// tokenCookieKey is the key used when storing the flipt client token
-	// as a http cookie.
-	tokenCookieKey = "flipt_client_token"
 )
 
-var errUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
+var ErrUnauthenticated = status.Error(codes.Unauthenticated, "request was not authenticated")
 
 type authenticationContextKey struct{}
 
@@ -58,7 +56,12 @@ type InterceptorOptions struct {
 	skippedServers []any
 }
 
-func (o InterceptorOptions) skipped(server any) bool {
+func skipped(ctx context.Context, server any, o InterceptorOptions) bool {
+	if skipSrv, ok := server.(SkipsAuthenticationServer); ok && skipSrv.SkipsAuthentication(ctx) {
+		return true
+	}
+
+	// TODO: refactor to remove this check
 	for _, s := range o.skippedServers {
 		if s == server {
 			return true
@@ -78,6 +81,16 @@ func WithServerSkipsAuthentication(server any) containers.Option[InterceptorOpti
 	}
 }
 
+// ScopedAuthenticationServer is a grpc.Server which allows for specific scoped authentication.
+type ScopedAuthenticationServer interface {
+	AllowsNamespaceScopedAuthentication(ctx context.Context) bool
+}
+
+// SkipsAuthenticationServer is a grpc.Server which should always skip authentication.
+type SkipsAuthenticationServer interface {
+	SkipsAuthentication(ctx context.Context) bool
+}
+
 // UnaryInterceptor is a grpc.UnaryServerInterceptor which extracts a clientToken found
 // within the authorization field on the incoming requests metadata.
 // The fields value is expected to be in the form "Bearer <clientToken>".
@@ -87,7 +100,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		// skip auth for any preconfigured servers
-		if opts.skipped(info.Server) {
+		if skipped(ctx, info.Server, opts) {
 			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
 		}
@@ -95,7 +108,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			logger.Error("unauthenticated", zap.String("reason", "metadata not found on context"))
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		clientToken, err := clientTokenFromMetadata(md)
@@ -104,7 +117,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				zap.String("reason", "no authorization provided"),
 				zap.Error(err))
 
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		auth, err := authenticator.GetAuthenticationByClientToken(ctx, clientToken)
@@ -123,7 +136,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				return ctx, err
 			}
 
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		if auth.ExpiresAt != nil && auth.ExpiresAt.AsTime().Before(time.Now()) {
@@ -131,7 +144,7 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 				zap.String("reason", "authorization expired"),
 				zap.String("authentication_id", auth.Id),
 			)
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		return handler(ContextWithAuthentication(ctx, auth), req)
@@ -140,12 +153,20 @@ func UnaryInterceptor(logger *zap.Logger, authenticator Authenticator, o ...cont
 
 // EmailMatchingInterceptor is a grpc.UnaryServerInterceptor only used in the case where the user is using OIDC
 // and wants to whitelist a group of users issuing operations against the Flipt server.
-func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		auth := GetAuthenticationFrom(ctx)
+func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
 
-		if auth == nil {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipped(ctx, info.Server, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
 			return handler(ctx, req)
+		}
+
+		auth := GetAuthenticationFrom(ctx)
+		if auth == nil {
+			panic("authentication not found in context, middleware installed incorrectly")
 		}
 
 		// this mechanism only applies to authentications created using OIDC
@@ -156,7 +177,7 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 		email, ok := auth.Metadata["io.flipt.auth.oidc.email"]
 		if !ok {
 			logger.Debug("no email provided but required for auth")
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
 		}
 
 		matched := false
@@ -169,7 +190,91 @@ func EmailMatchingInterceptor(logger *zap.Logger, rgxs []*regexp.Regexp) grpc.Un
 
 		if !matched {
 			logger.Error("unauthenticated", zap.String("reason", "email is not allowed"))
-			return ctx, errUnauthenticated
+			return ctx, ErrUnauthenticated
+		}
+
+		return handler(ctx, req)
+	}
+}
+
+func NamespaceMatchingInterceptor(logger *zap.Logger, o ...containers.Option[InterceptorOptions]) grpc.UnaryServerInterceptor {
+	var opts InterceptorOptions
+	containers.ApplyAll(&opts, o...)
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// skip auth for any preconfigured servers
+		if skipped(ctx, info.Server, opts) {
+			logger.Debug("skipping authentication for server", zap.String("method", info.FullMethod))
+			return handler(ctx, req)
+		}
+
+		auth := GetAuthenticationFrom(ctx)
+		if auth == nil {
+			panic("authentication not found in context, middleware installed incorrectly")
+		}
+
+		// this mechanism only applies to static toke authentications
+		if auth.Method != authrpc.Method_METHOD_TOKEN {
+			return handler(ctx, req)
+		}
+
+		namespace, ok := auth.Metadata["io.flipt.auth.token.namespace"]
+		if !ok {
+			// if no namespace is provided then we should allow the request
+			return handler(ctx, req)
+		}
+
+		nsServer, ok := info.Server.(ScopedAuthenticationServer)
+		if !ok || !nsServer.AllowsNamespaceScopedAuthentication(ctx) {
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespace is not allowed"))
+			return ctx, ErrUnauthenticated
+		}
+
+		namespace = strings.TrimSpace(namespace)
+		if namespace == "" {
+			return handler(ctx, req)
+		}
+
+		logger := logger.With(zap.String("expected_namespace", namespace))
+
+		var reqNamespace string
+		switch nsReq := req.(type) {
+		case flipt.Namespaced:
+			reqNamespace = nsReq.GetNamespaceKey()
+			if reqNamespace == "" {
+				reqNamespace = "default"
+			}
+		case flipt.BatchNamespaced:
+			// ensure that all namespaces referenced in
+			// the batch are the same
+			for _, ns := range nsReq.GetNamespaceKeys() {
+				if ns == "" {
+					ns = "default"
+				}
+
+				if reqNamespace == "" {
+					reqNamespace = ns
+					continue
+				}
+
+				if reqNamespace != ns {
+					logger.Error("unauthenticated",
+						zap.String("reason", "namespace is not allowed"))
+					return ctx, ErrUnauthenticated
+				}
+			}
+		default:
+			// if the the token has a namespace but the request does not then we should reject the request
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespace is not allowed"))
+			return ctx, ErrUnauthenticated
+		}
+
+		if reqNamespace != namespace {
+			logger.Error("unauthenticated",
+				zap.String("reason", "namespace is not allowed"))
+			return ctx, ErrUnauthenticated
 		}
 
 		return handler(ctx, req)
@@ -181,7 +286,7 @@ func clientTokenFromMetadata(md metadata.MD) (string, error) {
 		return clientTokenFromAuthorization(authenticationHeader[0])
 	}
 
-	cookie, err := cookieFromMetadata(md, tokenCookieKey)
+	cookie, err := cookieFromMetadata(md, middlewarecommon.TokenCookieKey)
 	if err != nil {
 		return "", err
 	}
@@ -195,7 +300,7 @@ func clientTokenFromAuthorization(auth string) (string, error) {
 		return clientToken, nil
 	}
 
-	return "", errUnauthenticated
+	return "", ErrUnauthenticated
 }
 
 func cookieFromMetadata(md metadata.MD, key string) (*http.Cookie, error) {

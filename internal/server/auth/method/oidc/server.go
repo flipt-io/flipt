@@ -77,6 +77,10 @@ func (s *Server) RegisterGRPC(server *grpc.Server) {
 	auth.RegisterAuthenticationMethodOIDCServiceServer(server, s)
 }
 
+func (s *Server) SkipsAuthentication(ctx context.Context) bool {
+	return true
+}
+
 // AuthorizeURL constructs and returns a URL directed at the requested OIDC provider
 // based on our internal oauth2 client configuration.
 // The operation is configured to return a URL which ultimately redirects to the

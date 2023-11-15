@@ -1,4 +1,4 @@
-package auth
+package http_middleware
 
 import (
 	"context"
@@ -7,13 +7,12 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.flipt.io/flipt/internal/config"
+	middlewarecommon "go.flipt.io/flipt/internal/server/auth/middleware/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var (
-	stateCookieKey = "flipt_client_state"
-)
+const stateCookieKey = "flipt_client_state"
 
 // Middleware contains various extensions for appropriate integration of the generic auth services
 // behind gRPC gateway. This currently includes clearing the appropriate cookies on logout.
@@ -52,7 +51,7 @@ func (m Middleware) ErrorHandler(ctx context.Context, sm *runtime.ServeMux, ms r
 	// given a token cookie was supplied and the resulting error was unauthenticated
 	// then we clear all cookies to instruct the user agent to not attempt to use them
 	// again in a subsequent call
-	if _, cerr := r.Cookie(tokenCookieKey); status.Code(err) == codes.Unauthenticated &&
+	if _, cerr := r.Cookie(middlewarecommon.TokenCookieKey); status.Code(err) == codes.Unauthenticated &&
 		!errors.Is(cerr, http.ErrNoCookie) {
 		m.clearAllCookies(w)
 	}
@@ -62,7 +61,7 @@ func (m Middleware) ErrorHandler(ctx context.Context, sm *runtime.ServeMux, ms r
 }
 
 func (m Middleware) clearAllCookies(w http.ResponseWriter) {
-	for _, cookieName := range []string{stateCookieKey, tokenCookieKey} {
+	for _, cookieName := range []string{stateCookieKey, middlewarecommon.TokenCookieKey} {
 		cookie := &http.Cookie{
 			Name:   cookieName,
 			Value:  "",
