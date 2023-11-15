@@ -20,7 +20,7 @@ struct EvaluationReq {
 }
 
 pub struct Engine {
-    pub evaluator: Arc<Mutex<evaluator::Evaluator<store::parsers::FliptParser>>>,
+    pub evaluator: Arc<Mutex<evaluator::Evaluator>>,
 }
 
 impl Engine {
