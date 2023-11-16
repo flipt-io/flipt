@@ -24,7 +24,7 @@ from flipt_client_python import FliptEvaluationClient
 # namespace_key is optional here and will have a value of "default" if not specified
 flipt_evaluation_client = FliptEvaluationClient(namespace="staging")
 
-variant_result = flipt_evaluation_client.variant(namespace_key="default", flag_key="flag1", entity_id="entity", context={"fizz": "buzz"})
+variant_result = flipt_evaluation_client.variant(flag_key="flag1", entity_id="entity", context={"fizz": "buzz"})
 
 print(variant_result)
 ```

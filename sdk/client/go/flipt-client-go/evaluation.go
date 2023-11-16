@@ -66,8 +66,18 @@ func WithNamespace(namespace string) clientOption {
 }
 
 // Variant makes an evaluation on a variant flag using the allocated Rust engine.
-func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest) (*VariantResult, error) {
-	ereq, err := json.Marshal(evaluationRequest)
+func (e *Client) Variant(_ context.Context, flagKey, entityID string, evalContext map[string]string) (*VariantResult, error) {
+	eb, err := json.Marshal(evalContext)
+	if err != nil {
+		return nil, err
+	}
+
+	ereq, err := json.Marshal(evaluationRequest{
+		NamespaceKey: e.namespace,
+		FlagKey:      flagKey,
+		EntityId:     entityID,
+		Context:      string(eb),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +97,18 @@ func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest
 }
 
 // Boolean makes an evaluation on a boolean flag using the allocated Rust engine.
-func (e *Client) Boolean(_ context.Context, evaluationRequest *EvaluationRequest) (*BooleanResult, error) {
-	ereq, err := json.Marshal(evaluationRequest)
+func (e *Client) Boolean(_ context.Context, flagKey, entityID string, evalContext map[string]string) (*BooleanResult, error) {
+	eb, err := json.Marshal(evalContext)
+	if err != nil {
+		return nil, err
+	}
+
+	ereq, err := json.Marshal(evaluationRequest{
+		NamespaceKey: e.namespace,
+		FlagKey:      flagKey,
+		EntityId:     entityID,
+		Context:      string(eb),
+	})
 	if err != nil {
 		return nil, err
 	}

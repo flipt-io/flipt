@@ -31,7 +31,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -43,25 +42,13 @@ func main() {
 	// it will target the default namespace.
 	evaluationClient := evaluation.NewClient(evaluation.WithNamespace("staging"))
 
-	evalCtx := map[string]string{
+	variantResult, err := evaluationClient.Variant(context.Background(), "flag1", "someentity", map[string]string{
 		"fizz": "buzz",
-	}
-
-	evalCtxBytes, err := json.Marshal(evalCtx)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	variantResult, err := evaluationClient.Variant(context.Background(), &evaluation.EvaluationRequest{
-		NamespaceKey: "default",
-		FlagKey:      "flag1",
-		EntityId:     "someentity",
-		Context:      string(evalCtxBytes),
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(variantResult)
+	fmt.Println(*variantResult.Result)
 }
 ```

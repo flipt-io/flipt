@@ -1,6 +1,6 @@
 package evaluation
 
-type EvaluationRequest struct {
+type evaluationRequest struct {
 	NamespaceKey string `json:"namespace_key"`
 	FlagKey      string `json:"flag_key"`
 	EntityId     string `json:"entity_id"`

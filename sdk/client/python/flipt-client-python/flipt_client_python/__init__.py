@@ -15,6 +15,8 @@ class FliptEvaluationClient:
         if engine_library_path is None:
             raise Exception("ENGINE_LIB_PATH not set")
 
+        self.namespace_key = namespace
+
         self.ffi_core = ctypes.CDLL(engine_library_path)
 
         self.ffi_core.initialize_engine.restype = ctypes.c_void_p
@@ -37,12 +39,12 @@ class FliptEvaluationClient:
         if hasattr(self, "engine") and self.engine is not None:
             self.ffi_core.destroy_engine(self.engine)
 
-    def variant(
-        self, namespace_key: str, flag_key: str, entity_id: str, context: dict
-    ) -> VariantResult:
+    def variant(self, flag_key: str, entity_id: str, context: dict) -> VariantResult:
         response = self.ffi_core.variant(
             self.engine,
-            serialize_evaluation_request(namespace_key, flag_key, entity_id, context),
+            serialize_evaluation_request(
+                self.namespace_key, flag_key, entity_id, context
+            ),
         )
 
         bytes_returned = ctypes.c_char_p(response).value
@@ -51,12 +53,12 @@ class FliptEvaluationClient:
 
         return variant_result
 
-    def boolean(
-        self, namespace_key: str, flag_key: str, entity_id: str, context: dict
-    ) -> BooleanResult:
+    def boolean(self, flag_key: str, entity_id: str, context: dict) -> BooleanResult:
         response = self.ffi_core.boolean(
             self.engine,
-            serialize_evaluation_request(namespace_key, flag_key, entity_id, context),
+            serialize_evaluation_request(
+                self.namespace_key, flag_key, entity_id, context
+            ),
         )
 
         bytes_returned = ctypes.c_char_p(response).value
