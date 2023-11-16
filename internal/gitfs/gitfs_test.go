@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io"
 	"io/fs"
+	"path"
 	"strings"
 	"testing"
 
@@ -23,7 +24,7 @@ var expected = map[string]string{
 }
 
 func Test_FS(t *testing.T) {
-	repo := testdataRepo(t)
+	repo := testdataRepo(t, "simple")
 
 	filesystem, err := NewFromRepo(zaptest.NewLogger(t), repo)
 	require.NoError(t, err)
@@ -177,7 +178,7 @@ func requireCast[T any](t *testing.T, v any) (c T) {
 //go:embed all:testdata/*
 var testdata embed.FS
 
-func testdataRepo(t *testing.T) *git.Repository {
+func testdataRepo(t *testing.T, sub string) *git.Repository {
 	t.Helper()
 
 	workdir := memfs.New()
@@ -185,7 +186,7 @@ func testdataRepo(t *testing.T) *git.Repository {
 	repo, err := git.Init(memory.NewStorage(), workdir)
 	require.NoError(t, err)
 
-	dir, err := fs.Sub(testdata, "testdata")
+	dir, err := fs.Sub(testdata, path.Join("testdata", sub))
 	require.NoError(t, err)
 
 	// copy testdata into target tmp dir
