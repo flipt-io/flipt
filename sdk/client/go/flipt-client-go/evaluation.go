@@ -21,7 +21,7 @@ import (
 )
 
 // Client wraps the functionality of making variant and boolean evaluation of Flipt feature flags
-// using an engine that is compiled to a dynamic linking library.
+// using an engine that is compiled to a dynamically linked library.
 type Client struct {
 	engine    unsafe.Pointer
 	namespace string

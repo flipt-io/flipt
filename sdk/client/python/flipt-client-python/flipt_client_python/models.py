@@ -29,12 +29,12 @@ class BooleanEvaluationResponse(BaseModel):
 
 
 class VariantResult(BaseModel):
-    response_code: str
+    status: str
     result: Optional[VariantEvaluationResponse] = None
     error_message: Optional[str] = None
 
 
 class BooleanResult(BaseModel):
-    response_code: str
+    status: str
     result: Optional[BooleanEvaluationResponse] = None
     error_message: Optional[str] = None

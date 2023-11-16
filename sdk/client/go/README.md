@@ -39,7 +39,7 @@ import (
 )
 
 func main() {
-	// You can initialize the client with an namespace using "WithNamespace", otherwise
+	// You can initialize the client with a namespace using "WithNamespace", otherwise
 	// it will target the default namespace.
 	evaluationClient := evaluation.NewClient(evaluation.WithNamespace("staging"))
 

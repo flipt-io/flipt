@@ -27,13 +27,13 @@ type BooleanEvaluationResponse struct {
 }
 
 type VariantResult struct {
-	ResponseCode string                     `json:"response_code"`
+	Status       string                     `json:"status"`
 	Result       *VariantEvaluationResponse `json:"result,omitempty"`
-	Error        string                     `json:"error_message,omitempty"`
+	ErrorMessage string                     `json:"error_message,omitempty"`
 }
 
 type BooleanResult struct {
-	ResponseCode string                     `json:"response_code"`
+	Status       string                     `json:"status"`
 	Result       *BooleanEvaluationResponse `json:"result,omitempty"`
 	ErrorMessage string                     `json:"error_message,omitempty"`
 }
