@@ -71,8 +71,47 @@ impl Engine {
     }
 }
 
-fn result_to_json_ptr<T: Serialize>(result: T) -> *mut c_char {
-    let json_string = serde_json::to_string(&result).unwrap();
+#[derive(Serialize)]
+struct FFIResponse<T>
+where
+    T: Serialize,
+{
+    status: Status,
+    result: Option<T>,
+    error_message: Option<String>,
+}
+
+#[derive(Serialize)]
+enum Status {
+    #[serde(rename = "success")]
+    Success,
+    #[serde(rename = "failure")]
+    Failure,
+}
+
+impl<T> From<Result<T, Whatever>> for FFIResponse<T>
+where
+    T: Serialize,
+{
+    fn from(value: Result<T, Whatever>) -> Self {
+        match value {
+            Ok(result) => FFIResponse {
+                status: Status::Success,
+                result: Some(result),
+                error_message: None,
+            },
+            Err(e) => FFIResponse {
+                status: Status::Failure,
+                result: None,
+                error_message: Some(e.to_string()),
+            },
+        }
+    }
+}
+
+fn result_to_json_ptr<T: Serialize>(result: Result<T, Whatever>) -> *mut c_char {
+    let ffi_response: FFIResponse<T> = result.into();
+    let json_string = serde_json::to_string(&ffi_response).unwrap();
     CString::new(json_string).unwrap().into_raw()
 }
 
@@ -119,9 +158,7 @@ pub unsafe extern "C" fn variant(
     let e = get_engine(engine_ptr).unwrap();
     let e_req = get_evaluation_request(evaluation_request);
 
-    let variant_response = e.variant(&e_req).unwrap();
-
-    result_to_json_ptr(variant_response)
+    result_to_json_ptr(e.variant(&e_req))
 }
 
 /// # Safety
@@ -135,9 +172,7 @@ pub unsafe extern "C" fn boolean(
     let e = get_engine(engine_ptr).unwrap();
     let e_req = get_evaluation_request(evaluation_request);
 
-    let boolean_response = e.boolean(&e_req).unwrap();
-
-    result_to_json_ptr(boolean_response)
+    result_to_json_ptr(e.boolean(&e_req))
 }
 
 unsafe fn get_evaluation_request(

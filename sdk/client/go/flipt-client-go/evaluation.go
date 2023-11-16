@@ -21,14 +21,23 @@ import (
 )
 
 // Client wraps the functionality of making variant and boolean evaluation of Flipt feature flags
-// using an engine that is compiled to a dynamic linking library.
+// using an engine that is compiled to a dynamically linked library.
 type Client struct {
-	engine unsafe.Pointer
+	engine    unsafe.Pointer
+	namespace string
 }
 
 // NewClient constructs an Client.
-func NewClient(namespace string) *Client {
-	ns := []*C.char{C.CString(namespace)}
+func NewClient(opts ...clientOption) *Client {
+	client := &Client{
+		namespace: "default",
+	}
+
+	for _, opt := range opts {
+		opt(client)
+	}
+
+	ns := []*C.char{C.CString(client.namespace)}
 
 	// Free the memory of the C Strings that were created to initialize the engine.
 	defer func() {
@@ -41,14 +50,34 @@ func NewClient(namespace string) *Client {
 
 	eng := C.initialize_engine(nsPtr)
 
-	return &Client{
-		engine: eng,
+	client.engine = eng
+
+	return client
+}
+
+// clientOption adds additional configuraiton for Client parameters
+type clientOption func(*Client)
+
+// WithNamespace allows for specifying which namespace the clients wants to make evaluations from.
+func WithNamespace(namespace string) clientOption {
+	return func(c *Client) {
+		c.namespace = namespace
 	}
 }
 
 // Variant makes an evaluation on a variant flag using the allocated Rust engine.
-func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest) (*VariantEvaluationResponse, error) {
-	ereq, err := json.Marshal(evaluationRequest)
+func (e *Client) Variant(_ context.Context, flagKey, entityID string, evalContext map[string]string) (*VariantResult, error) {
+	eb, err := json.Marshal(evalContext)
+	if err != nil {
+		return nil, err
+	}
+
+	ereq, err := json.Marshal(evaluationRequest{
+		NamespaceKey: e.namespace,
+		FlagKey:      flagKey,
+		EntityId:     entityID,
+		Context:      string(eb),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -58,18 +87,28 @@ func (e *Client) Variant(_ context.Context, evaluationRequest *EvaluationRequest
 
 	b := C.GoBytes(unsafe.Pointer(variant), (C.int)(C.strlen(variant)))
 
-	var ver *VariantEvaluationResponse
+	var vr *VariantResult
 
-	if err := json.Unmarshal(b, &ver); err != nil {
+	if err := json.Unmarshal(b, &vr); err != nil {
 		return nil, err
 	}
 
-	return ver, nil
+	return vr, nil
 }
 
 // Boolean makes an evaluation on a boolean flag using the allocated Rust engine.
-func (e *Client) Boolean(_ context.Context, evaluationRequest *EvaluationRequest) (*BooleanEvaluationResponse, error) {
-	ereq, err := json.Marshal(evaluationRequest)
+func (e *Client) Boolean(_ context.Context, flagKey, entityID string, evalContext map[string]string) (*BooleanResult, error) {
+	eb, err := json.Marshal(evalContext)
+	if err != nil {
+		return nil, err
+	}
+
+	ereq, err := json.Marshal(evaluationRequest{
+		NamespaceKey: e.namespace,
+		FlagKey:      flagKey,
+		EntityId:     entityID,
+		Context:      string(eb),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +118,13 @@ func (e *Client) Boolean(_ context.Context, evaluationRequest *EvaluationRequest
 
 	b := C.GoBytes(unsafe.Pointer(boolean), (C.int)(C.strlen(boolean)))
 
-	var ber *BooleanEvaluationResponse
+	var br *BooleanResult
 
-	if err := json.Unmarshal(b, &ber); err != nil {
+	if err := json.Unmarshal(b, &br); err != nil {
 		return nil, err
 	}
 
-	return ber, nil
+	return br, nil
 }
 
 // Close cleans up the allocated engine as it was initialized in the constructor.

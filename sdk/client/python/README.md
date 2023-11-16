@@ -21,7 +21,10 @@ In your Python code you can import this client and use it as so:
 ```python
 from flipt_client_python import FliptEvaluationClient
 
-flipt_evaluation_client = FliptEvaluationClient(namespaces=["default", "another-namespace"])
+# namespace_key is optional here and will have a value of "default" if not specified
+flipt_evaluation_client = FliptEvaluationClient(namespace="staging")
 
-variant_response = flipt_evaluation_client.variant(namespace_key="default", flag_key="flag1", entity_id="entity", context={"this": "context"})
+variant_result = flipt_evaluation_client.variant(flag_key="flag1", entity_id="entity", context={"fizz": "buzz"})
+
+print(variant_result)
 ```

@@ -1,6 +1,6 @@
 package evaluation
 
-type EvaluationRequest struct {
+type evaluationRequest struct {
 	NamespaceKey string `json:"namespace_key"`
 	FlagKey      string `json:"flag_key"`
 	EntityId     string `json:"entity_id"`
@@ -24,4 +24,16 @@ type BooleanEvaluationResponse struct {
 	Reason                string  `json:"reason"`
 	RequestDurationMillis float64 `json:"request_duration_millis"`
 	Timestamp             string  `json:"timestamp"`
+}
+
+type VariantResult struct {
+	Status       string                     `json:"status"`
+	Result       *VariantEvaluationResponse `json:"result,omitempty"`
+	ErrorMessage string                     `json:"error_message,omitempty"`
+}
+
+type BooleanResult struct {
+	Status       string                     `json:"status"`
+	Result       *BooleanEvaluationResponse `json:"result,omitempty"`
+	ErrorMessage string                     `json:"error_message,omitempty"`
 }
